@@ -13,7 +13,16 @@ export function Navigation() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    checkUser();
+    const init = async () => {
+      await checkUser();
+    };
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Only fetch balance and unread count if user is authenticated
     fetchBalance();
     fetchUnreadCount();
 
@@ -37,7 +46,7 @@ export function Navigation() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   const checkUser = async () => {
     const supabase = createClient();
