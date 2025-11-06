@@ -44,6 +44,12 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
       console.log('Login successful, redirecting to:', data.user?.role === 'creator' ? '/creator/dashboard' : '/dashboard');
 
+      // Set session on client side for immediate access
+      if (data.session) {
+        const supabase = (await import('@/lib/supabase/client')).createClient();
+        await supabase.auth.setSession(data.session);
+      }
+
       // Short delay to ensure session is set
       await new Promise(resolve => setTimeout(resolve, 500));
 

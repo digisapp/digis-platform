@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
       dbUser = newUser;
     }
 
-    // Create response with user role
-    const response = NextResponse.json({
+    // Return response with user role
+    return NextResponse.json({
       user: {
         ...data.user,
         role: dbUser?.role || 'fan',
@@ -56,9 +56,6 @@ export async function POST(request: NextRequest) {
       session: data.session,
       message: 'Login successful!',
     });
-
-    // The cookies are already set by the supabase client via middleware
-    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
