@@ -71,10 +71,10 @@ export function Navigation() {
     },
     // Center button will be here
     {
-      label: 'Calls',
-      icon: '📞',
-      path: '/calls/history',
-      active: isActive('/calls/history') || pathname?.startsWith('/calls'),
+      label: 'Messages',
+      icon: '💬',
+      path: '/messages',
+      active: isActive('/messages') || pathname?.startsWith('/messages'),
     },
     {
       label: 'Wallet',
