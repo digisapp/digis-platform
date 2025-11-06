@@ -33,8 +33,12 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         throw new Error(data.error || 'Login failed');
       }
 
-      // Redirect to wallet after successful login
-      window.location.href = '/wallet';
+      // Redirect based on user role
+      if (data.user?.role === 'creator') {
+        window.location.href = '/creator/dashboard';
+      } else {
+        window.location.href = '/dashboard';
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,9 +29,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create response with proper redirect
+    // Get user role from database
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, data.user.id),
+    });
+
+    // Create response with user role
     const response = NextResponse.json({
-      user: data.user,
+      user: {
+        ...data.user,
+        role: dbUser?.role || 'fan',
+      },
       session: data.session,
       message: 'Login successful!',
     });
