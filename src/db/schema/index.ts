@@ -4,3 +4,4 @@ export * from './calls';
 export * from './streams';
 export * from './messages';
 export * from './explore';
+export * from './admin';
