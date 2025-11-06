@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { GlassCard, GlassButton } from '@/components/ui';
+import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('session_id');
@@ -66,5 +66,17 @@ export default function SuccessPage() {
         </GlassCard>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }

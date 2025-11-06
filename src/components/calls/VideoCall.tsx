@@ -9,7 +9,7 @@ import {
   useRoomContext,
   useTracks,
 } from '@livekit/components-react';
-import '@livekit/components-styles';
+// import '@livekit/components-styles'; // TODO: Fix CSS import issue
 import { Track } from 'livekit-client';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 

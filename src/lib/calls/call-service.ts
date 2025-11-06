@@ -191,9 +191,11 @@ export class CallService {
       throw new Error('Call has no start time');
     }
 
+    const startTime = call.startedAt; // Store for TypeScript
+
     return await db.transaction(async (tx) => {
       const endTime = new Date();
-      const durationMs = endTime.getTime() - call.startedAt.getTime();
+      const durationMs = endTime.getTime() - startTime.getTime();
       const durationSeconds = Math.floor(durationMs / 1000);
       const durationMinutes = Math.ceil(durationSeconds / 60); // Round up to nearest minute
 
