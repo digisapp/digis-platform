@@ -21,17 +21,27 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     setLoading(true);
 
     try {
+      console.log('Login attempt:', { email });
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('Login response status:', response.status);
+
       const data = await response.json();
+      console.log('Login response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
+
+      console.log('Login successful, redirecting to:', data.user?.role === 'creator' ? '/creator/dashboard' : '/dashboard');
+
+      // Short delay to ensure session is set
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Redirect based on user role
       if (data.user?.role === 'creator') {
@@ -40,6 +50,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         window.location.href = '/dashboard';
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
