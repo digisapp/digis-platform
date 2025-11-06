@@ -18,6 +18,8 @@ export const transactionStatusEnum = pgEnum('transaction_status', [
   'refunded'
 ]);
 
+export const holdStatusEnum = pgEnum('hold_status', ['active', 'settled', 'released']);
+
 // Double-entry ledger table
 export const walletTransactions = pgTable('wallet_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -42,7 +44,7 @@ export const spendHolds = pgTable('spend_holds', {
   amount: integer('amount').notNull(),
   purpose: text('purpose').notNull(), // 'video_call', 'live_stream', etc.
   relatedId: uuid('related_id'), // call_id or stream_id
-  status: pgEnum('hold_status', ['active', 'settled', 'released'])('status').default('active').notNull(),
+  status: holdStatusEnum('status').default('active').notNull(),
   settledAt: timestamp('settled_at'),
   releasedAt: timestamp('released_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
