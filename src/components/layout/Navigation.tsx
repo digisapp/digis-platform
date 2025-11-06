@@ -10,10 +10,33 @@ export function Navigation() {
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string>('fan');
   const [balance, setBalance] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     checkUser();
     fetchBalance();
+    fetchUnreadCount();
+
+    // Subscribe to real-time message updates
+    const supabase = createClient();
+    const channel = supabase
+      .channel('navigation-unread')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+        },
+        () => {
+          fetchUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const checkUser = async () => {
@@ -38,6 +61,18 @@ export function Navigation() {
       const data = await response.json();
       if (response.ok) {
         setBalance(data.balance);
+      }
+    } catch (err) {
+      // User not logged in
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await fetch('/api/messages/unread-count');
+      const data = await response.json();
+      if (response.ok) {
+        setUnreadCount(data.count);
       }
     } catch (err) {
       // User not logged in
@@ -127,7 +162,14 @@ export function Navigation() {
                 item.active ? 'text-digis-cyan' : 'text-gray-400'
               }`}
             >
-              <span className="text-2xl">{item.icon}</span>
+              <div className="relative">
+                <span className="text-2xl">{item.icon}</span>
+                {item.label === 'Messages' && unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+              </div>
               <span className="text-xs font-medium">
                 {item.label === 'Wallet' ? balance : item.label}
               </span>
@@ -159,7 +201,14 @@ export function Navigation() {
               }`}
               title={item.label}
             >
-              <span className="text-2xl">{item.icon}</span>
+              <div className="relative">
+                <span className="text-2xl">{item.icon}</span>
+                {item.label === 'Messages' && unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+              </div>
               <span className="text-xs font-medium">{item.label}</span>
             </button>
           ))}

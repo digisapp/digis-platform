@@ -26,6 +26,8 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<ConversationWithOtherUser[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [userRole, setUserRole] = useState<string>('fan');
+  const [pendingRequests, setPendingRequests] = useState(0);
 
   useEffect(() => {
     checkAuth();
@@ -60,6 +62,35 @@ export default function MessagesPage() {
     if (!user) {
       router.push('/');
       return;
+    }
+
+    // Get user role
+    try {
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+      if (data.user?.role) {
+        setUserRole(data.user.role);
+
+        // Fetch pending requests if creator
+        if (data.user.role === 'creator') {
+          fetchPendingRequests();
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      const response = await fetch('/api/messages/requests');
+      const data = await response.json();
+
+      if (response.ok) {
+        setPendingRequests(data.requests?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pending requests:', error);
     }
   };
 
@@ -112,7 +143,21 @@ export default function MessagesPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">Messages 💬</h1>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-white">Messages 💬</h1>
+            {userRole === 'creator' && pendingRequests > 0 && (
+              <button
+                onClick={() => router.push('/messages/requests')}
+                className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2"
+              >
+                <span>📬</span>
+                <span>Requests</span>
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {pendingRequests}
+                </span>
+              </button>
+            )}
+          </div>
           <p className="text-gray-400">Your conversations</p>
         </div>
 
