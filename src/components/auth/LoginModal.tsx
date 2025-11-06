@@ -15,6 +15,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     console.log('=== FORM SUBMIT STARTED ===');
     e.preventDefault();
@@ -62,7 +63,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Welcome Back" size="sm">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" action="javascript:void(0)">
         <GlassInput
           type="email"
           label="Email"
