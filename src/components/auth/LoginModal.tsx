@@ -18,7 +18,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     console.log('=== FORM SUBMIT STARTED ===');
-    alert('Login form submitted!'); // Temporary visual confirmation
     e.preventDefault();
     e.stopPropagation();
 
