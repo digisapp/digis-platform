@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(mv:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --import-alias \"@/*\" --no-git --yes)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
