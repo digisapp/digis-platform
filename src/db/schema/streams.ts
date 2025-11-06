@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, integer, timestamp, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { users } from './users';
 
 // Stream status enum
@@ -107,6 +108,54 @@ export const streamViewers = pgTable('stream_viewers', {
 }, (table) => ({
   streamIdIdx: index('stream_viewers_stream_id_idx').on(table.streamId, table.lastSeenAt),
   uniqueViewer: index('stream_viewers_unique_idx').on(table.streamId, table.userId),
+}));
+
+// Relations
+export const streamsRelations = relations(streams, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [streams.creatorId],
+    references: [users.id],
+  }),
+  messages: many(streamMessages),
+  gifts: many(streamGifts),
+  viewers: many(streamViewers),
+}));
+
+export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamMessages.streamId],
+    references: [streams.id],
+  }),
+  user: one(users, {
+    fields: [streamMessages.userId],
+    references: [users.id],
+  }),
+}));
+
+export const streamGiftsRelations = relations(streamGifts, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamGifts.streamId],
+    references: [streams.id],
+  }),
+  sender: one(users, {
+    fields: [streamGifts.senderId],
+    references: [users.id],
+  }),
+  gift: one(virtualGifts, {
+    fields: [streamGifts.giftId],
+    references: [virtualGifts.id],
+  }),
+}));
+
+export const streamViewersRelations = relations(streamViewers, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamViewers.streamId],
+    references: [streams.id],
+  }),
+  user: one(users, {
+    fields: [streamViewers.userId],
+    references: [users.id],
+  }),
 }));
 
 // Type exports

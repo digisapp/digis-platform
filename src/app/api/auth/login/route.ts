@@ -29,10 +29,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user role from database
-    const dbUser = await db.query.users.findFirst({
+    // Get or create user in database
+    let dbUser = await db.query.users.findFirst({
       where: eq(users.id, data.user.id),
     });
+
+    // If user doesn't exist in database, create it
+    if (!dbUser) {
+      const [newUser] = await db.insert(users).values({
+        id: data.user.id,
+        email: data.user.email!,
+        displayName: data.user.user_metadata?.display_name || email.split('@')[0],
+        username: data.user.user_metadata?.username || email.split('@')[0],
+        role: 'fan',
+      }).returning();
+
+      dbUser = newUser;
+    }
 
     // Create response with user role
     const response = NextResponse.json({

@@ -3,7 +3,7 @@ import { pgTable, uuid, text, timestamp, boolean, pgEnum } from 'drizzle-orm/pg-
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
 
 export const users = pgTable('users', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey(), // Supabase auth user ID
   email: text('email').notNull().unique(),
   username: text('username').unique(),
   displayName: text('display_name'),
