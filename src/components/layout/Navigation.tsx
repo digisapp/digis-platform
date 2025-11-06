@@ -99,10 +99,10 @@ export function Navigation() {
       active: isActive('/dashboard') || isActive('/creator/dashboard'),
     },
     {
-      label: 'Live',
-      icon: '🎥',
-      path: '/live',
-      active: isActive('/live') || pathname?.startsWith('/stream'),
+      label: 'Explore',
+      icon: '🔍',
+      path: '/explore',
+      active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     // Center button will be here
     {
