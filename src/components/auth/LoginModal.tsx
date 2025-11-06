@@ -16,7 +16,10 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('=== FORM SUBMIT STARTED ===');
     e.preventDefault();
+    e.stopPropagation();
+
     setError('');
     setLoading(true);
 
@@ -84,15 +87,13 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
           </div>
         )}
 
-        <GlassButton
+        <button
           type="submit"
-          variant="gradient"
-          size="lg"
-          className="w-full"
           disabled={loading}
+          className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? <LoadingSpinner size="sm" /> : 'Sign In'}
-        </GlassButton>
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
 
         <div className="text-center text-gray-400">
           Don&apos;t have an account?{' '}
