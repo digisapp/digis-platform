@@ -33,8 +33,8 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         throw new Error(data.error || 'Login failed');
       }
 
-      // Reload page to update auth state
-      window.location.href = '/';
+      // Redirect to wallet after successful login
+      window.location.href = '/wallet';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {

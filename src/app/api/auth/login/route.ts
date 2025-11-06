@@ -26,11 +26,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    // Create response with proper redirect
+    const response = NextResponse.json({
       user: data.user,
       session: data.session,
       message: 'Login successful!',
     });
+
+    // The cookies are already set by the supabase client via middleware
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
