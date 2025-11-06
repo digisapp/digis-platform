@@ -1,0 +1,344 @@
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { StreamChat } from '@/components/streaming/StreamChat';
+import { GiftSelector } from '@/components/streaming/GiftSelector';
+import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
+import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
+import { GlassButton } from '@/components/ui/GlassButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import type { Stream, StreamMessage, VirtualGift, StreamGift } from '@/db/schema';
+
+type StreamWithCreator = Stream & {
+  creator?: {
+    id: string;
+    displayName: string | null;
+    username: string | null;
+  };
+};
+
+export default function StreamViewerPage() {
+  const params = useParams() as { streamId: string };
+  const router = useRouter();
+  const streamId = params.streamId as string;
+
+  const [stream, setStream] = useState<StreamWithCreator | null>(null);
+  const [messages, setMessages] = useState<StreamMessage[]>([]);
+  const [token, setToken] = useState<string>('');
+  const [serverUrl, setServerUrl] = useState<string>('');
+  const [isJoined, setIsJoined] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [userBalance, setUserBalance] = useState(0);
+  const [viewerCount, setViewerCount] = useState(0);
+  const [peakViewers, setPeakViewers] = useState(0);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
+
+  // Fetch stream details
+  useEffect(() => {
+    fetchStreamDetails();
+    fetchMessages();
+    fetchLeaderboard();
+    fetchUserBalance();
+  }, [streamId]);
+
+  // Join stream and setup real-time
+  useEffect(() => {
+    if (stream && !isJoined) {
+      joinStream();
+    }
+
+    return () => {
+      if (isJoined) {
+        leaveStream();
+      }
+    };
+  }, [stream, isJoined]);
+
+  // Setup real-time subscriptions
+  useEffect(() => {
+    if (!stream) return;
+
+    const handleStreamEvent = (event: StreamEvent) => {
+      switch (event.type) {
+        case 'chat':
+          setMessages((prev) => [...prev, event.data]);
+          break;
+        case 'gift':
+          setGiftAnimations((prev) => [...prev, event.data]);
+          fetchLeaderboard();
+          break;
+        case 'viewer_count':
+          setViewerCount(event.data.currentViewers);
+          setPeakViewers(event.data.peakViewers);
+          break;
+        case 'stream_ended':
+          alert('Stream has ended');
+          router.push('/live');
+          break;
+      }
+    };
+
+    const channel = RealtimeService.subscribeToStream(streamId, handleStreamEvent);
+
+    return () => {
+      RealtimeService.unsubscribeFromStream(streamId);
+    };
+  }, [stream, streamId, router]);
+
+  const fetchStreamDetails = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setStream(data.stream);
+        setViewerCount(data.stream.currentViewers);
+        setPeakViewers(data.stream.peakViewers);
+      } else {
+        setError(data.error || 'Stream not found');
+      }
+    } catch (err) {
+      setError('Failed to load stream');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/messages`);
+      const data = await response.json();
+      if (response.ok) {
+        setMessages(data.messages.reverse()); // Oldest first
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/leaderboard`);
+      const data = await response.json();
+      if (response.ok) {
+        setLeaderboard(data.leaderboard);
+      }
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err);
+    }
+  };
+
+  const fetchUserBalance = async () => {
+    try {
+      const response = await fetch('/api/wallet/balance');
+      const data = await response.json();
+      if (response.ok) {
+        setUserBalance(data.balance);
+      }
+    } catch (err) {
+      console.error('Error fetching balance:', err);
+    }
+  };
+
+  const joinStream = async () => {
+    try {
+      // Join stream
+      await fetch(`/api/streams/${streamId}/join`, { method: 'POST' });
+
+      // Get viewer token
+      const tokenResponse = await fetch(`/api/streams/${streamId}/token`);
+      const tokenData = await tokenResponse.json();
+
+      if (tokenResponse.ok) {
+        setToken(tokenData.token);
+        setServerUrl(tokenData.serverUrl);
+        setIsJoined(true);
+      }
+    } catch (err) {
+      console.error('Error joining stream:', err);
+      setError('Failed to join stream');
+    }
+  };
+
+  const leaveStream = async () => {
+    try {
+      await fetch(`/api/streams/${streamId}/leave`, { method: 'POST' });
+    } catch (err) {
+      console.error('Error leaving stream:', err);
+    }
+  };
+
+  const handleSendMessage = async (message: string) => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
+  const handleSendGift = async (giftId: string, quantity: number) => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/gift`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ giftId, quantity }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to send gift');
+      }
+
+      // Update balance
+      fetchUserBalance();
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
+  const removeGiftAnimation = (index: number) => {
+    setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !stream) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😔</div>
+          <h1 className="text-2xl font-bold text-white mb-2">{error || 'Stream not found'}</h1>
+          <GlassButton variant="cyan" onClick={() => router.push('/live')}>
+            Back to Live Streams
+          </GlassButton>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+      {/* Gift Animations Overlay */}
+      <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
+
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Video Area */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Video Player */}
+            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10">
+              {token && serverUrl ? (
+                <LiveKitRoom
+                  video={false}
+                  audio={true}
+                  token={token}
+                  serverUrl={serverUrl}
+                  className="h-full"
+                >
+                  <VideoConference />
+                  <RoomAudioRenderer />
+                </LiveKitRoom>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <LoadingSpinner size="lg" />
+                </div>
+              )}
+            </div>
+
+            {/* Stream Info */}
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-white mb-2">{stream.title}</h1>
+                  {stream.description && (
+                    <p className="text-gray-400">{stream.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-lg border border-red-500">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-red-500 font-bold">LIVE</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">👤</span>
+                  <span className="text-white font-semibold">{viewerCount} watching</span>
+                  <span className="text-gray-500">· Peak: {peakViewers}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⭐</span>
+                  <span className="text-white">{stream.creator?.displayName || stream.creator?.username}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Leaderboard */}
+            {leaderboard.length > 0 && (
+              <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <span>🏆</span> Top Gifters
+                </h3>
+                <div className="space-y-3">
+                  {leaderboard.slice(0, 5).map((entry, index) => (
+                    <div
+                      key={entry.senderId}
+                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '👤'}
+                        </span>
+                        <span className="text-white font-semibold">
+                          {entry.senderUsername}
+                        </span>
+                      </div>
+                      <span className="text-digis-cyan font-bold">
+                        {entry.totalCoins} coins
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Sidebar */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="h-[600px]">
+              <StreamChat
+                streamId={streamId}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+              />
+            </div>
+
+            <GiftSelector
+              streamId={streamId}
+              onSendGift={handleSendGift}
+              userBalance={userBalance}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
