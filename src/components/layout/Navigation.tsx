@@ -11,6 +11,7 @@ export function Navigation() {
   const [userRole, setUserRole] = useState<string>('fan');
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -130,6 +131,54 @@ export function Navigation() {
 
   return (
     <>
+      {/* Mobile Profile Menu */}
+      {showMobileMenu && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setShowMobileMenu(false)}
+          />
+          <div className="fixed bottom-20 right-4 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl p-4 z-50 md:hidden min-w-[200px]">
+            <div className="flex flex-col gap-3">
+              <div className="pb-3 border-b border-white/10">
+                <p className="text-sm text-gray-400">Signed in as</p>
+                <p className="text-sm font-medium text-white truncate">{user?.email}</p>
+                <p className="text-xs text-digis-cyan capitalize mt-1">{userRole}</p>
+              </div>
+              <button
+                onClick={() => {
+                  router.push('/wallet');
+                  setShowMobileMenu(false);
+                }}
+                className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
+              >
+                <span>💰</span>
+                <span>Wallet ({balance} coins)</span>
+              </button>
+              {userRole === 'admin' && (
+                <button
+                  onClick={() => {
+                    router.push('/admin');
+                    setShowMobileMenu(false);
+                  }}
+                  className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
+                >
+                  <span>⚙️</span>
+                  <span>Admin Dashboard</span>
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+              >
+                <span>🚪</span>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Mobile Bottom Navigation (TikTok/Instagram style) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10 pb-safe">
         <div className="flex items-center justify-around h-16 px-2">
@@ -163,27 +212,36 @@ export function Navigation() {
             </button>
           )}
 
-          {navItems.slice(2).map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-                item.active ? 'text-digis-cyan' : 'text-gray-400'
-              }`}
-            >
-              <div className="relative">
-                <span className="text-2xl">{item.icon}</span>
-                {item.label === 'Messages' && unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
-              </div>
-              <span className="text-xs font-medium">
-                {item.label === 'Wallet' ? balance : item.label}
-              </span>
-            </button>
-          ))}
+          {/* Messages */}
+          <button
+            onClick={() => router.push('/messages')}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              isActive('/messages') || pathname?.startsWith('/messages') ? 'text-digis-cyan' : 'text-gray-400'
+            }`}
+          >
+            <div className="relative">
+              <span className="text-2xl">💬</span>
+              {unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </div>
+              )}
+            </div>
+            <span className="text-xs font-medium">Messages</span>
+          </button>
+
+          {/* Profile Menu Button */}
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              showMobileMenu ? 'text-digis-cyan' : 'text-gray-400'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
+              {user?.email?.[0].toUpperCase()}
+            </div>
+            <span className="text-xs font-medium">{balance}</span>
+          </button>
         </div>
       </nav>
 
