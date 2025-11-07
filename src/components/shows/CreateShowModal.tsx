@@ -199,7 +199,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white focus:outline-none focus:border-digis-cyan"
               />
               <p className="text-xs text-gray-500 mt-1">
-                You'll earn 80% ({Math.floor(formData.ticketPrice * 0.8)} coins per ticket)
+                You'll earn 100% ({formData.ticketPrice} coins per ticket)
               </p>
             </div>
 

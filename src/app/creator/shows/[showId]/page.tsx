@@ -33,7 +33,6 @@ interface Stats {
   totalRevenue: number;
   attendees: number;
   checkedIn: number;
-  platformFee: number;
   creatorEarnings: number;
 }
 
@@ -234,7 +233,7 @@ export default function ShowManagementPage() {
             <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-md rounded-xl border border-yellow-500/30 p-5 text-center">
               <div className="text-3xl mb-2">🌟</div>
               <div className="text-2xl font-bold text-white mb-1">{stats.creatorEarnings}</div>
-              <div className="text-xs text-gray-400">Your Earnings (80%)</div>
+              <div className="text-xs text-gray-400">Your Earnings (100%)</div>
             </div>
           </div>
         )}
@@ -275,8 +274,8 @@ export default function ShowManagementPage() {
               <span className="text-white font-bold">{show.ticketPrice} coins</span>
             </div>
             <div className="flex items-center justify-between text-sm mt-1">
-              <span className="text-gray-400">Your earnings per ticket (80%):</span>
-              <span className="text-green-400 font-bold">{Math.floor(show.ticketPrice * 0.8)} coins</span>
+              <span className="text-gray-400">Your earnings per ticket (100%):</span>
+              <span className="text-green-400 font-bold">{show.ticketPrice} coins</span>
             </div>
           </div>
         </div>

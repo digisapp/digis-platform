@@ -148,9 +148,9 @@ export class ShowService {
         throw new Error('Insufficient balance to purchase ticket');
       }
 
-      // Calculate platform fee (20%) and creator earnings (80%)
-      const platformFee = Math.floor(show.ticketPrice * 0.2);
-      const creatorEarnings = show.ticketPrice - platformFee;
+      // Creators earn 100% of ticket sales
+      // Platform makes money from coin purchase markup
+      const creatorEarnings = show.ticketPrice;
 
       // Create idempotency key for transactions
       const purchaseId = uuidv4();
@@ -169,7 +169,7 @@ export class ShowService {
         idempotencyKey: `ticket_purchase_${purchaseId}`,
       });
 
-      // Credit coins to creator (80%)
+      // Credit full amount to creator (100%)
       await WalletService.createTransaction({
         userId: show.creatorId,
         amount: creatorEarnings,
@@ -179,7 +179,6 @@ export class ShowService {
           showId,
           purchaseId,
           ticketsSold: show.ticketsSold + 1,
-          platformFee,
         },
         idempotencyKey: `ticket_creator_payout_${purchaseId}`,
       });
@@ -555,17 +554,16 @@ export class ShowService {
         sql`${showTickets.checkInTime} IS NOT NULL`
       ));
 
-    // Calculate creator earnings (80% of revenue)
-    const creatorEarnings = Math.floor(show.totalRevenue * 0.8);
-    const platformFee = show.totalRevenue - creatorEarnings;
+    // Creators earn 100% of revenue
+    const creatorEarnings = show.totalRevenue;
 
     return {
       ticketsSold: show.ticketsSold,
       maxTickets: show.maxTickets,
       totalRevenue: show.totalRevenue,
       creatorEarnings,
-      platformFee,
-      checkInCount: checkInCount?.count || 0,
+      attendees: show.ticketsSold,
+      checkedIn: checkInCount?.count || 0,
       sellThroughRate: show.maxTickets
         ? Math.round((show.ticketsSold / show.maxTickets) * 100)
         : null,

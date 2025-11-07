@@ -18,7 +18,8 @@ Build a ticketed event system where creators can host exclusive live shows that 
 - Host a show with 100 tickets @ 50 coins each
 - 80 tickets sold = 4,000 coins revenue
 - At $0.10/coin = $400 per show
-- Platform takes 20% = Creator gets $320
+- Creator gets 100% = $400 to creator wallet
+- (Platform makes money from coin purchase markup)
 
 **High-Value Shows:**
 - Exclusive Q&A sessions
@@ -309,16 +310,17 @@ return { token, roomName: show.room_name }
 
 **Platform Economics:**
 - Creator sets ticket price (10-100+ coins)
-- Platform takes 20% commission
-- 80% goes to creator's wallet
+- Creators earn 100% of ticket sales
+- Revenue goes directly to creator's wallet
 - Instant payout (no hold period)
+- Platform makes money from coin purchase markup
 
 **Example Show:**
 - 50-coin tickets
 - 100 tickets sold
 - = 5,000 coins revenue
-- Platform: 1,000 coins ($100)
-- Creator: 4,000 coins ($400)
+- Creator: 5,000 coins ($500)
+- (Platform earns from coin purchase fees)
 
 ## Week 6 Tasks (Ordered)
 
