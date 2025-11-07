@@ -29,52 +29,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create user in database
+    // Get or create user in database with fallback
     let dbUser;
+    let dbError = null;
+
     try {
       dbUser = await db.query.users.findFirst({
         where: eq(users.id, data.user.id),
       });
-    } catch (queryError) {
-      console.error('Database query error:', queryError);
-      throw new Error(`Failed to query database: ${queryError instanceof Error ? queryError.message : String(queryError)}`);
-    }
 
-    // If user doesn't exist in database, create it
-    if (!dbUser) {
-      try {
-        const username = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 8)}`;
+      // If user doesn't exist in database, create it
+      if (!dbUser) {
+        try {
+          const username = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 8)}`;
 
-        const [newUser] = await db.insert(users).values({
-          id: data.user.id,
-          email: data.user.email!,
-          displayName: data.user.user_metadata?.display_name || email.split('@')[0],
-          username: username.toLowerCase(),
-          role: 'fan',
-        }).returning();
+          const [newUser] = await db.insert(users).values({
+            id: data.user.id,
+            email: data.user.email!,
+            displayName: data.user.user_metadata?.display_name || email.split('@')[0],
+            username: username.toLowerCase(),
+            role: 'fan',
+          }).returning();
 
-        dbUser = newUser;
-      } catch (insertError) {
-        console.error('Error creating user in database:', insertError);
-        // User exists in auth but not in DB - this is ok, query again
-        dbUser = await db.query.users.findFirst({
-          where: eq(users.id, data.user.id),
-        });
-
-        if (!dbUser) {
-          throw new Error('Failed to create or find user in database');
+          dbUser = newUser;
+        } catch (insertError) {
+          console.error('Error creating user in database:', insertError);
+          // Try to query again in case of race condition
+          dbUser = await db.query.users.findFirst({
+            where: eq(users.id, data.user.id),
+          });
         }
       }
+    } catch (queryError) {
+      console.error('Database error - allowing login anyway:', queryError);
+      dbError = queryError;
+      // Allow login to proceed even if database fails
+      // This prevents users from being locked out due to database issues
     }
 
-    // Return response with user role
+    // Return response with user role (fallback to 'fan' if no db access)
     return NextResponse.json({
       user: {
         ...data.user,
         role: dbUser?.role || 'fan',
       },
       session: data.session,
-      message: 'Login successful!',
+      message: dbError ? 'Login successful (limited features - database error)' : 'Login successful!',
     });
   } catch (error) {
     console.error('Login error:', error);
