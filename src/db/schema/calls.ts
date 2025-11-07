@@ -1,5 +1,6 @@
 import { pgTable, uuid, timestamp, integer, text, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
 import { users } from './users';
+import { relations } from 'drizzle-orm';
 
 export const callStatusEnum = pgEnum('call_status', [
   'pending',      // Call requested, waiting for creator to accept
@@ -70,6 +71,25 @@ export const creatorSettings = pgTable('creator_settings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Relations
+export const callsRelations = relations(calls, ({ one }) => ({
+  fan: one(users, {
+    fields: [calls.fanId],
+    references: [users.id],
+  }),
+  creator: one(users, {
+    fields: [calls.creatorId],
+    references: [users.id],
+  }),
+}));
+
+export const creatorSettingsRelations = relations(creatorSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [creatorSettings.userId],
+    references: [users.id],
+  }),
+}));
 
 export type Call = typeof calls.$inferSelect;
 export type NewCall = typeof calls.$inferInsert;
