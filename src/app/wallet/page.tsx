@@ -33,6 +33,7 @@ export default function WalletPage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        console.log('No user found, redirecting to home');
         router.push('/');
         return;
       }
@@ -40,7 +41,8 @@ export default function WalletPage() {
       await fetchWalletData();
     } catch (error) {
       console.error('Error:', error);
-      router.push('/');
+      // Don't redirect on errors - let the page show with zero balance
+      setLoading(false);
     }
   };
 

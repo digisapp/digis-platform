@@ -49,12 +49,16 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Redirect to home if not authenticated
+        // Only redirect if actually unauthorized, not on other errors
         if (response.status === 401) {
           router.push('/');
           return;
         }
-        throw new Error(data.error || 'Failed to load user data');
+        // For other errors, show error but don't redirect
+        console.error('Error loading user data:', data.error);
+        setError(data.error || 'Failed to load user data');
+        setLoading(false);
+        return;
       }
 
       setCurrentUser(data);
@@ -63,8 +67,9 @@ export default function SettingsPage() {
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
     } catch (err: any) {
+      console.error('Error fetching user:', err);
       setError(err.message);
-      router.push('/');
+      // Don't redirect on fetch errors - user might be logged in but API is slow
     } finally {
       setLoading(false);
     }
