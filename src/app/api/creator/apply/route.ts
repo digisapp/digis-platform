@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/db';
-import { creatorApplications } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // POST /api/creator/apply - Submit creator application
 export async function POST(request: NextRequest) {
@@ -33,10 +35,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use Supabase admin client for database operations
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user already has a pending/approved application
-    const existing = await db.query.creatorApplications.findFirst({
-      where: eq(creatorApplications.userId, user.id),
-    });
+    const { data: existing } = await adminClient
+      .from('creator_applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
     if (existing) {
       if (existing.status === 'pending') {
@@ -52,21 +62,30 @@ export async function POST(request: NextRequest) {
         );
       }
       // If rejected, they can reapply - delete old application
-      await db.delete(creatorApplications).where(eq(creatorApplications.userId, user.id));
+      await adminClient
+        .from('creator_applications')
+        .delete()
+        .eq('user_id', user.id);
     }
 
     // Create new application
-    await db.insert(creatorApplications).values({
-      userId: user.id,
-      displayName,
-      bio,
-      instagramHandle,
-      twitterHandle,
-      website,
-      whyCreator,
-      contentType,
-      status: 'pending',
-    });
+    const { error: insertError } = await adminClient
+      .from('creator_applications')
+      .insert({
+        user_id: user.id,
+        display_name: displayName,
+        bio,
+        instagram_handle: instagramHandle,
+        twitter_handle: twitterHandle,
+        website,
+        why_creator: whyCreator,
+        content_type: contentType,
+        status: 'pending',
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
 
     return NextResponse.json({
       success: true,
@@ -91,9 +110,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const application = await db.query.creatorApplications.findFirst({
-      where: eq(creatorApplications.userId, user.id),
-    });
+    // Use Supabase admin client
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: application } = await adminClient
+      .from('creator_applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
     return NextResponse.json({ application });
   } catch (error: any) {
