@@ -22,12 +22,14 @@ export async function GET() {
     } catch (dbError) {
       console.error('Database error - using auth data fallback:', dbError);
       // Return minimal user data from Supabase auth if database fails
+      // Check if this is admin email
+      const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
       dbUser = {
         id: user.id,
         email: user.email!,
         username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
         displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
-        role: 'fan',
+        role: user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan'),
       };
     }
 

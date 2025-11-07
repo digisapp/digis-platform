@@ -67,11 +67,19 @@ export async function POST(request: NextRequest) {
       // This prevents users from being locked out due to database issues
     }
 
-    // Return response with user role (fallback to 'fan' if no db access)
+    // Determine role with fallback logic
+    let userRole = dbUser?.role || 'fan';
+    if (!dbUser) {
+      // Check if admin email
+      const isAdminEmail = data.user.email === 'admin@digis.cc' || data.user.email === 'nathan@digis.cc';
+      userRole = data.user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan');
+    }
+
+    // Return response with user role
     return NextResponse.json({
       user: {
         ...data.user,
-        role: dbUser?.role || 'fan',
+        role: userRole,
       },
       session: data.session,
       message: dbError ? 'Login successful (limited features - database error)' : 'Login successful!',
