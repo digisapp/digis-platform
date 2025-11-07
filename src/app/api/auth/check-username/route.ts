@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const username = searchParams.get('username');
 
+    console.log('[Username Check] Checking username:', username);
+
     if (!username) {
       return NextResponse.json(
         { error: 'Username is required' },
@@ -18,26 +20,35 @@ export async function GET(request: NextRequest) {
     // Validate username format
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
     if (!usernameRegex.test(username)) {
+      console.log('[Username Check] Invalid format:', username);
       return NextResponse.json(
-        { 
-          available: false, 
-          error: 'Username must be 3-20 characters (letters, numbers, underscores only)' 
+        {
+          available: false,
+          error: 'Username must be 3-20 characters (letters, numbers, underscores only)'
         },
         { status: 200 }
       );
     }
 
     // Check if username exists
+    const lowercaseUsername = username.toLowerCase();
+    console.log('[Username Check] Querying for:', lowercaseUsername);
+
     const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, username.toLowerCase()),
+      where: eq(users.username, lowercaseUsername),
+      columns: {
+        id: true,
+        username: true,
+      }
     });
+
+    console.log('[Username Check] Found existing user:', existingUser ? 'YES' : 'NO');
 
     if (existingUser) {
       // Generate suggestions
       const suggestions = [
         `${username}1`,
         `${username}_official`,
-        `${username}.creator`,
         `${username}${Math.floor(Math.random() * 99)}`,
       ];
 
@@ -51,9 +62,9 @@ export async function GET(request: NextRequest) {
       available: true,
     });
   } catch (error) {
-    console.error('Error checking username:', error);
+    console.error('[Username Check] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to check username availability' },
+      { error: 'Failed to check username availability', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

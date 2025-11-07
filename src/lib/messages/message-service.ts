@@ -4,6 +4,9 @@ import {
   messages,
   messageRequests,
   users,
+  blockedUsers,
+  walletTransactions,
+  wallets,
 } from '@/db/schema';
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -457,5 +460,334 @@ export class MessageService {
   static async getTotalUnreadCount(userId: string) {
     const convos = await this.getUserConversations(userId);
     return convos.reduce((total, conv) => total + conv.unreadCount, 0);
+  }
+
+  /**
+   * Send a locked/PPV message
+   */
+  static async sendLockedMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    unlockPrice: number,
+    mediaUrl?: string,
+    mediaType?: string,
+    thumbnailUrl?: string
+  ) {
+    // Create locked message
+    const [message] = await db
+      .insert(messages)
+      .values({
+        conversationId,
+        senderId,
+        content,
+        messageType: 'locked',
+        isLocked: true,
+        unlockPrice,
+        mediaUrl,
+        mediaType,
+        thumbnailUrl,
+      })
+      .returning();
+
+    // Update conversation's last message
+    await db
+      .update(conversations)
+      .set({
+        lastMessageText: '🔒 Locked message',
+        lastMessageAt: new Date(),
+        lastMessageSenderId: senderId,
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, conversationId));
+
+    // Return message with sender info
+    const messageWithSender = await db.query.messages.findFirst({
+      where: eq(messages.id, message.id),
+      with: {
+        sender: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return messageWithSender!;
+  }
+
+  /**
+   * Unlock a locked message
+   */
+  static async unlockMessage(userId: string, messageId: string) {
+    // Get the message
+    const message = await db.query.messages.findFirst({
+      where: eq(messages.id, messageId),
+      with: {
+        sender: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (!message) {
+      throw new Error('Message not found');
+    }
+
+    if (!message.isLocked) {
+      throw new Error('Message is not locked');
+    }
+
+    if (message.unlockedBy) {
+      throw new Error('Message already unlocked');
+    }
+
+    if (!message.unlockPrice) {
+      throw new Error('Message has no unlock price');
+    }
+
+    // Check if user has enough balance
+    const wallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, userId),
+    });
+
+    if (!wallet || wallet.balance < message.unlockPrice) {
+      throw new Error('Insufficient balance');
+    }
+
+    // Create transactions (double-entry)
+    const idempotencyKey = uuidv4();
+
+    // Deduct from buyer
+    const [buyerTransaction] = await db
+      .insert(walletTransactions)
+      .values({
+        userId,
+        amount: -message.unlockPrice,
+        type: 'locked_message',
+        status: 'completed',
+        description: `Unlocked message from ${message.sender.displayName || message.sender.username}`,
+        idempotencyKey,
+      })
+      .returning();
+
+    // Credit to creator
+    await db.insert(walletTransactions).values({
+      userId: message.senderId,
+      amount: message.unlockPrice,
+      type: 'locked_message',
+      status: 'completed',
+      description: `Locked message unlocked by buyer`,
+      relatedTransactionId: buyerTransaction.id,
+    });
+
+    // Update wallet balances
+    await db
+      .update(wallets)
+      .set({
+        balance: sql`${wallets.balance} - ${message.unlockPrice}`,
+      })
+      .where(eq(wallets.userId, userId));
+
+    await db
+      .update(wallets)
+      .set({
+        balance: sql`${wallets.balance} + ${message.unlockPrice}`,
+      })
+      .where(eq(wallets.userId, message.senderId));
+
+    // Mark message as unlocked
+    await db
+      .update(messages)
+      .set({
+        unlockedBy: userId,
+        unlockedAt: new Date(),
+      })
+      .where(eq(messages.id, messageId));
+
+    return { success: true, message: 'Message unlocked successfully' };
+  }
+
+  /**
+   * Send a tip in DM
+   */
+  static async sendTip(
+    conversationId: string,
+    senderId: string,
+    receiverId: string,
+    amount: number,
+    tipMessage?: string
+  ) {
+    // Check if sender has enough balance
+    const wallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, senderId),
+    });
+
+    if (!wallet || wallet.balance < amount) {
+      throw new Error('Insufficient balance');
+    }
+
+    // Create transactions (double-entry)
+    const idempotencyKey = uuidv4();
+
+    // Deduct from sender
+    const [senderTransaction] = await db
+      .insert(walletTransactions)
+      .values({
+        userId: senderId,
+        amount: -amount,
+        type: 'dm_tip',
+        status: 'completed',
+        description: tipMessage || 'Tip sent via DM',
+        idempotencyKey,
+      })
+      .returning();
+
+    // Credit to receiver
+    await db.insert(walletTransactions).values({
+      userId: receiverId,
+      amount,
+      type: 'dm_tip',
+      status: 'completed',
+      description: tipMessage || 'Tip received via DM',
+      relatedTransactionId: senderTransaction.id,
+    });
+
+    // Update wallet balances
+    await db
+      .update(wallets)
+      .set({
+        balance: sql`${wallets.balance} - ${amount}`,
+      })
+      .where(eq(wallets.userId, senderId));
+
+    await db
+      .update(wallets)
+      .set({
+        balance: sql`${wallets.balance} + ${amount}`,
+      })
+      .where(eq(wallets.userId, receiverId));
+
+    // Create tip message
+    const [message] = await db
+      .insert(messages)
+      .values({
+        conversationId,
+        senderId,
+        content: tipMessage || `Sent ${amount} coins`,
+        messageType: 'tip',
+        tipAmount: amount,
+        tipTransactionId: senderTransaction.id,
+      })
+      .returning();
+
+    // Update conversation's last message
+    await db
+      .update(conversations)
+      .set({
+        lastMessageText: `💰 Sent ${amount} coins`,
+        lastMessageAt: new Date(),
+        lastMessageSenderId: senderId,
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, conversationId));
+
+    // Return message with sender info
+    const messageWithSender = await db.query.messages.findFirst({
+      where: eq(messages.id, message.id),
+      with: {
+        sender: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return messageWithSender!;
+  }
+
+  /**
+   * Check if a user is blocked
+   */
+  static async isUserBlocked(blockerId: string, blockedId: string) {
+    const block = await db.query.blockedUsers.findFirst({
+      where: and(
+        eq(blockedUsers.blockerId, blockerId),
+        eq(blockedUsers.blockedId, blockedId)
+      ),
+    });
+
+    return !!block;
+  }
+
+  /**
+   * Block a user
+   */
+  static async blockUser(blockerId: string, blockedId: string, reason?: string) {
+    // Check if already blocked
+    const existing = await this.isUserBlocked(blockerId, blockedId);
+    if (existing) {
+      throw new Error('User is already blocked');
+    }
+
+    await db.insert(blockedUsers).values({
+      blockerId,
+      blockedId,
+      reason,
+    });
+
+    return { success: true, message: 'User blocked successfully' };
+  }
+
+  /**
+   * Unblock a user
+   */
+  static async unblockUser(blockerId: string, blockedId: string) {
+    await db
+      .delete(blockedUsers)
+      .where(
+        and(
+          eq(blockedUsers.blockerId, blockerId),
+          eq(blockedUsers.blockedId, blockedId)
+        )
+      );
+
+    return { success: true, message: 'User unblocked successfully' };
+  }
+
+  /**
+   * Get blocked users list
+   */
+  static async getBlockedUsers(userId: string) {
+    const blocks = await db.query.blockedUsers.findMany({
+      where: eq(blockedUsers.blockerId, userId),
+      with: {
+        blocked: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return blocks.map(block => ({
+      ...block.blocked,
+      blockedAt: block.createdAt,
+      reason: block.reason,
+    }));
   }
 }

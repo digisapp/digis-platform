@@ -1,6 +1,10 @@
-import { pgTable, uuid, text, timestamp, boolean, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, pgEnum, index, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
+import { walletTransactions } from './wallet';
+
+// DM Message type enum (different from stream message type)
+export const dmMessageTypeEnum = pgEnum('dm_message_type', ['text', 'media', 'tip', 'locked', 'system']);
 
 // Message request status enum
 export const messageRequestStatusEnum = pgEnum('message_request_status', ['pending', 'accepted', 'declined']);
@@ -45,21 +49,34 @@ export const messages = pgTable('messages', {
   senderId: uuid('sender_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 
   // Message content
+  messageType: dmMessageTypeEnum('message_type').default('text'),
   content: text('content').notNull(),
 
   // Read status
   isRead: boolean('is_read').default(false).notNull(),
   readAt: timestamp('read_at'),
 
-  // Optional: Media attachment
+  // Media attachment
   mediaUrl: text('media_url'),
-  mediaType: text('media_type'), // 'image', 'video', etc.
+  mediaType: text('media_type'), // 'image', 'video', 'audio'
+  thumbnailUrl: text('thumbnail_url'),
+
+  // Locked/PPV messages
+  isLocked: boolean('is_locked').default(false).notNull(),
+  unlockPrice: integer('unlock_price'), // In coins
+  unlockedBy: uuid('unlocked_by').references(() => users.id),
+  unlockedAt: timestamp('unlocked_at'),
+
+  // Tips
+  tipAmount: integer('tip_amount'), // In coins
+  tipTransactionId: uuid('tip_transaction_id').references(() => walletTransactions.id),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   conversationIdx: index('messages_conversation_id_idx').on(table.conversationId, table.createdAt),
   senderIdx: index('messages_sender_id_idx').on(table.senderId),
+  lockedIdx: index('messages_locked_idx').on(table.isLocked, table.unlockedAt),
 }));
 
 // Message Requests table
@@ -91,6 +108,39 @@ export const messageRequests = pgTable('message_requests', {
   toUserIdx: index('message_requests_to_user_id_idx').on(table.toUserId, table.status),
 }));
 
+// Blocked users table
+export const blockedUsers = pgTable('blocked_users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  blockerId: uuid('blocker_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  blockedId: uuid('blocked_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  blockerIdx: index('blocked_users_blocker_id_idx').on(table.blockerId),
+  blockedIdx: index('blocked_users_blocked_id_idx').on(table.blockedId),
+  uniqueBlock: index('blocked_users_unique_idx').on(table.blockerId, table.blockedId),
+}));
+
+// Message settings table
+export const messageSettings = pgTable('message_settings', {
+  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Privacy settings
+  allowMessagesFrom: text('allow_messages_from').default('everyone').notNull(), // 'everyone', 'subscribers', 'nobody'
+  requireMessageRequest: boolean('require_message_request').default(false).notNull(),
+
+  // Notifications
+  pushNotifications: boolean('push_notifications').default(true).notNull(),
+  emailNotifications: boolean('email_notifications').default(false).notNull(),
+
+  // Auto-response (for creators)
+  autoResponseEnabled: boolean('auto_response_enabled').default(false).notNull(),
+  autoResponseMessage: text('auto_response_message'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Relations
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
   user1: one(users, {
@@ -119,6 +169,16 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
+    relationName: 'sender',
+  }),
+  unlockedByUser: one(users, {
+    fields: [messages.unlockedBy],
+    references: [users.id],
+    relationName: 'unlockedBy',
+  }),
+  tipTransaction: one(walletTransactions, {
+    fields: [messages.tipTransactionId],
+    references: [walletTransactions.id],
   }),
 }));
 
@@ -139,6 +199,26 @@ export const messageRequestsRelations = relations(messageRequests, ({ one }) => 
   }),
 }));
 
+export const blockedUsersRelations = relations(blockedUsers, ({ one }) => ({
+  blocker: one(users, {
+    fields: [blockedUsers.blockerId],
+    references: [users.id],
+    relationName: 'blocker',
+  }),
+  blocked: one(users, {
+    fields: [blockedUsers.blockedId],
+    references: [users.id],
+    relationName: 'blocked',
+  }),
+}));
+
+export const messageSettingsRelations = relations(messageSettings, ({ one }) => ({
+  user: one(users, {
+    fields: [messageSettings.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type Conversation = typeof conversations.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;
@@ -146,3 +226,7 @@ export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 export type MessageRequest = typeof messageRequests.$inferSelect;
 export type NewMessageRequest = typeof messageRequests.$inferInsert;
+export type BlockedUser = typeof blockedUsers.$inferSelect;
+export type NewBlockedUser = typeof blockedUsers.$inferInsert;
+export type MessageSettings = typeof messageSettings.$inferSelect;
+export type NewMessageSettings = typeof messageSettings.$inferInsert;

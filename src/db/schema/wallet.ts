@@ -9,7 +9,9 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'stream_tip',
   'ppv_unlock',
   'creator_payout',
-  'refund'
+  'refund',
+  'dm_tip',
+  'locked_message'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [
