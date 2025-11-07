@@ -294,10 +294,10 @@ export class CallService {
         userId: call.fanId,
         amount: -actualCoins,
         type: 'call_charge',
+        status: 'completed',
         description: `Video call (${durationMinutes} min)`,
-        balanceAfter: 0, // Will be updated by trigger
         idempotencyKey: `${transactionId}-debit`,
-        metadata: { callId, durationMinutes },
+        metadata: JSON.stringify({ callId, durationMinutes }),
       });
 
       // Credit creator (platform takes 0% for now, can add commission later)
@@ -305,10 +305,10 @@ export class CallService {
         userId: call.creatorId,
         amount: actualCoins,
         type: 'call_earnings',
+        status: 'completed',
         description: `Call earnings (${durationMinutes} min)`,
-        balanceAfter: 0, // Will be updated by trigger
         idempotencyKey: `${transactionId}-credit`,
-        metadata: { callId, durationMinutes },
+        metadata: JSON.stringify({ callId, durationMinutes }),
       });
 
       // Release any remaining held amount
