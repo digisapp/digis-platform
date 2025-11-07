@@ -176,10 +176,14 @@ export default function AdminUsersPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-xl font-semibold">{user.displayName || user.username}</h3>
                         {user.role === 'admin' && (
-                          <Shield className="w-4 h-4 text-red-500" title="Admin" />
+                          <span title="Admin">
+                            <Shield className="w-4 h-4 text-red-500" />
+                          </span>
                         )}
                         {user.isCreatorVerified && (
-                          <Star className="w-4 h-4 text-yellow-500" title="Verified Creator" />
+                          <span title="Verified Creator">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                          </span>
                         )}
                       </div>
 
