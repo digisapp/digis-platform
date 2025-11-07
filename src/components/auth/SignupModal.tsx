@@ -16,7 +16,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
   const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
   const [usernameError, setUsernameError] = useState('');
   const [error, setError] = useState('');
@@ -61,18 +61,36 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         const data = await response.json();
         console.log('[Frontend] Response data:', data);
 
-        if (data.available) {
+        // Handle different status codes properly
+        if (response.status === 200 && data.available) {
+          // Username is available
           console.log('[Frontend] Username available!');
           setUsernameStatus('available');
           setUsernameSuggestions([]);
-        } else {
+          setUsernameError('');
+        } else if (response.status === 409 || (response.status === 200 && !data.available)) {
+          // Username is taken (409 Conflict or explicit available: false)
           console.log('[Frontend] Username taken, suggestions:', data.suggestions);
           setUsernameStatus('taken');
           setUsernameSuggestions(data.suggestions || []);
+          setUsernameError('');
+        } else if (response.status >= 500) {
+          // Server error - don't block signup
+          console.error('[Frontend] Server error checking username:', response.status);
+          setUsernameStatus('error');
+          setUsernameSuggestions([]);
+          setUsernameError('Could not verify username availability. You can still try to sign up.');
+        } else {
+          // Other errors (400, etc.)
+          setUsernameStatus('idle');
+          setUsernameError(data.error || 'Invalid username');
+          setUsernameSuggestions([]);
         }
       } catch (err) {
-        console.error('[Frontend] Error checking username:', err);
-        setUsernameStatus('idle');
+        console.error('[Frontend] Network error checking username:', err);
+        setUsernameStatus('error');
+        setUsernameError('Could not check username (network error). You can still try to sign up.');
+        setUsernameSuggestions([]);
       }
     }, 500); // Debounce 500ms
 
@@ -84,9 +102,15 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     setError('');
     setSuccess('');
 
-    // Validate username is available
-    if (usernameStatus !== 'available') {
-      setError('Please choose an available username');
+    // Validate username is not explicitly taken
+    if (usernameStatus === 'taken') {
+      setError('This username is already taken. Please choose another.');
+      return;
+    }
+
+    // Allow signup even if check had an error (availability will be verified server-side)
+    if (usernameStatus === 'checking') {
+      setError('Still checking username availability. Please wait a moment.');
       return;
     }
 
@@ -164,6 +188,11 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
               )}
               {usernameStatus === 'taken' && (
                 <XCircle className="w-5 h-5 text-red-500" />
+              )}
+              {usernameStatus === 'error' && (
+                <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
               )}
             </div>
           </div>

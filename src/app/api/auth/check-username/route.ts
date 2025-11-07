@@ -3,6 +3,10 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Force Node.js runtime for database connections
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -52,15 +56,21 @@ export async function GET(request: NextRequest) {
         `${username}${Math.floor(Math.random() * 99)}`,
       ];
 
-      return NextResponse.json({
-        available: false,
-        suggestions,
-      });
+      return NextResponse.json(
+        {
+          available: false,
+          suggestions,
+        },
+        { status: 409 } // 409 Conflict for taken username
+      );
     }
 
-    return NextResponse.json({
-      available: true,
-    });
+    return NextResponse.json(
+      {
+        available: true,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[Username Check] Error:', error);
     return NextResponse.json(
