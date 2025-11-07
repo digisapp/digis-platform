@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
 
@@ -29,12 +31,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get current user from database
-    const currentUser = await db.query.users.findFirst({
-      where: eq(users.id, authUser.id),
-    });
+    // Use admin client for database operations
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!currentUser) {
+    // Get current user from database
+    const { data: currentUser, error: fetchError } = await adminClient
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    if (fetchError || !currentUser) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -59,11 +69,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username is already taken by another user
-    const existingUser = await db.query.users.findFirst({
-      where: and(
-        eq(users.username, newUsername.toLowerCase()),
-      ),
-    });
+    const { data: existingUser } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('username', newUsername.toLowerCase())
+      .single();
 
     if (existingUser && existingUser.id !== authUser.id) {
       return NextResponse.json(
@@ -73,9 +83,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check 30-day cooldown
-    if (currentUser.usernameLastChangedAt) {
+    if (currentUser.username_last_changed_at) {
       const daysSinceLastChange = Math.floor(
-        (Date.now() - new Date(currentUser.usernameLastChangedAt).getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(currentUser.username_last_changed_at).getTime()) / (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceLastChange < USERNAME_CHANGE_COOLDOWN_DAYS) {
@@ -91,13 +101,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Update username and timestamp
-    await db.update(users)
-      .set({
+    const { error: updateError } = await adminClient
+      .from('users')
+      .update({
         username: newUsername.toLowerCase(),
-        usernameLastChangedAt: new Date(),
-        updatedAt: new Date(),
+        username_last_changed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
-      .where(eq(users.id, authUser.id));
+      .eq('id', authUser.id);
+
+    if (updateError) {
+      throw updateError;
+    }
 
     // Update Supabase Auth metadata
     await supabase.auth.updateUser({
@@ -133,11 +148,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const currentUser = await db.query.users.findFirst({
-      where: eq(users.id, authUser.id),
-    });
+    // Use admin client for database operations
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!currentUser) {
+    const { data: currentUser, error: fetchError } = await adminClient
+      .from('users')
+      .select('username, username_last_changed_at')
+      .eq('id', authUser.id)
+      .single();
+
+    if (fetchError || !currentUser) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -147,9 +170,9 @@ export async function GET(request: NextRequest) {
     let canChange = true;
     let daysRemaining = 0;
 
-    if (currentUser.usernameLastChangedAt) {
+    if (currentUser.username_last_changed_at) {
       const daysSinceLastChange = Math.floor(
-        (Date.now() - new Date(currentUser.usernameLastChangedAt).getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(currentUser.username_last_changed_at).getTime()) / (1000 * 60 * 60 * 24)
       );
 
       if (daysSinceLastChange < USERNAME_CHANGE_COOLDOWN_DAYS) {
@@ -162,7 +185,7 @@ export async function GET(request: NextRequest) {
       canChange,
       daysRemaining,
       currentUsername: currentUser.username,
-      lastChangedAt: currentUser.usernameLastChangedAt,
+      lastChangedAt: currentUser.username_last_changed_at,
     });
   } catch (error) {
     console.error('Get username status error:', error);
