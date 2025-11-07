@@ -1,0 +1,130 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { AdminService } from '@/lib/admin/admin-service';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+// GET /api/admin/analytics - Get platform analytics
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user is admin
+    const isAdmin = await AdminService.isAdmin(user.id);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Get user signups over last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const { data: users } = await adminClient
+      .from('users')
+      .select('created_at, role')
+      .gte('created_at', thirtyDaysAgo.toISOString())
+      .order('created_at', { ascending: true });
+
+    // Get all applications with their status
+    const { data: applications } = await adminClient
+      .from('creator_applications')
+      .select('status, created_at, content_type');
+
+    // Process user signups by day
+    const signupsByDay: { [key: string]: number } = {};
+    const roleDistribution = { fan: 0, creator: 0, admin: 0 };
+
+    users?.forEach((user: any) => {
+      const date = new Date(user.created_at).toISOString().split('T')[0];
+      signupsByDay[date] = (signupsByDay[date] || 0) + 1;
+      roleDistribution[user.role as keyof typeof roleDistribution]++;
+    });
+
+    // Fill in missing days with 0
+    const signupsTimeline = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      signupsTimeline.push({
+        date: dateStr,
+        signups: signupsByDay[dateStr] || 0,
+      });
+    }
+
+    // Process application statistics
+    const applicationStats = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+    };
+
+    const contentTypeStats: { [key: string]: number } = {};
+
+    applications?.forEach((app: any) => {
+      applicationStats[app.status as keyof typeof applicationStats]++;
+      if (app.content_type) {
+        contentTypeStats[app.content_type] = (contentTypeStats[app.content_type] || 0) + 1;
+      }
+    });
+
+    // Get total stats
+    const stats = await AdminService.getStatistics();
+
+    // Calculate growth rate (last 7 days vs previous 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    const { count: lastWeekSignups } = await adminClient
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', sevenDaysAgo.toISOString());
+
+    const { count: previousWeekSignups } = await adminClient
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', fourteenDaysAgo.toISOString())
+      .lt('created_at', sevenDaysAgo.toISOString());
+
+    const growthRate = previousWeekSignups && previousWeekSignups > 0
+      ? ((lastWeekSignups || 0) - previousWeekSignups) / previousWeekSignups * 100
+      : 0;
+
+    // Format content type stats for charts
+    const contentTypes = Object.entries(contentTypeStats).map(([type, count]) => ({
+      type,
+      count,
+    }));
+
+    return NextResponse.json({
+      signupsTimeline,
+      roleDistribution,
+      applicationStats,
+      contentTypes,
+      totalStats: stats,
+      growthRate: Math.round(growthRate * 10) / 10, // Round to 1 decimal
+      lastWeekSignups: lastWeekSignups || 0,
+    });
+  } catch (error: any) {
+    console.error('Error fetching analytics:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch analytics' },
+      { status: 500 }
+    );
+  }
+}

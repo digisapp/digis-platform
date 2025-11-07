@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Application {
   id: string;
@@ -38,7 +39,19 @@ interface Stats {
   pendingApplications: number;
 }
 
-type MainTab = 'applications' | 'users';
+interface Analytics {
+  signupsTimeline: Array<{ date: string; signups: number }>;
+  roleDistribution: { fan: number; creator: number; admin: number };
+  applicationStats: { pending: number; approved: number; rejected: number };
+  contentTypes: Array<{ type: string; count: number }>;
+  totalStats: Stats;
+  growthRate: number;
+  lastWeekSignups: number;
+}
+
+type MainTab = 'applications' | 'users' | 'analytics';
+
+const COLORS = ['#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -58,6 +71,9 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | 'admin' | 'all'>('all');
 
+  // Analytics state
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+
   useEffect(() => {
     checkAdminAccess();
     fetchStats();
@@ -66,8 +82,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (mainTab === 'applications') {
       fetchApplications();
-    } else {
+    } else if (mainTab === 'users') {
       fetchUsers();
+    } else if (mainTab === 'analytics') {
+      fetchAnalytics();
     }
   }, [mainTab, selectedStatus, selectedRole, searchTerm]);
 
@@ -129,6 +147,22 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error('Error fetching users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/analytics');
+      const data = await response.json();
+
+      if (response.ok) {
+        setAnalytics(data);
+      }
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
     } finally {
       setLoading(false);
     }
@@ -246,7 +280,7 @@ export default function AdminDashboard() {
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-gray-400">Manage creator applications, users, and platform settings</p>
+          <p className="text-gray-400">Manage creator applications, users, and platform analytics</p>
         </div>
 
         {/* Stats Cards */}
@@ -333,6 +367,19 @@ export default function AdminDashboard() {
           >
             User Management
             {mainTab === 'users' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('analytics')}
+            className={`px-6 py-3 font-semibold transition-colors relative ${
+              mainTab === 'analytics'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Analytics
+            {mainTab === 'analytics' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
@@ -554,6 +601,151 @@ export default function AdminDashboard() {
                   </GlassCard>
                 ))}
               </div>
+            )}
+          </>
+        )}
+
+        {/* Analytics Tab Content */}
+        {mainTab === 'analytics' && (
+          <>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : analytics ? (
+              <div className="space-y-6">
+                {/* Key Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm text-gray-400">Growth Rate</p>
+                        <p className="text-3xl font-bold">{analytics.growthRate > 0 ? '+' : ''}{analytics.growthRate}%</p>
+                      </div>
+                      <div className={`p-3 rounded-lg ${analytics.growthRate >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                        {analytics.growthRate >= 0 ? (
+                          <TrendingUp className="w-8 h-8 text-green-500" />
+                        ) : (
+                          <TrendingDown className="w-8 h-8 text-red-500" />
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-400">vs last 7 days</p>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm text-gray-400">New Users (7 days)</p>
+                        <p className="text-3xl font-bold">{analytics.lastWeekSignups}</p>
+                      </div>
+                      <div className="p-3 bg-blue-500/20 rounded-lg">
+                        <Users className="w-8 h-8 text-blue-500" />
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-400">Recent signups</p>
+                  </GlassCard>
+                </div>
+
+                {/* User Signups Timeline */}
+                <GlassCard className="p-6">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-digis-cyan" />
+                    User Signups (Last 30 Days)
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={analytics.signupsTimeline}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#9ca3af"
+                        tick={{ fill: '#9ca3af' }}
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      />
+                      <YAxis stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                        labelStyle={{ color: '#f3f4f6' }}
+                      />
+                      <Line type="monotone" dataKey="signups" stroke="#06b6d4" strokeWidth={2} dot={{ fill: '#06b6d4' }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </GlassCard>
+
+                {/* Role Distribution & Application Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">User Role Distribution</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Fans', value: analytics.roleDistribution.fan },
+                            { name: 'Creators', value: analytics.roleDistribution.creator },
+                            { name: 'Admins', value: analytics.roleDistribution.admin },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {[0, 1, 2].map((index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">Application Status</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={[
+                        { status: 'Pending', count: analytics.applicationStats.pending },
+                        { status: 'Approved', count: analytics.applicationStats.approved },
+                        { status: 'Rejected', count: analytics.applicationStats.rejected },
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="status" stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+                        <YAxis stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                        />
+                        <Bar dataKey="count" fill="#10b981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </GlassCard>
+                </div>
+
+                {/* Content Types */}
+                {analytics.contentTypes.length > 0 && (
+                  <GlassCard className="p-6">
+                    <h3 className="text-xl font-semibold mb-4">Popular Content Types</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analytics.contentTypes}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="type" stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+                        <YAxis stroke="#9ca3af" tick={{ fill: '#9ca3af' }} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                        />
+                        <Bar dataKey="count" fill="#ec4899" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </GlassCard>
+                )}
+              </div>
+            ) : (
+              <GlassCard className="p-12 text-center">
+                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400">No analytics data available</p>
+              </GlassCard>
             )}
           </>
         )}
