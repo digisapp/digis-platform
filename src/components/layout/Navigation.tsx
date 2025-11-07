@@ -347,20 +347,13 @@ export function Navigation() {
             <span className="text-xs font-medium">{navItems[1].label}</span>
           </button>
 
-          {/* Center Action Button */}
-          {userRole === 'creator' ? (
+          {/* Center Action Button - Creators Only */}
+          {userRole === 'creator' && (
             <button
               onClick={() => router.push('/creator/go-live')}
               className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-pink-500 shadow-lg shadow-red-500/50 border-2 border-black"
             >
               <Video className="w-7 h-7 text-white" />
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/creator/apply')}
-              className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink shadow-lg shadow-digis-cyan/50 border-2 border-black"
-            >
-              <Sparkles className="w-7 h-7 text-white" />
             </button>
           )}
 
@@ -445,8 +438,8 @@ export function Navigation() {
             );
           })}
 
-          {/* Go Live / Creator Action */}
-          {userRole === 'creator' ? (
+          {/* Go Live - Creators Only */}
+          {userRole === 'creator' && (
             <button
               onClick={() => router.push('/creator/go-live')}
               className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500 hover:scale-110 transition-transform"
@@ -457,15 +450,6 @@ export function Navigation() {
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               </div>
               <span className="text-xs font-bold text-red-500">LIVE</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push('/creator/apply')}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 border border-digis-cyan hover:scale-110 transition-transform"
-              title="Become Creator"
-            >
-              <Sparkles className="w-6 h-6 text-digis-cyan" />
-              <span className="text-xs font-medium text-digis-cyan">Creator</span>
             </button>
           )}
         </div>
