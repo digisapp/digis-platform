@@ -31,7 +31,21 @@ export async function GET(request: NextRequest) {
       offset
     );
 
-    return NextResponse.json({ users });
+    // Transform snake_case to camelCase for frontend
+    const transformedUsers = users.map((user: any) => ({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.display_name,
+      avatarUrl: user.avatar_url,
+      role: user.role,
+      isCreatorVerified: user.is_creator_verified,
+      followerCount: user.follower_count,
+      followingCount: user.following_count,
+      createdAt: user.created_at,
+    }));
+
+    return NextResponse.json({ users: transformedUsers });
   } catch (error: any) {
     console.error('Error fetching users:', error);
     return NextResponse.json(

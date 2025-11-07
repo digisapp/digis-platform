@@ -152,7 +152,10 @@ export default function AdminDashboard() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <GlassCard className="p-6">
+            <GlassCard
+              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => router.push('/admin/users')}
+            >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-500/20 rounded-lg">
                   <Users className="w-6 h-6 text-blue-500" />
@@ -164,7 +167,10 @@ export default function AdminDashboard() {
               </div>
             </GlassCard>
 
-            <GlassCard className="p-6">
+            <GlassCard
+              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => router.push('/admin/users?role=creator')}
+            >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-green-500/20 rounded-lg">
                   <UserCheck className="w-6 h-6 text-green-500" />
@@ -176,7 +182,10 @@ export default function AdminDashboard() {
               </div>
             </GlassCard>
 
-            <GlassCard className="p-6">
+            <GlassCard
+              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => setSelectedStatus('pending')}
+            >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-yellow-500/20 rounded-lg">
                   <Clock className="w-6 h-6 text-yellow-500" />

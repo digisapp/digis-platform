@@ -29,7 +29,28 @@ export async function GET(request: NextRequest) {
       offset
     );
 
-    return NextResponse.json({ applications });
+    // Transform snake_case to camelCase for frontend
+    const transformedApplications = applications.map((app: any) => ({
+      id: app.id,
+      displayName: app.display_name,
+      bio: app.bio,
+      contentType: app.content_type,
+      whyCreator: app.why_creator,
+      status: app.status,
+      createdAt: app.created_at,
+      instagramHandle: app.instagram_handle,
+      twitterHandle: app.twitter_handle,
+      website: app.website,
+      user: {
+        id: app.user?.id,
+        email: app.user?.email,
+        username: app.user?.username,
+        avatarUrl: app.user?.avatar_url,
+        createdAt: app.user?.created_at,
+      },
+    }));
+
+    return NextResponse.json({ applications: transformedApplications });
   } catch (error: any) {
     console.error('Error fetching applications:', error);
     return NextResponse.json(
