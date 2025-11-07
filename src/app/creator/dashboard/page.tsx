@@ -6,6 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { CallSettings } from '@/components/creator/CallSettings';
+import { PendingCalls } from '@/components/calls/PendingCalls';
 
 export default function CreatorDashboard() {
   const router = useRouter();
@@ -120,6 +121,11 @@ export default function CreatorDashboard() {
             <h3 className="text-lg font-bold text-white mb-2">Call Requests</h3>
             <p className="text-sm text-gray-400">Manage 1-on-1 call requests</p>
           </button>
+        </div>
+
+        {/* Pending Calls */}
+        <div className="mb-8">
+          <PendingCalls />
         </div>
 
         {/* Call Settings */}

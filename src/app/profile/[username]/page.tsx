@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import { UserCircle, Users, Calendar, Verified } from 'lucide-react';
+import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
   user: {
@@ -25,6 +26,11 @@ interface ProfileData {
     following: number;
   };
   isFollowing: boolean;
+  callSettings?: {
+    callRatePerMinute: number;
+    minimumCallDuration: number;
+    isAvailableForCalls: boolean;
+  };
 }
 
 export default function ProfilePage() {
@@ -161,18 +167,32 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Follow Button */}
-            <button
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-                isFollowing
-                  ? 'bg-gray-700 hover:bg-gray-600'
-                  : 'bg-gradient-to-r from-digis-cyan to-digis-pink hover:scale-105'
-              } disabled:opacity-50`}
-            >
-              {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
-            </button>
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+                  isFollowing
+                    ? 'bg-gray-700 hover:bg-gray-600'
+                    : 'bg-gradient-to-r from-digis-cyan to-digis-pink hover:scale-105'
+                } disabled:opacity-50`}
+              >
+                {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+              </button>
+
+              {user.role === 'creator' && profile.callSettings && (
+                <div className="min-w-[150px]">
+                  <RequestCallButton
+                    creatorId={user.id}
+                    creatorName={user.displayName || user.username}
+                    ratePerMinute={profile.callSettings.callRatePerMinute}
+                    minimumDuration={profile.callSettings.minimumCallDuration}
+                    isAvailable={profile.callSettings.isAvailableForCalls}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Profile Info */}

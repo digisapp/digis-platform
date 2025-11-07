@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
+import { CallService } from '@/lib/services/call-service';
 
 // GET /api/profile/[username] - Get public user profile
 export async function GET(
@@ -56,10 +57,27 @@ export async function GET(
       // Not authenticated or error checking - just continue
     }
 
+    // Get call settings for creators
+    let callSettings = undefined;
+    if (user.role === 'creator') {
+      try {
+        const settings = await CallService.getCreatorSettings(user.id);
+        callSettings = {
+          callRatePerMinute: settings.callRatePerMinute,
+          minimumCallDuration: settings.minimumCallDuration,
+          isAvailableForCalls: settings.isAvailableForCalls,
+        };
+      } catch (error) {
+        // If no settings found, don't fail the request
+        console.log('No call settings found for creator');
+      }
+    }
+
     return NextResponse.json({
       user,
       followCounts,
       isFollowing,
+      callSettings,
     });
   } catch (error: any) {
     console.error('Error fetching profile:', error);

@@ -18,16 +18,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const call = await CallService.acceptCall(callId, user.id);
+    const call = await CallService.rejectCall(callId, user.id);
 
     return NextResponse.json({
       call,
-      message: 'Call accepted! The fan will be notified.',
+      message: 'Call rejected.',
     });
   } catch (error: any) {
-    console.error('Error accepting call:', error);
+    console.error('Error rejecting call:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to accept call' },
+      { error: error.message || 'Failed to reject call' },
       { status: 400 }
     );
   }
