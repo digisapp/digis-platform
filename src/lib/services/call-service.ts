@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { calls, creatorSettings, users, spendHolds, walletTransactions } from '@/db/schema';
+import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/db/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -65,7 +65,7 @@ export class CallService {
 
     // Get fan's wallet balance
     const fanWallet = await db.query.wallets.findFirst({
-      where: eq(users.id, fanId),
+      where: eq(wallets.userId, fanId),
     });
 
     if (!fanWallet) {
@@ -87,19 +87,18 @@ export class CallService {
       .values({
         userId: fanId,
         amount: estimatedCoins,
-        type: 'call',
+        purpose: 'video_call',
         status: 'active',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       })
       .returning();
 
     // Update wallet held balance
     await db
-      .update(users)
+      .update(wallets)
       .set({
         heldBalance: fanWallet.heldBalance + estimatedCoins,
       })
-      .where(eq(users.id, fanId));
+      .where(eq(wallets.userId, fanId));
 
     // Create call request
     const roomName = `call-${nanoid(16)}`;
@@ -186,16 +185,16 @@ export class CallService {
 
       // Update fan's held balance
       const fanWallet = await db.query.wallets.findFirst({
-        where: eq(users.id, call.fanId),
+        where: eq(wallets.userId, call.fanId),
       });
 
       if (fanWallet) {
         await db
-          .update(users)
+          .update(wallets)
           .set({
             heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
           })
-          .where(eq(users.id, call.fanId));
+          .where(eq(wallets.userId, call.fanId));
       }
     }
 
@@ -316,16 +315,16 @@ export class CallService {
       const refundAmount = Math.max(0, (call.estimatedCoins || 0) - actualCoins);
       if (refundAmount > 0) {
         const fanWallet = await db.query.wallets.findFirst({
-          where: eq(users.id, call.fanId),
+          where: eq(wallets.userId, call.fanId),
         });
 
         if (fanWallet) {
           await db
-            .update(users)
+            .update(wallets)
             .set({
               heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
             })
-            .where(eq(users.id, call.fanId));
+            .where(eq(wallets.userId, call.fanId));
         }
       }
     }
