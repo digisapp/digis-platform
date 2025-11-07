@@ -160,7 +160,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             variant="gradient"
             size="lg"
             onClick={handleSend}
-            disabled={sending || (!customAmount && !amount) || (customAmount && parseInt(customAmount) < 1)}
+            disabled={sending || (!customAmount && !amount) || (!!customAmount && parseInt(customAmount) < 1)}
             className="flex-1"
             shimmer
           >
