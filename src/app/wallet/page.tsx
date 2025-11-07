@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
@@ -14,14 +16,33 @@ interface Transaction {
 }
 
 export default function WalletPage() {
+  const router = useRouter();
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBuyCoins, setShowBuyCoins] = useState(false);
 
   useEffect(() => {
-    fetchWalletData();
+    checkAuthAndFetchData();
   }, []);
+
+  const checkAuthAndFetchData = async () => {
+    try {
+      // Check if user is authenticated
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      await fetchWalletData();
+    } catch (error) {
+      console.error('Error:', error);
+      router.push('/');
+    }
+  };
 
   const fetchWalletData = async () => {
     try {

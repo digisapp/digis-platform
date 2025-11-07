@@ -49,6 +49,11 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Redirect to home if not authenticated
+        if (response.status === 401) {
+          router.push('/');
+          return;
+        }
         throw new Error(data.error || 'Failed to load user data');
       }
 
@@ -59,6 +64,7 @@ export default function SettingsPage() {
       setBannerUrl(data.bannerUrl || '');
     } catch (err: any) {
       setError(err.message);
+      router.push('/');
     } finally {
       setLoading(false);
     }
