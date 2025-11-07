@@ -155,6 +155,16 @@ export function Navigation() {
                 <span>💰</span>
                 <span>Wallet ({balance} coins)</span>
               </button>
+              <button
+                onClick={() => {
+                  router.push('/settings');
+                  setShowMobileMenu(false);
+                }}
+                className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
+              >
+                <span>⚙️</span>
+                <span>Settings</span>
+              </button>
               {userRole === 'admin' && (
                 <button
                   onClick={() => {
@@ -163,7 +173,7 @@ export function Navigation() {
                   }}
                   className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
                 >
-                  <span>⚙️</span>
+                  <span>👑</span>
                   <span>Admin Dashboard</span>
                 </button>
               )}
@@ -305,10 +315,24 @@ export function Navigation() {
           )}
         </div>
 
+        {/* Settings */}
+        <button
+          onClick={() => router.push('/settings')}
+          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+            isActive('/settings')
+              ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+          title="Settings"
+        >
+          <span className="text-2xl">⚙️</span>
+          <span className="text-xs font-medium">Settings</span>
+        </button>
+
         {/* User Profile */}
         <button
           onClick={handleLogout}
-          className="mt-auto w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold hover:scale-110 transition-transform"
+          className="mt-4 w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold hover:scale-110 transition-transform"
           title="Logout"
         >
           {user.email?.[0].toUpperCase()}
