@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
 
 export async function POST(request: NextRequest) {
@@ -32,12 +30,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if username is already taken
-    const existingUsername = await db.query.users.findFirst({
-      where: eq(users.username, username.toLowerCase()),
-    });
+    // Check if username is already taken using Supabase client
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (existingUsername) {
+    const { data: existingUser } = await adminClient
+      .from('users')
+      .select('id')
+      .eq('username', username.toLowerCase())
+      .single();
+
+    if (existingUser) {
       return NextResponse.json(
         { error: 'Username is already taken' },
         { status: 400 }
@@ -65,16 +70,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user in database
+    // Create user in database using Supabase client
     if (authData.user) {
       try {
-        await db.insert(users).values({
-          id: authData.user.id,
-          email: authData.user.email!,
-          username: username.toLowerCase(),
-          displayName: displayName || email.split('@')[0],
-          role: 'fan',
-        });
+        const { error: insertError } = await adminClient
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: authData.user.email!,
+            username: username.toLowerCase(),
+            display_name: displayName || email.split('@')[0],
+            role: 'fan',
+          });
+
+        if (insertError) {
+          console.error('Error creating user in database:', insertError);
+          // User is created in auth, this is okay - will be handled on login
+        }
       } catch (dbError) {
         console.error('Error creating user in database:', dbError);
         // User is created in auth, this is okay - will be handled on login
