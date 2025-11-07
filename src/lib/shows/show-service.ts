@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { shows, showTickets, showReminders, users, streams } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { shows, showTickets, showReminders, users, streams } from '@/lib/data/system';
 import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '@/lib/wallet/wallet-service';

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/profile/[username]/following - Get users that this user follows
 export async function GET(

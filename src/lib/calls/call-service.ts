@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { calls, creatorSettings } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { calls, creatorSettings } from '@/lib/data/system';
 import { eq, and, or, desc } from 'drizzle-orm';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { v4 as uuidv4 } from 'uuid';

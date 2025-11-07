@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
 import { eq, and, or, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 

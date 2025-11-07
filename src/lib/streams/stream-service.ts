@@ -1,4 +1,4 @@
-import { db } from '@/db';
+import { db } from '@/lib/data/system';
 import {
   streams,
   streamMessages,
@@ -8,10 +8,17 @@ import {
   users,
   wallets,
   walletTransactions,
-} from '@/db/schema';
+} from '@/lib/data/system';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '../wallet/wallet-service';
+
+/**
+ * StreamService uses Drizzle ORM for complex streaming operations.
+ * All routes using this service MUST export:
+ *   export const runtime = 'nodejs';
+ *   export const dynamic = 'force-dynamic';
+ */
 
 export class StreamService {
   /**

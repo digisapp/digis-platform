@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ShowService } from '@/lib/shows/show-service';
-import { db } from '@/db';
-import { shows } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { shows } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET - Get show details
 export async function GET(

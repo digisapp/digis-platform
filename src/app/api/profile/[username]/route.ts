@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/profile/[username] - Get public user profile
 export async function GET(

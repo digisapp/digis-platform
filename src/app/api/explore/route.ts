@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
 import { eq, ilike, or, desc, sql } from 'drizzle-orm';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // GET /api/explore - Browse and search creators
 export async function GET(request: NextRequest) {

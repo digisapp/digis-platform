@@ -5,7 +5,7 @@ import * as schema from './schema';
 // Type for the database instance with schema
 type DbInstance = ReturnType<typeof drizzle<typeof schema>>;
 
-// Global cache to avoid creating multiple connections
+// Global cache to avoid creating multiple connections (singleton pool)
 declare global {
   // eslint-disable-next-line no-var
   var __db: DbInstance | undefined;
@@ -14,8 +14,12 @@ declare global {
 }
 
 /**
- * Get database instance with lazy initialization.
- * This avoids capturing stale env vars during build time on Vercel.
+ * Get database instance with lazy initialization and singleton pooling.
+ * This avoids capturing stale env vars during build time on Vercel
+ * and prevents connection churn in serverless environments.
+ *
+ * IMPORTANT: Must be used with Node.js runtime only.
+ * Add to your route: export const runtime = 'nodejs';
  */
 export function getDb(): DbInstance {
   if (!global.__db) {
@@ -26,16 +30,16 @@ export function getDb(): DbInstance {
       throw new Error('DATABASE_URL environment variable is required');
     }
 
-    console.log('[DB] Initializing connection with runtime DATABASE_URL');
+    console.log('[DB] Initializing singleton Drizzle connection with transaction pooler');
 
-    // Disable prefetch as it is not supported for "Transaction" pool mode
-    // Add connection pooling settings optimized for serverless
+    // Singleton connection pool optimized for Vercel serverless
+    // Using Supabase Transaction Pooler (port 6543) for connection pooling
     global.__dbClient = postgres(connectionString, {
-      prepare: false,
-      max: 1,  // Limit connections for serverless
-      idle_timeout: 20,
-      connect_timeout: 10,
-      ssl: 'require'  // Explicitly require SSL
+      prepare: false,        // Required for transaction pooler mode
+      max: 3,               // Max 3 connections per serverless instance
+      idle_timeout: 20,     // Close idle connections after 20s
+      connect_timeout: 10,  // 10s connection timeout
+      ssl: 'require'        // Require SSL for Supabase
     });
     global.__db = drizzle(global.__dbClient, { schema });
   }
@@ -43,5 +47,6 @@ export function getDb(): DbInstance {
   return global.__db;
 }
 
-// Export db for backward compatibility, but it will initialize on first use
+// Export singleton db instance
+// IMPORTANT: Only use in Node.js runtime (not Edge or browser)
 export const db = getDb();

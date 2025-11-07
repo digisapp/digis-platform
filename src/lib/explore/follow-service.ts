@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { follows, users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { follows, users } from '@/lib/data/system';
 import { and, eq, or, desc, sql } from 'drizzle-orm';
 
 export class FollowService {

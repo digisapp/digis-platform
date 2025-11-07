@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 
+// Force Node.js runtime for Drizzle ORM (used by StreamService)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();

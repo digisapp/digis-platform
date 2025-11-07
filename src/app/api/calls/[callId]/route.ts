@@ -1,8 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { calls } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { calls } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: NextRequest,

@@ -1,4 +1,4 @@
-import { db } from '@/db';
+import { db } from '@/lib/data/system';
 import {
   conversations,
   messages,
@@ -7,7 +7,7 @@ import {
   blockedUsers,
   walletTransactions,
   wallets,
-} from '@/db/schema';
+} from '@/lib/data/system';
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 

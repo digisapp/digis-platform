@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { wallets, walletTransactions, spendHolds } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { wallets, walletTransactions, spendHolds } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 

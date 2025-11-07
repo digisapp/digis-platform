@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { contentItems, contentPurchases, users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { contentItems, contentPurchases, users } from '@/lib/data/system';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { eq, and, desc, sql } from 'drizzle-orm';
 

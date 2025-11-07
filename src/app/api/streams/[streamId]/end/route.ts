@@ -3,6 +3,10 @@ import { StreamService } from '@/lib/streams/stream-service';
 import { RealtimeService } from '@/lib/streams/realtime-service';
 import { createClient } from '@/lib/supabase/server';
 
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ streamId: string }> }

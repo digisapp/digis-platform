@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 import { AccessToken } from 'livekit-server-sdk';
-import { db } from '@/db';
-import { users } from '@/db/schema';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,
