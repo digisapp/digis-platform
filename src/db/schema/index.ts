@@ -6,3 +6,4 @@ export * from './messages';
 export * from './explore';
 export * from './admin';
 export * from './content';
+export * from './shows';
