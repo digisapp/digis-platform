@@ -105,8 +105,8 @@ export function Navigation() {
     {
       label: 'Home',
       icon: '🏠',
-      path: userRole === 'creator' ? '/creator/dashboard' : '/dashboard',
-      active: isActive('/dashboard') || isActive('/creator/dashboard'),
+      path: userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard',
+      active: isActive('/dashboard') || isActive('/creator/dashboard') || isActive('/admin'),
     },
     {
       label: 'Explore',
@@ -289,7 +289,7 @@ export function Navigation() {
       <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 bg-black/80 backdrop-blur-xl border-r border-white/10 flex-col items-center py-6 z-50">
         {/* Logo */}
         <button
-          onClick={() => router.push(userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
+          onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
           className="mb-8 text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent hover:scale-110 transition-transform"
         >
           D

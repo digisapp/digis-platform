@@ -19,8 +19,29 @@ export default function Home() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
-        // User is logged in, redirect to wallet
-        router.push('/wallet');
+        // Get user role to redirect appropriately
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            const role = data.user?.role;
+
+            // Redirect based on role
+            if (role === 'admin') {
+              router.push('/admin');
+            } else if (role === 'creator') {
+              router.push('/creator/dashboard');
+            } else {
+              router.push('/dashboard');
+            }
+          } else {
+            // Fallback to dashboard if profile fetch fails
+            router.push('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          router.push('/dashboard');
+        }
       } else {
         setLoading(false);
       }

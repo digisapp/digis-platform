@@ -42,8 +42,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         throw new Error(data.error || 'Login failed');
       }
 
-      console.log('Login successful, redirecting to:', data.user?.role === 'creator' ? '/creator/dashboard' : '/dashboard');
-
       // Set session on client side for immediate access
       if (data.session) {
         const supabase = (await import('@/lib/supabase/client')).createClient();
@@ -54,11 +52,17 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Redirect based on user role
-      if (data.user?.role === 'creator') {
-        window.location.href = '/creator/dashboard';
-      } else {
-        window.location.href = '/dashboard';
+      const role = data.user?.role;
+      let redirectPath = '/dashboard';
+
+      if (role === 'admin') {
+        redirectPath = '/admin';
+      } else if (role === 'creator') {
+        redirectPath = '/creator/dashboard';
       }
+
+      console.log('Login successful, redirecting to:', redirectPath);
+      window.location.href = redirectPath;
     } catch (err) {
       console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
