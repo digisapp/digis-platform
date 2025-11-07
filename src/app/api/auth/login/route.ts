@@ -36,15 +36,30 @@ export async function POST(request: NextRequest) {
 
     // If user doesn't exist in database, create it
     if (!dbUser) {
-      const [newUser] = await db.insert(users).values({
-        id: data.user.id,
-        email: data.user.email!,
-        displayName: data.user.user_metadata?.display_name || email.split('@')[0],
-        username: data.user.user_metadata?.username || email.split('@')[0],
-        role: 'fan',
-      }).returning();
+      try {
+        const baseUsername = data.user.user_metadata?.username || email.split('@')[0];
+        const username = `${baseUsername}-${data.user.id.substring(0, 6)}`;
 
-      dbUser = newUser;
+        const [newUser] = await db.insert(users).values({
+          id: data.user.id,
+          email: data.user.email!,
+          displayName: data.user.user_metadata?.display_name || email.split('@')[0],
+          username,
+          role: 'fan',
+        }).returning();
+
+        dbUser = newUser;
+      } catch (insertError) {
+        console.error('Error creating user in database:', insertError);
+        // User exists in auth but not in DB - this is ok, query again
+        dbUser = await db.query.users.findFirst({
+          where: eq(users.id, data.user.id),
+        });
+
+        if (!dbUser) {
+          throw new Error('Failed to create or find user in database');
+        }
+      }
     }
 
     // Return response with user role
