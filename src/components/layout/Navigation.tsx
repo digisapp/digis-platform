@@ -3,6 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import {
+  Home,
+  Search,
+  Flame,
+  MessageCircle,
+  Wallet,
+  Video,
+  Sparkles
+} from 'lucide-react';
 
 export function Navigation() {
   const router = useRouter();
@@ -103,32 +112,32 @@ export function Navigation() {
   const navItems = [
     {
       label: 'Home',
-      icon: '🏠',
+      icon: Home,
       path: userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard',
       active: isActive('/dashboard') || isActive('/creator/dashboard') || isActive('/admin'),
     },
     {
       label: 'Explore',
-      icon: '🔍',
+      icon: Search,
       path: '/explore',
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
       label: 'Content',
-      icon: '🔥',
+      icon: Flame,
       path: '/content',
       active: isActive('/content') || pathname?.startsWith('/content'),
     },
     // Center button will be here
     {
       label: 'Messages',
-      icon: '💬',
+      icon: MessageCircle,
       path: '/messages',
       active: isActive('/messages') || pathname?.startsWith('/messages'),
     },
     {
       label: 'Wallet',
-      icon: '💰',
+      icon: Wallet,
       path: '/wallet',
       active: isActive('/wallet'),
     },
@@ -146,7 +155,7 @@ export function Navigation() {
               navItems[0].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <span className="text-2xl">{navItems[0].icon}</span>
+            <navItems[0].icon className="w-6 h-6" />
             <span className="text-xs font-medium">{navItems[0].label}</span>
           </button>
 
@@ -157,7 +166,7 @@ export function Navigation() {
               navItems[1].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <span className="text-2xl">{navItems[1].icon}</span>
+            <navItems[1].icon className="w-6 h-6" />
             <span className="text-xs font-medium">{navItems[1].label}</span>
           </button>
 
@@ -167,14 +176,14 @@ export function Navigation() {
               onClick={() => router.push('/creator/go-live')}
               className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-pink-500 shadow-lg shadow-red-500/50 border-2 border-black"
             >
-              <span className="text-2xl">📹</span>
+              <Video className="w-7 h-7 text-white" />
             </button>
           ) : (
             <button
               onClick={() => router.push('/creator/apply')}
               className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink shadow-lg shadow-digis-cyan/50 border-2 border-black"
             >
-              <span className="text-2xl">⭐</span>
+              <Sparkles className="w-7 h-7 text-white" />
             </button>
           )}
 
@@ -185,7 +194,7 @@ export function Navigation() {
               navItems[2].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <span className="text-2xl">{navItems[2].icon}</span>
+            <navItems[2].icon className="w-6 h-6" />
             <span className="text-xs font-medium">{navItems[2].label}</span>
           </button>
 
@@ -216,28 +225,31 @@ export function Navigation() {
 
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-4">
-          {navItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
-                item.active
-                  ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-              title={item.label}
-            >
-              <div className="relative">
-                <span className="text-2xl">{item.icon}</span>
-                {item.label === 'Messages' && unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
-              </div>
-              <span className="text-xs font-medium">{item.label}</span>
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => router.push(item.path)}
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                  item.active
+                    ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+                title={item.label}
+              >
+                <div className="relative">
+                  <IconComponent className="w-6 h-6" />
+                  {item.label === 'Messages' && unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            );
+          })}
 
           {/* Go Live / Creator Action */}
           {userRole === 'creator' ? (
@@ -247,7 +259,7 @@ export function Navigation() {
               title="Go Live"
             >
               <div className="relative">
-                <span className="text-2xl">📹</span>
+                <Video className="w-6 h-6 text-red-500" />
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               </div>
               <span className="text-xs font-bold text-red-500">LIVE</span>
@@ -258,7 +270,7 @@ export function Navigation() {
               className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 border border-digis-cyan hover:scale-110 transition-transform"
               title="Become Creator"
             >
-              <span className="text-2xl">⭐</span>
+              <Sparkles className="w-6 h-6 text-digis-cyan" />
               <span className="text-xs font-medium text-digis-cyan">Creator</span>
             </button>
           )}
