@@ -99,8 +99,13 @@ export default function AdminDashboard() {
       setLoading(true);
       const response = await fetch(`/api/admin/applications?status=${selectedStatus}`);
       const data = await response.json();
+      console.log('[Admin] Applications response:', data);
+      console.log('[Admin] Response status:', response.status);
       if (response.ok) {
-        setApplications(data.applications);
+        console.log('[Admin] Setting applications:', data.applications);
+        setApplications(data.applications || []);
+      } else {
+        console.error('[Admin] Failed to fetch applications:', data);
       }
     } catch (err) {
       console.error('Error fetching applications:', err);

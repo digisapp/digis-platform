@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
       offset
     );
 
+    console.log('[API] Raw applications from DB:', JSON.stringify(applications, null, 2));
+    console.log('[API] Number of applications:', applications.length);
+
     // Transform snake_case to camelCase for frontend
     const transformedApplications = applications.map((app: any) => ({
       id: app.id,
