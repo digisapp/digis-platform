@@ -30,9 +30,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create user in database
-    let dbUser = await db.query.users.findFirst({
-      where: eq(users.id, data.user.id),
-    });
+    let dbUser;
+    try {
+      dbUser = await db.query.users.findFirst({
+        where: eq(users.id, data.user.id),
+      });
+    } catch (queryError) {
+      console.error('Database query error:', queryError);
+      throw new Error(`Failed to query database: ${queryError instanceof Error ? queryError.message : String(queryError)}`);
+    }
 
     // If user doesn't exist in database, create it
     if (!dbUser) {
@@ -72,8 +78,16 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      type: typeof error,
+    });
     return NextResponse.json(
-      { error: 'An error occurred during login' },
+      {
+        error: 'An error occurred during login',
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
+      },
       { status: 500 }
     );
   }
