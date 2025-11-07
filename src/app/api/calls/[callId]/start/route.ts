@@ -18,18 +18,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const call = await CallService.endCall(callId, user.id);
+    const call = await CallService.startCall(callId, user.id);
 
     return NextResponse.json({
       call,
-      message: 'Call ended successfully',
-      duration: call.durationSeconds,
-      charged: call.actualCoins,
+      message: 'Call started successfully',
     });
   } catch (error: any) {
-    console.error('Error ending call:', error);
+    console.error('Error starting call:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to end call' },
+      { error: error.message || 'Failed to start call' },
       { status: 400 }
     );
   }

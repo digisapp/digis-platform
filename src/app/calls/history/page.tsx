@@ -1,24 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Phone, Clock, Coins, Calendar, TrendingUp, User } from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { GlassButton } from '@/components/ui/GlassButton';
 
-interface Call {
+interface CallHistoryItem {
   id: string;
   status: string;
-  creatorId: string;
-  fanId: string;
   ratePerMinute: number;
+  estimatedCoins: number;
+  actualCoins: number | null;
+  durationSeconds: number | null;
   requestedAt: string;
-  startedAt?: string;
-  endedAt?: string;
-  durationSeconds?: number;
-  actualCoins?: number;
+  startedAt: string | null;
+  endedAt: string | null;
+  fan: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  creator: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+interface Stats {
+  totalCalls: number;
+  totalMinutes: number;
+  totalCoinsSpent: number;
+  totalCoinsEarned: number;
 }
 
 export default function CallHistoryPage() {
-  const [calls, setCalls] = useState<Call[]>([]);
+  const router = useRouter();
+  const [calls, setCalls] = useState<CallHistoryItem[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    totalCalls: 0,
+    totalMinutes: 0,
+    totalCoinsSpent: 0,
+    totalCoinsEarned: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCallHistory();
@@ -26,31 +55,61 @@ export default function CallHistoryPage() {
 
   const fetchCallHistory = async () => {
     try {
-      // TODO: Create API route
-      // For now, using mock data
-      setCalls([]);
+      const res = await fetch('/api/calls/history');
+      if (!res.ok) throw new Error('Failed to fetch call history');
+      
+      const data = await res.json();
+      setCalls(data.calls);
+      
+      // Calculate stats
+      const completedCalls = data.calls.filter((call: CallHistoryItem) => call.status === 'completed');
+      const totalMinutes = completedCalls.reduce((sum: number, call: CallHistoryItem) => {
+        return sum + (call.durationSeconds ? Math.ceil(call.durationSeconds / 60) : 0);
+      }, 0);
+      
+      // Determine current user ID from first call
+      if (data.calls.length > 0) {
+        const firstCall = data.calls[0];
+        // The user making the request is the one viewing the history
+        setUserId(firstCall.fanId);
+      }
+      
+      const totalCoinsSpent = completedCalls
+        .filter((call: CallHistoryItem) => call.fanId === data.calls[0]?.fanId)
+        .reduce((sum: number, call: CallHistoryItem) => sum + (call.actualCoins || 0), 0);
+      
+      const totalCoinsEarned = completedCalls
+        .filter((call: CallHistoryItem) => call.creatorId === data.calls[0]?.creatorId)
+        .reduce((sum: number, call: CallHistoryItem) => sum + (call.actualCoins || 0), 0);
+      
+      setStats({
+        totalCalls: completedCalls.length,
+        totalMinutes,
+        totalCoinsSpent,
+        totalCoinsEarned,
+      });
+      
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching call history:', error);
-    } finally {
       setLoading(false);
     }
   };
 
-  const getCallIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '✅';
-      case 'active':
-        return '📞';
-      case 'cancelled':
-        return '❌';
-      case 'rejected':
-        return '🚫';
-      case 'pending':
-        return '⏳';
-      default:
-        return '📱';
-    }
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return 'N/A';
+    const mins = Math.ceil(seconds / 60);
+    return `${mins} min`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -58,12 +117,10 @@ export default function CallHistoryPage() {
       case 'completed':
         return 'text-green-400';
       case 'active':
-        return 'text-blue-400';
-      case 'cancelled':
+        return 'text-digis-cyan';
       case 'rejected':
+      case 'cancelled':
         return 'text-red-400';
-      case 'pending':
-        return 'text-yellow-400';
       default:
         return 'text-gray-400';
     }
@@ -71,88 +128,138 @@ export default function CallHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="min-h-screen bg-gradient-to-b from-black via-purple-900/10 to-black py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-white">Loading call history...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 -top-10 -left-10 bg-digis-cyan opacity-20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-96 h-96 top-1/3 right-10 bg-digis-pink opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-black via-purple-900/10 to-black py-20 px-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">Call History</h1>
-          <p className="text-gray-400">View your past video calls and stats</p>
+          <h1 className="text-4xl font-bold text-white mb-2">Call History</h1>
+          <p className="text-gray-400">View your past video calls and earnings</p>
         </div>
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <GlassCard glow="cyan" padding="md">
-            <p className="text-gray-400 mb-2">Total Calls</p>
-            <p className="text-3xl font-bold text-white">0</p>
-          </GlassCard>
-          <GlassCard glow="pink" padding="md">
-            <p className="text-gray-400 mb-2">Total Minutes</p>
-            <p className="text-3xl font-bold text-white">0</p>
-          </GlassCard>
-          <GlassCard glow="purple" padding="md">
-            <p className="text-gray-400 mb-2">Coins Spent</p>
-            <p className="text-3xl font-bold text-white">0</p>
-          </GlassCard>
-        </div>
-
-        {/* Call History */}
-        <GlassCard glow="none" padding="lg">
-          <h2 className="text-2xl font-bold text-white mb-6">Recent Calls</h2>
-
-          {calls.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📞</div>
-              <p className="text-gray-400 mb-4">No calls yet</p>
-              <GlassButton variant="cyan" onClick={() => window.location.href = '/'}>
-                Browse Creators
-              </GlassButton>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Phone className="w-5 h-5 text-digis-cyan" />
+              <span className="text-gray-400 text-sm">Total Calls</span>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {calls.map((call) => (
-                <div
-                  key={call.id}
-                  className="glass glass-hover p-4 rounded-xl flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="text-4xl">{getCallIcon(call.status)}</div>
-                    <div>
-                      <p className="text-white font-medium">
-                        Call with Creator
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        {new Date(call.requestedAt).toLocaleString()}
-                      </p>
+            <p className="text-3xl font-bold text-white">{stats.totalCalls}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Clock className="w-5 h-5 text-purple-400" />
+              <span className="text-gray-400 text-sm">Total Minutes</span>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.totalMinutes}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Coins className="w-5 h-5 text-yellow-400" />
+              <span className="text-gray-400 text-sm">Coins Spent</span>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.totalCoinsSpent}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <TrendingUp className="w-5 h-5 text-green-400" />
+              <span className="text-gray-400 text-sm">Coins Earned</span>
+            </div>
+            <p className="text-3xl font-bold text-white">{stats.totalCoinsEarned}</p>
+          </GlassCard>
+        </div>
+
+        {/* Call List */}
+        {calls.length === 0 ? (
+          <GlassCard className="p-12 text-center">
+            <Phone className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">No calls yet</h3>
+            <p className="text-gray-400 mb-6">Your call history will appear here</p>
+            <GlassButton onClick={() => router.push('/explore')}>
+              Browse Creators
+            </GlassButton>
+          </GlassCard>
+        ) : (
+          <div className="space-y-4">
+            {calls.map((call) => {
+              const otherUser = call.fan.id === userId ? call.creator : call.fan;
+              const isCreator = call.creator.id === userId;
+              
+              return (
+                <GlassCard key={call.id} className="p-6 hover:bg-white/5 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      {/* Avatar */}
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-purple-500 flex items-center justify-center text-white font-bold">
+                        {otherUser.avatarUrl ? (
+                          <img
+                            src={otherUser.avatarUrl}
+                            alt={otherUser.displayName || otherUser.username}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-6 h-6" />
+                        )}
+                      </div>
+
+                      {/* Call Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-semibold text-white">
+                            {otherUser.displayName || otherUser.username}
+                          </h3>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(call.status)}`}>
+                            {call.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {formatDate(call.requestedAt)}
+                          </span>
+                          {call.durationSeconds && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {formatDuration(call.durationSeconds)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Coins */}
+                    <div className="text-right">
+                      {call.actualCoins !== null ? (
+                        <div className={`text-2xl font-bold ${isCreator ? 'text-green-400' : 'text-yellow-400'}`}>
+                          {isCreator ? '+' : '-'}{call.actualCoins}
+                          <span className="text-sm text-gray-400 ml-1">coins</span>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500">
+                          {call.status === 'pending' ? 'Pending' : 'No charge'}
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500 mt-1">
+                        {call.ratePerMinute} coins/min
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold capitalize ${getStatusColor(call.status)}`}>
-                      {call.status}
-                    </p>
-                    {call.durationSeconds && (
-                      <p className="text-sm text-gray-400">
-                        {Math.ceil(call.durationSeconds / 60)} min • {call.actualCoins} coins
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
+                </GlassCard>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

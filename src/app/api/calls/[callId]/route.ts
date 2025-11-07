@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { calls } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { LiveKitService } from '@/lib/services/livekit-service';
 
 export async function GET(
   request: NextRequest,
@@ -30,6 +29,7 @@ export async function GET(
             id: true,
             username: true,
             displayName: true,
+            avatarUrl: true,
           },
         },
         creator: {
@@ -37,6 +37,7 @@ export async function GET(
             id: true,
             username: true,
             displayName: true,
+            avatarUrl: true,
           },
         },
       },
@@ -54,43 +55,11 @@ export async function GET(
       );
     }
 
-    // Call must be accepted or active
-    if (call.status !== 'accepted' && call.status !== 'active') {
-      return NextResponse.json(
-        { error: `Call is ${call.status}. Must be accepted or active to join.` },
-        { status: 400 }
-      );
-    }
-
-    if (!call.roomName) {
-      return NextResponse.json(
-        { error: 'Room name not generated' },
-        { status: 500 }
-      );
-    }
-
-    // Determine participant info
-    const isFan = call.fanId === user.id;
-    const participant = isFan ? call.fan : call.creator;
-    const participantName = participant.displayName || participant.username;
-
-    // Generate LiveKit token
-    const token = LiveKitService.generateToken(
-      call.roomName,
-      participantName,
-      user.id
-    );
-
-    return NextResponse.json({
-      token,
-      roomName: call.roomName,
-      participantName,
-      wsUrl: process.env.NEXT_PUBLIC_LIVEKIT_URL,
-    });
+    return NextResponse.json({ call });
   } catch (error: any) {
-    console.error('Error generating LiveKit token:', error);
+    console.error('Error fetching call:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate token' },
+      { error: error.message || 'Failed to fetch call' },
       { status: 500 }
     );
   }

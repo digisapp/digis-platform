@@ -2,12 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ callId: string }> }
-) {
+export async function GET(request: NextRequest) {
   try {
-    const { callId } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -18,19 +14,14 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const call = await CallService.endCall(callId, user.id);
+    const calls = await CallService.getCallHistory(user.id);
 
-    return NextResponse.json({
-      call,
-      message: 'Call ended successfully',
-      duration: call.durationSeconds,
-      charged: call.actualCoins,
-    });
+    return NextResponse.json({ calls });
   } catch (error: any) {
-    console.error('Error ending call:', error);
+    console.error('Error fetching call history:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to end call' },
-      { status: 400 }
+      { error: error.message || 'Failed to fetch call history' },
+      { status: 500 }
     );
   }
 }
