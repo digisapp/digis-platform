@@ -395,13 +395,16 @@ export function Navigation() {
 
           {/* Profile/Settings Button (Separate) */}
           <button
-            onClick={() => router.push('/settings')}
+            onClick={() => {
+              console.log('[Navigation] Mobile profile button clicked');
+              router.push('/settings');
+            }}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
               isActive('/settings') ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
-              {user?.email?.[0].toUpperCase()}
+              {user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <span className="text-xs font-medium">You</span>
           </button>
@@ -496,7 +499,10 @@ export function Navigation() {
 
         {/* User Profile / Settings Button */}
         <button
-          onClick={() => router.push('/settings')}
+          onClick={() => {
+            console.log('[Navigation] Profile button clicked, navigating to /settings');
+            router.push('/settings');
+          }}
           className={`mt-4 w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold transition-all ${
             isActive('/settings')
               ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-black'
@@ -504,7 +510,7 @@ export function Navigation() {
           }`}
           title="Settings"
         >
-          {user.email?.[0].toUpperCase()}
+          {user?.email?.[0]?.toUpperCase() || 'U'}
         </button>
 
         {/* Balance - Clickable */}
