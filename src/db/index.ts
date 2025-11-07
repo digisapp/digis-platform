@@ -29,7 +29,14 @@ export function getDb(): DbInstance {
     console.log('[DB] Initializing connection with runtime DATABASE_URL');
 
     // Disable prefetch as it is not supported for "Transaction" pool mode
-    global.__dbClient = postgres(connectionString, { prepare: false });
+    // Add connection pooling settings optimized for serverless
+    global.__dbClient = postgres(connectionString, {
+      prepare: false,
+      max: 1,  // Limit connections for serverless
+      idle_timeout: 20,
+      connect_timeout: 10,
+      ssl: 'require'  // Explicitly require SSL
+    });
     global.__db = drizzle(global.__dbClient, { schema });
   }
 
