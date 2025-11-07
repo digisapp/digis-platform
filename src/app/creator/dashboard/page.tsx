@@ -121,26 +121,6 @@ export default function CreatorDashboard() {
           <p className="text-gray-400">Manage your content, streams, and earnings</p>
         </div>
 
-        {/* Balance Card */}
-        <div className="mb-8 bg-gradient-to-r from-yellow-500/20 to-green-500/20 backdrop-blur-md rounded-2xl border-2 border-yellow-500/30 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-400 mb-1">Your Earnings</div>
-              <div className="text-3xl font-bold text-white">{balance} coins</div>
-            </div>
-            <GlassButton
-              variant="gradient"
-              size="md"
-              onClick={() => router.push('/wallet')}
-              shimmer
-              glow
-            >
-              <span className="text-xl mr-2">💰</span>
-              Withdraw
-            </GlassButton>
-          </div>
-        </div>
-
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <button
