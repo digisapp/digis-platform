@@ -71,7 +71,7 @@ export async function GET() {
       // Get top gifters (fans who sent the most gifts)
       const topGifters = await db
         .select({
-          userId: streamGifts.userId,
+          userId: streamGifts.senderId,
           totalCoins: sql<number>`sum(${streamGifts.totalCoins})`,
           giftCount: sql<number>`count(*)`,
           username: users.username,
@@ -80,9 +80,9 @@ export async function GET() {
         })
         .from(streamGifts)
         .innerJoin(streams, eq(streamGifts.streamId, streams.id))
-        .innerJoin(users, eq(streamGifts.userId, users.id))
+        .innerJoin(users, eq(streamGifts.senderId, users.id))
         .where(eq(streams.creatorId, user.id))
-        .groupBy(streamGifts.userId, users.username, users.displayName, users.avatarUrl)
+        .groupBy(streamGifts.senderId, users.username, users.displayName, users.avatarUrl)
         .orderBy(desc(sql`sum(${streamGifts.totalCoins})`))
         .limit(5);
 

@@ -199,7 +199,18 @@ export class ContentService {
   } = {}) {
     const { limit = 20, offset = 0, creatorId, contentType } = options;
 
-    let query = db
+    // Build where conditions
+    const conditions = [eq(contentItems.isPublished, true)];
+
+    if (creatorId) {
+      conditions.push(eq(contentItems.creatorId, creatorId));
+    }
+
+    if (contentType) {
+      conditions.push(eq(contentItems.contentType, contentType));
+    }
+
+    return await db
       .select({
         id: contentItems.id,
         title: contentItems.title,
@@ -222,21 +233,10 @@ export class ContentService {
       })
       .from(contentItems)
       .innerJoin(users, eq(contentItems.creatorId, users.id))
-      .where(eq(contentItems.isPublished, true))
+      .where(and(...conditions))
       .orderBy(desc(contentItems.createdAt))
       .limit(limit)
       .offset(offset);
-
-    // Apply filters if provided
-    if (creatorId) {
-      query = query.where(eq(contentItems.creatorId, creatorId)) as any;
-    }
-
-    if (contentType) {
-      query = query.where(eq(contentItems.contentType, contentType)) as any;
-    }
-
-    return await query;
   }
 
   /**
