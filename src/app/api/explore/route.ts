@@ -44,24 +44,22 @@ export async function GET(request: NextRequest) {
     }
 
     // Order by online status first, then by follower count
+    // Fetch one extra to determine if there are more results
     const creators = await query
       .orderBy(desc(users.isOnline), desc(users.followerCount))
-      .limit(limit)
+      .limit(limit + 1)
       .offset(offset);
 
-    // Get total count for pagination
-    const totalCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users)
-      .where(eq(users.role, 'creator'));
+    // Check if there are more results
+    const hasMore = creators.length > limit;
+    const results = hasMore ? creators.slice(0, limit) : creators;
 
     return NextResponse.json({
-      creators,
+      creators: results,
       pagination: {
-        total: totalCount[0]?.count || 0,
         limit,
         offset,
-        hasMore: offset + limit < (totalCount[0]?.count || 0),
+        hasMore,
       },
     });
   } catch (error: any) {

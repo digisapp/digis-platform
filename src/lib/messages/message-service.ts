@@ -226,14 +226,16 @@ export class MessageService {
 
   /**
    * Get all conversations for a user
+   * Limit to most recent 50 conversations for performance
    */
-  static async getUserConversations(userId: string) {
+  static async getUserConversations(userId: string, limit: number = 50) {
     const allConversations = await db.query.conversations.findMany({
       where: or(
         eq(conversations.user1Id, userId),
         eq(conversations.user2Id, userId)
       ),
       orderBy: [desc(conversations.lastMessageAt)],
+      limit, // Add limit for better performance
       with: {
         user1: {
           columns: {
