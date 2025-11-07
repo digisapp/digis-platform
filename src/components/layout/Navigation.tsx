@@ -115,8 +115,7 @@ export function Navigation() {
     return pathname === path;
   };
 
-  if (!user) return null;
-
+  // Define arrays before early return
   const navItems = [
     {
       label: 'Home',
@@ -198,6 +197,8 @@ export function Navigation() {
       iconColor: 'text-green-500',
     },
   ];
+
+  if (!user) return null;
 
   return (
     <>
@@ -331,7 +332,10 @@ export function Navigation() {
               navItems[0].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <navItems[0].icon className="w-6 h-6" />
+            {(() => {
+              const Icon = navItems[0].icon;
+              return <Icon className="w-6 h-6" />;
+            })()}
             <span className="text-xs font-medium">{navItems[0].label}</span>
           </button>
 
@@ -342,7 +346,10 @@ export function Navigation() {
               navItems[1].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <navItems[1].icon className="w-6 h-6" />
+            {(() => {
+              const Icon = navItems[1].icon;
+              return <Icon className="w-6 h-6" />;
+            })()}
             <span className="text-xs font-medium">{navItems[1].label}</span>
           </button>
 
@@ -370,7 +377,10 @@ export function Navigation() {
               navItems[2].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <navItems[2].icon className="w-6 h-6" />
+            {(() => {
+              const Icon = navItems[2].icon;
+              return <Icon className="w-6 h-6" />;
+            })()}
             <span className="text-xs font-medium">{navItems[2].label}</span>
           </button>
 
