@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
+import { validateUsername, suggestUsername } from '@/lib/utils/username';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -13,21 +15,82 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [usernameError, setUsernameError] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-suggest username from email
+  useEffect(() => {
+    if (email && !username) {
+      const suggested = suggestUsername(email.split('@')[0]);
+      setUsername(suggested);
+    }
+  }, [email, username]);
+
+  // Check username availability with debouncing
+  useEffect(() => {
+    if (!username || username.length < 3) {
+      setUsernameStatus('idle');
+      setUsernameError('');
+      setUsernameSuggestions([]);
+      return;
+    }
+
+    // Validate format first
+    const validation = validateUsername(username);
+    if (!validation.valid) {
+      setUsernameStatus('idle');
+      setUsernameError(validation.error || '');
+      setUsernameSuggestions([]);
+      return;
+    }
+
+    setUsernameError('');
+    setUsernameStatus('checking');
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+
+        if (data.available) {
+          setUsernameStatus('available');
+          setUsernameSuggestions([]);
+        } else {
+          setUsernameStatus('taken');
+          setUsernameSuggestions(data.suggestions || []);
+        }
+      } catch (err) {
+        console.error('Error checking username:', err);
+        setUsernameStatus('idle');
+      }
+    }, 500); // Debounce 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [username]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    // Validate username is available
+    if (usernameStatus !== 'available') {
+      setError('Please choose an available username');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, displayName }),
+        body: JSON.stringify({ email, password, displayName, username: username.toLowerCase() }),
       });
 
       const data = await response.json();
@@ -41,6 +104,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       setEmail('');
       setPassword('');
       setDisplayName('');
+      setUsername('');
 
       // Switch to login after 2 seconds
       setTimeout(() => {
@@ -72,6 +136,64 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
+        {/* Username Field with Real-time Checker */}
+        <div className="space-y-2">
+          <div className="relative">
+            <GlassInput
+              type="text"
+              label="Username"
+              placeholder="yourhandle"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              required
+            />
+            {/* Status Indicator */}
+            <div className="absolute right-3 top-9">
+              {usernameStatus === 'checking' && (
+                <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+              )}
+              {usernameStatus === 'available' && (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              )}
+              {usernameStatus === 'taken' && (
+                <XCircle className="w-5 h-5 text-red-500" />
+              )}
+            </div>
+          </div>
+
+          {/* Username Error */}
+          {usernameError && (
+            <p className="text-sm text-red-400">{usernameError}</p>
+          )}
+
+          {/* Availability Message */}
+          {usernameStatus === 'available' && (
+            <p className="text-sm text-green-400">@{username} is available!</p>
+          )}
+          {usernameStatus === 'taken' && (
+            <p className="text-sm text-red-400">@{username} is already taken</p>
+          )}
+
+          {/* Suggestions */}
+          {usernameSuggestions.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400">Try these instead:</p>
+              <div className="flex flex-wrap gap-2">
+                {usernameSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setUsername(suggestion)}
+                    className="px-3 py-1 text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-colors"
+                  >
+                    @{suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <GlassInput
           type="password"

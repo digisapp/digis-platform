@@ -37,14 +37,13 @@ export async function POST(request: NextRequest) {
     // If user doesn't exist in database, create it
     if (!dbUser) {
       try {
-        const baseUsername = data.user.user_metadata?.username || email.split('@')[0];
-        const username = `${baseUsername}-${data.user.id.substring(0, 6)}`;
+        const username = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 8)}`;
 
         const [newUser] = await db.insert(users).values({
           id: data.user.id,
           email: data.user.email!,
           displayName: data.user.user_metadata?.display_name || email.split('@')[0],
-          username,
+          username: username.toLowerCase(),
           role: 'fan',
         }).returning();
 
