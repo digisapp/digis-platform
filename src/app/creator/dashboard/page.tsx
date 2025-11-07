@@ -142,7 +142,7 @@ export default function CreatorDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
             className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left"
@@ -153,6 +153,15 @@ export default function CreatorDashboard() {
             </div>
             <h3 className="text-lg font-bold text-white mb-2">Start Streaming</h3>
             <p className="text-sm text-gray-400">Go live and connect with your fans</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/creator/shows')}
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">🎟️</div>
+            <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
+            <p className="text-sm text-gray-400">Create and manage exclusive events</p>
           </button>
 
           <button
