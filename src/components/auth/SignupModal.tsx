@@ -54,18 +54,24 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
     const timeoutId = setTimeout(async () => {
       try {
+        console.log('[Frontend] Checking username:', username);
         const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        console.log('[Frontend] Response status:', response.status);
+
         const data = await response.json();
+        console.log('[Frontend] Response data:', data);
 
         if (data.available) {
+          console.log('[Frontend] Username available!');
           setUsernameStatus('available');
           setUsernameSuggestions([]);
         } else {
+          console.log('[Frontend] Username taken, suggestions:', data.suggestions);
           setUsernameStatus('taken');
           setUsernameSuggestions(data.suggestions || []);
         }
       } catch (err) {
-        console.error('Error checking username:', err);
+        console.error('[Frontend] Error checking username:', err);
         setUsernameStatus('idle');
       }
     }, 500); // Debounce 500ms
