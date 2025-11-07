@@ -4,6 +4,15 @@ import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '@/lib/wallet/wallet-service';
 
+/**
+ * ShowService handles ticketed show management and purchases using Drizzle ORM.
+ *
+ * IMPORTANT: This service uses complex queries and financial transactions.
+ * All routes using this service MUST export:
+ *   export const runtime = 'nodejs';
+ *   export const dynamic = 'force-dynamic';
+ */
+
 export type ShowType = 'live_show' | 'qna' | 'workshop' | 'meetgreet' | 'performance';
 export type ShowStatus = 'scheduled' | 'live' | 'ended' | 'cancelled';
 

@@ -4,6 +4,15 @@ import { eq, and, or, desc } from 'drizzle-orm';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * CallService handles video call bookings and billing using Drizzle ORM.
+ *
+ * IMPORTANT: This service uses complex queries and financial transactions.
+ * All routes using this service MUST export:
+ *   export const runtime = 'nodejs';
+ *   export const dynamic = 'force-dynamic';
+ */
+
 export class CallService {
   /**
    * Initiate a call request

@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const allUsers = await db.query.users.findMany({

@@ -3,6 +3,20 @@ import { wallets, walletTransactions, spendHolds } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * WalletService handles all financial transactions using Drizzle ORM.
+ *
+ * IMPORTANT: This service uses SQL transactions for money operations.
+ * All routes using this service MUST export:
+ *   export const runtime = 'nodejs';
+ *   export const dynamic = 'force-dynamic';
+ *
+ * Money operations require:
+ * - Drizzle transactions (not Supabase REST)
+ * - Idempotency keys
+ * - Proper error handling and rollback
+ */
+
 export type TransactionType = 'purchase' | 'gift' | 'call_charge' | 'stream_tip' | 'ppv_unlock' | 'creator_payout' | 'refund';
 
 interface CreateTransactionParams {
