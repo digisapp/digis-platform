@@ -15,7 +15,8 @@ import {
   Plus,
   Upload,
   Ticket,
-  Phone
+  Phone,
+  Coins
 } from 'lucide-react';
 
 export function Navigation() {
@@ -135,18 +136,11 @@ export function Navigation() {
       path: '/content',
       active: isActive('/content') || pathname?.startsWith('/content'),
     },
-    // Center button will be here
     {
       label: 'Messages',
       icon: MessageCircle,
       path: '/messages',
       active: isActive('/messages') || pathname?.startsWith('/messages'),
-    },
-    {
-      label: 'Wallet',
-      icon: Wallet,
-      path: '/wallet',
-      active: isActive('/wallet'),
     },
   ];
 
@@ -394,7 +388,10 @@ export function Navigation() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
               {user?.email?.[0].toUpperCase()}
             </div>
-            <span className="text-xs font-medium">{balance}</span>
+            <div className="flex items-center gap-1">
+              <Coins className="w-3 h-3 text-yellow-400" />
+              <span className="text-sm font-bold text-yellow-400">{balance}</span>
+            </div>
           </button>
         </div>
       </nav>
@@ -507,14 +504,15 @@ export function Navigation() {
           {user.email?.[0].toUpperCase()}
         </button>
 
-        {/* Balance */}
-        <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border border-yellow-500/20">
-          <Wallet className="w-4 h-4 text-yellow-500" />
-          <div className="flex flex-col">
-            <div className="text-xs font-bold text-yellow-400">{balance}</div>
-            <div className="text-[10px] text-gray-400">coins</div>
-          </div>
-        </div>
+        {/* Balance - Clickable */}
+        <button
+          onClick={() => router.push('/wallet')}
+          className="mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 rounded-xl border border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:scale-105 group"
+          title="Wallet"
+        >
+          <Coins className="w-6 h-6 text-yellow-400 group-hover:rotate-12 transition-transform" />
+          <div className="text-2xl font-bold text-yellow-400">{balance}</div>
+        </button>
       </nav>
 
       {/* Spacer for desktop side nav */}
