@@ -8,6 +8,8 @@ import { GlassButton } from '@/components/ui/GlassButton';
 
 interface CallHistoryItem {
   id: string;
+  fanId: string;
+  creatorId: string;
   status: string;
   ratePerMinute: number;
   estimatedCoins: number;
