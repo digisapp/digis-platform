@@ -395,10 +395,6 @@ export default function SettingsPage() {
 
         {/* Sign Out Section */}
         <GlassCard className="p-6 border-red-500/20">
-          <h2 className="text-xl font-semibold mb-4 text-red-400">Danger Zone</h2>
-          <p className="text-sm text-gray-400 mb-4">
-            Sign out of your account. You'll need to log in again to access your account.
-          </p>
           <GlassButton
             onClick={async () => {
               const { createClient } = await import('@/lib/supabase/client');

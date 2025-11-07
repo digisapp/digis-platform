@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -13,28 +15,36 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database with fallback
-    let dbUser;
-    try {
-      dbUser = await db.query.users.findFirst({
-        where: eq(users.id, user.id),
-      });
-    } catch (dbError) {
-      console.error('Database error - using auth data fallback:', dbError);
-      // Return minimal user data from Supabase auth if database fails
-      // Check if this is admin email
-      const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
-      dbUser = {
-        id: user.id,
-        email: user.email!,
-        username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
-        displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
-        role: user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan'),
-      };
-    }
+    // Use Supabase admin client to query users table
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const { data: dbUser, error: dbError } = await adminClient
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    // If user not found in database, return auth data as fallback
+    if (dbError || !dbUser) {
+      console.error('Database error - using auth data fallback:', dbError);
+      const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
+
+      return NextResponse.json({
+        user: {
+          id: user.id,
+          email: user.email!,
+          username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
+          displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
+          role: user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan'),
+          avatarUrl: null,
+          bannerUrl: null,
+          bio: null,
+          isCreatorVerified: false,
+        }
+      });
     }
 
     return NextResponse.json({ user: dbUser });
