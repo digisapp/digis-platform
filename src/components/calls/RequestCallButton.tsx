@@ -57,7 +57,7 @@ export function RequestCallButton({
 
   if (!isAvailable) {
     return (
-      <GlassButton variant="secondary" disabled className="w-full">
+      <GlassButton variant="ghost" disabled className="w-full">
         <Phone className="w-4 h-4 mr-2" />
         Calls Unavailable
       </GlassButton>
@@ -144,7 +144,7 @@ export function RequestCallButton({
 
                 <div className="flex gap-3">
                   <GlassButton
-                    variant="secondary"
+                    variant="ghost"
                     onClick={() => setShowModal(false)}
                     className="flex-1"
                   >
