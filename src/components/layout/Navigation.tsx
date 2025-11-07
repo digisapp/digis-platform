@@ -357,34 +357,42 @@ export function Navigation() {
             </button>
           )}
 
-          {/* Content */}
+          {/* Messages */}
           <button
-            onClick={() => router.push(navItems[2].path)}
+            onClick={() => router.push(navItems[3].path)}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              navItems[2].active ? 'text-digis-cyan' : 'text-gray-400'
+              navItems[3].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
             {(() => {
-              const Icon = navItems[2].icon;
+              const Icon = navItems[3].icon;
               return <Icon className="w-6 h-6" />;
             })()}
-            <span className="text-xs font-medium">{navItems[2].label}</span>
+            <span className="text-xs font-medium">{navItems[3].label}</span>
           </button>
 
-          {/* Profile/Settings Button */}
+          {/* Wallet/Balance Button (Separate) */}
+          <button
+            onClick={() => router.push('/wallet')}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              isActive('/wallet') ? 'text-yellow-400' : 'text-gray-400'
+            }`}
+          >
+            <Coins className="w-6 h-6" />
+            <span className="text-xs font-bold text-yellow-400">{balance}</span>
+          </button>
+
+          {/* Profile/Settings Button (Separate) */}
           <button
             onClick={() => router.push('/settings')}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
               isActive('/settings') ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
               {user?.email?.[0].toUpperCase()}
             </div>
-            <div className="flex items-center gap-1">
-              <Coins className="w-3 h-3 text-yellow-400" />
-              <span className="text-sm font-bold text-yellow-400">{balance}</span>
-            </div>
+            <span className="text-xs font-medium">You</span>
           </button>
         </div>
       </nav>
