@@ -11,7 +11,11 @@ import {
   Wallet,
   Video,
   Sparkles,
-  Bell
+  Bell,
+  Plus,
+  Upload,
+  Ticket,
+  Phone
 } from 'lucide-react';
 
 export function Navigation() {
@@ -23,6 +27,7 @@ export function Navigation() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3); // Mock count for now
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -154,8 +159,108 @@ export function Navigation() {
     { id: 4, type: 'system', text: 'Welcome to Digis!', time: '1d ago', read: true },
   ];
 
+  // Creator action options
+  const creatorActions = [
+    {
+      id: 'go-live',
+      icon: Video,
+      title: 'Go Live',
+      description: 'Start streaming now',
+      path: '/creator/go-live',
+      gradient: 'from-red-500 to-pink-500',
+      iconColor: 'text-red-500',
+    },
+    {
+      id: 'create-post',
+      icon: Upload,
+      title: 'Create Post',
+      description: 'Upload new content',
+      path: '/creator/content/new',
+      gradient: 'from-blue-500 to-cyan-500',
+      iconColor: 'text-blue-500',
+    },
+    {
+      id: 'new-show',
+      icon: Ticket,
+      title: 'New Show',
+      description: 'Create ticketed event',
+      path: '/creator/shows/new',
+      gradient: 'from-purple-500 to-pink-500',
+      iconColor: 'text-purple-500',
+    },
+    {
+      id: 'schedule-call',
+      icon: Phone,
+      title: 'Schedule Call',
+      description: 'Offer 1-on-1 sessions',
+      path: '/creator/calls/new',
+      gradient: 'from-green-500 to-emerald-500',
+      iconColor: 'text-green-500',
+    },
+  ];
+
   return (
     <>
+      {/* Creator Create Menu */}
+      {showCreateMenu && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowCreateMenu(false)}
+          />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-b from-gray-900 to-black border border-white/20 rounded-2xl z-50 w-[90%] max-w-2xl overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">What do you want to create?</h2>
+                  <p className="text-sm text-gray-400 mt-1">Choose an action to get started</p>
+                </div>
+                <button
+                  onClick={() => setShowCreateMenu(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Action Grid */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {creatorActions.map((action) => {
+                const IconComponent = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    onClick={() => {
+                      router.push(action.path);
+                      setShowCreateMenu(false);
+                    }}
+                    className="group relative p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl transition-all hover:scale-105"
+                  >
+                    {/* Gradient background on hover */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-10 rounded-xl transition-opacity`} />
+
+                    {/* Content */}
+                    <div className="relative flex items-start gap-4">
+                      <div className={`p-3 rounded-lg bg-gradient-to-br ${action.gradient} bg-opacity-20`}>
+                        <IconComponent className={`w-6 h-6 ${action.iconColor}`} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <h3 className="font-bold text-white text-lg mb-1">{action.title}</h3>
+                        <p className="text-sm text-gray-400">{action.description}</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Notification Dropdown */}
       {showNotifications && (
         <>
@@ -289,10 +394,21 @@ export function Navigation() {
         {/* Logo */}
         <button
           onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
-          className="mb-8 text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent hover:scale-110 transition-transform"
+          className="mb-4 text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent hover:scale-110 transition-transform"
         >
           D
         </button>
+
+        {/* Creator Create Button - Canva Style */}
+        {userRole === 'creator' && (
+          <button
+            onClick={() => setShowCreateMenu(true)}
+            className="mb-8 w-14 h-14 rounded-xl bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-110 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
+            title="Create"
+          >
+            <Plus className="w-7 h-7 text-white group-hover:rotate-90 transition-transform" />
+          </button>
+        )}
 
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-4">
