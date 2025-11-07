@@ -196,7 +196,7 @@ export function PendingCalls() {
                   )}
                 </GlassButton>
                 <GlassButton
-                  variant="secondary"
+                  variant="ghost"
                   onClick={() => handleReject(call.id)}
                   disabled={processingId === call.id}
                   className="flex-1"
