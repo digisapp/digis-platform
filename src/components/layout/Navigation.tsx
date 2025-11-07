@@ -35,6 +35,22 @@ export function Navigation() {
       await checkUser();
     };
     init();
+
+    // Listen for auth state changes (logout, session expiry, etc.)
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setUserRole('fan');
+        setBalance(0);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        checkUser();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -109,6 +125,7 @@ export function Navigation() {
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    setUser(null); // Clear user state to hide navigation
     router.push('/');
   };
 
