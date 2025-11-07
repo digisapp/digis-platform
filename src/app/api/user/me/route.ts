@@ -16,10 +16,34 @@ export async function GET() {
       );
     }
 
-    // Get user from database
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, authUser.id),
-    });
+    // Try to get user from database with fallback
+    let user;
+    try {
+      user = await db.query.users.findFirst({
+        where: eq(users.id, authUser.id),
+      });
+    } catch (dbError) {
+      console.error('Database error - using auth data fallback:', dbError);
+      // Return minimal user data from Supabase auth if database fails
+      user = {
+        id: authUser.id,
+        email: authUser.email!,
+        username: authUser.user_metadata?.username || `user_${authUser.id.substring(0, 8)}`,
+        displayName: authUser.user_metadata?.display_name || authUser.email?.split('@')[0],
+        role: 'fan',
+        avatarUrl: null,
+        bannerUrl: null,
+        bio: null,
+        isCreatorVerified: false,
+        isOnline: false,
+        lastSeenAt: null,
+        usernameLastChangedAt: null,
+        followerCount: 0,
+        followingCount: 0,
+        createdAt: authUser.created_at,
+        updatedAt: authUser.created_at,
+      };
+    }
 
     if (!user) {
       return NextResponse.json(

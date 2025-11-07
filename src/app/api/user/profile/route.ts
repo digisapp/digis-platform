@@ -13,10 +13,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user from database
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
+    // Get user from database with fallback
+    let dbUser;
+    try {
+      dbUser = await db.query.users.findFirst({
+        where: eq(users.id, user.id),
+      });
+    } catch (dbError) {
+      console.error('Database error - using auth data fallback:', dbError);
+      // Return minimal user data from Supabase auth if database fails
+      dbUser = {
+        id: user.id,
+        email: user.email!,
+        username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
+        displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
+        role: 'fan',
+      };
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

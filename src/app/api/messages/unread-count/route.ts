@@ -15,14 +15,18 @@ export async function GET() {
       );
     }
 
-    const count = await MessageService.getTotalUnreadCount(user.id);
+    let count = 0;
+    try {
+      count = await MessageService.getTotalUnreadCount(user.id);
+    } catch (dbError) {
+      console.error('Database error - returning zero unread count:', dbError);
+      // Return 0 if database fails - better than crashing
+    }
 
     return NextResponse.json({ count });
   } catch (error: any) {
     console.error('Error fetching unread count:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch unread count' },
-      { status: 500 }
-    );
+    // Return 0 instead of error to prevent navigation crash
+    return NextResponse.json({ count: 0 });
   }
 }
