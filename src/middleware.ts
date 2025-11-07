@@ -34,18 +34,26 @@ export async function middleware(request: NextRequest) {
 
   // Protect /admin routes - Admin only
   if (path.startsWith('/admin')) {
+    console.log('[Middleware] Admin route accessed:', path)
+    console.log('[Middleware] User:', user ? user.email : 'Not authenticated')
+
     if (!user) {
       // Not logged in, redirect to home
+      console.log('[Middleware] Redirecting unauthenticated user to home')
       return NextResponse.redirect(new URL('/', request.url))
     }
 
     // Check if user is admin by email (quick check without database query)
     const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc'
+    console.log('[Middleware] Is admin email:', isAdminEmail)
 
     if (!isAdminEmail) {
       // Not an admin email, redirect to dashboard
+      console.log('[Middleware] Redirecting non-admin user to dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
+
+    console.log('[Middleware] Admin access granted')
   }
 
   // Protect /creator routes - Creator only (except /creator/apply)
