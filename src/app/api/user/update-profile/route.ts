@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,19 +20,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user in database
-    const [updatedUser] = await db.update(users)
-      .set({
-        displayName: displayName || null,
-        bio: bio || null,
-        avatarUrl: avatarUrl || null,
-        bannerUrl: bannerUrl || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, authUser.id))
-      .returning();
+    // Use admin client for database operations
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!updatedUser) {
+    // Update user in database
+    const { data: updatedUser, error: updateError } = await adminClient
+      .from('users')
+      .update({
+        display_name: displayName || null,
+        bio: bio || null,
+        avatar_url: avatarUrl || null,
+        banner_url: bannerUrl || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', authUser.id)
+      .select()
+      .single();
+
+    if (updateError || !updatedUser) {
+      console.error('Update user error:', updateError);
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
