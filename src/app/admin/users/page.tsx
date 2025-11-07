@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { Users, Search, ArrowLeft, Shield, Star } from 'lucide-react';
@@ -18,7 +18,7 @@ interface User {
   createdAt: string;
 }
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleFilter = searchParams.get('role') as 'fan' | 'creator' | 'admin' | null;
@@ -244,5 +244,17 @@ export default function AdminUsersPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-digis-dark flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <AdminUsersContent />
+    </Suspense>
   );
 }
