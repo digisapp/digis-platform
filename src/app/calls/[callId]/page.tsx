@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
-import '@livekit/components-styles';
+import '@livekit/components-react/styles';
 import { Phone, PhoneOff, Loader2 } from 'lucide-react';
 
 interface CallToken {
