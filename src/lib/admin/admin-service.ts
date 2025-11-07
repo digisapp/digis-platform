@@ -179,6 +179,7 @@ export class AdminService {
   static async getUsers(
     role?: 'fan' | 'creator' | 'admin',
     search?: string,
+    status?: 'active' | 'suspended' | 'banned',
     limit = 50,
     offset = 0
   ) {
@@ -186,13 +187,18 @@ export class AdminService {
 
     let query = client
       .from('users')
-      .select('id, email, username, display_name, avatar_url, role, is_creator_verified, follower_count, following_count, created_at')
+      .select('id, email, username, display_name, avatar_url, role, is_creator_verified, follower_count, following_count, created_at, account_status')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     // Apply role filter
     if (role) {
       query = query.eq('role', role);
+    }
+
+    // Apply status filter
+    if (status) {
+      query = query.eq('account_status', status);
     }
 
     // Apply search filter

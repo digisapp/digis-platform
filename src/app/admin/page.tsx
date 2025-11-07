@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Application {
@@ -31,6 +31,7 @@ interface User {
   followerCount: number;
   followingCount: number;
   createdAt: string;
+  accountStatus: 'active' | 'suspended' | 'banned';
 }
 
 interface Stats {
@@ -70,6 +71,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | 'admin' | 'all'>('all');
+  const [selectedAccountStatus, setSelectedAccountStatus] = useState<'active' | 'suspended' | 'banned' | 'all'>('active');
 
   // Analytics state
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -87,7 +89,7 @@ export default function AdminDashboard() {
     } else if (mainTab === 'analytics') {
       fetchAnalytics();
     }
-  }, [mainTab, selectedStatus, selectedRole, searchTerm]);
+  }, [mainTab, selectedStatus, selectedRole, selectedAccountStatus, searchTerm]);
 
   const checkAdminAccess = async () => {
     try {
@@ -137,6 +139,7 @@ export default function AdminDashboard() {
       setLoading(true);
       const params = new URLSearchParams();
       if (selectedRole !== 'all') params.append('role', selectedRole);
+      if (selectedAccountStatus !== 'all') params.append('status', selectedAccountStatus);
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await fetch(`/api/admin/users?${params}`);
@@ -261,6 +264,65 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Error updating verification:', err);
       alert('Failed to update verification');
+    }
+  };
+
+  const handleSuspendUser = async (userId: string, action: 'suspend' | 'unsuspend') => {
+    const message = action === 'suspend'
+      ? 'Suspend this user account? They will not be able to log in.'
+      : 'Unsuspend this user account? They will be able to log in again.';
+
+    if (!confirm(message)) return;
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/suspend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        fetchUsers();
+        fetchStats();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update account status');
+      }
+    } catch (err) {
+      console.error('Error updating account status:', err);
+      alert('Failed to update account status');
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('⚠️ DELETE THIS ACCOUNT?\n\nThis will permanently ban the user and they will not be able to log in. This action cannot be undone.\n\nType DELETE to confirm.')) {
+      return;
+    }
+
+    const confirmation = prompt('Type DELETE to confirm account deletion:');
+    if (confirmation !== 'DELETE') {
+      alert('Deletion cancelled');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/delete`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        alert('User account has been banned');
+        fetchUsers();
+        fetchStats();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete account');
+      }
+    } catch (err) {
+      console.error('Error deleting account:', err);
+      alert('Failed to delete account');
     }
   };
 
@@ -489,20 +551,43 @@ export default function AdminDashboard() {
               </div>
 
               {/* Role Filter */}
-              <div className="flex gap-4">
-                {(['all', 'fan', 'creator', 'admin'] as const).map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setSelectedRole(role)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedRole === role
-                        ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
-                        : 'bg-white/5 hover:bg-white/10'
-                    }`}
-                  >
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                  </button>
-                ))}
+              <div>
+                <p className="text-sm text-gray-400 mb-2">Filter by Role:</p>
+                <div className="flex gap-4">
+                  {(['all', 'fan', 'creator', 'admin'] as const).map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setSelectedRole(role)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        selectedRole === role
+                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
+                          : 'bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Account Status Filter */}
+              <div>
+                <p className="text-sm text-gray-400 mb-2">Filter by Status:</p>
+                <div className="flex gap-4">
+                  {(['active', 'suspended', 'banned', 'all'] as const).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setSelectedAccountStatus(status)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        selectedAccountStatus === status
+                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
+                          : 'bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -547,9 +632,22 @@ export default function AdminDashboard() {
                             )}
                           </div>
 
-                          <p className="text-sm text-gray-400 mb-2">
-                            @{user.username} • {user.email}
-                          </p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="text-sm text-gray-400">
+                              @{user.username} • {user.email}
+                            </p>
+                            {/* Account Status Badge */}
+                            {user.accountStatus === 'suspended' && (
+                              <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded-full flex items-center gap-1">
+                                <Pause className="w-3 h-3" /> Suspended
+                              </span>
+                            )}
+                            {user.accountStatus === 'banned' && (
+                              <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded-full flex items-center gap-1">
+                                <Ban className="w-3 h-3" /> Banned
+                              </span>
+                            )}
+                          </div>
 
                           <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                             <span>{user.followerCount} followers</span>
@@ -563,12 +661,13 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2 min-w-[140px]">
                         {/* Role Badge & Changer */}
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
                           className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm font-medium"
+                          disabled={user.accountStatus === 'banned'}
                         >
                           <option value="fan">Fan</option>
                           <option value="creator">Creator</option>
@@ -576,7 +675,7 @@ export default function AdminDashboard() {
                         </select>
 
                         {/* Verification Toggle (for creators) */}
-                        {user.role === 'creator' && (
+                        {user.role === 'creator' && user.accountStatus !== 'banned' && (
                           <button
                             onClick={() => handleToggleVerification(user.id)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -586,6 +685,32 @@ export default function AdminDashboard() {
                             }`}
                           >
                             {user.isCreatorVerified ? 'Verified' : 'Unverified'}
+                          </button>
+                        )}
+
+                        {/* Suspend/Unsuspend Button */}
+                        {user.accountStatus !== 'banned' && (
+                          <button
+                            onClick={() => handleSuspendUser(user.id, user.accountStatus === 'suspended' ? 'unsuspend' : 'suspend')}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 justify-center ${
+                              user.accountStatus === 'suspended'
+                                ? 'bg-green-500/20 text-green-500 border border-green-500/50 hover:bg-green-500/30'
+                                : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500/30'
+                            }`}
+                          >
+                            <Pause className="w-3 h-3" />
+                            {user.accountStatus === 'suspended' ? 'Unsuspend' : 'Suspend'}
+                          </button>
+                        )}
+
+                        {/* Delete/Ban Button */}
+                        {user.accountStatus !== 'banned' && (
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="px-3 py-2 bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 justify-center"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
                           </button>
                         )}
 

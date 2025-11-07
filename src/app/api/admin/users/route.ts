@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role') as 'fan' | 'creator' | 'admin' | null;
+    const status = searchParams.get('status') as 'active' | 'suspended' | 'banned' | null;
     const search = searchParams.get('search');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
     const users = await AdminService.getUsers(
       role || undefined,
       search || undefined,
+      status || undefined,
       limit,
       offset
     );
@@ -43,6 +45,7 @@ export async function GET(request: NextRequest) {
       followerCount: user.follower_count,
       followingCount: user.following_count,
       createdAt: user.created_at,
+      accountStatus: user.account_status || 'active',
     }));
 
     return NextResponse.json({ users: transformedUsers });
