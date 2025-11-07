@@ -114,6 +114,12 @@ export function Navigation() {
       path: '/explore',
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
+    {
+      label: 'Content',
+      icon: '🔥',
+      path: '/content',
+      active: isActive('/content') || pathname?.startsWith('/content'),
+    },
     // Center button will be here
     {
       label: 'Messages',
@@ -155,6 +161,28 @@ export function Navigation() {
                 <span>💰</span>
                 <span>Wallet ({balance} coins)</span>
               </button>
+              {userRole === 'creator' && (
+                <button
+                  onClick={() => {
+                    router.push('/creator/content');
+                    setShowMobileMenu(false);
+                  }}
+                  className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
+                >
+                  <span>🎬</span>
+                  <span>Content Studio</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  router.push('/content/library');
+                  setShowMobileMenu(false);
+                }}
+                className="flex items-center gap-2 text-sm text-white hover:text-digis-cyan transition-colors"
+              >
+                <span>📚</span>
+                <span>My Library</span>
+              </button>
               <button
                 onClick={() => {
                   router.push('/settings');
@@ -192,18 +220,27 @@ export function Navigation() {
       {/* Mobile Bottom Navigation (TikTok/Instagram style) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10 pb-safe">
         <div className="flex items-center justify-around h-16 px-2">
-          {navItems.slice(0, 2).map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-                item.active ? 'text-digis-cyan' : 'text-gray-400'
-              }`}
-            >
-              <span className="text-2xl">{item.icon}</span>
-              <span className="text-xs font-medium">{item.label}</span>
-            </button>
-          ))}
+          {/* Home */}
+          <button
+            onClick={() => router.push(navItems[0].path)}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              navItems[0].active ? 'text-digis-cyan' : 'text-gray-400'
+            }`}
+          >
+            <span className="text-2xl">{navItems[0].icon}</span>
+            <span className="text-xs font-medium">{navItems[0].label}</span>
+          </button>
+
+          {/* Explore */}
+          <button
+            onClick={() => router.push(navItems[1].path)}
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+              navItems[1].active ? 'text-digis-cyan' : 'text-gray-400'
+            }`}
+          >
+            <span className="text-2xl">{navItems[1].icon}</span>
+            <span className="text-xs font-medium">{navItems[1].label}</span>
+          </button>
 
           {/* Center Action Button */}
           {userRole === 'creator' ? (
@@ -222,22 +259,15 @@ export function Navigation() {
             </button>
           )}
 
-          {/* Messages */}
+          {/* Content */}
           <button
-            onClick={() => router.push('/messages')}
+            onClick={() => router.push(navItems[2].path)}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              isActive('/messages') || pathname?.startsWith('/messages') ? 'text-digis-cyan' : 'text-gray-400'
+              navItems[2].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <div className="relative">
-              <span className="text-2xl">💬</span>
-              {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </div>
-              )}
-            </div>
-            <span className="text-xs font-medium">Messages</span>
+            <span className="text-2xl">{navItems[2].icon}</span>
+            <span className="text-xs font-medium">{navItems[2].label}</span>
           </button>
 
           {/* Profile Menu Button */}
