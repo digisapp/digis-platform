@@ -48,19 +48,35 @@ export default function WalletPage() {
 
   const fetchWalletData = async () => {
     try {
-      // TODO: Implement API routes to get wallet balance and transactions
-      // For now, using mock data
-      setBalance(250);
-      setTransactions([
-        {
-          id: '1',
-          amount: 250,
-          type: 'purchase',
-          description: 'Purchased 250 coins',
-          createdAt: new Date().toISOString(),
-          status: 'completed',
-        },
-      ]);
+      // Fetch balance
+      try {
+        const balanceResponse = await fetch('/api/wallet/balance');
+        if (balanceResponse.ok) {
+          const balanceData = await balanceResponse.json();
+          setBalance(balanceData.balance || 0);
+        } else {
+          console.warn('Failed to fetch balance, using 0');
+          setBalance(0);
+        }
+      } catch (balanceError) {
+        console.error('Error fetching balance:', balanceError);
+        setBalance(0);
+      }
+
+      // Fetch transactions
+      try {
+        const transactionsResponse = await fetch('/api/wallet/transactions?limit=50');
+        if (transactionsResponse.ok) {
+          const transactionsData = await transactionsResponse.json();
+          setTransactions(transactionsData.transactions || []);
+        } else {
+          console.warn('Failed to fetch transactions, using empty array');
+          setTransactions([]);
+        }
+      } catch (txError) {
+        console.error('Error fetching transactions:', txError);
+        setTransactions([]);
+      }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
     } finally {
