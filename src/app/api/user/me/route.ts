@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+
+// Force Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -16,18 +18,24 @@ export async function GET() {
       );
     }
 
-    // Try to get user from database with fallback
-    let user;
-    try {
-      user = await db.query.users.findFirst({
-        where: eq(users.id, authUser.id),
-      });
-    } catch (dbError) {
+    // Use Supabase admin client to query users table
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: user, error: dbError } = await adminClient
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+
+    // If user not found in database, return auth data as fallback
+    if (dbError || !user) {
       console.error('Database error - using auth data fallback:', dbError);
-      // Return minimal user data from Supabase auth if database fails
-      // Check if this is admin email
       const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
-      user = {
+
+      return NextResponse.json({
         id: authUser.id,
         email: authUser.email!,
         username: authUser.user_metadata?.username || `user_${authUser.id.substring(0, 8)}`,
@@ -44,14 +52,7 @@ export async function GET() {
         followingCount: 0,
         createdAt: authUser.created_at,
         updatedAt: authUser.created_at,
-      };
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      });
     }
 
     return NextResponse.json(user);
