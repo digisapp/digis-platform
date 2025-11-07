@@ -78,7 +78,7 @@ export default function FanDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => router.push('/live')}
             className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
@@ -86,6 +86,24 @@ export default function FanDashboard() {
             <div className="text-4xl mb-3">🎥</div>
             <h3 className="text-lg font-bold text-white mb-2">Live Streams</h3>
             <p className="text-sm text-gray-400">Watch creators streaming now</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/shows')}
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">🎟️</div>
+            <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
+            <p className="text-sm text-gray-400">Exclusive live events</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/shows/my-tickets')}
+            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-purple-500 hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">🎫</div>
+            <h3 className="text-lg font-bold text-white mb-2">My Tickets</h3>
+            <p className="text-sm text-gray-400">View your purchased tickets</p>
           </button>
 
           <button
