@@ -10,7 +10,8 @@ import {
   MessageCircle,
   Wallet,
   Video,
-  Sparkles
+  Sparkles,
+  Bell
 } from 'lucide-react';
 
 export function Navigation() {
@@ -20,6 +21,8 @@ export function Navigation() {
   const [userRole, setUserRole] = useState<string>('fan');
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3); // Mock count for now
 
   useEffect(() => {
     const init = async () => {
@@ -143,8 +146,76 @@ export function Navigation() {
     },
   ];
 
+  // Mock notifications - replace with real data later
+  const mockNotifications = [
+    { id: 1, type: 'message', text: 'New message from @creator', time: '5m ago', read: false },
+    { id: 2, type: 'tip', text: 'You received 50 coins!', time: '1h ago', read: false },
+    { id: 3, type: 'like', text: '@fan liked your content', time: '2h ago', read: false },
+    { id: 4, type: 'system', text: 'Welcome to Digis!', time: '1d ago', read: true },
+  ];
+
   return (
     <>
+      {/* Notification Dropdown */}
+      {showNotifications && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowNotifications(false)}
+          />
+          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl z-50 w-80 max-h-96 overflow-hidden">
+            {/* Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-bold text-white">Notifications</h3>
+              <button
+                onClick={() => setShowNotifications(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Notifications List */}
+            <div className="overflow-y-auto max-h-80">
+              {mockNotifications.map((notif) => (
+                <button
+                  key={notif.id}
+                  onClick={() => setShowNotifications(false)}
+                  className={`w-full p-4 border-b border-white/5 hover:bg-white/5 transition-colors text-left ${
+                    !notif.read ? 'bg-digis-cyan/5' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      {notif.type === 'message' && <MessageCircle className="w-5 h-5 text-digis-cyan" />}
+                      {notif.type === 'tip' && <Wallet className="w-5 h-5 text-yellow-500" />}
+                      {notif.type === 'like' && <Flame className="w-5 h-5 text-red-500" />}
+                      {notif.type === 'system' && <Bell className="w-5 h-5 text-gray-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white">{notif.text}</p>
+                      <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
+                    </div>
+                    {!notif.read && (
+                      <div className="w-2 h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2" />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="p-3 border-t border-white/10 bg-black/50">
+              <button className="w-full text-center text-sm text-digis-cyan hover:text-digis-pink transition-colors">
+                View all notifications
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Mobile Bottom Navigation (TikTok/Instagram style) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10 pb-safe">
         <div className="flex items-center justify-around h-16 px-2">
@@ -276,10 +347,31 @@ export function Navigation() {
           )}
         </div>
 
+        {/* Notifications Button */}
+        <button
+          onClick={() => setShowNotifications(!showNotifications)}
+          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+            showNotifications
+              ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+          title="Notifications"
+        >
+          <div className="relative">
+            <Bell className="w-6 h-6" />
+            {notificationCount > 0 && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </div>
+            )}
+          </div>
+          <span className="text-xs font-medium">Alerts</span>
+        </button>
+
         {/* User Profile / Settings Button */}
         <button
           onClick={() => router.push('/settings')}
-          className={`w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold transition-all ${
+          className={`mt-4 w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold transition-all ${
             isActive('/settings')
               ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-black'
               : 'hover:scale-110'
@@ -290,8 +382,12 @@ export function Navigation() {
         </button>
 
         {/* Balance */}
-        <div className="mt-4 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-          <div className="text-xs font-bold text-digis-cyan">{balance}</div>
+        <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border border-yellow-500/20">
+          <Wallet className="w-4 h-4 text-yellow-500" />
+          <div className="flex flex-col">
+            <div className="text-xs font-bold text-yellow-400">{balance}</div>
+            <div className="text-[10px] text-gray-400">coins</div>
+          </div>
         </div>
       </nav>
 
