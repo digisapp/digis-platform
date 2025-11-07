@@ -72,7 +72,7 @@ export async function GET(
     // Determine participant info
     const isFan = call.fanId === user.id;
     const participant = isFan ? call.fan : call.creator;
-    const participantName = participant.displayName || participant.username;
+    const participantName = participant.displayName || participant.username || 'User';
 
     // Generate LiveKit token
     const token = LiveKitService.generateToken(
