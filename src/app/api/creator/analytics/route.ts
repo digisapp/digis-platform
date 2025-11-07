@@ -1,0 +1,187 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/db';
+import { users, streams, streamGifts, calls, walletTransactions } from '@/db/schema';
+import { eq, and, sql, desc } from 'drizzle-orm';
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify user is a creator
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+    });
+
+    if (!dbUser || dbUser.role !== 'creator') {
+      return NextResponse.json(
+        { error: 'Only creators can access analytics' },
+        { status: 403 }
+      );
+    }
+
+    try {
+      // Get stream analytics
+      const creatorStreams = await db.query.streams.findMany({
+        where: eq(streams.creatorId, user.id),
+        orderBy: [desc(streams.createdAt)],
+      });
+
+      const totalStreamViews = creatorStreams.reduce((sum, stream) => sum + (stream.currentViewers || 0), 0);
+      const peakViewers = Math.max(...creatorStreams.map(s => s.peakViewers || 0), 0);
+      const totalStreams = creatorStreams.length;
+
+      // Get gift earnings
+      const giftsReceived = await db
+        .select({
+          totalCoins: sql<number>`sum(${streamGifts.totalCoins})`,
+          giftCount: sql<number>`count(*)`,
+        })
+        .from(streamGifts)
+        .innerJoin(streams, eq(streamGifts.streamId, streams.id))
+        .where(eq(streams.creatorId, user.id))
+        .groupBy(streams.creatorId);
+
+      const totalGiftCoins = giftsReceived[0]?.totalCoins || 0;
+      const totalGifts = giftsReceived[0]?.giftCount || 0;
+
+      // Get call earnings
+      const completedCalls = await db.query.calls.findMany({
+        where: and(
+          eq(calls.creatorId, user.id),
+          eq(calls.status, 'completed')
+        ),
+      });
+
+      const totalCallMinutes = completedCalls.reduce((sum, call) => {
+        return sum + (call.durationSeconds ? Math.ceil(call.durationSeconds / 60) : 0);
+      }, 0);
+
+      const totalCallEarnings = completedCalls.reduce((sum, call) => {
+        return sum + (call.actualCoins || 0);
+      }, 0);
+
+      const totalCalls = completedCalls.length;
+
+      // Get top gifters (fans who sent the most gifts)
+      const topGifters = await db
+        .select({
+          userId: streamGifts.userId,
+          totalCoins: sql<number>`sum(${streamGifts.totalCoins})`,
+          giftCount: sql<number>`count(*)`,
+          username: users.username,
+          displayName: users.displayName,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(streamGifts)
+        .innerJoin(streams, eq(streamGifts.streamId, streams.id))
+        .innerJoin(users, eq(streamGifts.userId, users.id))
+        .where(eq(streams.creatorId, user.id))
+        .groupBy(streamGifts.userId, users.username, users.displayName, users.avatarUrl)
+        .orderBy(desc(sql`sum(${streamGifts.totalCoins})`))
+        .limit(5);
+
+      // Calculate total earnings
+      const totalEarnings = totalGiftCoins + totalCallEarnings;
+
+      // Get recent activity
+      const recentTransactions = await db.query.walletTransactions.findMany({
+        where: and(
+          eq(walletTransactions.userId, user.id),
+          eq(walletTransactions.status, 'completed')
+        ),
+        orderBy: [desc(walletTransactions.createdAt)],
+        limit: 10,
+      });
+
+      return NextResponse.json({
+        overview: {
+          totalEarnings,
+          totalGiftCoins,
+          totalCallEarnings,
+          totalStreams,
+          totalCalls,
+          totalStreamViews,
+          peakViewers,
+        },
+        streams: {
+          totalStreams,
+          totalViews: totalStreamViews,
+          peakViewers,
+          averageViewers: totalStreams > 0 ? Math.round(totalStreamViews / totalStreams) : 0,
+        },
+        calls: {
+          totalCalls,
+          totalMinutes: totalCallMinutes,
+          totalEarnings: totalCallEarnings,
+          averageCallLength: totalCalls > 0 ? Math.round(totalCallMinutes / totalCalls) : 0,
+        },
+        gifts: {
+          totalGifts,
+          totalCoins: totalGiftCoins,
+          averageGiftValue: totalGifts > 0 ? Math.round(totalGiftCoins / totalGifts) : 0,
+        },
+        topGifters: topGifters.map(g => ({
+          userId: g.userId,
+          username: g.username,
+          displayName: g.displayName,
+          avatarUrl: g.avatarUrl,
+          totalCoins: Number(g.totalCoins),
+          giftCount: Number(g.giftCount),
+        })),
+        recentActivity: recentTransactions.map(tx => ({
+          id: tx.id,
+          type: tx.type,
+          amount: tx.amount,
+          description: tx.description,
+          createdAt: tx.createdAt,
+        })),
+      });
+    } catch (dbError) {
+      console.error('Database error fetching analytics:', dbError);
+
+      // Return zeros if database fails
+      return NextResponse.json({
+        overview: {
+          totalEarnings: 0,
+          totalGiftCoins: 0,
+          totalCallEarnings: 0,
+          totalStreams: 0,
+          totalCalls: 0,
+          totalStreamViews: 0,
+          peakViewers: 0,
+        },
+        streams: {
+          totalStreams: 0,
+          totalViews: 0,
+          peakViewers: 0,
+          averageViewers: 0,
+        },
+        calls: {
+          totalCalls: 0,
+          totalMinutes: 0,
+          totalEarnings: 0,
+          averageCallLength: 0,
+        },
+        gifts: {
+          totalGifts: 0,
+          totalCoins: 0,
+          averageGiftValue: 0,
+        },
+        topGifters: [],
+        recentActivity: [],
+      });
+    }
+  } catch (error: any) {
+    console.error('Error fetching creator analytics:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch analytics' },
+      { status: 500 }
+    );
+  }
+}
