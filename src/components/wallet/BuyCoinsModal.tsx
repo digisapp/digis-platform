@@ -9,6 +9,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface BuyCoinsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const COIN_PACKAGES = [
@@ -49,7 +50,7 @@ const COIN_PACKAGES = [
   },
 ];
 
-export function BuyCoinsModal({ isOpen, onClose }: BuyCoinsModalProps) {
+export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

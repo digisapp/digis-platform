@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
+import { RefreshCw } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -20,6 +21,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showBuyCoins, setShowBuyCoins] = useState(false);
 
   useEffect(() => {
@@ -84,6 +86,17 @@ export default function WalletPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchWalletData();
+    setRefreshing(false);
+  };
+
+  const handlePurchaseSuccess = async () => {
+    setShowBuyCoins(false);
+    await handleRefresh();
+  };
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'purchase':
@@ -115,7 +128,11 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <BuyCoinsModal isOpen={showBuyCoins} onClose={() => setShowBuyCoins(false)} />
+      <BuyCoinsModal
+        isOpen={showBuyCoins}
+        onClose={() => setShowBuyCoins(false)}
+        onSuccess={handlePurchaseSuccess}
+      />
 
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden">
@@ -125,9 +142,19 @@ export default function WalletPage() {
 
       <div className="relative z-10 container mx-auto px-4 py-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-5xl font-bold text-white mb-2">My Wallet</h1>
-          <p className="text-gray-400">Manage your Digis Coins and view transaction history</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-5xl font-bold text-white mb-2">My Wallet</h1>
+            <p className="text-gray-400">Manage your Digis Coins and view transaction history</p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="glass glass-hover p-3 rounded-xl text-digis-cyan hover:glow-cyan transition-all disabled:opacity-50"
+            title="Refresh wallet data"
+          >
+            <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
         {/* Balance Card */}
