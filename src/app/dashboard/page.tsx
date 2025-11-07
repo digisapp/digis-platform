@@ -79,6 +79,24 @@ export default function FanDashboard() {
             <h3 className="text-lg font-bold text-white mb-2">Video Calls</h3>
             <p className="text-sm text-gray-400">Book 1-on-1 calls with creators</p>
           </button>
+
+          <button
+            onClick={() => router.push('/content/library')}
+            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">📚</div>
+            <h3 className="text-lg font-bold text-white mb-2">My Library</h3>
+            <p className="text-sm text-gray-400">View purchased content</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/explore')}
+            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">🔍</div>
+            <h3 className="text-lg font-bold text-white mb-2">Explore Creators</h3>
+            <p className="text-sm text-gray-400">Find new creators to follow</p>
+          </button>
         </div>
       </div>
     </div>

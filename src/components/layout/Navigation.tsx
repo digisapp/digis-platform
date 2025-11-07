@@ -131,12 +131,6 @@ export function Navigation() {
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
-      label: 'Content',
-      icon: Flame,
-      path: '/content',
-      active: isActive('/content') || pathname?.startsWith('/content'),
-    },
-    {
       label: 'Messages',
       icon: MessageCircle,
       path: '/messages',
@@ -359,16 +353,16 @@ export function Navigation() {
 
           {/* Messages */}
           <button
-            onClick={() => router.push(navItems[3].path)}
+            onClick={() => router.push(navItems[2].path)}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              navItems[3].active ? 'text-digis-cyan' : 'text-gray-400'
+              navItems[2].active ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
             {(() => {
-              const Icon = navItems[3].icon;
+              const Icon = navItems[2].icon;
               return <Icon className="w-6 h-6" />;
             })()}
-            <span className="text-xs font-medium">{navItems[3].label}</span>
+            <span className="text-xs font-medium">{navItems[2].label}</span>
           </button>
 
           {/* Wallet/Balance Button (Separate) */}
