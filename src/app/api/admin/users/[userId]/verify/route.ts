@@ -9,9 +9,11 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/users/[userId]/verify - Toggle creator verification
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params;
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -25,7 +27,7 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    const result = await AdminService.toggleCreatorVerification(params.userId);
+    const result = await AdminService.toggleCreatorVerification(userId);
 
     return NextResponse.json({
       success: true,

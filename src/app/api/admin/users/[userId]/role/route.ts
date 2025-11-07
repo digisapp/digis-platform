@@ -9,9 +9,11 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/users/[userId]/role - Update user role
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
+    const { userId } = await params;
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -31,7 +33,7 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 
-    await AdminService.updateUserRole(params.userId, role);
+    await AdminService.updateUserRole(userId, role);
 
     return NextResponse.json({ success: true, message: 'Role updated successfully' });
   } catch (error: any) {
