@@ -1,1 +1,1 @@
-# Updated DATABASE_URL to use transaction pooler (port 6543)
+# Trigger deployment with updated DATABASE_URL env var
