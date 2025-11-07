@@ -15,16 +15,16 @@ export async function GET() {
     const hasVar = !!raw;
     const length = raw.length;
     const protocol = raw.split('://')[0];
-    const hasPooler = raw.includes('?pgbouncer=true');
     const hasSSL = raw.includes('sslmode=require');
-    const port = raw.includes(':6543') ? '6543' : raw.includes(':5432') ? '5432' : 'unknown';
+    const port = raw.includes(':6543') ? '6543 (transaction pooler)' : raw.includes(':5432') ? '5432 (direct)' : 'unknown';
+    const host = raw.includes('db.udpolhavhefflrawpokb.supabase.co') ? 'correct' : 'incorrect';
 
     return NextResponse.json({
       hasVar,
       length,
       protocol,
       port,
-      hasPooler,
+      host,
       hasSSL,
       maskedUrl: masked,
       timestamp: new Date().toISOString(),
