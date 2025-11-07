@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { createClient } from '@supabase/supabase-js';
 
 // Force Node.js runtime for database connections
 export const runtime = 'nodejs';
@@ -34,17 +32,26 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if username exists
+    // Check if username exists using Supabase client
     const lowercaseUsername = username.toLowerCase();
     console.log('[Username Check] Querying for:', lowercaseUsername);
 
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, lowercaseUsername),
-      columns: {
-        id: true,
-        username: true,
-      }
-    });
+    // Use Supabase service role client for reliable server-side queries
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: existingUser, error: queryError } = await supabase
+      .from('users')
+      .select('id, username')
+      .eq('username', lowercaseUsername)
+      .single();
+
+    if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = no rows found
+      console.error('[Username Check] Database error:', queryError);
+      throw queryError;
+    }
 
     console.log('[Username Check] Found existing user:', existingUser ? 'YES' : 'NO');
 
