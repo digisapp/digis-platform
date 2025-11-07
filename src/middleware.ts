@@ -28,7 +28,43 @@ export async function middleware(request: NextRequest) {
   )
 
   // IMPORTANT: Refresh session if expired - required for Server Components
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const path = request.nextUrl.pathname
+
+  // Protect /admin routes - Admin only
+  if (path.startsWith('/admin')) {
+    if (!user) {
+      // Not logged in, redirect to home
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // Check if user is admin by email (quick check without database query)
+    const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc'
+
+    if (!isAdminEmail) {
+      // Not an admin email, redirect to dashboard
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  // Protect /creator routes - Creator only (except /creator/apply)
+  if (path.startsWith('/creator') && path !== '/creator/apply') {
+    if (!user) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // For creator routes, we'll let the page handle role checking
+    // since admins can also access creator routes
+  }
+
+  // Protect general authenticated routes
+  const protectedPaths = ['/dashboard', '/wallet', '/messages', '/settings', '/explore', '/content']
+  const isProtectedPath = protectedPaths.some(p => path.startsWith(p))
+
+  if (isProtectedPath && !user) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
   return supabaseResponse
 }
