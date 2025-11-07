@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 
 interface UsernameStatus {
@@ -341,7 +341,6 @@ export default function SettingsPage() {
               placeholder="https://example.com/avatar.jpg"
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
-              icon={<ImageIcon className="w-4 h-4" />}
             />
 
             <GlassInput
@@ -350,7 +349,6 @@ export default function SettingsPage() {
               placeholder="https://example.com/banner.jpg"
               value={bannerUrl}
               onChange={(e) => setBannerUrl(e.target.value)}
-              icon={<ImageIcon className="w-4 h-4" />}
             />
 
             <GlassButton
