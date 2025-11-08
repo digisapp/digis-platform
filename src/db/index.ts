@@ -23,11 +23,12 @@ declare global {
  */
 export function getDb(): DbInstance {
   if (!global.__db) {
-    const connectionString = process.env.DATABASE_URL;
+    // Try DATABASE_URL first (pooled connection), fallback to DIRECT_DATABASE_URL
+    const connectionString = process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL;
 
     if (!connectionString) {
-      console.error('[DB ERROR] DATABASE_URL is not set at runtime!');
-      throw new Error('DATABASE_URL environment variable is required');
+      console.error('[DB ERROR] Neither DATABASE_URL nor DIRECT_DATABASE_URL is set at runtime!');
+      throw new Error('DATABASE_URL or DIRECT_DATABASE_URL environment variable is required');
     }
 
     console.log('[DB] Initializing singleton Drizzle connection with Supabase pooler');
