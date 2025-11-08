@@ -7,3 +7,4 @@ Fri Nov  7 21:37:34 EST 2025
 # Try postgres username without project ref
 # Use regional pooler with project ref in username
 # Try Option B with options parameter
+# Try us-west-1 region pooler
