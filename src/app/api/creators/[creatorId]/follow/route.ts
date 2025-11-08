@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/data/system';
+import { db } from '@/lib/data/system';
 import { follows } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { creatorId: string } }
+  props: { params: Promise<{ creatorId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -22,14 +22,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await props.params;
     const creatorId = params.creatorId;
 
     // Can't follow yourself
     if (user.id === creatorId) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 });
     }
-
-    const db = getDb();
 
     // Check if already following
     const existing = await db.query.follows.findFirst({
@@ -61,7 +60,7 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { creatorId: string } }
+  props: { params: Promise<{ creatorId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -71,8 +70,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await props.params;
     const creatorId = params.creatorId;
-    const db = getDb();
 
     // Delete follow
     await db.delete(follows).where(
@@ -94,7 +93,7 @@ export async function DELETE(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { creatorId: string } }
+  props: { params: Promise<{ creatorId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -104,8 +103,8 @@ export async function GET(
       return NextResponse.json({ isFollowing: false });
     }
 
+    const params = await props.params;
     const creatorId = params.creatorId;
-    const db = getDb();
 
     const existing = await db.query.follows.findFirst({
       where: and(

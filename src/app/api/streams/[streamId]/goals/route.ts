@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/data/system';
+import { db } from '@/lib/data/system';
 import { streamGoals, streams } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
@@ -12,11 +12,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { streamId: string } }
+  props: { params: Promise<{ streamId: string }> }
 ) {
   try {
+    const params = await props.params;
     const streamId = params.streamId;
-    const db = getDb();
 
     const goals = await db.query.streamGoals.findMany({
       where: eq(streamGoals.streamId, streamId),
@@ -38,7 +38,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { streamId: string } }
+  props: { params: Promise<{ streamId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -48,8 +48,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const params = await props.params;
     const streamId = params.streamId;
-    const db = getDb();
 
     // Verify user owns this stream
     const stream = await db.query.streams.findFirst({
