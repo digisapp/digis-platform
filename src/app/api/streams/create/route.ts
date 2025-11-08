@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error('[STREAMS/CREATE] Auth error:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,11 +22,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
+    console.log('[STREAMS/CREATE] Creating stream for user:', user.id, 'title:', title);
+
     const stream = await StreamService.createStream(user.id, title, description);
+
+    console.log('[STREAMS/CREATE] Stream created successfully:', stream.id);
 
     return NextResponse.json({ stream }, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating stream:', error);
+    console.error('[STREAMS/CREATE ERROR]', {
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack,
+    });
     return NextResponse.json(
       { error: error.message || 'Failed to create stream' },
       { status: 500 }

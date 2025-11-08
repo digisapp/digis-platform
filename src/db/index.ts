@@ -26,22 +26,25 @@ export function getDb(): DbInstance {
     const connectionString = process.env.DATABASE_URL;
 
     if (!connectionString) {
-      console.error('DATABASE_URL is not set at runtime!');
+      console.error('[DB ERROR] DATABASE_URL is not set at runtime!');
       throw new Error('DATABASE_URL environment variable is required');
     }
 
-    console.log('[DB] Initializing singleton Drizzle connection with transaction pooler');
+    console.log('[DB] Initializing singleton Drizzle connection with Supabase pooler');
 
     // Singleton connection pool optimized for Vercel serverless
     // Using Supabase Transaction Pooler (port 6543) for connection pooling
+    // CRITICAL: prepare: false required for PgBouncer/pooler compatibility
     global.__dbClient = postgres(connectionString, {
-      prepare: false,        // Required for transaction pooler mode
-      max: 3,               // Max 3 connections per serverless instance
-      idle_timeout: 20,     // Close idle connections after 20s
-      connect_timeout: 10,  // 10s connection timeout
-      ssl: 'require'        // Require SSL for Supabase
+      prepare: false,        // REQUIRED for PgBouncer/transaction pooler
+      ssl: 'require',        // Required for Supabase
+      max: 10,              // Keep small for serverless
+      idle_timeout: 30,     // Close idle connections after 30s
+      connect_timeout: 30,  // 30s connection timeout
     });
     global.__db = drizzle(global.__dbClient, { schema });
+
+    console.log('[DB] Connection pool initialized successfully');
   }
 
   return global.__db;
