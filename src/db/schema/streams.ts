@@ -110,6 +110,33 @@ export const streamViewers = pgTable('stream_viewers', {
   uniqueViewer: index('stream_viewers_unique_idx').on(table.streamId, table.userId),
 }));
 
+// Stream goals (progress bars for viewers to unlock rewards)
+export const streamGoals = pgTable('stream_goals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+
+  // Goal configuration
+  title: text('title').notNull(), // e.g., "Next Song Request"
+  description: text('description'), // Optional description
+  goalType: text('goal_type').notNull(), // 'gifts' (specific gift), 'coins' (any gift), 'viewers'
+  giftId: uuid('gift_id').references(() => virtualGifts.id), // If goalType is 'gifts'
+  targetAmount: integer('target_amount').notNull(), // Number to reach
+  currentAmount: integer('current_amount').default(0).notNull(), // Current progress
+
+  // Reward
+  rewardText: text('reward_text').notNull(), // e.g., "I'll sing your song!"
+
+  // Status
+  isActive: boolean('is_active').default(true).notNull(),
+  isCompleted: boolean('is_completed').default(false).notNull(),
+  completedAt: timestamp('completed_at'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_goals_stream_id_idx').on(table.streamId, table.isActive),
+}));
+
 // Relations
 export const streamsRelations = relations(streams, ({ one, many }) => ({
   creator: one(users, {
@@ -119,6 +146,7 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   messages: many(streamMessages),
   gifts: many(streamGifts),
   viewers: many(streamViewers),
+  goals: many(streamGoals),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -158,6 +186,17 @@ export const streamViewersRelations = relations(streamViewers, ({ one }) => ({
   }),
 }));
 
+export const streamGoalsRelations = relations(streamGoals, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamGoals.streamId],
+    references: [streams.id],
+  }),
+  gift: one(virtualGifts, {
+    fields: [streamGoals.giftId],
+    references: [virtualGifts.id],
+  }),
+}));
+
 // Type exports
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
@@ -169,3 +208,5 @@ export type StreamGift = typeof streamGifts.$inferSelect;
 export type NewStreamGift = typeof streamGifts.$inferInsert;
 export type StreamViewer = typeof streamViewers.$inferSelect;
 export type NewStreamViewer = typeof streamViewers.$inferInsert;
+export type StreamGoal = typeof streamGoals.$inferSelect;
+export type NewStreamGoal = typeof streamGoals.$inferInsert;

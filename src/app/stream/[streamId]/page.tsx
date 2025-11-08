@@ -36,6 +36,8 @@ export default function StreamViewerPage() {
   const [peakViewers, setPeakViewers] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   // Fetch stream details
   useEffect(() => {
@@ -44,6 +46,13 @@ export default function StreamViewerPage() {
     fetchLeaderboard();
     fetchUserBalance();
   }, [streamId]);
+
+  // Check follow status when stream loads
+  useEffect(() => {
+    if (stream?.creator?.id) {
+      fetchFollowStatus();
+    }
+  }, [stream?.creator?.id]);
 
   // Join stream and setup real-time
   useEffect(() => {
@@ -212,6 +221,38 @@ export default function StreamViewerPage() {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const fetchFollowStatus = async () => {
+    if (!stream?.creator?.id) return;
+
+    try {
+      const response = await fetch(`/api/creators/${stream.creator.id}/follow`);
+      const data = await response.json();
+      setIsFollowing(data.isFollowing);
+    } catch (err) {
+      console.error('Error fetching follow status:', err);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!stream?.creator?.id || followLoading) return;
+
+    setFollowLoading(true);
+    try {
+      const method = isFollowing ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/creators/${stream.creator.id}/follow`, {
+        method,
+      });
+
+      if (response.ok) {
+        setIsFollowing(!isFollowing);
+      }
+    } catch (err) {
+      console.error('Error toggling follow:', err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
@@ -278,16 +319,30 @@ export default function StreamViewerPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">👤</span>
-                  <span className="text-white font-semibold">{viewerCount} watching</span>
-                  <span className="text-gray-500">· Peak: {peakViewers}</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">👤</span>
+                    <span className="text-white font-semibold">{viewerCount} watching</span>
+                    <span className="text-gray-500">· Peak: {peakViewers}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⭐</span>
+                    <span className="text-white">{stream.creator?.displayName || stream.creator?.username}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">⭐</span>
-                  <span className="text-white">{stream.creator?.displayName || stream.creator?.username}</span>
-                </div>
+
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    isFollowing
+                      ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                      : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white hover:scale-105'
+                  } disabled:opacity-50`}
+                >
+                  {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                </button>
               </div>
             </div>
 
