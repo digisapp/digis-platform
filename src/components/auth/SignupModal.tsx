@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { GlassModal, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
+import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { validateUsername, suggestUsername } from '@/lib/utils/username';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
@@ -230,13 +230,13 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           )}
         </div>
 
-        <GlassInput
-          type="password"
+        <PasswordInput
           label="Password"
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="new-password"
         />
 
         {error && (

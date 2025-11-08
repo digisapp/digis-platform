@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { GlassModal, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
+import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -83,13 +83,13 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
           required
         />
 
-        <GlassInput
-          type="password"
+        <PasswordInput
           label="Password"
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
 
         {error && (
