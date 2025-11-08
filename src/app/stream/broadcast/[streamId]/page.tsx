@@ -188,6 +188,22 @@ export default function BroadcastStudioPage() {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleSendMessage = async (message: string) => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
   const formatDuration = () => {
     if (!stream?.startedAt) return '0:00';
     const start = new Date(stream.startedAt);
@@ -357,6 +373,7 @@ export default function BroadcastStudioPage() {
                 streamId={streamId}
                 messages={messages}
                 isCreator={true}
+                onSendMessage={handleSendMessage}
               />
             </div>
           </div>
