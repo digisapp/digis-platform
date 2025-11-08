@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
 import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
+import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
+import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import type { Stream, StreamMessage, VirtualGift, StreamGift } from '@/db/schema';
+import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 export default function BroadcastStudioPage() {
   const params = useParams() as { streamId: string };
@@ -28,6 +30,8 @@ export default function BroadcastStudioPage() {
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [goals, setGoals] = useState<StreamGoal[]>([]);
+  const [showGoalModal, setShowGoalModal] = useState(false);
 
   // Update timer every second
   useEffect(() => {
@@ -43,6 +47,7 @@ export default function BroadcastStudioPage() {
     fetchStreamDetails();
     fetchMessages();
     fetchBroadcastToken();
+    fetchGoals();
   }, [streamId]);
 
   // Setup real-time subscriptions
@@ -59,6 +64,8 @@ export default function BroadcastStudioPage() {
           setTotalEarnings((prev) => prev + event.data.streamGift.totalCoins);
           // Show gift notification
           showGiftNotification(event.data);
+          // Update goals progress
+          fetchGoals();
           break;
         case 'viewer_joined':
           playSound('join');
@@ -122,6 +129,18 @@ export default function BroadcastStudioPage() {
       }
     } catch (err) {
       setError('Failed to get broadcast token');
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/goals`);
+      const data = await response.json();
+      if (response.ok) {
+        setGoals(data.goals);
+      }
+    } catch (err) {
+      console.error('Error fetching goals:', err);
     }
   };
 
@@ -245,6 +264,14 @@ export default function BroadcastStudioPage() {
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
+      {/* Set Goal Modal */}
+      <SetGoalModal
+        isOpen={showGoalModal}
+        onClose={() => setShowGoalModal(false)}
+        streamId={streamId}
+        onGoalCreated={fetchGoals}
+      />
+
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
         <>
@@ -302,14 +329,23 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
 
-            <GlassButton
-              variant="pink"
-              size="md"
-              onClick={() => setShowEndConfirm(true)}
-              glow
-            >
-              End Stream
-            </GlassButton>
+            <div className="flex gap-3">
+              <GlassButton
+                variant="cyan"
+                size="md"
+                onClick={() => setShowGoalModal(true)}
+              >
+                🎯 Set Goal
+              </GlassButton>
+              <GlassButton
+                variant="pink"
+                size="md"
+                onClick={() => setShowEndConfirm(true)}
+                glow
+              >
+                End Stream
+              </GlassButton>
+            </div>
           </div>
         </div>
       </div>
@@ -345,6 +381,9 @@ export default function BroadcastStudioPage() {
                 <p className="text-gray-400">{stream.description}</p>
               )}
             </div>
+
+            {/* Active Goals */}
+            {goals.length > 0 && <GoalProgressBar goals={goals} />}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-4">

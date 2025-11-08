@@ -6,10 +6,11 @@ import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/compon
 import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
+import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import type { Stream, StreamMessage, VirtualGift, StreamGift } from '@/db/schema';
+import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 type StreamWithCreator = Stream & {
   creator?: {
@@ -38,6 +39,7 @@ export default function StreamViewerPage() {
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [goals, setGoals] = useState<StreamGoal[]>([]);
 
   // Fetch stream details
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function StreamViewerPage() {
     fetchMessages();
     fetchLeaderboard();
     fetchUserBalance();
+    fetchGoals();
   }, [streamId]);
 
   // Check follow status when stream loads
@@ -79,6 +82,7 @@ export default function StreamViewerPage() {
         case 'gift':
           setGiftAnimations((prev) => [...prev, event.data]);
           fetchLeaderboard();
+          fetchGoals();
           break;
         case 'viewer_count':
           setViewerCount(event.data.currentViewers);
@@ -150,6 +154,18 @@ export default function StreamViewerPage() {
       }
     } catch (err) {
       console.error('Error fetching balance:', err);
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/goals`);
+      const data = await response.json();
+      if (response.ok) {
+        setGoals(data.goals);
+      }
+    } catch (err) {
+      console.error('Error fetching goals:', err);
     }
   };
 
@@ -345,6 +361,9 @@ export default function StreamViewerPage() {
                 </button>
               </div>
             </div>
+
+            {/* Active Goals */}
+            {goals.length > 0 && <GoalProgressBar goals={goals} />}
 
             {/* Leaderboard */}
             {leaderboard.length > 0 && (
