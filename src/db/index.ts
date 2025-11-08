@@ -31,7 +31,7 @@ export function getDb(): DbInstance {
       throw new Error('DATABASE_URL or DIRECT_DATABASE_URL environment variable is required');
     }
 
-    console.log('[DB] Initializing singleton Drizzle connection with Supabase pooler');
+    console.log('[DB] Initializing Drizzle connection with Supabase pooler');
 
     // Singleton connection pool optimized for Vercel serverless
     // Using Supabase Transaction Pooler (port 6543) for connection pooling
