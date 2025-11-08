@@ -27,6 +27,16 @@ export default function BroadcastStudioPage() {
   const [isEnding, setIsEnding] = useState(false);
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update timer every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch stream details and token
   useEffect(() => {
@@ -155,9 +165,8 @@ export default function BroadcastStudioPage() {
 
   const formatDuration = () => {
     if (!stream?.startedAt) return '0:00';
-    const now = new Date();
     const start = new Date(stream.startedAt);
-    const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
+    const diff = Math.floor((currentTime.getTime() - start.getTime()) / 1000);
     const hours = Math.floor(diff / 3600);
     const minutes = Math.floor((diff % 3600) / 60);
     const seconds = diff % 60;
