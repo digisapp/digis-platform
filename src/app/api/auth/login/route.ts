@@ -33,37 +33,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create user in database with fallback
+    // Get or create user in database with fallback and timeout
     let dbUser;
     let dbError = null;
 
     try {
-      dbUser = await db.query.users.findFirst({
-        where: eq(users.id, data.user.id),
-      });
+      // Race database query against a timeout to prevent hanging
+      const dbQueryPromise = (async () => {
+        const user = await db.query.users.findFirst({
+          where: eq(users.id, data.user.id),
+        });
 
-      // If user doesn't exist in database, create it
-      if (!dbUser) {
-        try {
-          const username = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 8)}`;
+        // If user doesn't exist in database, create it
+        if (!user) {
+          try {
+            const username = data.user.user_metadata?.username || `user_${data.user.id.substring(0, 8)}`;
 
-          const [newUser] = await db.insert(users).values({
-            id: data.user.id,
-            email: data.user.email!,
-            displayName: data.user.user_metadata?.display_name || email.split('@')[0],
-            username: username.toLowerCase(),
-            role: 'fan',
-          }).returning();
+            const [newUser] = await db.insert(users).values({
+              id: data.user.id,
+              email: data.user.email!,
+              displayName: data.user.user_metadata?.display_name || email.split('@')[0],
+              username: username.toLowerCase(),
+              role: 'fan',
+            }).returning();
 
-          dbUser = newUser;
-        } catch (insertError) {
-          console.error('Error creating user in database:', insertError);
-          // Try to query again in case of race condition
-          dbUser = await db.query.users.findFirst({
-            where: eq(users.id, data.user.id),
-          });
+            return newUser;
+          } catch (insertError) {
+            console.error('Error creating user in database:', insertError);
+            // Try to query again in case of race condition
+            return await db.query.users.findFirst({
+              where: eq(users.id, data.user.id),
+            });
+          }
         }
-      }
+        return user;
+      })();
+
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      );
+
+      dbUser = await Promise.race([dbQueryPromise, timeoutPromise]);
     } catch (queryError) {
       console.error('Database error - allowing login anyway:', queryError);
       dbError = queryError;
