@@ -8,3 +8,4 @@ Fri Nov  7 21:37:34 EST 2025
 # Use regional pooler with project ref in username
 # Try Option B with options parameter
 # Try us-west-1 region pooler
+# Use correct shared pooler: aws-1-us-east-1
