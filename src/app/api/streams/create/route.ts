@@ -1,49 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { success, failure } from '@/types/api';
+import { nanoid } from 'nanoid';
 
 // Force Node.js runtime for Drizzle ORM (used by StreamService)
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  const requestId = nanoid(10);
+
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error('[STREAMS/CREATE] Auth error:', authError);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('[STREAMS/CREATE]', { requestId, error: 'Auth failed' });
+      return NextResponse.json(
+        failure('Unauthorized', 'auth', requestId),
+        { status: 401, headers: { 'x-request-id': requestId } }
+      );
     }
 
     const { title, description } = await req.json();
 
     if (!title) {
-      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+      return NextResponse.json(
+        failure('Title is required', 'validation', requestId),
+        { status: 400, headers: { 'x-request-id': requestId } }
+      );
     }
 
-    console.log('[STREAMS/CREATE] Creating stream for user:', user.id, 'title:', title);
-
-    // Add timeout to stream creation
-    const streamPromise = StreamService.createStream(user.id, title, description);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Stream creation timeout - database may be slow')), 8000)
-    );
-
-    const stream = await Promise.race([streamPromise, timeoutPromise]);
-
-    console.log('[STREAMS/CREATE] Stream created successfully:', stream.id);
-
-    return NextResponse.json({ stream }, { status: 201 });
-  } catch (error: any) {
-    console.error('[STREAMS/CREATE ERROR]', {
-      message: error?.message,
-      code: error?.code,
-      stack: error?.stack,
+    console.log('[STREAMS/CREATE]', {
+      requestId,
+      userId: user.id,
+      title,
     });
+
+    // Create stream with timeout and retry
+    try {
+      const stream = await withTimeoutAndRetry(
+        () => StreamService.createStream(user.id, title, description),
+        {
+          timeoutMs: 8000,
+          retries: 1, // Only 1 retry for writes to avoid duplicates
+          tag: 'createStream'
+        }
+      );
+
+      console.log('[STREAMS/CREATE]', {
+        requestId,
+        streamId: stream.id,
+        status: 'success'
+      });
+
+      return NextResponse.json(
+        success(stream, requestId),
+        { status: 201, headers: { 'x-request-id': requestId } }
+      );
+    } catch (dbError) {
+      console.error('[STREAMS/CREATE]', {
+        requestId,
+        error: dbError instanceof Error ? dbError.message : 'Unknown error',
+        userId: user.id,
+      });
+
+      return NextResponse.json(
+        failure(
+          'Failed to create stream - database temporarily unavailable. Please try again in a moment.',
+          'db',
+          requestId
+        ),
+        { status: 503, headers: { 'x-request-id': requestId } }
+      );
+    }
+  } catch (error: any) {
+    console.error('[STREAMS/CREATE]', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
     return NextResponse.json(
-      { error: error.message || 'Failed to create stream - please try again' },
-      { status: 500 }
+      failure('Failed to create stream - please try again', 'unknown', requestId),
+      { status: 500, headers: { 'x-request-id': requestId } }
     );
   }
 }
