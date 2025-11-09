@@ -66,13 +66,13 @@ export default function GoLivePage() {
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok) {
+      if (response.ok && result.data) {
         // Redirect to broadcast studio
-        router.push(`/stream/broadcast/${data.stream.id}`);
+        router.push(`/stream/broadcast/${result.data.id}`);
       } else {
-        setError(data.error || 'Failed to start stream');
+        setError(result.error || 'Failed to start stream');
       }
     } catch (err) {
       setError('Failed to start stream. Please try again.');
