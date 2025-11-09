@@ -65,10 +65,13 @@ export default function MessageRequestsPage() {
   const fetchRequests = async () => {
     try {
       const response = await fetch('/api/messages/requests');
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok) {
-        setRequests(data.requests);
+      if (response.ok && result.data) {
+        setRequests(result.data || []);
+        if (result.degraded) {
+          console.warn('Message requests data degraded:', result.error);
+        }
       }
     } catch (error) {
       console.error('Error fetching requests:', error);

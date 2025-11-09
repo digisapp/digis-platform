@@ -97,10 +97,13 @@ export default function MessagesPage() {
   const fetchConversations = async () => {
     try {
       const response = await fetch('/api/messages/conversations');
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok) {
-        setConversations(data.conversations);
+      if (response.ok && result.data) {
+        setConversations(result.data || []);
+        if (result.degraded) {
+          console.warn('Conversations data degraded:', result.error);
+        }
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);

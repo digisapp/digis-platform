@@ -31,12 +31,15 @@ export default function LiveStreamsPage() {
   const fetchLiveStreams = async () => {
     try {
       const response = await fetch('/api/streams/live');
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok) {
-        setStreams(data.streams || []);
+      if (response.ok && result.data) {
+        setStreams(result.data.streams || []);
+        if (result.degraded) {
+          console.warn('Live streams data degraded:', result.error);
+        }
       } else {
-        setError(data.error || 'Failed to load streams');
+        setError(result.error || 'Failed to load streams');
       }
     } catch (err) {
       setError('Failed to load streams');

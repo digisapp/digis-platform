@@ -43,10 +43,13 @@ export default function ExplorePage() {
   const fetchCreators = async () => {
     try {
       const response = await fetch('/api/explore');
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok) {
-        setCreators(data.creators);
+      if (response.ok && result.data) {
+        setCreators(result.data.creators || []);
+        if (result.degraded) {
+          console.warn('Creators data degraded:', result.error);
+        }
       }
     } catch (error) {
       console.error('Error fetching creators:', error);

@@ -95,9 +95,13 @@ export default function CreatorDashboard() {
   const fetchAnalytics = async () => {
     try {
       const response = await fetch('/api/creator/analytics');
-      const data = await response.json();
-      if (response.ok) {
-        setAnalytics(data);
+      const result = await response.json();
+      if (response.ok && result.data) {
+        setAnalytics(result.data);
+      } else if (result.degraded) {
+        // API returned degraded data (e.g., DB timeout)
+        console.warn('Analytics data degraded:', result.error);
+        setAnalytics(result.data); // Use degraded data anyway
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
