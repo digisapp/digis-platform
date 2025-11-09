@@ -149,7 +149,7 @@ export default function CreatorDashboard() {
           </button>
 
           <button
-            onClick={() => router.push('/live')}
+            onClick={() => router.push('/creator/streams')}
             className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
           >
             <div className="text-4xl mb-3">🎥</div>
