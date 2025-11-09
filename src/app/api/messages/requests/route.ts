@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
 
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/messages/requests - Get pending message requests
 export async function GET() {
   try {
@@ -15,7 +19,13 @@ export async function GET() {
       );
     }
 
-    const requests = await MessageService.getPendingRequests(user.id);
+    // Add timeout to prevent hanging
+    const queryPromise = MessageService.getPendingRequests(user.id);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
+    );
+
+    const requests = await Promise.race([queryPromise, timeoutPromise]);
 
     return NextResponse.json({ requests });
   } catch (error: any) {

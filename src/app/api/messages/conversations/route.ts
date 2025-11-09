@@ -19,7 +19,13 @@ export async function GET() {
       );
     }
 
-    const conversations = await MessageService.getUserConversations(user.id);
+    // Add timeout to prevent hanging
+    const queryPromise = MessageService.getUserConversations(user.id);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Database query timeout')), 10000)
+    );
+
+    const conversations = await Promise.race([queryPromise, timeoutPromise]);
 
     return NextResponse.json({ conversations });
   } catch (error: any) {
