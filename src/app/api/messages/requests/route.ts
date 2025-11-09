@@ -19,21 +19,24 @@ export async function GET() {
       );
     }
 
-    // Add timeout to prevent hanging
-    const queryPromise = MessageService.getPendingRequests(user.id);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Database query timeout')), 10000)
-    );
+    // Add timeout to prevent hanging - return empty array on failure
+    try {
+      const queryPromise = MessageService.getPendingRequests(user.id);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      );
 
-    const requests = await Promise.race([queryPromise, timeoutPromise]);
-
-    return NextResponse.json({ requests });
+      const requests = await Promise.race([queryPromise, timeoutPromise]);
+      return NextResponse.json({ requests });
+    } catch (dbError) {
+      console.error('Database error - returning empty requests:', dbError);
+      // Return empty array instead of failing
+      return NextResponse.json({ requests: [] });
+    }
   } catch (error: any) {
     console.error('Error fetching message requests:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch message requests' },
-      { status: 500 }
-    );
+    // Return empty array for graceful degradation
+    return NextResponse.json({ requests: [] });
   }
 }
 

@@ -24,7 +24,13 @@ export async function POST(req: NextRequest) {
 
     console.log('[STREAMS/CREATE] Creating stream for user:', user.id, 'title:', title);
 
-    const stream = await StreamService.createStream(user.id, title, description);
+    // Add timeout to stream creation
+    const streamPromise = StreamService.createStream(user.id, title, description);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Stream creation timeout - database may be slow')), 8000)
+    );
+
+    const stream = await Promise.race([streamPromise, timeoutPromise]);
 
     console.log('[STREAMS/CREATE] Stream created successfully:', stream.id);
 
@@ -36,7 +42,7 @@ export async function POST(req: NextRequest) {
       stack: error?.stack,
     });
     return NextResponse.json(
-      { error: error.message || 'Failed to create stream' },
+      { error: error.message || 'Failed to create stream - please try again' },
       { status: 500 }
     );
   }
