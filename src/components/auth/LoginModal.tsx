@@ -73,10 +73,10 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title="Welcome Back" size="sm">
+    <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
       <div className="flex justify-center mb-6">
         <Image
-          src="/images/digis-logo-white.png"
+          src="/images/digis-logo-black.png"
           alt="Digis Logo"
           width={150}
           height={50}
@@ -104,7 +104,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         />
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -112,17 +112,17 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-700">
           Don&apos;t have an account?{' '}
           <button
             type="button"
             onClick={onSwitchToSignup}
-            className="text-digis-cyan hover:underline"
+            className="text-digis-cyan hover:underline font-semibold"
           >
             Sign up
           </button>

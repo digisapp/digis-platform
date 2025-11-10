@@ -58,10 +58,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title="Join Digis" size="sm">
+    <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
       <div className="flex justify-center mb-6">
         <Image
-          src="/images/digis-logo-white.png"
+          src="/images/digis-logo-black.png"
           alt="Digis Logo"
           width={150}
           height={50}
@@ -70,7 +70,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         />
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-gray-400 text-sm mb-1">
+        <p className="text-gray-700 text-sm mb-1">
           Create your account to connect with creators and fans
         </p>
 
@@ -94,7 +94,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         />
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -109,12 +109,12 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           {loading ? <LoadingSpinner size="sm" /> : 'Continue'}
         </GlassButton>
 
-        <div className="text-center text-gray-400 text-sm">
+        <div className="text-center text-gray-700 text-sm">
           Already have an account?{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-digis-cyan hover:underline"
+            className="text-digis-cyan hover:underline font-semibold"
           >
             Sign in
           </button>
