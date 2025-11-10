@@ -1,25 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-
-// Redirect from /profile/username to /username
-export default function ProfileRedirect() {
-  const params = useParams();
-  const router = useRouter();
-  const username = params.username as string;
-
-  useEffect(() => {
-    if (username) {
-      router.replace(`/${username}`);
-    }
-  }, [username, router]);
-
-  return null;
-}
-
-/* OLD PROFILE PAGE - NOW REDIRECTS TO /[username]
-
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';

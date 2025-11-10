@@ -591,7 +591,7 @@ export default function SettingsPage() {
         {/* Back to Profile */}
         <div className="text-center">
           <button
-            onClick={() => router.push(`/profile/${currentUser?.username}`)}
+            onClick={() => router.push(`/${currentUser?.username}`)}
             className="text-digis-cyan hover:underline"
           >
             View Your Profile

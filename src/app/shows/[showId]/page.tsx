@@ -197,7 +197,7 @@ export default function ShowDetailPage() {
 
             {/* Creator */}
             <div
-              onClick={() => router.push(`/profile/${show.creator.username}`)}
+              onClick={() => router.push(`/${show.creator.username}`)}
               className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity w-fit"
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink overflow-hidden">

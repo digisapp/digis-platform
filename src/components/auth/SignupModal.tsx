@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
-import { validateUsername, suggestUsername } from '@/lib/utils/username';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -12,136 +12,45 @@ interface SignupModalProps {
 }
 
 export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
-  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
-  const [usernameError, setUsernameError] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Auto-suggest username from email
-  useEffect(() => {
-    if (email && !username) {
-      const suggested = suggestUsername(email.split('@')[0]);
-      setUsername(suggested);
-    }
-  }, [email, username]);
-
-  // Check username availability with debouncing
-  useEffect(() => {
-    if (!username || username.length < 3) {
-      setUsernameStatus('idle');
-      setUsernameError('');
-      setUsernameSuggestions([]);
-      return;
-    }
-
-    // Validate format first
-    const validation = validateUsername(username);
-    if (!validation.valid) {
-      setUsernameStatus('idle');
-      setUsernameError(validation.error || '');
-      setUsernameSuggestions([]);
-      return;
-    }
-
-    setUsernameError('');
-    setUsernameStatus('checking');
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        console.log('[Frontend] Checking username:', username);
-        const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-        console.log('[Frontend] Response status:', response.status);
-
-        const data = await response.json();
-        console.log('[Frontend] Response data:', data);
-
-        // Handle different status codes properly
-        if (response.status === 200 && data.available) {
-          // Username is available
-          console.log('[Frontend] Username available!');
-          setUsernameStatus('available');
-          setUsernameSuggestions([]);
-          setUsernameError('');
-        } else if (response.status === 409 || (response.status === 200 && !data.available)) {
-          // Username is taken (409 Conflict or explicit available: false)
-          console.log('[Frontend] Username taken, suggestions:', data.suggestions);
-          setUsernameStatus('taken');
-          setUsernameSuggestions(data.suggestions || []);
-          setUsernameError('');
-        } else if (response.status >= 500) {
-          // Server error - don't block signup
-          console.error('[Frontend] Server error checking username:', response.status);
-          setUsernameStatus('error');
-          setUsernameSuggestions([]);
-          setUsernameError('Could not verify username availability. You can still try to sign up.');
-        } else {
-          // Other errors (400, etc.)
-          setUsernameStatus('idle');
-          setUsernameError(data.error || 'Invalid username');
-          setUsernameSuggestions([]);
-        }
-      } catch (err) {
-        console.error('[Frontend] Network error checking username:', err);
-        setUsernameStatus('error');
-        setUsernameError('Could not check username (network error). You can still try to sign up.');
-        setUsernameSuggestions([]);
-      }
-    }, 500); // Debounce 500ms
-
-    return () => clearTimeout(timeoutId);
-  }, [username]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    // Validate username is not explicitly taken
-    if (usernameStatus === 'taken') {
-      setError('This username is already taken. Please choose another.');
-      return;
-    }
-
-    // Allow signup even if check had an error (availability will be verified server-side)
-    if (usernameStatus === 'checking') {
-      setError('Still checking username availability. Please wait a moment.');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, displayName, username: username.toLowerCase() }),
+      const supabase = createClient();
+
+      // Sign up with Supabase Auth
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
+      if (signupError) {
+        throw signupError;
       }
 
-      setSuccess(data.message);
+      if (!data.user) {
+        throw new Error('Signup failed - no user returned');
+      }
+
       // Clear form
       setEmail('');
       setPassword('');
-      setDisplayName('');
-      setUsername('');
 
-      // Switch to login after 2 seconds
-      setTimeout(() => {
-        onSwitchToLogin();
-      }, 2000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Close modal and redirect to username setup
+      onClose();
+      router.push('/welcome/username');
+
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      setError(err.message || 'An error occurred during signup');
     } finally {
       setLoading(false);
     }
@@ -150,13 +59,9 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Join Digis" size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <GlassInput
-          type="text"
-          label="Display Name"
-          placeholder="Your name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
+        <p className="text-gray-400 text-sm">
+          Create your account to connect with creators and fans
+        </p>
 
         <GlassInput
           type="email"
@@ -165,70 +70,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
-
-        {/* Username Field with Real-time Checker */}
-        <div className="space-y-2">
-          <div className="relative">
-            <GlassInput
-              type="text"
-              label="Username"
-              placeholder="yourhandle"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-              required
-            />
-            {/* Status Indicator */}
-            <div className="absolute right-3 top-9">
-              {usernameStatus === 'checking' && (
-                <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-              )}
-              {usernameStatus === 'available' && (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              )}
-              {usernameStatus === 'taken' && (
-                <XCircle className="w-5 h-5 text-red-500" />
-              )}
-              {usernameStatus === 'error' && (
-                <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              )}
-            </div>
-          </div>
-
-          {/* Username Error */}
-          {usernameError && (
-            <p className="text-sm text-red-400">{usernameError}</p>
-          )}
-
-          {/* Availability Message */}
-          {usernameStatus === 'available' && (
-            <p className="text-sm text-green-400">@{username} is available!</p>
-          )}
-          {usernameStatus === 'taken' && (
-            <p className="text-sm text-red-400">@{username} is already taken</p>
-          )}
-
-          {/* Suggestions */}
-          {usernameSuggestions.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-gray-400">Try these instead:</p>
-              <div className="flex flex-wrap gap-2">
-                {usernameSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => setUsername(suggestion)}
-                    className="px-3 py-1 text-sm bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-colors"
-                  >
-                    @{suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
         <PasswordInput
           label="Password"
@@ -245,12 +88,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           </div>
         )}
 
-        {success && (
-          <div className="p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-300 text-sm">
-            {success}
-          </div>
-        )}
-
         <GlassButton
           type="submit"
           variant="gradient"
@@ -258,10 +95,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           className="w-full"
           disabled={loading}
         >
-          {loading ? <LoadingSpinner size="sm" /> : 'Create Account'}
+          {loading ? <LoadingSpinner size="sm" /> : 'Continue'}
         </GlassButton>
 
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-400 text-sm">
           Already have an account?{' '}
           <button
             type="button"

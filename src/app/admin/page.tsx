@@ -716,7 +716,7 @@ export default function AdminDashboard() {
 
                         {/* View Profile */}
                         <button
-                          onClick={() => router.push(`/profile/${user.username}`)}
+                          onClick={() => router.push(`/${user.username}`)}
                           className="px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
                         >
                           View Profile

@@ -132,7 +132,7 @@ export default function ExplorePage() {
               <CreatorCard
                 key={creator.id}
                 creator={creator}
-                onClick={() => router.push(`/profile/${creator.username}`)}
+                onClick={() => router.push(`/${creator.username}`)}
               />
             ))}
           </div>
