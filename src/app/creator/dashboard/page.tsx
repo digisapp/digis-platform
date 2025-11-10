@@ -149,6 +149,15 @@ export default function CreatorDashboard() {
           </button>
 
           <button
+            onClick={() => router.push('/creator/followers')}
+            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-green-500 hover:scale-105 transition-all text-left"
+          >
+            <div className="text-4xl mb-3">👥</div>
+            <h3 className="text-lg font-bold text-white mb-2">Followers</h3>
+            <p className="text-sm text-gray-400">View your community</p>
+          </button>
+
+          <button
             onClick={() => router.push('/creator/streams')}
             className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
           >
