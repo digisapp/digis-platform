@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -18,21 +20,14 @@ export async function GET() {
       );
     }
 
-    // Use Supabase admin client to query users table
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data: user, error: dbError } = await adminClient
-      .from('users')
-      .select('*')
-      .eq('id', authUser.id)
-      .single();
+    // Use Drizzle ORM to query users table
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, authUser.id),
+    });
 
     // If user not found in database, return auth data as fallback
-    if (dbError || !user) {
-      console.error('Database error - using auth data fallback:', dbError);
+    if (!user) {
+      console.error('User not found in database - using auth data fallback');
       const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
 
       return NextResponse.json({

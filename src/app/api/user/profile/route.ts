@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -15,21 +17,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use Supabase admin client to query users table
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    const { data: dbUser, error: dbError } = await adminClient
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Use Drizzle ORM to query users table
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+    });
 
     // If user not found in database, return auth data as fallback
-    if (dbError || !dbUser) {
-      console.error('Database error - using auth data fallback:', dbError);
+    if (!dbUser) {
+      console.error('User not found in database - using auth data fallback');
       const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
 
       return NextResponse.json({
@@ -47,7 +42,24 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ user: dbUser });
+    // Return database user with snake_case converted to camelCase
+    return NextResponse.json({
+      user: {
+        id: dbUser.id,
+        email: dbUser.email,
+        username: dbUser.username,
+        displayName: dbUser.displayName,
+        avatarUrl: dbUser.avatarUrl,
+        bannerUrl: dbUser.bannerUrl,
+        bio: dbUser.bio,
+        role: dbUser.role,
+        isCreatorVerified: dbUser.isCreatorVerified,
+        followerCount: dbUser.followerCount,
+        followingCount: dbUser.followingCount,
+        createdAt: dbUser.createdAt,
+        updatedAt: dbUser.updatedAt,
+      }
+    });
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(
