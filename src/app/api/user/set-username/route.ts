@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     // Reserved username check
     if (isReservedUsername(username)) {
       return NextResponse.json(
-        failure('This username is reserved for verified creators. Apply for verification to claim it.', 'reserved', requestId),
+        failure('This username is reserved for verified creators. Apply for verification to claim it.', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        failure('Username already taken', 'taken', requestId),
+        failure('Username already taken', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (currentUser?.username) {
       return NextResponse.json(
-        failure('Username already set. Contact support to change it.', 'already_set', requestId),
+        failure('Username already set. Contact support to change it.', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }

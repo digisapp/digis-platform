@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser && existingUser.id !== userId) {
       return NextResponse.json(
-        failure('Username already taken by another user', 'taken', requestId),
+        failure('Username already taken by another user', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     if (!targetUser) {
       return NextResponse.json(
-        failure('User not found', 'not_found', requestId),
+        failure('User not found', 'validation', requestId),
         { status: 404, headers: { 'x-request-id': requestId } }
       );
     }
