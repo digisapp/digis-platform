@@ -14,22 +14,35 @@ This checklist resolves all 31 "RLS Disabled in Public" security warnings by hid
 
 ---
 
-## 🔒 Step 1: Hide Public Schema from PostgREST
+## 🔒 Step 1: Disable PostgREST Data API
 
 **Go to**: [Supabase Dashboard → Settings → API → API Settings](https://supabase.com/dashboard/project/udpolhavhefflrawpokb/settings/api)
 
 ### Current State:
 ```
+Data APIs: Enabled
 Exposed schemas: public
 ```
 
 ### Action Required:
-1. Find the **"Exposed schemas"** field
-2. **Remove** `public` from the list
-3. Result should be: **Empty** (or `rpc` only if you have custom functions)
+
+**Option A: Disable Data API Entirely (Recommended)**
+1. Scroll to the **"Data APIs"** section
+2. Find the toggle for **"Enable Data API"** or **"PostgREST"**
+3. **Turn it OFF** (disable it)
 4. Click **"Save"**
 
-**Why**: This immediately hides all tables from PostgREST API. No RLS policies needed.
+**Option B: Use Dummy Schema (Alternative)**
+If the disable toggle isn't available:
+1. In Supabase SQL Editor, create a dummy schema:
+   ```sql
+   CREATE SCHEMA IF NOT EXISTS dummy;
+   ```
+2. Back in Settings → API → Exposed schemas
+3. Replace `public` with `dummy`
+4. Click **"Save"**
+
+**Why**: Your app uses Drizzle through Next.js API routes (server-side only). You don't need PostgREST at all, so disabling it completely removes the security risk.
 
 ---
 
@@ -105,7 +118,10 @@ SUPABASE_SERVICE_ROLE_KEY=<new-service-role-key-here>
 curl https://udpolhavhefflrawpokb.supabase.co/rest/v1/streams
 ```
 
-**Expected**: `404` or `401` (not a list of streams)
+**Expected**:
+- If Data API disabled: Error message or 404
+- If using dummy schema: 404 or "relation does not exist"
+- **Not expected**: A list of actual stream data
 
 ### Test 2: Your API Routes Still Work
 ```bash
@@ -147,7 +163,8 @@ curl https://www.digis.cc/api/streams/live
 After completing all steps, you should have:
 
 ✅ **Zero security warnings** in Supabase Dashboard
-✅ **PostgREST returns 404** when accessed directly
+✅ **Data API disabled** or using empty dummy schema
+✅ **PostgREST returns error** when accessed directly (not data)
 ✅ **Old keys invalidated** (rotated)
 ✅ **App still works** perfectly (uses API routes)
 ✅ **Middleware blocks** accidental PostgREST access
@@ -162,7 +179,7 @@ After completing all steps, you should have:
 - ❌ Old keys might be in logs, commits, or screenshots
 
 **After lockdown**:
-- ✅ PostgREST API hidden (schema removed)
+- ✅ PostgREST API disabled or hidden (Data API off or dummy schema)
 - ✅ Keys rotated (old ones invalid)
 - ✅ Middleware double-blocks access
 - ✅ Only server-side Drizzle access (secure)
@@ -183,10 +200,11 @@ After completing all steps, you should have:
 - ❌ Any accidental PostgREST calls
 
 ### If You Later Need Client-Side Queries:
-1. Re-expose `public` schema in PostgREST settings
-2. Enable RLS on specific tables: `ALTER TABLE xxx ENABLE ROW LEVEL SECURITY;`
-3. Create minimal policies for those tables
-4. See: `docs/SUPABASE_RLS_POLICIES.md` (create this when needed)
+1. Re-enable Data API in Settings → API
+2. Re-expose `public` schema in PostgREST settings
+3. Enable RLS on specific tables: `ALTER TABLE xxx ENABLE ROW LEVEL SECURITY;`
+4. Create minimal policies for those tables
+5. See: `docs/SUPABASE_RLS_POLICIES.md` (create this when needed)
 
 ---
 
@@ -204,8 +222,13 @@ After completing all steps, you should have:
 
 ### "PostgREST still accessible"
 - Wait 5-10 minutes for Supabase cache to clear
-- Verify `public` is removed from exposed schemas
+- Verify Data API is disabled (or `dummy` schema is set instead of `public`)
 - Check middleware deployed (should see `[Security] Blocked...` in logs)
+
+### "Must have at least one schema" error
+- This means you need to disable the Data API entirely (Option A)
+- Or use the dummy schema approach (Option B)
+- Supabase won't allow zero exposed schemas while Data API is enabled
 
 ---
 
