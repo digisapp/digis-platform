@@ -293,6 +293,13 @@ export class StreamService {
       where: eq(streamMessages.streamId, streamId),
       orderBy: [desc(streamMessages.createdAt)],
       limit,
+      with: {
+        user: {
+          columns: {
+            avatarUrl: true,
+          },
+        },
+      },
     });
   }
 
@@ -338,6 +345,7 @@ export class StreamService {
             id: true,
             displayName: true,
             username: true,
+            avatarUrl: true,
           },
         },
       },
@@ -356,6 +364,7 @@ export class StreamService {
             id: true,
             displayName: true,
             username: true,
+            avatarUrl: true,
           },
         },
       },

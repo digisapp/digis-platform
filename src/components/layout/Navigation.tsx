@@ -24,6 +24,7 @@ export function Navigation() {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string>('fan');
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -89,11 +90,12 @@ export function Navigation() {
     if (user) {
       setUser(user);
 
-      // Get user role
+      // Get user role and profile data (including avatar)
       const response = await fetch('/api/user/profile');
       const data = await response.json();
-      if (data.user?.role) {
+      if (data.user) {
         setUserRole(data.user.role);
+        setUserProfile(data.user);
       }
     }
   };
@@ -403,9 +405,17 @@ export function Navigation() {
               isActive('/settings') ? 'text-digis-cyan' : 'text-gray-400'
             }`}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
-            </div>
+            {userProfile?.avatarUrl ? (
+              <img
+                src={userProfile.avatarUrl}
+                alt="Your avatar"
+                className="w-7 h-7 rounded-full object-cover border-2 border-digis-cyan/50"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
+                {user?.email?.[0]?.toUpperCase() || 'U'}
+              </div>
+            )}
             <span className="text-xs font-medium">You</span>
           </button>
         </div>
@@ -503,14 +513,24 @@ export function Navigation() {
             console.log('[Navigation] Profile button clicked, navigating to /settings');
             router.push('/settings');
           }}
-          className={`mt-4 w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold transition-all ${
+          className={`mt-4 w-12 h-12 rounded-full transition-all ${
             isActive('/settings')
               ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-black'
               : 'hover:scale-110'
           }`}
           title="Settings"
         >
-          {user?.email?.[0]?.toUpperCase() || 'U'}
+          {userProfile?.avatarUrl ? (
+            <img
+              src={userProfile.avatarUrl}
+              alt="Your avatar"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
+              {user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
         </button>
 
         {/* Balance - Clickable */}

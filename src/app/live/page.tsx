@@ -11,6 +11,7 @@ type LiveStream = Stream & {
     id: string;
     displayName: string | null;
     username: string | null;
+    avatarUrl: string | null;
   };
 };
 
@@ -186,9 +187,17 @@ export default function LiveStreamsPage() {
                     {/* Creator Info */}
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold">
-                          {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
-                        </div>
+                        {stream.creator.avatarUrl ? (
+                          <img
+                            src={stream.creator.avatarUrl}
+                            alt={stream.creator.displayName || stream.creator.username || 'Creator'}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold">
+                            {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
+                          </div>
+                        )}
                         <span className="text-sm font-semibold text-white">
                           {stream.creator.displayName || stream.creator.username}
                         </span>

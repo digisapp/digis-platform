@@ -83,22 +83,40 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                 <div className="text-sm text-gray-400 italic">{msg.message}</div>
               ) : (
                 <>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-semibold text-digis-cyan">
-                      {msg.username}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {formatTimestamp(msg.createdAt)}
-                    </span>
-                  </div>
-                  <div className={`text-sm ${getMessageColor(msg.messageType)}`}>
-                    {msg.messageType === 'gift' && msg.giftAmount && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-digis-pink/20 to-digis-cyan/20 rounded-lg border border-digis-pink/30 mr-2">
-                        <span className="text-base">🎁</span>
-                        <span className="font-bold">{msg.giftAmount} coins</span>
-                      </span>
+                  <div className="flex items-start gap-2">
+                    {/* Avatar */}
+                    {(msg as any).user?.avatarUrl ? (
+                      <img
+                        src={(msg as any).user.avatarUrl}
+                        alt={msg.username}
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {msg.username[0]?.toUpperCase() || '?'}
+                      </div>
                     )}
-                    {msg.message}
+
+                    {/* Message Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-semibold text-digis-cyan">
+                          {msg.username}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatTimestamp(msg.createdAt)}
+                        </span>
+                      </div>
+                      <div className={`text-sm ${getMessageColor(msg.messageType)}`}>
+                        {msg.messageType === 'gift' && msg.giftAmount && (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-digis-pink/20 to-digis-cyan/20 rounded-lg border border-digis-pink/30 mr-2">
+                            <span className="text-base">🎁</span>
+                            <span className="font-bold">{msg.giftAmount} coins</span>
+                          </span>
+                        )}
+                        {msg.message}
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
