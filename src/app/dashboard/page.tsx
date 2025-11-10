@@ -27,75 +27,75 @@ export default function FanDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome to Digis 👋</h1>
-          <p className="text-gray-400">Explore live streams, connect with creators, and more</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">Welcome to Digis 👋</h1>
+          <p className="text-gray-600 font-medium">Explore live streams, connect with creators, and more</p>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => router.push('/live')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-cyan-200 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🎥</div>
-            <h3 className="text-lg font-bold text-white mb-2">Live Streams</h3>
-            <p className="text-sm text-gray-400">Watch creators streaming now</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Live Streams</h3>
+            <p className="text-sm text-gray-600">Watch creators streaming now</p>
           </button>
 
           <button
             onClick={() => router.push('/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🎟️</div>
-            <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
-            <p className="text-sm text-gray-400">Exclusive live events</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
+            <p className="text-sm text-gray-600">Exclusive live events</p>
           </button>
 
           <button
             onClick={() => router.push('/shows/my-tickets')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-purple-500 hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-purple-200 p-6 hover:border-purple-500 hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🎫</div>
-            <h3 className="text-lg font-bold text-white mb-2">My Tickets</h3>
-            <p className="text-sm text-gray-400">View your purchased tickets</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">My Tickets</h3>
+            <p className="text-sm text-gray-600">View your purchased tickets</p>
           </button>
 
           <button
             onClick={() => router.push('/calls/history')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-pink-200 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">📞</div>
-            <h3 className="text-lg font-bold text-white mb-2">Video Calls</h3>
-            <p className="text-sm text-gray-400">Book 1-on-1 calls with creators</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Video Calls</h3>
+            <p className="text-sm text-gray-600">Book 1-on-1 calls with creators</p>
           </button>
 
           <button
             onClick={() => router.push('/content/library')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-cyan-200 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">📚</div>
-            <h3 className="text-lg font-bold text-white mb-2">My Library</h3>
-            <p className="text-sm text-gray-400">View purchased content</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">My Library</h3>
+            <p className="text-sm text-gray-600">View purchased content</p>
           </button>
 
           <button
             onClick={() => router.push('/explore')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-purple-200 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🔍</div>
-            <h3 className="text-lg font-bold text-white mb-2">Explore Creators</h3>
-            <p className="text-sm text-gray-400">Find new creators to follow</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Explore Creators</h3>
+            <p className="text-sm text-gray-600">Find new creators to follow</p>
           </button>
         </div>
       </div>

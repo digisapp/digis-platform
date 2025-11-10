@@ -283,87 +283,87 @@ export default function CreatorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Creator Dashboard 🎨</h1>
-          <p className="text-gray-400">Manage your content, streams, and earnings</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">Creator Dashboard 🎨</h1>
+          <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
-            className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left"
+            className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="flex items-center gap-2 mb-3">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
               <span className="text-red-500 font-bold">GO LIVE</span>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Start Streaming</h3>
-            <p className="text-sm text-gray-400">Go live and connect with your fans</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Start Streaming</h3>
+            <p className="text-sm text-gray-600">Go live and connect with your fans</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🎟️</div>
-            <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
-            <p className="text-sm text-gray-400">Create and manage exclusive events</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
+            <p className="text-sm text-gray-600">Create and manage exclusive events</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/followers')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-green-500 hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-purple-200 p-6 hover:border-green-500 hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">👥</div>
-            <h3 className="text-lg font-bold text-white mb-2">Followers</h3>
-            <p className="text-sm text-gray-400">View your community</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Followers</h3>
+            <p className="text-sm text-gray-600">View your community</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/streams')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-cyan-200 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">🎥</div>
-            <h3 className="text-lg font-bold text-white mb-2">My Streams</h3>
-            <p className="text-sm text-gray-400">View your streaming history</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">My Streams</h3>
+            <p className="text-sm text-gray-600">View your streaming history</p>
           </button>
 
           <button
             onClick={() => router.push('/calls/history')}
-            className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left"
+            className="glass rounded-2xl border-2 border-pink-200 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-4xl mb-3">📞</div>
-            <h3 className="text-lg font-bold text-white mb-2">Call Requests</h3>
-            <p className="text-sm text-gray-400">Manage 1-on-1 call requests</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Call Requests</h3>
+            <p className="text-sm text-gray-600">Manage 1-on-1 call requests</p>
           </button>
         </div>
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (
-          <div className="mb-8 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+          <div className="mb-8 glass rounded-2xl border border-purple-200 p-6 shadow-fun">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-digis-cyan" />
                 Upcoming Events
               </h3>
-              <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
+              <span className="text-sm text-gray-600">{upcomingEvents.length} scheduled</span>
             </div>
             <div className="space-y-3">
               {upcomingEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-start gap-4 bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer"
+                  className="flex items-start gap-4 bg-white/60 rounded-lg p-4 hover:bg-white/80 transition-colors cursor-pointer border border-purple-100"
                   onClick={() => {
                     if (event.type === 'show') {
                       router.push(`/creator/shows/${event.id.replace('show-', '')}`);
@@ -378,15 +378,15 @@ export default function CreatorDashboard() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-white mb-1">{event.title}</div>
-                    <div className="text-sm text-gray-400 mb-1">
+                    <div className="font-semibold text-gray-800 mb-1">{event.title}</div>
+                    <div className="text-sm text-gray-600 mb-1">
                       {new Date(event.scheduledFor).toLocaleDateString()} at {new Date(event.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     {event.details && (
-                      <div className="text-xs text-gray-500">{event.details}</div>
+                      <div className="text-xs text-gray-600">{event.details}</div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <div className="flex items-center gap-1 text-xs text-gray-600">
                     <Clock className="w-4 h-4" />
                     {formatDistanceToNow(new Date(event.scheduledFor), { addSuffix: true })}
                   </div>
@@ -403,8 +403,8 @@ export default function CreatorDashboard() {
 
         {/* Recent Activity */}
         {recentActivities.length > 0 && (
-          <div className="mb-8 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <div className="mb-8 glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-digis-pink" />
               Recent Activity
             </h3>
@@ -412,16 +412,16 @@ export default function CreatorDashboard() {
               {recentActivities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-start gap-4 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors"
+                  className="flex items-start gap-4 bg-white/60 rounded-lg p-3 hover:bg-white/80 transition-colors border border-cyan-100"
                 >
-                  <div className={`p-2 rounded-lg bg-white/5 ${activity.color}`}>
+                  <div className={`p-2 rounded-lg bg-white/80 ${activity.color}`}>
                     {getActivityIcon(activity.icon)}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-white text-sm mb-1">{activity.title}</div>
-                    <div className="text-xs text-gray-400">{activity.description}</div>
+                    <div className="font-medium text-gray-800 text-sm mb-1">{activity.title}</div>
+                    <div className="text-xs text-gray-600">{activity.description}</div>
                   </div>
-                  <div className="text-xs text-gray-500 whitespace-nowrap">
+                  <div className="text-xs text-gray-600 whitespace-nowrap">
                     {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                   </div>
                 </div>
@@ -437,77 +437,77 @@ export default function CreatorDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-5 text-center">
+          <div className="glass rounded-xl border border-cyan-200 p-5 text-center shadow-fun">
             <div className="text-3xl mb-2">👁️</div>
             <div className="text-2xl font-bold text-digis-cyan mb-1">
               {analytics?.streams.totalViews || 0}
             </div>
-            <div className="text-xs text-gray-400">Total Stream Views</div>
+            <div className="text-xs text-gray-600">Total Stream Views</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-5 text-center">
+          <div className="glass rounded-xl border border-yellow-200 p-5 text-center shadow-fun">
             <div className="text-3xl mb-2">📊</div>
             <div className="text-2xl font-bold text-yellow-400 mb-1">
               {analytics?.streams.peakViewers || 0}
             </div>
-            <div className="text-xs text-gray-400">Peak Viewers</div>
+            <div className="text-xs text-gray-600">Peak Viewers</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-5 text-center">
+          <div className="glass rounded-xl border border-pink-200 p-5 text-center shadow-fun">
             <div className="text-3xl mb-2">🎁</div>
             <div className="text-2xl font-bold text-digis-pink mb-1">
               {analytics?.gifts.totalGifts || 0}
             </div>
-            <div className="text-xs text-gray-400">Gifts Received</div>
+            <div className="text-xs text-gray-600">Gifts Received</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-5 text-center">
+          <div className="glass rounded-xl border border-green-200 p-5 text-center shadow-fun">
             <div className="text-3xl mb-2">📱</div>
             <div className="text-2xl font-bold text-green-400 mb-1">
               {analytics?.calls.totalCalls || 0}
             </div>
-            <div className="text-xs text-gray-400">Calls Completed</div>
+            <div className="text-xs text-gray-600">Calls Completed</div>
           </div>
         </div>
 
         {/* Earnings Breakdown */}
         {analytics && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border border-purple-500/30 p-6">
+            <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border border-purple-500/50 p-6 shadow-fun">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-300">Stream Earnings</span>
+                <span className="text-sm text-gray-700 font-semibold">Stream Earnings</span>
                 <span className="text-2xl">🎥</span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-gray-800 mb-1">
                 {analytics.overview.totalGiftCoins}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-600">
                 from {analytics.gifts.totalGifts} gifts
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md rounded-xl border border-blue-500/30 p-6">
+            <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-md rounded-xl border border-blue-500/50 p-6 shadow-fun">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-300">Call Earnings</span>
+                <span className="text-sm text-gray-700 font-semibold">Call Earnings</span>
                 <span className="text-2xl">📞</span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-gray-800 mb-1">
                 {analytics.overview.totalCallEarnings}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-600">
                 from {analytics.calls.totalMinutes} minutes
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border border-green-500/30 p-6">
+            <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border border-green-500/50 p-6 shadow-fun">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-300">Total Earnings</span>
+                <span className="text-sm text-gray-700 font-semibold">Total Earnings</span>
                 <span className="text-2xl">💰</span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">
+              <div className="text-3xl font-bold text-gray-800 mb-1">
                 {analytics.overview.totalEarnings}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-xs text-gray-600">
                 lifetime coins earned
               </div>
             </div>
@@ -516,15 +516,15 @@ export default function CreatorDashboard() {
 
         {/* Top Supporters */}
         {analytics && analytics.topGifters.length > 0 && (
-          <div className="mb-8 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-            <h3 className="text-lg font-bold text-white mb-4">⭐ Top Supporters</h3>
+          <div className="mb-8 glass rounded-2xl border border-yellow-200 p-6 shadow-fun">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">⭐ Top Supporters</h3>
             <div className="space-y-3">
               {analytics.topGifters.map((gifter, index) => (
                 <div
                   key={gifter.userId}
-                  className="flex items-center gap-4 bg-white/5 rounded-lg p-3"
+                  className="flex items-center gap-4 bg-white/60 rounded-lg p-3 border border-yellow-100"
                 >
-                  <div className="text-2xl font-bold text-gray-500">
+                  <div className="text-2xl font-bold text-gray-600">
                     #{index + 1}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold">
@@ -541,10 +541,10 @@ export default function CreatorDashboard() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-white">
+                    <div className="font-semibold text-gray-800">
                       {gifter.displayName || gifter.username}
                     </div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-gray-600">
                       {gifter.giftCount} gifts sent
                     </div>
                   </div>
@@ -552,7 +552,7 @@ export default function CreatorDashboard() {
                     <div className="text-lg font-bold text-yellow-400">
                       {gifter.totalCoins}
                     </div>
-                    <div className="text-xs text-gray-400">coins</div>
+                    <div className="text-xs text-gray-600">coins</div>
                   </div>
                 </div>
               ))}
@@ -561,28 +561,28 @@ export default function CreatorDashboard() {
         )}
 
         {/* Creator Tips */}
-        <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-          <h3 className="text-lg font-bold text-white mb-4">💡 Creator Tips</h3>
+        <div className="glass rounded-2xl border border-purple-200 p-6 shadow-fun">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">💡 Creator Tips</h3>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <div className="text-xl">🎥</div>
               <div>
-                <h4 className="text-sm font-semibold text-white mb-1">Stream Regularly</h4>
-                <p className="text-xs text-gray-400">Consistent streaming builds a loyal audience</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Stream Regularly</h4>
+                <p className="text-xs text-gray-600">Consistent streaming builds a loyal audience</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="text-xl">💬</div>
               <div>
-                <h4 className="text-sm font-semibold text-white mb-1">Engage with Chat</h4>
-                <p className="text-xs text-gray-400">Respond to messages to keep viewers engaged</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Engage with Chat</h4>
+                <p className="text-xs text-gray-600">Respond to messages to keep viewers engaged</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="text-xl">🎁</div>
               <div>
-                <h4 className="text-sm font-semibold text-white mb-1">Thank Your Supporters</h4>
-                <p className="text-xs text-gray-400">Acknowledge gifts and top supporters during streams</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Thank Your Supporters</h4>
+                <p className="text-xs text-gray-600">Acknowledge gifts and top supporters during streams</p>
               </div>
             </div>
           </div>
