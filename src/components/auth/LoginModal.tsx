@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 
 interface LoginModalProps {
@@ -73,6 +74,16 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Welcome Back" size="sm">
+      <div className="flex justify-center mb-6">
+        <Image
+          src="/images/digis-logo-white.png"
+          alt="Digis Logo"
+          width={150}
+          height={50}
+          className="h-10 w-auto"
+          priority
+        />
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4" action="javascript:void(0)">
         <GlassInput
           type="email"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
@@ -91,11 +92,15 @@ export default function Home() {
         <div className="relative z-10 container mx-auto px-4 py-20">
           {/* Navigation */}
           <nav className="glass rounded-full px-6 py-4 mb-20 max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-digis-cyan to-digis-pink flex items-center justify-center">
-                <span className="text-white font-bold text-xl">D</span>
-              </div>
-              <span className="text-white font-bold text-xl">Digis</span>
+            <div className="flex items-center">
+              <Image
+                src="/images/digis-logo-white.png"
+                alt="Digis Logo"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+                priority
+              />
             </div>
             <div className="flex items-center space-x-4">
               <button

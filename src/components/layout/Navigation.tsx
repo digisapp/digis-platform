@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import {
   Home,
@@ -426,9 +427,17 @@ export function Navigation() {
         {/* Logo */}
         <button
           onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
-          className="mb-4 text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent hover:scale-110 transition-transform"
+          className="mb-4 hover:scale-110 transition-transform flex items-center justify-center"
+          title="Home"
         >
-          D
+          <Image
+            src="/images/digis-logo-white.png"
+            alt="Digis Logo"
+            width={48}
+            height={48}
+            className="w-12 h-auto"
+            priority
+          />
         </button>
 
         {/* Creator Create Button - Canva Style */}

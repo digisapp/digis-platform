@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Clock } from 'lucide-react';
 
@@ -163,6 +164,16 @@ export default function CreatorApplyPage() {
     <div className="min-h-screen bg-digis-dark py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/digis-logo-white.png"
+              alt="Digis Logo"
+              width={180}
+              height={60}
+              className="h-12 w-auto"
+              priority
+            />
+          </div>
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Become a Creator
           </h1>

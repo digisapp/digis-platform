@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 
@@ -58,6 +59,16 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Join Digis" size="sm">
+      <div className="flex justify-center mb-6">
+        <Image
+          src="/images/digis-logo-white.png"
+          alt="Digis Logo"
+          width={150}
+          height={50}
+          className="h-10 w-auto"
+          priority
+        />
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <p className="text-gray-400 text-sm mb-1">
           Create your account to connect with creators and fans

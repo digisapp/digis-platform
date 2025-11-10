@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { GlassButton, GlassInput, LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
@@ -147,6 +148,16 @@ export default function UsernameSetupPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/digis-logo-white.png"
+              alt="Digis Logo"
+              width={180}
+              height={60}
+              className="h-12 w-auto"
+              priority
+            />
+          </div>
           <h1 className="text-4xl font-bold text-white mb-2">
             Welcome to Digis! 👋
           </h1>
