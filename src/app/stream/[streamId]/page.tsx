@@ -7,6 +7,9 @@ import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
+import { VideoControls } from '@/components/streaming/VideoControls';
+import { QuickGiftButtons } from '@/components/streaming/QuickGiftButtons';
+import { ShareButton } from '@/components/streaming/ShareButton';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -40,6 +43,9 @@ export default function StreamViewerPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [goals, setGoals] = useState<StreamGoal[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
 
   // Fetch stream details
   useEffect(() => {
@@ -269,6 +275,27 @@ export default function StreamViewerPage() {
     }
   };
 
+  const handleToggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleToggleFullscreen = () => {
+    const videoContainer = document.querySelector('[data-lk-video-container]');
+    if (!videoContainer) return;
+
+    if (!document.fullscreenElement) {
+      videoContainer.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleToggleTheater = () => {
+    setIsTheaterMode(!isTheaterMode);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
@@ -296,28 +323,52 @@ export default function StreamViewerPage() {
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`${isTheaterMode ? 'max-w-screen-2xl' : 'container'} mx-auto px-4 py-6`}>
+        <div className={`grid grid-cols-1 ${isTheaterMode ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
           {/* Main Video Area */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className={`${isTheaterMode ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-4`}>
             {/* Video Player */}
-            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10">
+            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative" data-lk-video-container>
               {token && serverUrl ? (
-                <LiveKitRoom
-                  video={false}
-                  audio={true}
-                  token={token}
-                  serverUrl={serverUrl}
-                  className="h-full"
-                >
-                  <VideoConference />
-                  <RoomAudioRenderer />
-                </LiveKitRoom>
+                <>
+                  <LiveKitRoom
+                    video={false}
+                    audio={true}
+                    token={token}
+                    serverUrl={serverUrl}
+                    className="h-full"
+                  >
+                    <VideoConference />
+                    <RoomAudioRenderer />
+                  </LiveKitRoom>
+                  <VideoControls
+                    onToggleMute={handleToggleMute}
+                    onToggleFullscreen={handleToggleFullscreen}
+                    onToggleTheater={handleToggleTheater}
+                    isMuted={isMuted}
+                    isFullscreen={isFullscreen}
+                    isTheaterMode={isTheaterMode}
+                    showTheaterMode={true}
+                  />
+                </>
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <LoadingSpinner size="lg" />
                 </div>
               )}
+            </div>
+
+            {/* Quick Actions Bar */}
+            <div className="flex items-center gap-3">
+              <QuickGiftButtons
+                streamId={streamId}
+                onSendGift={handleSendGift}
+                userBalance={userBalance}
+              />
+              <ShareButton
+                streamTitle={stream.title}
+                creatorName={stream.creator?.displayName || stream.creator?.username || 'Unknown'}
+              />
             </div>
 
             {/* Stream Info */}

@@ -3,15 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 import type { StreamMessage } from '@/db/schema';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { ModerationTools } from './ModerationTools';
 
 type StreamChatProps = {
   streamId: string;
   messages: StreamMessage[];
   onSendMessage?: (message: string) => void;
   isCreator?: boolean;
+  onMessageDeleted?: () => void;
 };
 
-export function StreamChat({ streamId, messages, onSendMessage, isCreator = false }: StreamChatProps) {
+export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -83,7 +85,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                 <div className="text-sm text-gray-400 italic">{msg.message}</div>
               ) : (
                 <>
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2 group relative">
                     {/* Avatar */}
                     {(msg as any).user?.avatarUrl ? (
                       <img
@@ -117,6 +119,17 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                         {msg.message}
                       </div>
                     </div>
+
+                    {/* Moderation Tools (Creator Only) */}
+                    {isCreator && (
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ModerationTools
+                          message={msg}
+                          streamId={streamId}
+                          onMessageDeleted={onMessageDeleted}
+                        />
+                      </div>
+                    )}
                   </div>
                 </>
               )}

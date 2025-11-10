@@ -7,6 +7,8 @@ import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
+import { VideoControls } from '@/components/streaming/VideoControls';
+import { ViewerList } from '@/components/streaming/ViewerList';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -33,6 +35,9 @@ export default function BroadcastStudioPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
 
   // Update timer every second
   useEffect(() => {
@@ -280,6 +285,28 @@ export default function BroadcastStudioPage() {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const handleToggleMute = () => {
+    setIsMuted(!isMuted);
+    // Note: Muting is handled by volume control in VideoControls
+  };
+
+  const handleToggleFullscreen = () => {
+    const videoContainer = document.querySelector('[data-lk-video-container]');
+    if (!videoContainer) return;
+
+    if (!document.fullscreenElement) {
+      videoContainer.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleToggleTheater = () => {
+    setIsTheaterMode(!isTheaterMode);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
@@ -360,11 +387,7 @@ export default function BroadcastStudioPage() {
                 <span className="text-white ml-2">{formatDuration()}</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">👤</span>
-                <span className="text-white font-semibold">{viewerCount} viewers</span>
-                <span className="text-gray-500">· Peak: {peakViewers}</span>
-              </div>
+              <ViewerList streamId={streamId} currentViewers={viewerCount} />
 
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-digis-cyan/20 to-digis-pink/20 rounded-lg border border-digis-cyan/30">
                 <span className="text-2xl">💰</span>
@@ -398,18 +421,29 @@ export default function BroadcastStudioPage() {
           {/* Main Video Area */}
           <div className="lg:col-span-2 space-y-4">
             {/* Video Player */}
-            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10">
+            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative" data-lk-video-container>
               {token && serverUrl ? (
-                <LiveKitRoom
-                  video={true}
-                  audio={true}
-                  token={token}
-                  serverUrl={serverUrl}
-                  className="h-full"
-                >
-                  <VideoConference />
-                  <RoomAudioRenderer />
-                </LiveKitRoom>
+                <>
+                  <LiveKitRoom
+                    video={true}
+                    audio={true}
+                    token={token}
+                    serverUrl={serverUrl}
+                    className="h-full"
+                  >
+                    <VideoConference />
+                    <RoomAudioRenderer />
+                  </LiveKitRoom>
+                  <VideoControls
+                    onToggleMute={handleToggleMute}
+                    onToggleFullscreen={handleToggleFullscreen}
+                    onToggleTheater={handleToggleTheater}
+                    isMuted={isMuted}
+                    isFullscreen={isFullscreen}
+                    isTheaterMode={isTheaterMode}
+                    showTheaterMode={false}
+                  />
+                </>
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <LoadingSpinner size="lg" />
@@ -456,6 +490,7 @@ export default function BroadcastStudioPage() {
                 messages={messages}
                 isCreator={true}
                 onSendMessage={handleSendMessage}
+                onMessageDeleted={fetchMessages}
               />
             </div>
           </div>
