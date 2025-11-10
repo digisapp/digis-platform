@@ -267,6 +267,48 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleChangeUsername = async (userId: string, currentUsername: string) => {
+    const newUsername = prompt(`Enter new username for @${currentUsername}:\n\nNote: As an admin, you can assign reserved names (brands, celebrities, etc.)`, currentUsername);
+
+    if (!newUsername || newUsername === currentUsername) return;
+
+    // Confirm if it's a reserved name
+    const confirmMsg = `Change username to @${newUsername}?\n\n` +
+      `This will:\n` +
+      `- Change their profile URL to digis.cc/${newUsername}\n` +
+      `- If this is a reserved name, the user will be auto-verified as a creator`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const response = await fetch('/api/admin/set-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          username: newUsername,
+          verifyCreator: true, // Auto-verify if setting reserved name
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        let message = `Username updated to @${newUsername}!`;
+        if (data.data.wasReserved) {
+          message += `\n\nℹ️ This was a reserved name - user has been verified as a creator.`;
+        }
+        alert(message);
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to update username');
+      }
+    } catch (err) {
+      console.error('Error updating username:', err);
+      alert('Failed to update username');
+    }
+  };
+
   const handleSuspendUser = async (userId: string, action: 'suspend' | 'unsuspend') => {
     const message = action === 'suspend'
       ? 'Suspend this user account? They will not be able to log in.'
@@ -632,10 +674,18 @@ export default function AdminDashboard() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <p className="text-sm text-gray-400">
                               @{user.username} • {user.email}
                             </p>
+                            {/* Change Username Button */}
+                            <button
+                              onClick={() => handleChangeUsername(user.id, user.username)}
+                              className="px-2 py-0.5 bg-digis-cyan/20 text-digis-cyan text-xs rounded hover:bg-digis-cyan/30 transition-colors"
+                              title="Change username (including reserved names)"
+                            >
+                              Edit Username
+                            </button>
                             {/* Account Status Badge */}
                             {user.accountStatus === 'suspended' && (
                               <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded-full flex items-center gap-1">
