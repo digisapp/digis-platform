@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, Verified } from 'lucide-react';
+import { UserCircle, Users, Calendar, Verified, MessageCircle } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -103,6 +103,35 @@ export default function ProfilePage() {
     }
   };
 
+  const handleMessage = async () => {
+    try {
+      // Fetch conversations to see if one exists with this user
+      const response = await fetch('/api/messages/conversations');
+      const data = await response.json();
+
+      if (response.ok && data.data) {
+        // Find conversation with this user
+        const existingConversation = data.data.find((conv: any) =>
+          conv.user1Id === user.id || conv.user2Id === user.id
+        );
+
+        if (existingConversation) {
+          // Navigate to existing conversation
+          router.push(`/messages/${existingConversation.id}`);
+          return;
+        }
+      }
+
+      // No existing conversation, go to messages page
+      // User will need to send the first message to create conversation
+      router.push('/messages');
+    } catch (error) {
+      console.error('Error checking conversations:', error);
+      // Fallback to messages page
+      router.push('/messages');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-digis-dark flex items-center justify-center">
@@ -179,6 +208,14 @@ export default function ProfilePage() {
                 } disabled:opacity-50`}
               >
                 {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+              </button>
+
+              <button
+                onClick={handleMessage}
+                className="px-6 py-2 rounded-lg font-semibold bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 transition-all flex items-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message
               </button>
 
               {user.role === 'creator' && profile.callSettings && (
