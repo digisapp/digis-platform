@@ -43,7 +43,7 @@ export class StreamService {
   }
 
   /**
-   * End a stream and save stats
+   * End a stream and save stats (idempotent - safe to call multiple times)
    */
   static async endStream(streamId: string) {
     const stream = await db.query.streams.findFirst({
@@ -54,8 +54,9 @@ export class StreamService {
       throw new Error('Stream not found');
     }
 
+    // Idempotent: If already ended, just return the stream
     if (stream.status !== 'live') {
-      throw new Error('Stream is not live');
+      return stream;
     }
 
     const endTime = new Date();

@@ -29,6 +29,7 @@ export default function BroadcastStudioPage() {
   const [isEnding, setIsEnding] = useState(false);
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -49,6 +50,44 @@ export default function BroadcastStudioPage() {
     fetchBroadcastToken();
     fetchGoals();
   }, [streamId]);
+
+  // Auto-end stream on navigation or browser close
+  useEffect(() => {
+    if (!stream || stream.status !== 'live') return;
+
+    let isEnding = false;
+
+    const endStreamCleanup = async () => {
+      // Skip if user manually ended the stream
+      if (hasManuallyEnded || isEnding) return;
+      isEnding = true;
+
+      try {
+        await fetch(`/api/streams/${streamId}/end`, {
+          method: 'POST',
+          keepalive: true, // Important for beforeunload
+        });
+      } catch (err) {
+        console.error('Failed to auto-end stream:', err);
+      }
+    };
+
+    // Handle browser close/refresh
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      endStreamCleanup();
+      // Modern browsers ignore custom messages, but we still need to return a value
+      e.preventDefault();
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup on component unmount (navigation away)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      endStreamCleanup();
+    };
+  }, [stream, streamId, hasManuallyEnded]);
 
   // Setup real-time subscriptions
   useEffect(() => {
@@ -146,6 +185,8 @@ export default function BroadcastStudioPage() {
 
   const handleEndStream = async () => {
     setIsEnding(true);
+    setHasManuallyEnded(true); // Prevent auto-end from triggering
+
     try {
       const response = await fetch(`/api/streams/${streamId}/end`, {
         method: 'POST',
@@ -156,9 +197,11 @@ export default function BroadcastStudioPage() {
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to end stream');
+        setHasManuallyEnded(false); // Reset if failed
       }
     } catch (err) {
       alert('Failed to end stream');
+      setHasManuallyEnded(false); // Reset if failed
     } finally {
       setIsEnding(false);
       setShowEndConfirm(false);
