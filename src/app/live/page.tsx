@@ -101,23 +101,23 @@ export default function LiveStreamsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
                 Live Streams 🎥
               </h1>
-              <p className="text-gray-400">
+              <p className="text-gray-700">
                 {filteredStreams.length} of {streams.length} {streams.length === 1 ? 'stream' : 'streams'}
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function LiveStreamsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search streams, creators..."
-                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors"
               />
             </div>
 
@@ -150,7 +150,7 @@ export default function LiveStreamsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-digis-cyan transition-colors cursor-pointer"
+              className="px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 focus:outline-none focus:border-digis-cyan transition-colors cursor-pointer"
             >
               <option value="viewers">Most Viewers</option>
               <option value="recent">Recently Started</option>
@@ -176,10 +176,10 @@ export default function LiveStreamsPage() {
         {filteredStreams.length === 0 && !error && streams.length === 0 && (
           <div className="text-center py-20">
             <div className="text-8xl mb-6">📺</div>
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               No live streams right now
             </h2>
-            <p className="text-gray-400 mb-8 max-w-md mx-auto">
+            <p className="text-gray-700 mb-8 max-w-md mx-auto">
               Be the first to go live! Start streaming and connect with your fans.
             </p>
             <GlassButton
@@ -198,10 +198,10 @@ export default function LiveStreamsPage() {
         {filteredStreams.length === 0 && streams.length > 0 && (
           <div className="text-center py-20">
             <div className="text-8xl mb-6">🔍</div>
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               No streams found
             </h2>
-            <p className="text-gray-400 mb-8">
+            <p className="text-gray-700 mb-8">
               Try adjusting your search or filters
             </p>
             <GlassButton
@@ -225,7 +225,7 @@ export default function LiveStreamsPage() {
                 className="group cursor-pointer"
                 onClick={() => handleWatchStream(stream.id)}
               >
-                <div className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 overflow-hidden transition-all duration-300 hover:border-digis-cyan hover:scale-105 hover:shadow-2xl hover:shadow-digis-cyan/20">
+                <div className="glass rounded-2xl border-2 border-purple-200 overflow-hidden transition-all duration-300 hover:border-digis-cyan hover:scale-105 hover:shadow-2xl hover:shadow-digis-cyan/20">
                   {/* Thumbnail/Preview */}
                   <div className="aspect-video bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 relative">
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -256,18 +256,18 @@ export default function LiveStreamsPage() {
 
                   {/* Stream Info */}
                   <div className="p-5">
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-digis-cyan transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-digis-cyan transition-colors">
                       {stream.title}
                     </h3>
 
                     {stream.description && (
-                      <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                      <p className="text-sm text-gray-700 mb-3 line-clamp-2">
                         {stream.description}
                       </p>
                     )}
 
                     {/* Creator Info */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="flex items-center justify-between pt-3 border-t border-purple-200">
                       <div className="flex items-center gap-2">
                         {stream.creator.avatarUrl ? (
                           <img
@@ -280,18 +280,18 @@ export default function LiveStreamsPage() {
                             {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
                           </div>
                         )}
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm font-semibold text-gray-900">
                           {stream.creator.displayName || stream.creator.username}
                         </span>
                       </div>
 
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-600">
                         {stream.startedAt && formatStartTime(stream.startedAt)}
                       </span>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-700">
                       <div className="flex items-center gap-1">
                         <span>👁️</span>
                         <span>{stream.totalViews} views</span>

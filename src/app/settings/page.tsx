@@ -315,21 +315,21 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-digis-dark flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-digis-dark py-12 px-4">
+    <div className="min-h-screen bg-pastel-gradient py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Account Settings
           </h1>
-          <p className="text-gray-400 mt-2">Manage your profile and preferences</p>
+          <p className="text-gray-700 mt-2">Manage your profile and preferences</p>
         </div>
 
         {/* Global Messages */}
@@ -351,15 +351,15 @@ export default function SettingsPage() {
         <GlassCard className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <AtSign className="w-5 h-5 text-digis-cyan" />
-            <h2 className="text-xl font-semibold">Change Username</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Change Username</h2>
           </div>
 
-          <div className="mb-4 p-4 bg-digis-dark/50 rounded-lg">
-            <p className="text-sm text-gray-400">
-              Current username: <span className="text-white font-semibold">@{currentUser?.username}</span>
+          <div className="mb-4 p-4 bg-white/60 rounded-lg">
+            <p className="text-sm text-gray-700">
+              Current username: <span className="text-gray-900 font-semibold">@{currentUser?.username}</span>
             </p>
             {usernameCooldown && !usernameCooldown.canChange && (
-              <p className="text-sm text-yellow-400 mt-2 flex items-center gap-2">
+              <p className="text-sm text-yellow-700 mt-2 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
                 You can change your username again in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
               </p>
@@ -395,13 +395,13 @@ export default function SettingsPage() {
 
             {/* Username Error or Success */}
             {usernameError && (
-              <p className="text-sm text-red-400">{usernameError}</p>
+              <p className="text-sm text-red-600">{usernameError}</p>
             )}
             {usernameStatus === 'available' && (
-              <p className="text-sm text-green-400">@{newUsername} is available!</p>
+              <p className="text-sm text-green-600">@{newUsername} is available!</p>
             )}
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               You can change your username once every 30 days. Choose wisely!
             </p>
 
@@ -419,7 +419,7 @@ export default function SettingsPage() {
         <GlassCard className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-digis-pink" />
-            <h2 className="text-xl font-semibold">Profile Information</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Profile Information</h2>
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -432,24 +432,24 @@ export default function SettingsPage() {
             />
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
                 <MessageSquare className="w-4 h-4 inline mr-1" />
                 Bio
               </label>
               <textarea
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
+                className="w-full px-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
                 placeholder="Tell us about yourself..."
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={200}
               />
-              <p className="text-xs text-gray-500 mt-1">{bio.length}/200 characters</p>
+              <p className="text-xs text-gray-600 mt-1">{bio.length}/200 characters</p>
             </div>
 
             {/* Avatar Upload */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
                 <ImageIcon className="w-4 h-4 inline mr-1" />
                 Profile Avatar
               </label>
@@ -460,20 +460,20 @@ export default function SettingsPage() {
                     <img
                       src={avatarPreview || avatarUrl}
                       alt="Avatar preview"
-                      className="h-24 w-24 rounded-full object-cover border-2 border-white/20"
+                      className="h-24 w-24 rounded-full object-cover border-2 border-purple-200"
                     />
-                    <p className="text-xs text-gray-400">Current avatar</p>
+                    <p className="text-xs text-gray-700">Current avatar</p>
                   </div>
                 )}
 
                 {/* Upload Button */}
                 <label className="relative cursor-pointer">
-                  <div className="px-4 py-3 bg-white/10 border-2 border-dashed border-white/20 rounded-lg hover:border-digis-cyan/50 transition-all text-center">
-                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-300">
+                  <div className="px-4 py-3 bg-white/50 border-2 border-dashed border-purple-200 rounded-lg hover:border-digis-cyan/50 transition-all text-center">
+                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-600" />
+                    <p className="text-sm text-gray-700">
                       {uploadingAvatar ? 'Uploading...' : 'Click to upload avatar'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1">
                       Square image, max 1MB (512×512 recommended)
                     </p>
                   </div>
@@ -496,7 +496,7 @@ export default function SettingsPage() {
 
             {/* Banner Upload */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
                 <ImageIcon className="w-4 h-4 inline mr-1" />
                 Profile Banner
               </label>
@@ -507,20 +507,20 @@ export default function SettingsPage() {
                     <img
                       src={bannerPreview || bannerUrl}
                       alt="Banner preview"
-                      className="h-32 w-full object-cover rounded-lg border-2 border-white/20"
+                      className="h-32 w-full object-cover rounded-lg border-2 border-purple-200"
                     />
-                    <p className="text-xs text-gray-400">Current banner</p>
+                    <p className="text-xs text-gray-700">Current banner</p>
                   </div>
                 )}
 
                 {/* Upload Button */}
                 <label className="relative cursor-pointer">
-                  <div className="px-4 py-3 bg-white/10 border-2 border-dashed border-white/20 rounded-lg hover:border-digis-pink/50 transition-all text-center">
-                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-300">
+                  <div className="px-4 py-3 bg-white/50 border-2 border-dashed border-purple-200 rounded-lg hover:border-digis-pink/50 transition-all text-center">
+                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-600" />
+                    <p className="text-sm text-gray-700">
                       {uploadingBanner ? 'Uploading...' : 'Click to upload banner'}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1">
                       Wide image, max 2MB (1920×500 recommended)
                     </p>
                   </div>
@@ -558,9 +558,9 @@ export default function SettingsPage() {
               <svg className="w-5 h-5 text-digis-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              <h2 className="text-xl font-semibold">Become a Creator</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Become a Creator</h2>
             </div>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               Join our community of creators and start earning from your content, live shows, and more.
             </p>
             <button

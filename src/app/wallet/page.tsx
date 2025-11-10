@@ -158,14 +158,14 @@ export default function WalletPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-pastel-gradient">
       <BuyCoinsModal
         isOpen={showBuyCoins}
         onClose={() => setShowBuyCoins(false)}
@@ -178,18 +178,12 @@ export default function WalletPage() {
         existingInfo={bankingInfo}
       />
 
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-96 h-96 -top-10 -left-10 bg-digis-cyan opacity-20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-96 h-96 top-1/3 right-10 bg-digis-pink opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-      </div>
-
-      <div className="relative z-10 container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-12">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-5xl font-bold text-white mb-2">My Wallet</h1>
-            <p className="text-gray-400">Manage your Digis Coins {isCreator && 'and payouts'}</p>
+            <h1 className="text-5xl font-bold text-gray-900 mb-2">My Wallet</h1>
+            <p className="text-gray-700">Manage your Digis Coins {isCreator && 'and payouts'}</p>
           </div>
           <button
             onClick={handleRefresh}
@@ -249,14 +243,14 @@ export default function WalletPage() {
             <GlassCard glow="cyan" padding="lg" className="mb-8">
               <div className="flex flex-col md:flex-row items-center justify-between">
                 <div>
-                  <p className="text-gray-400 mb-2">Available Balance</p>
+                  <p className="text-gray-700 mb-2">Available Balance</p>
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-4xl">
                       🪙
                     </div>
                     <div>
-                      <p className="text-5xl font-bold text-white">{balance.toLocaleString()}</p>
-                      <p className="text-gray-400">Digis Coins</p>
+                      <p className="text-5xl font-bold text-gray-900">{balance.toLocaleString()}</p>
+                      <p className="text-gray-700">Digis Coins</p>
                     </div>
                   </div>
                 </div>
@@ -273,11 +267,11 @@ export default function WalletPage() {
 
             {/* Transaction History */}
             <GlassCard glow="none" padding="lg">
-              <h2 className="text-2xl font-bold text-white mb-6">Transaction History</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Transaction History</h2>
 
               {transactions.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400 mb-4">No transactions yet</p>
+                  <p className="text-gray-700 mb-4">No transactions yet</p>
                   <GlassButton variant="cyan" onClick={() => setShowBuyCoins(true)}>
                     Buy Your First Coins
                   </GlassButton>
@@ -292,19 +286,19 @@ export default function WalletPage() {
                       <div className="flex items-center space-x-4">
                         <div className="text-4xl">{getTransactionIcon(tx.type)}</div>
                         <div>
-                          <p className="text-white font-medium">
+                          <p className="text-gray-900 font-medium">
                             {tx.description || 'Transaction'}
                           </p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-700">
                             {new Date(tx.createdAt).toLocaleString()}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-xl font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <p className={`text-xl font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {tx.amount > 0 ? '+' : ''}{tx.amount} coins
                         </p>
-                        <p className="text-sm text-gray-400 capitalize">{tx.status}</p>
+                        <p className="text-sm text-gray-700 capitalize">{tx.status}</p>
                       </div>
                     </div>
                   ))}
@@ -319,9 +313,9 @@ export default function WalletPage() {
           <div className="space-y-8">
             {/* Payout Request Card */}
             <GlassCard glow="cyan" padding="lg">
-              <h2 className="text-2xl font-bold text-white mb-4">Request Payout</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Payout</h2>
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-                <p className="text-blue-300 text-sm">
+                <p className="text-blue-700 text-sm">
                   <strong>Payout Schedule:</strong> Digis processes payouts twice per month (1st and 15th).
                   <br />
                   <strong>Minimum:</strong> 1,000 coins required to request payout.
@@ -330,8 +324,8 @@ export default function WalletPage() {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-400 mb-1">Available for Payout</p>
-                  <p className="text-4xl font-bold text-white">{balance.toLocaleString()} coins</p>
+                  <p className="text-gray-700 mb-1">Available for Payout</p>
+                  <p className="text-4xl font-bold text-gray-900">{balance.toLocaleString()} coins</p>
                 </div>
                 <GlassButton
                   variant="gradient"
@@ -375,11 +369,11 @@ export default function WalletPage() {
 
             {/* Payout History */}
             <GlassCard glow="none" padding="lg">
-              <h2 className="text-2xl font-bold text-white mb-6">Payout History</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Payout History</h2>
 
               {payouts.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-400">No payouts yet</p>
+                  <p className="text-gray-700">No payouts yet</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -389,17 +383,17 @@ export default function WalletPage() {
                       className="glass glass-hover p-4 rounded-xl flex items-center justify-between"
                     >
                       <div>
-                        <p className="text-white font-medium">{payout.amount.toLocaleString()} coins</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-gray-900 font-medium">{payout.amount.toLocaleString()} coins</p>
+                        <p className="text-sm text-gray-700">
                           Requested: {new Date(payout.requestedAt).toLocaleDateString()}
                         </p>
                         {payout.completedAt && (
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-700">
                             Completed: {new Date(payout.completedAt).toLocaleDateString()}
                           </p>
                         )}
                         {payout.failureReason && (
-                          <p className="text-sm text-red-400">{payout.failureReason}</p>
+                          <p className="text-sm text-red-600">{payout.failureReason}</p>
                         )}
                       </div>
                       <div className="text-right">
@@ -418,12 +412,12 @@ export default function WalletPage() {
         {/* Banking Info Tab */}
         {activeTab === 'banking' && isCreator && (
           <GlassCard glow="cyan" padding="lg">
-            <h2 className="text-2xl font-bold text-white mb-6">Banking Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Banking Information</h2>
 
             {bankingInfo ? (
               <div className="space-y-6">
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
-                  <p className="text-green-300 flex items-center">
+                  <p className="text-green-700 flex items-center">
                     <span className="mr-2">✓</span>
                     Banking information {bankingInfo.isVerified ? 'verified' : 'added'}
                   </p>
@@ -431,20 +425,20 @@ export default function WalletPage() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-gray-400 mb-1">Account Holder</p>
-                    <p className="text-white font-medium">{bankingInfo.accountHolderName}</p>
+                    <p className="text-gray-700 mb-1">Account Holder</p>
+                    <p className="text-gray-900 font-medium">{bankingInfo.accountHolderName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 mb-1">Account Type</p>
-                    <p className="text-white font-medium capitalize">{bankingInfo.accountType}</p>
+                    <p className="text-gray-700 mb-1">Account Type</p>
+                    <p className="text-gray-900 font-medium capitalize">{bankingInfo.accountType}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 mb-1">Bank</p>
-                    <p className="text-white font-medium">{bankingInfo.bankName || 'N/A'}</p>
+                    <p className="text-gray-700 mb-1">Bank</p>
+                    <p className="text-gray-900 font-medium">{bankingInfo.bankName || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 mb-1">Account</p>
-                    <p className="text-white font-medium">••••{bankingInfo.lastFourDigits}</p>
+                    <p className="text-gray-700 mb-1">Account</p>
+                    <p className="text-gray-900 font-medium">••••{bankingInfo.lastFourDigits}</p>
                   </div>
                 </div>
 
@@ -457,7 +451,7 @@ export default function WalletPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                <p className="text-gray-400">Add your banking information to receive payouts</p>
+                <p className="text-gray-700">Add your banking information to receive payouts</p>
                 <GlassButton
                   variant="gradient"
                   size="lg"

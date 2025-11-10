@@ -77,21 +77,21 @@ export default function ExplorePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-digis-dark flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-digis-dark">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Explore Creators
           </h1>
-          <p className="text-gray-400">
+          <p className="text-gray-700">
             Discover and follow your favorite creators
           </p>
         </div>
@@ -100,13 +100,13 @@ export default function ExplorePage() {
         <div className="mb-8">
           <GlassCard className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search creators by name, username, or bio..."
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="w-full pl-12 pr-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors"
               />
               {searching && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -121,8 +121,8 @@ export default function ExplorePage() {
         {creators.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <Search className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No creators found</h3>
-            <p className="text-gray-400">
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">No creators found</h3>
+            <p className="text-gray-700">
               {searchTerm ? 'Try a different search term' : 'Check back soon for new creators!'}
             </p>
           </GlassCard>
@@ -175,15 +175,15 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
               <img
                 src={creator.avatarUrl}
                 alt={creator.displayName || creator.username}
-                className="w-20 h-20 rounded-full border-4 border-digis-dark object-cover"
+                className="w-20 h-20 rounded-full border-4 border-white object-cover"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full border-4 border-digis-dark bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full border-4 border-white bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center">
                 <UserCircle className="w-12 h-12 text-white" />
               </div>
             )}
             {creator.isOnline && (
-              <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-digis-dark" />
+              <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
             )}
           </div>
         </div>
@@ -191,28 +191,28 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
         {/* Name and Verification */}
         <div className="mb-2">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold truncate">
+            <h3 className="text-lg font-semibold truncate text-gray-800">
               {creator.displayName || creator.username}
             </h3>
             {creator.isCreatorVerified && (
               <Verified className="w-5 h-5 text-digis-cyan fill-digis-cyan flex-shrink-0" />
             )}
           </div>
-          <p className="text-sm text-gray-400 truncate">@{creator.username}</p>
+          <p className="text-sm text-gray-600 truncate">@{creator.username}</p>
         </div>
 
         {/* Bio */}
         {creator.bio && (
-          <p className="text-sm text-gray-300 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-700 mb-3 line-clamp-2">
             {creator.bio}
           </p>
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-gray-700">
           <Users className="w-4 h-4" />
           <span>
-            <strong className="text-white">{creator.followerCount}</strong> followers
+            <strong className="text-gray-900">{creator.followerCount}</strong> followers
           </span>
         </div>
       </div>

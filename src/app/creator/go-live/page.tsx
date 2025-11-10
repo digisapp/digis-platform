@@ -226,7 +226,7 @@ export default function GoLivePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -234,11 +234,11 @@ export default function GoLivePage() {
 
   if (!isCreator) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-8 text-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center p-4">
+        <div className="max-w-md w-full glass rounded-2xl border-2 border-purple-200 p-8 text-center">
           <div className="text-6xl mb-4">🎥</div>
-          <h1 className="text-2xl font-bold text-white mb-4">Creator Access Required</h1>
-          <p className="text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Creator Access Required</h1>
+          <p className="text-gray-700 mb-6">
             You need to be a verified creator to start live streaming.
           </p>
           <GlassButton
@@ -257,13 +257,13 @@ export default function GoLivePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🎥</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Go Live</h1>
-          <p className="text-gray-400">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Go Live</h1>
+          <p className="text-gray-700">
             Set up your stream and test your devices before going live
           </p>
         </div>
@@ -272,12 +272,12 @@ export default function GoLivePage() {
         <form onSubmit={handleStartStream} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left Column: Form */}
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-8 space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Stream Details</h2>
+            <div className="glass rounded-2xl border-2 border-purple-200 p-8 space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Stream Details</h2>
 
               {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
                   Stream Title *
                 </label>
                 <input
@@ -286,18 +286,18 @@ export default function GoLivePage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="What's your stream about?"
-                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors"
                   maxLength={100}
                   required
                 />
-                <div className="mt-2 text-xs text-gray-500 text-right">
+                <div className="mt-2 text-xs text-gray-600 text-right">
                   {title.length}/100
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-800 mb-2">
                   Description (Optional)
                 </label>
                 <textarea
@@ -305,11 +305,11 @@ export default function GoLivePage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tell viewers what to expect..."
-                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   rows={4}
                   maxLength={500}
                 />
-                <div className="mt-2 text-xs text-gray-500 text-right">
+                <div className="mt-2 text-xs text-gray-600 text-right">
                   {description.length}/500
                 </div>
               </div>
@@ -317,7 +317,7 @@ export default function GoLivePage() {
               {/* Pre-Stream Tips */}
               <div className="bg-digis-cyan/10 border border-digis-cyan/30 rounded-xl p-4">
                 <h3 className="text-sm font-bold text-digis-cyan mb-2">💡 Quick Tips</h3>
-                <ul className="text-sm text-gray-300 space-y-1">
+                <ul className="text-sm text-gray-800 space-y-1">
                   <li>• Check your preview on the right</li>
                   <li>• Choose a well-lit, quiet location</li>
                   <li>• Engage with viewers in chat</li>
@@ -327,11 +327,11 @@ export default function GoLivePage() {
             </div>
 
             {/* Right Column: Device Preview */}
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-8 space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Device Preview</h2>
+            <div className="glass rounded-2xl border-2 border-purple-200 p-8 space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Device Preview</h2>
 
               {/* Video Preview */}
-              <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-white/10">
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-purple-200">
                 {devicesLoading ? (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <LoadingSpinner size="lg" />
@@ -340,7 +340,7 @@ export default function GoLivePage() {
                   <div className="absolute inset-0 flex items-center justify-center p-4">
                     <div className="text-center">
                       <div className="text-4xl mb-2">📷</div>
-                      <p className="text-red-400 text-sm">{previewError}</p>
+                      <p className="text-red-600 text-sm">{previewError}</p>
                     </div>
                   </div>
                 ) : (
@@ -358,13 +358,13 @@ export default function GoLivePage() {
               <div className="space-y-4">
                 {/* Camera */}
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
                     📹 Camera
                   </label>
                   <select
                     value={selectedVideoDevice}
                     onChange={(e) => setSelectedVideoDevice(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-digis-cyan"
+                    className="w-full px-4 py-2 bg-white/50 border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-digis-cyan"
                     disabled={videoDevices.length === 0}
                   >
                     {videoDevices.map((device) => (
@@ -377,13 +377,13 @@ export default function GoLivePage() {
 
                 {/* Microphone */}
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
                     🎤 Microphone
                   </label>
                   <select
                     value={selectedAudioDevice}
                     onChange={(e) => setSelectedAudioDevice(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-digis-cyan"
+                    className="w-full px-4 py-2 bg-white/50 border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-digis-cyan"
                     disabled={audioDevices.length === 0}
                   >
                     {audioDevices.map((device) => (
@@ -396,16 +396,16 @@ export default function GoLivePage() {
 
                 {/* Audio Level */}
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
                     Audio Level
                   </label>
-                  <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                  <div className="w-full h-3 bg-white/50 rounded-full overflow-hidden border border-purple-200">
                     <div
                       className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink transition-all duration-100"
                       style={{ width: `${audioLevel}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     {audioLevel > 5 ? '🟢 Microphone active' : '🔴 Speak to test mic'}
                   </p>
                 </div>

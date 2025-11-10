@@ -75,7 +75,7 @@ export default function CreatorShowsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -95,13 +95,13 @@ export default function CreatorShowsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">My Shows 🎟️</h1>
-            <p className="text-gray-400">Create and manage your ticketed events</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Shows 🎟️</h1>
+            <p className="text-gray-700">Create and manage your ticketed events</p>
           </div>
           <GlassButton
             variant="gradient"
@@ -117,34 +117,34 @@ export default function CreatorShowsPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 text-center">
+          <div className="glass rounded-xl border border-purple-200 p-4 text-center">
             <div className="text-2xl mb-1">📊</div>
-            <div className="text-2xl font-bold text-white mb-1">{stats.totalShows}</div>
-            <div className="text-xs text-gray-400">Total Shows</div>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{stats.totalShows}</div>
+            <div className="text-xs text-gray-700">Total Shows</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 text-center">
+          <div className="glass rounded-xl border border-purple-200 p-4 text-center">
             <div className="text-2xl mb-1">📅</div>
             <div className="text-2xl font-bold text-digis-cyan mb-1">{stats.scheduled}</div>
-            <div className="text-xs text-gray-400">Upcoming</div>
+            <div className="text-xs text-gray-700">Upcoming</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 text-center">
+          <div className="glass rounded-xl border border-purple-200 p-4 text-center">
             <div className="text-2xl mb-1">✅</div>
-            <div className="text-2xl font-bold text-green-400 mb-1">{stats.completed}</div>
-            <div className="text-xs text-gray-400">Completed</div>
+            <div className="text-2xl font-bold text-green-600 mb-1">{stats.completed}</div>
+            <div className="text-xs text-gray-700">Completed</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 text-center">
+          <div className="glass rounded-xl border border-purple-200 p-4 text-center">
             <div className="text-2xl mb-1">🎫</div>
             <div className="text-2xl font-bold text-digis-pink mb-1">{stats.totalTicketsSold}</div>
-            <div className="text-xs text-gray-400">Tickets Sold</div>
+            <div className="text-xs text-gray-700">Tickets Sold</div>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 text-center">
+          <div className="glass rounded-xl border border-purple-200 p-4 text-center">
             <div className="text-2xl mb-1">💰</div>
-            <div className="text-2xl font-bold text-yellow-400 mb-1">{stats.totalRevenue}</div>
-            <div className="text-xs text-gray-400">Total Revenue</div>
+            <div className="text-2xl font-bold text-yellow-600 mb-1">{stats.totalRevenue}</div>
+            <div className="text-xs text-gray-700">Total Revenue</div>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export default function CreatorShowsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                 filter === tab
                   ? 'bg-digis-cyan text-black'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -167,12 +167,12 @@ export default function CreatorShowsPage() {
 
         {/* Shows Grid */}
         {filteredShows.length === 0 ? (
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center">
+          <div className="glass rounded-2xl border border-purple-200 p-12 text-center">
             <div className="text-6xl mb-4">🎟️</div>
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
               {filter === 'all' ? 'No shows yet' : `No ${filter} shows`}
             </h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-700 mb-6">
               {filter === 'all'
                 ? 'Create your first ticketed show and start earning!'
                 : `You don't have any ${filter} shows at the moment.`}

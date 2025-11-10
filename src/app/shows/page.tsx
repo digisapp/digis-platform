@@ -76,19 +76,19 @@ export default function ShowsDirectoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Ticketed Shows 🎟️</h1>
-          <p className="text-gray-400">Discover exclusive live events from your favorite creators</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Ticketed Shows 🎟️</h1>
+          <p className="text-gray-700">Discover exclusive live events from your favorite creators</p>
         </div>
 
         {/* Filters & Sort */}
@@ -100,7 +100,7 @@ export default function ShowsDirectoryPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                 filter === 'all'
                   ? 'bg-digis-cyan text-black'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
               }`}
             >
               All Shows
@@ -110,7 +110,7 @@ export default function ShowsDirectoryPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
                 filter === 'live'
                   ? 'bg-red-500 text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
               }`}
             >
               <span className={filter === 'live' ? 'animate-pulse' : ''}>🔴</span>
@@ -121,7 +121,7 @@ export default function ShowsDirectoryPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                 filter === 'upcoming'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
               }`}
             >
               📅 Upcoming
@@ -130,11 +130,11 @@ export default function ShowsDirectoryPage() {
 
           {/* Sort */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Sort by:</span>
+            <span className="text-sm text-gray-700">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-digis-cyan"
+              className="px-3 py-2 bg-white/50 border border-purple-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-digis-cyan"
             >
               <option value="date">Date</option>
               <option value="price">Price</option>
@@ -149,9 +149,9 @@ export default function ShowsDirectoryPage() {
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                <h2 className="text-2xl font-bold text-white">Live Now</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Live Now</h2>
               </div>
-              <span className="text-sm text-gray-400">({liveShows.length})</span>
+              <span className="text-sm text-gray-700">({liveShows.length})</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveShows.map((show) => (
@@ -169,8 +169,8 @@ export default function ShowsDirectoryPage() {
         {upcomingShows.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold text-white">Upcoming Shows</h2>
-              <span className="text-sm text-gray-400">({upcomingShows.length})</span>
+              <h2 className="text-2xl font-bold text-gray-900">Upcoming Shows</h2>
+              <span className="text-sm text-gray-700">({upcomingShows.length})</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingShows.map((show) => (
@@ -186,16 +186,16 @@ export default function ShowsDirectoryPage() {
 
         {/* Empty State */}
         {sortedShows.length === 0 && (
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center">
+          <div className="glass rounded-2xl border border-purple-200 p-12 text-center">
             <div className="text-6xl mb-4">🎟️</div>
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
               {filter === 'live'
                 ? 'No live shows right now'
                 : filter === 'upcoming'
                 ? 'No upcoming shows'
                 : 'No shows available'}
             </h3>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-700 mb-6">
               {filter === 'live'
                 ? 'Check back soon for live events!'
                 : filter === 'upcoming'
@@ -213,8 +213,8 @@ export default function ShowsDirectoryPage() {
 
         {/* Info Card */}
         <div className="mt-12 bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-md rounded-2xl border border-purple-500/30 p-6">
-          <h3 className="text-lg font-bold text-white mb-3">About Ticketed Shows</h3>
-          <div className="space-y-2 text-sm text-gray-300">
+          <h3 className="text-lg font-bold text-gray-900 mb-3">About Ticketed Shows</h3>
+          <div className="space-y-2 text-sm text-gray-800">
             <p>
               • Purchase tickets with coins to attend exclusive live events
             </p>
