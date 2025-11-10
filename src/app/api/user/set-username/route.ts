@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      failure('Failed to set username', 'server', requestId),
+      failure('Failed to set username', 'unknown', requestId),
       { status: 500, headers: { 'x-request-id': requestId } }
     );
   }
