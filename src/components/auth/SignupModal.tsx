@@ -59,7 +59,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Join Digis" size="sm">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-400 text-sm mb-1">
           Create your account to connect with creators and fans
         </p>
 
