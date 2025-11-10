@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
+import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
 interface UsernameStatus {
   canChange: boolean;
@@ -25,6 +26,12 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
+
+  // Image upload states
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+  const [bannerPreview, setBannerPreview] = useState<string | undefined>();
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   // Username change
   const [newUsername, setNewUsername] = useState('');
@@ -212,6 +219,100 @@ export default function SettingsPage() {
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    // Validate file
+    const validation = validateImageFile(file, 'avatar');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError('');
+
+    try {
+      // Resize image to 512x512
+      const resizedFile = await resizeImage(file, 512, 512);
+
+      // Upload to Supabase Storage
+      const url = await uploadImage(resizedFile, 'avatar', currentUser.id);
+
+      // Update preview
+      setAvatarPreview(url);
+
+      // Save to database
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: url }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save avatar');
+      }
+
+      setAvatarUrl(url);
+      setMessage('Avatar updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      setError(err.message || 'Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    // Validate file
+    const validation = validateImageFile(file, 'banner');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setUploadingBanner(true);
+    setError('');
+
+    try {
+      // Resize image to max 1920 width, 500 height
+      const resizedFile = await resizeImage(file, 1920, 500);
+
+      // Upload to Supabase Storage
+      const url = await uploadImage(resizedFile, 'banner', currentUser.id);
+
+      // Update preview
+      setBannerPreview(url);
+
+      // Save to database
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bannerUrl: url }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save banner');
+      }
+
+      setBannerUrl(url);
+      setMessage('Banner updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      console.error('Banner upload error:', err);
+      setError(err.message || 'Failed to upload banner');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-digis-dark flex items-center justify-center">
@@ -346,21 +447,99 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-1">{bio.length}/200 characters</p>
             </div>
 
-            <GlassInput
-              type="url"
-              label="Avatar URL"
-              placeholder="https://example.com/avatar.jpg"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-            />
+            {/* Avatar Upload */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                <ImageIcon className="w-4 h-4 inline mr-1" />
+                Profile Avatar
+              </label>
+              <div className="space-y-3">
+                {/* Preview */}
+                {(avatarPreview || avatarUrl) && (
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={avatarPreview || avatarUrl}
+                      alt="Avatar preview"
+                      className="h-24 w-24 rounded-full object-cover border-2 border-white/20"
+                    />
+                    <p className="text-xs text-gray-400">Current avatar</p>
+                  </div>
+                )}
 
-            <GlassInput
-              type="url"
-              label="Banner URL"
-              placeholder="https://example.com/banner.jpg"
-              value={bannerUrl}
-              onChange={(e) => setBannerUrl(e.target.value)}
-            />
+                {/* Upload Button */}
+                <label className="relative cursor-pointer">
+                  <div className="px-4 py-3 bg-white/10 border-2 border-dashed border-white/20 rounded-lg hover:border-digis-cyan/50 transition-all text-center">
+                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-300">
+                      {uploadingAvatar ? 'Uploading...' : 'Click to upload avatar'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Square image, max 1MB (512×512 recommended)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="hidden"
+                  />
+                </label>
+                {uploadingAvatar && (
+                  <div className="flex items-center gap-2 text-sm text-digis-cyan">
+                    <LoadingSpinner size="sm" />
+                    <span>Uploading avatar...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Banner Upload */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                <ImageIcon className="w-4 h-4 inline mr-1" />
+                Profile Banner
+              </label>
+              <div className="space-y-3">
+                {/* Preview */}
+                {(bannerPreview || bannerUrl) && (
+                  <div className="space-y-2">
+                    <img
+                      src={bannerPreview || bannerUrl}
+                      alt="Banner preview"
+                      className="h-32 w-full object-cover rounded-lg border-2 border-white/20"
+                    />
+                    <p className="text-xs text-gray-400">Current banner</p>
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                <label className="relative cursor-pointer">
+                  <div className="px-4 py-3 bg-white/10 border-2 border-dashed border-white/20 rounded-lg hover:border-digis-pink/50 transition-all text-center">
+                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-gray-300">
+                      {uploadingBanner ? 'Uploading...' : 'Click to upload banner'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Wide image, max 2MB (1920×500 recommended)
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                    className="hidden"
+                  />
+                </label>
+                {uploadingBanner && (
+                  <div className="flex items-center gap-2 text-sm text-digis-pink">
+                    <LoadingSpinner size="sm" />
+                    <span>Uploading banner...</span>
+                  </div>
+                )}
+              </div>
+            </div>
 
             <GlassButton
               type="submit"
