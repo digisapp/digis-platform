@@ -7,6 +7,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { CallSettings } from '@/components/creator/CallSettings';
 import { PendingCalls } from '@/components/calls/PendingCalls';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
   overview: {
@@ -45,17 +47,39 @@ interface Analytics {
   }>;
 }
 
+interface Activity {
+  id: string;
+  type: 'gift' | 'follow' | 'call' | 'stream';
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: 'gift' | 'userplus' | 'phone' | 'video';
+  color: string;
+}
+
+interface UpcomingEvent {
+  id: string;
+  type: 'show' | 'call';
+  title: string;
+  scheduledFor: string;
+  details?: string;
+}
+
 export default function CreatorDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [isCreator, setIsCreator] = useState(false);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
 
   useEffect(() => {
     checkAuth();
     fetchBalance();
     fetchAnalytics();
+    fetchRecentActivities();
+    fetchUpcomingEvents();
   }, []);
 
   const checkAuth = async () => {
@@ -105,6 +129,155 @@ export default function CreatorDashboard() {
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
+    }
+  };
+
+  const fetchRecentActivities = async () => {
+    try {
+      // Fetch recent activities from multiple sources in parallel
+      const [giftsRes, followersRes, callsRes, streamsRes] = await Promise.all([
+        fetch('/api/gifts/received?limit=5'),
+        fetch('/api/followers?limit=5'),
+        fetch('/api/calls/history?limit=5&status=completed'),
+        fetch('/api/streams/my-streams?limit=5')
+      ]);
+
+      const activities: Activity[] = [];
+
+      // Process gifts
+      if (giftsRes.ok) {
+        const giftsData = await giftsRes.json();
+        (giftsData.data || []).forEach((gift: any) => {
+          activities.push({
+            id: `gift-${gift.id}`,
+            type: 'gift',
+            title: `${gift.senderName || 'Someone'} sent you a gift`,
+            description: `${gift.giftName} (${gift.coinValue} coins)`,
+            timestamp: gift.createdAt,
+            icon: 'gift',
+            color: 'text-yellow-400'
+          });
+        });
+      }
+
+      // Process followers
+      if (followersRes.ok) {
+        const followersData = await followersRes.json();
+        (followersData.data || []).forEach((follower: any) => {
+          activities.push({
+            id: `follow-${follower.id}`,
+            type: 'follow',
+            title: `${follower.followerName || 'Someone'} followed you`,
+            description: `You have ${follower.totalFollowers || 0} followers`,
+            timestamp: follower.createdAt,
+            icon: 'userplus',
+            color: 'text-green-400'
+          });
+        });
+      }
+
+      // Process calls
+      if (callsRes.ok) {
+        const callsData = await callsRes.json();
+        (callsData.data || []).forEach((call: any) => {
+          activities.push({
+            id: `call-${call.id}`,
+            type: 'call',
+            title: `Call completed with ${call.fanName || 'fan'}`,
+            description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
+            timestamp: call.endedAt || call.createdAt,
+            icon: 'phone',
+            color: 'text-blue-400'
+          });
+        });
+      }
+
+      // Process streams
+      if (streamsRes.ok) {
+        const streamsData = await streamsRes.json();
+        (streamsData.data || []).filter((s: any) => s.status === 'ended').forEach((stream: any) => {
+          activities.push({
+            id: `stream-${stream.id}`,
+            type: 'stream',
+            title: 'Stream ended',
+            description: `${stream.title} - ${stream.viewerCount || 0} viewers`,
+            timestamp: stream.endedAt || stream.createdAt,
+            icon: 'video',
+            color: 'text-red-400'
+          });
+        });
+      }
+
+      // Sort by timestamp and take top 10
+      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setRecentActivities(activities.slice(0, 10));
+    } catch (err) {
+      console.error('Error fetching recent activities:', err);
+    }
+  };
+
+  const fetchUpcomingEvents = async () => {
+    try {
+      // Fetch upcoming shows and booked calls
+      const [showsRes, callsRes] = await Promise.all([
+        fetch('/api/shows/creator'),
+        fetch('/api/calls/history?limit=10&status=pending')
+      ]);
+
+      const events: UpcomingEvent[] = [];
+
+      // Process upcoming shows
+      if (showsRes.ok) {
+        const showsData = await showsRes.json();
+        (showsData.data || [])
+          .filter((show: any) => ['scheduled', 'live'].includes(show.status))
+          .forEach((show: any) => {
+            events.push({
+              id: `show-${show.id}`,
+              type: 'show',
+              title: show.title,
+              scheduledFor: show.scheduledFor,
+              details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold - ${show.ticketPrice} coins each`
+            });
+          });
+      }
+
+      // Process upcoming calls
+      if (callsRes.ok) {
+        const callsData = await callsRes.json();
+        (callsData.data || [])
+          .filter((call: any) => call.scheduledFor)
+          .forEach((call: any) => {
+            events.push({
+              id: `call-${call.id}`,
+              type: 'call',
+              title: `Call with ${call.fanName || 'fan'}`,
+              scheduledFor: call.scheduledFor,
+              details: `${call.duration} minutes - ${call.totalCost} coins`
+            });
+          });
+      }
+
+      // Sort by scheduled time
+      events.sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
+      setUpcomingEvents(events.slice(0, 5));
+    } catch (err) {
+      console.error('Error fetching upcoming events:', err);
+    }
+  };
+
+  const getActivityIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'gift':
+        return <Gift className="w-5 h-5" />;
+      case 'userplus':
+        return <UserPlus className="w-5 h-5" />;
+      case 'phone':
+        return <PhoneCall className="w-5 h-5" />;
+      case 'video':
+        return <Video className="w-5 h-5" />;
+      default:
+        return <Clock className="w-5 h-5" />;
     }
   };
 
@@ -176,10 +349,86 @@ export default function CreatorDashboard() {
           </button>
         </div>
 
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <div className="mb-8 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-digis-cyan" />
+                Upcoming Events
+              </h3>
+              <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
+            </div>
+            <div className="space-y-3">
+              {upcomingEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="flex items-start gap-4 bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (event.type === 'show') {
+                      router.push(`/creator/shows/${event.id.replace('show-', '')}`);
+                    }
+                  }}
+                >
+                  <div className={`p-2 rounded-lg ${event.type === 'show' ? 'bg-purple-500/20' : 'bg-blue-500/20'}`}>
+                    {event.type === 'show' ? (
+                      <Ticket className="w-5 h-5 text-purple-400" />
+                    ) : (
+                      <PhoneCall className="w-5 h-5 text-blue-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-white mb-1">{event.title}</div>
+                    <div className="text-sm text-gray-400 mb-1">
+                      {new Date(event.scheduledFor).toLocaleDateString()} at {new Date(event.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                    {event.details && (
+                      <div className="text-xs text-gray-500">{event.details}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Clock className="w-4 h-4" />
+                    {formatDistanceToNow(new Date(event.scheduledFor), { addSuffix: true })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Pending Calls */}
         <div className="mb-8">
           <PendingCalls />
         </div>
+
+        {/* Recent Activity */}
+        {recentActivities.length > 0 && (
+          <div className="mb-8 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-digis-pink" />
+              Recent Activity
+            </h3>
+            <div className="space-y-3">
+              {recentActivities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-4 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors"
+                >
+                  <div className={`p-2 rounded-lg bg-white/5 ${activity.color}`}>
+                    {getActivityIcon(activity.icon)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-white text-sm mb-1">{activity.title}</div>
+                    <div className="text-xs text-gray-400">{activity.description}</div>
+                  </div>
+                  <div className="text-xs text-gray-500 whitespace-nowrap">
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Call Settings */}
         <div className="mb-8">
