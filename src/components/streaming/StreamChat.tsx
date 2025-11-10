@@ -58,15 +58,15 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
   };
 
   return (
-    <div className="flex flex-col h-full bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
+    <div className="flex flex-col h-full min-h-[400px] max-h-[calc(100vh-20rem)] lg:max-h-full bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
       {/* Chat Header */}
-      <div className="px-4 py-3 border-b border-white/10">
+      <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
         <h3 className="text-lg font-bold text-white">Live Chat</h3>
         <p className="text-sm text-gray-400">{messages.length} messages</p>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500 text-sm">
             No messages yet. Be the first to say hi! 👋

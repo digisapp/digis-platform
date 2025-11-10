@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { PreStreamPreview } from '@/components/streaming/PreStreamPreview';
 import { createClient } from '@/lib/supabase/client';
 
 export default function GoLivePage() {
@@ -14,6 +15,7 @@ export default function GoLivePage() {
   const [error, setError] = useState('');
   const [isCreator, setIsCreator] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     checkCreatorStatus();
@@ -45,7 +47,7 @@ export default function GoLivePage() {
     }
   };
 
-  const handleStartStream = async (e: React.FormEvent) => {
+  const handleShowPreview = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -53,6 +55,11 @@ export default function GoLivePage() {
       return;
     }
 
+    setError('');
+    setShowPreview(true);
+  };
+
+  const handleStartStream = async () => {
     setIsCreating(true);
     setError('');
 
@@ -73,9 +80,11 @@ export default function GoLivePage() {
         router.push(`/stream/broadcast/${result.data.id}`);
       } else {
         setError(result.error || 'Failed to start stream');
+        setShowPreview(false);
       }
     } catch (err) {
       setError('Failed to start stream. Please try again.');
+      setShowPreview(false);
     } finally {
       setIsCreating(false);
     }
@@ -126,8 +135,17 @@ export default function GoLivePage() {
             </p>
           </div>
 
+          {/* Pre-Stream Preview Modal */}
+          <PreStreamPreview
+            isOpen={showPreview}
+            onClose={() => setShowPreview(false)}
+            onStartStream={handleStartStream}
+            streamTitle={title}
+            streamDescription={description}
+          />
+
           {/* Form */}
-          <form onSubmit={handleStartStream} className="space-y-6">
+          <form onSubmit={handleShowPreview} className="space-y-6">
             <div className="bg-black/40 backdrop-blur-md rounded-2xl border-2 border-white/10 p-8 space-y-6">
               {/* Title */}
               <div>

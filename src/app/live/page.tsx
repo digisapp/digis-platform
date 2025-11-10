@@ -18,8 +18,11 @@ type LiveStream = Stream & {
 export default function LiveStreamsPage() {
   const router = useRouter();
   const [streams, setStreams] = useState<LiveStream[]>([]);
+  const [filteredStreams, setFilteredStreams] = useState<LiveStream[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'viewers' | 'coins'>('viewers');
 
   useEffect(() => {
     fetchLiveStreams();
@@ -28,6 +31,38 @@ export default function LiveStreamsPage() {
     const interval = setInterval(fetchLiveStreams, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Filter and sort streams
+  useEffect(() => {
+    let filtered = [...streams];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (stream) =>
+          stream.title.toLowerCase().includes(query) ||
+          stream.description?.toLowerCase().includes(query) ||
+          stream.creator.displayName?.toLowerCase().includes(query) ||
+          stream.creator.username?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'viewers':
+          return b.currentViewers - a.currentViewers;
+        case 'coins':
+          return b.totalGiftsReceived - a.totalGiftsReceived;
+        case 'recent':
+        default:
+          return new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime();
+      }
+    });
+
+    setFilteredStreams(filtered);
+  }, [streams, searchQuery, sortBy]);
 
   const fetchLiveStreams = async () => {
     try {
@@ -83,7 +118,7 @@ export default function LiveStreamsPage() {
                 Live Streams 🎥
               </h1>
               <p className="text-gray-400">
-                {streams.length} {streams.length === 1 ? 'creator' : 'creators'} streaming now
+                {filteredStreams.length} of {streams.length} {streams.length === 1 ? 'stream' : 'streams'}
               </p>
             </div>
             <GlassButton
@@ -96,6 +131,31 @@ export default function LiveStreamsPage() {
               <span className="text-xl mr-2">📹</span>
               Go Live
             </GlassButton>
+          </div>
+
+          {/* Search and Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            {/* Search Input */}
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search streams, creators..."
+                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+              />
+            </div>
+
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-digis-cyan transition-colors cursor-pointer"
+            >
+              <option value="viewers">Most Viewers</option>
+              <option value="recent">Recently Started</option>
+              <option value="coins">Most Coins</option>
+            </select>
           </div>
 
           {/* Live Indicator */}
@@ -113,7 +173,7 @@ export default function LiveStreamsPage() {
         )}
 
         {/* Empty State */}
-        {streams.length === 0 && !error && (
+        {filteredStreams.length === 0 && !error && streams.length === 0 && (
           <div className="text-center py-20">
             <div className="text-8xl mb-6">📺</div>
             <h2 className="text-3xl font-bold text-white mb-4">
@@ -134,10 +194,32 @@ export default function LiveStreamsPage() {
           </div>
         )}
 
+        {/* No Search Results */}
+        {filteredStreams.length === 0 && streams.length > 0 && (
+          <div className="text-center py-20">
+            <div className="text-8xl mb-6">🔍</div>
+            <h2 className="text-3xl font-bold text-white mb-4">
+              No streams found
+            </h2>
+            <p className="text-gray-400 mb-8">
+              Try adjusting your search or filters
+            </p>
+            <GlassButton
+              variant="ghost"
+              onClick={() => {
+                setSearchQuery('');
+                setSortBy('viewers');
+              }}
+            >
+              Clear Filters
+            </GlassButton>
+          </div>
+        )}
+
         {/* Streams Grid */}
-        {streams.length > 0 && (
+        {filteredStreams.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {streams.map((stream) => (
+            {filteredStreams.map((stream) => (
               <div
                 key={stream.id}
                 className="group cursor-pointer"
