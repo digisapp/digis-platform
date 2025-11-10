@@ -12,7 +12,7 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             {label}
           </label>
         )}
@@ -20,8 +20,8 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
           ref={ref}
           className={`
             w-full px-4 py-3 glass rounded-lg
-            border-2 border-white/10
-            text-white placeholder-gray-400
+            border-2 border-purple-200
+            text-gray-900 placeholder-gray-600
             focus:outline-none focus:border-digis-cyan focus:glow-cyan
             transition-all duration-300
             ${error ? 'border-red-500' : ''}

@@ -23,7 +23,7 @@ export function PasswordInput({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
         </label>
       )}
@@ -32,8 +32,8 @@ export function PasswordInput({
           type={showPassword ? 'text' : 'password'}
           className={`
             w-full px-4 py-3 pr-12 glass rounded-lg
-            border-2 border-white/10
-            text-white placeholder-gray-400
+            border-2 border-purple-200
+            text-gray-900 placeholder-gray-600
             focus:outline-none focus:border-digis-cyan focus:glow-cyan
             transition-all duration-300
             ${error ? 'border-red-500' : ''}
@@ -44,7 +44,7 @@ export function PasswordInput({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-digis-cyan transition-colors focus:outline-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-digis-cyan transition-colors focus:outline-none"
           tabIndex={-1}
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >

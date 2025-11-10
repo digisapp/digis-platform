@@ -59,7 +59,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-4">
         <Image
           src="/images/digis-logo-black.png"
           alt="Digis Logo"
