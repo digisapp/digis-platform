@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname
+
+  // SECURITY: Block direct access to PostgREST API
+  // We use Drizzle through API routes, not PostgREST
+  if (path.startsWith('/rest/v1')) {
+    console.log('[Security] Blocked PostgREST access attempt:', path)
+    return new NextResponse('Not Found', { status: 404 })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -29,8 +38,6 @@ export async function middleware(request: NextRequest) {
 
   // IMPORTANT: Refresh session if expired - required for Server Components
   const { data: { user } } = await supabase.auth.getUser()
-
-  const path = request.nextUrl.pathname
 
   // Protect /admin routes - Admin only
   if (path.startsWith('/admin')) {
