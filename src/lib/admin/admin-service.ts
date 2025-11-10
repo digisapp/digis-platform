@@ -1,52 +1,44 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize admin client
-const getAdminClient = () => {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-};
+import { db } from '@/lib/data/system';
+import { users, creatorApplications } from '@/lib/data/system';
+import { eq, and, or, ilike, desc } from 'drizzle-orm';
 
 export class AdminService {
   // Check if user is admin
   static async isAdmin(userId: string): Promise<boolean> {
-    const client = getAdminClient();
-    const { data: user } = await client
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single();
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { role: true },
+    });
 
     return user?.role === 'admin';
   }
 
   // Get all pending creator applications
   static async getPendingApplications(limit = 50, offset = 0) {
-    const client = getAdminClient();
+    try {
+      const applications = await db.query.creatorApplications.findMany({
+        where: eq(creatorApplications.status, 'pending'),
+        orderBy: desc(creatorApplications.createdAt),
+        limit,
+        offset,
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+              avatarUrl: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
 
-    const { data: applications, error } = await client
-      .from('creator_applications')
-      .select(`
-        *,
-        user:users!creator_applications_user_id_fkey(
-          id,
-          email,
-          username,
-          avatar_url,
-          created_at
-        )
-      `)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
+      return applications;
+    } catch (error) {
       console.error('Error fetching pending applications:', error);
       return [];
     }
-
-    return applications || [];
   }
 
   // Get all applications (with filters)
@@ -55,43 +47,40 @@ export class AdminService {
     limit = 50,
     offset = 0
   ) {
-    const client = getAdminClient();
+    try {
+      const applications = await db.query.creatorApplications.findMany({
+        where: status ? eq(creatorApplications.status, status) : undefined,
+        orderBy: desc(creatorApplications.createdAt),
+        limit,
+        offset,
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+              avatarUrl: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
 
-    let query = client
-      .from('creator_applications')
-      .select(`
-        *,
-        user:users!creator_applications_user_id_fkey(id, email, username, avatar_url, created_at)
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (status) {
-      query = query.eq('status', status);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
+      return applications;
+    } catch (error) {
       console.error('Error fetching applications:', error);
       return [];
     }
-
-    return data || [];
   }
 
   // Approve creator application
   static async approveApplication(applicationId: string, adminId: string) {
-    const client = getAdminClient();
-
     // Get the application
-    const { data: application, error: fetchError } = await client
-      .from('creator_applications')
-      .select('*')
-      .eq('id', applicationId)
-      .single();
+    const application = await db.query.creatorApplications.findFirst({
+      where: eq(creatorApplications.id, applicationId),
+    });
 
-    if (fetchError || !application) {
+    if (!application) {
       throw new Error('Application not found');
     }
 
@@ -100,35 +89,25 @@ export class AdminService {
     }
 
     // Update application status
-    const { error: updateAppError } = await client
-      .from('creator_applications')
-      .update({
+    await db.update(creatorApplications)
+      .set({
         status: 'approved',
-        reviewed_by: adminId,
-        reviewed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        updatedAt: new Date(),
       })
-      .eq('id', applicationId);
-
-    if (updateAppError) {
-      throw new Error(`Failed to update application: ${updateAppError.message}`);
-    }
+      .where(eq(creatorApplications.id, applicationId));
 
     // Update user to creator role
-    const { error: updateUserError } = await client
-      .from('users')
-      .update({
+    await db.update(users)
+      .set({
         role: 'creator',
-        is_creator_verified: true,
-        display_name: application.display_name,
+        isCreatorVerified: true,
+        displayName: application.displayName,
         bio: application.bio,
-        updated_at: new Date().toISOString(),
+        updatedAt: new Date(),
       })
-      .eq('id', application.user_id);
-
-    if (updateUserError) {
-      throw new Error(`Failed to update user: ${updateUserError.message}`);
-    }
+      .where(eq(users.id, application.userId));
 
     return { success: true };
   }
@@ -139,16 +118,12 @@ export class AdminService {
     adminId: string,
     reason?: string
   ) {
-    const client = getAdminClient();
-
     // Get the application
-    const { data: application, error: fetchError } = await client
-      .from('creator_applications')
-      .select('*')
-      .eq('id', applicationId)
-      .single();
+    const application = await db.query.creatorApplications.findFirst({
+      where: eq(creatorApplications.id, applicationId),
+    });
 
-    if (fetchError || !application) {
+    if (!application) {
       throw new Error('Application not found');
     }
 
@@ -157,20 +132,15 @@ export class AdminService {
     }
 
     // Update application status
-    const { error: updateError } = await client
-      .from('creator_applications')
-      .update({
+    await db.update(creatorApplications)
+      .set({
         status: 'rejected',
-        reviewed_by: adminId,
-        reviewed_at: new Date().toISOString(),
-        rejection_reason: reason,
-        updated_at: new Date().toISOString(),
+        reviewedBy: adminId,
+        reviewedAt: new Date(),
+        rejectionReason: reason,
+        updatedAt: new Date(),
       })
-      .eq('id', applicationId);
-
-    if (updateError) {
-      throw new Error(`Failed to update application: ${updateError.message}`);
-    }
+      .where(eq(creatorApplications.id, applicationId));
 
     return { success: true };
   }
@@ -179,41 +149,52 @@ export class AdminService {
   static async getUsers(
     role?: 'fan' | 'creator' | 'admin',
     search?: string,
-    status?: 'active' | 'suspended' | 'banned',
+    _status?: 'active' | 'suspended' | 'banned', // Not implemented yet
     limit = 50,
     offset = 0
   ) {
-    const client = getAdminClient();
+    try {
+      // Build where conditions
+      const conditions = [];
 
-    let query = client
-      .from('users')
-      .select('id, email, username, display_name, avatar_url, role, is_creator_verified, follower_count, following_count, created_at, account_status')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      if (role) {
+        conditions.push(eq(users.role, role));
+      }
 
-    // Apply role filter
-    if (role) {
-      query = query.eq('role', role);
-    }
+      if (search) {
+        conditions.push(
+          or(
+            ilike(users.email, `%${search}%`),
+            ilike(users.username, `%${search}%`),
+            ilike(users.displayName, `%${search}%`)
+          )
+        );
+      }
 
-    // Apply status filter
-    if (status) {
-      query = query.eq('account_status', status);
-    }
+      const usersList = await db.query.users.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        orderBy: desc(users.createdAt),
+        limit,
+        offset,
+        columns: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+          role: true,
+          isCreatorVerified: true,
+          followerCount: true,
+          followingCount: true,
+          createdAt: true,
+        },
+      });
 
-    // Apply search filter
-    if (search) {
-      query = query.or(`email.ilike.%${search}%,username.ilike.%${search}%,display_name.ilike.%${search}%`);
-    }
-
-    const { data: usersList, error } = await query;
-
-    if (error) {
+      return usersList;
+    } catch (error) {
       console.error('Error fetching users:', error);
       return [];
     }
-
-    return usersList || [];
   }
 
   // Update user role
@@ -221,76 +202,58 @@ export class AdminService {
     userId: string,
     newRole: 'fan' | 'creator' | 'admin'
   ) {
-    const client = getAdminClient();
-
-    const { error } = await client
-      .from('users')
-      .update({
+    await db.update(users)
+      .set({
         role: newRole,
-        updated_at: new Date().toISOString(),
+        updatedAt: new Date(),
       })
-      .eq('id', userId);
-
-    if (error) {
-      throw new Error(`Failed to update user role: ${error.message}`);
-    }
+      .where(eq(users.id, userId));
 
     return { success: true };
   }
 
   // Toggle creator verification
   static async toggleCreatorVerification(userId: string) {
-    const client = getAdminClient();
-
     // Get current verification status
-    const { data: user, error: fetchError } = await client
-      .from('users')
-      .select('is_creator_verified')
-      .eq('id', userId)
-      .single();
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { isCreatorVerified: true },
+    });
 
-    if (fetchError || !user) {
+    if (!user) {
       throw new Error('User not found');
     }
 
     // Toggle the verification status
-    const newVerificationStatus = !user.is_creator_verified;
+    const newVerificationStatus = !user.isCreatorVerified;
 
-    const { error: updateError } = await client
-      .from('users')
-      .update({
-        is_creator_verified: newVerificationStatus,
-        updated_at: new Date().toISOString(),
+    await db.update(users)
+      .set({
+        isCreatorVerified: newVerificationStatus,
+        updatedAt: new Date(),
       })
-      .eq('id', userId);
-
-    if (updateError) {
-      throw new Error(`Failed to update verification: ${updateError.message}`);
-    }
+      .where(eq(users.id, userId));
 
     return { success: true, isVerified: newVerificationStatus };
   }
 
   // Get platform statistics
   static async getStatistics() {
-    const client = getAdminClient();
-
     // Get total users count
-    const { count: totalUsers } = await client
-      .from('users')
-      .select('*', { count: 'exact', head: true });
+    const allUsers = await db.query.users.findMany();
+    const totalUsers = allUsers.length;
 
     // Get total creators count
-    const { count: totalCreators } = await client
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'creator');
+    const allCreators = await db.query.users.findMany({
+      where: eq(users.role, 'creator'),
+    });
+    const totalCreators = allCreators.length;
 
     // Get pending applications count
-    const { count: pendingApps } = await client
-      .from('creator_applications')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
+    const pendingApplications = await db.query.creatorApplications.findMany({
+      where: eq(creatorApplications.status, 'pending'),
+    });
+    const pendingApps = pendingApplications.length;
 
     return {
       totalUsers: totalUsers || 0,
