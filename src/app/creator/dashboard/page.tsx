@@ -135,77 +135,55 @@ export default function CreatorDashboard() {
   const fetchRecentActivities = async () => {
     try {
       // Fetch recent activities from multiple sources in parallel
-      const [giftsRes, followersRes, callsRes, streamsRes] = await Promise.all([
-        fetch('/api/gifts/received?limit=5'),
-        fetch('/api/followers?limit=5'),
-        fetch('/api/calls/history?limit=5&status=completed'),
-        fetch('/api/streams/my-streams?limit=5')
+      const [callsRes, streamsRes] = await Promise.all([
+        fetch('/api/calls/history?limit=5&status=completed').catch(() => null),
+        fetch('/api/streams/my-streams?limit=5').catch(() => null)
       ]);
 
       const activities: Activity[] = [];
 
-      // Process gifts
-      if (giftsRes.ok) {
-        const giftsData = await giftsRes.json();
-        (giftsData.data || []).forEach((gift: any) => {
-          activities.push({
-            id: `gift-${gift.id}`,
-            type: 'gift',
-            title: `${gift.senderName || 'Someone'} sent you a gift`,
-            description: `${gift.giftName} (${gift.coinValue} coins)`,
-            timestamp: gift.createdAt,
-            icon: 'gift',
-            color: 'text-yellow-400'
-          });
-        });
-      }
-
-      // Process followers
-      if (followersRes.ok) {
-        const followersData = await followersRes.json();
-        (followersData.data || []).forEach((follower: any) => {
-          activities.push({
-            id: `follow-${follower.id}`,
-            type: 'follow',
-            title: `${follower.followerName || 'Someone'} followed you`,
-            description: `You have ${follower.totalFollowers || 0} followers`,
-            timestamp: follower.createdAt,
-            icon: 'userplus',
-            color: 'text-green-400'
-          });
-        });
-      }
-
       // Process calls
-      if (callsRes.ok) {
-        const callsData = await callsRes.json();
-        (callsData.data || []).forEach((call: any) => {
-          activities.push({
-            id: `call-${call.id}`,
-            type: 'call',
-            title: `Call completed with ${call.fanName || 'fan'}`,
-            description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
-            timestamp: call.endedAt || call.createdAt,
-            icon: 'phone',
-            color: 'text-blue-400'
+      if (callsRes?.ok) {
+        try {
+          const callsData = await callsRes.json();
+          const callsArray = Array.isArray(callsData.data) ? callsData.data : [];
+          callsArray.forEach((call: any) => {
+            activities.push({
+              id: `call-${call.id}`,
+              type: 'call',
+              title: `Call completed with ${call.fanName || 'fan'}`,
+              description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
+              timestamp: call.endedAt || call.createdAt,
+              icon: 'phone',
+              color: 'text-blue-400'
+            });
           });
-        });
+        } catch (e) {
+          console.error('Error parsing calls data:', e);
+        }
       }
 
       // Process streams
-      if (streamsRes.ok) {
-        const streamsData = await streamsRes.json();
-        (streamsData.data || []).filter((s: any) => s.status === 'ended').forEach((stream: any) => {
-          activities.push({
-            id: `stream-${stream.id}`,
-            type: 'stream',
-            title: 'Stream ended',
-            description: `${stream.title} - ${stream.viewerCount || 0} viewers`,
-            timestamp: stream.endedAt || stream.createdAt,
-            icon: 'video',
-            color: 'text-red-400'
-          });
-        });
+      if (streamsRes?.ok) {
+        try {
+          const streamsData = await streamsRes.json();
+          const streamsArray = Array.isArray(streamsData.data) ? streamsData.data : [];
+          streamsArray
+            .filter((s: any) => s.status === 'ended')
+            .forEach((stream: any) => {
+              activities.push({
+                id: `stream-${stream.id}`,
+                type: 'stream',
+                title: 'Stream ended',
+                description: `${stream.title} - ${stream.viewerCount || 0} viewers`,
+                timestamp: stream.endedAt || stream.createdAt,
+                icon: 'video',
+                color: 'text-red-400'
+              });
+            });
+        } catch (e) {
+          console.error('Error parsing streams data:', e);
+        }
       }
 
       // Sort by timestamp and take top 10
@@ -213,6 +191,7 @@ export default function CreatorDashboard() {
       setRecentActivities(activities.slice(0, 10));
     } catch (err) {
       console.error('Error fetching recent activities:', err);
+      setRecentActivities([]);
     }
   };
 
