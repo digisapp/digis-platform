@@ -75,6 +75,7 @@ export default function CreatorDashboard() {
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
   const [earnings24h, setEarnings24h] = useState(0);
+  const [earningsPeriod, setEarningsPeriod] = useState<'24h' | '1w' | '1m' | 'total'>('24h');
 
   useEffect(() => {
     checkAuth();
@@ -83,8 +84,11 @@ export default function CreatorDashboard() {
     fetchRecentActivities();
     fetchUpcomingEvents();
     fetchPendingCounts();
-    fetch24hEarnings();
   }, []);
+
+  useEffect(() => {
+    fetch24hEarnings();
+  }, [earningsPeriod]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -293,25 +297,44 @@ export default function CreatorDashboard() {
 
   const fetch24hEarnings = async () => {
     try {
-      // Fetch transactions from last 24 hours
-      const response = await fetch('/api/wallet/transactions?limit=100');
+      // Fetch transactions based on period (limit adjusted for longer periods)
+      const limit = earningsPeriod === 'total' ? 1000 : earningsPeriod === '1m' ? 500 : 200;
+      const response = await fetch(`/api/wallet/transactions?limit=${limit}`);
       if (response.ok) {
         const data = await response.json();
         const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        let cutoffDate: Date | null = null;
 
-        // Sum up positive transactions (earnings) from last 24 hours
+        // Calculate cutoff date based on selected period
+        switch (earningsPeriod) {
+          case '24h':
+            cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            break;
+          case '1w':
+            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case '1m':
+            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case 'total':
+            cutoffDate = null; // No cutoff, sum all earnings
+            break;
+        }
+
+        // Sum up positive transactions (earnings) from selected period
         const earnings = (data.transactions || [])
           .filter((tx: any) => {
+            if (tx.amount <= 0) return false;
+            if (!cutoffDate) return true; // Total earnings
             const txDate = new Date(tx.createdAt);
-            return tx.amount > 0 && txDate >= oneDayAgo;
+            return txDate >= cutoffDate;
           })
           .reduce((sum: number, tx: any) => sum + tx.amount, 0);
 
         setEarnings24h(earnings);
       }
     } catch (err) {
-      console.error('Error fetching 24h earnings:', err);
+      console.error('Error fetching earnings:', err);
     }
   };
 
@@ -349,21 +372,59 @@ export default function CreatorDashboard() {
 
         {/* Quick Actions - Core Actions Only */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* 24 Hour Earnings */}
-          <button
-            onClick={() => router.push('/creator/earnings')}
-            className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
-          >
+          {/* Earnings with Period Selector */}
+          <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-8 shadow-fun">
             <div className="flex items-center justify-between mb-3">
               <div className="text-3xl">💰</div>
+
+              {/* Period Selector */}
+              <div className="flex gap-1 bg-white/60 rounded-lg p-1">
+                {[
+                  { value: '24h', label: '24h' },
+                  { value: '1w', label: '1W' },
+                  { value: '1m', label: '1M' },
+                  { value: 'total', label: 'All' },
+                ].map((period) => (
+                  <button
+                    key={period.value}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEarningsPeriod(period.value as '24h' | '1w' | '1m' | 'total');
+                    }}
+                    className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
+                      earningsPeriod === period.value
+                        ? 'bg-green-500 text-white'
+                        : 'text-gray-600 hover:bg-white/80'
+                    }`}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">24h Earnings</h3>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
-              <span className="text-sm text-gray-600">coins</span>
-            </div>
-            <p className="text-xs text-gray-600 mt-2">Last 24 hours</p>
-          </button>
+
+            <button
+              onClick={() => router.push('/creator/earnings')}
+              className="w-full text-left hover:opacity-80 transition-opacity"
+            >
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                {earningsPeriod === '24h' && '24h Earnings'}
+                {earningsPeriod === '1w' && 'Weekly Earnings'}
+                {earningsPeriod === '1m' && 'Monthly Earnings'}
+                {earningsPeriod === 'total' && 'Total Earnings'}
+              </h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
+                <span className="text-sm text-gray-600">coins</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                {earningsPeriod === '24h' && 'Last 24 hours'}
+                {earningsPeriod === '1w' && 'Last 7 days'}
+                {earningsPeriod === '1m' && 'Last 30 days'}
+                {earningsPeriod === 'total' && 'All time'}
+              </p>
+            </button>
+          </div>
 
           {/* Go Live */}
           <button
