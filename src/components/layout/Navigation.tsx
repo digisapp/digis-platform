@@ -133,8 +133,21 @@ export function Navigation() {
       setUser(user);
 
       // Get user role and profile data (including avatar)
-      const response = await fetch('/api/user/profile');
+      // Force no-cache to prevent stale role data
+      const response = await fetch('/api/user/profile', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        }
+      });
       const data = await response.json();
+      console.log('[Navigation] User profile fetched:', {
+        email: data.user?.email,
+        username: data.user?.username,
+        role: data.user?.role,
+        isCreatorVerified: data.user?.isCreatorVerified
+      });
       if (data.user) {
         setUserRole(data.user.role);
         setUserProfile(data.user);

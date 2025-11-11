@@ -43,7 +43,7 @@ export async function GET() {
     }
 
     // Return database user with snake_case converted to camelCase
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         id: dbUser.id,
         email: dbUser.email,
@@ -60,6 +60,13 @@ export async function GET() {
         updatedAt: dbUser.updatedAt,
       }
     });
+
+    // Add no-cache headers to prevent browser caching of user role/profile
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(

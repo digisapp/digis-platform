@@ -50,7 +50,14 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(user);
+    const response = NextResponse.json(user);
+
+    // Add no-cache headers to prevent browser caching of user role/profile
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error) {
     console.error('Get current user error:', error);
     return NextResponse.json(
