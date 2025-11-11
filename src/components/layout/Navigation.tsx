@@ -39,6 +39,7 @@ export function Navigation() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -137,6 +138,7 @@ export function Navigation() {
       if (data.user) {
         setUserRole(data.user.role);
         setUserProfile(data.user);
+        setFollowerCount(data.user.followerCount || 0);
       }
     }
   };
@@ -402,7 +404,7 @@ export function Navigation() {
           <div className="fixed md:left-24 md:top-20 top-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-72 overflow-hidden shadow-lg">
             {/* Profile Header */}
             <div className="p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 {userProfile?.avatarUrl ? (
                   <img
                     src={userProfile.avatarUrl}
@@ -426,6 +428,21 @@ export function Navigation() {
                   </p>
                 </div>
               </div>
+              {/* Follower Count - Clickable */}
+              <button
+                onClick={() => {
+                  router.push(`/${userProfile?.username}/followers`);
+                  setShowProfileMenu(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className="text-sm font-semibold text-gray-800">
+                  {followerCount.toLocaleString()} {followerCount === 1 ? 'Follower' : 'Followers'}
+                </span>
+              </button>
             </div>
 
             {/* Menu Items */}
@@ -442,6 +459,36 @@ export function Navigation() {
                 </svg>
                 <span className="text-sm text-gray-800 font-medium">View Profile</span>
               </button>
+
+              {userRole === 'creator' && (
+                <>
+                  <button
+                    onClick={() => {
+                      router.push('/creator/subscriptions/setup');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                    <span className="text-sm text-gray-800 font-medium">Subscriptions</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/analytics');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                  >
+                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span className="text-sm text-gray-800 font-medium">Analytics</span>
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={() => {
