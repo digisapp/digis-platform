@@ -7,6 +7,7 @@ import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/componen
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
 import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp } from 'lucide-react';
+import { AnimatedCoins } from '@/components/ui/icons/AnimatedCoins';
 
 interface Transaction {
   id: string;
@@ -254,13 +255,8 @@ export default function WalletPage() {
                     </div>
 
                     <div className="flex items-center gap-6">
-                      {/* Coin Icon with Glow */}
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full blur-xl opacity-60 animate-pulse" />
-                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-2xl">
-                          <Coins className="w-10 h-10 text-white drop-shadow-lg" />
-                        </div>
-                      </div>
+                      {/* Animated Coin Icon */}
+                      <AnimatedCoins size={80} animated={balance > 0} />
 
                       {/* Balance Amount */}
                       <div>
