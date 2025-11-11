@@ -319,61 +319,35 @@ export default function CreatorDashboard() {
                 </div>
 
                 {/* KPI Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Total Earnings */}
-                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm rounded-2xl p-6 border border-green-500/30">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="p-3 bg-white/80 rounded-xl">
-                        <span className="text-3xl">💰</span>
-                      </div>
-                      <div className="flex items-center gap-1 px-3 py-1 bg-green-500/20 rounded-full">
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <span className="text-sm font-bold text-green-600">+23%</span>
+                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-semibold text-gray-700">Coins Earned</div>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full">
+                        <TrendingUp className="w-3 h-3 text-green-600" />
+                        <span className="text-xs font-bold text-green-600">+23%</span>
                       </div>
                     </div>
-                    <div className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent mb-2">
+                    <div className="text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
                       {Math.floor(analytics.overview.totalEarnings * 0.15)}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700">Coins Earned</div>
                     <div className="text-xs text-gray-600 mt-1">vs. last week</div>
                   </div>
 
                   {/* Total Views */}
-                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-500/30">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="p-3 bg-white/80 rounded-xl">
-                        <span className="text-3xl">👁️</span>
-                      </div>
-                      <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/20 rounded-full">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-bold text-blue-600">+15%</span>
+                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-semibold text-gray-700">Stream Views</div>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 rounded-full">
+                        <TrendingUp className="w-3 h-3 text-blue-600" />
+                        <span className="text-xs font-bold text-blue-600">+15%</span>
                       </div>
                     </div>
-                    <div className="text-4xl font-bold text-digis-cyan mb-2">
+                    <div className="text-3xl font-bold text-digis-cyan">
                       {Math.floor(analytics.streams.totalViews * 0.18)}
                     </div>
-                    <div className="text-sm font-semibold text-gray-700">Stream Views</div>
                     <div className="text-xs text-gray-600 mt-1">vs. last week</div>
-                  </div>
-
-                  {/* Engagement Rate */}
-                  <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl p-6 border border-pink-500/30">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="p-3 bg-white/80 rounded-xl">
-                        <span className="text-3xl">🔥</span>
-                      </div>
-                      <div className="flex items-center gap-1 px-3 py-1 bg-pink-500/20 rounded-full">
-                        <TrendingUp className="w-4 h-4 text-pink-600" />
-                        <span className="text-sm font-bold text-pink-600">+8%</span>
-                      </div>
-                    </div>
-                    <div className="text-4xl font-bold text-digis-pink mb-2">
-                      {analytics.gifts.totalGifts > 0
-                        ? Math.floor((analytics.gifts.totalGifts / Math.max(analytics.streams.totalViews, 1)) * 100 * 10) / 10
-                        : 0}%
-                    </div>
-                    <div className="text-sm font-semibold text-gray-700">Engagement Rate</div>
-                    <div className="text-xs text-gray-600 mt-1">gifts per view</div>
                   </div>
                 </div>
 
@@ -395,7 +369,7 @@ export default function CreatorDashboard() {
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
             className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
@@ -415,24 +389,6 @@ export default function CreatorDashboard() {
             <div className="text-4xl mb-3">🎟️</div>
             <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
             <p className="text-sm text-gray-600">Create and manage exclusive events</p>
-          </button>
-
-          <button
-            onClick={() => router.push('/creator/followers')}
-            className="glass rounded-2xl border-2 border-purple-200 p-6 hover:border-green-500 hover:scale-105 transition-all text-left shadow-fun"
-          >
-            <div className="text-4xl mb-3">👥</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Followers</h3>
-            <p className="text-sm text-gray-600">View your community</p>
-          </button>
-
-          <button
-            onClick={() => router.push('/creator/streams')}
-            className="glass rounded-2xl border-2 border-cyan-200 p-6 hover:border-digis-cyan hover:scale-105 transition-all text-left shadow-fun"
-          >
-            <div className="text-4xl mb-3">🎥</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">My Streams</h3>
-            <p className="text-sm text-gray-600">View your streaming history</p>
           </button>
 
           <button

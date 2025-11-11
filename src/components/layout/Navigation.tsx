@@ -521,7 +521,7 @@ export function Navigation() {
           {userRole === 'creator' && (
             <button
               onClick={() => router.push('/creator/go-live')}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500 hover:scale-110 transition-transform"
+              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/40 hover:scale-110 transition-all"
               title="Go Live"
             >
               <div className="relative">
