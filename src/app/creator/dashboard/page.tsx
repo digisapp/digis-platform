@@ -277,46 +277,46 @@ export default function CreatorDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
-            className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
+            className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-red-500 font-bold">GO LIVE</span>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-red-500 font-bold text-xs">GO LIVE</span>
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Start Streaming</h3>
-            <p className="text-sm text-gray-600">Go live and connect with your fans</p>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Start Streaming</h3>
+            <p className="text-xs text-gray-600">Go live and connect with your fans</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
           >
-            <div className="text-4xl mb-3">🎟️</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
-            <p className="text-sm text-gray-600">Create and manage exclusive events</p>
+            <div className="text-2xl mb-2">🎟️</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Ticketed Shows</h3>
+            <p className="text-xs text-gray-600">Create and manage exclusive events</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/analytics')}
-            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md rounded-2xl border-2 border-cyan-400 p-6 hover:scale-105 transition-all text-left shadow-fun"
+            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md rounded-xl border-2 border-cyan-400 p-4 hover:scale-105 transition-all text-left shadow-fun"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-6 h-6 text-cyan-500" />
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-5 h-5 text-cyan-500" />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Analytics</h3>
-            <p className="text-sm text-gray-600">View followers, streams & insights</p>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Analytics</h3>
+            <p className="text-xs text-gray-600">View followers, streams & insights</p>
           </button>
 
           <button
             onClick={() => router.push('/calls/history')}
-            className="glass rounded-2xl border-2 border-pink-200 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
+            className="glass rounded-xl border-2 border-pink-200 p-4 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
           >
-            <div className="text-4xl mb-3">📞</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Call Requests</h3>
-            <p className="text-sm text-gray-600">Manage 1-on-1 call requests</p>
+            <div className="text-2xl mb-2">📞</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Call Requests</h3>
+            <p className="text-xs text-gray-600">Manage 1-on-1 call requests</p>
           </button>
         </div>
 
