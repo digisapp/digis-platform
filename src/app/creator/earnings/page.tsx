@@ -86,12 +86,6 @@ export default function CreatorEarningsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-800 mb-4 flex items-center gap-2"
-          >
-            ← Back
-          </button>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">
             Earnings & Revenue 💰
           </h1>

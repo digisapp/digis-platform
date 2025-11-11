@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Users, Video, TrendingUp, Eye, Clock, Coins, ArrowRight } from 'lucide-react';
+import { Users, Video, TrendingUp, Eye, Clock, Coins, ArrowRight, BarChart3, ArrowUp, ArrowDown, Sparkles, Gift, MessageCircle } from 'lucide-react';
 
 interface AnalyticsStats {
   followers: {
@@ -76,47 +76,93 @@ export default function CreatorAnalyticsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-800 mb-4 flex items-center gap-2"
-          >
-            ← Back to Dashboard
-          </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Analytics & Insights 📊</h1>
-          <p className="text-gray-600">Track your growth, performance, and audience</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
+              <BarChart3 className="w-6 h-6 text-blue-600" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-800">Analytics & Insights</h1>
+          </div>
+          <p className="text-gray-600 ml-16">Track your growth, performance, and audience engagement</p>
         </div>
 
         {/* Overview Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Users className="w-5 h-5 text-digis-cyan" />
-              <span className="text-gray-600 text-sm font-medium">Total Followers</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Followers Card */}
+          <GlassCard className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/10 to-blue-500/5" />
+            <div className="relative p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-digis-cyan to-blue-500 rounded-xl shadow-lg">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                {(stats?.followers?.thisWeek ?? 0) > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full">
+                    <ArrowUp className="w-3 h-3 text-green-600" />
+                    <span className="text-xs font-semibold text-green-600">
+                      +{stats?.followers?.thisWeek}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-medium text-gray-600 mb-1">Total Followers</p>
+              <p className="text-4xl font-bold text-gray-800 mb-2">{stats?.followers.total.toLocaleString() || 0}</p>
+              <p className="text-xs text-gray-600">
+                {(stats?.followers?.thisWeek ?? 0) > 0 ? `${stats?.followers?.thisWeek} new this week` : 'No new followers this week'}
+              </p>
             </div>
-            <p className="text-4xl font-bold text-gray-800">{stats?.followers.total || 0}</p>
-            <p className="text-sm text-gray-600 mt-1">
-              +{stats?.followers.thisWeek || 0} this week
-            </p>
           </GlassCard>
 
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Video className="w-5 h-5 text-purple-500" />
-              <span className="text-gray-600 text-sm font-medium">Total Streams</span>
+          {/* Streams Card */}
+          <GlassCard className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/5" />
+            <div className="relative p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+                  <Video className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 bg-purple-500/20 rounded-full">
+                  <Eye className="w-3 h-3 text-purple-600" />
+                  <span className="text-xs font-semibold text-purple-600">
+                    {stats?.streams.totalViews.toLocaleString() || 0}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-gray-600 mb-1">Total Streams</p>
+              <p className="text-4xl font-bold text-gray-800 mb-2">{stats?.streams.total.toLocaleString() || 0}</p>
+              <p className="text-xs text-gray-600">
+                {(stats?.streams?.averageViewers ?? 0) > 0
+                  ? `Avg ${Math.round(stats?.streams?.averageViewers ?? 0)} viewers per stream`
+                  : 'Start streaming to see stats'}
+              </p>
             </div>
-            <p className="text-4xl font-bold text-gray-800">{stats?.streams.total || 0}</p>
-            <p className="text-sm text-gray-600 mt-1">
-              {stats?.streams.totalViews || 0} total views
-            </p>
           </GlassCard>
 
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Coins className="w-5 h-5 text-amber-500" />
-              <span className="text-gray-600 text-sm font-medium">Total Earnings</span>
+          {/* Earnings Card */}
+          <GlassCard className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-500/5" />
+            <div className="relative p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+                  <Coins className="w-6 h-6 text-white" />
+                </div>
+                {(stats?.earnings?.thisWeek ?? 0) > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full">
+                    <TrendingUp className="w-3 h-3 text-green-600" />
+                    <span className="text-xs font-semibold text-green-600">
+                      +{stats?.earnings?.thisWeek}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm font-medium text-gray-600 mb-1">Total Earnings</p>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-4xl font-bold text-gray-800">{stats?.earnings.total.toLocaleString() || 0}</p>
+                <span className="text-sm text-gray-600">coins</span>
+              </div>
+              <p className="text-xs text-gray-600">
+                {(stats?.earnings?.thisWeek ?? 0) > 0 ? `${stats?.earnings?.thisWeek} earned this week` : 'All-time earnings'}
+              </p>
             </div>
-            <p className="text-4xl font-bold text-gray-800">{stats?.earnings.total || 0}</p>
-            <p className="text-sm text-gray-600 mt-1">coins earned all-time</p>
           </GlassCard>
         </div>
 
@@ -171,20 +217,37 @@ export default function CreatorAnalyticsPage() {
           </GlassCard>
         </div>
 
-        {/* Coming Soon */}
+        {/* Coming Soon Features */}
         <div className="mt-8">
-          <GlassCard className="p-6 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-400/30">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🚀</div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">More Analytics Coming Soon</h3>
-                <p className="text-gray-600 text-sm">
-                  We're building advanced analytics including revenue forecasts, audience demographics,
-                  peak streaming times, content performance comparisons, and more!
-                </p>
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-yellow-600" />
+            <h2 className="text-xl font-bold text-gray-800">Coming Soon</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <GlassCard className="p-6 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border-blue-200/50">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg w-fit mb-3">
+                <BarChart3 className="w-5 h-5 text-white" />
               </div>
-            </div>
-          </GlassCard>
+              <h3 className="font-bold text-gray-800 mb-1">Revenue Forecasts</h3>
+              <p className="text-sm text-gray-600">Predict future earnings based on your trends</p>
+            </GlassCard>
+
+            <GlassCard className="p-6 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-200/50">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg w-fit mb-3">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">Audience Demographics</h3>
+              <p className="text-sm text-gray-600">Understand your audience's age, location & interests</p>
+            </GlassCard>
+
+            <GlassCard className="p-6 bg-gradient-to-br from-amber-500/5 to-orange-500/5 border-amber-200/50">
+              <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg w-fit mb-3">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-1">Peak Streaming Times</h3>
+              <p className="text-sm text-gray-600">Discover the best times to go live for max viewers</p>
+            </GlassCard>
+          </div>
         </div>
       </div>
     </div>

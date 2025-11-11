@@ -6,8 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
-import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp } from 'lucide-react';
-import { AnimatedCoins } from '@/components/ui/icons/AnimatedCoins';
+import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp, Wallet, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -135,25 +134,57 @@ export default function WalletPage() {
   };
 
   const getTransactionIcon = (type: string) => {
+    const iconClass = "w-6 h-6";
     switch (type) {
-      case 'purchase': return '💰';
-      case 'gift': return '🎁';
-      case 'call_charge': return '📞';
-      case 'stream_tip': return '⭐';
-      case 'ppv_unlock': return '🔓';
-      case 'creator_payout': return '💸';
-      case 'refund': return '↩️';
-      default: return '💵';
+      case 'purchase': return <ArrowUpRight className={`${iconClass} text-green-600`} />;
+      case 'gift': return <Gift className={`${iconClass} text-pink-600`} />;
+      case 'call_charge': return <Phone className={`${iconClass} text-blue-600`} />;
+      case 'stream_tip': return <Star className={`${iconClass} text-yellow-600`} />;
+      case 'ppv_unlock': return <Lock className={`${iconClass} text-purple-600`} />;
+      case 'creator_payout': return <ArrowDownLeft className={`${iconClass} text-red-600`} />;
+      case 'refund': return <DollarSign className={`${iconClass} text-gray-600`} />;
+      default: return <Coins className={`${iconClass} text-gray-600`} />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'purchase': return 'from-green-500/20 to-emerald-500/20 border-green-200';
+      case 'gift': return 'from-pink-500/20 to-rose-500/20 border-pink-200';
+      case 'call_charge': return 'from-blue-500/20 to-cyan-500/20 border-blue-200';
+      case 'stream_tip': return 'from-yellow-500/20 to-amber-500/20 border-yellow-200';
+      case 'ppv_unlock': return 'from-purple-500/20 to-violet-500/20 border-purple-200';
+      case 'creator_payout': return 'from-red-500/20 to-orange-500/20 border-red-200';
+      default: return 'from-gray-500/20 to-slate-500/20 border-gray-200';
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-400';
-      case 'processing': return 'text-yellow-400';
-      case 'failed': return 'text-red-400';
-      case 'cancelled': return 'text-gray-400';
-      default: return 'text-blue-400';
+      case 'completed':
+        return <span className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full text-xs font-semibold text-green-700">
+          <CheckCircle className="w-3 h-3" />
+          Completed
+        </span>;
+      case 'processing':
+        return <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 rounded-full text-xs font-semibold text-yellow-700">
+          <Clock className="w-3 h-3" />
+          Processing
+        </span>;
+      case 'failed':
+        return <span className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full text-xs font-semibold text-red-700">
+          <XCircle className="w-3 h-3" />
+          Failed
+        </span>;
+      case 'cancelled':
+        return <span className="flex items-center gap-1 px-2 py-1 bg-gray-500/20 rounded-full text-xs font-semibold text-gray-700">
+          <XCircle className="w-3 h-3" />
+          Cancelled
+        </span>;
+      default:
+        return <span className="px-2 py-1 bg-blue-500/20 rounded-full text-xs font-semibold text-blue-700">
+          {status}
+        </span>;
     }
   };
 
@@ -179,58 +210,65 @@ export default function WalletPage() {
         existingInfo={bankingInfo}
       />
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-2">My Wallet</h1>
-            <p className="text-gray-700">Manage your Digis Coins {isCreator && 'and payouts'}</p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg">
+                <Wallet className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gray-800">My Wallet</h1>
+                <p className="text-gray-600">Manage your Digis Coins {isCreator && 'and payouts'}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-3 glass glass-hover rounded-xl text-green-600 hover:bg-green-500/10 transition-all disabled:opacity-50"
+              title="Refresh wallet data"
+            >
+              <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="glass glass-hover p-3 rounded-xl text-digis-cyan hover:glow-cyan transition-all disabled:opacity-50"
-            title="Refresh wallet data"
-          >
-            <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
         </div>
 
         {/* Tabs */}
-        <div className="mb-8 flex gap-4">
+        <div className="mb-8 flex gap-3">
           <button
             onClick={() => setActiveTab('balance')}
-            className={`px-6 py-3 rounded-xl font-medium transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
               activeTab === 'balance'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
+                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
             }`}
           >
-            <DollarSign className="w-5 h-5 inline mr-2" />
+            <Coins className="w-5 h-5" />
             Balance
           </button>
           {isCreator && (
             <>
               <button
                 onClick={() => setActiveTab('payouts')}
-                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                   activeTab === 'payouts'
-                    ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                    : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
+                    : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
                 }`}
               >
-                <History className="w-5 h-5 inline mr-2" />
+                <History className="w-5 h-5" />
                 Payouts
               </button>
               <button
                 onClick={() => setActiveTab('banking')}
-                className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                   activeTab === 'banking'
-                    ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                    : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
+                    : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
                 }`}
               >
-                <Building2 className="w-5 h-5 inline mr-2" />
+                <Building2 className="w-5 h-5" />
                 Banking Info
               </button>
             </>
@@ -241,42 +279,58 @@ export default function WalletPage() {
         {activeTab === 'balance' && (
           <>
             {/* Balance Card */}
-            <div className="mb-8 relative overflow-hidden">
-              {/* Animated Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-amber-500/20 to-orange-500/20 animate-pulse" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent" />
-
-              <GlassCard glow="cyan" padding="lg" className="relative">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
+            <GlassCard className="mb-8 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
+              <div className="relative p-8">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-5 h-5 text-green-600" />
                       <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Your Balance</p>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                      {/* Animated Coin Icon */}
-                      <AnimatedCoins size={80} animated={balance > 0} />
+                    <div className="flex items-center gap-6 mb-6">
+                      {/* Coin Icon */}
+                      <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl">
+                        <Coins className="w-16 h-16 text-white" />
+                      </div>
 
                       {/* Balance Amount */}
                       <div>
                         <div className="flex items-baseline gap-3 mb-1">
-                          <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
+                          <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 bg-clip-text text-transparent">
                             {balance.toLocaleString()}
                           </p>
                           {balance > 0 && (
-                            <TrendingUp className="w-8 h-8 text-green-500 animate-bounce" />
+                            <TrendingUp className="w-8 h-8 text-green-600" />
                           )}
                         </div>
-                        <p className="text-lg font-bold text-gray-700 tracking-wide">Digis Coins</p>
+                        <p className="text-xl font-bold text-gray-700">Digis Coins</p>
                         {balance > 0 && (
-                          <p className="text-sm text-gray-600 mt-1">💎 Keep earning and growing!</p>
+                          <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+                            <Sparkles className="w-4 h-4 text-green-600" />
+                            Keep earning and growing!
+                          </p>
                         )}
                       </div>
                     </div>
+
+                    {/* Quick Stats */}
+                    {isCreator && (
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <div className="bg-green-500/10 rounded-xl p-3 border border-green-200">
+                          <p className="text-xs text-gray-600 mb-1">Available to Withdraw</p>
+                          <p className="text-lg font-bold text-green-700">{balance >= 1000 ? balance.toLocaleString() : '0'} coins</p>
+                        </div>
+                        <div className="bg-blue-500/10 rounded-xl p-3 border border-blue-200">
+                          <p className="text-xs text-gray-600 mb-1">Minimum Payout</p>
+                          <p className="text-lg font-bold text-blue-700">1,000 coins</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Action Button */}
+                  {/* Action Buttons */}
                   <div className="flex flex-col gap-3">
                     <GlassButton
                       variant="gradient"
@@ -288,54 +342,77 @@ export default function WalletPage() {
                       <Coins className="w-5 h-5 mr-2" />
                       Buy More Coins
                     </GlassButton>
-                    {isCreator && balance >= 1000 && (
+                    {isCreator && (
                       <button
                         onClick={() => setActiveTab('payouts')}
-                        className="px-4 py-2 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2 justify-center"
+                        disabled={balance < 1000}
+                        className="px-6 py-3 rounded-xl font-semibold text-green-700 bg-green-500/20 hover:bg-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
                       >
-                        <DollarSign className="w-4 h-4" />
+                        <DollarSign className="w-5 h-5" />
                         Request Payout
                       </button>
                     )}
                   </div>
                 </div>
-              </GlassCard>
-            </div>
+              </div>
+            </GlassCard>
 
             {/* Transaction History */}
-            <GlassCard glow="none" padding="lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Transaction History</h2>
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg">
+                    <History className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800">Transaction History</h2>
+                </div>
+                {transactions.length > 0 && (
+                  <span className="text-sm text-gray-600">{transactions.length} transactions</span>
+                )}
+              </div>
 
               {transactions.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-700 mb-4">No transactions yet</p>
-                  <GlassButton variant="cyan" onClick={() => setShowBuyCoins(true)}>
+                  <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
+                    <History className="w-16 h-16 text-gray-400" />
+                  </div>
+                  <p className="text-gray-700 mb-4 text-lg font-medium">No transactions yet</p>
+                  <p className="text-gray-600 mb-6">Start by purchasing your first coins!</p>
+                  <GlassButton variant="gradient" size="lg" onClick={() => setShowBuyCoins(true)} shimmer>
+                    <Coins className="w-5 h-5 mr-2" />
                     Buy Your First Coins
                   </GlassButton>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {transactions.map((tx) => (
                     <div
                       key={tx.id}
-                      className="glass glass-hover p-4 rounded-xl flex items-center justify-between"
+                      className={`p-4 rounded-xl border bg-gradient-to-r ${getTransactionColor(tx.type)} hover:shadow-md transition-all`}
                     >
-                      <div className="flex items-center space-x-4">
-                        <div className="text-4xl">{getTransactionIcon(tx.type)}</div>
-                        <div>
-                          <p className="text-gray-900 font-medium">
-                            {tx.description || 'Transaction'}
-                          </p>
-                          <p className="text-sm text-gray-700">
-                            {new Date(tx.createdAt).toLocaleString()}
-                          </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="p-3 bg-white/80 rounded-xl shadow-sm">
+                            {getTransactionIcon(tx.type)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-gray-900 font-semibold mb-1">
+                              {tx.description || 'Transaction'}
+                            </p>
+                            <div className="flex items-center gap-3">
+                              <p className="text-xs text-gray-600">
+                                {new Date(tx.createdAt).toLocaleString()}
+                              </p>
+                              {getStatusBadge(tx.status)}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-xl font-bold ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {tx.amount > 0 ? '+' : ''}{tx.amount} coins
-                        </p>
-                        <p className="text-sm text-gray-700 capitalize">{tx.status}</p>
+                        <div className="text-right ml-4">
+                          <p className={`text-2xl font-bold ${tx.amount > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {tx.amount > 0 ? '+' : ''}{tx.amount}
+                          </p>
+                          <p className="text-xs text-gray-600">coins</p>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -347,96 +424,141 @@ export default function WalletPage() {
 
         {/* Payouts Tab */}
         {activeTab === 'payouts' && isCreator && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Payout Request Card */}
-            <GlassCard glow="cyan" padding="lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Payout</h2>
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-                <p className="text-blue-700 text-sm">
-                  <strong>Payout Schedule:</strong> Digis processes payouts twice per month (1st and 15th).
-                  <br />
-                  <strong>Minimum:</strong> 1,000 coins required to request payout.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-700 mb-1">Available for Payout</p>
-                  <p className="text-4xl font-bold text-gray-900">{balance.toLocaleString()} coins</p>
+            <GlassCard className="relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
+              <div className="relative p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800">Request Payout</h2>
                 </div>
-                <GlassButton
-                  variant="gradient"
-                  size="lg"
-                  onClick={async () => {
-                    if (balance < 1000) {
-                      alert('Minimum 1,000 coins required for payout');
-                      return;
-                    }
-                    if (!bankingInfo) {
-                      alert('Please add banking information first');
-                      setActiveTab('banking');
-                      return;
-                    }
-                    if (confirm(`Request payout of ${balance} coins?`)) {
-                      try {
-                        const response = await fetch('/api/wallet/payouts/request', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ amount: balance }),
-                        });
-                        if (response.ok) {
-                          alert('Payout requested successfully!');
-                          await handleRefresh();
-                        } else {
-                          const error = await response.json();
-                          alert(`Error: ${error.error}`);
-                        }
-                      } catch (err) {
-                        alert('Failed to request payout');
+
+                <div className="bg-blue-500/10 border border-blue-300 rounded-xl p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-semibold mb-1">Payout Information</p>
+                      <p className="mb-1"><strong>Schedule:</strong> Processed twice per month (1st and 15th)</p>
+                      <p><strong>Minimum:</strong> 1,000 coins required to request payout</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 rounded-xl p-6 border border-green-200">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
+                      <Coins className="w-10 h-10 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Available for Payout</p>
+                      <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        {balance.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-gray-600">coins</p>
+                    </div>
+                  </div>
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    onClick={async () => {
+                      if (balance < 1000) {
+                        alert('Minimum 1,000 coins required for payout');
+                        return;
                       }
-                    }
-                  }}
-                  disabled={balance < 1000 || !bankingInfo}
-                  shimmer
-                >
-                  Request Payout
-                </GlassButton>
+                      if (!bankingInfo) {
+                        alert('Please add banking information first');
+                        setActiveTab('banking');
+                        return;
+                      }
+                      if (confirm(`Request payout of ${balance} coins?`)) {
+                        try {
+                          const response = await fetch('/api/wallet/payouts/request', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount: balance }),
+                          });
+                          if (response.ok) {
+                            alert('Payout requested successfully!');
+                            await handleRefresh();
+                          } else {
+                            const error = await response.json();
+                            alert(`Error: ${error.error}`);
+                          }
+                        } catch (err) {
+                          alert('Failed to request payout');
+                        }
+                      }
+                    }}
+                    disabled={balance < 1000 || !bankingInfo}
+                    shimmer
+                    className="whitespace-nowrap"
+                  >
+                    <DollarSign className="w-5 h-5 mr-2" />
+                    Request Payout
+                  </GlassButton>
+                </div>
               </div>
             </GlassCard>
 
             {/* Payout History */}
-            <GlassCard glow="none" padding="lg">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Payout History</h2>
+            <GlassCard className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
+                  <History className="w-6 h-6 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Payout History</h2>
+              </div>
 
               {payouts.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-700">No payouts yet</p>
+                  <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
+                    <DollarSign className="w-16 h-16 text-gray-400" />
+                  </div>
+                  <p className="text-gray-700 text-lg font-medium mb-2">No payouts yet</p>
+                  <p className="text-gray-600">Your payout requests will appear here</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {payouts.map((payout) => (
                     <div
                       key={payout.id}
-                      className="glass glass-hover p-4 rounded-xl flex items-center justify-between"
+                      className="p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:shadow-md transition-all"
                     >
-                      <div>
-                        <p className="text-gray-900 font-medium">{payout.amount.toLocaleString()} coins</p>
-                        <p className="text-sm text-gray-700">
-                          Requested: {new Date(payout.requestedAt).toLocaleDateString()}
-                        </p>
-                        {payout.completedAt && (
-                          <p className="text-sm text-gray-700">
-                            Completed: {new Date(payout.completedAt).toLocaleDateString()}
-                          </p>
-                        )}
-                        {payout.failureReason && (
-                          <p className="text-sm text-red-600">{payout.failureReason}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(payout.status)}`}>
-                          {payout.status.toUpperCase()}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-sm">
+                            <DollarSign className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-gray-900 font-bold text-lg mb-1">
+                              {payout.amount.toLocaleString()} coins
+                            </p>
+                            <div className="space-y-1">
+                              <p className="text-xs text-gray-600 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Requested: {new Date(payout.requestedAt).toLocaleDateString()}
+                              </p>
+                              {payout.completedAt && (
+                                <p className="text-xs text-green-700 flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Completed: {new Date(payout.completedAt).toLocaleDateString()}
+                                </p>
+                              )}
+                              {payout.failureReason && (
+                                <p className="text-xs text-red-700 flex items-center gap-1">
+                                  <XCircle className="w-3 h-3" />
+                                  {payout.failureReason}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          {getStatusBadge(payout.status)}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -448,57 +570,83 @@ export default function WalletPage() {
 
         {/* Banking Info Tab */}
         {activeTab === 'banking' && isCreator && (
-          <GlassCard glow="cyan" padding="lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Banking Information</h2>
-
-            {bankingInfo ? (
-              <div className="space-y-6">
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-6">
-                  <p className="text-green-700 flex items-center">
-                    <span className="mr-2">✓</span>
-                    Banking information {bankingInfo.isVerified ? 'verified' : 'added'}
-                  </p>
+          <GlassCard className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-blue-500/5" />
+            <div className="relative p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+                  <Building2 className="w-6 h-6 text-white" />
                 </div>
+                <h2 className="text-2xl font-bold text-gray-800">Banking Information</h2>
+              </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-gray-700 mb-1">Account Holder</p>
-                    <p className="text-gray-900 font-medium">{bankingInfo.accountHolderName}</p>
+              {bankingInfo ? (
+                <div className="space-y-6">
+                  <div className="bg-green-500/10 border border-green-300 rounded-xl p-4 flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <p className="text-green-800 font-medium">
+                      Banking information {bankingInfo.isVerified ? 'verified and active' : 'added successfully'}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-gray-700 mb-1">Account Type</p>
-                    <p className="text-gray-900 font-medium capitalize">{bankingInfo.accountType}</p>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" />
+                        Account Holder
+                      </p>
+                      <p className="text-gray-900 font-semibold text-lg">{bankingInfo.accountHolderName}</p>
+                    </div>
+                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <Building2 className="w-4 h-4" />
+                        Account Type
+                      </p>
+                      <p className="text-gray-900 font-semibold text-lg capitalize">{bankingInfo.accountType}</p>
+                    </div>
+                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <Building2 className="w-4 h-4" />
+                        Bank Name
+                      </p>
+                      <p className="text-gray-900 font-semibold text-lg">{bankingInfo.bankName || 'Not specified'}</p>
+                    </div>
+                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                        <Lock className="w-4 h-4" />
+                        Account Number
+                      </p>
+                      <p className="text-gray-900 font-semibold text-lg font-mono">••••{bankingInfo.lastFourDigits}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-700 mb-1">Bank</p>
-                    <p className="text-gray-900 font-medium">{bankingInfo.bankName || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-700 mb-1">Account</p>
-                    <p className="text-gray-900 font-medium">••••{bankingInfo.lastFourDigits}</p>
-                  </div>
+
+                  <GlassButton
+                    variant="ghost"
+                    onClick={() => setShowBankingModal(true)}
+                    className="w-full md:w-auto"
+                  >
+                    Update Banking Information
+                  </GlassButton>
                 </div>
-
-                <GlassButton
-                  variant="ghost"
-                  onClick={() => setShowBankingModal(true)}
-                >
-                  Update Banking Information
-                </GlassButton>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <p className="text-gray-700">Add your banking information to receive payouts</p>
-                <GlassButton
-                  variant="gradient"
-                  size="lg"
-                  onClick={() => setShowBankingModal(true)}
-                  shimmer
-                >
-                  Add Banking Information
-                </GlassButton>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-12">
+                  <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl w-fit mx-auto mb-4">
+                    <Building2 className="w-16 h-16 text-blue-600" />
+                  </div>
+                  <p className="text-gray-800 text-lg font-semibold mb-2">No Banking Information</p>
+                  <p className="text-gray-600 mb-6">Add your banking information to start receiving payouts</p>
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    onClick={() => setShowBankingModal(true)}
+                    shimmer
+                  >
+                    <Building2 className="w-5 h-5 mr-2" />
+                    Add Banking Information
+                  </GlassButton>
+                </div>
+              )}
+            </div>
           </GlassCard>
         )}
       </div>
