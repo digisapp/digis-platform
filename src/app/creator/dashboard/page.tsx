@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
-import { CallSettings } from '@/components/creator/CallSettings';
 import { PendingCalls } from '@/components/calls/PendingCalls';
 import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -390,46 +389,6 @@ export default function CreatorDashboard() {
             </div>
           </div>
         )}
-
-        {/* Call Settings */}
-        <div className="mb-8">
-          <CallSettings />
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="glass rounded-xl border border-cyan-200 p-5 text-center shadow-fun">
-            <div className="text-3xl mb-2">👁️</div>
-            <div className="text-2xl font-bold text-digis-cyan mb-1">
-              {analytics?.streams.totalViews || 0}
-            </div>
-            <div className="text-xs text-gray-600">Total Stream Views</div>
-          </div>
-
-          <div className="glass rounded-xl border border-yellow-200 p-5 text-center shadow-fun">
-            <div className="text-3xl mb-2">📊</div>
-            <div className="text-2xl font-bold text-yellow-400 mb-1">
-              {analytics?.streams.peakViewers || 0}
-            </div>
-            <div className="text-xs text-gray-600">Peak Viewers</div>
-          </div>
-
-          <div className="glass rounded-xl border border-pink-200 p-5 text-center shadow-fun">
-            <div className="text-3xl mb-2">🎁</div>
-            <div className="text-2xl font-bold text-digis-pink mb-1">
-              {analytics?.gifts.totalGifts || 0}
-            </div>
-            <div className="text-xs text-gray-600">Gifts Received</div>
-          </div>
-
-          <div className="glass rounded-xl border border-green-200 p-5 text-center shadow-fun">
-            <div className="text-3xl mb-2">📱</div>
-            <div className="text-2xl font-bold text-green-400 mb-1">
-              {analytics?.calls.totalCalls || 0}
-            </div>
-            <div className="text-xs text-gray-600">Calls Completed</div>
-          </div>
-        </div>
 
         {/* Earnings Breakdown */}
         {analytics && (
