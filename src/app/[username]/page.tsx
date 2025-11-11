@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, Verified, MessageCircle, Video, Ticket, Radio, Gift, Clock } from 'lucide-react';
+import { UserCircle, Users, Calendar, Verified, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
