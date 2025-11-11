@@ -6,7 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar } from 'lucide-react';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, BarChart3 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -277,7 +277,7 @@ export default function CreatorDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
             className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun"
@@ -297,6 +297,17 @@ export default function CreatorDashboard() {
             <div className="text-4xl mb-3">🎟️</div>
             <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
             <p className="text-sm text-gray-600">Create and manage exclusive events</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/creator/analytics')}
+            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md rounded-2xl border-2 border-cyan-400 p-6 hover:scale-105 transition-all text-left shadow-fun"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="w-6 h-6 text-cyan-500" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Analytics</h3>
+            <p className="text-sm text-gray-600">View followers, streams & insights</p>
           </button>
 
           <button
