@@ -609,7 +609,7 @@ export function Navigation() {
 
               {/* Category Tabs */}
               <div className="flex gap-2 overflow-x-auto">
-                {['all', 'earnings', 'followers', 'system'].map((category) => (
+                {['all', 'earnings', 'followers'].map((category) => (
                   <button
                     key={category}
                     onClick={() => setNotificationCategory(category)}
