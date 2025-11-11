@@ -389,11 +389,11 @@ export function Navigation() {
           <button
             onClick={() => router.push('/wallet')}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              isActive('/wallet') ? 'text-yellow-400' : 'text-gray-600'
+              isActive('/wallet') ? 'text-amber-500' : 'text-gray-600'
             }`}
           >
-            <Coins className="w-6 h-6" />
-            <span className="text-xs font-bold text-yellow-400">{balance}</span>
+            <Coins className="w-6 h-6 text-amber-500" />
+            <span className="text-xs font-black bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">{balance}</span>
           </button>
 
           {/* Profile/Settings Button (Separate) */}
@@ -438,6 +438,44 @@ export function Navigation() {
             className="w-12 h-auto"
             priority
           />
+        </button>
+
+        {/* User Profile / Settings Button */}
+        <button
+          onClick={() => {
+            console.log('[Navigation] Profile button clicked, navigating to /settings');
+            router.push('/settings');
+          }}
+          className={`mb-3 w-12 h-12 rounded-full transition-all ${
+            isActive('/settings')
+              ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
+              : 'hover:scale-110'
+          }`}
+          title="Settings"
+        >
+          {userProfile?.avatarUrl ? (
+            <img
+              src={userProfile.avatarUrl}
+              alt="Your avatar"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
+              {user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+          )}
+        </button>
+
+        {/* Balance - Clickable */}
+        <button
+          onClick={() => router.push('/wallet')}
+          className="mb-6 flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-amber-400/20 via-yellow-400/20 to-amber-500/20 hover:from-amber-400/30 hover:to-amber-500/30 rounded-2xl border-2 border-amber-500/40 hover:border-amber-500/60 transition-all hover:scale-105 group shadow-lg shadow-amber-500/20"
+          title="Wallet"
+        >
+          <Coins className="w-7 h-7 text-amber-500 group-hover:rotate-12 transition-transform" />
+          <div className="text-xl font-black bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+            {balance}
+          </div>
         </button>
 
         {/* Creator Create Button - Canva Style */}
@@ -514,42 +552,6 @@ export function Navigation() {
             )}
           </div>
           <span className="text-xs font-medium">Alerts</span>
-        </button>
-
-        {/* User Profile / Settings Button */}
-        <button
-          onClick={() => {
-            console.log('[Navigation] Profile button clicked, navigating to /settings');
-            router.push('/settings');
-          }}
-          className={`mt-4 w-12 h-12 rounded-full transition-all ${
-            isActive('/settings')
-              ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
-              : 'hover:scale-110'
-          }`}
-          title="Settings"
-        >
-          {userProfile?.avatarUrl ? (
-            <img
-              src={userProfile.avatarUrl}
-              alt="Your avatar"
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
-            </div>
-          )}
-        </button>
-
-        {/* Balance - Clickable */}
-        <button
-          onClick={() => router.push('/wallet')}
-          className="mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 rounded-xl border border-yellow-500/30 hover:border-yellow-500/50 transition-all hover:scale-105 group"
-          title="Wallet"
-        >
-          <Coins className="w-6 h-6 text-yellow-400 group-hover:rotate-12 transition-transform" />
-          <div className="text-2xl font-bold text-yellow-400">{balance}</div>
         </button>
       </nav>
 

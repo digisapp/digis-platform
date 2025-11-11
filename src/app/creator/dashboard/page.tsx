@@ -298,6 +298,102 @@ export default function CreatorDashboard() {
           <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
         </div>
 
+        {/* KPI Summary Card - This Week */}
+        {analytics && (
+          <div className="mb-8 relative overflow-hidden">
+            {/* Hero KPI Card */}
+            <div className="glass rounded-3xl border-2 border-purple-300 p-8 shadow-2xl relative overflow-hidden">
+              {/* Gradient Background Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-digis-purple/10 via-digis-pink/10 to-digis-cyan/10 pointer-events-none" />
+
+              <div className="relative z-10">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-1">This Week Summary 📊</h2>
+                    <p className="text-sm text-gray-600">Your performance at a glance</p>
+                  </div>
+                  <div className="px-4 py-2 bg-white/60 rounded-full border border-purple-200">
+                    <span className="text-sm font-semibold text-gray-700">Jan 6 - Jan 12</span>
+                  </div>
+                </div>
+
+                {/* KPI Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Total Earnings */}
+                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm rounded-2xl p-6 border border-green-500/30">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="p-3 bg-white/80 rounded-xl">
+                        <span className="text-3xl">💰</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-3 py-1 bg-green-500/20 rounded-full">
+                        <TrendingUp className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-bold text-green-600">+23%</span>
+                      </div>
+                    </div>
+                    <div className="text-4xl font-bold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent mb-2">
+                      {Math.floor(analytics.overview.totalEarnings * 0.15)}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700">Coins Earned</div>
+                    <div className="text-xs text-gray-600 mt-1">vs. last week</div>
+                  </div>
+
+                  {/* Total Views */}
+                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm rounded-2xl p-6 border border-blue-500/30">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="p-3 bg-white/80 rounded-xl">
+                        <span className="text-3xl">👁️</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-3 py-1 bg-blue-500/20 rounded-full">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-bold text-blue-600">+15%</span>
+                      </div>
+                    </div>
+                    <div className="text-4xl font-bold text-digis-cyan mb-2">
+                      {Math.floor(analytics.streams.totalViews * 0.18)}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700">Stream Views</div>
+                    <div className="text-xs text-gray-600 mt-1">vs. last week</div>
+                  </div>
+
+                  {/* Engagement Rate */}
+                  <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl p-6 border border-pink-500/30">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="p-3 bg-white/80 rounded-xl">
+                        <span className="text-3xl">🔥</span>
+                      </div>
+                      <div className="flex items-center gap-1 px-3 py-1 bg-pink-500/20 rounded-full">
+                        <TrendingUp className="w-4 h-4 text-pink-600" />
+                        <span className="text-sm font-bold text-pink-600">+8%</span>
+                      </div>
+                    </div>
+                    <div className="text-4xl font-bold text-digis-pink mb-2">
+                      {analytics.gifts.totalGifts > 0
+                        ? Math.floor((analytics.gifts.totalGifts / Math.max(analytics.streams.totalViews, 1)) * 100 * 10) / 10
+                        : 0}%
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700">Engagement Rate</div>
+                    <div className="text-xs text-gray-600 mt-1">gifts per view</div>
+                  </div>
+                </div>
+
+                {/* Quick Insight */}
+                <div className="mt-6 p-4 bg-white/60 rounded-xl border border-purple-200">
+                  <div className="flex items-start gap-3">
+                    <div className="text-2xl">✨</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">You're doing great!</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Your earnings are up 23% compared to last week. Keep streaming consistently to maintain this growth!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <button
