@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
-import { RefreshCw, DollarSign, History, Building2 } from 'lucide-react';
+import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -240,30 +240,71 @@ export default function WalletPage() {
         {activeTab === 'balance' && (
           <>
             {/* Balance Card */}
-            <GlassCard glow="cyan" padding="lg" className="mb-8">
-              <div className="flex flex-col md:flex-row items-center justify-between">
-                <div>
-                  <p className="text-gray-700 mb-2">Available Balance</p>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-4xl">
-                      🪙
+            <div className="mb-8 relative overflow-hidden">
+              {/* Animated Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-amber-500/20 to-orange-500/20 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent" />
+
+              <GlassCard glow="cyan" padding="lg" className="relative">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles className="w-5 h-5 text-yellow-500 animate-pulse" />
+                      <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Your Balance</p>
                     </div>
-                    <div>
-                      <p className="text-5xl font-bold text-gray-900">{balance.toLocaleString()}</p>
-                      <p className="text-gray-700">Digis Coins</p>
+
+                    <div className="flex items-center gap-6">
+                      {/* Coin Icon with Glow */}
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full blur-xl opacity-60 animate-pulse" />
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 flex items-center justify-center shadow-2xl">
+                          <Coins className="w-10 h-10 text-white drop-shadow-lg" />
+                        </div>
+                      </div>
+
+                      {/* Balance Amount */}
+                      <div>
+                        <div className="flex items-baseline gap-3 mb-1">
+                          <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
+                            {balance.toLocaleString()}
+                          </p>
+                          {balance > 0 && (
+                            <TrendingUp className="w-8 h-8 text-green-500 animate-bounce" />
+                          )}
+                        </div>
+                        <p className="text-lg font-bold text-gray-700 tracking-wide">Digis Coins</p>
+                        {balance > 0 && (
+                          <p className="text-sm text-gray-600 mt-1">💎 Keep earning and growing!</p>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Action Button */}
+                  <div className="flex flex-col gap-3">
+                    <GlassButton
+                      variant="gradient"
+                      size="lg"
+                      onClick={() => setShowBuyCoins(true)}
+                      shimmer
+                      className="whitespace-nowrap"
+                    >
+                      <Coins className="w-5 h-5 mr-2" />
+                      Buy More Coins
+                    </GlassButton>
+                    {isCreator && balance >= 1000 && (
+                      <button
+                        onClick={() => setActiveTab('payouts')}
+                        className="px-4 py-2 text-sm font-semibold text-green-600 hover:text-green-700 transition-colors flex items-center gap-2 justify-center"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        Request Payout
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <GlassButton
-                  variant="gradient"
-                  size="lg"
-                  onClick={() => setShowBuyCoins(true)}
-                  shimmer
-                >
-                  Buy More Coins
-                </GlassButton>
-              </div>
-            </GlassCard>
+              </GlassCard>
+            </div>
 
             {/* Transaction History */}
             <GlassCard glow="none" padding="lg">
