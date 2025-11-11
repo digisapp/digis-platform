@@ -394,7 +394,7 @@ export default function ProfilePage() {
                     } disabled:opacity-50`}
                   >
                     <Users className="w-6 h-6 mx-auto mb-2 text-digis-cyan" />
-                    <div className="text-sm font-semibold text-white">
+                    <div className="text-sm font-semibold text-gray-900">
                       {isFollowing ? 'Following' : 'Follow'}
                     </div>
                   </button>
@@ -423,8 +423,8 @@ export default function ProfilePage() {
                       onClick={() => setActiveTab('shows')}
                       className="p-4 rounded-xl border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/30 transition-all hover:scale-105"
                     >
-                      <Ticket className="w-6 h-6 mx-auto mb-2 text-purple-400" />
-                      <div className="text-sm font-semibold text-white">Buy Tickets</div>
+                      <Ticket className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+                      <div className="text-sm font-semibold text-gray-900">Buy Tickets</div>
                     </button>
                   )}
                 </div>
@@ -493,7 +493,7 @@ export default function ProfilePage() {
                       <div>
                         {streams.length === 0 ? (
                           <div className="text-center py-12">
-                            <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                            <Video className="w-16 h-16 mx-auto mb-4 text-gray-600" />
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">No past streams yet</h3>
                             <p className="text-gray-600 mb-4">
                               {isFollowing
@@ -519,7 +519,7 @@ export default function ProfilePage() {
                               >
                                 {/* Thumbnail placeholder */}
                                 <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
-                                  <Video className="w-12 h-12 text-gray-400" />
+                                  <Video className="w-12 h-12 text-gray-600" />
                                 </div>
 
                                 {/* Stream info overlay */}

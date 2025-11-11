@@ -202,7 +202,7 @@ export default function WalletPage() {
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               activeTab === 'balance'
                 ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
             }`}
           >
             <DollarSign className="w-5 h-5 inline mr-2" />
@@ -215,7 +215,7 @@ export default function WalletPage() {
                 className={`px-6 py-3 rounded-xl font-medium transition-all ${
                   activeTab === 'payouts'
                     ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
                 }`}
               >
                 <History className="w-5 h-5 inline mr-2" />
@@ -226,7 +226,7 @@ export default function WalletPage() {
                 className={`px-6 py-3 rounded-xl font-medium transition-all ${
                   activeTab === 'banking'
                     ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    : 'bg-white/5 text-gray-700 hover:bg-white/10 hover:text-gray-900'
                 }`}
               >
                 <Building2 className="w-5 h-5 inline mr-2" />
