@@ -74,6 +74,7 @@ export default function CreatorDashboard() {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
+  const [earnings24h, setEarnings24h] = useState(0);
 
   useEffect(() => {
     checkAuth();
@@ -82,6 +83,7 @@ export default function CreatorDashboard() {
     fetchRecentActivities();
     fetchUpcomingEvents();
     fetchPendingCounts();
+    fetch24hEarnings();
   }, []);
 
   // Keyboard shortcuts
@@ -289,6 +291,30 @@ export default function CreatorDashboard() {
     }
   };
 
+  const fetch24hEarnings = async () => {
+    try {
+      // Fetch transactions from last 24 hours
+      const response = await fetch('/api/wallet/transactions?limit=100');
+      if (response.ok) {
+        const data = await response.json();
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+        // Sum up positive transactions (earnings) from last 24 hours
+        const earnings = (data.transactions || [])
+          .filter((tx: any) => {
+            const txDate = new Date(tx.createdAt);
+            return tx.amount > 0 && txDate >= oneDayAgo;
+          })
+          .reduce((sum: number, tx: any) => sum + tx.amount, 0);
+
+        setEarnings24h(earnings);
+      }
+    } catch (err) {
+      console.error('Error fetching 24h earnings:', err);
+    }
+  };
+
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -322,7 +348,24 @@ export default function CreatorDashboard() {
         </div>
 
         {/* Quick Actions - Core Actions Only */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* 24 Hour Earnings */}
+          <button
+            onClick={() => router.push('/creator/earnings')}
+            className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-3xl">💰</div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">24h Earnings</h3>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
+              <span className="text-sm text-gray-600">coins</span>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">Last 24 hours</p>
+          </button>
+
+          {/* Go Live */}
           <button
             onClick={() => router.push('/creator/go-live')}
             className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
@@ -341,6 +384,7 @@ export default function CreatorDashboard() {
             )}
           </button>
 
+          {/* Ticketed Shows */}
           <button
             onClick={() => router.push('/creator/shows')}
             className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
