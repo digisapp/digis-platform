@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Search, X, Pin, Archive, MoreVertical } from 'lucide-react';
 
 type ConversationWithOtherUser = {
   id: string;
@@ -26,8 +27,10 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<ConversationWithOtherUser[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState<string>('fan');
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -112,10 +115,80 @@ export default function MessagesPage() {
     }
   };
 
-  const filteredConversations = conversations.filter((conv) => {
-    if (filter === 'unread') return conv.unreadCount > 0;
-    return true;
-  });
+  const handlePinConversation = async (conversationId: string) => {
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) return;
+
+    try {
+      const response = await fetch(`/api/messages/conversations/${conversationId}/pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: !conv.isPinned }),
+      });
+
+      if (response.ok) {
+        setConversations(conversations.map(c =>
+          c.id === conversationId ? { ...c, isPinned: !c.isPinned } : c
+        ));
+      }
+    } catch (error) {
+      console.error('Error pinning conversation:', error);
+    }
+    setActiveMenu(null);
+  };
+
+  const handleArchiveConversation = async (conversationId: string) => {
+    const conv = conversations.find(c => c.id === conversationId);
+    if (!conv) return;
+
+    try {
+      const response = await fetch(`/api/messages/conversations/${conversationId}/archive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isArchived: !conv.isArchived }),
+      });
+
+      if (response.ok) {
+        setConversations(conversations.map(c =>
+          c.id === conversationId ? { ...c, isArchived: !c.isArchived } : c
+        ));
+      }
+    } catch (error) {
+      console.error('Error archiving conversation:', error);
+    }
+    setActiveMenu(null);
+  };
+
+  const filteredConversations = conversations
+    .filter((conv) => {
+      // Don't show archived conversations
+      if (conv.isArchived) return false;
+
+      // Filter by unread
+      if (filter === 'unread' && conv.unreadCount === 0) return false;
+
+      // Filter by search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const displayName = (conv.otherUser.displayName || '').toLowerCase();
+        const username = (conv.otherUser.username || '').toLowerCase();
+        const lastMessage = (conv.lastMessageText || '').toLowerCase();
+
+        return displayName.includes(query) || username.includes(query) || lastMessage.includes(query);
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      // Pinned conversations first
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+
+      // Then by last message date
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return dateB - dateA;
+    });
 
   const formatTime = (date: Date | null) => {
     if (!date) return '';
@@ -162,6 +235,26 @@ export default function MessagesPage() {
             )}
           </div>
           <p className="text-gray-700">Your conversations</p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Filters */}
@@ -217,12 +310,14 @@ export default function MessagesPage() {
             </div>
           ) : (
             filteredConversations.map((conversation) => (
-              <button
+              <div
                 key={conversation.id}
-                onClick={() => router.push(`/messages/${conversation.id}`)}
-                className="w-full glass rounded-xl border border-purple-200 p-4 hover:border-digis-cyan hover:bg-white/80 transition-all text-left"
+                className="relative w-full glass rounded-xl border border-purple-200 p-4 hover:border-digis-cyan hover:bg-white/80 transition-all"
               >
-                <div className="flex items-center gap-4">
+                <div
+                  onClick={() => router.push(`/messages/${conversation.id}`)}
+                  className="flex items-center gap-4 cursor-pointer"
+                >
                   {/* Avatar */}
                   <div className="relative">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl font-bold">
@@ -248,6 +343,9 @@ export default function MessagesPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
+                      {conversation.isPinned && (
+                        <Pin className="w-4 h-4 text-digis-cyan fill-digis-cyan" />
+                      )}
                       <h3 className={`font-semibold ${conversation.unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
                         {conversation.otherUser.displayName || conversation.otherUser.username}
                       </h3>
@@ -269,7 +367,52 @@ export default function MessagesPage() {
                     </p>
                   </div>
                 </div>
-              </button>
+
+                {/* Menu Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMenu(activeMenu === conversation.id ? null : conversation.id);
+                  }}
+                  className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-lg transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {activeMenu === conversation.id && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setActiveMenu(null)}
+                    />
+                    <div className="absolute top-14 right-4 z-50 glass border border-purple-200 rounded-xl shadow-lg overflow-hidden min-w-[160px]">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePinConversation(conversation.id);
+                        }}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                      >
+                        <Pin className="w-4 h-4 text-gray-700" />
+                        <span className="text-sm text-gray-800">
+                          {conversation.isPinned ? 'Unpin' : 'Pin'}
+                        </span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleArchiveConversation(conversation.id);
+                        }}
+                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left border-t border-purple-100"
+                      >
+                        <Archive className="w-4 h-4 text-gray-700" />
+                        <span className="text-sm text-gray-800">Archive</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             ))
           )}
         </div>
