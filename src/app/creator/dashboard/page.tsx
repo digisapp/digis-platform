@@ -291,6 +291,17 @@ export default function CreatorDashboard() {
           </button>
 
           <button
+            onClick={() => router.push('/creator/messages/broadcast')}
+            className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 backdrop-blur-md rounded-xl border-2 border-amber-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="text-amber-500 font-bold text-xs">💰 HIGH REVENUE</div>
+            </div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Mass Message</h3>
+            <p className="text-xs text-gray-600">Send PPV to all subscribers</p>
+          </button>
+
+          <button
             onClick={() => router.push('/creator/shows')}
             className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
           >
