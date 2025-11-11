@@ -696,10 +696,10 @@ export function Navigation() {
           {/* Center Action Button - Creators Only */}
           {userRole === 'creator' && (
             <button
-              onClick={() => router.push('/creator/go-live')}
-              className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-pink-500 shadow-lg shadow-red-500/50 border-2 border-white"
+              onClick={() => setShowCreateMenu(true)}
+              className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink shadow-lg shadow-digis-cyan/50 border-2 border-white"
             >
-              <Video className="w-7 h-7 text-white" />
+              <Plus className="w-7 h-7 text-white" />
             </button>
           )}
 
