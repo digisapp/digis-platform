@@ -325,7 +325,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-pastel-gradient py-12 px-4">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Account Settings
           </h1>
