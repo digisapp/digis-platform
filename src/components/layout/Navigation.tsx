@@ -431,7 +431,7 @@ export function Navigation() {
               {/* Follower Count - Clickable */}
               <button
                 onClick={() => {
-                  router.push(`/${userProfile?.username}/followers`);
+                  router.push('/creator/followers');
                   setShowProfileMenu(false);
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors"
