@@ -674,7 +674,7 @@ export default function SettingsPage() {
             </p>
             <button
               onClick={() => router.push('/creator/apply')}
-              className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+              className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform"
             >
               Apply to Become a Creator
             </button>

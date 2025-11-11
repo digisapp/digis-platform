@@ -31,7 +31,7 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
       cyan: 'border-2 border-digis-cyan text-white hover:glow-cyan',
       pink: 'border-2 border-digis-pink text-white hover:glow-pink',
       purple: 'border-2 border-digis-purple text-white',
-      gradient: 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white border-none',
+      gradient: 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 font-semibold border-none',
       ghost: 'border border-white/20 text-white hover:border-white/40',
     };
 
