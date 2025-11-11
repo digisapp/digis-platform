@@ -72,6 +72,9 @@ export default function CreatorDashboard() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [pendingCallsCount, setPendingCallsCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -79,7 +82,34 @@ export default function CreatorDashboard() {
     fetchAnalytics();
     fetchRecentActivities();
     fetchUpcomingEvents();
+    fetchPendingCounts();
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only trigger if not in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch(e.key.toLowerCase()) {
+        case 'l':
+          router.push('/creator/go-live');
+          break;
+        case 'm':
+          router.push('/creator/messages/broadcast');
+          break;
+        case 's':
+          router.push('/creator/shows');
+          break;
+        case 'a':
+          router.push('/creator/analytics');
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [router]);
 
   const checkAuth = async () => {
     const supabase = createClient();
@@ -244,6 +274,35 @@ export default function CreatorDashboard() {
     }
   };
 
+  const fetchPendingCounts = async () => {
+    try {
+      // Fetch pending calls count
+      const callsRes = await fetch('/api/calls/history?limit=100&status=pending');
+      if (callsRes.ok) {
+        const callsData = await callsRes.json();
+        setPendingCallsCount(callsData.data?.length || 0);
+      }
+
+      // Fetch unread messages count
+      const messagesRes = await fetch('/api/messages/requests');
+      if (messagesRes.ok) {
+        const messagesData = await messagesRes.json();
+        setUnreadMessagesCount(messagesData.requests?.length || 0);
+      }
+
+      // Get last stream date
+      const streamsRes = await fetch('/api/streams/my-streams?limit=1');
+      if (streamsRes.ok) {
+        const streamsData = await streamsRes.json();
+        if (streamsData.data && streamsData.data.length > 0) {
+          setLastStreamDate(new Date(streamsData.data[0].createdAt));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching pending counts:', err);
+    }
+  };
+
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -276,46 +335,62 @@ export default function CreatorDashboard() {
           <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        {/* Quick Actions - Compact 2x3 Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
-            className="bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
+            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-red-500 font-bold text-xs">GO LIVE</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-red-500 font-bold text-xs">GO LIVE</span>
+              </div>
+              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">L</kbd>
             </div>
             <h3 className="text-base font-bold text-gray-800 mb-1">Start Streaming</h3>
             <p className="text-xs text-gray-600">Go live and connect with your fans</p>
+            {lastStreamDate && (new Date().getTime() - lastStreamDate.getTime()) > 24 * 60 * 60 * 1000 && (
+              <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white" title="You haven't streamed in 24h" />
+            )}
           </button>
 
           <button
             onClick={() => router.push('/creator/messages/broadcast')}
-            className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 backdrop-blur-md rounded-xl border-2 border-amber-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
+            className="relative bg-gradient-to-br from-amber-500/20 to-orange-500/20 backdrop-blur-md rounded-xl border-2 border-amber-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <div className="text-amber-500 font-bold text-xs">💰 HIGH REVENUE</div>
+              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">M</kbd>
             </div>
             <h3 className="text-base font-bold text-gray-800 mb-1">Mass Message</h3>
             <p className="text-xs text-gray-600">Send PPV to all subscribers</p>
+            {unreadMessagesCount > 0 && (
+              <div className="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {unreadMessagesCount}
+              </div>
+            )}
           </button>
 
           <button
             onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-4 hover:scale-105 transition-all text-left shadow-fun"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
           >
-            <div className="text-2xl mb-2">🎟️</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-2xl">🎟️</div>
+              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
+            </div>
             <h3 className="text-base font-bold text-gray-800 mb-1">Ticketed Shows</h3>
             <p className="text-xs text-gray-600">Create and manage exclusive events</p>
           </button>
 
           <button
             onClick={() => router.push('/creator/analytics')}
-            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md rounded-xl border-2 border-cyan-400 p-4 hover:scale-105 transition-all text-left shadow-fun"
+            className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 backdrop-blur-md rounded-xl border-2 border-cyan-400 p-4 hover:scale-105 transition-all text-left shadow-fun group"
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <BarChart3 className="w-5 h-5 text-cyan-500" />
+              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">A</kbd>
             </div>
             <h3 className="text-base font-bold text-gray-800 mb-1">Analytics</h3>
             <p className="text-xs text-gray-600">View followers, streams & insights</p>
@@ -323,11 +398,16 @@ export default function CreatorDashboard() {
 
           <button
             onClick={() => router.push('/calls/history')}
-            className="glass rounded-xl border-2 border-pink-200 p-4 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
+            className="relative glass rounded-xl border-2 border-pink-200 p-4 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
           >
             <div className="text-2xl mb-2">📞</div>
             <h3 className="text-base font-bold text-gray-800 mb-1">Call Requests</h3>
             <p className="text-xs text-gray-600">Manage 1-on-1 call requests</p>
+            {pendingCallsCount > 0 && (
+              <div className="absolute top-2 right-2 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                {pendingCallsCount}
+              </div>
+            )}
           </button>
 
           <button
@@ -338,6 +418,11 @@ export default function CreatorDashboard() {
             <h3 className="text-base font-bold text-gray-800 mb-1">Subscriptions</h3>
             <p className="text-xs text-gray-600">Manage monthly superfans</p>
           </button>
+        </div>
+
+        {/* Keyboard Shortcuts Helper */}
+        <div className="mb-6 glass rounded-xl border border-purple-200 p-4 text-sm text-gray-600">
+          <span className="font-semibold">⌨️ Keyboard Shortcuts:</span> Press <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">L</kbd> to go live, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">M</kbd> for mass message, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">S</kbd> for shows, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">A</kbd> for analytics
         </div>
 
         {/* Upcoming Events */}

@@ -8,3 +8,4 @@ export * from './admin';
 export * from './content';
 export * from './shows';
 export * from './subscriptions';
+export * from './notifications';

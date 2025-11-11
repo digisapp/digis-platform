@@ -20,6 +20,17 @@ import {
   Coins
 } from 'lucide-react';
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  actionUrl: string | null;
+  isRead: boolean;
+  imageUrl: string | null;
+  createdAt: Date;
+}
+
 export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
@@ -29,8 +40,11 @@ export function Navigation() {
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(3); // Mock count for now
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationCategory, setNotificationCategory] = useState<string>('all');
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -61,10 +75,12 @@ export function Navigation() {
     // Only fetch balance and unread count if user is authenticated
     fetchBalance();
     fetchUnreadCount();
+    fetchNotifications();
+    fetchNotificationCount();
 
-    // Subscribe to real-time message updates
+    // Subscribe to real-time updates
     const supabase = createClient();
-    const channel = supabase
+    const messagesChannel = supabase
       .channel('navigation-unread')
       .on(
         'postgres_changes',
@@ -79,10 +95,34 @@ export function Navigation() {
       )
       .subscribe();
 
+    const notificationsChannel = supabase
+      .channel('navigation-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+        },
+        () => {
+          fetchNotifications();
+          fetchNotificationCount();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(notificationsChannel);
     };
   }, [user]);
+
+  // Refetch notifications when category changes
+  useEffect(() => {
+    if (user && showNotifications) {
+      fetchNotifications();
+    }
+  }, [notificationCategory]);
 
   const checkUser = async () => {
     const supabase = createClient();
@@ -125,6 +165,57 @@ export function Navigation() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const categoryParam = notificationCategory !== 'all' ? `&category=${notificationCategory}` : '';
+      const response = await fetch(`/api/notifications?limit=20${categoryParam}`);
+      const result = await response.json();
+      if (response.ok && result.data) {
+        setNotifications(result.data.notifications || []);
+      }
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+    }
+  };
+
+  const fetchNotificationCount = async () => {
+    try {
+      const response = await fetch('/api/notifications/unread-count');
+      const data = await response.json();
+      if (response.ok) {
+        setNotificationCount(data.count);
+      }
+    } catch (err) {
+      console.error('Error fetching notification count:', err);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      await fetch(`/api/notifications/${notificationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isRead: true }),
+      });
+      fetchNotifications();
+      fetchNotificationCount();
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+      });
+      fetchNotifications();
+      fetchNotificationCount();
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+    }
+  };
+
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -158,13 +249,44 @@ export function Navigation() {
     },
   ];
 
-  // Mock notifications - replace with real data later
-  const mockNotifications = [
-    { id: 1, type: 'message', text: 'New message from @creator', time: '5m ago', read: false },
-    { id: 2, type: 'tip', text: 'You received 50 coins!', time: '1h ago', read: false },
-    { id: 3, type: 'like', text: '@fan liked your content', time: '2h ago', read: false },
-    { id: 4, type: 'system', text: 'Welcome to Digis!', time: '1d ago', read: true },
-  ];
+  const handleNotificationClick = async (notification: Notification) => {
+    await markNotificationAsRead(notification.id);
+    if (notification.actionUrl) {
+      router.push(notification.actionUrl);
+    }
+    setShowNotifications(false);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'message':
+      case 'messages':
+        return <MessageCircle className="w-5 h-5 text-digis-cyan" />;
+      case 'tip':
+      case 'earnings':
+        return <Wallet className="w-5 h-5 text-yellow-500" />;
+      case 'follow':
+      case 'followers':
+        return <Flame className="w-5 h-5 text-red-500" />;
+      case 'system':
+        return <Bell className="w-5 h-5 text-gray-500" />;
+      default:
+        return <Bell className="w-5 h-5 text-gray-500" />;
+    }
+  };
+
+  const formatNotificationTime = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(date).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
 
   // Creator action options
   const creatorActions = [
@@ -270,6 +392,116 @@ export function Navigation() {
         </>
       )}
 
+      {/* Profile Dropdown Menu */}
+      {showProfileMenu && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/20 z-40"
+            onClick={() => setShowProfileMenu(false)}
+          />
+          <div className="fixed md:left-24 md:top-20 top-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-72 overflow-hidden shadow-lg">
+            {/* Profile Header */}
+            <div className="p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
+              <div className="flex items-center gap-3">
+                {userProfile?.avatarUrl ? (
+                  <img
+                    src={userProfile.avatarUrl}
+                    alt="Your avatar"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold text-white">
+                    {user?.email?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-800 truncate">
+                    {userProfile?.displayName || userProfile?.username || 'User'}
+                  </p>
+                  <p className="text-sm text-gray-600 truncate">
+                    @{userProfile?.username || user?.email}
+                  </p>
+                  <p className="text-xs text-gray-600 capitalize mt-0.5">
+                    {userRole}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  router.push(`/${userProfile?.username || 'profile'}`);
+                  setShowProfileMenu(false);
+                }}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+              >
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-sm text-gray-800 font-medium">View Profile</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push('/settings');
+                  setShowProfileMenu(false);
+                }}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+              >
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span className="text-sm text-gray-800 font-medium">Edit Profile</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push('/settings');
+                  setShowProfileMenu(false);
+                }}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+              >
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-sm text-gray-800 font-medium">Settings</span>
+              </button>
+
+              {userRole === 'creator' && (
+                <button
+                  onClick={() => {
+                    router.push('/dashboard');
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left border-t border-purple-100"
+                >
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span className="text-sm text-gray-800 font-medium">Switch to Fan Mode</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setShowProfileMenu(false);
+                }}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 transition-colors text-left border-t border-purple-100"
+              >
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="text-sm text-red-600 font-medium">Logout</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Notification Dropdown */}
       {showNotifications && (
         <>
@@ -277,54 +509,83 @@ export function Navigation() {
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setShowNotifications(false)}
           />
-          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-80 max-h-96 overflow-hidden shadow-lg">
-            {/* Header */}
-            <div className="p-4 border-b border-purple-200 flex items-center justify-between">
-              <h3 className="font-bold text-gray-800">Notifications</h3>
-              <button
-                onClick={() => setShowNotifications(false)}
-                className="text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-96 max-h-[32rem] overflow-hidden shadow-lg">
+            {/* Header with Categories */}
+            <div className="p-4 border-b border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-gray-800">Notifications</h3>
+                <div className="flex items-center gap-2">
+                  {notificationCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-xs text-digis-cyan hover:text-digis-pink transition-colors font-semibold"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Category Tabs */}
+              <div className="flex gap-2 overflow-x-auto">
+                {['all', 'messages', 'earnings', 'followers', 'system'].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setNotificationCategory(category)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                      notificationCategory === category
+                        ? 'bg-digis-cyan text-white'
+                        : 'bg-white/60 text-gray-700 hover:bg-white/80'
+                    }`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Notifications List */}
-            <div className="overflow-y-auto max-h-80">
-              {mockNotifications.map((notif) => (
-                <button
-                  key={notif.id}
-                  onClick={() => setShowNotifications(false)}
-                  className={`w-full p-4 border-b border-purple-100 hover:bg-white/40 transition-colors text-left ${
-                    !notif.read ? 'bg-digis-cyan/10' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      {notif.type === 'message' && <MessageCircle className="w-5 h-5 text-digis-cyan" />}
-                      {notif.type === 'tip' && <Wallet className="w-5 h-5 text-yellow-500" />}
-                      {notif.type === 'like' && <Flame className="w-5 h-5 text-red-500" />}
-                      {notif.type === 'system' && <Bell className="w-5 h-5 text-gray-500" />}
+            <div className="overflow-y-auto max-h-96">
+              {notifications.length === 0 ? (
+                <div className="p-8 text-center text-gray-600">
+                  <Bell className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                  <p className="text-sm">No notifications yet</p>
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <button
+                    key={notification.id}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`w-full p-4 border-b border-purple-100 hover:bg-white/40 transition-colors text-left ${
+                      !notification.isRead ? 'bg-digis-cyan/10' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 mb-1">{notification.title}</p>
+                        <p className="text-sm text-gray-700">{notification.message}</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {formatNotificationTime(notification.createdAt)}
+                        </p>
+                      </div>
+                      {!notification.isRead && (
+                        <div className="w-2 h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2" />
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800">{notif.text}</p>
-                      <p className="text-xs text-gray-600 mt-1">{notif.time}</p>
-                    </div>
-                    {!notif.read && (
-                      <div className="w-2 h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2" />
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Footer */}
-            <div className="p-3 border-t border-purple-200 bg-white/60">
-              <button className="w-full text-center text-sm text-digis-cyan hover:text-digis-pink transition-colors font-semibold">
-                View all notifications
-              </button>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </>
@@ -398,12 +659,9 @@ export function Navigation() {
 
           {/* Profile/Settings Button (Separate) */}
           <button
-            onClick={() => {
-              console.log('[Navigation] Mobile profile button clicked');
-              router.push('/settings');
-            }}
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              isActive('/settings') ? 'text-digis-cyan' : 'text-gray-600'
+              isActive('/settings') || showProfileMenu ? 'text-digis-cyan' : 'text-gray-600'
             }`}
           >
             {userProfile?.avatarUrl ? (
@@ -442,16 +700,13 @@ export function Navigation() {
 
         {/* User Profile / Settings Button */}
         <button
-          onClick={() => {
-            console.log('[Navigation] Profile button clicked, navigating to /settings');
-            router.push('/settings');
-          }}
+          onClick={() => setShowProfileMenu(!showProfileMenu)}
           className={`mb-3 w-12 h-12 rounded-full transition-all ${
-            isActive('/settings')
+            isActive('/settings') || showProfileMenu
               ? 'scale-105 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
               : 'hover:scale-105'
           }`}
-          title="Settings"
+          title="Profile Menu"
         >
           {userProfile?.avatarUrl ? (
             <img
