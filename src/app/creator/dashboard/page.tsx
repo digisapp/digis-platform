@@ -6,7 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio } from 'lucide-react';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Lightbulb, MessageCircle, Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -536,27 +536,50 @@ export default function CreatorDashboard() {
 
         {/* Creator Tips */}
         <div className="glass rounded-2xl border border-purple-200 p-6 shadow-fun">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">💡 Creator Tips</h3>
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-gradient-to-br from-yellow-400/20 to-amber-500/20 rounded-lg">
+              <Lightbulb className="w-5 h-5 text-yellow-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">Creator Tips</h3>
+          </div>
+
           <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="text-xl">🎥</div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Stream Regularly</h4>
-                <p className="text-xs text-gray-600">Consistent streaming builds a loyal audience</p>
+            {/* Tip 1 */}
+            <div className="group p-4 rounded-xl bg-gradient-to-br from-red-500/5 to-pink-500/5 border border-red-200/50 hover:border-red-300 hover:shadow-md transition-all">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 p-2.5 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg shadow-lg">
+                  <Video className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-gray-800 mb-1.5">Stream Regularly</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">Consistent streaming builds a loyal audience and keeps viewers coming back</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="text-xl">💬</div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Engage with Chat</h4>
-                <p className="text-xs text-gray-600">Respond to messages to keep viewers engaged</p>
+
+            {/* Tip 2 */}
+            <div className="group p-4 rounded-xl bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-200/50 hover:border-blue-300 hover:shadow-md transition-all">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 p-2.5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg shadow-lg">
+                  <MessageCircle className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-gray-800 mb-1.5">Engage with Chat</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">Respond to messages and interact with viewers to create a connected community</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="text-xl">🎁</div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Thank Your Supporters</h4>
-                <p className="text-xs text-gray-600">Acknowledge gifts and top supporters during streams</p>
+
+            {/* Tip 3 */}
+            <div className="group p-4 rounded-xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-200/50 hover:border-purple-300 hover:shadow-md transition-all">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-gray-800 mb-1.5">Thank Your Supporters</h4>
+                  <p className="text-sm text-gray-600 leading-relaxed">Acknowledge gifts and show appreciation to build stronger relationships with fans</p>
+                </div>
               </div>
             </div>
           </div>
