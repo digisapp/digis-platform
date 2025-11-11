@@ -455,7 +455,7 @@ export default function CreatorDashboard() {
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">Ticketed Shows</h3>
-            <p className="text-sm text-gray-600">Create and manage exclusive events</p>
+            <p className="text-sm text-gray-600">Create private events, classes, or tutorials</p>
           </button>
         </div>
 
