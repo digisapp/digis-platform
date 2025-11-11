@@ -204,7 +204,7 @@ export class SubscriptionService {
         lastPaymentAt: startDate,
         nextBillingAt: expiresAt,
         totalPaid: tier.pricePerMonth,
-        autoRenew: false, // Phase 1: No auto-renew
+        autoRenew: true, // Auto-renew enabled by default
       })
       .returning();
 
@@ -367,6 +367,238 @@ export class SubscriptionService {
       totalRevenue,
       activeSubscriptions: activeSubscribers.length,
     };
+  }
+
+  /**
+   * Process subscription renewals (called by cron)
+   */
+  static async processRenewals() {
+    const now = new Date();
+    const results = {
+      processed: 0,
+      succeeded: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+
+    try {
+      // Find all subscriptions that need renewal
+      const subsToRenew = await db.query.subscriptions.findMany({
+        where: and(
+          eq(subscriptions.status, 'active'),
+          eq(subscriptions.autoRenew, true),
+          sql`${subscriptions.nextBillingAt} <= NOW()`
+        ),
+        with: {
+          tier: true,
+          user: true,
+          creator: true,
+        },
+      });
+
+      console.log(`[Renewals] Found ${subsToRenew.length} subscriptions to renew`);
+
+      for (const subscription of subsToRenew) {
+        results.processed++;
+
+        try {
+          await this.renewSubscription(subscription.id);
+          results.succeeded++;
+          console.log(`[Renewals] ✓ Renewed subscription ${subscription.id}`);
+        } catch (error) {
+          results.failed++;
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          results.errors.push(`Sub ${subscription.id}: ${errorMsg}`);
+          console.error(`[Renewals] ✗ Failed to renew ${subscription.id}:`, errorMsg);
+
+          // Increment failed payment count
+          await db
+            .update(subscriptions)
+            .set({
+              failedPaymentCount: subscription.failedPaymentCount + 1,
+            })
+            .where(eq(subscriptions.id, subscription.id));
+
+          // If failed 3 times, cancel subscription
+          if (subscription.failedPaymentCount >= 2) {
+            await db
+              .update(subscriptions)
+              .set({
+                status: 'cancelled',
+                cancelledAt: now,
+                autoRenew: false,
+              })
+              .where(eq(subscriptions.id, subscription.id));
+
+            console.log(`[Renewals] ✗ Cancelled subscription ${subscription.id} after 3 failed payments`);
+          }
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error('[Renewals] Fatal error processing renewals:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Renew a single subscription
+   */
+  static async renewSubscription(subscriptionId: string) {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.id, subscriptionId),
+      with: {
+        tier: true,
+      },
+    });
+
+    if (!subscription) {
+      throw new Error('Subscription not found');
+    }
+
+    if (subscription.status !== 'active') {
+      throw new Error('Subscription is not active');
+    }
+
+    if (!subscription.autoRenew) {
+      throw new Error('Auto-renew is disabled');
+    }
+
+    // Get user wallet
+    const userWallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, subscription.userId),
+    });
+
+    if (!userWallet) {
+      throw new Error('Wallet not found');
+    }
+
+    // Check if user has enough coins
+    const availableBalance = userWallet.balance - userWallet.heldBalance;
+    if (availableBalance < subscription.tier.pricePerMonth) {
+      throw new Error(`Insufficient balance. Need ${subscription.tier.pricePerMonth} coins, have ${availableBalance}.`);
+    }
+
+    // Calculate new billing period
+    const now = new Date();
+    const newExpiresAt = new Date(subscription.expiresAt);
+    newExpiresAt.setDate(newExpiresAt.getDate() + 30);
+    const newNextBillingAt = new Date(newExpiresAt);
+
+    // Create wallet transactions (double-entry)
+    const idempotencyKey = `renewal_${subscriptionId}_${Date.now()}`;
+
+    // Deduct from user
+    const [userTransaction] = await db
+      .insert(walletTransactions)
+      .values({
+        userId: subscription.userId,
+        amount: -subscription.tier.pricePerMonth,
+        type: 'subscription_payment',
+        status: 'completed',
+        description: `Subscription renewal - ${subscription.tier.name}`,
+        idempotencyKey,
+        metadata: JSON.stringify({ subscriptionId, tierId: subscription.tierId }),
+      })
+      .returning();
+
+    // Credit to creator
+    const [creatorTransaction] = await db
+      .insert(walletTransactions)
+      .values({
+        userId: subscription.creatorId,
+        amount: subscription.tier.pricePerMonth,
+        type: 'subscription_earnings',
+        status: 'completed',
+        description: `Subscription renewal earnings - ${subscription.tier.name}`,
+        relatedTransactionId: userTransaction.id,
+        metadata: JSON.stringify({ subscriptionId, subscriberId: subscription.userId }),
+      })
+      .returning();
+
+    // Link transactions
+    await db
+      .update(walletTransactions)
+      .set({ relatedTransactionId: creatorTransaction.id })
+      .where(eq(walletTransactions.id, userTransaction.id));
+
+    // Update wallet balances
+    await db
+      .update(wallets)
+      .set({ balance: userWallet.balance - subscription.tier.pricePerMonth })
+      .where(eq(wallets.userId, subscription.userId));
+
+    const creatorWallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, subscription.creatorId),
+    });
+
+    if (creatorWallet) {
+      await db
+        .update(wallets)
+        .set({ balance: creatorWallet.balance + subscription.tier.pricePerMonth })
+        .where(eq(wallets.userId, subscription.creatorId));
+    }
+
+    // Update subscription
+    await db
+      .update(subscriptions)
+      .set({
+        expiresAt: newExpiresAt,
+        nextBillingAt: newNextBillingAt,
+        lastPaymentAt: now,
+        totalPaid: subscription.totalPaid + subscription.tier.pricePerMonth,
+        failedPaymentCount: 0, // Reset failed count on success
+        updatedAt: now,
+      })
+      .where(eq(subscriptions.id, subscriptionId));
+
+    // Create payment record
+    await db.insert(subscriptionPayments).values({
+      subscriptionId: subscription.id,
+      userId: subscription.userId,
+      creatorId: subscription.creatorId,
+      amount: subscription.tier.pricePerMonth,
+      status: 'completed',
+      transactionId: userTransaction.id,
+      billingPeriodStart: subscription.expiresAt,
+      billingPeriodEnd: newExpiresAt,
+      paidAt: now,
+    });
+
+    return {
+      success: true,
+      newExpiresAt,
+      amountCharged: subscription.tier.pricePerMonth,
+    };
+  }
+
+  /**
+   * Toggle auto-renew for a subscription
+   */
+  static async toggleAutoRenew(userId: string, subscriptionId: string, autoRenew: boolean) {
+    const subscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.id, subscriptionId),
+    });
+
+    if (!subscription) {
+      throw new Error('Subscription not found');
+    }
+
+    if (subscription.userId !== userId) {
+      throw new Error('Not authorized to modify this subscription');
+    }
+
+    const [updated] = await db
+      .update(subscriptions)
+      .set({
+        autoRenew,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.id, subscriptionId))
+      .returning();
+
+    return updated;
   }
 
   /**
