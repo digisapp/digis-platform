@@ -7,8 +7,6 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
 import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio } from 'lucide-react';
-import { IconContainer } from '@/components/ui/Icon';
-import { LiveIndicator } from '@/components/ui/icons/LiveIndicator';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -408,9 +406,7 @@ export default function CreatorDashboard() {
               className="w-full text-left hover:opacity-80 transition-opacity"
             >
               <div className="flex items-center gap-2 mb-2">
-                <IconContainer variant="green" size="md" glow={earnings24h > 0}>
-                  <Coins className="w-5 h-5" />
-                </IconContainer>
+                <Coins className="w-5 h-5 text-green-600" />
                 <h3 className="text-lg font-bold text-gray-800">Earnings</h3>
               </div>
               <div className="flex items-baseline gap-2">
@@ -426,7 +422,7 @@ export default function CreatorDashboard() {
             className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-3">
-              <LiveIndicator size="md" showIcon showText />
+              <Video className="w-6 h-6 text-red-500" />
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">L</kbd>
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-1">Start Streaming</h3>
@@ -442,9 +438,7 @@ export default function CreatorDashboard() {
             className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-3">
-              <IconContainer variant="purple" size="md">
-                <Ticket className="w-5 h-5" />
-              </IconContainer>
+              <Ticket className="w-6 h-6 text-purple-500" />
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
             </div>
             <h3 className="text-lg font-bold text-gray-800 mb-1">Ticketed Shows</h3>
