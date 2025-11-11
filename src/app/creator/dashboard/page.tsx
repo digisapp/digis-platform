@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { CallSettings } from '@/components/creator/CallSettings';
 import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -276,76 +276,6 @@ export default function CreatorDashboard() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">Creator Dashboard 🎨</h1>
           <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
         </div>
-
-        {/* KPI Summary Card - This Week */}
-        {analytics && (
-          <div className="mb-8 relative overflow-hidden">
-            {/* Hero KPI Card */}
-            <div className="glass rounded-3xl border-2 border-purple-300 p-8 shadow-2xl relative overflow-hidden">
-              {/* Gradient Background Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-digis-purple/10 via-digis-pink/10 to-digis-cyan/10 pointer-events-none" />
-
-              <div className="relative z-10">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-1">This Week Summary 📊</h2>
-                    <p className="text-sm text-gray-600">Your performance at a glance</p>
-                  </div>
-                  <div className="px-4 py-2 bg-white/60 rounded-full border border-purple-200">
-                    <span className="text-sm font-semibold text-gray-700">Jan 6 - Jan 12</span>
-                  </div>
-                </div>
-
-                {/* KPI Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Total Earnings */}
-                  <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-semibold text-gray-700">Coins Earned</div>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full">
-                        <TrendingUp className="w-3 h-3 text-green-600" />
-                        <span className="text-xs font-bold text-green-600">+23%</span>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-                      {Math.floor(analytics.overview.totalEarnings * 0.15)}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">vs. last week</div>
-                  </div>
-
-                  {/* Total Views */}
-                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-semibold text-gray-700">Stream Views</div>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 rounded-full">
-                        <TrendingUp className="w-3 h-3 text-blue-600" />
-                        <span className="text-xs font-bold text-blue-600">+15%</span>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-digis-cyan">
-                      {Math.floor(analytics.streams.totalViews * 0.18)}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">vs. last week</div>
-                  </div>
-                </div>
-
-                {/* Quick Insight */}
-                <div className="mt-6 p-4 bg-white/60 rounded-xl border border-purple-200">
-                  <div className="flex items-start gap-3">
-                    <div className="text-2xl">✨</div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">You're doing great!</p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Your earnings are up 23% compared to last week. Keep streaming consistently to maintain this growth!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

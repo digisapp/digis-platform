@@ -117,34 +117,34 @@ export default function CallHistoryPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-400';
+        return 'text-green-600';
       case 'active':
         return 'text-digis-cyan';
       case 'rejected':
       case 'cancelled':
-        return 'text-red-400';
+        return 'text-red-600';
       default:
-        return 'text-gray-400';
+        return 'text-gray-600';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-purple-900/10 to-black py-20 px-4">
+      <div className="min-h-screen bg-pastel-gradient py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-white">Loading call history...</p>
+          <p className="text-gray-700">Loading call history...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-purple-900/10 to-black py-20 px-4">
+    <div className="min-h-screen bg-pastel-gradient py-20 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Call History</h1>
-          <p className="text-gray-400">View your past video calls and earnings</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Call History</h1>
+          <p className="text-gray-600">View your past video calls and earnings</p>
         </div>
 
         {/* Stats Cards */}
@@ -152,33 +152,33 @@ export default function CallHistoryPage() {
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <Phone className="w-5 h-5 text-digis-cyan" />
-              <span className="text-gray-400 text-sm">Total Calls</span>
+              <span className="text-gray-600 text-sm">Total Calls</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.totalCalls}</p>
+            <p className="text-3xl font-bold text-gray-800">{stats.totalCalls}</p>
           </GlassCard>
 
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-5 h-5 text-purple-400" />
-              <span className="text-gray-400 text-sm">Total Minutes</span>
+              <span className="text-gray-600 text-sm">Total Minutes</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.totalMinutes}</p>
+            <p className="text-3xl font-bold text-gray-800">{stats.totalMinutes}</p>
           </GlassCard>
 
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <Coins className="w-5 h-5 text-yellow-400" />
-              <span className="text-gray-400 text-sm">Coins Spent</span>
+              <span className="text-gray-600 text-sm">Coins Spent</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.totalCoinsSpent}</p>
+            <p className="text-3xl font-bold text-gray-800">{stats.totalCoinsSpent}</p>
           </GlassCard>
 
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <TrendingUp className="w-5 h-5 text-green-400" />
-              <span className="text-gray-400 text-sm">Coins Earned</span>
+              <span className="text-gray-600 text-sm">Coins Earned</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.totalCoinsEarned}</p>
+            <p className="text-3xl font-bold text-gray-800">{stats.totalCoinsEarned}</p>
           </GlassCard>
         </div>
 
@@ -186,8 +186,8 @@ export default function CallHistoryPage() {
         {calls.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <Phone className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No calls yet</h3>
-            <p className="text-gray-400 mb-6">Your call history will appear here</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">No calls yet</h3>
+            <p className="text-gray-600 mb-6">Your call history will appear here</p>
             <GlassButton onClick={() => router.push('/explore')}>
               Browse Creators
             </GlassButton>
@@ -218,14 +218,14 @@ export default function CallHistoryPage() {
                       {/* Call Info */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold text-white">
+                          <h3 className="text-lg font-semibold text-gray-800">
                             {otherUser.displayName || otherUser.username}
                           </h3>
                           <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(call.status)}`}>
                             {call.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             {formatDate(call.requestedAt)}
@@ -243,16 +243,16 @@ export default function CallHistoryPage() {
                     {/* Coins */}
                     <div className="text-right">
                       {call.actualCoins !== null ? (
-                        <div className={`text-2xl font-bold ${isCreator ? 'text-green-400' : 'text-yellow-400'}`}>
+                        <div className={`text-2xl font-bold ${isCreator ? 'text-green-600' : 'text-yellow-600'}`}>
                           {isCreator ? '+' : '-'}{call.actualCoins}
-                          <span className="text-sm text-gray-400 ml-1">coins</span>
+                          <span className="text-sm text-gray-600 ml-1">coins</span>
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-600">
                           {call.status === 'pending' ? 'Pending' : 'No charge'}
                         </div>
                       )}
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-600 mt-1">
                         {call.ratePerMinute} coins/min
                       </div>
                     </div>
