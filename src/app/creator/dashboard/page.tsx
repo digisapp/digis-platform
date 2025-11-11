@@ -374,8 +374,9 @@ export default function CreatorDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Earnings with Period Selector */}
           <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-6 shadow-fun">
-            {/* Period Selector */}
-            <div className="flex justify-end mb-3">
+            {/* Icon and Period Selector Row */}
+            <div className="flex items-center justify-between mb-3">
+              <Coins className="w-6 h-6 text-green-600" />
               <div className="flex gap-1 bg-white/60 rounded-lg p-1">
                 {[
                   { value: '24h', label: '24h' },
@@ -405,9 +406,6 @@ export default function CreatorDashboard() {
               onClick={() => router.push('/creator/earnings')}
               className="w-full text-left hover:opacity-80 transition-opacity"
             >
-              <div className="flex items-center justify-between mb-3">
-                <Coins className="w-6 h-6 text-green-600" />
-              </div>
               <h3 className="text-lg font-bold text-gray-800 mb-1">Earnings</h3>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
