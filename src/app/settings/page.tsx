@@ -360,33 +360,72 @@ export default function SettingsPage() {
               Profile Preview
             </h3>
             <div className="space-y-4">
-              {/* Banner Preview */}
-              <div className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20">
+              {/* Banner Preview - Clickable */}
+              <label className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 cursor-pointer group block">
                 {(bannerPreview || bannerUrl) ? (
-                  <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                  <>
+                    <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="text-center">
+                        <Upload className="w-6 h-6 text-white mx-auto mb-1" />
+                        <p className="text-xs text-white font-medium">Change Banner</p>
+                      </div>
+                    </div>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    <ImageIcon className="w-8 h-8" />
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-digis-pink transition-colors">
+                    <Upload className="w-8 h-8 mb-2" />
+                    <p className="text-sm font-medium">Click to add banner</p>
                   </div>
                 )}
-              </div>
+                {uploadingBanner && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerUpload}
+                  disabled={uploadingBanner}
+                  className="hidden"
+                />
+              </label>
 
               {/* Avatar & Info */}
               <div className="flex items-start gap-4 -mt-12 relative z-10 px-4">
-                <div className="relative">
+                {/* Avatar - Clickable */}
+                <label className="relative cursor-pointer group">
                   {(avatarPreview || avatarUrl) ? (
-                    <img src={avatarPreview || avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+                    <>
+                      <img src={avatarPreview || avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+                      <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-white" />
+                      </div>
+                    </>
                   ) : (
-                    <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white text-2xl font-bold">
+                    <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white text-2xl font-bold group-hover:scale-105 transition-transform">
                       {currentUser?.username?.[0]?.toUpperCase()}
                     </div>
                   )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center border-4 border-white">
+                      <LoadingSpinner size="sm" />
+                    </div>
+                  )}
                   {currentUser?.role === 'creator' && (
-                    <div className="absolute -bottom-1 -right-1 p-1 bg-yellow-500 rounded-full border-2 border-white">
+                    <div className="absolute -bottom-1 -right-1 p-1 bg-yellow-500 rounded-full border-2 border-white pointer-events-none">
                       <Crown className="w-3 h-3 text-white" />
                     </div>
                   )}
-                </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="hidden"
+                  />
+                </label>
                 <div className="flex-1 mt-6">
                   <h4 className="font-bold text-gray-800 text-lg">{displayName || 'Your Name'}</h4>
                   <p className="text-sm text-gray-600">@{currentUser?.username}</p>
@@ -562,45 +601,40 @@ export default function SettingsPage() {
                 <ImageIcon className="w-4 h-4 inline mr-1" />
                 Profile Avatar
               </label>
-              <div className="space-y-3">
-                {/* Preview */}
-                {(avatarPreview || avatarUrl) && (
-                  <div className="flex items-center gap-4">
+              <label className="relative cursor-pointer group block w-fit">
+                {(avatarPreview || avatarUrl) ? (
+                  <div className="relative">
                     <img
                       src={avatarPreview || avatarUrl}
-                      alt="Avatar preview"
-                      className="h-24 w-24 rounded-full object-cover border-2 border-purple-200"
+                      alt="Avatar"
+                      className="h-24 w-24 rounded-full object-cover border-2 border-purple-200 group-hover:border-digis-cyan transition-all"
                     />
-                    <p className="text-xs text-gray-700">Current avatar</p>
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-white" />
+                    </div>
+                    {uploadingAvatar && (
+                      <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-24 w-24 rounded-full border-2 border-dashed border-purple-200 group-hover:border-digis-cyan transition-all flex items-center justify-center bg-white/50">
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-cyan transition-colors" />
                   </div>
                 )}
-
-                {/* Upload Button */}
-                <label className="relative cursor-pointer">
-                  <div className="px-4 py-3 bg-white/50 border-2 border-dashed border-purple-200 rounded-lg hover:border-digis-cyan/50 transition-all text-center">
-                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-600" />
-                    <p className="text-sm text-gray-700">
-                      {uploadingAvatar ? 'Uploading...' : 'Click to upload avatar'}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Square image, max 1MB (512×512 recommended)
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                    className="hidden"
-                  />
-                </label>
-                {uploadingAvatar && (
-                  <div className="flex items-center gap-2 text-sm text-digis-cyan">
-                    <LoadingSpinner size="sm" />
-                    <span>Uploading avatar...</span>
-                  </div>
-                )}
-              </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-xs text-gray-600 mt-2">
+                Click to {(avatarPreview || avatarUrl) ? 'change' : 'upload'} avatar • Max 1MB
+              </p>
             </div>
 
             {/* Banner Upload */}
@@ -609,45 +643,40 @@ export default function SettingsPage() {
                 <ImageIcon className="w-4 h-4 inline mr-1" />
                 Profile Banner
               </label>
-              <div className="space-y-3">
-                {/* Preview */}
-                {(bannerPreview || bannerUrl) && (
-                  <div className="space-y-2">
+              <label className="relative cursor-pointer group block">
+                {(bannerPreview || bannerUrl) ? (
+                  <div className="relative">
                     <img
                       src={bannerPreview || bannerUrl}
-                      alt="Banner preview"
-                      className="h-32 w-full object-cover rounded-lg border-2 border-purple-200"
+                      alt="Banner"
+                      className="h-32 w-full object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-pink transition-all"
                     />
-                    <p className="text-xs text-gray-700">Current banner</p>
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-white" />
+                    </div>
+                    {uploadingBanner && (
+                      <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-32 w-full rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-pink transition-all flex items-center justify-center bg-white/50">
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-pink transition-colors" />
                   </div>
                 )}
-
-                {/* Upload Button */}
-                <label className="relative cursor-pointer">
-                  <div className="px-4 py-3 bg-white/50 border-2 border-dashed border-purple-200 rounded-lg hover:border-digis-pink/50 transition-all text-center">
-                    <Upload className="w-5 h-5 mx-auto mb-2 text-gray-600" />
-                    <p className="text-sm text-gray-700">
-                      {uploadingBanner ? 'Uploading...' : 'Click to upload banner'}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Wide image, max 2MB (1920×500 recommended)
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleBannerUpload}
-                    disabled={uploadingBanner}
-                    className="hidden"
-                  />
-                </label>
-                {uploadingBanner && (
-                  <div className="flex items-center gap-2 text-sm text-digis-pink">
-                    <LoadingSpinner size="sm" />
-                    <span>Uploading banner...</span>
-                  </div>
-                )}
-              </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerUpload}
+                  disabled={uploadingBanner}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-xs text-gray-600 mt-2">
+                Click to {(bannerPreview || bannerUrl) ? 'change' : 'upload'} banner • Max 2MB
+              </p>
             </div>
 
             <GlassButton
