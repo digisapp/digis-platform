@@ -61,10 +61,10 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
               <span className="text-yellow-400 font-bold text-lg">{message.tipAmount} coins</span>
             </div>
             {message.content && message.content !== `Sent ${message.tipAmount} coins` && (
-              <p className="text-white text-sm">{message.content}</p>
+              <p className="text-gray-800 text-sm">{message.content}</p>
             )}
           </div>
-          <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+          <p className={`text-xs text-gray-600 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
             {formatTime(message.createdAt)}
           </p>
         </div>
@@ -84,8 +84,8 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">🔒</span>
                 <div>
-                  <p className="text-white font-semibold">Locked Message</p>
-                  <p className="text-gray-400 text-sm">Unlock to view content</p>
+                  <p className="text-gray-800 font-semibold">Locked Message</p>
+                  <p className="text-gray-600 text-sm">Unlock to view content</p>
                 </div>
               </div>
 
@@ -105,12 +105,12 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
               <button
                 onClick={handleUnlock}
                 disabled={unlocking}
-                className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {unlocking ? 'Unlocking...' : `Unlock for ${message.unlockPrice} coins`}
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-1 text-left">
+            <p className="text-xs text-gray-600 mt-1 text-left">
               {formatTime(message.createdAt)}
             </p>
           </div>
@@ -144,9 +144,9 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
               </div>
             )}
 
-            <p className="text-white break-words">{message.content}</p>
+            <p className="text-gray-800 break-words">{message.content}</p>
           </div>
-          <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+          <p className={`text-xs text-gray-600 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
             {formatTime(message.createdAt)}
           </p>
         </div>
@@ -177,13 +177,13 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
         <div
           className={`px-4 py-3 rounded-2xl ${
             isOwnMessage
-              ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-black'
-              : 'bg-white/10 text-white'
+              ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
+              : 'bg-white/80 border border-purple-200 text-gray-800'
           }`}
         >
           <p className="break-words">{message.content}</p>
         </div>
-        <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+        <p className={`text-xs text-gray-600 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
           {formatTime(message.createdAt)}
         </p>
       </div>

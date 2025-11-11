@@ -235,7 +235,7 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -243,12 +243,12 @@ export default function ChatPage() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Conversation not found</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Conversation not found</h2>
           <button
             onClick={() => router.push('/messages')}
-            className="px-6 py-3 bg-digis-cyan rounded-lg font-semibold hover:scale-105 transition-transform"
+            className="px-6 py-3 bg-digis-cyan text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
           >
             Back to Messages
           </button>
@@ -259,15 +259,15 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex flex-col">
+      <div className="min-h-screen bg-pastel-gradient flex flex-col">
         {/* Header */}
-        <div className="bg-black/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-10">
+        <div className="glass backdrop-blur-xl border-b border-purple-200 sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4 max-w-4xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push('/messages')}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -289,10 +289,10 @@ export default function ChatPage() {
                 </div>
 
                 <div>
-                  <h2 className="font-semibold text-white">
+                  <h2 className="font-semibold text-gray-800">
                     {conversation.otherUser.displayName || conversation.otherUser.username}
                   </h2>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-600">
                     {conversation.otherUser.role === 'creator' ? 'Creator' : 'Fan'}
                   </p>
                 </div>
@@ -317,8 +317,8 @@ export default function ChatPage() {
               {messages.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">👋</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Start the conversation!</h3>
-                  <p className="text-gray-400">Send a message to get started</p>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Start the conversation!</h3>
+                  <p className="text-gray-600">Send a message to get started</p>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -337,7 +337,7 @@ export default function ChatPage() {
         </div>
 
         {/* Message Input */}
-        <div className="bg-black/80 backdrop-blur-xl border-t border-white/10 sticky bottom-0">
+        <div className="glass backdrop-blur-xl border-t border-purple-200 sticky bottom-0">
           <div className="container mx-auto px-4 py-4 max-w-4xl">
             <form onSubmit={sendMessage} className="flex gap-2">
               <input
@@ -345,13 +345,13 @@ export default function ChatPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 bg-white/10 border border-white/20 rounded-full px-6 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="flex-1 bg-white/60 border border-purple-200 rounded-full px-6 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {sending ? '...' : 'Send'}
               </button>

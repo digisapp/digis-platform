@@ -135,29 +135,29 @@ export default function MessageRequestsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={() => router.push('/messages')}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-600 hover:text-gray-800 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-white">Message Requests 📬</h1>
-              <p className="text-gray-400">Pending message requests from fans</p>
+              <h1 className="text-3xl font-bold text-gray-800">Message Requests 📬</h1>
+              <p className="text-gray-600">Pending message requests from fans</p>
             </div>
           </div>
         </div>
@@ -167,11 +167,11 @@ export default function MessageRequestsPage() {
           {requests.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">✅</div>
-              <h3 className="text-xl font-semibold text-white mb-2">No pending requests</h3>
-              <p className="text-gray-400 mb-6">You're all caught up!</p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No pending requests</h3>
+              <p className="text-gray-600 mb-6">You're all caught up!</p>
               <button
                 onClick={() => router.push('/messages')}
-                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
               >
                 Back to Messages
               </button>
@@ -180,7 +180,7 @@ export default function MessageRequestsPage() {
             requests.map((request) => (
               <div
                 key={request.id}
-                className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-6 hover:border-digis-cyan hover:bg-black/60 transition-all"
+                className="glass rounded-xl border border-purple-200 p-6 hover:border-digis-cyan hover:bg-white/80 transition-all"
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
@@ -201,20 +201,20 @@ export default function MessageRequestsPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-white">
+                      <h3 className="font-semibold text-gray-800">
                         {request.fromUser.displayName || request.fromUser.username}
                       </h3>
                       {request.isPaid && (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-xs bg-green-500/20 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                           💰 Paid {request.paidAmount} tokens
                         </span>
                       )}
-                      <span className="text-xs text-gray-500 ml-auto">
+                      <span className="text-xs text-gray-600 ml-auto">
                         {formatTime(request.createdAt)}
                       </span>
                     </div>
 
-                    <p className="text-gray-300 mb-4 whitespace-pre-wrap">
+                    <p className="text-gray-700 mb-4 whitespace-pre-wrap">
                       {request.initialMessage}
                     </p>
 
@@ -223,14 +223,14 @@ export default function MessageRequestsPage() {
                       <button
                         onClick={() => handleAccept(request.id)}
                         disabled={processing === request.id}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
                         {processing === request.id ? 'Accepting...' : 'Accept & Reply'}
                       </button>
                       <button
                         onClick={() => handleDecline(request.id)}
                         disabled={processing === request.id}
-                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg font-semibold hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-4 py-2 bg-white/60 border border-purple-200 text-gray-800 rounded-lg font-semibold hover:bg-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {processing === request.id ? 'Declining...' : 'Decline'}
                       </button>
@@ -248,8 +248,8 @@ export default function MessageRequestsPage() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">💡</span>
               <div>
-                <h4 className="font-semibold text-white mb-1">About Message Requests</h4>
-                <p className="text-sm text-gray-300">
+                <h4 className="font-semibold text-gray-800 mb-1">About Message Requests</h4>
+                <p className="text-sm text-gray-700">
                   Accepting a request creates a conversation with this fan. Declining removes the request.
                   Paid requests show the token amount the fan paid to reach you.
                 </p>
