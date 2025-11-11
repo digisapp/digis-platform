@@ -318,6 +318,15 @@ export default function CreatorDashboard() {
             <h3 className="text-base font-bold text-gray-800 mb-1">Call Requests</h3>
             <p className="text-xs text-gray-600">Manage 1-on-1 call requests</p>
           </button>
+
+          <button
+            onClick={() => router.push('/creator/subscriptions/setup')}
+            className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-purple-400 p-4 hover:scale-105 transition-all text-left shadow-fun"
+          >
+            <div className="text-2xl mb-2">⭐</div>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Subscriptions</h3>
+            <p className="text-xs text-gray-600">Manage monthly superfans</p>
+          </button>
         </div>
 
         {/* Upcoming Events */}

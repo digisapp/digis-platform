@@ -1,0 +1,344 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { GlassButton } from '@/components/ui/GlassButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ArrowLeft, DollarSign, Star, Users, ToggleLeft, ToggleRight, Plus, X } from 'lucide-react';
+
+export default function SubscriptionSetupPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    enabled: false,
+    name: 'Superfan',
+    description: '',
+    pricePerMonth: 50,
+    benefits: ['Exclusive content', 'Subscriber badge', 'Priority support'],
+  });
+  const [newBenefit, setNewBenefit] = useState('');
+  const [stats, setStats] = useState({
+    subscriberCount: 0,
+    monthlyRevenue: 0,
+  });
+
+  useEffect(() => {
+    fetchSubscriptionSettings();
+  }, []);
+
+  const fetchSubscriptionSettings = async () => {
+    try {
+      const response = await fetch('/api/creator/subscriptions/settings');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tier) {
+          setFormData({
+            enabled: data.tier.isActive,
+            name: data.tier.name,
+            description: data.tier.description || '',
+            pricePerMonth: data.tier.pricePerMonth,
+            benefits: data.tier.benefits || ['Exclusive content', 'Subscriber badge', 'Priority support'],
+          });
+          setStats({
+            subscriberCount: data.tier.subscriberCount || 0,
+            monthlyRevenue: (data.tier.subscriberCount || 0) * data.tier.pricePerMonth,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching subscription settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('Please enter a name for your subscription');
+      return;
+    }
+
+    if (formData.pricePerMonth < 1) {
+      alert('Price must be at least 1 coin per month');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const response = await fetch('/api/creator/subscriptions/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          pricePerMonth: formData.pricePerMonth,
+          benefits: formData.benefits,
+          isActive: formData.enabled,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Subscription settings saved!');
+        router.push('/creator/dashboard');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addBenefit = () => {
+    if (newBenefit.trim() && formData.benefits.length < 10) {
+      setFormData({
+        ...formData,
+        benefits: [...formData.benefits, newBenefit.trim()],
+      });
+      setNewBenefit('');
+    }
+  };
+
+  const removeBenefit = (index: number) => {
+    setFormData({
+      ...formData,
+      benefits: formData.benefits.filter((_, i) => i !== index),
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-pastel-gradient">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </button>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Subscription Settings</h1>
+          <p className="text-gray-600">Set up monthly subscriptions for your superfans</p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Stats Cards */}
+          {formData.enabled && stats.subscriberCount > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <GlassCard className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-500/20 rounded-xl">
+                    <Users className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Active Subscribers</p>
+                    <p className="text-2xl font-bold text-gray-800">{stats.subscriberCount}</p>
+                  </div>
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-500/20 rounded-xl">
+                    <DollarSign className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Monthly Revenue</p>
+                    <p className="text-2xl font-bold text-gray-800">{stats.monthlyRevenue} coins</p>
+                  </div>
+                </div>
+              </GlassCard>
+            </div>
+          )}
+
+          {/* Enable/Disable */}
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-digis-cyan/20 rounded-xl">
+                  <Star className="w-6 h-6 text-digis-cyan" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">Enable Subscriptions</h3>
+                  <p className="text-sm text-gray-600">Allow fans to subscribe to your exclusive content</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
+                className="p-2"
+              >
+                {formData.enabled ? (
+                  <ToggleRight className="w-12 h-12 text-digis-cyan" />
+                ) : (
+                  <ToggleLeft className="w-12 h-12 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </GlassCard>
+
+          {/* Subscription Details */}
+          <GlassCard className="p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Subscription Details</h3>
+
+            <div className="space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subscription Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Superfan, VIP, Supporter"
+                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  maxLength={50}
+                />
+                <p className="text-xs text-gray-600 mt-1">What your subscribers will be called</p>
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Monthly Price *
+                </label>
+                <div className="flex items-center gap-4">
+                  <DollarSign className="w-6 h-6 text-amber-500" />
+                  <input
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={formData.pricePerMonth}
+                    onChange={(e) => setFormData({ ...formData, pricePerMonth: parseInt(e.target.value) || 1 })}
+                    className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
+                  />
+                  <span className="text-gray-600 font-medium">coins/month</span>
+                </div>
+                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    Fans will pay {formData.pricePerMonth} coins every 30 days to maintain their subscription
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Tell fans what they get with a subscription..."
+                  rows={3}
+                  maxLength={500}
+                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                />
+              </div>
+
+              {/* Benefits */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Benefits
+                </label>
+
+                {/* Existing benefits */}
+                <div className="space-y-2 mb-3">
+                  {formData.benefits.map((benefit, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-white/60 border border-purple-200 rounded-lg"
+                    >
+                      <span className="text-green-500">✓</span>
+                      <span className="flex-1 text-gray-800">{benefit}</span>
+                      <button
+                        onClick={() => removeBenefit(index)}
+                        className="text-gray-500 hover:text-red-500 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add new benefit */}
+                {formData.benefits.length < 10 && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newBenefit}
+                      onChange={(e) => setNewBenefit(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addBenefit()}
+                      placeholder="Add a benefit..."
+                      className="flex-1 px-4 py-2 bg-white/60 border border-purple-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                      maxLength={100}
+                    />
+                    <button
+                      onClick={addBenefit}
+                      className="px-4 py-2 bg-digis-cyan text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Info Card */}
+          <GlassCard className="p-6 bg-gradient-to-br from-digis-cyan/10 to-purple-500/10 border-digis-cyan/30">
+            <div className="flex items-start gap-4">
+              <span className="text-3xl">💡</span>
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-2">How Subscriptions Work</h4>
+                <ul className="text-sm text-gray-700 space-y-2">
+                  <li>• Fans pay monthly to access exclusive subscriber-only content</li>
+                  <li>• Subscribers get a special badge on your profile and in streams</li>
+                  <li>• Subscriptions last 30 days and fans manually renew</li>
+                  <li>• You earn 100% of subscription revenue (no platform fee)</li>
+                  <li>• Create exclusive content marked as "subscribers only"</li>
+                </ul>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Save Buttons */}
+          <div className="flex gap-4">
+            <GlassButton
+              variant="ghost"
+              onClick={() => router.back()}
+              className="flex-1"
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton
+              variant="gradient"
+              onClick={handleSave}
+              disabled={saving || !formData.name.trim()}
+              shimmer
+              className="flex-1"
+            >
+              {saving ? 'Saving...' : 'Save Settings'}
+            </GlassButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

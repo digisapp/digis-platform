@@ -11,7 +11,9 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'creator_payout',
   'refund',
   'dm_tip',
-  'locked_message'
+  'locked_message',
+  'subscription_payment',
+  'subscription_earnings'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [

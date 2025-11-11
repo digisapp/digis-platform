@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, Verified, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone } from 'lucide-react';
+import { UserCircle, Users, Calendar, Verified, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -43,6 +43,9 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<any>(null);
 
   // Content tabs
   const [activeTab, setActiveTab] = useState<'streams' | 'shows' | 'about'>('streams');
@@ -74,10 +77,42 @@ export default function ProfilePage() {
 
       setProfile(data);
       setIsFollowing(data.isFollowing);
+
+      // Check subscription status if creator
+      if (data.user.role === 'creator') {
+        checkSubscription(data.user.id);
+        fetchSubscriptionTier(data.user.id);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkSubscription = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/subscriptions/check?creatorId=${creatorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsSubscribed(data.isSubscribed);
+      }
+    } catch (err) {
+      console.error('Error checking subscription:', err);
+    }
+  };
+
+  const fetchSubscriptionTier = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/subscriptions/tier/${creatorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tier && data.tier.isActive) {
+          setSubscriptionTier(data.tier);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching subscription tier:', err);
     }
   };
 
@@ -169,6 +204,33 @@ export default function ProfilePage() {
       alert(err.message);
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (subscribeLoading || !profile?.user.id) return;
+
+    setSubscribeLoading(true);
+    try {
+      const response = await fetch('/api/subscriptions/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creatorId: profile.user.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setIsSubscribed(true);
+      alert(data.message || 'Successfully subscribed!');
+    } catch (err: any) {
+      console.error('Subscribe error:', err);
+      alert(err.message);
+    } finally {
+      setSubscribeLoading(false);
     }
   };
 
@@ -278,6 +340,24 @@ export default function ProfilePage() {
               >
                 {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
               </button>
+
+              {user.role === 'creator' && subscriptionTier && !isSubscribed && (
+                <button
+                  onClick={handleSubscribe}
+                  disabled={subscribeLoading}
+                  className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Star className="w-4 h-4" />
+                  {subscribeLoading ? 'Subscribing...' : `Subscribe (${subscriptionTier.pricePerMonth} coins/mo)`}
+                </button>
+              )}
+
+              {user.role === 'creator' && isSubscribed && (
+                <div className="px-6 py-2 rounded-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 flex items-center gap-2">
+                  <Star className="w-4 h-4 fill-white" />
+                  Subscribed
+                </div>
+              )}
 
               <button
                 onClick={handleMessage}
