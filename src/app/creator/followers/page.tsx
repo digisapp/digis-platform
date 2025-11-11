@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Users, UserPlus, BadgeCheck, ArrowRight, Sparkles, Search } from 'lucide-react';
 
 type User = {
   id: string;
@@ -54,10 +56,10 @@ export default function FollowersPage() {
   };
 
   const renderUserCard = (user: User) => (
-    <div
+    <GlassCard
       key={user.id}
       onClick={() => router.push(`/${user.username}`)}
-      className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4 hover:border-digis-cyan/50 transition-all cursor-pointer group"
+      className="p-5 hover:bg-white/20 transition-all cursor-pointer group border-2 border-transparent hover:border-digis-cyan/30"
     >
       <div className="flex items-center gap-4">
         {/* Avatar */}
@@ -66,110 +68,112 @@ export default function FollowersPage() {
             <img
               src={user.avatarUrl}
               alt={user.displayName || user.username}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white/10"
+              className="w-16 h-16 rounded-full object-cover border-3 border-white/20 shadow-lg"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-purple flex items-center justify-center text-2xl font-bold text-white border-2 border-white/10">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink flex items-center justify-center text-2xl font-bold text-white border-3 border-white/20 shadow-lg">
               {(user.displayName || user.username).charAt(0).toUpperCase()}
             </div>
           )}
           {user.isCreatorVerified && (
-            <div className="absolute -bottom-1 -right-1 bg-digis-cyan rounded-full p-1">
-              <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-              </svg>
+            <div className="absolute -bottom-1 -right-1 bg-digis-cyan rounded-full p-1 shadow-lg">
+              <BadgeCheck className="w-4 h-4 text-white fill-current" />
             </div>
           )}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-white truncate">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-bold text-gray-800 truncate text-lg">
               {user.displayName || user.username}
             </h3>
           </div>
-          <p className="text-sm text-gray-400">@{user.username}</p>
+          <p className="text-sm text-gray-600 mb-1">@{user.username}</p>
           {user.bio && (
-            <p className="text-sm text-gray-300 mt-1 line-clamp-2">{user.bio}</p>
+            <p className="text-sm text-gray-700 mt-2 line-clamp-2">{user.bio}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            {user.followerCount} {user.followerCount === 1 ? 'follower' : 'followers'}
-          </p>
+          <div className="flex items-center gap-1 mt-2">
+            <Users className="w-3 h-3 text-gray-500" />
+            <p className="text-xs text-gray-600 font-medium">
+              {user.followerCount.toLocaleString()} {user.followerCount === 1 ? 'follower' : 'followers'}
+            </p>
+          </div>
         </div>
 
         {/* Arrow */}
-        <div className="text-gray-500 group-hover:text-digis-cyan transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+        <div className="text-gray-400 group-hover:text-digis-cyan group-hover:translate-x-1 transition-all">
+          <ArrowRight className="w-6 h-6" />
         </div>
       </div>
-    </div>
+    </GlassCard>
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+    <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Your Community</h1>
-            <p className="text-gray-400">
-              {followers.length} {followers.length === 1 ? 'follower' : 'followers'} · {following.length} following
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800">Your Community</h1>
+              <div className="flex items-center gap-3 text-gray-600 mt-1">
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span className="font-medium">{followers.length.toLocaleString()} {followers.length === 1 ? 'follower' : 'followers'}</span>
+                </div>
+                <span>·</span>
+                <div className="flex items-center gap-1">
+                  <UserPlus className="w-4 h-4" />
+                  <span className="font-medium">{following.length.toLocaleString()} following</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <GlassButton
-            variant="ghost"
-            onClick={() => router.back()}
-          >
-            ← Back
-          </GlassButton>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-white/10">
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setActiveTab('followers')}
-            className={`pb-4 px-2 font-semibold transition-colors relative ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
               activeTab === 'followers'
-                ? 'text-digis-cyan'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 shadow-lg scale-105'
+                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
             }`}
           >
+            <Users className="w-5 h-5" />
             Followers ({followers.length})
-            {activeTab === 'followers' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-digis-cyan" />
-            )}
           </button>
           <button
             onClick={() => setActiveTab('following')}
-            className={`pb-4 px-2 font-semibold transition-colors relative ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
               activeTab === 'following'
-                ? 'text-digis-cyan'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 shadow-lg scale-105'
+                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
             }`}
           >
+            <UserPlus className="w-5 h-5" />
             Following ({following.length})
-            {activeTab === 'following' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-digis-cyan" />
-            )}
           </button>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 mb-6">
-            <p className="text-red-400">{error}</p>
-          </div>
+          <GlassCard className="bg-red-500/10 border-2 border-red-400 p-4 mb-6">
+            <p className="text-red-700 font-medium">{error}</p>
+          </GlassCard>
         )}
 
         {/* Content */}
@@ -178,41 +182,47 @@ export default function FollowersPage() {
             followers.length > 0 ? (
               followers.map(renderUserCard)
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">👥</div>
-                <h3 className="text-xl font-bold text-white mb-2">No followers yet</h3>
-                <p className="text-gray-400 mb-6">
-                  Share your profile to grow your community
+              <GlassCard className="text-center py-16">
+                <div className="p-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl w-fit mx-auto mb-6">
+                  <Users className="w-20 h-20 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">No followers yet</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Start creating content and share your profile to grow your community
                 </p>
-                <GlassButton
-                  variant="gradient"
-                  onClick={() => router.push('/creator/dashboard')}
-                  shimmer
-                  glow
-                >
-                  Back to Dashboard
-                </GlassButton>
-              </div>
+                <div className="flex items-center gap-3 justify-center">
+                  <GlassButton
+                    variant="gradient"
+                    onClick={() => router.push('/creator/dashboard')}
+                    shimmer
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Back to Dashboard
+                  </GlassButton>
+                </div>
+              </GlassCard>
             )
           ) : (
             following.length > 0 ? (
               following.map(renderUserCard)
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-white mb-2">Not following anyone yet</h3>
-                <p className="text-gray-400 mb-6">
-                  Discover and follow other creators
+              <GlassCard className="text-center py-16">
+                <div className="p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl w-fit mx-auto mb-6">
+                  <Search className="w-20 h-20 text-purple-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">Not following anyone yet</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Discover amazing creators and connect with your community
                 </p>
                 <GlassButton
                   variant="gradient"
                   onClick={() => router.push('/explore')}
                   shimmer
-                  glow
                 >
+                  <Search className="w-4 h-4 mr-2" />
                   Explore Creators
                 </GlassButton>
-              </div>
+              </GlassCard>
             )
           )}
         </div>
