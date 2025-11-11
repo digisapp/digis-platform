@@ -353,30 +353,22 @@ export function Navigation() {
       {showCreateMenu && (
         <>
           <div
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowCreateMenu(false)}
           />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass border border-purple-200 rounded-2xl z-50 w-[90%] max-w-2xl overflow-hidden shadow-2xl">
-            {/* Header */}
-            <div className="p-6 border-b border-purple-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">What do you want to create?</h2>
-                  <p className="text-sm text-gray-600 mt-1">Choose an action to get started</p>
-                </div>
-                <button
-                  onClick={() => setShowCreateMenu(false)}
-                  className="text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-3xl">
+            {/* Close button */}
+            <button
+              onClick={() => setShowCreateMenu(false)}
+              className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-all"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
 
             {/* Action Grid */}
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
               {creatorActions.map((action) => {
                 const IconComponent = action.icon;
                 return (
@@ -386,20 +378,24 @@ export function Navigation() {
                       router.push(action.path);
                       setShowCreateMenu(false);
                     }}
-                    className="group relative p-6 bg-white/60 hover:bg-white/80 border border-purple-200 hover:border-purple-300 rounded-xl transition-all hover:scale-105 shadow-fun"
+                    className="group relative p-8 bg-white/95 backdrop-blur-xl hover:bg-white border-2 border-transparent hover:border-white rounded-2xl transition-all hover:scale-105 shadow-2xl overflow-hidden"
                   >
-                    {/* Gradient background on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-10 rounded-xl transition-opacity`} />
+                    {/* Animated gradient background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
+
+                    {/* Glow effect */}
+                    <div className={`absolute -inset-1 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300`} />
 
                     {/* Content */}
-                    <div className="relative flex items-start gap-4">
-                      <div className={`p-3 rounded-lg bg-gradient-to-br ${action.gradient} bg-opacity-20`}>
-                        <IconComponent className={`w-6 h-6 ${action.iconColor}`} />
+                    <div className="relative">
+                      {/* Icon */}
+                      <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <IconComponent className="w-8 h-8 text-white" />
                       </div>
-                      <div className="flex-1 text-left">
-                        <h3 className="font-bold text-gray-800 text-lg mb-1">{action.title}</h3>
-                        <p className="text-sm text-gray-600">{action.description}</p>
-                      </div>
+
+                      {/* Text */}
+                      <h3 className="font-bold text-gray-800 text-xl mb-2">{action.title}</h3>
+                      <p className="text-sm text-gray-600 leading-relaxed">{action.description}</p>
                     </div>
                   </button>
                 );
