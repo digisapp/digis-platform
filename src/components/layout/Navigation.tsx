@@ -265,8 +265,10 @@ export function Navigation() {
       case 'messages':
         return <MessageCircle className="w-5 h-5 text-digis-cyan" />;
       case 'tip':
+      case 'gift':
       case 'earnings':
-        return <Wallet className="w-5 h-5 text-yellow-500" />;
+      case 'stream_tip':
+        return <Coins className="w-5 h-5 text-yellow-500" />;
       case 'follow':
       case 'followers':
         return <Flame className="w-5 h-5 text-red-500" />;

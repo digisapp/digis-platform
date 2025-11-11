@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { notifications } from '@/lib/data/system';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, or, inArray } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category'); // 'all', 'messages', 'earnings', 'followers', 'system'
+    const category = searchParams.get('category'); // 'all', 'earnings' (tip/gift/stream_tip), 'followers'
     const unreadOnly = searchParams.get('unread') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
 
@@ -38,12 +38,23 @@ export async function GET(request: NextRequest) {
 
           // Filter by category
           if (category && category !== 'all') {
-            query = query.where(
-              and(
-                eq(notifications.userId, user.id),
-                eq(notifications.type, category)
-              )
-            );
+            if (category === 'earnings') {
+              // Include tip, gift, stream_tip, and earnings types
+              query = query.where(
+                and(
+                  eq(notifications.userId, user.id),
+                  inArray(notifications.type, ['earnings', 'tip', 'gift', 'stream_tip'])
+                )
+              );
+            } else {
+              // Exact match for other categories
+              query = query.where(
+                and(
+                  eq(notifications.userId, user.id),
+                  eq(notifications.type, category)
+                )
+              );
+            }
           }
 
           // Filter by unread
