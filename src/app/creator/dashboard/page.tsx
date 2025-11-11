@@ -420,11 +420,6 @@ export default function CreatorDashboard() {
           </button>
         </div>
 
-        {/* Keyboard Shortcuts Helper */}
-        <div className="mb-6 glass rounded-xl border border-purple-200 p-4 text-sm text-gray-600">
-          <span className="font-semibold">⌨️ Keyboard Shortcuts:</span> Press <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">L</kbd> to go live, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">M</kbd> for mass message, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">S</kbd> for shows, <kbd className="px-2 py-1 bg-white/60 rounded text-xs mx-1">A</kbd> for analytics
-        </div>
-
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (
           <div className="mb-8 glass rounded-2xl border border-purple-200 p-6 shadow-fun">
