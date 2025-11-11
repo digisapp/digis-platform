@@ -329,7 +329,6 @@ export default function SettingsPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Account Settings
           </h1>
-          <p className="text-gray-600 mt-2">Manage your profile and account preferences</p>
         </div>
 
         {/* Global Messages */}
