@@ -17,21 +17,7 @@ export async function GET(req: NextRequest) {
 
     const subscriptions = await SubscriptionService.getUserSubscriptions(user.id);
 
-    // Parse benefits JSON for each subscription
-    const parsedSubscriptions = subscriptions.map(sub => {
-      if (!sub.tier) {
-        return sub;
-      }
-      return {
-        ...sub,
-        tier: {
-          ...sub.tier,
-          benefits: sub.tier.benefits ? JSON.parse(sub.tier.benefits) : [],
-        },
-      };
-    });
-
-    return NextResponse.json({ subscriptions: parsedSubscriptions });
+    return NextResponse.json({ subscriptions });
   } catch (error) {
     console.error('Error fetching user subscriptions:', error);
     return NextResponse.json(

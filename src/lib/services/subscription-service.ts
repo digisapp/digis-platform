@@ -457,6 +457,10 @@ export class SubscriptionService {
       throw new Error('Subscription not found');
     }
 
+    if (!subscription.tier) {
+      throw new Error('Subscription tier not found');
+    }
+
     if (subscription.status !== 'active') {
       throw new Error('Subscription is not active');
     }
@@ -474,10 +478,17 @@ export class SubscriptionService {
       throw new Error('Wallet not found');
     }
 
+    // Extract tier info for TypeScript narrowing
+    // TypeScript doesn't properly narrow Drizzle types, so we use assertion
+    const tier = subscription.tier as any;
+    const tierPrice = tier.pricePerMonth as number;
+    const tierName = tier.name as string;
+
     // Check if user has enough coins
     const availableBalance = userWallet.balance - userWallet.heldBalance;
-    if (availableBalance < subscription.tier.pricePerMonth) {
-      throw new Error(`Insufficient balance. Need ${subscription.tier.pricePerMonth} coins, have ${availableBalance}.`);
+
+    if (availableBalance < tierPrice) {
+      throw new Error(`Insufficient balance. Need ${tierPrice} coins, have ${availableBalance}.`);
     }
 
     // Calculate new billing period
@@ -494,10 +505,10 @@ export class SubscriptionService {
       .insert(walletTransactions)
       .values({
         userId: subscription.userId,
-        amount: -subscription.tier.pricePerMonth,
+        amount: -tierPrice,
         type: 'subscription_payment',
         status: 'completed',
-        description: `Subscription renewal - ${subscription.tier.name}`,
+        description: `Subscription renewal - ${tierName}`,
         idempotencyKey,
         metadata: JSON.stringify({ subscriptionId, tierId: subscription.tierId }),
       })
@@ -508,10 +519,10 @@ export class SubscriptionService {
       .insert(walletTransactions)
       .values({
         userId: subscription.creatorId,
-        amount: subscription.tier.pricePerMonth,
+        amount: tierPrice,
         type: 'subscription_earnings',
         status: 'completed',
-        description: `Subscription renewal earnings - ${subscription.tier.name}`,
+        description: `Subscription renewal earnings - ${tierName}`,
         relatedTransactionId: userTransaction.id,
         metadata: JSON.stringify({ subscriptionId, subscriberId: subscription.userId }),
       })
@@ -526,7 +537,7 @@ export class SubscriptionService {
     // Update wallet balances
     await db
       .update(wallets)
-      .set({ balance: userWallet.balance - subscription.tier.pricePerMonth })
+      .set({ balance: userWallet.balance - tierPrice })
       .where(eq(wallets.userId, subscription.userId));
 
     const creatorWallet = await db.query.wallets.findFirst({
@@ -536,7 +547,7 @@ export class SubscriptionService {
     if (creatorWallet) {
       await db
         .update(wallets)
-        .set({ balance: creatorWallet.balance + subscription.tier.pricePerMonth })
+        .set({ balance: creatorWallet.balance + tierPrice })
         .where(eq(wallets.userId, subscription.creatorId));
     }
 
@@ -547,7 +558,7 @@ export class SubscriptionService {
         expiresAt: newExpiresAt,
         nextBillingAt: newNextBillingAt,
         lastPaymentAt: now,
-        totalPaid: subscription.totalPaid + subscription.tier.pricePerMonth,
+        totalPaid: subscription.totalPaid + tierPrice,
         failedPaymentCount: 0, // Reset failed count on success
         updatedAt: now,
       })
@@ -558,7 +569,7 @@ export class SubscriptionService {
       subscriptionId: subscription.id,
       userId: subscription.userId,
       creatorId: subscription.creatorId,
-      amount: subscription.tier.pricePerMonth,
+      amount: tierPrice,
       status: 'completed',
       transactionId: userTransaction.id,
       billingPeriodStart: subscription.expiresAt,
@@ -569,7 +580,7 @@ export class SubscriptionService {
     return {
       success: true,
       newExpiresAt,
-      amountCharged: subscription.tier.pricePerMonth,
+      amountCharged: tierPrice,
     };
   }
 
