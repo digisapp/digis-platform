@@ -405,10 +405,10 @@ export default function CreatorDashboard() {
               onClick={() => router.push('/creator/earnings')}
               className="w-full text-left hover:opacity-80 transition-opacity"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Coins className="w-5 h-5 text-green-600" />
-                <h3 className="text-lg font-bold text-gray-800">Earnings</h3>
+              <div className="flex items-center justify-between mb-3">
+                <Coins className="w-6 h-6 text-green-600" />
               </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Earnings</h3>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
                 <span className="text-sm text-gray-600">coins</span>
