@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql } from 'drizzle-orm';
+import { users, follows } from '@/lib/data/system';
+import { eq, ilike, or, desc, sql, and } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
+import { createClient } from '@/lib/supabase/server';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -21,12 +22,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // Get current user (optional - explore works for logged out users too)
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id;
+
     console.log('[EXPLORE]', {
       requestId,
       search,
       category,
       limit,
-      offset
+      offset,
+      currentUserId: currentUserId || 'anonymous'
     });
 
     // Fetch creators with timeout and retry
@@ -76,7 +83,34 @@ export async function GET(request: NextRequest) {
 
       // Check if there are more results
       const hasMore = creators.length > limit;
-      const results = hasMore ? creators.slice(0, limit) : creators;
+      let results = hasMore ? creators.slice(0, limit) : creators;
+
+      // If user is logged in, check which creators they're following
+      if (currentUserId) {
+        const creatorIds = results.map(c => c.id);
+        const followingStatus = await db
+          .select({ followingId: follows.followingId })
+          .from(follows)
+          .where(
+            and(
+              eq(follows.followerId, currentUserId),
+              sql`${follows.followingId} = ANY(${creatorIds})`
+            )
+          );
+
+        const followingSet = new Set(followingStatus.map(f => f.followingId));
+
+        results = results.map(creator => ({
+          ...creator,
+          isFollowing: followingSet.has(creator.id),
+        }));
+      } else {
+        // Not logged in - set all to false
+        results = results.map(creator => ({
+          ...creator,
+          isFollowing: false,
+        }));
+      }
 
       return NextResponse.json(
         success({
