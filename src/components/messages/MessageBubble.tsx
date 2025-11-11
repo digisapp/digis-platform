@@ -140,6 +140,12 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
                   <video controls className="w-full max-h-64">
                     <source src={message.mediaUrl} type="video/mp4" />
                   </video>
+                ) : message.mediaType === 'audio' ? (
+                  <audio controls className="w-full">
+                    <source src={message.mediaUrl} type="audio/webm" />
+                    <source src={message.mediaUrl} type="audio/ogg" />
+                    Your browser does not support audio playback.
+                  </audio>
                 ) : null}
               </div>
             )}
@@ -170,6 +176,18 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock }
               <video controls className="w-full max-h-64">
                 <source src={message.mediaUrl} type="video/mp4" />
               </video>
+            ) : message.mediaType === 'audio' ? (
+              <div className="bg-white/60 border border-purple-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🎤</span>
+                  <span className="text-gray-700 text-sm font-medium">Voice Message</span>
+                </div>
+                <audio controls className="w-full">
+                  <source src={message.mediaUrl} type="audio/webm" />
+                  <source src={message.mediaUrl} type="audio/ogg" />
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
             ) : null}
           </div>
         )}

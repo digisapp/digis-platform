@@ -18,13 +18,18 @@ export async function GET(req: NextRequest) {
     const subscriptions = await SubscriptionService.getUserSubscriptions(user.id);
 
     // Parse benefits JSON for each subscription
-    const parsedSubscriptions = subscriptions.map(sub => ({
-      ...sub,
-      tier: {
-        ...sub.tier,
-        benefits: sub.tier.benefits ? JSON.parse(sub.tier.benefits) : [],
-      },
-    }));
+    const parsedSubscriptions = subscriptions.map(sub => {
+      if (!sub.tier) {
+        return sub;
+      }
+      return {
+        ...sub,
+        tier: {
+          ...sub.tier,
+          benefits: sub.tier.benefits ? JSON.parse(sub.tier.benefits) : [],
+        },
+      };
+    });
 
     return NextResponse.json({ subscriptions: parsedSubscriptions });
   } catch (error) {

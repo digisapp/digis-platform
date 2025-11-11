@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
+import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
+import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 
 type Message = {
   id: string;
@@ -51,6 +53,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showTipModal, setShowTipModal] = useState(false);
+  const [showMediaModal, setShowMediaModal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -229,6 +232,69 @@ export default function ChatPage() {
     }
   };
 
+  const handleSendMedia = async (data: {
+    file: File;
+    caption: string;
+    isLocked: boolean;
+    unlockPrice: number;
+  }) => {
+    if (!conversation) return;
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', data.file);
+      formData.append('recipientId', conversation.otherUser.id);
+      formData.append('caption', data.caption);
+      formData.append('isLocked', data.isLocked.toString());
+      formData.append('unlockPrice', data.unlockPrice.toString());
+
+      const response = await fetch('/api/messages/send-media', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send media');
+      }
+
+      fetchMessages();
+    } catch (error) {
+      console.error('Error sending media:', error);
+      throw error;
+    }
+  };
+
+  const handleSendVoice = async (audioBlob: Blob, duration: number) => {
+    if (!conversation) return;
+
+    try {
+      // Create FormData for audio upload
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'voice-message.webm');
+      formData.append('recipientId', conversation.otherUser.id);
+      formData.append('duration', duration.toString());
+
+      const response = await fetch('/api/messages/send-voice', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send voice message');
+      }
+
+      fetchMessages();
+    } catch (error) {
+      console.error('Error sending voice message:', error);
+      throw error;
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -340,6 +406,21 @@ export default function ChatPage() {
         <div className="glass backdrop-blur-xl border-t border-purple-200 sticky bottom-0">
           <div className="container mx-auto px-4 py-4 max-w-4xl">
             <form onSubmit={sendMessage} className="flex gap-2">
+              {/* Attachment Button */}
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(true)}
+                className="p-3 bg-white/60 border border-purple-200 rounded-full hover:bg-white/80 hover:border-digis-cyan transition-all flex items-center justify-center"
+                title="Attach media"
+              >
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+
+              {/* Voice Message Button */}
+              <VoiceMessageButton onSend={handleSendVoice} />
+
               <input
                 type="text"
                 value={newMessage}
@@ -366,6 +447,14 @@ export default function ChatPage() {
           onClose={() => setShowTipModal(false)}
           onSend={handleSendTip}
           receiverName={conversation.otherUser.displayName || conversation.otherUser.username || 'User'}
+        />
+      )}
+
+      {/* Media Attachment Modal */}
+      {showMediaModal && (
+        <MediaAttachmentModal
+          onClose={() => setShowMediaModal(false)}
+          onSend={handleSendMedia}
         />
       )}
     </>
