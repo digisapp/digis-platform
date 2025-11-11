@@ -115,14 +115,14 @@ export function PendingCalls() {
   }
 
   return (
-    <GlassCard className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-digis-pink/20 rounded-lg">
-          <Phone className="w-6 h-6 text-digis-pink" />
+    <GlassCard className="p-4">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-digis-pink/20 rounded-lg">
+          <Phone className="w-5 h-5 text-digis-pink" />
         </div>
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-white">Pending Call Requests</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-lg font-bold text-gray-800">Pending Call Requests</h2>
+          <p className="text-xs text-gray-600">
             {calls.length === 0 ? 'No pending requests' : `${calls.length} pending`}
           </p>
         </div>
@@ -134,10 +134,10 @@ export function PendingCalls() {
       </div>
 
       {calls.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📞</div>
-          <p className="text-gray-400 mb-2">No pending call requests</p>
-          <p className="text-sm text-gray-500">
+        <div className="text-center py-6">
+          <div className="text-3xl mb-2">📞</div>
+          <p className="text-gray-700 text-sm mb-1">No pending call requests</p>
+          <p className="text-xs text-gray-600">
             When fans request calls, they&apos;ll appear here
           </p>
         </div>
