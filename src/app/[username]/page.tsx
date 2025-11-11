@@ -417,6 +417,15 @@ export default function ProfilePage() {
                     <div className="text-sm font-semibold text-gray-800">Send Gift</div>
                   </button>
 
+                  {/* Video Call */}
+                  <button
+                    onClick={() => router.push(`/calls/request/${user.id}`)}
+                    className="p-4 rounded-xl border-2 border-green-200 bg-white/60 hover:bg-white/80 transition-all hover:scale-105"
+                  >
+                    <Phone className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                    <div className="text-sm font-semibold text-gray-800">Video Call</div>
+                  </button>
+
                   {/* Shows */}
                   {shows.length > 0 && (
                     <button

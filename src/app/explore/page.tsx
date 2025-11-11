@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Search, UserCircle, Verified, Users } from 'lucide-react';
+import { Search, UserCircle, Verified, Users, Phone } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -133,6 +133,7 @@ export default function ExplorePage() {
                 key={creator.id}
                 creator={creator}
                 onClick={() => router.push(`/${creator.username}`)}
+                router={router}
               />
             ))}
           </div>
@@ -145,9 +146,10 @@ export default function ExplorePage() {
 interface CreatorCardProps {
   creator: Creator;
   onClick: () => void;
+  router: ReturnType<typeof useRouter>;
 }
 
-function CreatorCard({ creator, onClick }: CreatorCardProps) {
+function CreatorCard({ creator, onClick, router }: CreatorCardProps) {
   return (
     <GlassCard
       className="overflow-hidden cursor-pointer transition-all hover:scale-105 hover:border-digis-cyan"
@@ -209,12 +211,24 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-2 text-sm text-gray-700">
+        <div className="flex items-center gap-2 text-sm text-gray-700 mb-3">
           <Users className="w-4 h-4" />
           <span>
             <strong className="text-gray-900">{creator.followerCount}</strong> followers
           </span>
         </div>
+
+        {/* Video Call Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/calls/request/${creator.id}`);
+          }}
+          className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center justify-center gap-2"
+        >
+          <Phone className="w-4 h-4" />
+          Video Call
+        </button>
       </div>
     </GlassCard>
   );
