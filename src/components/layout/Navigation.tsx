@@ -427,7 +427,7 @@ export function Navigation() {
         {/* Logo */}
         <button
           onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
-          className="mb-4 hover:scale-110 transition-transform flex items-center justify-center"
+          className="mb-4 hover:scale-105 transition-transform flex items-center justify-center"
           title="Home"
         >
           <Image
@@ -448,8 +448,8 @@ export function Navigation() {
           }}
           className={`mb-3 w-12 h-12 rounded-full transition-all ${
             isActive('/settings')
-              ? 'scale-110 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
-              : 'hover:scale-110'
+              ? 'scale-105 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
+              : 'hover:scale-105'
           }`}
           title="Settings"
         >
@@ -482,7 +482,7 @@ export function Navigation() {
         {userRole === 'creator' && (
           <button
             onClick={() => setShowCreateMenu(true)}
-            className="mb-8 w-14 h-14 rounded-xl bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-110 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
+            className="mb-8 w-14 h-14 rounded-xl bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-105 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
             title="Create"
           >
             <Plus className="w-7 h-7 text-white group-hover:rotate-90 transition-transform" />
@@ -499,7 +499,7 @@ export function Navigation() {
                 onClick={() => router.push(item.path)}
                 className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
                   item.active
-                    ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
+                    ? 'bg-digis-cyan/15 text-digis-cyan scale-105'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
                 }`}
                 title={item.label}
@@ -521,7 +521,7 @@ export function Navigation() {
           {userRole === 'creator' && (
             <button
               onClick={() => router.push('/creator/go-live')}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/40 hover:scale-110 transition-all"
+              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/40 hover:scale-105 transition-all"
               title="Go Live"
             >
               <div className="relative">
@@ -538,7 +538,7 @@ export function Navigation() {
           onClick={() => setShowNotifications(!showNotifications)}
           className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
             showNotifications
-              ? 'bg-digis-cyan/20 text-digis-cyan scale-110'
+              ? 'bg-digis-cyan/15 text-digis-cyan scale-105'
               : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
           }`}
           title="Notifications"
