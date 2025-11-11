@@ -221,17 +221,28 @@ export default function MessagesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold text-gray-900">Messages 💬</h1>
-            {userRole === 'creator' && pendingRequests > 0 && (
-              <button
-                onClick={() => router.push('/messages/requests')}
-                className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2"
-              >
-                <span>📬</span>
-                <span>Requests</span>
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {pendingRequests}
-                </span>
-              </button>
+            {userRole === 'creator' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/creator/messages/broadcast')}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg"
+                >
+                  <span>💰</span>
+                  <span>Broadcast</span>
+                </button>
+                {pendingRequests > 0 && (
+                  <button
+                    onClick={() => router.push('/messages/requests')}
+                    className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2"
+                  >
+                    <span>📬</span>
+                    <span>Requests</span>
+                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {pendingRequests}
+                    </span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <p className="text-gray-700">Your conversations</p>

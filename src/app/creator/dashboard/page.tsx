@@ -73,7 +73,6 @@ export default function CreatorDashboard() {
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
-  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -94,9 +93,6 @@ export default function CreatorDashboard() {
       switch(e.key.toLowerCase()) {
         case 'l':
           router.push('/creator/go-live');
-          break;
-        case 'm':
-          router.push('/creator/messages/broadcast');
           break;
         case 's':
           router.push('/creator/shows');
@@ -280,13 +276,6 @@ export default function CreatorDashboard() {
         setPendingCallsCount(callsData.data?.length || 0);
       }
 
-      // Fetch unread messages count
-      const messagesRes = await fetch('/api/messages/requests');
-      if (messagesRes.ok) {
-        const messagesData = await messagesRes.json();
-        setUnreadMessagesCount(messagesData.requests?.length || 0);
-      }
-
       // Get last stream date
       const streamsRes = await fetch('/api/streams/my-streams?limit=1');
       if (streamsRes.ok) {
@@ -332,11 +321,11 @@ export default function CreatorDashboard() {
           <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
         </div>
 
-        {/* Quick Actions - Compact 2x3 Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+        {/* Quick Actions - Core Actions Only */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => router.push('/creator/go-live')}
-            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
+            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -345,63 +334,39 @@ export default function CreatorDashboard() {
               </div>
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">L</kbd>
             </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Start Streaming</h3>
-            <p className="text-xs text-gray-600">Go live and connect with your fans</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Start Streaming</h3>
+            <p className="text-sm text-gray-600">Go live and connect with your fans</p>
             {lastStreamDate && (new Date().getTime() - lastStreamDate.getTime()) > 24 * 60 * 60 * 1000 && (
-              <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white" title="You haven't streamed in 24h" />
-            )}
-          </button>
-
-          <button
-            onClick={() => router.push('/creator/messages/broadcast')}
-            className="relative bg-gradient-to-br from-amber-500/20 to-orange-500/20 backdrop-blur-md rounded-xl border-2 border-amber-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-amber-500 font-bold text-xs">💰 HIGH REVENUE</div>
-              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">M</kbd>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Mass Message</h3>
-            <p className="text-xs text-gray-600">Send PPV to all subscribers</p>
-            {unreadMessagesCount > 0 && (
-              <div className="absolute top-2 right-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
-                {unreadMessagesCount}
-              </div>
+              <div className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white" title="You haven't streamed in 24h" />
             )}
           </button>
 
           <button
             onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-4 hover:scale-105 transition-all text-left shadow-fun group"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-2">
-              <div className="text-2xl">🎟️</div>
+              <div className="text-3xl">🎟️</div>
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
             </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Ticketed Shows</h3>
-            <p className="text-xs text-gray-600">Create and manage exclusive events</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Ticketed Shows</h3>
+            <p className="text-sm text-gray-600">Create and manage exclusive events</p>
           </button>
 
           <button
             onClick={() => router.push('/calls/history')}
-            className="relative glass rounded-xl border-2 border-pink-200 p-4 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
+            className="relative glass rounded-xl border-2 border-pink-200 p-6 hover:border-digis-pink hover:scale-105 transition-all text-left shadow-fun"
           >
-            <div className="text-2xl mb-2">📞</div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Call Requests</h3>
-            <p className="text-xs text-gray-600">Manage 1-on-1 call requests</p>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-3xl">📞</div>
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Call Requests</h3>
+            <p className="text-sm text-gray-600">Manage 1-on-1 call requests</p>
             {pendingCallsCount > 0 && (
-              <div className="absolute top-2 right-2 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+              <div className="absolute top-3 right-3 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
                 {pendingCallsCount}
               </div>
             )}
-          </button>
-
-          <button
-            onClick={() => router.push('/creator/subscriptions/setup')}
-            className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-purple-400 p-4 hover:scale-105 transition-all text-left shadow-fun"
-          >
-            <div className="text-2xl mb-2">⭐</div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Subscriptions</h3>
-            <p className="text-xs text-gray-600">Manage monthly superfans</p>
           </button>
         </div>
 
