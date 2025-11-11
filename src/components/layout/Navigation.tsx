@@ -725,11 +725,11 @@ export function Navigation() {
           <button
             onClick={() => router.push('/wallet')}
             className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              isActive('/wallet') ? 'text-amber-500' : 'text-gray-600'
+              isActive('/wallet') ? 'text-green-600' : 'text-gray-600'
             }`}
           >
-            <Coins className="w-6 h-6 text-amber-500" />
-            <span className="text-xs font-black bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">{balance}</span>
+            <Coins className="w-6 h-6 text-green-600" />
+            <span className="text-xs font-black text-gray-800">{balance}</span>
           </button>
 
           {/* Profile/Settings Button (Separate) */}
@@ -820,11 +820,11 @@ export function Navigation() {
         {/* Balance - Clickable */}
         <button
           onClick={() => router.push('/wallet')}
-          className="mb-6 flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-amber-400/20 via-yellow-400/20 to-amber-500/20 hover:from-amber-400/30 hover:to-amber-500/30 rounded-2xl border-2 border-amber-500/40 hover:border-amber-500/60 transition-all hover:scale-105 group shadow-lg shadow-amber-500/20"
+          className="mb-6 flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 rounded-2xl border-2 border-green-500/30 hover:border-green-500/50 transition-all hover:scale-105 group"
           title="Wallet"
         >
-          <Coins className="w-7 h-7 text-amber-500 group-hover:rotate-12 transition-transform" />
-          <div className="text-xl font-black bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+          <Coins className="w-7 h-7 text-green-600 group-hover:rotate-12 transition-transform" />
+          <div className="text-xl font-black text-gray-800">
             {balance}
           </div>
         </button>
@@ -848,13 +848,17 @@ export function Navigation() {
               <button
                 key={item.path}
                 onClick={() => router.push(item.path)}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
                   item.active
-                    ? 'bg-digis-cyan/15 text-digis-cyan scale-105'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
+                    ? 'text-digis-cyan scale-105'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/20'
                 }`}
                 title={item.label}
               >
+                {/* Small active indicator dot */}
+                {item.active && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-digis-cyan rounded-r-full" />
+                )}
                 <div className="relative">
                   <IconComponent className="w-6 h-6" />
                   {item.label === 'Messages' && unreadCount > 0 && (
@@ -887,13 +891,17 @@ export function Navigation() {
         {/* Notifications Button */}
         <button
           onClick={() => setShowNotifications(!showNotifications)}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
             showNotifications
-              ? 'bg-digis-cyan/15 text-digis-cyan scale-105'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
+              ? 'text-digis-cyan scale-105'
+              : 'text-gray-600 hover:text-gray-800 hover:bg-white/20'
           }`}
           title="Notifications"
         >
+          {/* Small active indicator dot */}
+          {showNotifications && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-digis-cyan rounded-r-full" />
+          )}
           <div className="relative">
             <Bell className="w-6 h-6" />
             {notificationCount > 0 && (
