@@ -526,23 +526,10 @@ export function Navigation() {
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
               >
                 <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <span className="text-sm text-gray-800 font-medium">Edit Profile</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  router.push('/settings');
-                  setShowProfileMenu(false);
-                }}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
-              >
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-sm text-gray-800 font-medium">Settings</span>
+                <span className="text-sm text-gray-800 font-medium">Account Settings</span>
               </button>
 
               {userRole === 'creator' && (
@@ -735,21 +722,31 @@ export function Navigation() {
           {/* Profile/Settings Button (Separate) */}
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all ${
               isActive('/settings') || showProfileMenu ? 'text-digis-cyan' : 'text-gray-600'
             }`}
           >
-            {userProfile?.avatarUrl ? (
-              <img
-                src={userProfile.avatarUrl}
-                alt="Your avatar"
-                className="w-7 h-7 rounded-full object-cover border-2 border-digis-cyan/50"
-              />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
-                {user?.email?.[0]?.toUpperCase() || 'U'}
+            <div className="relative">
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-sm opacity-50 animate-pulse" />
+
+              {/* Gradient border */}
+              <div className="relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
+                <div className="rounded-full bg-white p-[1px]">
+                  {userProfile?.avatarUrl ? (
+                    <img
+                      src={userProfile.avatarUrl}
+                      alt="Your avatar"
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
+                      {user?.email?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
             <span className="text-xs font-medium">You</span>
           </button>
         </div>
@@ -776,24 +773,35 @@ export function Navigation() {
         {/* User Profile / Settings Button */}
         <button
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className={`mb-3 w-12 h-12 rounded-full transition-all ${
+          className={`mb-3 relative group transition-all ${
             isActive('/settings') || showProfileMenu
-              ? 'scale-105 ring-2 ring-digis-cyan ring-offset-2 ring-offset-white'
-              : 'hover:scale-105'
+              ? 'scale-110'
+              : 'hover:scale-110'
           }`}
           title="Profile Menu"
         >
-          {userProfile?.avatarUrl ? (
-            <img
-              src={userProfile.avatarUrl}
-              alt="Your avatar"
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-md opacity-60 group-hover:opacity-100 animate-pulse" />
+
+          {/* Gradient border ring */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] group-hover:p-[4px] transition-all">
+            <div className="w-full h-full rounded-full bg-white p-[2px]">
+              {userProfile?.avatarUrl ? (
+                <img
+                  src={userProfile.avatarUrl}
+                  alt="Your avatar"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold text-white">
+                  {user?.email?.[0]?.toUpperCase() || 'U'}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Actual size container for proper spacing */}
+          <div className="w-14 h-14" />
         </button>
 
         {/* Balance - Clickable */}

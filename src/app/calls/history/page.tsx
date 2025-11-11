@@ -148,7 +148,7 @@ export default function CallHistoryPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
               <Phone className="w-5 h-5 text-digis-cyan" />
@@ -163,14 +163,6 @@ export default function CallHistoryPage() {
               <span className="text-gray-600 text-sm">Total Minutes</span>
             </div>
             <p className="text-3xl font-bold text-gray-800">{stats.totalMinutes}</p>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Coins className="w-5 h-5 text-yellow-400" />
-              <span className="text-gray-600 text-sm">Coins Spent</span>
-            </div>
-            <p className="text-3xl font-bold text-gray-800">{stats.totalCoinsSpent}</p>
           </GlassCard>
 
           <GlassCard className="p-6">
