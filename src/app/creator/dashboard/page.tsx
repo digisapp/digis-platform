@@ -417,39 +417,54 @@ export default function CreatorDashboard() {
           </div>
         )}
 
-        {/* Pending Calls */}
-        <div className="mb-8">
-          <PendingCalls />
-        </div>
+        {/* Pending Calls & Recent Activity - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Pending Calls - Left Column */}
+          <div className="glass rounded-2xl border border-purple-200 p-6 shadow-fun">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <PhoneCall className="w-5 h-5 text-blue-500" />
+              Pending Call Requests
+            </h3>
+            <PendingCalls />
+          </div>
 
-        {/* Recent Activity */}
-        {recentActivities.length > 0 && (
-          <div className="mb-8 glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
+          {/* Recent Activity - Right Column */}
+          <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-digis-pink" />
               Recent Activity
             </h3>
-            <div className="space-y-3">
-              {recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 bg-white/60 rounded-lg p-3 hover:bg-white/80 transition-colors border border-cyan-100"
-                >
-                  <div className={`p-2 rounded-lg bg-white/80 ${activity.color}`}>
-                    {getActivityIcon(activity.icon)}
+            {recentActivities.length > 0 ? (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {recentActivities.slice(0, 8).map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3 bg-white/60 rounded-lg p-3 hover:bg-white/80 transition-colors border border-cyan-100"
+                  >
+                    <div className={`p-2 rounded-lg bg-white/80 ${activity.color}`}>
+                      {getActivityIcon(activity.icon)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-800 text-sm mb-1">{activity.title}</div>
+                      <div className="text-xs text-gray-600">{activity.description}</div>
+                    </div>
+                    <div className="text-xs text-gray-600 whitespace-nowrap">
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-800 text-sm mb-1">{activity.title}</div>
-                    <div className="text-xs text-gray-600">{activity.description}</div>
-                  </div>
-                  <div className="text-xs text-gray-600 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center mb-4">
+                  <Clock className="w-8 h-8 text-gray-400" />
                 </div>
-              ))}
-            </div>
+                <p className="text-gray-600 font-medium mb-2">No recent activity</p>
+                <p className="text-sm text-gray-500">Your activity will appear here</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Earnings Breakdown */}
         {analytics && (
