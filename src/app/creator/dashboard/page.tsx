@@ -404,13 +404,7 @@ export default function CreatorDashboard() {
         {/* Pending Calls & Recent Activity - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Pending Calls - Left Column */}
-          <div className="glass rounded-2xl border border-purple-200 p-6 shadow-fun">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <PhoneCall className="w-5 h-5 text-blue-500" />
-              Pending Call Requests
-            </h3>
-            <PendingCalls />
-          </div>
+          <PendingCalls />
 
           {/* Recent Activity - Right Column */}
           <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
