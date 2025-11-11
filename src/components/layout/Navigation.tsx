@@ -17,9 +17,7 @@ import {
   Upload,
   Ticket,
   Phone,
-  Coins,
-  Users,
-  History
+  Coins
 } from 'lucide-react';
 
 export function Navigation() {
@@ -159,25 +157,6 @@ export function Navigation() {
       active: isActive('/messages') || pathname?.startsWith('/messages'),
     },
   ];
-
-  // Creator-specific nav items
-  const creatorNavItems = userRole === 'creator' ? [
-    {
-      label: 'Followers',
-      icon: Users,
-      path: '/creator/followers',
-      active: isActive('/creator/followers'),
-    },
-    {
-      label: 'Streams',
-      icon: History,
-      path: '/creator/streams',
-      active: isActive('/creator/streams'),
-    },
-  ] : [];
-
-  // Combine nav items
-  const allNavItems = [...navItems, ...creatorNavItems];
 
   // Mock notifications - replace with real data later
   const mockNotifications = [
@@ -512,7 +491,7 @@ export function Navigation() {
 
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-4">
-          {allNavItems.map((item) => {
+          {navItems.map((item) => {
             const IconComponent = item.icon;
             return (
               <button
