@@ -373,11 +373,9 @@ export default function CreatorDashboard() {
         {/* Quick Actions - Core Actions Only */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Earnings with Period Selector */}
-          <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-8 shadow-fun">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-3xl">💰</div>
-
-              {/* Period Selector */}
+          <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-6 shadow-fun">
+            {/* Period Selector */}
+            <div className="flex justify-end mb-3">
               <div className="flex gap-1 bg-white/60 rounded-lg p-1">
                 {[
                   { value: '24h', label: '24h' },
@@ -407,29 +405,21 @@ export default function CreatorDashboard() {
               onClick={() => router.push('/creator/earnings')}
               className="w-full text-left hover:opacity-80 transition-opacity"
             >
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                {earningsPeriod === '24h' && '24h Earnings'}
-                {earningsPeriod === '1w' && 'Weekly Earnings'}
-                {earningsPeriod === '1m' && 'Monthly Earnings'}
-                {earningsPeriod === 'total' && 'Total Earnings'}
-              </h3>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-2xl">💰</div>
+                <h3 className="text-lg font-bold text-gray-800">Earnings</h3>
+              </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
                 <span className="text-sm text-gray-600">coins</span>
               </div>
-              <p className="text-xs text-gray-600 mt-2">
-                {earningsPeriod === '24h' && 'Last 24 hours'}
-                {earningsPeriod === '1w' && 'Last 7 days'}
-                {earningsPeriod === '1m' && 'Last 30 days'}
-                {earningsPeriod === 'total' && 'All time'}
-              </p>
             </button>
           </div>
 
           {/* Go Live */}
           <button
             onClick={() => router.push('/creator/go-live')}
-            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
+            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -438,7 +428,7 @@ export default function CreatorDashboard() {
               </div>
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">L</kbd>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Start Streaming</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Start Streaming</h3>
             <p className="text-sm text-gray-600">Go live and connect with your fans</p>
             {lastStreamDate && (new Date().getTime() - lastStreamDate.getTime()) > 24 * 60 * 60 * 1000 && (
               <div className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white" title="You haven't streamed in 24h" />
@@ -448,13 +438,13 @@ export default function CreatorDashboard() {
           {/* Ticketed Shows */}
           <button
             onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-8 hover:scale-105 transition-all text-left shadow-fun group"
+            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="text-3xl">🎟️</div>
+              <div className="text-2xl">🎟️</div>
               <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Ticketed Shows</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Ticketed Shows</h3>
             <p className="text-sm text-gray-600">Create private events, classes, or tutorials</p>
           </button>
         </div>
