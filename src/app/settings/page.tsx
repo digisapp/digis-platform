@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
@@ -323,29 +323,138 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient py-12 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
             Account Settings
           </h1>
-          <p className="text-gray-700 mt-2">Manage your profile and preferences</p>
+          <p className="text-gray-600 mt-2">Manage your profile and account preferences</p>
         </div>
 
         {/* Global Messages */}
         {message && (
-          <div className="p-4 rounded-lg bg-green-500/20 border border-green-500 text-green-300 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            {message}
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="p-2 bg-green-500 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-medium">{message}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-300 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            {error}
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-pink-500/10 border-2 border-red-500 text-red-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="p-2 bg-red-500 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-medium">{error}</span>
           </div>
         )}
+
+        {/* Profile Preview & Account Info Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Profile Preview */}
+          <GlassCard className="p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-digis-cyan" />
+              Profile Preview
+            </h3>
+            <div className="space-y-4">
+              {/* Banner Preview */}
+              <div className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20">
+                {(bannerPreview || bannerUrl) ? (
+                  <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    <ImageIcon className="w-8 h-8" />
+                  </div>
+                )}
+              </div>
+
+              {/* Avatar & Info */}
+              <div className="flex items-start gap-4 -mt-12 relative z-10 px-4">
+                <div className="relative">
+                  {(avatarPreview || avatarUrl) ? (
+                    <img src={avatarPreview || avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white text-2xl font-bold">
+                      {currentUser?.username?.[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  {currentUser?.role === 'creator' && (
+                    <div className="absolute -bottom-1 -right-1 p-1 bg-yellow-500 rounded-full border-2 border-white">
+                      <Crown className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 mt-6">
+                  <h4 className="font-bold text-gray-800 text-lg">{displayName || 'Your Name'}</h4>
+                  <p className="text-sm text-gray-600">@{currentUser?.username}</p>
+                  {bio && (
+                    <p className="text-sm text-gray-700 mt-2 line-clamp-2">{bio}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Account Information */}
+          <GlassCard className="p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-digis-pink" />
+              Account Information
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+                  <Mail className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Email Address</p>
+                  <p className="text-sm font-medium text-gray-800">{currentUser?.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+                  <AtSign className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Username</p>
+                  <p className="text-sm font-medium text-gray-800">@{currentUser?.username}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                <div className={`p-2 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-yellow-500 to-amber-500' : 'from-green-500 to-emerald-500'} rounded-lg`}>
+                  {currentUser?.role === 'creator' ? (
+                    <Crown className="w-4 h-4 text-white" />
+                  ) : (
+                    <User className="w-4 h-4 text-white" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Account Type</p>
+                  <p className="text-sm font-medium text-gray-800 capitalize">{currentUser?.role}</p>
+                </div>
+              </div>
+
+              {currentUser?.createdAt && (
+                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg">
+                    <Calendar className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">Member Since</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </GlassCard>
+        </div>
 
         {/* Username Change Section */}
         <GlassCard className="p-6">
