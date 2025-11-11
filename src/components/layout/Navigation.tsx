@@ -217,9 +217,9 @@ export function Navigation() {
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setShowCreateMenu(false)}
           />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 backdrop-blur-xl border border-blue-300 rounded-2xl z-50 w-[90%] max-w-2xl overflow-hidden shadow-2xl bg-blue-50/95">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass border border-purple-200 rounded-2xl z-50 w-[90%] max-w-2xl overflow-hidden shadow-2xl">
             {/* Header */}
-            <div className="p-6 border-b border-blue-200">
+            <div className="p-6 border-b border-purple-200">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800">What do you want to create?</h2>
@@ -277,9 +277,9 @@ export function Navigation() {
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setShowNotifications(false)}
           />
-          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto backdrop-blur-xl border border-blue-300 rounded-xl z-50 w-80 max-h-96 overflow-hidden shadow-lg bg-blue-50/95">
+          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-80 max-h-96 overflow-hidden shadow-lg">
             {/* Header */}
-            <div className="p-4 border-b border-blue-200 flex items-center justify-between">
+            <div className="p-4 border-b border-purple-200 flex items-center justify-between">
               <h3 className="font-bold text-gray-800">Notifications</h3>
               <button
                 onClick={() => setShowNotifications(false)}
@@ -331,7 +331,7 @@ export function Navigation() {
       )}
 
       {/* Mobile Bottom Navigation (TikTok/Instagram style) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden backdrop-blur-xl border-t border-blue-300 pb-safe shadow-lg bg-gradient-to-r from-blue-50/95 via-cyan-50/95 to-purple-50/95">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass backdrop-blur-xl border-t border-purple-200 pb-safe shadow-lg">
         <div className="flex items-center justify-around h-16 px-2">
           {/* Home */}
           <button
@@ -423,7 +423,7 @@ export function Navigation() {
       </nav>
 
       {/* Desktop Side Navigation */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 backdrop-blur-xl border-r border-blue-300 flex-col items-center py-6 z-50 shadow-lg bg-gradient-to-b from-blue-50/95 via-cyan-50/95 to-purple-50/95">
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 glass backdrop-blur-xl border-r border-purple-200 flex-col items-center py-6 z-50 shadow-lg">
         {/* Logo */}
         <button
           onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
