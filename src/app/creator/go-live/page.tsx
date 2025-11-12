@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { AnimatedLiveIcon } from '@/components/ui/AnimatedIcon';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { createClient } from '@/lib/supabase/client';
@@ -388,14 +387,10 @@ export default function GoLivePage() {
         />
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <AnimatedLiveIcon size={100} className="mb-4" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Go Live</h1>
-          <p className="text-gray-700">
-            Set up your stream and test your devices before going live
-          </p>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Go Live</h1>
           {recentStats.totalStreams > 0 && (
-            <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+            <div className="flex items-center gap-6 text-sm">
               <div className="glass rounded-lg px-4 py-2 border border-purple-200">
                 <span className="text-gray-600">Avg Viewers:</span>
                 <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
