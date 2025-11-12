@@ -211,18 +211,6 @@ export default function WalletPage() {
       />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Refresh Button */}
-        <div className="mb-8 flex justify-end">
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="p-3 glass glass-hover rounded-xl text-green-600 hover:bg-green-500/10 transition-all disabled:opacity-50"
-            title="Refresh wallet data"
-          >
-            <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-
         {/* Tabs */}
         <div className="mb-8 flex gap-3">
           <button
