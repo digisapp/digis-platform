@@ -77,7 +77,7 @@ export default function ScheduleCallPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="space-y-6">
           {/* Availability Toggle */}
           <GlassCard className="p-6">
