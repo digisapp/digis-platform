@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -17,29 +18,51 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use Drizzle ORM to query users table
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
+    // Use Drizzle ORM to query users table with timeout and retry
+    let dbUser;
+    try {
+      dbUser = await withTimeoutAndRetry(
+        () => db.query.users.findFirst({
+          where: eq(users.id, user.id),
+        }),
+        {
+          timeoutMs: 3000,
+          retries: 2,
+          tag: 'getUserProfile'
+        }
+      );
+    } catch (dbError) {
+      console.error('Database timeout fetching user profile - using auth fallback:', dbError);
+      // Continue to fallback logic below
+    }
 
     // If user not found in database, return auth data as fallback
     if (!dbUser) {
       console.error('User not found in database - using auth data fallback');
       const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         user: {
           id: user.id,
           email: user.email!,
           username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
           displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
           role: user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan'),
-          avatarUrl: null,
+          avatarUrl: user.user_metadata?.avatar_url || null,
           bannerUrl: null,
           bio: null,
-          isCreatorVerified: false,
+          isCreatorVerified: user.user_metadata?.is_creator_verified || false,
+          followerCount: 0,
+          followingCount: 0,
         }
       });
+
+      // Add no-cache headers
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+
+      return response;
     }
 
     // Return database user with snake_case converted to camelCase

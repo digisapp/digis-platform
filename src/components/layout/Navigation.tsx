@@ -134,24 +134,39 @@ export function Navigation() {
 
       // Get user role and profile data (including avatar)
       // Force no-cache to prevent stale role data
-      const response = await fetch('/api/user/profile', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
+      try {
+        const response = await fetch('/api/user/profile', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          }
+        });
+
+        if (!response.ok) {
+          console.error('[Navigation] Profile API error:', response.status);
+          // Don't reset role on error - keep current state
+          return;
         }
-      });
-      const data = await response.json();
-      console.log('[Navigation] User profile fetched:', {
-        email: data.user?.email,
-        username: data.user?.username,
-        role: data.user?.role,
-        isCreatorVerified: data.user?.isCreatorVerified
-      });
-      if (data.user) {
-        setUserRole(data.user.role);
-        setUserProfile(data.user);
-        setFollowerCount(data.user.followerCount || 0);
+
+        const data = await response.json();
+        console.log('[Navigation] User profile fetched:', {
+          email: data.user?.email,
+          username: data.user?.username,
+          role: data.user?.role,
+          isCreatorVerified: data.user?.isCreatorVerified
+        });
+
+        if (data.user && data.user.role) {
+          setUserRole(data.user.role);
+          setUserProfile(data.user);
+          setFollowerCount(data.user.followerCount || 0);
+        } else {
+          console.error('[Navigation] Invalid profile data - preserving current role');
+        }
+      } catch (error) {
+        console.error('[Navigation] Error fetching profile - preserving current role:', error);
+        // Don't reset role on error - keep current state
       }
     }
   };
