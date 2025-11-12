@@ -74,6 +74,17 @@ export async function GET() {
       updatedAt: dbUser?.updatedAt,
     };
 
+    // 🛡️ Belt & suspenders: ensure role is NEVER missing
+    if (!merged.role) {
+      console.error('[ProfileAPI] CRITICAL: Role is null, defaulting to fan', {
+        userId: user.id,
+        email: user.email,
+        jwtRole,
+        dbRole: dbUser?.role,
+      });
+      merged.role = 'fan';
+    }
+
     const response = NextResponse.json({ user: merged });
 
     // Add no-cache headers

@@ -88,25 +88,36 @@ export function Navigation() {
   };
 
   useEffect(() => {
+    let aborted = false;
+
     const init = async () => {
-      // Seed role from JWT if no localStorage value exists
-      if (typeof window !== 'undefined' && !localStorage.getItem('digis_user_role')) {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const jwtRole = (session.user.app_metadata as any)?.role ??
-                          (session.user.user_metadata as any)?.role;
-          if (jwtRole && isValidRole(jwtRole)) {
-            console.log('[Navigation] Seeding role from JWT:', jwtRole);
-            setUserRole(jwtRole);
-            localStorage.setItem('digis_user_role', jwtRole);
-          }
-        }
+      // ⚡ CRITICAL: Assert role from JWT IMMEDIATELY (before API call)
+      // This prevents fan flash even if /api/user/profile briefly fails
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const jwtRole =
+        (session?.user?.app_metadata as any)?.role ??
+        (session?.user?.user_metadata as any)?.role ??
+        null;
+
+      if (!aborted && jwtRole && isValidRole(jwtRole)) {
+        console.log('[Navigation] Asserting role from JWT immediately:', jwtRole);
+        setRoleSafely(jwtRole, { force: true });
+      } else if (!aborted && !jwtRole) {
+        console.log('[Navigation] No JWT role found, will fetch from API');
       }
 
-      await checkUser();
+      // Now fetch full profile (which may also update role)
+      if (!aborted) {
+        await checkUser();
+      }
     };
+
     init();
+
+    return () => {
+      aborted = true;
+    };
 
     // Heartbeat to keep session alive (every 60 seconds)
     const heartbeatInterval = setInterval(() => {
@@ -233,14 +244,21 @@ export function Navigation() {
           isCreatorVerified: data.user?.isCreatorVerified
         });
 
-        if (data.user && data.user.role) {
-          // Force update role from profile API (it comes from JWT app_metadata, which is authoritative)
-          setRoleSafely(data.user.role, { force: true });
-          setUserProfile(data.user);
-          setFollowerCount(data.user.followerCount || 0);
-        } else {
-          console.error('[Navigation] Invalid profile data - preserving current role');
+        if (!data?.user || !data.user.role) {
+          // 🚨 DIAGNOSTIC: Log full payload to debug invalid responses
+          console.error('[Navigation] Invalid profile payload - preserving current role:', {
+            hasData: !!data,
+            hasUser: !!data?.user,
+            hasRole: !!data?.user?.role,
+            fullPayload: data
+          });
+          return;
         }
+
+        // Force update role from profile API (it comes from JWT app_metadata or DB, which is authoritative)
+        setRoleSafely(data.user.role, { force: true });
+        setUserProfile(data.user);
+        setFollowerCount(data.user.followerCount || 0);
       } catch (error) {
         console.error('[Navigation] Error fetching profile - preserving current role:', error);
         // Don't reset role on error - keep current state
