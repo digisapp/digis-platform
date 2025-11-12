@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
+import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { Search, UserCircle, Verified, Users, Phone, MessageCircle, UserCheck, UserPlus } from 'lucide-react';
 
 interface Creator {
@@ -131,7 +132,11 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto py-8">
+        {/* Mobile Wallet Widget */}
+        <MobileWalletWidget />
+
+        <div className="px-4">
         {/* Search Bar */}
         <div className="mb-8">
           <GlassCard className="p-4">
@@ -175,6 +180,7 @@ export default function ExplorePage() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

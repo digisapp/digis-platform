@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
 import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Lightbulb, MessageCircle, Sparkles } from 'lucide-react';
@@ -363,7 +364,11 @@ export default function CreatorDashboard() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
+        {/* Mobile Wallet Widget */}
+        <MobileWalletWidget />
+
+        <div className="px-4">
         {/* Quick Actions - Core Actions Only */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Earnings with Period Selector */}
@@ -577,6 +582,7 @@ export default function CreatorDashboard() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

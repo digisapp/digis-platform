@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { Search, X, Pin, Archive, MoreVertical, Users } from 'lucide-react';
 
 type ConversationWithOtherUser = {
@@ -216,7 +217,11 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto py-8 max-w-7xl">
+        {/* Mobile Wallet Widget */}
+        <MobileWalletWidget />
+
+        <div className="px-4">
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left Column: Conversations Sidebar */}
