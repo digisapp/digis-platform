@@ -18,6 +18,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 👉 Prefer role from JWT app_metadata (source of truth)
+    const jwtRole =
+      (user.app_metadata as any)?.role ??
+      (user.user_metadata as any)?.role ??
+      null;
+
     // Use Drizzle ORM to query users table with timeout and retry
     let dbUser;
     try {
@@ -36,55 +42,26 @@ export async function GET() {
       // Continue to fallback logic below
     }
 
-    // If user not found in database, return auth data as fallback
-    if (!dbUser) {
-      console.error('User not found in database - using auth data fallback');
-      const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc';
+    // Build merged user object (JWT role is authoritative, DB enriches)
+    const merged = {
+      id: user.id,
+      email: user.email!,
+      username: user.user_metadata?.username || dbUser?.username || `user_${user.id.substring(0, 8)}`,
+      displayName: user.user_metadata?.display_name || dbUser?.displayName || user.email?.split('@')[0],
+      role: jwtRole, // 👈 Never override this with a fallback "fan"
+      avatarUrl: user.user_metadata?.avatar_url || dbUser?.avatarUrl || null,
+      bannerUrl: dbUser?.bannerUrl || null,
+      bio: dbUser?.bio || null,
+      isCreatorVerified: user.user_metadata?.is_creator_verified ?? dbUser?.isCreatorVerified ?? false,
+      followerCount: dbUser?.followerCount ?? 0,
+      followingCount: dbUser?.followingCount ?? 0,
+      createdAt: dbUser?.createdAt,
+      updatedAt: dbUser?.updatedAt,
+    };
 
-      const response = NextResponse.json({
-        user: {
-          id: user.id,
-          email: user.email!,
-          username: user.user_metadata?.username || `user_${user.id.substring(0, 8)}`,
-          displayName: user.user_metadata?.display_name || user.email?.split('@')[0],
-          role: user.user_metadata?.role || (isAdminEmail ? 'admin' : 'fan'),
-          avatarUrl: user.user_metadata?.avatar_url || null,
-          bannerUrl: null,
-          bio: null,
-          isCreatorVerified: user.user_metadata?.is_creator_verified || false,
-          followerCount: 0,
-          followingCount: 0,
-        }
-      });
+    const response = NextResponse.json({ user: merged });
 
-      // Add no-cache headers
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      response.headers.set('Pragma', 'no-cache');
-      response.headers.set('Expires', '0');
-
-      return response;
-    }
-
-    // Return database user with snake_case converted to camelCase
-    const response = NextResponse.json({
-      user: {
-        id: dbUser.id,
-        email: dbUser.email,
-        username: dbUser.username,
-        displayName: dbUser.displayName,
-        avatarUrl: dbUser.avatarUrl,
-        bannerUrl: dbUser.bannerUrl,
-        bio: dbUser.bio,
-        role: dbUser.role,
-        isCreatorVerified: dbUser.isCreatorVerified,
-        followerCount: dbUser.followerCount,
-        followingCount: dbUser.followingCount,
-        createdAt: dbUser.createdAt,
-        updatedAt: dbUser.updatedAt,
-      }
-    });
-
-    // Add no-cache headers to prevent browser caching of user role/profile
+    // Add no-cache headers
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');

@@ -35,7 +35,13 @@ export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string>('fan');
+  // Initialize role from localStorage to prevent flash
+  const [userRole, setUserRole] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('digis_user_role') || 'fan';
+    }
+    return 'fan';
+  });
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,11 +53,39 @@ export function Navigation() {
   const [notificationCategory, setNotificationCategory] = useState<string>('all');
   const [notificationCount, setNotificationCount] = useState(0);
 
+  // Safe role setter - only upgrade, never downgrade
+  const setRoleSafely = (nextRole?: string | null) => {
+    if (!nextRole) return;
+    const order = { fan: 0, creator: 1, admin: 2 } as const;
+    const currentOrder = order[userRole as keyof typeof order] || 0;
+    const nextOrder = order[nextRole as keyof typeof order] || 0;
+
+    // Only update if same level or higher
+    if (nextOrder >= currentOrder) {
+      setUserRole(nextRole);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('digis_user_role', nextRole);
+      }
+    } else {
+      console.log('[Navigation] Ignoring role downgrade:', userRole, '->', nextRole);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       await checkUser();
     };
     init();
+
+    // Heartbeat to keep session alive (every 60 seconds)
+    const heartbeatInterval = setInterval(() => {
+      fetch('/api/auth/heartbeat', {
+        method: 'POST',
+        cache: 'no-store'
+      }).catch(() => {
+        // Silently fail
+      });
+    }, 60000);
 
     // Listen for auth state changes (logout, session expiry, etc.)
     const supabase = createClient();
@@ -60,12 +94,23 @@ export function Navigation() {
         setUser(null);
         setUserRole('fan');
         setBalance(0);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('digis_user_role');
+        }
       } else if (event === 'SIGNED_IN' && session?.user) {
         checkUser();
+        // Also check for role in JWT on sign-in
+        const jwtRole = (session.user.app_metadata as any)?.role ?? (session.user.user_metadata as any)?.role;
+        if (jwtRole) setRoleSafely(jwtRole);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        // Update role from refreshed JWT
+        const jwtRole = (session.user.app_metadata as any)?.role ?? (session.user.user_metadata as any)?.role;
+        if (jwtRole) setRoleSafely(jwtRole);
       }
     });
 
     return () => {
+      clearInterval(heartbeatInterval);
       subscription.unsubscribe();
     };
   }, []);
@@ -158,7 +203,7 @@ export function Navigation() {
         });
 
         if (data.user && data.user.role) {
-          setUserRole(data.user.role);
+          setRoleSafely(data.user.role);
           setUserProfile(data.user);
           setFollowerCount(data.user.followerCount || 0);
         } else {
