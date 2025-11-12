@@ -415,22 +415,6 @@ export default function CreatorDashboard() {
             </button>
           </div>
 
-          {/* Go Live */}
-          <button
-            onClick={() => router.push('/creator/go-live')}
-            className="relative bg-gradient-to-br from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-xl border-2 border-red-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <Video className="w-6 h-6 text-red-500" />
-              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">L</kbd>
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Start Streaming</h3>
-            <p className="text-sm text-gray-600">Go live and connect with your fans</p>
-            {lastStreamDate && (new Date().getTime() - lastStreamDate.getTime()) > 24 * 60 * 60 * 1000 && (
-              <div className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white" title="You haven't streamed in 24h" />
-            )}
-          </button>
-
           {/* Ticketed Shows */}
           <button
             onClick={() => router.push('/creator/shows')}
