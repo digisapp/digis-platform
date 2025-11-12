@@ -366,8 +366,7 @@ export default function CreatorDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">Creator Dashboard 🎨</h1>
-          <p className="text-gray-600 font-medium">Manage your content, streams, and earnings</p>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent">Dashboard</h1>
         </div>
 
         {/* Quick Actions - Core Actions Only */}
