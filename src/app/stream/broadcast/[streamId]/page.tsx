@@ -46,6 +46,9 @@ export default function BroadcastStudioPage() {
     totalEarnings: number;
     topSupporters: Array<{ username: string; totalCoins: number }>;
   } | null>(null);
+  const [leaderboard, setLeaderboard] = useState<Array<{ username: string; totalCoins: number }>>([]);
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Update timer every second
   useEffect(() => {
@@ -62,7 +65,24 @@ export default function BroadcastStudioPage() {
     fetchMessages();
     fetchBroadcastToken();
     fetchGoals();
+    fetchLeaderboard();
   }, [streamId]);
+
+  // Check orientation on mount and window resize
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
 
   // Auto-end stream on navigation or browser close
   useEffect(() => {
@@ -116,8 +136,9 @@ export default function BroadcastStudioPage() {
           setTotalEarnings((prev) => prev + event.data.streamGift.totalCoins);
           // Show gift notification
           showGiftNotification(event.data);
-          // Update goals progress
+          // Update goals progress and leaderboard
           fetchGoals();
+          fetchLeaderboard();
           break;
         case 'viewer_joined':
           playSound('join');
@@ -193,6 +214,18 @@ export default function BroadcastStudioPage() {
       }
     } catch (err) {
       console.error('Error fetching goals:', err);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/leaderboard`);
+      const data = await response.json();
+      if (response.ok) {
+        setLeaderboard(data.leaderboard || []);
+      }
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err);
     }
   };
 
@@ -554,9 +587,9 @@ export default function BroadcastStudioPage() {
 
       {/* Top Stats Bar */}
       <div className="glass backdrop-blur-md border-b-2 border-purple-200 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-6 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
               <div className="relative flex items-center gap-2 px-4 py-2 glass rounded-lg border-2 border-red-500 overflow-hidden">
                 {/* Animated gradient border effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-red-500 opacity-20 animate-pulse" />
@@ -577,15 +610,26 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+              <GlassButton
+                variant="gradient"
+                size="lg"
+                onClick={() => setShowLeaderboard(!showLeaderboard)}
+                shimmer
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
+              >
+                <span className="hidden sm:inline">🏆 Leaderboard</span>
+                <span className="sm:hidden">🏆</span>
+              </GlassButton>
               <GlassButton
                 variant="gradient"
                 size="lg"
                 onClick={() => setShowGoalModal(true)}
                 shimmer
-                className="text-white font-semibold"
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
               >
-                🎯 Set Goal
+                <span className="hidden sm:inline">🎯 Set Goal</span>
+                <span className="sm:hidden">🎯</span>
               </GlassButton>
               <GlassButton
                 variant="gradient"
@@ -593,19 +637,78 @@ export default function BroadcastStudioPage() {
                 onClick={() => setShowEndConfirm(true)}
                 shimmer
                 glow
-                className="text-white font-semibold"
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
               >
-                End Stream
+                <span className="hidden sm:inline">End Stream</span>
+                <span className="sm:hidden">🛑</span>
               </GlassButton>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Leaderboard Sidebar (Mobile Drawer / Desktop Sidebar) */}
+      {showLeaderboard && (
+        <>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setShowLeaderboard(false)} />
+          <div className={`fixed ${isPortrait ? 'bottom-0 left-0 right-0 max-h-[70vh]' : 'right-0 top-0 bottom-0 w-80'} bg-white/95 backdrop-blur-md border-l-2 border-purple-200 z-40 lg:relative lg:z-0 transform transition-transform duration-300 ${showLeaderboard ? 'translate-x-0 translate-y-0' : isPortrait ? 'translate-y-full' : 'translate-x-full'} lg:translate-x-0 lg:translate-y-0 overflow-y-auto`}>
+            <div className="p-4 border-b-2 border-purple-200 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <span>🏆</span> Top Gifters
+              </h3>
+              <button
+                onClick={() => setShowLeaderboard(false)}
+                className="lg:hidden text-gray-600 hover:text-gray-900 p-2 min-h-[44px] min-w-[44px]"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              {leaderboard.length > 0 ? (
+                leaderboard.map((supporter, index) => (
+                  <div key={index} className="glass rounded-xl border-2 border-purple-200 p-4 hover:border-digis-cyan transition-all duration-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        </span>
+                        <div>
+                          <div className="font-bold text-gray-900">{supporter.username}</div>
+                          <div className="text-xs text-gray-600">Supporter</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-digis-cyan">{supporter.totalCoins}</div>
+                        <div className="text-xs text-gray-600">coins</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-600">
+                  <div className="text-4xl mb-2">🎁</div>
+                  <p>No gifts yet!</p>
+                  <p className="text-sm mt-2">Be the first to support this stream</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Portrait Mode Indicator */}
+      {isPortrait && (
+        <div className="bg-gradient-to-r from-digis-cyan/20 to-digis-purple/20 border-b-2 border-purple-200 px-4 py-2 text-center">
+          <p className="text-sm text-gray-800 font-semibold">
+            📱 Portrait Mode Active - Optimized for vertical streaming
+          </p>
+        </div>
+      )}
+
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className={`grid grid-cols-1 ${isPortrait ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className={`${isPortrait ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-4`}>
             {/* Video Player */}
             <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative" data-lk-video-container>
               {token && serverUrl ? (
@@ -649,28 +752,28 @@ export default function BroadcastStudioPage() {
             {goals.length > 0 && <GoalProgressBar goals={goals} />}
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-cyan transition-all duration-300 hover:shadow-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-cyan transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="text-3xl mb-2">👁️</div>
-                <div className="text-2xl font-bold text-digis-cyan">{stream.totalViews}</div>
-                <div className="text-sm text-gray-700 font-medium">Total Views</div>
+                <div className="text-xl sm:text-2xl font-bold text-digis-cyan">{stream.totalViews}</div>
+                <div className="text-xs sm:text-sm text-gray-700 font-medium">Total Views</div>
               </div>
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-pink transition-all duration-300 hover:shadow-lg">
+              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-pink transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="text-3xl mb-2">📊</div>
-                <div className="text-2xl font-bold text-digis-pink">{peakViewers}</div>
-                <div className="text-sm text-gray-700 font-medium">Peak Viewers</div>
+                <div className="text-xl sm:text-2xl font-bold text-digis-pink">{peakViewers}</div>
+                <div className="text-xs sm:text-sm text-gray-700 font-medium">Peak Viewers</div>
               </div>
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-yellow-400 transition-all duration-300 hover:shadow-lg">
+              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-yellow-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="text-3xl mb-2">🎁</div>
-                <div className="text-2xl font-bold text-yellow-500">{totalEarnings}</div>
-                <div className="text-sm text-gray-700 font-medium">Coins Earned</div>
+                <div className="text-xl sm:text-2xl font-bold text-yellow-500">{totalEarnings}</div>
+                <div className="text-xs sm:text-sm text-gray-700 font-medium">Coins Earned</div>
               </div>
             </div>
           </div>
 
           {/* Chat Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="h-[calc(100vh-12rem)] sticky top-24">
+          <div className={`${isPortrait ? 'lg:col-span-1 order-first' : 'lg:col-span-1'}`}>
+            <div className={`${isPortrait ? 'h-[300px]' : 'h-[calc(100vh-12rem)]'} lg:sticky lg:top-24`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}
