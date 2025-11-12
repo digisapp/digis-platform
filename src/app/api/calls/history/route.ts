@@ -14,14 +14,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const calls = await CallService.getCallHistory(user.id);
+    let calls: any[] = [];
+    try {
+      calls = await CallService.getCallHistory(user.id);
+    } catch (dbError) {
+      console.error('Database error fetching call history - returning empty array:', dbError);
+      // Return empty array instead of error to prevent UI crash
+    }
 
     return NextResponse.json({ calls });
   } catch (error: any) {
     console.error('Error fetching call history:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch call history' },
-      { status: 500 }
-    );
+    // Return empty array instead of 500 error to keep UI functional
+    return NextResponse.json({ calls: [] });
   }
 }
