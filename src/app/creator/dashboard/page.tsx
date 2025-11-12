@@ -75,8 +75,6 @@ export default function CreatorDashboard() {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
-  const [earnings24h, setEarnings24h] = useState(0);
-  const [earningsPeriod, setEarningsPeriod] = useState<'24h' | '1w' | '1m' | 'total'>('24h');
 
   useEffect(() => {
     checkAuth();
@@ -86,10 +84,6 @@ export default function CreatorDashboard() {
     fetchUpcomingEvents();
     fetchPendingCounts();
   }, []);
-
-  useEffect(() => {
-    fetch24hEarnings();
-  }, [earningsPeriod]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -296,49 +290,6 @@ export default function CreatorDashboard() {
     }
   };
 
-  const fetch24hEarnings = async () => {
-    try {
-      // Fetch transactions based on period (limit adjusted for longer periods)
-      const limit = earningsPeriod === 'total' ? 1000 : earningsPeriod === '1m' ? 500 : 200;
-      const response = await fetch(`/api/wallet/transactions?limit=${limit}`);
-      if (response.ok) {
-        const data = await response.json();
-        const now = new Date();
-        let cutoffDate: Date | null = null;
-
-        // Calculate cutoff date based on selected period
-        switch (earningsPeriod) {
-          case '24h':
-            cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-          case '1w':
-            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case '1m':
-            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          case 'total':
-            cutoffDate = null; // No cutoff, sum all earnings
-            break;
-        }
-
-        // Sum up positive transactions (earnings) from selected period
-        const earnings = (data.transactions || [])
-          .filter((tx: any) => {
-            if (tx.amount <= 0) return false;
-            if (!cutoffDate) return true; // Total earnings
-            const txDate = new Date(tx.createdAt);
-            return txDate >= cutoffDate;
-          })
-          .reduce((sum: number, tx: any) => sum + tx.amount, 0);
-
-        setEarnings24h(earnings);
-      }
-    } catch (err) {
-      console.error('Error fetching earnings:', err);
-    }
-  };
-
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -369,50 +320,6 @@ export default function CreatorDashboard() {
         <MobileWalletWidget />
 
         <div className="px-4">
-        {/* Quick Actions - Core Actions Only */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Earnings with Period Selector */}
-          <div className="relative bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-xl border-2 border-green-500 p-6 shadow-fun">
-            {/* Icon and Period Selector Row */}
-            <div className="flex items-center justify-between mb-3">
-              <Coins className="w-6 h-6 text-green-600" />
-              <div className="flex gap-1 bg-white/60 rounded-lg p-1">
-                {[
-                  { value: '24h', label: '24h' },
-                  { value: '1w', label: '1W' },
-                  { value: '1m', label: '1M' },
-                  { value: 'total', label: 'All' },
-                ].map((period) => (
-                  <button
-                    key={period.value}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEarningsPeriod(period.value as '24h' | '1w' | '1m' | 'total');
-                    }}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
-                      earningsPeriod === period.value
-                        ? 'bg-green-500 text-white'
-                        : 'text-gray-600 hover:bg-white/80'
-                    }`}
-                  >
-                    {period.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => router.push('/creator/earnings')}
-              className="w-full text-left hover:opacity-80 transition-opacity"
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-1">Earnings</h3>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-green-600">{earnings24h.toLocaleString()}</span>
-                <span className="text-sm text-gray-600">coins</span>
-              </div>
-            </button>
-          </div>
-        </div>
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (
