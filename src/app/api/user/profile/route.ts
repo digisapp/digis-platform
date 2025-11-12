@@ -43,13 +43,27 @@ export async function GET() {
       // Continue to fallback logic below
     }
 
+    // Determine final role (prefer JWT, fallback to DB if JWT not yet backfilled)
+    const finalRole = jwtRole || dbUser?.role || 'fan';
+
+    // Log for debugging
+    console.log('[ProfileAPI]', {
+      userId: user.id,
+      email: user.email,
+      jwtRole,
+      dbRole: dbUser?.role,
+      finalRole,
+      hasJWTRole: !!jwtRole,
+      hasDBRole: !!dbUser?.role,
+    });
+
     // Build merged user object (JWT role is authoritative, DB enriches)
     const merged = {
       id: user.id,
       email: user.email!,
       username: user.user_metadata?.username || dbUser?.username || `user_${user.id.substring(0, 8)}`,
       displayName: user.user_metadata?.display_name || dbUser?.displayName || user.email?.split('@')[0],
-      role: jwtRole, // 👈 Never override this with a fallback "fan"
+      role: finalRole, // 👈 JWT role if available, otherwise DB role (until backfill runs)
       avatarUrl: user.user_metadata?.avatar_url || dbUser?.avatarUrl || null,
       bannerUrl: dbUser?.bannerUrl || null,
       bio: dbUser?.bio || null,
