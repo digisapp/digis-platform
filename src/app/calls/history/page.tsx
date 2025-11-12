@@ -141,12 +141,6 @@ export default function CallHistoryPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient py-20 px-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Call History</h1>
-          <p className="text-gray-600">View your past video calls and earnings</p>
-        </div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <GlassCard className="p-6">

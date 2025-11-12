@@ -324,13 +324,6 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient py-12 px-4">
       <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-            Account Settings
-          </h1>
-        </div>
-
         {/* Global Messages */}
         {message && (
           <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">

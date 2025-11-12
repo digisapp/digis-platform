@@ -211,27 +211,16 @@ export default function WalletPage() {
       />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg">
-                <Wallet className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-800">My Wallet</h1>
-                <p className="text-gray-600">Manage your Digis Coins {isCreator && 'and payouts'}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="p-3 glass glass-hover rounded-xl text-green-600 hover:bg-green-500/10 transition-all disabled:opacity-50"
-              title="Refresh wallet data"
-            >
-              <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+        {/* Refresh Button */}
+        <div className="mb-8 flex justify-end">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-3 glass glass-hover rounded-xl text-green-600 hover:bg-green-500/10 transition-all disabled:opacity-50"
+            title="Refresh wallet data"
+          >
+            <RefreshCw className={`w-6 h-6 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
         {/* Tabs */}

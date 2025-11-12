@@ -74,17 +74,6 @@ export default function CreatorAnalyticsPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <h1 className="text-4xl font-bold text-gray-800">Analytics & Insights</h1>
-          </div>
-          <p className="text-gray-600 ml-16">Track your growth, performance, and audience engagement</p>
-        </div>
-
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Followers Card */}

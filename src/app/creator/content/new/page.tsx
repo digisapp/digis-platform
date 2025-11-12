@@ -77,18 +77,6 @@ export default function CreateContentPage() {
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Create PPV Content 🎨</h1>
-          <p className="text-gray-600">Upload exclusive pay-per-view content for your fans</p>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Content Type */}
           <GlassCard className="p-6">

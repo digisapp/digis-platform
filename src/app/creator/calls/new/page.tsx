@@ -78,19 +78,6 @@ export default function ScheduleCallPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Call Settings 📞</h1>
-          <p className="text-gray-600">Configure your 1-on-1 video call availability and pricing</p>
-        </div>
-
         <div className="space-y-6">
           {/* Availability Toggle */}
           <GlassCard className="p-6">

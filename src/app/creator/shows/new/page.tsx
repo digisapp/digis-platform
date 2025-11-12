@@ -84,19 +84,6 @@ export default function CreateShowPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-lg">
-              <Ticket className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800">Create New Show</h1>
-              <p className="text-gray-600 mt-1">Schedule an exclusive ticketed event for your fans</p>
-            </div>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <GlassCard className="p-6">
