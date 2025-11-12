@@ -364,9 +364,11 @@ export default function CreatorDashboard() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto">
         {/* Mobile Wallet Widget */}
-        <MobileWalletWidget />
+        <div className="pt-8">
+          <MobileWalletWidget />
+        </div>
 
         <div className="px-4">
         {/* Quick Actions - Core Actions Only */}

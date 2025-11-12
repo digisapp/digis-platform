@@ -104,26 +104,31 @@ export default function ExplorePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-pastel-gradient">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-              Explore
-            </h1>
+        <div className="max-w-7xl mx-auto">
+          {/* Mobile Wallet Widget Skeleton */}
+          <div className="md:hidden mb-4 px-4 pt-8">
+            <div className="glass rounded-2xl border-2 border-purple-200 p-4 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="h-5 w-24 bg-gray-300 rounded"></div>
+                <div className="h-5 w-16 bg-gray-300 rounded"></div>
+              </div>
+            </div>
           </div>
 
-          {/* Search Bar Skeleton */}
-          <div className="mb-8">
-            <GlassCard className="p-4">
-              <div className="h-12 bg-gray-200 animate-pulse rounded-lg" />
-            </GlassCard>
-          </div>
+          <div className="px-4">
+            {/* Search Bar Skeleton */}
+            <div className="mb-8">
+              <GlassCard className="p-4">
+                <div className="h-12 bg-gray-200 animate-pulse rounded-lg" />
+              </GlassCard>
+            </div>
 
-          {/* Loading Skeletons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <CreatorCardSkeleton key={i} />
-            ))}
+            {/* Loading Skeletons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <CreatorCardSkeleton key={i} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -132,9 +137,11 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="max-w-7xl mx-auto py-8">
+      <div className="max-w-7xl mx-auto">
         {/* Mobile Wallet Widget */}
-        <MobileWalletWidget />
+        <div className="pt-8">
+          <MobileWalletWidget />
+        </div>
 
         <div className="px-4">
         {/* Search Bar */}
