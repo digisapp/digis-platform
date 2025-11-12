@@ -409,32 +409,32 @@ export function Navigation() {
       {showProfileMenu && (
         <>
           <div
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 top-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-72 overflow-hidden shadow-lg">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(72px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl">
             {/* Profile Header */}
-            <div className="p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
+              <div className="flex items-center gap-4 md:gap-3 mb-4 md:mb-3">
                 {userProfile?.avatarUrl ? (
                   <img
                     src={userProfile.avatarUrl}
                     alt="Your avatar"
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-14 h-14 md:w-12 md:h-12 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold text-white">
+                  <div className="w-14 h-14 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-lg font-bold text-white">
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 truncate">
+                  <p className="font-bold text-gray-900 text-base md:text-sm truncate">
                     {userProfile?.displayName || userProfile?.username || 'User'}
                   </p>
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-sm md:text-sm text-gray-600 truncate">
                     @{userProfile?.username || user?.email}
                   </p>
-                  <p className="text-xs text-gray-600 capitalize mt-0.5">
+                  <p className="text-xs text-gray-600 capitalize mt-1 md:mt-0.5">
                     {userRole}
                   </p>
                 </div>
@@ -445,12 +445,13 @@ export function Navigation() {
                   router.push('/creator/followers');
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 bg-white/60 hover:bg-white/80 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/60 hover:bg-white/80 active:bg-white/90 rounded-xl md:rounded-lg transition-all active:scale-98"
+                style={{ minHeight: '48px' }}
               >
-                <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-4 md:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm font-semibold text-gray-800">
+                <span className="text-sm font-semibold text-gray-900">
                   {followerCount.toLocaleString()} {followerCount === 1 ? 'Follower' : 'Followers'}
                 </span>
               </button>
@@ -463,12 +464,13 @@ export function Navigation() {
                   router.push(`/${userProfile?.username || 'profile'}`);
                   setShowProfileMenu(false);
                 }}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                style={{ minHeight: '56px' }}
               >
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className="text-sm text-gray-800 font-medium">View Profile</span>
+                <span className="text-base md:text-sm text-gray-900 font-semibold">View Profile</span>
               </button>
 
               {userRole === 'creator' && (
@@ -478,12 +480,13 @@ export function Navigation() {
                       router.push('/creator/subscriptions/setup');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                     </svg>
-                    <span className="text-sm text-gray-800 font-medium">Subscriptions</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Subscriptions</span>
                   </button>
 
                   <button
@@ -491,12 +494,13 @@ export function Navigation() {
                       router.push('/creator/analytics');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    <span className="text-sm text-gray-800 font-medium">Analytics</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Analytics</span>
                   </button>
 
                   <button
@@ -504,12 +508,13 @@ export function Navigation() {
                       router.push('/creator/earnings');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm text-gray-800 font-medium">Earnings</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Earnings</span>
                   </button>
 
                   <button
@@ -517,12 +522,13 @@ export function Navigation() {
                       router.push('/calls/history');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-sm text-gray-800 font-medium">Call Requests</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Call Requests</span>
                   </button>
                 </>
               )}
@@ -532,13 +538,14 @@ export function Navigation() {
                   router.push('/settings');
                   setShowProfileMenu(false);
                 }}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left"
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                style={{ minHeight: '56px' }}
               >
-                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-sm text-gray-800 font-medium">Account Settings</span>
+                <span className="text-base md:text-sm text-gray-900 font-semibold">Account Settings</span>
               </button>
 
               <button
@@ -546,12 +553,13 @@ export function Navigation() {
                   handleLogout();
                   setShowProfileMenu(false);
                 }}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 transition-colors text-left border-t border-purple-100"
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-red-50 active:bg-red-100 transition-all text-left border-t border-purple-100 active:scale-98"
+                style={{ minHeight: '56px' }}
               >
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 md:w-5 md:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="text-sm text-red-600 font-medium">Logout</span>
+                <span className="text-base md:text-sm text-red-600 font-bold">Logout</span>
               </button>
             </div>
           </div>
@@ -562,28 +570,30 @@ export function Navigation() {
       {showNotifications && (
         <>
           <div
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowNotifications(false)}
           />
-          <div className="fixed md:left-24 md:bottom-24 bottom-20 right-4 md:right-auto glass backdrop-blur-xl border border-purple-200 rounded-xl z-50 w-96 max-h-[32rem] overflow-hidden shadow-lg">
+          <div className="fixed md:left-24 md:bottom-24 bottom-[calc(72px+env(safe-area-inset-bottom)+8px)] md:bottom-24 right-4 left-4 md:left-24 md:right-auto md:w-96 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 max-h-[70vh] md:max-h-[32rem] overflow-hidden shadow-2xl">
             {/* Header with Categories */}
-            <div className="p-4 border-b border-purple-200">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-gray-800">Notifications</h3>
-                <div className="flex items-center gap-2">
+            <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
+              <div className="flex items-center justify-between mb-4 md:mb-3">
+                <h3 className="font-bold text-gray-900 text-lg md:text-base">Notifications</h3>
+                <div className="flex items-center gap-3 md:gap-2">
                   {notificationCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-xs text-digis-cyan hover:text-digis-pink transition-colors font-semibold"
+                      className="text-sm md:text-xs text-digis-cyan hover:text-digis-pink active:text-digis-pink transition-colors font-bold active:scale-95"
+                      style={{ minHeight: '32px', minWidth: '32px' }}
                     >
                       Mark all read
                     </button>
                   )}
                   <button
                     onClick={() => setShowNotifications(false)}
-                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                    className="text-gray-600 hover:text-gray-900 active:text-gray-900 transition-colors p-2 hover:bg-white/60 rounded-lg active:scale-95"
+                    style={{ minHeight: '40px', minWidth: '40px' }}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
@@ -591,16 +601,17 @@ export function Navigation() {
               </div>
 
               {/* Category Tabs */}
-              <div className="flex gap-2 overflow-x-auto">
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                 {['all', 'earnings', 'followers'].map((category) => (
                   <button
                     key={category}
                     onClick={() => setNotificationCategory(category)}
-                    className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    className={`px-4 py-2.5 md:px-3 md:py-1 rounded-full text-sm md:text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
                       notificationCategory === category
-                        ? 'bg-digis-cyan text-white'
-                        : 'bg-white/60 text-gray-700 hover:bg-white/80'
+                        ? 'bg-digis-cyan text-white shadow-lg'
+                        : 'bg-white/70 text-gray-800 hover:bg-white/90 active:bg-white'
                     }`}
+                    style={{ minHeight: '40px' }}
                   >
                     {category.charAt(0).toUpperCase() + category.slice(1)}
                   </button>
@@ -609,34 +620,35 @@ export function Navigation() {
             </div>
 
             {/* Notifications List */}
-            <div className="overflow-y-auto max-h-96">
+            <div className="overflow-y-auto max-h-[calc(70vh-180px)] md:max-h-96">
               {notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-600">
-                  <Bell className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm">No notifications yet</p>
+                <div className="p-12 md:p-8 text-center text-gray-600">
+                  <Bell className="w-16 h-16 md:w-12 md:h-12 mx-auto mb-4 md:mb-3 text-gray-400" />
+                  <p className="text-base md:text-sm font-medium text-gray-700">No notifications yet</p>
                 </div>
               ) : (
                 notifications.map((notification) => (
                   <button
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`w-full p-4 border-b border-purple-100 hover:bg-white/40 transition-colors text-left ${
+                    className={`w-full p-5 md:p-4 border-b border-purple-100 hover:bg-white/50 active:bg-white/60 transition-all text-left active:scale-[0.99] ${
                       !notification.isRead ? 'bg-digis-cyan/10' : ''
                     }`}
+                    style={{ minHeight: '72px' }}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-4 md:gap-3">
                       <div className="flex-shrink-0 mt-1">
                         {getNotificationIcon(notification.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 mb-1">{notification.title}</p>
-                        <p className="text-sm text-gray-700">{notification.message}</p>
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-base md:text-sm font-bold text-gray-900 mb-1.5 md:mb-1">{notification.title}</p>
+                        <p className="text-sm md:text-sm text-gray-700 leading-relaxed">{notification.message}</p>
+                        <p className="text-xs text-gray-600 mt-2 md:mt-1 font-medium">
                           {formatNotificationTime(notification.createdAt)}
                         </p>
                       </div>
                       {!notification.isRead && (
-                        <div className="w-2 h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2" />
+                        <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2 shadow-lg" />
                       )}
                     </div>
                   </button>
@@ -647,101 +659,184 @@ export function Navigation() {
         </>
       )}
 
-      {/* Mobile Bottom Navigation (TikTok/Instagram style) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass backdrop-blur-xl border-t border-purple-200 pb-safe shadow-lg">
-        <div className="flex items-center justify-around h-16 px-2">
+      {/* Mobile Bottom Navigation (iPhone Optimized) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+        {/* Backdrop with enhanced blur */}
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-2xl border-t border-purple-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]" />
+
+        {/* Navigation content */}
+        <div className="relative flex items-end justify-around px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {/* Home */}
           <button
             onClick={() => router.push(navItems[0].path)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              navItems[0].active ? 'text-digis-cyan' : 'text-gray-600'
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+              navItems[0].active
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
             }`}
+            style={{ minHeight: '56px' }}
           >
             {(() => {
               const Icon = navItems[0].icon;
-              return <Icon className="w-6 h-6" />;
+              return (
+                <div className={`relative transition-transform ${navItems[0].active ? 'scale-110' : ''}`}>
+                  <Icon className="w-7 h-7" strokeWidth={navItems[0].active ? 2.5 : 2} />
+                  {navItems[0].active && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                  )}
+                </div>
+              );
             })()}
-            <span className="text-xs font-medium">{navItems[0].label}</span>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[0].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
+              {navItems[0].label}
+            </span>
           </button>
 
           {/* Explore */}
           <button
             onClick={() => router.push(navItems[1].path)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              navItems[1].active ? 'text-digis-cyan' : 'text-gray-600'
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+              navItems[1].active
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
             }`}
+            style={{ minHeight: '56px' }}
           >
             {(() => {
               const Icon = navItems[1].icon;
-              return <Icon className="w-6 h-6" />;
+              return (
+                <div className={`relative transition-transform ${navItems[1].active ? 'scale-110' : ''}`}>
+                  <Icon className="w-7 h-7" strokeWidth={navItems[1].active ? 2.5 : 2} />
+                  {navItems[1].active && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                  )}
+                </div>
+              );
             })()}
-            <span className="text-xs font-medium">{navItems[1].label}</span>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[1].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
+              {navItems[1].label}
+            </span>
           </button>
 
           {/* Center Action Button - Creators Only */}
           {userRole === 'creator' && (
-            <button
-              onClick={() => setShowCreateMenu(true)}
-              className="flex flex-col items-center justify-center -mt-6 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink shadow-lg shadow-digis-cyan/50 border-2 border-white"
-            >
-              <Plus className="w-7 h-7 text-white" />
-            </button>
+            <div className="flex flex-col items-center justify-end flex-1 min-w-[60px] -mb-2">
+              <button
+                onClick={() => setShowCreateMenu(true)}
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_8px_24px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group"
+                style={{ minHeight: '64px', minWidth: '64px' }}
+              >
+                {/* Animated gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-active:opacity-100 transition-opacity" />
+
+                <Plus className="w-8 h-8 text-white relative z-10 transition-transform group-active:rotate-90" strokeWidth={3} />
+
+                {/* Pulse effect */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink opacity-75 animate-ping" style={{ animationDuration: '2s' }} />
+              </button>
+            </div>
           )}
 
           {/* Messages */}
           <button
             onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              navItems[2].active ? 'text-digis-cyan' : 'text-gray-600'
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+              navItems[2].active
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
             }`}
-          >
-            {(() => {
-              const Icon = navItems[2].icon;
-              return <Icon className="w-6 h-6" />;
-            })()}
-            <span className="text-xs font-medium">{navItems[2].label}</span>
-          </button>
-
-          {/* Wallet/Balance Button (Separate) */}
-          <button
-            onClick={() => router.push('/wallet')}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-              isActive('/wallet') ? 'text-green-600' : 'text-gray-600'
-            }`}
-          >
-            <Coins className="w-6 h-6 text-green-600" />
-            <span className="text-xs font-black text-gray-800">{balance}</span>
-          </button>
-
-          {/* Profile/Settings Button (Separate) */}
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all ${
-              isActive('/settings') || showProfileMenu ? 'text-digis-cyan' : 'text-gray-600'
-            }`}
+            style={{ minHeight: '56px' }}
           >
             <div className="relative">
-              {/* Glow effect */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-sm opacity-50 animate-pulse" />
+              {(() => {
+                const Icon = navItems[2].icon;
+                return (
+                  <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                    <Icon className="w-7 h-7" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                    {navItems[2].active && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                    )}
+                  </div>
+                );
+              })()}
+              {unreadCount > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                  <span className="text-[10px] font-bold text-white leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                </div>
+              )}
+            </div>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
+              {navItems[2].label}
+            </span>
+          </button>
 
-              {/* Gradient border */}
-              <div className="relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
-                <div className="rounded-full bg-white p-[1px]">
+          {/* Wallet/Balance Button */}
+          <button
+            onClick={() => router.push('/wallet')}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+              isActive('/wallet')
+                ? 'text-green-600'
+                : 'text-gray-600 active:bg-gray-100/50'
+            }`}
+            style={{ minHeight: '56px' }}
+          >
+            <div className={`relative transition-transform ${isActive('/wallet') ? 'scale-110' : ''}`}>
+              <Coins className="w-7 h-7 text-green-600" strokeWidth={isActive('/wallet') ? 2.5 : 2} />
+              {isActive('/wallet') && (
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-green-600" />
+              )}
+            </div>
+            <span className="text-[11px] font-black text-gray-900 mt-0.5">
+              {balance}
+            </span>
+          </button>
+
+          {/* Profile/Settings Button */}
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+              isActive('/settings') || showProfileMenu
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
+            }`}
+            style={{ minHeight: '56px' }}
+          >
+            <div className="relative">
+              {/* Enhanced glow effect */}
+              {(isActive('/settings') || showProfileMenu) && (
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-md opacity-60 animate-pulse" />
+              )}
+
+              {/* Gradient border ring */}
+              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2.5px] transition-all ${
+                isActive('/settings') || showProfileMenu ? 'scale-110' : ''
+              }`}>
+                <div className="rounded-full bg-white p-[2px]">
                   {userProfile?.avatarUrl ? (
                     <img
                       src={userProfile.avatarUrl}
                       alt="Your avatar"
-                      className="w-7 h-7 rounded-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
                       {user?.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                   )}
                 </div>
               </div>
+
+              {(isActive('/settings') || showProfileMenu) && (
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+              )}
             </div>
-            <span className="text-xs font-medium">You</span>
+            <span className={`text-[11px] font-semibold mt-0.5 ${
+              isActive('/settings') || showProfileMenu ? 'text-digis-cyan' : 'text-gray-700'
+            }`}>
+              You
+            </span>
           </button>
         </div>
       </nav>
@@ -814,7 +909,7 @@ export function Navigation() {
         {userRole === 'creator' && (
           <button
             onClick={() => setShowCreateMenu(true)}
-            className="mb-8 w-14 h-14 rounded-xl bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-105 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
+            className="mb-8 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-105 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
             title="Create"
           >
             <Plus className="w-7 h-7 text-white group-hover:rotate-90 transition-transform" />
@@ -898,8 +993,8 @@ export function Navigation() {
       {/* Spacer for desktop side nav */}
       <div className="hidden md:block w-20" />
 
-      {/* Spacer for mobile bottom nav */}
-      <div className="md:hidden h-16" />
+      {/* Spacer for mobile bottom nav - Dynamic height for iPhone */}
+      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-bottom))' }} />
     </>
   );
 }
