@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
+import { Coins } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -167,8 +168,8 @@ export default function Home() {
             {/* Coin Showcase */}
             <div className="mt-20 glass p-12 rounded-3xl border-2 border-digis-yellow hover:shadow-glow-purple transition-all">
               <div className="flex items-center justify-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-digis-yellow to-digis-orange flex items-center justify-center text-4xl shimmer">
-                  🪙
+                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-digis-yellow to-digis-orange flex items-center justify-center shimmer">
+                  <Coins className="w-12 h-12 text-white" strokeWidth={2.5} />
                 </div>
               </div>
               <h2 className="text-4xl font-bold text-gray-800 mb-4">Powered by Digis Coins</h2>
