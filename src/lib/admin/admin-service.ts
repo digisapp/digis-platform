@@ -1,6 +1,7 @@
 import { db } from '@/lib/data/system';
 import { users, creatorApplications } from '@/lib/data/system';
 import { eq, and, or, ilike, desc } from 'drizzle-orm';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export class AdminService {
   // Check if user is admin
@@ -98,7 +99,7 @@ export class AdminService {
       })
       .where(eq(creatorApplications.id, applicationId));
 
-    // Update user to creator role
+    // Update user to creator role in database
     await db.update(users)
       .set({
         role: 'creator',
@@ -108,6 +109,29 @@ export class AdminService {
         updatedAt: new Date(),
       })
       .where(eq(users.id, application.userId));
+
+    // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
+    // This prevents role from switching back to fan during DB issues
+    try {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        application.userId,
+        {
+          app_metadata: { role: 'creator' },
+          user_metadata: {
+            is_creator_verified: true,
+            display_name: application.displayName
+          }
+        }
+      );
+
+      if (updateError) {
+        console.error('Failed to update auth metadata for creator:', updateError);
+        // Don't throw - DB update succeeded, JWT will sync eventually
+      }
+    } catch (authError) {
+      console.error('Error updating auth metadata:', authError);
+      // Don't throw - DB update succeeded
+    }
 
     return { success: true };
   }
@@ -202,12 +226,32 @@ export class AdminService {
     userId: string,
     newRole: 'fan' | 'creator' | 'admin'
   ) {
+    // Update database
     await db.update(users)
       .set({
         role: newRole,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+
+    // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
+    // This ensures role persists across sessions and prevents downgrades
+    try {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          app_metadata: { role: newRole },
+        }
+      );
+
+      if (updateError) {
+        console.error('Failed to update auth metadata for role change:', updateError);
+        // Don't throw - DB update succeeded, JWT will sync eventually
+      }
+    } catch (authError) {
+      console.error('Error updating auth metadata:', authError);
+      // Don't throw - DB update succeeded
+    }
 
     return { success: true };
   }

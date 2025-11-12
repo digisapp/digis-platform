@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
+import { type Role, ROLE_ORDER, isValidRole, parseRole } from '@/types/auth';
 import {
   Home,
   Search,
@@ -36,9 +37,10 @@ export function Navigation() {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   // Initialize role from localStorage to prevent flash
-  const [userRole, setUserRole] = useState<string>(() => {
+  const [userRole, setUserRole] = useState<Role>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('digis_user_role') || 'fan';
+      const stored = localStorage.getItem('digis_user_role');
+      return parseRole(stored, 'fan');
     }
     return 'fan';
   });
@@ -53,12 +55,26 @@ export function Navigation() {
   const [notificationCategory, setNotificationCategory] = useState<string>('all');
   const [notificationCount, setNotificationCount] = useState(0);
 
-  // Safe role setter - only upgrade, never downgrade
-  const setRoleSafely = (nextRole?: string | null) => {
-    if (!nextRole) return;
-    const order = { fan: 0, creator: 1, admin: 2 } as const;
-    const currentOrder = order[userRole as keyof typeof order] || 0;
-    const nextOrder = order[nextRole as keyof typeof order] || 0;
+  // Safe role setter - only upgrade, never downgrade (unless forced)
+  const setRoleSafely = (nextRole?: string | null, opts: { force?: boolean } = {}) => {
+    if (!nextRole || !isValidRole(nextRole)) {
+      console.warn('[Navigation] Invalid role provided:', nextRole);
+      return;
+    }
+
+    // Force option for authoritative changes (e.g., admin changed user's role)
+    if (opts.force) {
+      console.log('[Navigation] Force updating role:', userRole, '->', nextRole);
+      setUserRole(nextRole);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('digis_user_role', nextRole);
+      }
+      return;
+    }
+
+    // Never-downgrade logic for transient errors
+    const currentOrder = ROLE_ORDER[userRole];
+    const nextOrder = ROLE_ORDER[nextRole];
 
     // Only update if same level or higher
     if (nextOrder >= currentOrder) {
@@ -73,6 +89,21 @@ export function Navigation() {
 
   useEffect(() => {
     const init = async () => {
+      // Seed role from JWT if no localStorage value exists
+      if (typeof window !== 'undefined' && !localStorage.getItem('digis_user_role')) {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const jwtRole = (session.user.app_metadata as any)?.role ??
+                          (session.user.user_metadata as any)?.role;
+          if (jwtRole && isValidRole(jwtRole)) {
+            console.log('[Navigation] Seeding role from JWT:', jwtRole);
+            setUserRole(jwtRole);
+            localStorage.setItem('digis_user_role', jwtRole);
+          }
+        }
+      }
+
       await checkUser();
     };
     init();
@@ -203,7 +234,8 @@ export function Navigation() {
         });
 
         if (data.user && data.user.role) {
-          setRoleSafely(data.user.role);
+          // Force update role from profile API (it comes from JWT app_metadata, which is authoritative)
+          setRoleSafely(data.user.role, { force: true });
           setUserProfile(data.user);
           setFollowerCount(data.user.followerCount || 0);
         } else {

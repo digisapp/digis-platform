@@ -5,9 +5,10 @@ import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
-// Force Node.js runtime
+// Force Node.js runtime and disable all caching
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -65,6 +66,7 @@ export async function GET() {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
+    response.headers.set('Vary', 'Cookie'); // Prevent proxies from mixing users
 
     return response;
   } catch (error: any) {
