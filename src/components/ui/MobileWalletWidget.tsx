@@ -101,7 +101,7 @@ export function MobileWalletWidget() {
 
           {/* Dropdown Content */}
           <div className="absolute top-full left-4 right-4 mt-2 z-50 glass rounded-2xl border-2 border-purple-200 shadow-xl overflow-hidden">
-            {/* Buy Tokens */}
+            {/* Buy Coins */}
             <button
               onClick={() => {
                 setShowDropdown(false);
@@ -113,7 +113,7 @@ export function MobileWalletWidget() {
                 <ShoppingCart className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-bold text-gray-900">Buy Tokens</div>
+                <div className="font-bold text-gray-900">Buy Coins</div>
                 <div className="text-xs text-gray-600">Add coins to your wallet</div>
               </div>
             </button>
