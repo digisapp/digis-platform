@@ -106,12 +106,9 @@ export default function ExplorePage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-              Explore Creators
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+              Explore
             </h1>
-            <p className="text-gray-700">
-              Discover and follow your favorite creators
-            </p>
           </div>
 
           {/* Search Bar Skeleton */}
@@ -137,12 +134,9 @@ export default function ExplorePage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-            Explore Creators
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+            Explore
           </h1>
-          <p className="text-gray-700">
-            Discover and follow your favorite creators
-          </p>
         </div>
 
         {/* Search Bar */}
