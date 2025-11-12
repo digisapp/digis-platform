@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { type Role, ROLE_ORDER, isValidRole, parseRole } from '@/types/auth';
+import { getRoleWithFallback } from '@/lib/auth/jwt-utils';
 import {
   Home,
   Search,
@@ -100,11 +101,16 @@ export function Navigation() {
         (session?.user?.user_metadata as any)?.role ??
         null;
 
-      if (!aborted && jwtRole && isValidRole(jwtRole)) {
-        console.log('[Navigation] Asserting role from JWT immediately:', jwtRole);
-        setRoleSafely(jwtRole, { force: true });
-      } else if (!aborted && !jwtRole) {
-        console.log('[Navigation] No JWT role found, will fetch from API');
+      // 🛡️ Last-resort fallback: decode JWT from localStorage if session is null
+      const roleWithFallback = getRoleWithFallback(jwtRole);
+
+      if (!aborted && roleWithFallback && isValidRole(roleWithFallback)) {
+        console.log('[Navigation] Asserting role immediately:', roleWithFallback, {
+          source: jwtRole ? 'JWT session' : 'localStorage fallback'
+        });
+        setRoleSafely(roleWithFallback, { force: true });
+      } else if (!aborted && !roleWithFallback) {
+        console.log('[Navigation] No role found in JWT or localStorage, will fetch from API');
       }
 
       // Now fetch full profile (which may also update role)
