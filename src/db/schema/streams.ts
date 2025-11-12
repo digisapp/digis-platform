@@ -33,6 +33,8 @@ export const streams = pgTable('streams', {
 
   // Metadata
   thumbnailUrl: text('thumbnail_url'),
+  category: text('category'), // Gaming, Music, Lifestyle, etc.
+  privacy: text('privacy').default('public').notNull(), // public, followers, private
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

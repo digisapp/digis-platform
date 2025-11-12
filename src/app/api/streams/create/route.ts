@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description } = await req.json();
+    const { title, description, category, privacy, thumbnail_url, scheduled_at } = await req.json();
 
     if (!title) {
       return NextResponse.json(
@@ -33,16 +33,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!category) {
+      return NextResponse.json(
+        failure('Category is required', 'validation', requestId),
+        { status: 400, headers: { 'x-request-id': requestId } }
+      );
+    }
+
+    // Parse scheduled date if provided
+    const scheduledAt = scheduled_at ? new Date(scheduled_at) : undefined;
+
     console.log('[STREAMS/CREATE]', {
       requestId,
       userId: user.id,
       title,
+      category,
+      privacy,
+      scheduled: !!scheduledAt,
     });
 
     // Create stream with timeout and retry
     try {
       const stream = await withTimeoutAndRetry(
-        () => StreamService.createStream(user.id, title, description),
+        () => StreamService.createStream(
+          user.id,
+          title,
+          description,
+          category,
+          privacy,
+          thumbnail_url,
+          scheduledAt
+        ),
         {
           timeoutMs: 8000,
           retries: 1, // Only 1 retry for writes to avoid duplicates

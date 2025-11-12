@@ -24,8 +24,17 @@ export class StreamService {
   /**
    * Create and start a new stream
    */
-  static async createStream(creatorId: string, title: string, description?: string) {
+  static async createStream(
+    creatorId: string,
+    title: string,
+    description?: string,
+    category?: string,
+    privacy?: string,
+    thumbnailUrl?: string,
+    scheduledAt?: Date
+  ) {
     const roomName = `stream_${uuidv4()}`;
+    const isScheduled = scheduledAt && scheduledAt > new Date();
 
     const [stream] = await db
       .insert(streams)
@@ -33,9 +42,13 @@ export class StreamService {
         creatorId,
         title,
         description,
+        category,
+        privacy: privacy || 'public',
+        thumbnailUrl,
         roomName,
-        status: 'live',
-        startedAt: new Date(),
+        status: isScheduled ? 'scheduled' : 'live',
+        scheduledFor: scheduledAt,
+        startedAt: isScheduled ? undefined : new Date(),
       })
       .returning();
 
