@@ -345,20 +345,24 @@ export default function BroadcastStudioPage() {
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
         <>
-          <div className="fixed inset-0 bg-black/80 z-50" onClick={() => setShowEndConfirm(false)} />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" onClick={() => setShowEndConfirm(false)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="bg-black/90 backdrop-blur-xl rounded-2xl border-2 border-white/20 p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold text-white mb-4">End Stream?</h3>
-              <p className="text-gray-400 mb-6">
-                Are you sure you want to end this stream? Your viewers will be disconnected.
-              </p>
+            <div className="glass rounded-3xl border-2 border-purple-200 shadow-2xl p-8 max-w-md w-full">
+              <div className="mb-6 bg-gradient-to-r from-digis-pink/10 to-digis-purple/10 rounded-2xl p-4 border border-purple-200">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">End Stream?</h3>
+                <p className="text-gray-700">
+                  Are you sure you want to end this stream? Your viewers will be disconnected.
+                </p>
+              </div>
               <div className="space-y-3">
                 <GlassButton
                   variant="gradient"
                   size="lg"
                   onClick={handleEndStream}
                   disabled={isEnding}
-                  className="w-full"
+                  shimmer
+                  glow
+                  className="w-full text-white font-semibold"
                 >
                   {isEnding ? 'Ending...' : 'Yes, End Stream'}
                 </GlassButton>
@@ -366,7 +370,7 @@ export default function BroadcastStudioPage() {
                   variant="ghost"
                   size="lg"
                   onClick={() => setShowEndConfirm(false)}
-                  className="w-full"
+                  className="w-full text-gray-900 font-semibold"
                 >
                   Cancel
                 </GlassButton>
@@ -397,17 +401,21 @@ export default function BroadcastStudioPage() {
 
             <div className="flex gap-3">
               <GlassButton
-                variant="cyan"
-                size="md"
+                variant="gradient"
+                size="lg"
                 onClick={() => setShowGoalModal(true)}
+                shimmer
+                className="text-white font-semibold"
               >
                 🎯 Set Goal
               </GlassButton>
               <GlassButton
-                variant="pink"
-                size="md"
+                variant="gradient"
+                size="lg"
                 onClick={() => setShowEndConfirm(true)}
+                shimmer
                 glow
+                className="text-white font-semibold"
               >
                 End Stream
               </GlassButton>

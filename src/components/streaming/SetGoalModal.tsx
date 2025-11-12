@@ -93,7 +93,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
             variant="ghost"
             size="lg"
             onClick={onClose}
-            className="flex-1"
+            className="flex-1 text-gray-900 font-semibold"
           >
             Cancel
           </GlassButton>
@@ -102,7 +102,9 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
             variant="gradient"
             size="lg"
             disabled={loading}
-            className="flex-1"
+            shimmer
+            glow
+            className="flex-1 text-white font-semibold"
           >
             {loading ? 'Creating...' : 'Create Goal'}
           </GlassButton>
