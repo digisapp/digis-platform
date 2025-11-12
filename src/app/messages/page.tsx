@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Search, X, Pin, Archive, MoreVertical } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users } from 'lucide-react';
 
 type ConversationWithOtherUser = {
   id: string;
@@ -217,38 +217,6 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-              Messages
-            </h1>
-            {userRole === 'creator' && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => router.push('/creator/messages/broadcast')}
-                  className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
-                >
-                  <span className="hidden sm:inline">💰 Broadcast</span>
-                  <span className="sm:hidden">💰</span>
-                </button>
-                {pendingRequests > 0 && (
-                  <button
-                    onClick={() => router.push('/messages/requests')}
-                    className="px-4 py-2.5 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 min-h-[44px]"
-                  >
-                    <span className="hidden sm:inline">📬 Requests</span>
-                    <span className="sm:hidden">📬</span>
-                    <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {pendingRequests}
-                    </span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left Column: Conversations Sidebar */}
@@ -274,7 +242,7 @@ export default function MessagesPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all min-h-[44px] ${
@@ -300,6 +268,31 @@ export default function MessagesPage() {
                   </span>
                 )}
               </button>
+
+              {/* Creator Actions */}
+              {userRole === 'creator' && (
+                <>
+                  <button
+                    onClick={() => router.push('/creator/messages/broadcast')}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span className="hidden sm:inline">Mass Message</span>
+                  </button>
+                  {pendingRequests > 0 && (
+                    <button
+                      onClick={() => router.push('/messages/requests')}
+                      className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 min-h-[44px]"
+                    >
+                      <span className="hidden sm:inline">Requests</span>
+                      <span className="sm:hidden">📬</span>
+                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {pendingRequests}
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Conversations List */}

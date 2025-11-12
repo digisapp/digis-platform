@@ -356,22 +356,19 @@ export default function GoLivePage() {
       <SuccessAnimation show={showSuccess} />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Go Live</h1>
-          {recentStats.totalStreams > 0 && (
-            <div className="flex items-center gap-6 text-sm">
-              <div className="glass rounded-lg px-4 py-2 border border-purple-200">
-                <span className="text-gray-600">Avg Viewers:</span>
-                <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
-              </div>
-              <div className="glass rounded-lg px-4 py-2 border border-purple-200">
-                <span className="text-gray-600">Total Streams:</span>
-                <span className="ml-2 font-bold text-digis-purple">{recentStats.totalStreams}</span>
-              </div>
+        {/* Stats */}
+        {recentStats.totalStreams > 0 && (
+          <div className="flex items-center gap-6 text-sm mb-8">
+            <div className="glass rounded-lg px-4 py-2 border border-purple-200">
+              <span className="text-gray-600">Avg Viewers:</span>
+              <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
             </div>
-          )}
-        </div>
+            <div className="glass rounded-lg px-4 py-2 border border-purple-200">
+              <span className="text-gray-600">Total Streams:</span>
+              <span className="ml-2 font-bold text-digis-purple">{recentStats.totalStreams}</span>
+            </div>
+          </div>
+        )}
 
         {/* 2-Column Layout */}
         <form onSubmit={handleStartStream} className="space-y-6">

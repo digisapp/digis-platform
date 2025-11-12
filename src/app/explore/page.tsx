@@ -132,13 +132,6 @@ export default function ExplorePage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-            Explore
-          </h1>
-        </div>
-
         {/* Search Bar */}
         <div className="mb-8">
           <GlassCard className="p-4">
