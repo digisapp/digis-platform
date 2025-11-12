@@ -123,19 +123,9 @@ export default function Home() {
             <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent">
               Connect With Creators
             </h1>
-            <p className="text-xl md:text-2xl text-gray-700 mb-12 max-w-3xl mx-auto font-medium">
+            <p className="text-xl md:text-2xl text-gray-700 mb-20 max-w-3xl mx-auto font-medium">
               Experience personalized video calls, live streams, and exclusive content from your favorite creators. Powered by Digis Coins.
             </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-              <button className="w-full sm:w-auto glass-hover glass px-8 py-4 rounded-full text-gray-800 font-semibold text-lg border-2 border-digis-cyan hover:shadow-lg transition-all">
-                Browse Creators
-              </button>
-              <button className="w-full sm:w-auto bg-gradient-to-r from-digis-pink to-digis-purple px-8 py-4 rounded-full text-white font-semibold text-lg hover:shadow-glow-pink transition-all">
-                Become a Creator
-              </button>
-            </div>
 
             {/* Features Grid */}
             <div className="grid md:grid-cols-3 gap-6 mt-20">
