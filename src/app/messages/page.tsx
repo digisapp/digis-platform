@@ -219,9 +219,7 @@ export default function MessagesPage() {
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto max-w-7xl">
         {/* Mobile Wallet Widget */}
-        <div className="pt-8">
-          <MobileWalletWidget />
-        </div>
+        <MobileWalletWidget />
 
         <div className="px-4">
         {/* Two-Column Layout */}

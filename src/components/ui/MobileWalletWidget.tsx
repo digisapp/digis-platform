@@ -61,7 +61,7 @@ export function MobileWalletWidget() {
   }
 
   return (
-    <div className="md:hidden mb-4 px-4 relative">
+    <div className="md:hidden mb-4 px-4 pt-4 relative">
       {/* Main Widget Button */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}

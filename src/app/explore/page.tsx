@@ -106,7 +106,7 @@ export default function ExplorePage() {
       <div className="min-h-screen bg-pastel-gradient">
         <div className="max-w-7xl mx-auto">
           {/* Mobile Wallet Widget Skeleton */}
-          <div className="md:hidden mb-4 px-4 pt-8">
+          <div className="md:hidden mb-4 px-4 pt-4">
             <div className="glass rounded-2xl border-2 border-purple-200 p-4 animate-pulse">
               <div className="flex items-center justify-between">
                 <div className="h-5 w-24 bg-gray-300 rounded"></div>
@@ -139,9 +139,7 @@ export default function ExplorePage() {
     <div className="min-h-screen bg-pastel-gradient">
       <div className="max-w-7xl mx-auto">
         {/* Mobile Wallet Widget */}
-        <div className="pt-8">
-          <MobileWalletWidget />
-        </div>
+        <MobileWalletWidget />
 
         <div className="px-4">
         {/* Search Bar */}
