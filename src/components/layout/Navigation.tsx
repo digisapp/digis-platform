@@ -772,27 +772,6 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Wallet/Balance Button */}
-          <button
-            onClick={() => router.push('/wallet')}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
-              isActive('/wallet')
-                ? 'text-green-600'
-                : 'text-gray-600 active:bg-gray-100/50'
-            }`}
-            style={{ minHeight: '56px' }}
-          >
-            <div className={`relative transition-transform ${isActive('/wallet') ? 'scale-110' : ''}`}>
-              <Coins className="w-7 h-7 text-green-600" strokeWidth={isActive('/wallet') ? 2.5 : 2} />
-              {isActive('/wallet') && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-green-600" />
-              )}
-            </div>
-            <span className="text-[11px] font-black text-gray-900 mt-0.5">
-              {balance}
-            </span>
-          </button>
-
           {/* Profile/Settings Button */}
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
