@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { createClient } from '@/lib/supabase/client';
@@ -378,14 +377,6 @@ export default function GoLivePage() {
       <SuccessAnimation show={showSuccess} />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <Breadcrumb
-          items={[
-            { label: 'Creator Dashboard', href: '/creator/dashboard' },
-            { label: 'Go Live' },
-          ]}
-        />
-
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Go Live</h1>
