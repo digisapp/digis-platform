@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { createClient } from '@/lib/supabase/client';
-import { Camera, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 // Stream categories
 const STREAM_CATEGORIES = [
@@ -38,7 +38,6 @@ export default function GoLivePage() {
   const [privacy, setPrivacy] = useState('public');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [scheduledDate, setScheduledDate] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [isCreator, setIsCreator] = useState(false);
@@ -142,25 +141,6 @@ export default function GoLivePage() {
         setThumbnail(reader.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const captureThumbnailFromVideo = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], 'thumbnail.jpg', { type: 'image/jpeg' });
-            setThumbnailFile(file);
-            setThumbnail(canvas.toDataURL('image/jpeg'));
-          }
-        }, 'image/jpeg', 0.9);
-      }
     }
   };
 
@@ -274,7 +254,7 @@ export default function GoLivePage() {
       return;
     }
 
-    if (!mediaStream && !scheduledDate) {
+    if (!mediaStream) {
       setError('Camera/microphone not ready. Please check your devices.');
       return;
     }
@@ -308,7 +288,6 @@ export default function GoLivePage() {
           category,
           privacy,
           thumbnail_url: thumbnailUrl,
-          scheduled_at: scheduledDate || undefined,
         }),
       });
 
@@ -514,25 +493,14 @@ export default function GoLivePage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => thumbnailInputRef.current?.click()}
-                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white/50 border-2 border-purple-200 rounded-xl hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300"
-                      >
-                        <Upload className="w-6 h-6 text-digis-cyan" />
-                        <span className="text-xs font-semibold text-gray-700">Upload</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={captureThumbnailFromVideo}
-                        disabled={!mediaStream}
-                        className="flex flex-col items-center justify-center gap-2 p-4 bg-white/50 border-2 border-purple-200 rounded-xl hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Camera className="w-6 h-6 text-digis-purple" />
-                        <span className="text-xs font-semibold text-gray-700">Capture</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => thumbnailInputRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 p-4 bg-white/50 border-2 border-purple-200 rounded-xl hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 w-full"
+                    >
+                      <Upload className="w-6 h-6 text-digis-cyan" />
+                      <span className="text-xs font-semibold text-gray-700">Upload Thumbnail</span>
+                    </button>
                   )}
                   <input
                     ref={thumbnailInputRef}
@@ -542,24 +510,6 @@ export default function GoLivePage() {
                     className="hidden"
                   />
                 </div>
-              </div>
-
-              {/* Schedule */}
-              <div>
-                <label htmlFor="schedule" className="block text-sm font-semibold text-gray-800 mb-2">
-                  Schedule (Optional)
-                </label>
-                <input
-                  id="schedule"
-                  type="datetime-local"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  min={new Date().toISOString().slice(0, 16)}
-                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300"
-                />
-                <p className="mt-2 text-xs text-gray-600">
-                  Leave empty to go live immediately, or schedule for later
-                </p>
               </div>
 
               {/* Pre-Stream Tips */}
@@ -698,7 +648,7 @@ export default function GoLivePage() {
               variant="ghost"
               size="lg"
               onClick={() => router.back()}
-              className="flex-1 hover:scale-105 transition-transform duration-300"
+              className="flex-1 hover:scale-105 transition-transform duration-300 text-gray-900 font-semibold"
             >
               Cancel
             </GlassButton>
@@ -706,24 +656,20 @@ export default function GoLivePage() {
               type="submit"
               variant="gradient"
               size="lg"
-              disabled={!title.trim() || !category || (!mediaStream && !scheduledDate) || isCreating}
-              className="flex-1 relative overflow-hidden group"
+              disabled={!title.trim() || !category || !mediaStream || isCreating}
+              className="flex-1 relative overflow-hidden group text-white font-semibold"
               shimmer
               glow
             >
               {isCreating ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  <span className="ml-2">
-                    {scheduledDate ? 'Scheduling Stream...' : 'Starting Stream...'}
-                  </span>
+                  <span className="ml-2">Starting Stream...</span>
                 </>
               ) : (
                 <>
-                  <span className="text-xl mr-2">
-                    {scheduledDate ? '📅' : '📹'}
-                  </span>
-                  {scheduledDate ? 'Schedule Stream' : 'Start Streaming'}
+                  <span className="text-xl mr-2">📹</span>
+                  Start Streaming
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}
