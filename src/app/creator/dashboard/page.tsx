@@ -414,19 +414,6 @@ export default function CreatorDashboard() {
               </div>
             </button>
           </div>
-
-          {/* Ticketed Shows */}
-          <button
-            onClick={() => router.push('/creator/shows')}
-            className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 backdrop-blur-md rounded-xl border-2 border-purple-500 p-6 hover:scale-105 transition-all text-left shadow-fun group"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <Ticket className="w-6 h-6 text-purple-500" />
-              <kbd className="hidden group-hover:block px-2 py-1 text-xs bg-black/10 rounded">S</kbd>
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Ticketed Shows</h3>
-            <p className="text-sm text-gray-600">Create private events, classes, or tutorials</p>
-          </button>
         </div>
 
         {/* Upcoming Events */}

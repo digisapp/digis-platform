@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Coins, Video, FileText, ShoppingCart, ChevronDown } from 'lucide-react';
+import { Coins, Video, FileText, ShoppingCart, ChevronDown, Ticket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export function MobileWalletWidget() {
@@ -144,7 +144,7 @@ export function MobileWalletWidget() {
                     setShowDropdown(false);
                     router.push('/creator/content/new');
                   }}
-                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors"
+                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors border-b border-purple-100"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center">
                     <FileText className="w-5 h-5 text-white" />
@@ -152,6 +152,23 @@ export function MobileWalletWidget() {
                   <div className="flex-1 text-left">
                     <div className="font-bold text-gray-900">Create Post</div>
                     <div className="text-xs text-gray-600">Share PPV content</div>
+                  </div>
+                </button>
+
+                {/* Ticketed Shows */}
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    router.push('/creator/shows');
+                  }}
+                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
+                    <Ticket className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-bold text-gray-900">Ticketed Shows</div>
+                    <div className="text-xs text-gray-600">Create exclusive events</div>
                   </div>
                 </button>
               </>
