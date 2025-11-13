@@ -50,10 +50,18 @@ export default function WalletPage() {
   const [showBankingModal, setShowBankingModal] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('balance');
   const [isCreator, setIsCreator] = useState(false);
+  const [earnings, setEarnings] = useState(0);
+  const [earningsPeriod, setEarningsPeriod] = useState<'24h' | '1w' | '1m' | 'total'>('24h');
 
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
+
+  useEffect(() => {
+    if (!loading && isCreator) {
+      fetchEarnings();
+    }
+  }, [earningsPeriod, loading, isCreator]);
 
   const checkAuthAndFetchData = async () => {
     try {
@@ -117,9 +125,55 @@ export default function WalletPage() {
     }
   };
 
+  const fetchEarnings = async () => {
+    try {
+      // Fetch transactions based on period
+      const limit = earningsPeriod === 'total' ? 1000 : earningsPeriod === '1m' ? 500 : 200;
+      const response = await fetch(`/api/wallet/transactions?limit=${limit}`);
+      if (response.ok) {
+        const data = await response.json();
+        const now = new Date();
+        let cutoffDate: Date | null = null;
+
+        // Calculate cutoff date based on selected period
+        switch (earningsPeriod) {
+          case '24h':
+            cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            break;
+          case '1w':
+            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case '1m':
+            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            break;
+          case 'total':
+            cutoffDate = null;
+            break;
+        }
+
+        // Sum up positive transactions (earnings) from selected period
+        const totalEarnings = (data.transactions || [])
+          .filter((tx: any) => {
+            if (tx.amount <= 0) return false;
+            if (!cutoffDate) return true;
+            const txDate = new Date(tx.createdAt);
+            return txDate >= cutoffDate;
+          })
+          .reduce((sum: number, tx: any) => sum + tx.amount, 0);
+
+        setEarnings(totalEarnings);
+      }
+    } catch (err) {
+      console.error('Error fetching earnings:', err);
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchWalletData();
+    if (isCreator) {
+      await fetchEarnings();
+    }
     setRefreshing(false);
   };
 
@@ -255,84 +309,126 @@ export default function WalletPage() {
         {/* Balance Tab */}
         {activeTab === 'balance' && (
           <>
-            {/* Balance Card */}
-            <GlassCard className="mb-8 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
-              <div className="relative p-8">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                  <div className="flex-1 w-full">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-5 h-5 text-green-600" />
-                      <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Your Balance</p>
-                    </div>
-
-                    <div className="flex items-center gap-6 mb-6">
-                      {/* Coin Icon */}
-                      <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl">
-                        <Coins className="w-16 h-16 text-white" />
-                      </div>
-
-                      {/* Balance Amount */}
-                      <div>
-                        <div className="flex items-baseline gap-3 mb-1">
-                          <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 bg-clip-text text-transparent">
-                            {balance.toLocaleString()}
-                          </p>
-                          {balance > 0 && (
-                            <TrendingUp className="w-8 h-8 text-green-600" />
-                          )}
-                        </div>
-                        <p className="text-xl font-bold text-gray-700">Digis Coins</p>
-                        {balance > 0 && (
-                          <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
-                            <Sparkles className="w-4 h-4 text-green-600" />
-                            Keep earning and growing!
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Quick Stats */}
-                    {isCreator && (
-                      <div className="grid grid-cols-2 gap-3 mt-4">
-                        <div className="bg-green-500/10 rounded-xl p-3 border border-green-200">
-                          <p className="text-xs text-gray-600 mb-1">Available to Withdraw</p>
-                          <p className="text-lg font-bold text-green-700">{balance >= 1000 ? balance.toLocaleString() : '0'} coins</p>
-                        </div>
-                        <div className="bg-blue-500/10 rounded-xl p-3 border border-blue-200">
-                          <p className="text-xs text-gray-600 mb-1">Minimum Payout</p>
-                          <p className="text-lg font-bold text-blue-700">1,000 coins</p>
-                        </div>
-                      </div>
-                    )}
+            {/* Earnings with Period Selector - Creators Only */}
+            {isCreator && (
+              <div className="mb-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-2xl border-2 border-green-500 p-8 shadow-fun">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                      <Coins className="w-8 h-8 text-green-600" />
+                      Your Earnings
+                    </h2>
+                    <p className="text-gray-600">Track your income across different time periods</p>
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-3">
-                    <GlassButton
-                      variant="gradient"
-                      size="lg"
-                      onClick={() => setShowBuyCoins(true)}
-                      shimmer
-                      className="whitespace-nowrap"
-                    >
-                      <Coins className="w-5 h-5 mr-2" />
-                      Buy More Coins
-                    </GlassButton>
-                    {isCreator && (
+                  <div className="flex gap-2 bg-white/60 rounded-lg p-1">
+                    {[
+                      { value: '24h', label: '24 Hours' },
+                      { value: '1w', label: '1 Week' },
+                      { value: '1m', label: '1 Month' },
+                      { value: 'total', label: 'All Time' },
+                    ].map((period) => (
                       <button
-                        onClick={() => setActiveTab('payouts')}
-                        disabled={balance < 1000}
-                        className="px-6 py-3 rounded-xl font-semibold text-green-700 bg-green-500/20 hover:bg-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
+                        key={period.value}
+                        onClick={() => setEarningsPeriod(period.value as '24h' | '1w' | '1m' | 'total')}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                          earningsPeriod === period.value
+                            ? 'bg-green-500 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-white/80'
+                        }`}
                       >
-                        <DollarSign className="w-5 h-5" />
-                        Request Payout
+                        {period.label}
                       </button>
-                    )}
+                    ))}
                   </div>
                 </div>
+
+                <div className="flex items-baseline gap-3 mb-2">
+                  <span className="text-5xl font-bold text-green-600">{earnings.toLocaleString()}</span>
+                  <span className="text-2xl text-gray-600">coins</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-6">
+                  {earningsPeriod === '24h' && 'Earned in the last 24 hours'}
+                  {earningsPeriod === '1w' && 'Earned in the last week'}
+                  {earningsPeriod === '1m' && 'Earned in the last month'}
+                  {earningsPeriod === 'total' && 'Total lifetime earnings'}
+                </p>
+
+                <div className="flex gap-3">
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    onClick={() => setShowBuyCoins(true)}
+                    shimmer
+                    className="whitespace-nowrap"
+                  >
+                    <Coins className="w-5 h-5 mr-2" />
+                    Buy More Coins
+                  </GlassButton>
+                  <button
+                    onClick={() => setActiveTab('payouts')}
+                    disabled={balance < 1000}
+                    className="px-6 py-3 rounded-xl font-semibold text-green-700 bg-green-500/20 hover:bg-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
+                  >
+                    <DollarSign className="w-5 h-5" />
+                    Request Payout
+                  </button>
+                </div>
               </div>
-            </GlassCard>
+            )}
+
+            {/* Balance for Fans */}
+            {!isCreator && (
+              <GlassCard className="mb-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
+                <div className="relative p-8">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex-1 w-full">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="w-5 h-5 text-green-600" />
+                        <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Your Balance</p>
+                      </div>
+
+                      <div className="flex items-center gap-6 mb-6">
+                        <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl">
+                          <Coins className="w-16 h-16 text-white" />
+                        </div>
+
+                        <div>
+                          <div className="flex items-baseline gap-3 mb-1">
+                            <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 bg-clip-text text-transparent">
+                              {balance.toLocaleString()}
+                            </p>
+                            {balance > 0 && (
+                              <TrendingUp className="w-8 h-8 text-green-600" />
+                            )}
+                          </div>
+                          <p className="text-xl font-bold text-gray-700">Digis Coins</p>
+                          {balance > 0 && (
+                            <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+                              <Sparkles className="w-4 h-4 text-green-600" />
+                              Keep earning and growing!
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <GlassButton
+                        variant="gradient"
+                        size="lg"
+                        onClick={() => setShowBuyCoins(true)}
+                        shimmer
+                        className="whitespace-nowrap"
+                      >
+                        <Coins className="w-5 h-5 mr-2" />
+                        Buy More Coins
+                      </GlassButton>
+                    </div>
+                  </div>
+                </div>
+              </GlassCard>
+            )}
 
             {/* Transaction History */}
             <GlassCard className="p-6">
