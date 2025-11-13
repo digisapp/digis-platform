@@ -82,7 +82,7 @@ export function CreatorCarousel({
           {creators.map((creator, index) => (
             <div
               key={creator.id}
-              className="relative flex-[0_0_35%] sm:flex-[0_0_22%] md:flex-[0_0_150px] min-w-0"
+              className="relative flex-[0_0_28%] sm:flex-[0_0_18%] md:flex-[0_0_120px] min-w-0"
             >
               <div
                 className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group h-full bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"

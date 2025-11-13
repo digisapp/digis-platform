@@ -9,9 +9,9 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerProps) {
   const logoSizes = {
-    sm: { width: 40, height: 13 },
-    md: { width: 60, height: 20 },
-    lg: { width: 80, height: 27 },
+    sm: { width: 30, height: 10 },
+    md: { width: 45, height: 15 },
+    lg: { width: 60, height: 20 },
   };
 
   return (

@@ -16,17 +16,17 @@ export function NeonLoader({
   fullScreen = false,
 }: NeonLoaderProps) {
   const logoWidths = {
-    sm: 80,
-    md: 120,
-    lg: 150,
-    xl: 200,
+    sm: 60,
+    md: 90,
+    lg: 110,
+    xl: 140,
   };
 
   const logoHeights = {
-    sm: 27,
-    md: 40,
-    lg: 50,
-    xl: 67,
+    sm: 20,
+    md: 30,
+    lg: 37,
+    xl: 47,
   };
 
   const content = (
