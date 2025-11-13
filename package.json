@@ -20,6 +20,8 @@
     "@types/uuid": "^10.0.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.36.4",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "inngest": "^3.24.3",
     "livekit-client": "^2.15.14",
     "livekit-server-sdk": "^2.14.0",

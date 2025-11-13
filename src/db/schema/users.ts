@@ -9,9 +9,11 @@ export const users = pgTable('users', {
   displayName: text('display_name'),
   avatarUrl: text('avatar_url'),
   bannerUrl: text('banner_url'), // Cover/banner image
+  creatorCardImageUrl: text('creator_card_image_url'), // 16:9 image for creator cards on explore page
   bio: text('bio'),
   role: userRoleEnum('role').default('fan').notNull(),
   isCreatorVerified: boolean('is_creator_verified').default(false),
+  isTrending: boolean('is_trending').default(false),
   isOnline: boolean('is_online').default(false),
   lastSeenAt: timestamp('last_seen_at'),
   usernameLastChangedAt: timestamp('username_last_changed_at'), // Track username changes (30-day limit)
