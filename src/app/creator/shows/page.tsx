@@ -96,7 +96,7 @@ export default function CreatorShowsPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-6 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>

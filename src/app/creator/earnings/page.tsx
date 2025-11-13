@@ -132,7 +132,7 @@ export default function CreatorEarningsPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-6 pb-20 md:pb-8">
         {/* Earnings with Period Selector - Hero Section */}
         <div className="mb-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-2xl border-2 border-green-500 p-8 shadow-fun">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">

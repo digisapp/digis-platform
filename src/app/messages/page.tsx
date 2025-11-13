@@ -221,7 +221,7 @@ export default function MessagesPage() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4">
+        <div className="px-4 pt-0 md:pt-6">
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left Column: Conversations Sidebar */}

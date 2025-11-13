@@ -210,7 +210,7 @@ export default function WalletPage() {
         existingInfo={bankingInfo}
       />
 
-      <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-6 pb-20 md:pb-8">
         {/* Tabs */}
         <div className="mb-8 flex gap-3">
           <button
