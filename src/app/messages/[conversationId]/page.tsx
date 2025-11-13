@@ -8,6 +8,7 @@ import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
+import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
 
 type Message = {
   id: string;
@@ -37,6 +38,8 @@ type Conversation = {
     username: string | null;
     avatarUrl: string | null;
     role: string;
+    messageCharge?: number | null;
+    messagingEnabled?: boolean;
   };
 };
 
@@ -54,6 +57,8 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('');
   const [showTipModal, setShowTipModal] = useState(false);
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const [showChargeWarning, setShowChargeWarning] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -161,6 +166,22 @@ export default function ChatPage() {
 
     if (!newMessage.trim() || !conversation) return;
 
+    // Check if recipient has message charging enabled
+    const messageCharge = conversation.otherUser.messageCharge;
+    if (messageCharge && messageCharge > 0) {
+      // Show warning modal instead of sending immediately
+      setPendingMessage(newMessage.trim());
+      setShowChargeWarning(true);
+      return;
+    }
+
+    // If no charge, send normally
+    await actualSendMessage(newMessage.trim());
+  };
+
+  const actualSendMessage = async (content: string) => {
+    if (!conversation) return;
+
     setSending(true);
 
     try {
@@ -169,12 +190,13 @@ export default function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipientId: conversation.otherUser.id,
-          content: newMessage.trim(),
+          content,
         }),
       });
 
       if (response.ok) {
         setNewMessage('');
+        setPendingMessage('');
         fetchMessages();
       }
     } catch (error) {
@@ -455,6 +477,20 @@ export default function ChatPage() {
         <MediaAttachmentModal
           onClose={() => setShowMediaModal(false)}
           onSend={handleSendMedia}
+        />
+      )}
+
+      {/* Message Charge Warning Modal */}
+      {showChargeWarning && conversation && (
+        <MessageChargeWarningModal
+          recipientName={conversation.otherUser.displayName || conversation.otherUser.username || 'Creator'}
+          messageCharge={conversation.otherUser.messageCharge || 0}
+          messagePreview={pendingMessage}
+          onClose={() => {
+            setShowChargeWarning(false);
+            setPendingMessage('');
+          }}
+          onConfirm={() => actualSendMessage(pendingMessage)}
         />
       )}
     </>
