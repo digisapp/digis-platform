@@ -475,22 +475,11 @@ export default function WalletPage() {
             <GlassCard className="relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
               <div className="relative p-6">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-800">Request Payout</h2>
-                </div>
-
-                <div className="bg-blue-500/10 border border-blue-300 rounded-xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-semibold mb-1">Payout Information</p>
-                      <p className="mb-1"><strong>Schedule:</strong> Processed twice per month (1st and 15th)</p>
-                      <p><strong>Minimum:</strong> 1,000 coins required to request payout</p>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 rounded-xl p-6 border border-green-200">
