@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
 
 interface Message {
@@ -30,9 +31,11 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
     }
   }, [messages]);
 
-  // TODO: Connect to real-time chat service (Supabase Realtime, Pusher, etc.)
+  // Connect to real-time chat with Supabase
   useEffect(() => {
-    // Stub: Simulate loading recent messages
+    const supabase = createClient();
+
+    // Load recent messages
     const loadRecentMessages = async () => {
       try {
         const response = await fetch(`/api/streams/${streamId}/messages?limit=${maxMessages}`);
@@ -47,15 +50,33 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
 
     loadRecentMessages();
 
-    // TODO: Subscribe to real-time updates
-    // const subscription = supabase
-    //   .channel(`stream:${streamId}:chat`)
-    //   .on('broadcast', { event: 'message' }, (payload) => {
-    //     setMessages(prev => [...prev.slice(-(maxMessages - 1)), payload.new as Message]);
-    //   })
-    //   .subscribe();
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel(`stream:${streamId}:chat`)
+      .on('broadcast', { event: 'message' }, (payload) => {
+        const newMessage = payload.payload as Message;
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some((m) => m.id === newMessage.id)) {
+            return prev;
+          }
+          // Keep only the last maxMessages
+          const updated = [...prev, newMessage];
+          return updated.slice(-maxMessages);
+        });
+      })
+      .on('broadcast', { event: 'tip' }, (payload) => {
+        const tipMessage = payload.payload as Message;
+        setMessages((prev) => {
+          const updated = [...prev, tipMessage];
+          return updated.slice(-maxMessages);
+        });
+      })
+      .subscribe();
 
-    // return () => { subscription.unsubscribe(); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [streamId, maxMessages]);
 
   const handleSendMessage = async () => {

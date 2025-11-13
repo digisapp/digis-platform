@@ -156,8 +156,20 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    // TODO: Broadcast tip to stream chat via Supabase Realtime
-    // This would show the tip animation to all viewers
+    // Broadcast tip to stream chat via Supabase Realtime
+    const channelName = `stream:${streamId}:chat`;
+
+    await supabase.channel(channelName).send({
+      type: 'broadcast',
+      event: 'tip',
+      payload: {
+        id: senderTransaction.id,
+        username: authUser.email || 'Anonymous',
+        amount,
+        timestamp: Date.now(),
+        type: 'tip',
+      },
+    });
 
     return NextResponse.json({
       success: true,
