@@ -136,6 +136,25 @@ export default function ExplorePage() {
         <MobileWalletWidget />
 
         <div className="px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 z-10" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search creators..."
+              className="w-full pl-12 pr-12 py-3.5 bg-white/90 backdrop-blur-sm border-2 border-purple-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:bg-white transition-all shadow-sm"
+            />
+            {searching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <LoadingSpinner size="sm" />
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Filter Pills and Category Pills */}
         {!searchTerm && (
           <>
@@ -196,34 +215,6 @@ export default function ExplorePage() {
         {!searchTerm && featuredCreators.length > 0 && (
           <div className="mb-6">
             <CreatorCarousel creators={featuredCreators} autoPlay={true} interval={5000} />
-          </div>
-        )}
-
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 z-10" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 bg-white/90 backdrop-blur-sm border-2 border-purple-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:bg-white transition-all shadow-sm"
-            />
-            {searching && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                <LoadingSpinner size="sm" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Browse All Section Header */}
-        {!searchTerm && (
-          <div className="mb-5">
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
-              {selectedCategory === 'All' ? 'All Creators' : `${selectedCategory} Creators`}
-            </h3>
           </div>
         )}
 
