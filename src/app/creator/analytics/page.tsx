@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Users, Video, TrendingUp, Eye, Clock, Coins, ArrowRight, BarChart3, ArrowUp, ArrowDown, Sparkles, Gift, MessageCircle } from 'lucide-react';
+import { Users, Video, TrendingUp, Eye, Clock, Coins, ArrowRight, ArrowUp, ArrowDown, Gift, MessageCircle } from 'lucide-react';
 
 interface AnalyticsStats {
   followers: {
@@ -204,39 +204,6 @@ export default function CreatorAnalyticsPage() {
               </div>
             </div>
           </GlassCard>
-        </div>
-
-        {/* Coming Soon Features */}
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-yellow-600" />
-            <h2 className="text-xl font-bold text-gray-800">Coming Soon</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <GlassCard className="p-6 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border-blue-200/50">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg w-fit mb-3">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Revenue Forecasts</h3>
-              <p className="text-sm text-gray-600">Predict future earnings based on your trends</p>
-            </GlassCard>
-
-            <GlassCard className="p-6 bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-200/50">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg w-fit mb-3">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Audience Demographics</h3>
-              <p className="text-sm text-gray-600">Understand your audience's age, location & interests</p>
-            </GlassCard>
-
-            <GlassCard className="p-6 bg-gradient-to-br from-amber-500/5 to-orange-500/5 border-amber-200/50">
-              <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg w-fit mb-3">
-                <Clock className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Peak Streaming Times</h3>
-              <p className="text-sm text-gray-600">Discover the best times to go live for max viewers</p>
-            </GlassCard>
-          </div>
         </div>
       </div>
     </div>
