@@ -639,131 +639,145 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-600 mt-1">{bio.length}/200 characters</p>
             </div>
 
-            {/* Avatar Upload */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                <ImageIcon className="w-4 h-4 inline mr-1" />
-                Profile Avatar
-              </label>
-              <label className="relative cursor-pointer group block w-fit">
-                {(avatarPreview || avatarUrl) ? (
-                  <div className="relative">
-                    <img
-                      src={avatarPreview || avatarUrl}
-                      alt="Avatar"
-                      className="h-24 w-24 rounded-full object-cover border-2 border-purple-200 group-hover:border-digis-cyan transition-all"
-                    />
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-white" />
-                    </div>
-                    {uploadingAvatar && (
-                      <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
-                        <LoadingSpinner size="sm" />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="h-24 w-24 rounded-full border-2 border-dashed border-purple-200 group-hover:border-digis-cyan transition-all flex items-center justify-center bg-white/50">
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-cyan transition-colors" />
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={uploadingAvatar}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-gray-600 mt-2">
-                Click to {(avatarPreview || avatarUrl) ? 'change' : 'upload'} avatar • Max 1MB
-              </p>
-            </div>
+            {/* Profile Images Grid */}
+            <div className="space-y-6">
+              <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-digis-pink" />
+                Profile Images
+              </h3>
 
-            {/* Banner Upload */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                <ImageIcon className="w-4 h-4 inline mr-1" />
-                Profile Banner
-              </label>
-              <label className="relative cursor-pointer group block max-w-2xl mx-auto">
-                {(bannerPreview || bannerUrl) ? (
-                  <div className="relative">
-                    <img
-                      src={bannerPreview || bannerUrl}
-                      alt="Banner"
-                      className="w-full aspect-[19/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-pink transition-all"
-                    />
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-white" />
-                    </div>
-                    {uploadingBanner && (
-                      <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
-                        <LoadingSpinner size="sm" />
+              {/* Banner Upload - Full Width */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700">
+                  Profile Banner (Wide)
+                </label>
+                <label className="relative cursor-pointer group block max-w-2xl mx-auto">
+                  {(bannerPreview || bannerUrl) ? (
+                    <div className="relative">
+                      <img
+                        src={bannerPreview || bannerUrl}
+                        alt="Banner"
+                        className="w-full aspect-[19/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-pink transition-all"
+                      />
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Upload className="w-6 h-6 text-white" />
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-full aspect-[19/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-pink transition-all flex items-center justify-center bg-white/50">
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-pink transition-colors" />
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerUpload}
-                  disabled={uploadingBanner}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-gray-600 mt-2 text-center">
-                Click to {(bannerPreview || bannerUrl) ? 'change' : 'upload'} banner • Max 2MB
-              </p>
-            </div>
+                      {uploadingBanner && (
+                        <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
+                          <LoadingSpinner size="sm" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-[19/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-pink transition-all flex flex-col items-center justify-center bg-white/50">
+                      <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-pink transition-colors mb-1" />
+                      <p className="text-xs text-gray-600">1920x500px recommended</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-600 mt-2 text-center">
+                  Max 2MB • JPG, PNG, GIF, or WebP
+                </p>
+              </div>
 
-            {/* Creator Card Upload (Portrait Photo for Explore Page) */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                <ImageIcon className="w-4 h-4 inline mr-1" />
-                Creator Card (Portrait Photo)
-              </label>
-              <label className="relative cursor-pointer group block">
-                {(creatorCardPreview || creatorCardImageUrl) ? (
-                  <div className="relative w-full max-w-xs mx-auto">
-                    <img
-                      src={creatorCardPreview || creatorCardImageUrl}
-                      alt="Creator Card"
-                      className="w-full aspect-[4/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-cyan transition-all"
-                    />
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-white" />
-                    </div>
-                    {uploadingCreatorCard && (
-                      <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
-                        <LoadingSpinner size="sm" />
-                      </div>
-                    )}
+              {/* Avatar and Creator Card - Side by Side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Avatar Upload */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Profile Avatar (Circle)
+                  </label>
+                  <div className="flex flex-col items-center">
+                    <label className="relative cursor-pointer group block">
+                      {(avatarPreview || avatarUrl) ? (
+                        <div className="relative">
+                          <img
+                            src={avatarPreview || avatarUrl}
+                            alt="Avatar"
+                            className="h-32 w-32 rounded-full object-cover border-2 border-purple-200 group-hover:border-digis-cyan transition-all"
+                          />
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Upload className="w-6 h-6 text-white" />
+                          </div>
+                          {uploadingAvatar && (
+                            <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                              <LoadingSpinner size="sm" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="h-32 w-32 rounded-full border-2 border-dashed border-purple-200 group-hover:border-digis-cyan transition-all flex flex-col items-center justify-center bg-white/50">
+                          <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-cyan transition-colors mb-1" />
+                          <p className="text-xs text-gray-600">512x512</p>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        disabled={uploadingAvatar}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-600 mt-2 text-center">
+                      Max 1MB • Square format
+                    </p>
                   </div>
-                ) : (
-                  <div className="w-full max-w-xs mx-auto aspect-[4/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-cyan transition-all flex flex-col items-center justify-center bg-white/50">
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-cyan transition-colors mb-2" />
-                    <p className="text-xs text-gray-600 text-center px-4">Portrait 4:5 ratio</p>
+                </div>
+
+                {/* Creator Card Upload */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Creator Card (Portrait)
+                  </label>
+                  <div className="flex flex-col items-center">
+                    <label className="relative cursor-pointer group block w-32">
+                      {(creatorCardPreview || creatorCardImageUrl) ? (
+                        <div className="relative">
+                          <img
+                            src={creatorCardPreview || creatorCardImageUrl}
+                            alt="Creator Card"
+                            className="w-32 aspect-[4/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-purple transition-all"
+                          />
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Upload className="w-5 h-5 text-white" />
+                          </div>
+                          {uploadingCreatorCard && (
+                            <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
+                              <LoadingSpinner size="sm" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-32 aspect-[4/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
+                          <Upload className="w-5 h-5 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
+                          <p className="text-xs text-gray-600 text-center px-2">4:5 ratio</p>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCreatorCardUpload}
+                        disabled={uploadingCreatorCard}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-600 mt-2 text-center">
+                      Max 2MB • For Explore page
+                    </p>
                   </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleCreatorCardUpload}
-                  disabled={uploadingCreatorCard}
-                  className="hidden"
-                />
-              </label>
-              <p className="text-xs text-gray-600 mt-2 text-center">
-                Click to {(creatorCardPreview || creatorCardImageUrl) ? 'change' : 'upload'} creator card • 4:5 portrait for Explore page • Max 2MB
-              </p>
+                </div>
+              </div>
             </div>
 
             <GlassButton
