@@ -120,14 +120,14 @@ export default function FanDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Upcoming Events Section */}
         {loadingEvents ? (

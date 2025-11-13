@@ -367,14 +367,14 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient py-12 px-4">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20 py-12 px-4">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Global Messages */}
         {message && (
