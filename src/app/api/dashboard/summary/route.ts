@@ -141,13 +141,13 @@ export async function GET() {
         () =>
           db.query.shows.findMany({
             where: eq(shows.creatorId, user.id),
-            orderBy: [desc(shows.scheduledFor)],
+            orderBy: [desc(shows.scheduledStart)],
             limit: 10,
             columns: {
               id: true,
               title: true,
               description: true,
-              scheduledFor: true,
+              scheduledStart: true,
               ticketPrice: true,
             },
           }),
