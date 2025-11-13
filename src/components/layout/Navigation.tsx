@@ -581,20 +581,6 @@ export function Navigation() {
 
             {/* Menu Items */}
             <div className="py-2">
-              <button
-                onClick={() => {
-                  router.push(`/${userProfile?.username || 'profile'}`);
-                  setShowProfileMenu(false);
-                }}
-                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
-                style={{ minHeight: '56px' }}
-              >
-                <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="text-base md:text-sm text-gray-900 font-semibold">View Profile</span>
-              </button>
-
               {userRole === 'creator' && (
                 <>
                   <button
