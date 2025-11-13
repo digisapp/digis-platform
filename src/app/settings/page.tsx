@@ -810,22 +810,6 @@ export default function SettingsPage() {
             </button>
           </GlassCard>
         )}
-
-        {/* Sign Out Section */}
-        <GlassCard className="p-6 border-red-500/20">
-          <GlassButton
-            onClick={async () => {
-              const { createClient } = await import('@/lib/supabase/client');
-              const supabase = createClient();
-              await supabase.auth.signOut();
-              router.push('/');
-            }}
-            variant="ghost"
-            className="bg-red-500/10 hover:bg-red-500/20 border-red-500 text-red-700"
-          >
-            Sign Out
-          </GlassButton>
-        </GlassCard>
       </div>
     </div>
   );
