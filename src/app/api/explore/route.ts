@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || 'All';
+    const filter = searchParams.get('filter') || ''; // New filter parameter
     const featured = searchParams.get('featured') !== 'false'; // Default true
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
       requestId,
       search,
       category,
+      filter,
       featured,
       limit,
       offset,
@@ -39,12 +41,26 @@ export async function GET(request: NextRequest) {
     });
 
     try {
+      // Pre-fetch category ID if filtering by category (single query, more efficient)
+      let categoryId: string | null = null;
+      if (category && category !== 'All') {
+        const categoryRecord = await db
+          .select({ id: creatorCategories.id })
+          .from(creatorCategories)
+          .where(eq(creatorCategories.name, category))
+          .limit(1);
+
+        if (categoryRecord.length > 0) {
+          categoryId = categoryRecord[0].id;
+        }
+      }
+
       // Fetch all data in parallel for performance
       const [featuredCreators, allCreators, categories] = await Promise.all([
         // Fetch featured creators for carousel (if requested)
         featured ? withTimeoutAndRetry(
           async () => {
-            // Build featured query
+            // Build featured query with JOIN for category filtering
             let featuredQuery = db
               .select({
                 id: users.id,
@@ -57,39 +73,60 @@ export async function GET(request: NextRequest) {
                 followerCount: users.followerCount,
               })
               .from(users)
-              .where(eq(users.role, 'creator'))
               .$dynamic();
 
-            // Category filter for featured
-            if (category && category !== 'All') {
-              const categoryRecord = await db
-                .select({ id: creatorCategories.id })
-                .from(creatorCategories)
-                .where(eq(creatorCategories.name, category))
-                .limit(1);
+            // Build base conditions for featured
+            const featuredConditions = [eq(users.role, 'creator')];
 
-              if (categoryRecord.length > 0) {
-                const assignments = await db
-                  .select({ creatorId: creatorCategoryAssignments.creatorId })
-                  .from(creatorCategoryAssignments)
-                  .where(eq(creatorCategoryAssignments.categoryId, categoryRecord[0].id));
-
-                const creatorIds = assignments.map(a => a.creatorId);
-                if (creatorIds.length > 0) {
-                  featuredQuery = featuredQuery.where(inArray(users.id, creatorIds));
-                }
+            // Apply special filters to featured as well
+            if (filter) {
+              switch (filter) {
+                case 'online':
+                  featuredConditions.push(eq(users.isOnline, true));
+                  break;
+                case 'new':
+                  const thirtyDaysAgo = new Date();
+                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                  featuredConditions.push(gt(users.createdAt, thirtyDaysAgo.toISOString()));
+                  break;
+                case 'trending':
+                  featuredConditions.push(eq(users.isTrending, true));
+                  break;
+                case 'verified':
+                  featuredConditions.push(eq(users.isCreatorVerified, true));
+                  break;
+                case 'available_for_calls':
+                case 'live_now':
+                  featuredConditions.push(eq(users.isOnline, true));
+                  break;
               }
             }
 
+            // Apply category filter with JOIN
+            if (categoryId) {
+              featuredQuery = featuredQuery
+                .innerJoin(
+                  creatorCategoryAssignments,
+                  eq(users.id, creatorCategoryAssignments.creatorId)
+                )
+                .where(
+                  and(
+                    ...featuredConditions,
+                    eq(creatorCategoryAssignments.categoryId, categoryId)
+                  )
+                );
+            } else {
+              featuredQuery = featuredQuery.where(and(...featuredConditions));
+            }
+
             // Prioritize: trending > verified > new > others
-            // Get a mix of each type
             return await featuredQuery
               .orderBy(desc(users.isTrending), desc(users.isCreatorVerified), desc(users.createdAt))
               .limit(10);
           },
           {
-            timeoutMs: 8000,
-            retries: 2,
+            timeoutMs: 5000,
+            retries: 1,
             tag: 'exploreFeatured'
           }
         ) : Promise.resolve([]),
@@ -112,39 +149,71 @@ export async function GET(request: NextRequest) {
                 isOnline: users.isOnline,
               })
               .from(users)
-              .where(eq(users.role, 'creator'))
               .$dynamic();
 
-            // Add search filter if provided
-            if (search) {
-              query = query.where(
-                or(
-                  ilike(users.username, `%${search}%`),
-                  ilike(users.displayName, `%${search}%`),
-                  ilike(users.bio, `%${search}%`)
-                )
-              );
+            // Build base conditions
+            const baseConditions = [eq(users.role, 'creator')];
+
+            // Apply special filters
+            if (filter) {
+              switch (filter) {
+                case 'online':
+                  baseConditions.push(eq(users.isOnline, true));
+                  break;
+                case 'new':
+                  // Creators created in the last 30 days
+                  const thirtyDaysAgo = new Date();
+                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                  baseConditions.push(gt(users.createdAt, thirtyDaysAgo.toISOString()));
+                  break;
+                case 'trending':
+                  baseConditions.push(eq(users.isTrending, true));
+                  break;
+                case 'verified':
+                  baseConditions.push(eq(users.isCreatorVerified, true));
+                  break;
+                case 'available_for_calls':
+                  // This could be enhanced with a dedicated field
+                  baseConditions.push(eq(users.isOnline, true));
+                  break;
+                case 'live_now':
+                  // Assuming we add isLive field later
+                  baseConditions.push(eq(users.isOnline, true));
+                  break;
+              }
             }
 
-            // Category filter
-            if (category && category !== 'All') {
-              const categoryRecord = await db
-                .select({ id: creatorCategories.id })
-                .from(creatorCategories)
-                .where(eq(creatorCategories.name, category))
-                .limit(1);
-
-              if (categoryRecord.length > 0) {
-                const assignments = await db
-                  .select({ creatorId: creatorCategoryAssignments.creatorId })
-                  .from(creatorCategoryAssignments)
-                  .where(eq(creatorCategoryAssignments.categoryId, categoryRecord[0].id));
-
-                const creatorIds = assignments.map(a => a.creatorId);
-                if (creatorIds.length > 0) {
-                  query = query.where(inArray(users.id, creatorIds));
-                }
+            // Apply category filter with JOIN
+            if (categoryId) {
+              query = query
+                .innerJoin(
+                  creatorCategoryAssignments,
+                  eq(users.id, creatorCategoryAssignments.creatorId)
+                )
+                .where(
+                  and(
+                    ...baseConditions,
+                    eq(creatorCategoryAssignments.categoryId, categoryId),
+                    // Add search filter if provided
+                    search ? or(
+                      ilike(users.username, `%${search}%`),
+                      ilike(users.displayName, `%${search}%`),
+                      ilike(users.bio, `%${search}%`)
+                    ) : undefined
+                  )
+                );
+            } else {
+              // No category filter, just search and role
+              if (search) {
+                baseConditions.push(
+                  or(
+                    ilike(users.username, `%${search}%`),
+                    ilike(users.displayName, `%${search}%`),
+                    ilike(users.bio, `%${search}%`)
+                  )!
+                );
               }
+              query = query.where(and(...baseConditions));
             }
 
             // Order by online status first, then by follower count
@@ -154,8 +223,8 @@ export async function GET(request: NextRequest) {
               .offset(offset);
           },
           {
-            timeoutMs: 8000,
-            retries: 2,
+            timeoutMs: 5000,
+            retries: 1,
             tag: 'exploreGrid'
           }
         ),
@@ -175,8 +244,8 @@ export async function GET(request: NextRequest) {
             return ['All', ...cats.map(c => c.name)];
           },
           {
-            timeoutMs: 5000,
-            retries: 2,
+            timeoutMs: 3000,
+            retries: 1,
             tag: 'exploreCategories'
           }
         ),

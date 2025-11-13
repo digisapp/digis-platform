@@ -59,11 +59,11 @@ export function CategoryPills({
               key={category}
               onClick={() => onSelectCategory(category)}
               className={`
-                flex-shrink-0 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-200
+                flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                 ${
                   isSelected
-                    ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-lg scale-105'
-                    : 'bg-white/90 backdrop-blur-sm border-2 border-purple-200 text-gray-800 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'
+                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }
               `}
               aria-pressed={isSelected}

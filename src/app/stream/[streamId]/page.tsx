@@ -46,6 +46,7 @@ export default function StreamViewerPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   // Fetch stream details
   useEffect(() => {
@@ -62,6 +63,26 @@ export default function StreamViewerPage() {
       fetchFollowStatus();
     }
   }, [stream?.creator?.id]);
+
+  // Handle device orientation changes for mobile
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      const isLandscapeOrientation = window.matchMedia('(orientation: landscape)').matches;
+      setIsLandscape(isLandscapeOrientation);
+    };
+
+    // Initial check
+    handleOrientationChange();
+
+    // Listen for orientation changes
+    window.addEventListener('resize', handleOrientationChange);
+    window.addEventListener('orientationchange', handleOrientationChange);
+
+    return () => {
+      window.removeEventListener('resize', handleOrientationChange);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, []);
 
   // Join stream and setup real-time
   useEffect(() => {
@@ -328,7 +349,14 @@ export default function StreamViewerPage() {
           {/* Main Video Area */}
           <div className={`${isTheaterMode ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-4`}>
             {/* Video Player */}
-            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative" data-lk-video-container>
+            <div
+              className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
+                isLandscape
+                  ? 'aspect-video'
+                  : 'md:aspect-video aspect-[9/16]'
+              }`}
+              data-lk-video-container
+            >
               {token && serverUrl ? (
                 <>
                   <LiveKitRoom

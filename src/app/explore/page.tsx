@@ -42,13 +42,17 @@ export default function ExplorePage() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [categories, setCategories] = useState<string[]>(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedFilter, setSelectedFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
 
+  // Special filter options
+  const specialFilters = ['Online', 'New', 'Trending', 'Verified', 'Available for Calls', 'Live Now'];
+
   useEffect(() => {
     fetchCreators();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedFilter]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
@@ -67,6 +71,11 @@ export default function ExplorePage() {
       const params = new URLSearchParams({
         category: selectedCategory,
       });
+
+      // Add filter parameter if a special filter is selected
+      if (selectedFilter) {
+        params.set('filter', selectedFilter.toLowerCase().replace(/\s+/g, '_'));
+      }
 
       const response = await fetch(`/api/explore?${params}`);
       const result = await response.json();
@@ -121,21 +130,66 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="max-w-7xl mx-auto">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
         <div className="px-4 pt-0 md:pt-10 pb-20 md:pb-8">
-        {/* Category Pills */}
+        {/* Filter Pills and Category Pills */}
         {!searchTerm && (
-          <div className="mb-5">
-            <CategoryPills
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-          </div>
+          <>
+            {/* Special Filters */}
+            <div className="mb-3">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1">
+                {specialFilters.map((filter) => {
+                  const isSelected = filter === selectedFilter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedFilter('');
+                        } else {
+                          setSelectedFilter(filter);
+                        }
+                      }}
+                      className={`
+                        flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
+                        ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'
+                            : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                        }
+                      `}
+                    >
+                      {filter}
+                    </button>
+                  );
+                })}
+              </div>
+              <style jsx>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+            </div>
+
+            {/* Category Pills */}
+            <div className="mb-5">
+              <CategoryPills
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={(cat) => {
+                  setSelectedCategory(cat);
+                  // Clear filter when changing category
+                  if (cat !== selectedCategory) {
+                    setSelectedFilter('');
+                  }
+                }}
+              />
+            </div>
+          </>
         )}
 
         {/* Featured Carousel */}

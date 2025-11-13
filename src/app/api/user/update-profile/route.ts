@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, bio, avatarUrl, bannerUrl } = await request.json();
+    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl } = await request.json();
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
         bio: bio || null,
         avatar_url: avatarUrl || null,
         banner_url: bannerUrl || null,
+        creator_card_image_url: creatorCardImageUrl || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', authUser.id)

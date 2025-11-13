@@ -49,6 +49,7 @@ export default function BroadcastStudioPage() {
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; totalCoins: number }>>([]);
   const [isPortrait, setIsPortrait] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   // Update timer every second
   useEffect(() => {
@@ -72,6 +73,8 @@ export default function BroadcastStudioPage() {
   useEffect(() => {
     const checkOrientation = () => {
       setIsPortrait(window.innerHeight > window.innerWidth);
+      const isLandscapeOrientation = window.matchMedia('(orientation: landscape)').matches;
+      setIsLandscape(isLandscapeOrientation);
     };
 
     checkOrientation();
@@ -710,7 +713,14 @@ export default function BroadcastStudioPage() {
           {/* Main Video Area */}
           <div className={`${isPortrait ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-4`}>
             {/* Video Player */}
-            <div className="aspect-video bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative" data-lk-video-container>
+            <div
+              className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
+                isLandscape
+                  ? 'aspect-video'
+                  : 'md:aspect-video aspect-[9/16]'
+              }`}
+              data-lk-video-container
+            >
               {token && serverUrl ? (
                 <>
                   <LiveKitRoom

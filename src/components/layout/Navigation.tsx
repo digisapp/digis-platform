@@ -528,7 +528,7 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 bottom-[calc(72px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
             <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
               <div className="flex items-center gap-4 md:gap-3 mb-4 md:mb-3">
@@ -653,7 +653,7 @@ export function Navigation() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-base md:text-sm text-gray-900 font-semibold">Account Settings</span>
+                <span className="text-base md:text-sm text-gray-900 font-semibold">Settings</span>
               </button>
 
               <button
@@ -681,7 +681,7 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowNotifications(false)}
           />
-          <div className="fixed md:left-24 md:bottom-24 bottom-[calc(72px+env(safe-area-inset-bottom)+8px)] md:bottom-24 right-4 left-4 md:left-24 md:right-auto md:w-96 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 max-h-[70vh] md:max-h-[32rem] overflow-hidden shadow-2xl">
+          <div className="fixed md:left-24 md:bottom-24 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-24 right-4 left-4 md:left-24 md:right-auto md:w-96 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 max-h-[70vh] md:max-h-[32rem] overflow-hidden shadow-2xl">
             {/* Header with Categories */}
             <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
               <div className="flex items-center justify-between mb-4 md:mb-3">
@@ -773,22 +773,22 @@ export function Navigation() {
         <div className="absolute inset-0 bg-white/90 backdrop-blur-2xl border-t border-purple-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]" />
 
         {/* Navigation content */}
-        <div className="relative flex items-end justify-around px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
           {/* Home */}
           <button
             onClick={() => router.push(navItems[0].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[0].active
                 ? 'text-digis-cyan'
                 : 'text-gray-600 active:bg-gray-100/50'
             }`}
-            style={{ minHeight: '56px' }}
+            style={{ minHeight: '48px' }}
           >
             {(() => {
               const Icon = navItems[0].icon;
               return (
                 <div className={`relative transition-transform ${navItems[0].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-7 h-7" strokeWidth={navItems[0].active ? 2.5 : 2} />
+                  <Icon className="w-6 h-6" strokeWidth={navItems[0].active ? 2.5 : 2} />
                   {navItems[0].active && (
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
                   )}
@@ -803,18 +803,18 @@ export function Navigation() {
           {/* Explore */}
           <button
             onClick={() => router.push(navItems[1].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[1].active
                 ? 'text-digis-cyan'
                 : 'text-gray-600 active:bg-gray-100/50'
             }`}
-            style={{ minHeight: '56px' }}
+            style={{ minHeight: '48px' }}
           >
             {(() => {
               const Icon = navItems[1].icon;
               return (
                 <div className={`relative transition-transform ${navItems[1].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-7 h-7" strokeWidth={navItems[1].active ? 2.5 : 2} />
+                  <Icon className="w-6 h-6" strokeWidth={navItems[1].active ? 2.5 : 2} />
                   {navItems[1].active && (
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
                   )}
@@ -828,16 +828,16 @@ export function Navigation() {
 
           {/* Center Action Button - Creators Only */}
           {userRole === 'creator' && (
-            <div className="flex flex-col items-center justify-end flex-1 min-w-[60px] -mb-2">
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-5">
               <button
                 onClick={() => setShowCreateMenu(true)}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_8px_24px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group flex items-center justify-center"
-                style={{ minHeight: '64px', minWidth: '64px' }}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_6px_20px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group flex items-center justify-center"
+                style={{ minHeight: '56px', minWidth: '56px' }}
               >
                 {/* Animated gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-active:opacity-100 transition-opacity" />
 
-                <Plus className="w-8 h-8 text-white relative z-10 transition-transform group-active:rotate-90" strokeWidth={3} />
+                <Plus className="w-7 h-7 text-white relative z-10 transition-transform group-active:rotate-90" strokeWidth={3} />
 
                 {/* Pulse effect */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink opacity-75 animate-ping" style={{ animationDuration: '2s' }} />
@@ -848,19 +848,19 @@ export function Navigation() {
           {/* Messages */}
           <button
             onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[2].active
                 ? 'text-digis-cyan'
                 : 'text-gray-600 active:bg-gray-100/50'
             }`}
-            style={{ minHeight: '56px' }}
+            style={{ minHeight: '48px' }}
           >
             <div className="relative">
               {(() => {
                 const Icon = navItems[2].icon;
                 return (
                   <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                    <Icon className="w-7 h-7" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                    <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
                     {navItems[2].active && (
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
                     )}
@@ -883,12 +883,12 @@ export function Navigation() {
           {/* Profile/Settings Button */}
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-2 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               isActive('/settings') || showProfileMenu
                 ? 'text-digis-cyan'
                 : 'text-gray-600 active:bg-gray-100/50'
             }`}
-            style={{ minHeight: '56px' }}
+            style={{ minHeight: '48px' }}
           >
             <div className="relative">
               {/* Enhanced glow effect */}
@@ -897,18 +897,18 @@ export function Navigation() {
               )}
 
               {/* Gradient border ring */}
-              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2.5px] transition-all ${
+              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px] transition-all ${
                 isActive('/settings') || showProfileMenu ? 'scale-110' : ''
               }`}>
-                <div className="rounded-full bg-white p-[2px]">
+                <div className="rounded-full bg-white p-[1.5px]">
                   {userProfile?.avatarUrl ? (
                     <img
                       src={userProfile.avatarUrl}
                       alt="Your avatar"
-                      className="w-8 h-8 rounded-full object-cover"
+                      className="w-7 h-7 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
                       {user?.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                   )}
@@ -1081,7 +1081,7 @@ export function Navigation() {
       <div className="hidden md:block w-20" />
 
       {/* Spacer for mobile bottom nav - Dynamic height for iPhone */}
-      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-bottom))' }} />
+      <div className="md:hidden" style={{ height: 'calc(60px + env(safe-area-inset-bottom))' }} />
     </>
   );
 }

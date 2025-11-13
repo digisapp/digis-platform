@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface NeonLoaderProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'spinner' | 'dots' | 'pulse' | 'bars' | 'logo';
@@ -33,8 +35,6 @@ export function NeonLoader({
     lg: 'w-2 h-12',
     xl: 'w-3 h-16',
   };
-
-  const Container = fullScreen ? 'div' : 'div';
 
   const content = (
     <div className={`flex flex-col items-center justify-center gap-4 ${fullScreen ? 'min-h-screen bg-pastel-gradient' : ''}`}>
@@ -91,16 +91,23 @@ export function NeonLoader({
       )}
 
       {variant === 'logo' && (
-        <div className={`relative ${sizes[size]}`}>
-          {/* Animated D letter with neon effect */}
-          <div className="text-6xl font-bold bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent animate-pulse-slow"
+        <div className={`relative flex items-center justify-center ${sizes[size]}`}>
+          {/* Real Digis Logo with neon effect */}
+          <div className="relative animate-pulse-slow"
                style={{
                  filter: 'drop-shadow(0 0 20px rgba(0, 245, 255, 0.6)) drop-shadow(0 0 40px rgba(255, 0, 255, 0.4))',
                }}
           >
-            D
+            <Image
+              src="/images/digis-logo-black.png"
+              alt="Digis"
+              width={size === 'xl' ? 200 : size === 'lg' ? 150 : size === 'md' ? 120 : 80}
+              height={size === 'xl' ? 67 : size === 'lg' ? 50 : size === 'md' ? 40 : 27}
+              className="w-auto h-auto"
+              priority
+            />
           </div>
-          {/* Rotating ring */}
+          {/* Rotating ring around logo */}
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-digis-cyan border-r-digis-pink animate-spin"
                style={{
                  filter: 'drop-shadow(0 0 10px currentColor)',

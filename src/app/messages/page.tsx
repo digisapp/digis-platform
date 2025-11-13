@@ -209,14 +209,14 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto max-w-7xl">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />

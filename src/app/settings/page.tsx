@@ -26,12 +26,15 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
+  const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
 
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [bannerPreview, setBannerPreview] = useState<string | undefined>();
+  const [creatorCardPreview, setCreatorCardPreview] = useState<string | undefined>();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingCreatorCard, setUploadingCreatorCard] = useState(false);
 
   // Username change
   const [newUsername, setNewUsername] = useState('');
@@ -73,6 +76,7 @@ export default function SettingsPage() {
       setBio(data.bio || '');
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
+      setCreatorCardImageUrl(data.creatorCardImageUrl || '');
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -156,6 +160,7 @@ export default function SettingsPage() {
           bio,
           avatarUrl,
           bannerUrl,
+          creatorCardImageUrl,
         }),
       });
 
@@ -310,6 +315,53 @@ export default function SettingsPage() {
       setError(err.message || 'Failed to upload banner');
     } finally {
       setUploadingBanner(false);
+    }
+  };
+
+  const handleCreatorCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    // Validate file
+    const validation = validateImageFile(file, 'banner');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setUploadingCreatorCard(true);
+    setError('');
+
+    try {
+      // Resize image to 4:5 portrait ratio (800x1000)
+      const resizedFile = await resizeImage(file, 800, 1000);
+
+      // Upload to Supabase Storage
+      const url = await uploadImage(resizedFile, 'creator-card', currentUser.id);
+
+      // Update preview
+      setCreatorCardPreview(url);
+
+      // Save to database
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creatorCardImageUrl: url }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save creator card');
+      }
+
+      setCreatorCardImageUrl(url);
+      setMessage('Creator card updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      console.error('Creator card upload error:', err);
+      setError(err.message || 'Failed to upload creator card');
+    } finally {
+      setUploadingCreatorCard(false);
     }
   };
 
@@ -635,13 +687,13 @@ export default function SettingsPage() {
                 <ImageIcon className="w-4 h-4 inline mr-1" />
                 Profile Banner
               </label>
-              <label className="relative cursor-pointer group block">
+              <label className="relative cursor-pointer group block max-w-2xl mx-auto">
                 {(bannerPreview || bannerUrl) ? (
                   <div className="relative">
                     <img
                       src={bannerPreview || bannerUrl}
                       alt="Banner"
-                      className="h-32 w-full object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-pink transition-all"
+                      className="w-full aspect-[19/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-pink transition-all"
                     />
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -654,7 +706,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="h-32 w-full rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-pink transition-all flex items-center justify-center bg-white/50">
+                  <div className="w-full aspect-[19/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-pink transition-all flex items-center justify-center bg-white/50">
                     <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-pink transition-colors" />
                   </div>
                 )}
@@ -666,8 +718,51 @@ export default function SettingsPage() {
                   className="hidden"
                 />
               </label>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-gray-600 mt-2 text-center">
                 Click to {(bannerPreview || bannerUrl) ? 'change' : 'upload'} banner • Max 2MB
+              </p>
+            </div>
+
+            {/* Creator Card Upload (Portrait Photo for Explore Page) */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                <ImageIcon className="w-4 h-4 inline mr-1" />
+                Creator Card (Portrait Photo)
+              </label>
+              <label className="relative cursor-pointer group block">
+                {(creatorCardPreview || creatorCardImageUrl) ? (
+                  <div className="relative w-full max-w-xs mx-auto">
+                    <img
+                      src={creatorCardPreview || creatorCardImageUrl}
+                      alt="Creator Card"
+                      className="w-full aspect-[4/5] object-cover rounded-lg border-2 border-purple-200 group-hover:border-digis-cyan transition-all"
+                    />
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-white" />
+                    </div>
+                    {uploadingCreatorCard && (
+                      <div className="absolute inset-0 bg-black/70 rounded-lg flex items-center justify-center">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full max-w-xs mx-auto aspect-[4/5] rounded-lg border-2 border-dashed border-purple-200 group-hover:border-digis-cyan transition-all flex flex-col items-center justify-center bg-white/50">
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-digis-cyan transition-colors mb-2" />
+                    <p className="text-xs text-gray-600 text-center px-4">Portrait 4:5 ratio</p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCreatorCardUpload}
+                  disabled={uploadingCreatorCard}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-xs text-gray-600 mt-2 text-center">
+                Click to {(creatorCardPreview || creatorCardImageUrl) ? 'change' : 'upload'} creator card • 4:5 portrait for Explore page • Max 2MB
               </p>
             </div>
 
