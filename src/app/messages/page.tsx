@@ -434,29 +434,9 @@ export default function MessagesPage() {
           <div className="hidden lg:flex items-center justify-center glass rounded-3xl border-2 border-purple-200 p-12 h-[calc(100vh-180px)]">
             <div className="text-center max-w-md">
               <div className="text-7xl mb-6">💬</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold text-gray-900">
                 Select a Conversation
               </h2>
-              <p className="text-gray-700 text-lg mb-8">
-                Choose a conversation from the sidebar to start messaging
-              </p>
-              <div className="glass rounded-xl border-2 border-purple-200 p-6 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
-                <h3 className="font-semibold text-gray-900 mb-3">Quick Tips:</h3>
-                <ul className="text-sm text-gray-700 space-y-2 text-left">
-                  <li className="flex items-start gap-2">
-                    <span className="text-digis-cyan mt-0.5">•</span>
-                    <span>Pin important conversations to keep them at the top</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-digis-pink mt-0.5">•</span>
-                    <span>Use the search bar to quickly find conversations</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-digis-purple mt-0.5">•</span>
-                    <span>Filter by unread to catch up on new messages</span>
-                  </li>
-                </ul>
-              </div>
             </div>
           </div>
         </div>
