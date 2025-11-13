@@ -49,7 +49,7 @@ export function MobileWalletWidget() {
 
   if (loading) {
     return (
-      <div className="md:hidden mb-3 px-4">
+      <div className="md:hidden mb-2 px-4 pt-1">
         <div className="glass rounded-2xl border-2 border-purple-200 p-4 animate-pulse">
           <div className="flex items-center justify-between">
             <div className="h-5 w-24 bg-gray-300 rounded"></div>
@@ -61,7 +61,7 @@ export function MobileWalletWidget() {
   }
 
   return (
-    <div className="md:hidden mb-3 px-4 relative">
+    <div className="md:hidden mb-2 px-4 pt-1 relative">
       {/* Main Widget Button */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
