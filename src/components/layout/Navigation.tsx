@@ -523,35 +523,22 @@ export function Navigation() {
           <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
             <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
-              <div className="flex items-center gap-4 md:gap-3 mb-4 md:mb-3">
-                {userProfile?.avatarUrl ? (
-                  <img
-                    src={userProfile.avatarUrl}
-                    alt="Your avatar"
-                    className="w-14 h-14 md:w-12 md:h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-14 h-14 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-lg font-bold text-white">
-                    {user?.email?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-base md:text-sm truncate">
-                    {userProfile?.displayName || userProfile?.username || 'User'}
-                  </p>
-                  <button
-                    onClick={() => {
-                      router.push(`/${userProfile?.username || 'profile'}`);
-                      setShowProfileMenu(false);
-                    }}
-                    className="text-xs text-gray-500 hover:text-digis-cyan transition-colors truncate text-left"
-                  >
-                    digis.cc/{userProfile?.username || 'user'}
-                  </button>
-                  <p className="text-xs text-gray-600 capitalize mt-1 md:mt-0.5">
-                    {userRole}
-                  </p>
-                </div>
+              <div className="mb-4 md:mb-3">
+                <p className="font-bold text-gray-900 text-lg md:text-base mb-1">
+                  {userProfile?.displayName || userProfile?.username || 'User'}
+                </p>
+                <button
+                  onClick={() => {
+                    router.push(`/${userProfile?.username || 'profile'}`);
+                    setShowProfileMenu(false);
+                  }}
+                  className="text-sm text-gray-500 hover:text-digis-cyan transition-colors text-left"
+                >
+                  digis.cc/{userProfile?.username || 'user'}
+                </button>
+                <p className="text-sm text-gray-600 capitalize mt-1">
+                  {userRole}
+                </p>
               </div>
               {/* Follower Count - Clickable */}
               <button
