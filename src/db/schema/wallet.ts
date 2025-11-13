@@ -6,6 +6,8 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'gift',
   'call_charge',
   'call_earnings',
+  'message_charge',
+  'message_earnings',
   'stream_tip',
   'ppv_unlock',
   'creator_payout',
