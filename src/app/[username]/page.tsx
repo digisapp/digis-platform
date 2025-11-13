@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles } from 'lucide-react';
+import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -48,7 +48,7 @@ export default function ProfilePage() {
   const [subscriptionTier, setSubscriptionTier] = useState<any>(null);
 
   // Content tabs
-  const [activeTab, setActiveTab] = useState<'streams' | 'shows' | 'about'>('streams');
+  const [activeTab, setActiveTab] = useState<'photos' | 'video' | 'streams' | 'shows' | 'about'>('photos');
   const [streams, setStreams] = useState<any[]>([]);
   const [shows, setShows] = useState<any[]>([]);
   const [isLive, setIsLive] = useState(false);
@@ -468,6 +468,32 @@ export default function ProfilePage() {
             <div className="border-b border-purple-200 overflow-x-auto">
               <div className="flex min-w-max sm:min-w-0">
                 <button
+                  onClick={() => setActiveTab('photos')}
+                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
+                    activeTab === 'photos'
+                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Image className="w-4 h-4" />
+                    Photos
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('video')}
+                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
+                    activeTab === 'video'
+                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Film className="w-4 h-4" />
+                    Video
+                  </div>
+                </button>
+                <button
                   onClick={() => setActiveTab('streams')}
                   className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
                     activeTab === 'streams'
@@ -478,8 +504,7 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-center gap-2">
                     <Video className="w-4 h-4" />
                     <span className="hidden sm:inline">Streams</span>
-                    <span className="sm:hidden">Past</span>
-                    <span className="text-xs">({streams.length})</span>
+                    <span className="sm:hidden">Live</span>
                   </div>
                 </button>
                 <button
@@ -493,7 +518,6 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-center gap-2">
                     <Ticket className="w-4 h-4" />
                     Shows
-                    <span className="text-xs">({shows.length})</span>
                   </div>
                 </button>
                 <button
@@ -520,6 +544,28 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <>
+                  {/* Photos Tab */}
+                  {activeTab === 'photos' && (
+                    <div className="text-center py-12">
+                      <Image className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">No photos yet</h3>
+                      <p className="text-gray-600 px-4">
+                        Check back later for photo uploads
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Video Tab */}
+                  {activeTab === 'video' && (
+                    <div className="text-center py-12">
+                      <Film className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">No videos yet</h3>
+                      <p className="text-gray-600 px-4">
+                        Check back later for video content
+                      </p>
+                    </div>
+                  )}
+
                   {/* Streams Tab */}
                   {activeTab === 'streams' && (
                     <div>
