@@ -314,7 +314,7 @@ export default function CreatorDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
