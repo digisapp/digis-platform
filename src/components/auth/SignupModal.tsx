@@ -59,21 +59,23 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-6">
         <Image
           src="/images/digis-logo-black.png"
           alt="Digis Logo"
           width={150}
           height={50}
-          className="h-10 w-auto"
+          className="h-12 w-auto"
           priority
         />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-gray-700 text-sm mb-1">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Join Digis</h2>
+        <p className="text-gray-600 font-medium">
           Create your account to connect with creators and fans
         </p>
-
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <GlassInput
           type="email"
           label="Email"
@@ -94,27 +96,30 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         />
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
+          <div className="p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-700 text-sm font-semibold">
             {error}
           </div>
         )}
 
-        <GlassButton
+        <button
           type="submit"
-          variant="gradient"
-          size="lg"
-          className="w-full"
           disabled={loading}
+          className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
         >
-          {loading ? <LoadingSpinner size="sm" /> : 'Continue'}
-        </GlassButton>
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Creating account...</span>
+            </div>
+          ) : 'Get Started →'}
+        </button>
 
-        <div className="text-center text-gray-700 text-sm">
+        <div className="text-center text-gray-700 text-sm md:text-base font-medium">
           Already have an account?{' '}
           <button
             type="button"
             onClick={onSwitchToLogin}
-            className="text-digis-cyan hover:underline font-semibold"
+            className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
           >
             Sign in
           </button>

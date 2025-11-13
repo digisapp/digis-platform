@@ -129,12 +129,6 @@ export default function FanDashboard() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-digis-purple via-digis-pink to-digis-cyan bg-clip-text text-transparent mb-2">Welcome to Digis 👋</h1>
-          <p className="text-gray-600 font-medium">Explore live streams, connect with creators, and more</p>
-        </div>
-
         {/* Upcoming Events Section */}
         {loadingEvents ? (
           <div className="mb-8 glass rounded-2xl border border-purple-200 p-8 shadow-fun">

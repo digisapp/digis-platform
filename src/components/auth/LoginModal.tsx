@@ -74,17 +74,21 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-6">
         <Image
           src="/images/digis-logo-black.png"
           alt="Digis Logo"
           width={150}
           height={50}
-          className="h-10 w-auto"
+          className="h-12 w-auto"
           priority
         />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4" action="javascript:void(0)">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Welcome Back!</h2>
+        <p className="text-gray-600 font-medium">Sign in to continue your journey</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5" action="javascript:void(0)">
         <GlassInput
           type="email"
           label="Email"
@@ -104,7 +108,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         />
 
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
+          <div className="p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-700 text-sm font-semibold">
             {error}
           </div>
         )}
@@ -112,17 +116,22 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Signing in...</span>
+            </div>
+          ) : 'Sign In'}
         </button>
 
-        <div className="text-center text-gray-700">
+        <div className="text-center text-gray-700 text-sm md:text-base font-medium">
           Don&apos;t have an account?{' '}
           <button
             type="button"
             onClick={onSwitchToSignup}
-            className="text-digis-cyan hover:underline font-semibold"
+            className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
           >
             Sign up
           </button>
