@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
   const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
@@ -97,6 +98,7 @@ export default function SettingsPage() {
       setBio(data.bio || '');
       setCity(data.profile?.city || '');
       setState(data.profile?.state || '');
+      setPhoneNumber(data.profile?.phoneNumber || '');
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
       setCreatorCardImageUrl(data.creatorCardImageUrl || '');
@@ -231,6 +233,7 @@ export default function SettingsPage() {
           bio,
           city,
           state,
+          phoneNumber,
           avatarUrl,
           bannerUrl,
           creatorCardImageUrl,
@@ -765,6 +768,14 @@ export default function SettingsPage() {
                 onChange={(e) => setState(e.target.value)}
               />
             </div>
+
+            <GlassInput
+              type="tel"
+              label="Phone Number"
+              placeholder="+1 (555) 123-4567"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
 
             <GlassButton
               type="submit"

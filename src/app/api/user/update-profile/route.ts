@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl, city, state } = await request.json();
+    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl, city, state, phoneNumber } = await request.json();
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update or create profile with city and state
-    if (city !== undefined || state !== undefined) {
+    // Update or create profile with city, state, and phone number
+    if (city !== undefined || state !== undefined || phoneNumber !== undefined) {
       const { data: existingProfile } = await adminClient
         .from('profiles')
         .select('id')
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
           .update({
             city: city || null,
             state: state || null,
+            phone_number: phoneNumber || null,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', authUser.id);
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
             user_id: authUser.id,
             city: city || null,
             state: state || null,
+            phone_number: phoneNumber || null,
           });
       }
     }
