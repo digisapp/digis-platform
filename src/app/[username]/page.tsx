@@ -340,7 +340,7 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white truncate drop-shadow-lg" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white md:text-gray-900 truncate drop-shadow-lg md:drop-shadow-none" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
@@ -350,23 +350,23 @@ export default function ProfilePage() {
                 )}
               </div>
               {user.displayName && (
-                <p className="text-white/90 mb-3 drop-shadow-md">@{user.username}</p>
+                <p className="text-white/90 md:text-gray-600 mb-3 drop-shadow-md md:drop-shadow-none">@{user.username}</p>
               )}
 
               {/* Stats - Responsive grid */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
                 <button
                   onClick={() => setActiveTab('about')}
-                  className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm"
+                  className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors"
                 >
-                  <Users className="w-4 h-4 text-white/80" />
+                  <Users className="w-4 h-4 text-white/80 md:text-gray-500" />
                   <span>
-                    <strong className="text-white">{followCounts.followers.toLocaleString()}</strong>{' '}
-                    <span className="text-white/80">Followers</span>
+                    <strong className="text-white md:text-gray-900">{followCounts.followers.toLocaleString()}</strong>{' '}
+                    <span className="text-white/80 md:text-gray-600">Followers</span>
                   </span>
                 </button>
-                <span className="text-white/60">•</span>
-                <span className="flex items-center gap-1.5 text-white/80 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                <span className="text-white/60 md:hidden">•</span>
+                <span className="flex md:hidden items-center gap-1.5 text-white/80">
                   <Calendar className="w-4 h-4 text-white/70" />
                   Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
