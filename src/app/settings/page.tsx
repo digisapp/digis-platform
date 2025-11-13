@@ -821,21 +821,11 @@ export default function SettingsPage() {
               router.push('/');
             }}
             variant="ghost"
-            className="bg-red-500/10 hover:bg-red-500/20 border-red-500 text-red-400"
+            className="bg-red-500/10 hover:bg-red-500/20 border-red-500 text-red-700"
           >
             Sign Out
           </GlassButton>
         </GlassCard>
-
-        {/* Back to Profile */}
-        <div className="text-center">
-          <button
-            onClick={() => router.push(`/${currentUser?.username}`)}
-            className="text-digis-cyan hover:underline"
-          >
-            View Your Profile
-          </button>
-        </div>
       </div>
     </div>
   );
