@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, follows } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql, and } from 'drizzle-orm';
+import { eq, ilike, or, desc, sql, and, inArray } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       let results = hasMore ? creators.slice(0, limit) : creators;
 
       // If user is logged in, check which creators they're following
-      if (currentUserId) {
+      if (currentUserId && results.length > 0) {
         const creatorIds = results.map(c => c.id);
         const followingStatus = await db
           .select({ followingId: follows.followingId })
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
           .where(
             and(
               eq(follows.followerId, currentUserId),
-              sql`${follows.followingId} = ANY(${creatorIds})`
+              inArray(follows.followingId, creatorIds)
             )
           );
 
