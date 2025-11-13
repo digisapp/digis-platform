@@ -12,6 +12,11 @@ export const callStatusEnum = pgEnum('call_status', [
   'missed'        // Creator didn't respond in time
 ]);
 
+export const callTypeEnum = pgEnum('call_type', [
+  'video',        // Video call
+  'voice'         // Voice-only call
+]);
+
 export const calls = pgTable('calls', {
   id: uuid('id').primaryKey().defaultRandom(),
 
@@ -20,6 +25,7 @@ export const calls = pgTable('calls', {
   creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 
   // Call details
+  callType: callTypeEnum('call_type').default('video').notNull(),
   status: callStatusEnum('status').default('pending').notNull(),
   ratePerMinute: integer('rate_per_minute').notNull(), // Coins per minute
 
@@ -58,12 +64,20 @@ export const creatorSettings = pgTable('creator_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
 
-  // Rates
+  // Video Call Rates
   callRatePerMinute: integer('call_rate_per_minute').default(10).notNull(), // Default 10 coins/min
   minimumCallDuration: integer('minimum_call_duration').default(5).notNull(), // Min 5 minutes
 
+  // Voice Call Rates
+  voiceCallRatePerMinute: integer('voice_call_rate_per_minute').default(5).notNull(), // Default 5 coins/min
+  minimumVoiceCallDuration: integer('minimum_voice_call_duration').default(5).notNull(), // Min 5 minutes
+
+  // Message Rates
+  messageRate: integer('message_rate').default(0).notNull(), // Default 0 (free), creators can set a per-message rate
+
   // Availability
   isAvailableForCalls: boolean('is_available_for_calls').default(true).notNull(),
+  isAvailableForVoiceCalls: boolean('is_available_for_voice_calls').default(true).notNull(),
 
   // Auto-accept
   autoAcceptCalls: boolean('auto_accept_calls').default(false).notNull(),

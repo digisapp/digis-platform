@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
@@ -55,7 +55,11 @@ export default function SettingsPage() {
   const [callSettings, setCallSettings] = useState({
     callRatePerMinute: 10,
     minimumCallDuration: 5,
+    voiceCallRatePerMinute: 5,
+    minimumVoiceCallDuration: 5,
+    messageRate: 0,
     isAvailableForCalls: true,
+    isAvailableForVoiceCalls: true,
   });
 
   useEffect(() => {
@@ -127,7 +131,11 @@ export default function SettingsPage() {
           setCallSettings({
             callRatePerMinute: data.settings.callRatePerMinute || 10,
             minimumCallDuration: data.settings.minimumCallDuration || 5,
+            voiceCallRatePerMinute: data.settings.voiceCallRatePerMinute || 5,
+            minimumVoiceCallDuration: data.settings.minimumVoiceCallDuration || 5,
+            messageRate: data.settings.messageRate || 0,
             isAvailableForCalls: data.settings.isAvailableForCalls ?? true,
+            isAvailableForVoiceCalls: data.settings.isAvailableForVoiceCalls ?? true,
           });
         }
       }
@@ -771,7 +779,7 @@ export default function SettingsPage() {
         {/* Call Settings - Creators Only */}
         {currentUser?.role === 'creator' && (
           <>
-            {/* Availability Toggle */}
+            {/* Video Call Availability Toggle */}
             <GlassCard className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -779,7 +787,7 @@ export default function SettingsPage() {
                     <Phone className="w-6 h-6 text-green-500" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Available for Calls</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Available for Video Calls</h3>
                     <p className="text-sm text-gray-600">Allow fans to request video calls with you</p>
                   </div>
                 </div>
@@ -796,15 +804,15 @@ export default function SettingsPage() {
               </div>
             </GlassCard>
 
-            {/* Rate Per Minute */}
+            {/* Video Call Rate Per Minute */}
             <GlassCard className="p-6">
               <div className="flex items-start gap-4 mb-4">
                 <div className="p-3 bg-amber-500/20 rounded-xl">
                   <DollarSign className="w-6 h-6 text-amber-500" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Rate Per Minute</h3>
-                  <p className="text-sm text-gray-600 mb-4">How many coins per minute of call time</p>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Video Call Rate</h3>
+                  <p className="text-sm text-gray-600 mb-4">Coins per minute for video calls</p>
 
                   <div className="flex items-center gap-4">
                     <input
@@ -821,15 +829,15 @@ export default function SettingsPage() {
               </div>
             </GlassCard>
 
-            {/* Minimum Duration */}
+            {/* Video Call Minimum Duration */}
             <GlassCard className="p-6">
               <div className="flex items-start gap-4 mb-4">
                 <div className="p-3 bg-purple-500/20 rounded-xl">
                   <Clock className="w-6 h-6 text-purple-500" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Call Duration</h3>
-                  <p className="text-sm text-gray-600 mb-4">Shortest call length you'll accept</p>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Video Call Duration</h3>
+                  <p className="text-sm text-gray-600 mb-4">Shortest video call length you'll accept</p>
 
                   <div className="flex items-center gap-4">
                     <input
@@ -841,6 +849,106 @@ export default function SettingsPage() {
                       className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                     />
                     <span className="text-gray-600">minutes</span>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Voice Call Availability Toggle */}
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-500/20 rounded-xl">
+                    <Mic className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">Available for Voice Calls</h3>
+                    <p className="text-sm text-gray-600">Allow fans to request voice-only calls with you</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCallSettings({ ...callSettings, isAvailableForVoiceCalls: !callSettings.isAvailableForVoiceCalls })}
+                  className="p-2"
+                >
+                  {callSettings.isAvailableForVoiceCalls ? (
+                    <ToggleRight className="w-12 h-12 text-blue-500" />
+                  ) : (
+                    <ToggleLeft className="w-12 h-12 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </GlassCard>
+
+            {/* Voice Call Rate Per Minute */}
+            <GlassCard className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-indigo-500/20 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-indigo-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Voice Call Rate</h3>
+                  <p className="text-sm text-gray-600 mb-4">Coins per minute for voice-only calls</p>
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={callSettings.voiceCallRatePerMinute}
+                      onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
+                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                    />
+                    <span className="text-gray-600">coins/minute</span>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Voice Call Minimum Duration */}
+            <GlassCard className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-violet-500/20 rounded-xl">
+                  <Clock className="w-6 h-6 text-violet-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Voice Call Duration</h3>
+                  <p className="text-sm text-gray-600 mb-4">Shortest voice call length you'll accept</p>
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={callSettings.minimumVoiceCallDuration}
+                      onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
+                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                    />
+                    <span className="text-gray-600">minutes</span>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Message Rate */}
+            <GlassCard className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-pink-500/20 rounded-xl">
+                  <MessageSquare className="w-6 h-6 text-pink-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Cost Per Message</h3>
+                  <p className="text-sm text-gray-600 mb-4">Default cost for fans to send you a message (0 = free)</p>
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="0"
+                      max="1000"
+                      value={callSettings.messageRate}
+                      onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
+                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                    />
+                    <span className="text-gray-600">coins/message</span>
                   </div>
                 </div>
               </div>

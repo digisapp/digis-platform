@@ -18,9 +18,13 @@ export class CallService {
         .insert(creatorSettings)
         .values({
           userId,
-          callRatePerMinute: 10, // Default 10 coins/min
+          callRatePerMinute: 10, // Default 10 coins/min for video
           minimumCallDuration: 5, // Default 5 min minimum
+          voiceCallRatePerMinute: 5, // Default 5 coins/min for voice
+          minimumVoiceCallDuration: 5, // Default 5 min minimum
+          messageRate: 0, // Default free messages
           isAvailableForCalls: true,
+          isAvailableForVoiceCalls: true,
         })
         .returning();
 
@@ -54,12 +58,17 @@ export class CallService {
   /**
    * Request a call with a creator
    */
-  static async requestCall(fanId: string, creatorId: string) {
+  static async requestCall(fanId: string, creatorId: string, callType: 'video' | 'voice' = 'video') {
     // Get creator settings
     const settings = await this.getCreatorSettings(creatorId);
 
-    if (!settings.isAvailableForCalls) {
-      throw new Error('Creator is not available for calls');
+    // Check availability based on call type
+    if (callType === 'video' && !settings.isAvailableForCalls) {
+      throw new Error('Creator is not available for video calls');
+    }
+
+    if (callType === 'voice' && !settings.isAvailableForVoiceCalls) {
+      throw new Error('Creator is not available for voice calls');
     }
 
     // Get fan's wallet balance
@@ -71,8 +80,10 @@ export class CallService {
       throw new Error('Wallet not found');
     }
 
-    // Calculate estimated coins for minimum duration
-    const estimatedCoins = settings.callRatePerMinute * settings.minimumCallDuration;
+    // Calculate estimated coins for minimum duration based on call type
+    const ratePerMinute = callType === 'video' ? settings.callRatePerMinute : settings.voiceCallRatePerMinute;
+    const minimumDuration = callType === 'video' ? settings.minimumCallDuration : settings.minimumVoiceCallDuration;
+    const estimatedCoins = ratePerMinute * minimumDuration;
 
     // Check if fan has enough coins
     const availableBalance = fanWallet.balance - fanWallet.heldBalance;
@@ -107,8 +118,9 @@ export class CallService {
       .values({
         fanId,
         creatorId,
+        callType,
         status: 'pending',
-        ratePerMinute: settings.callRatePerMinute,
+        ratePerMinute,
         estimatedCoins,
         roomName,
         holdId: hold.id,

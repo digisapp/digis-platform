@@ -82,6 +82,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  return PATCH(request);
+}
+
 export async function PATCH(request: NextRequest) {
   const requestId = nanoid(10);
 
@@ -104,14 +108,35 @@ export async function PATCH(request: NextRequest) {
     // Validate updates
     if (updates.callRatePerMinute !== undefined && updates.callRatePerMinute < 1) {
       return NextResponse.json(
-        failure('Call rate must be at least 1 coin per minute', 'validation', requestId),
+        failure('Video call rate must be at least 1 coin per minute', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
 
     if (updates.minimumCallDuration !== undefined && updates.minimumCallDuration < 1) {
       return NextResponse.json(
-        failure('Minimum call duration must be at least 1 minute', 'validation', requestId),
+        failure('Minimum video call duration must be at least 1 minute', 'validation', requestId),
+        { status: 400, headers: { 'x-request-id': requestId } }
+      );
+    }
+
+    if (updates.voiceCallRatePerMinute !== undefined && updates.voiceCallRatePerMinute < 1) {
+      return NextResponse.json(
+        failure('Voice call rate must be at least 1 coin per minute', 'validation', requestId),
+        { status: 400, headers: { 'x-request-id': requestId } }
+      );
+    }
+
+    if (updates.minimumVoiceCallDuration !== undefined && updates.minimumVoiceCallDuration < 1) {
+      return NextResponse.json(
+        failure('Minimum voice call duration must be at least 1 minute', 'validation', requestId),
+        { status: 400, headers: { 'x-request-id': requestId } }
+      );
+    }
+
+    if (updates.messageRate !== undefined && updates.messageRate < 0) {
+      return NextResponse.json(
+        failure('Message rate cannot be negative', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
