@@ -640,24 +640,24 @@ export default function SettingsPage() {
 
         {/* Username Change Section */}
         <GlassCard className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AtSign className="w-5 h-5 text-digis-cyan" />
-            <h2 className="text-xl font-semibold text-gray-800">Change Username</h2>
-          </div>
-
-          <div className="mb-4 p-4 bg-white/60 rounded-lg">
-            <p className="text-sm text-gray-700">
-              Current username: <span className="text-gray-900 font-semibold">@{currentUser?.username}</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <AtSign className="w-5 h-5 text-digis-cyan" />
+              <h2 className="text-xl font-semibold text-gray-800">Change Username</h2>
+            </div>
+            <p className="text-sm text-gray-600">
+              Current: <span className="text-gray-900 font-semibold">@{currentUser?.username}</span>
             </p>
-            {usernameCooldown && !usernameCooldown.canChange && (
-              <p className="text-sm text-yellow-700 mt-2 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                You can change your username again in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
-              </p>
-            )}
           </div>
 
-          <form onSubmit={handleChangeUsername} className="space-y-4">
+          {usernameCooldown && !usernameCooldown.canChange && (
+            <p className="text-xs text-yellow-700 mb-3 flex items-center gap-2">
+              <AlertCircle className="w-3 h-3" />
+              Available in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
+            </p>
+          )}
+
+          <form onSubmit={handleChangeUsername} className="space-y-3">
             <div className="relative">
               <GlassInput
                 type="text"
@@ -691,10 +691,6 @@ export default function SettingsPage() {
             {usernameStatus === 'available' && (
               <p className="text-sm text-green-600">@{newUsername} is available!</p>
             )}
-
-            <p className="text-xs text-gray-600">
-              You can change your username once every 30 days. Choose wisely!
-            </p>
 
             <GlassButton
               type="submit"
@@ -797,12 +793,6 @@ export default function SettingsPage() {
                     />
                     <span className="text-gray-600">coins/minute</span>
                   </div>
-
-                  <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                      <strong>Example:</strong> A 10-minute call would cost {callSettings.callRatePerMinute * 10} coins
-                    </p>
-                  </div>
                 </div>
               </div>
             </GlassCard>
@@ -828,12 +818,6 @@ export default function SettingsPage() {
                     />
                     <span className="text-gray-600">minutes</span>
                   </div>
-
-                  <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                    <p className="text-sm text-amber-700">
-                      <strong>Minimum charge:</strong> {callSettings.callRatePerMinute * callSettings.minimumCallDuration} coins will be held when a fan requests a call
-                    </p>
-                  </div>
                 </div>
               </div>
             </GlassCard>
@@ -849,7 +833,6 @@ export default function SettingsPage() {
                     <li>• Coins are held when they request (not charged yet)</li>
                     <li>• You can accept or reject requests</li>
                     <li>• When the call ends, actual cost is calculated and charged</li>
-                    <li>• You earn 100% of call earnings (no platform fee for calls)</li>
                   </ul>
                 </div>
               </div>
