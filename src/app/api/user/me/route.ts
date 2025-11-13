@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
+import { users, profiles } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 
 // Force Node.js runtime
@@ -20,9 +20,12 @@ export async function GET() {
       );
     }
 
-    // Use Drizzle ORM to query users table
+    // Use Drizzle ORM to query users table with profile
     const user = await db.query.users.findFirst({
       where: eq(users.id, authUser.id),
+      with: {
+        profile: true,
+      },
     });
 
     // If user not found in database, return auth data as fallback
@@ -47,6 +50,7 @@ export async function GET() {
         followingCount: 0,
         createdAt: authUser.created_at,
         updatedAt: authUser.created_at,
+        profile: null,
       });
     }
 

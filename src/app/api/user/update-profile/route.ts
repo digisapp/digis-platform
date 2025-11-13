@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl } = await request.json();
+    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl, city, state } = await request.json();
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -47,6 +47,36 @@ export async function POST(request: NextRequest) {
         { error: 'User not found' },
         { status: 404 }
       );
+    }
+
+    // Update or create profile with city and state
+    if (city !== undefined || state !== undefined) {
+      const { data: existingProfile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('user_id', authUser.id)
+        .single();
+
+      if (existingProfile) {
+        // Update existing profile
+        await adminClient
+          .from('profiles')
+          .update({
+            city: city || null,
+            state: state || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', authUser.id);
+      } else {
+        // Create new profile
+        await adminClient
+          .from('profiles')
+          .insert({
+            user_id: authUser.id,
+            city: city || null,
+            state: state || null,
+          });
+      }
     }
 
     // Update Supabase Auth metadata

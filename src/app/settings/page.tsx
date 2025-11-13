@@ -24,6 +24,8 @@ export default function SettingsPage() {
   // Form fields
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
   const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
@@ -89,6 +91,8 @@ export default function SettingsPage() {
       setCurrentUser(data);
       setDisplayName(data.displayName || '');
       setBio(data.bio || '');
+      setCity(data.profile?.city || '');
+      setState(data.profile?.state || '');
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
       setCreatorCardImageUrl(data.creatorCardImageUrl || '');
@@ -217,6 +221,8 @@ export default function SettingsPage() {
         body: JSON.stringify({
           displayName,
           bio,
+          city,
+          state,
           avatarUrl,
           bannerUrl,
           creatorCardImageUrl,
@@ -732,6 +738,24 @@ export default function SettingsPage() {
                 maxLength={200}
               />
               <p className="text-xs text-gray-600 mt-1">{bio.length}/200 characters</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <GlassInput
+                type="text"
+                label="City"
+                placeholder="Los Angeles"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+
+              <GlassInput
+                type="text"
+                label="State"
+                placeholder="California"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+              />
             </div>
 
             <GlassButton

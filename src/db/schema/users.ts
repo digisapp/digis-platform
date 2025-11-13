@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, timestamp, boolean, pgEnum, integer } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
 
@@ -27,6 +28,8 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
   phoneNumber: text('phone_number'),
+  city: text('city'),
+  state: text('state'),
   location: text('location'),
   website: text('website'),
   twitterHandle: text('twitter_handle'),
@@ -39,3 +42,11 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
+
+// Relations
+export const usersRelations = relations(users, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [users.id],
+    references: [profiles.userId],
+  }),
+}));
