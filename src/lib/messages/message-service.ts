@@ -7,6 +7,7 @@ import {
   blockedUsers,
   walletTransactions,
   wallets,
+  creatorSettings,
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -100,6 +101,86 @@ export class MessageService {
     mediaUrl?: string,
     mediaType?: string
   ) {
+    // Get conversation to determine receiver
+    const conversation = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    // Determine receiver
+    const receiverId =
+      conversation.user1Id === senderId
+        ? conversation.user2Id
+        : conversation.user1Id;
+
+    // Check if receiver is a creator with a message rate
+    const receiver = await db.query.users.findFirst({
+      where: eq(users.id, receiverId),
+    });
+
+    let messageCost = 0;
+
+    if (receiver && receiver.role === 'creator') {
+      // Get creator settings to check message rate
+      const settings = await db.query.creatorSettings.findFirst({
+        where: eq(creatorSettings.userId, receiverId),
+      });
+
+      if (settings && settings.messageRate > 0) {
+        messageCost = settings.messageRate;
+
+        // Check sender's balance
+        const senderWallet = await db.query.wallets.findFirst({
+          where: eq(wallets.userId, senderId),
+        });
+
+        if (!senderWallet || senderWallet.balance < messageCost) {
+          throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
+        }
+
+        // Process payment
+        const transactionId = uuidv4();
+
+        // Deduct from sender
+        await db.insert(walletTransactions).values({
+          userId: senderId,
+          amount: -messageCost,
+          type: 'message_charge',
+          status: 'completed',
+          description: `Message to ${receiver.displayName || receiver.username}`,
+          idempotencyKey: `${transactionId}-debit`,
+        });
+
+        // Credit to receiver (creator)
+        await db.insert(walletTransactions).values({
+          userId: receiverId,
+          amount: messageCost,
+          type: 'message_earnings',
+          status: 'completed',
+          description: `Message from ${senderWallet ? 'fan' : 'user'}`,
+          idempotencyKey: `${transactionId}-credit`,
+        });
+
+        // Update wallet balances
+        await db
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} - ${messageCost}`,
+          })
+          .where(eq(wallets.userId, senderId));
+
+        await db
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} + ${messageCost}`,
+          })
+          .where(eq(wallets.userId, receiverId));
+      }
+    }
+
     // Create message
     const [message] = await db
       .insert(messages)
@@ -113,16 +194,7 @@ export class MessageService {
       .returning();
 
     // Update conversation's last message
-    const conversation = await db.query.conversations.findFirst({
-      where: eq(conversations.id, conversationId),
-    });
-
     if (conversation) {
-      // Determine which user is receiving
-      const receiverId =
-        conversation.user1Id === senderId
-          ? conversation.user2Id
-          : conversation.user1Id;
 
       // Increment unread count for receiver
       const unreadCountField =
