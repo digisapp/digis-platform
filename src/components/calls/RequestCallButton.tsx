@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign, Mic } from 'lucide-react';
+import { Phone, Clock, DollarSign, Video } from 'lucide-react';
 
 interface RequestCallButtonProps {
   creatorId: string;
@@ -59,7 +59,7 @@ export function RequestCallButton({
     }
   };
 
-  const Icon = callType === 'voice' ? Mic : Phone;
+  const Icon = callType === 'voice' ? Phone : Video;
   const buttonTitle = callType === 'voice' ? 'Request Voice Call' : 'Request Video Call';
   const buttonText = callType === 'voice' ? 'Request Voice Call' : 'Request Call';
   const gradientClass = callType === 'voice'
@@ -107,12 +107,12 @@ export function RequestCallButton({
       {/* Request Modal - Clean & Simple */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="glass rounded-2xl p-8 max-w-sm w-full border border-white/20 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
             {success ? (
               <div className="text-center py-4">
                 <div className="text-5xl mb-3">✓</div>
-                <h3 className="text-xl font-bold text-white mb-2">Request Sent!</h3>
-                <p className="text-gray-300 text-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Request Sent!</h3>
+                <p className="text-gray-600 text-sm">
                   Waiting for {creatorName} to accept
                 </p>
               </div>
@@ -121,7 +121,7 @@ export function RequestCallButton({
                 {/* Close button */}
                 <button
                   onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -130,26 +130,26 @@ export function RequestCallButton({
 
                 {/* Icon and Title */}
                 <div className="text-center mb-6">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center`}>
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-lg`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">
                     {callType === 'voice' ? 'Voice Call' : 'Video Call'}
                   </h3>
-                  <p className="text-gray-300 text-sm">with {creatorName}</p>
+                  <p className="text-gray-600 text-sm">with {creatorName}</p>
                 </div>
 
                 {/* Cost Info - Clean & Simple */}
-                <div className="bg-white/5 rounded-xl p-6 mb-6 text-center border border-white/10">
-                  <p className="text-gray-400 text-sm mb-2">Cost per Minute</p>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mb-6 text-center border-2 border-purple-200">
+                  <p className="text-gray-600 text-sm mb-2 font-medium">Cost per Minute</p>
                   <div className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
                     {ratePerMinute}
                   </div>
-                  <p className="text-gray-400 text-sm mt-1">coins</p>
+                  <p className="text-gray-600 text-sm mt-1 font-medium">coins</p>
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
                     {error}
                   </div>
                 )}
@@ -158,7 +158,7 @@ export function RequestCallButton({
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20"
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-300"
                   >
                     Decline
                   </button>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
+import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -340,34 +340,34 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white truncate drop-shadow-lg" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
                   <div className="relative flex-shrink-0">
-                    <BadgeCheck className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-digis-cyan stroke-digis-cyan" strokeWidth={2} />
+                    <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 fill-blue-500" strokeWidth={2} />
                   </div>
                 )}
               </div>
               {user.displayName && (
-                <p className="text-gray-600 mb-3">@{user.username}</p>
+                <p className="text-white/90 mb-3 drop-shadow-md">@{user.username}</p>
               )}
 
               {/* Stats - Responsive grid */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
                 <button
                   onClick={() => setActiveTab('about')}
-                  className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors"
+                  className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm"
                 >
-                  <Users className="w-4 h-4 text-gray-500" />
+                  <Users className="w-4 h-4 text-white/80" />
                   <span>
-                    <strong className="text-gray-900">{followCounts.followers.toLocaleString()}</strong>{' '}
-                    <span className="text-gray-600">Followers</span>
+                    <strong className="text-white">{followCounts.followers.toLocaleString()}</strong>{' '}
+                    <span className="text-white/80">Followers</span>
                   </span>
                 </button>
-                <span className="text-gray-400">•</span>
-                <span className="flex items-center gap-1.5 text-gray-600">
-                  <Calendar className="w-4 h-4 text-gray-500" />
+                <span className="text-white/60">•</span>
+                <span className="flex items-center gap-1.5 text-white/80 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                  <Calendar className="w-4 h-4 text-white/70" />
                   Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     year: 'numeric',
