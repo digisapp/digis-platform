@@ -484,7 +484,7 @@ export function Navigation() {
             </button>
 
             {/* Action Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-2 gap-3 md:gap-4 p-3 md:p-4">
               {creatorActions.map((action) => {
                 const IconComponent = action.icon;
                 return (
@@ -494,7 +494,7 @@ export function Navigation() {
                       router.push(action.path);
                       setShowCreateMenu(false);
                     }}
-                    className="group relative p-8 bg-white/95 backdrop-blur-xl hover:bg-white border-2 border-transparent hover:border-white rounded-2xl transition-all hover:scale-105 shadow-2xl overflow-hidden"
+                    className="group relative p-4 md:p-8 bg-white/95 backdrop-blur-xl hover:bg-white border-2 border-transparent hover:border-white rounded-2xl transition-all hover:scale-105 shadow-2xl overflow-hidden"
                   >
                     {/* Animated gradient background */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
@@ -505,13 +505,13 @@ export function Navigation() {
                     {/* Content */}
                     <div className="relative">
                       {/* Icon */}
-                      <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent className="w-8 h-8 text-white" />
+                      <div className={`inline-flex p-3 md:p-4 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <IconComponent className="w-6 h-6 md:w-8 md:h-8 text-white" />
                       </div>
 
                       {/* Text */}
-                      <h3 className="font-bold text-gray-800 text-xl mb-2">{action.title}</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">{action.description}</p>
+                      <h3 className="font-bold text-gray-800 text-base md:text-xl mb-1 md:mb-2">{action.title}</h3>
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed">{action.description}</p>
                     </div>
                   </button>
                 );
