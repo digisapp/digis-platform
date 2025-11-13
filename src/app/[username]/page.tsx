@@ -134,7 +134,8 @@ export default function ProfilePage() {
       if (streamsRes.ok) {
         const streamsData = await streamsRes.json();
         // Sort by date, most recent first, only show ended streams
-        const endedStreams = (streamsData.data || [])
+        const streamsList = streamsData.data?.streams || [];
+        const endedStreams = streamsList
           .filter((s: any) => s.status === 'ended')
           .sort((a: any, b: any) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
           .slice(0, 12); // Show last 12 streams
@@ -144,7 +145,8 @@ export default function ProfilePage() {
       if (showsRes.ok) {
         const showsData = await showsRes.json();
         // Only show upcoming and live shows
-        const upcomingShows = (showsData.data || [])
+        const showsList = Array.isArray(showsData.data) ? showsData.data : [];
+        const upcomingShows = showsList
           .filter((s: any) => ['scheduled', 'live'].includes(s.status))
           .sort((a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
         setShows(upcomingShows);
@@ -163,7 +165,8 @@ export default function ProfilePage() {
       const response = await fetch('/api/streams/live');
       if (response.ok) {
         const data = await response.json();
-        const liveStream = (data.data || []).find((s: any) => s.creatorId === profile.user.id);
+        const streamsList = data.data?.streams || [];
+        const liveStream = streamsList.find((s: any) => s.creatorId === profile.user.id);
         if (liveStream) {
           setIsLive(true);
           setLiveStreamId(liveStream.id);

@@ -1,4 +1,5 @@
 import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, index } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import { users } from './users';
 
 export const subscriptionStatusEnum = pgEnum('subscription_status', [
@@ -88,3 +89,42 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type NewSubscription = typeof subscriptions.$inferInsert;
 export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
 export type NewSubscriptionPayment = typeof subscriptionPayments.$inferInsert;
+
+// Relations
+export const subscriptionTiersRelations = relations(subscriptionTiers, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [subscriptionTiers.creatorId],
+    references: [users.id],
+  }),
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+  creator: one(users, {
+    fields: [subscriptions.creatorId],
+    references: [users.id],
+  }),
+  tier: one(subscriptionTiers, {
+    fields: [subscriptions.tierId],
+    references: [subscriptionTiers.id],
+  }),
+}));
+
+export const subscriptionPaymentsRelations = relations(subscriptionPayments, ({ one }) => ({
+  subscription: one(subscriptions, {
+    fields: [subscriptionPayments.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  user: one(users, {
+    fields: [subscriptionPayments.userId],
+    references: [users.id],
+  }),
+  creator: one(users, {
+    fields: [subscriptionPayments.creatorId],
+    references: [users.id],
+  }),
+}));
