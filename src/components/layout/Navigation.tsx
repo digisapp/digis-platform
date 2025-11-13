@@ -714,6 +714,51 @@ export function Navigation() {
             </span>
           </button>
 
+          {/* Center Profile Button */}
+          <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-4">
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="relative transition-all active:scale-95"
+              style={{ minHeight: '56px', minWidth: '56px' }}
+            >
+              {/* Enhanced glow effect */}
+              {(isActive('/settings') || showProfileMenu) && (
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse" />
+              )}
+
+              {/* Gradient border ring */}
+              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] shadow-lg transition-all ${
+                isActive('/settings') || showProfileMenu ? 'scale-110' : ''
+              }`}>
+                <div className="rounded-full bg-white p-[2px]">
+                  {userProfile?.avatarUrl ? (
+                    <img
+                      src={userProfile.avatarUrl}
+                      alt="Your avatar"
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
+                      {user?.email?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Wallet */}
+          <button
+            onClick={() => router.push('/wallet')}
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 text-gray-600 active:bg-gray-100/50"
+            style={{ minHeight: '48px' }}
+          >
+            <Coins className="w-6 h-6 text-green-600" />
+            <span className="text-[11px] font-bold text-gray-800">
+              {balance}
+            </span>
+          </button>
+
           {/* Messages */}
           <button
             onClick={() => router.push(navItems[2].path)}
@@ -746,52 +791,6 @@ export function Navigation() {
             </div>
             <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
               {navItems[2].label}
-            </span>
-          </button>
-
-          {/* Profile/Settings Button */}
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
-              isActive('/settings') || showProfileMenu
-                ? 'text-digis-cyan'
-                : 'text-gray-600 active:bg-gray-100/50'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            <div className="relative">
-              {/* Enhanced glow effect */}
-              {(isActive('/settings') || showProfileMenu) && (
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-md opacity-60 animate-pulse" />
-              )}
-
-              {/* Gradient border ring */}
-              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px] transition-all ${
-                isActive('/settings') || showProfileMenu ? 'scale-110' : ''
-              }`}>
-                <div className="rounded-full bg-white p-[1.5px]">
-                  {userProfile?.avatarUrl ? (
-                    <img
-                      src={userProfile.avatarUrl}
-                      alt="Your avatar"
-                      className="w-7 h-7 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xs">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {(isActive('/settings') || showProfileMenu) && (
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
-              )}
-            </div>
-            <span className={`text-[11px] font-semibold mt-0.5 ${
-              isActive('/settings') || showProfileMenu ? 'text-digis-cyan' : 'text-gray-700'
-            }`}>
-              You
             </span>
           </button>
         </div>
