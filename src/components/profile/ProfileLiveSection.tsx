@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { streamAnalytics } from '@/lib/utils/analytics';
 import { useRouter } from 'next/navigation';
+import { StreamAccessModal } from '@/components/live/StreamAccessModal';
 
 const LivePlayer = dynamic(() => import('@/components/live/LivePlayer'), { ssr: false });
 const QuickChat = dynamic(() => import('@/components/live/QuickChat'), { ssr: false });
@@ -15,6 +16,8 @@ type Status = {
   priceCents?: number;
   hasAccess?: boolean;
   startsAt?: string | null;
+  streamTitle?: string;
+  creatorName?: string;
 };
 
 interface ProfileLiveSectionProps {
@@ -25,6 +28,7 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
   const [status, setStatus] = useState<Status>({ state: 'idle' });
   const [inView, setInView] = useState(false);
   const [optimisticTips, setOptimisticTips] = useState<Array<{ id: string; amount: number }>>([]);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -162,18 +166,9 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
                   </div>
                   <button
                     className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition-all shadow-lg"
-                    onClick={() => {
-                      router.push(`/purchase?username=${username}`);
-                      if (status.streamId) {
-                        streamAnalytics.privateShowPurchased(
-                          username,
-                          status.streamId,
-                          (status.priceCents ?? 0) / 100
-                        );
-                      }
-                    }}
+                    onClick={() => setShowPurchaseModal(true)}
                   >
-                    Buy Ticket Now
+                    Buy Access Now
                   </button>
                 </div>
               </div>
@@ -229,6 +224,21 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
             </div>
           )}
         </div>
+      )}
+
+      {/* Purchase Modal */}
+      {showPurchaseModal && status.streamId && (
+        <StreamAccessModal
+          streamId={status.streamId}
+          streamTitle={status.streamTitle || 'Private Stream'}
+          creatorName={status.creatorName || username}
+          price={(status.priceCents ?? 0) / 100}
+          onClose={() => setShowPurchaseModal(false)}
+          onSuccess={() => {
+            setShowPurchaseModal(false);
+            // Reload to update access status
+          }}
+        />
       )}
     </section>
   );

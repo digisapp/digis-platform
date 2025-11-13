@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCreatorByUsername, getCurrentStreamForCreator, hasAccess } from '@/lib/streams';
+import { db } from '@/lib/data/system';
+import { streams, users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,6 +40,23 @@ export async function GET(req: NextRequest) {
 
     const access = await hasAccess({ userId, stream });
 
+    // Fetch full stream details including title
+    const streamDetails = await db.query.streams.findFirst({
+      where: eq(streams.id, stream.id),
+      columns: {
+        title: true,
+      },
+    });
+
+    // Fetch creator details
+    const creatorDetails = await db.query.users.findFirst({
+      where: eq(users.id, creator.id),
+      columns: {
+        displayName: true,
+        username: true,
+      },
+    });
+
     const response = NextResponse.json({
       state: stream.status === 'live' ? 'live' : stream.status === 'scheduled' ? 'upcoming' : 'ended',
       streamId: stream.id,
@@ -44,6 +64,8 @@ export async function GET(req: NextRequest) {
       priceCents: stream.priceCents ?? 0,
       hasAccess: access,
       startsAt: stream.startsAt ?? null,
+      streamTitle: streamDetails?.title ?? 'Live Stream',
+      creatorName: creatorDetails?.displayName || creatorDetails?.username || username,
     });
 
     // Prevent caching for real-time status
