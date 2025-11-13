@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
+import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 
 interface ProfileData {
   user: {
@@ -450,7 +451,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Currently Live Banner */}
+        {/* Inline Live Stream Section */}
+        <ProfileLiveSection username={user.username} />
+
+        {/* Currently Live Banner (fallback - will be hidden if ProfileLiveSection shows) */}
         {isLive && liveStreamId && (
           <div className="mb-6">
             <button
