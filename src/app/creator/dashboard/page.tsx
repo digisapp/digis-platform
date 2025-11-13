@@ -222,16 +222,17 @@ export default function CreatorDashboard() {
     try {
       // Fetch upcoming shows and booked calls
       const [showsRes, callsRes] = await Promise.all([
-        fetch('/api/shows/creator'),
-        fetch('/api/calls/history?limit=10&status=pending')
+        fetch('/api/shows/creator').catch(() => null),
+        fetch('/api/calls/history?limit=10&status=pending').catch(() => null)
       ]);
 
       const events: UpcomingEvent[] = [];
 
       // Process upcoming shows
-      if (showsRes.ok) {
-        const showsData = await showsRes.json();
-        (showsData.data || [])
+      if (showsRes?.ok) {
+        try {
+          const showsData = await showsRes.json();
+          (showsData.data || showsData || [])
           .filter((show: any) => ['scheduled', 'live'].includes(show.status))
           .forEach((show: any) => {
             events.push({
@@ -242,22 +243,29 @@ export default function CreatorDashboard() {
               details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold - ${show.ticketPrice} coins each`
             });
           });
+        } catch (e) {
+          console.error('Error parsing shows data:', e);
+        }
       }
 
       // Process upcoming calls
-      if (callsRes.ok) {
-        const callsData = await callsRes.json();
-        (callsData.data || [])
-          .filter((call: any) => call.scheduledFor)
-          .forEach((call: any) => {
-            events.push({
-              id: `call-${call.id}`,
-              type: 'call',
-              title: `Call with ${call.fanName || 'fan'}`,
-              scheduledFor: call.scheduledFor,
-              details: `${call.duration} minutes - ${call.totalCost} coins`
+      if (callsRes?.ok) {
+        try {
+          const callsData = await callsRes.json();
+          (callsData.data || [])
+            .filter((call: any) => call.scheduledFor)
+            .forEach((call: any) => {
+              events.push({
+                id: `call-${call.id}`,
+                type: 'call',
+                title: `Call with ${call.fanName || 'fan'}`,
+                scheduledFor: call.scheduledFor,
+                details: `${call.duration} minutes - ${call.totalCost} coins`
+              });
             });
-          });
+        } catch (e) {
+          console.error('Error parsing calls data:', e);
+        }
       }
 
       // Sort by scheduled time
