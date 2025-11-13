@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, Verified, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles } from 'lucide-react';
+import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -291,7 +291,7 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className="min-h-screen bg-pastel-gradient pb-8">
+    <div className="min-h-screen bg-pastel-gradient pb-8 md:pl-20">
       {/* Banner - Responsive height */}
       <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-digis-cyan/30 to-digis-pink/30">
         {user.bannerUrl ? (
@@ -341,7 +341,9 @@ export default function ProfilePage() {
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
-                  <Verified className="w-6 h-6 sm:w-7 sm:h-7 text-digis-cyan fill-digis-cyan flex-shrink-0" />
+                  <div className="relative flex-shrink-0">
+                    <BadgeCheck className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-digis-cyan stroke-digis-cyan" strokeWidth={2} />
+                  </div>
                 )}
               </div>
               {user.displayName && (
@@ -361,12 +363,7 @@ export default function ProfilePage() {
                   </span>
                 </button>
                 <span className="text-gray-400">•</span>
-                <span className="flex items-center gap-1.5">
-                  <strong className="text-gray-900">{followCounts.following.toLocaleString()}</strong>{' '}
-                  <span className="text-gray-600">Following</span>
-                </span>
-                <span className="text-gray-400 hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5 text-gray-600 w-full sm:w-auto">
+                <span className="flex items-center gap-1.5 text-gray-600">
                   <Calendar className="w-4 h-4 text-gray-500" />
                   Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
@@ -378,19 +375,19 @@ export default function ProfilePage() {
           </div>
 
           {/* Action Buttons - Mobile stacked, tablet+ row */}
-          <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 sm:gap-3">
+          <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
             {/* Follow Button */}
             <button
               onClick={handleFollowToggle}
               disabled={followLoading}
-              className={`min-h-[44px] px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              title={isFollowing ? 'Following' : 'Follow'}
+              className={`w-11 h-11 rounded-xl font-semibold transition-all flex items-center justify-center ${
                 isFollowing
                   ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-2 border-gray-300'
                   : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white hover:scale-105 shadow-fun'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <Users className="w-4 h-4" />
-              {followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+              {followLoading ? <LoadingSpinner size="sm" /> : <Users className="w-5 h-5" />}
             </button>
 
             {/* Subscribe Button */}
@@ -416,33 +413,25 @@ export default function ProfilePage() {
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
+              title="Message"
+              className="w-11 h-11 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center text-gray-800"
             >
-              <MessageCircle className="w-4 h-4" />
-              Message
+              <MessageCircle className="w-5 h-5" />
             </button>
 
             {/* Video Call Button */}
             {user.role === 'creator' && profile.callSettings && (
-              <div className="sm:col-span-2 lg:col-span-1 lg:flex-1">
-                <RequestCallButton
-                  creatorId={user.id}
-                  creatorName={user.displayName || user.username}
-                  ratePerMinute={profile.callSettings.callRatePerMinute}
-                  minimumDuration={profile.callSettings.minimumCallDuration}
-                  isAvailable={profile.callSettings.isAvailableForCalls}
-                />
-              </div>
+              <RequestCallButton
+                creatorId={user.id}
+                creatorName={user.displayName || user.username}
+                ratePerMinute={profile.callSettings.callRatePerMinute}
+                minimumDuration={profile.callSettings.minimumCallDuration}
+                isAvailable={profile.callSettings.isAvailableForCalls}
+                iconOnly
+              />
             )}
           </div>
         </div>
-
-        {/* Bio Card */}
-        {user.bio && (
-          <GlassCard className="p-4 sm:p-6 mb-6 shadow-fun">
-            <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{user.bio}</p>
-          </GlassCard>
-        )}
 
         {/* Currently Live Banner */}
         {isLive && liveStreamId && (
