@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hard reset top spacing on mobile - kills mystery padding */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 768px) {
+  body, main, #__next, #root, .app-root {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+
 :root {
   --background: #F0F4FF;
   --foreground: #1F2937;

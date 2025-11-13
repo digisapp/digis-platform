@@ -124,16 +124,11 @@ export default function Home() {
 
           {/* Hero */}
           <div className="text-center max-w-5xl mx-auto">
-            <div className="mb-8 inline-block">
-              <span className="px-4 py-2 rounded-full bg-gradient-to-r from-digis-cyan/20 to-digis-pink/20 border-2 border-digis-cyan/30 text-gray-800 font-bold text-sm md:text-base backdrop-blur-sm">
-                ✨ The Future of Creator-Fan Connection
-              </span>
-            </div>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight animate-gradient">
-              Connect With Your Favorite Creators
+              Connect With Creators
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-gray-700 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
-              Experience personalized video calls, live streams, and exclusive content. Support creators directly with Digis Coins.
+              Experience personalized video calls, live streams, and exclusive content.
             </p>
 
             {/* CTA Buttons */}
