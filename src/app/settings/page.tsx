@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
@@ -45,13 +45,29 @@ export default function SettingsPage() {
   // Save states
   const [saving, setSaving] = useState(false);
   const [savingUsername, setSavingUsername] = useState(false);
+  const [savingCallSettings, setSavingCallSettings] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  // Creator call settings
+  const [callSettings, setCallSettings] = useState({
+    callRatePerMinute: 10,
+    minimumCallDuration: 5,
+    isAvailableForCalls: true,
+    autoAcceptCalls: false,
+  });
 
   useEffect(() => {
     fetchCurrentUser();
     fetchUsernameCooldown();
   }, []);
+
+  // Fetch call settings after user is loaded
+  useEffect(() => {
+    if (currentUser?.role === 'creator') {
+      fetchCallSettings();
+    }
+  }, [currentUser]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -96,6 +112,51 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Error fetching username cooldown:', err);
+    }
+  };
+
+  const fetchCallSettings = async () => {
+    try {
+      const response = await fetch('/api/creator/settings');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.settings) {
+          setCallSettings({
+            callRatePerMinute: data.settings.callRatePerMinute || 10,
+            minimumCallDuration: data.settings.minimumCallDuration || 5,
+            isAvailableForCalls: data.settings.isAvailableForCalls ?? true,
+            autoAcceptCalls: data.settings.autoAcceptCalls || false,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching call settings:', error);
+    }
+  };
+
+  const saveCallSettings = async () => {
+    setSavingCallSettings(true);
+    try {
+      const response = await fetch('/api/creator/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(callSettings),
+      });
+
+      if (response.ok) {
+        setMessage('Call settings saved successfully!');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to save call settings');
+        setTimeout(() => setError(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error saving call settings:', error);
+      setError('Failed to save call settings');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setSavingCallSettings(false);
     }
   };
 
@@ -479,41 +540,43 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Creator Card Mini Preview - Clickable */}
-              <div className="px-4 mt-4">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Creator Card (Explore Page)</p>
-                <label className="relative cursor-pointer group block w-24 mx-auto">
-                  {(creatorCardPreview || creatorCardImageUrl) ? (
-                    <>
-                      <img
-                        src={creatorCardPreview || creatorCardImageUrl}
-                        alt="Creator Card"
-                        className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-purple-200 group-hover:border-digis-purple transition-all shadow-md"
-                      />
-                      <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Upload className="w-4 h-4 text-white" />
+              {/* Creator Card Mini Preview - Clickable - Creators Only */}
+              {currentUser?.role === 'creator' && (
+                <div className="px-4 mt-4">
+                  <p className="text-xs font-semibold text-gray-600 mb-2">Creator Card (Explore Page)</p>
+                  <label className="relative cursor-pointer group block w-24 mx-auto">
+                    {(creatorCardPreview || creatorCardImageUrl) ? (
+                      <>
+                        <img
+                          src={creatorCardPreview || creatorCardImageUrl}
+                          alt="Creator Card"
+                          className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-purple-200 group-hover:border-digis-purple transition-all shadow-md"
+                        />
+                        <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Upload className="w-4 h-4 text-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
+                        <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
+                        <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
                       </div>
-                    </>
-                  ) : (
-                    <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
-                      <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
-                      <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
-                    </div>
-                  )}
-                  {uploadingCreatorCard && (
-                    <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
-                      <LoadingSpinner size="sm" />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCreatorCardUpload}
-                    disabled={uploadingCreatorCard}
-                    className="hidden"
-                  />
-                </label>
-              </div>
+                    )}
+                    {uploadingCreatorCard && (
+                      <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
+                        <LoadingSpinner size="sm" />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCreatorCardUpload}
+                      disabled={uploadingCreatorCard}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
             </div>
           </GlassCard>
 
@@ -684,6 +747,161 @@ export default function SettingsPage() {
             </GlassButton>
           </form>
         </GlassCard>
+
+        {/* Call Settings - Creators Only */}
+        {currentUser?.role === 'creator' && (
+          <>
+            {/* Availability Toggle */}
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-500/20 rounded-xl">
+                    <Phone className="w-6 h-6 text-green-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">Available for Calls</h3>
+                    <p className="text-sm text-gray-600">Allow fans to request video calls with you</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCallSettings({ ...callSettings, isAvailableForCalls: !callSettings.isAvailableForCalls })}
+                  className="p-2"
+                >
+                  {callSettings.isAvailableForCalls ? (
+                    <ToggleRight className="w-12 h-12 text-green-500" />
+                  ) : (
+                    <ToggleLeft className="w-12 h-12 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </GlassCard>
+
+            {/* Rate Per Minute */}
+            <GlassCard className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-amber-500/20 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Rate Per Minute</h3>
+                  <p className="text-sm text-gray-600 mb-4">How many coins per minute of call time</p>
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={callSettings.callRatePerMinute}
+                      onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
+                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                    />
+                    <span className="text-gray-600">coins/minute</span>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <strong>Example:</strong> A 10-minute call would cost {callSettings.callRatePerMinute * 10} coins
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Minimum Duration */}
+            <GlassCard className="p-6">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-3 bg-purple-500/20 rounded-xl">
+                  <Clock className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Call Duration</h3>
+                  <p className="text-sm text-gray-600 mb-4">Shortest call length you'll accept</p>
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={callSettings.minimumCallDuration}
+                      onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
+                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                    />
+                    <span className="text-gray-600">minutes</span>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                    <p className="text-sm text-amber-700">
+                      <strong>Minimum charge:</strong> {callSettings.callRatePerMinute * callSettings.minimumCallDuration} coins will be held when a fan requests a call
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Auto Accept */}
+            <GlassCard className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-500/20 rounded-xl">
+                    <Phone className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">Auto-Accept Calls</h3>
+                    <p className="text-sm text-gray-600">Automatically accept all call requests</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCallSettings({ ...callSettings, autoAcceptCalls: !callSettings.autoAcceptCalls })}
+                  className="p-2"
+                >
+                  {callSettings.autoAcceptCalls ? (
+                    <ToggleRight className="w-12 h-12 text-blue-500" />
+                  ) : (
+                    <ToggleLeft className="w-12 h-12 text-gray-400" />
+                  )}
+                </button>
+              </div>
+
+              {callSettings.autoAcceptCalls && (
+                <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-700">
+                    ⚠️ With auto-accept enabled, all call requests will be immediately accepted. Make sure you're ready to take calls!
+                  </p>
+                </div>
+              )}
+            </GlassCard>
+
+            {/* Info Card */}
+            <GlassCard className="p-6 bg-gradient-to-br from-digis-cyan/10 to-purple-500/10 border-digis-cyan/30">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">💡</span>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">How Video Calls Work</h4>
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    <li>• Fans request calls from your profile</li>
+                    <li>• Coins are held when they request (not charged yet)</li>
+                    <li>• You can accept or reject requests</li>
+                    <li>• When the call ends, actual cost is calculated and charged</li>
+                    <li>• You earn 100% of call earnings (no platform fee for calls)</li>
+                  </ul>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Save Call Settings Button */}
+            <GlassCard className="p-6">
+              <GlassButton
+                variant="gradient"
+                onClick={saveCallSettings}
+                disabled={savingCallSettings}
+                shimmer
+                className="w-full"
+              >
+                {savingCallSettings ? <LoadingSpinner size="sm" /> : 'Save Call Settings'}
+              </GlassButton>
+            </GlassCard>
+          </>
+        )}
 
         {/* Become Creator Section - Only for Fans */}
         {currentUser?.role === 'fan' && (

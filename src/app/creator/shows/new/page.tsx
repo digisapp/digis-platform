@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Ticket, Calendar, Clock, Coins, Users, Sparkles, Image } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function CreateShowPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
@@ -29,6 +31,35 @@ export default function CreateShowPage() {
     { value: 'meetgreet', label: 'Meet & Greet', icon: '👋', gradient: 'from-green-500 to-emerald-500' },
     { value: 'performance', label: 'Performance', icon: '🎭', gradient: 'from-amber-500 to-orange-500' },
   ];
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+
+      if (data.user?.role !== 'creator') {
+        router.push('/dashboard');
+        return;
+      }
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      router.push('/');
+    } finally {
+      setPageLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +112,16 @@ export default function CreateShowPage() {
     return now.toISOString().slice(0, 16);
   };
 
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 max-w-7xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}

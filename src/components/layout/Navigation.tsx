@@ -451,15 +451,6 @@ export function Navigation() {
       gradient: 'from-purple-500 to-pink-500',
       iconColor: 'text-purple-500',
     },
-    {
-      id: 'schedule-call',
-      icon: Phone,
-      title: 'Schedule Call',
-      description: 'Offer 1-on-1 sessions',
-      path: '/creator/calls/new',
-      gradient: 'from-green-500 to-emerald-500',
-      iconColor: 'text-green-500',
-    },
   ];
 
   if (!user) return null;

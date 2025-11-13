@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { createClient } from '@/lib/supabase/client';
 import type { Stream } from '@/db/schema';
 
 type LiveStream = Stream & {
@@ -23,8 +24,10 @@ export default function LiveStreamsPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'viewers' | 'coins'>('viewers');
+  const [userRole, setUserRole] = useState<'fan' | 'creator'>('fan');
 
   useEffect(() => {
+    fetchUserRole();
     fetchLiveStreams();
 
     // Refresh every 10 seconds
@@ -63,6 +66,23 @@ export default function LiveStreamsPage() {
 
     setFilteredStreams(filtered);
   }, [streams, searchQuery, sortBy]);
+
+  const fetchUserRole = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const response = await fetch('/api/user/profile');
+        const data = await response.json();
+        if (data.user?.role) {
+          setUserRole(data.user.role);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+    }
+  };
 
   const fetchLiveStreams = async () => {
     try {
@@ -110,28 +130,30 @@ export default function LiveStreamsPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
-        {/* Header */}
+        {/* Header - Only show for creators */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                Live Streams 🎥
-              </h1>
-              <p className="text-gray-700">
-                {filteredStreams.length} of {streams.length} {streams.length === 1 ? 'stream' : 'streams'}
-              </p>
+          {userRole === 'creator' && (
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  Live Streams 🎥
+                </h1>
+                <p className="text-gray-700">
+                  {filteredStreams.length} of {streams.length} {streams.length === 1 ? 'stream' : 'streams'}
+                </p>
+              </div>
+              <GlassButton
+                variant="gradient"
+                size="lg"
+                onClick={() => router.push('/creator/go-live')}
+                shimmer
+                glow
+              >
+                <span className="text-xl mr-2">📹</span>
+                Go Live
+              </GlassButton>
             </div>
-            <GlassButton
-              variant="gradient"
-              size="lg"
-              onClick={() => router.push('/creator/go-live')}
-              shimmer
-              glow
-            >
-              <span className="text-xl mr-2">📹</span>
-              Go Live
-            </GlassButton>
-          </div>
+          )}
 
           {/* Search and Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -158,11 +180,13 @@ export default function LiveStreamsPage() {
             </select>
           </div>
 
-          {/* Live Indicator */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-lg border border-red-500 w-fit">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-red-500 font-bold">LIVE NOW</span>
-          </div>
+          {/* Live Indicator - Only show for creators */}
+          {userRole === 'creator' && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-lg border border-red-500 w-fit">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-red-500 font-bold">LIVE NOW</span>
+            </div>
+          )}
         </div>
 
         {/* Error State */}
@@ -176,21 +200,34 @@ export default function LiveStreamsPage() {
         {filteredStreams.length === 0 && !error && streams.length === 0 && (
           <div className="text-center py-20">
             <div className="text-8xl mb-6">📺</div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              No live streams right now
-            </h2>
-            <p className="text-gray-700 mb-8 max-w-md mx-auto">
-              Be the first to go live! Start streaming and connect with your fans.
-            </p>
-            <GlassButton
-              variant="gradient"
-              size="lg"
-              onClick={() => router.push('/creator/go-live')}
-              shimmer
-              glow
-            >
-              Start Streaming
-            </GlassButton>
+            {userRole === 'creator' ? (
+              <>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  No live streams right now
+                </h2>
+                <p className="text-gray-700 mb-8 max-w-md mx-auto">
+                  Be the first to go live! Start streaming and connect with your fans.
+                </p>
+                <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => router.push('/creator/go-live')}
+                  shimmer
+                  glow
+                >
+                  Start Streaming
+                </GlassButton>
+              </>
+            ) : (
+              <>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  No streams available
+                </h2>
+                <p className="text-gray-700 mb-8 max-w-md mx-auto">
+                  Check back soon for live streams from your favorite creators!
+                </p>
+              </>
+            )}
           </div>
         )}
 

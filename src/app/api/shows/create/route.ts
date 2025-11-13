@@ -11,6 +11,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if user is a creator
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (userData?.role !== 'creator') {
+      return NextResponse.json({ error: 'Only creators can create shows' }, { status: 403 });
+    }
+
     const body = await request.json();
     const {
       title,

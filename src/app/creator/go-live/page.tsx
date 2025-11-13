@@ -108,7 +108,9 @@ export default function GoLivePage() {
         // Fetch recent stream stats
         fetchRecentStats();
       } else {
-        setError('You need to be a creator to start streaming');
+        // Redirect fans to their dashboard
+        router.push('/dashboard');
+        return;
       }
     } catch (err) {
       setError('Failed to verify creator status');
@@ -507,17 +509,6 @@ export default function GoLivePage() {
                     className="hidden"
                   />
                 </div>
-              </div>
-
-              {/* Pre-Stream Tips */}
-              <div className="bg-gradient-to-br from-digis-cyan/10 to-digis-purple/10 border border-digis-cyan/30 rounded-xl p-4">
-                <h3 className="text-sm font-bold text-digis-cyan mb-2">💡 Quick Tips</h3>
-                <ul className="text-sm text-gray-800 space-y-1">
-                  <li>• Check your preview on the right</li>
-                  <li>• Choose a well-lit, quiet location</li>
-                  <li>• Engage with viewers in chat</li>
-                  <li>• Have fun and be yourself!</li>
-                </ul>
               </div>
             </div>
 
