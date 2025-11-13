@@ -20,13 +20,23 @@ export async function GET() {
       );
     }
 
-    // Use Drizzle ORM to query users table with profile
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, authUser.id),
-      with: {
-        profile: true,
-      },
-    });
+    // Use Drizzle ORM to query users table
+    // Try to fetch with profile, but handle gracefully if relation fails
+    let user;
+    try {
+      user = await db.query.users.findFirst({
+        where: eq(users.id, authUser.id),
+        with: {
+          profile: true,
+        },
+      });
+    } catch (relationError) {
+      // If relation fails (migration not run yet), fetch without profile
+      console.warn('[USER_ME] Profile relation failed, fetching without profile:', relationError);
+      user = await db.query.users.findFirst({
+        where: eq(users.id, authUser.id),
+      });
+    }
 
     // If user not found in database, return auth data as fallback
     if (!user) {
