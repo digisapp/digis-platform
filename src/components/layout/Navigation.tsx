@@ -276,7 +276,7 @@ export function Navigation() {
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
-      label: 'Messages',
+      label: 'Chats',
       icon: MessageCircle,
       path: '/messages',
       active: isActive('/messages') || pathname?.startsWith('/messages'),
@@ -618,7 +618,7 @@ export function Navigation() {
         </button>
 
         {/* Navigation Items */}
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-2">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             return (
@@ -638,7 +638,7 @@ export function Navigation() {
                 )}
                 <div className="relative">
                   <IconComponent className="w-6 h-6" />
-                  {item.label === 'Messages' && unreadCount > 0 && (
+                  {item.label === 'Chats' && unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </div>
