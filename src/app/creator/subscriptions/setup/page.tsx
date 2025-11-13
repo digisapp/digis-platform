@@ -288,29 +288,12 @@ export default function SubscriptionSetupPage() {
             </div>
           </GlassCard>
 
-          {/* Info Card */}
-          <GlassCard className="p-6 bg-gradient-to-br from-digis-cyan/10 to-purple-500/10 border-digis-cyan/30">
-            <div className="flex items-start gap-4">
-              <span className="text-3xl">💡</span>
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-2">How Subscriptions Work</h4>
-                <ul className="text-sm text-gray-700 space-y-2">
-                  <li>• Fans pay monthly to access exclusive subscriber-only content</li>
-                  <li>• Subscribers get a special badge on your profile and in streams</li>
-                  <li>• Subscriptions last 30 days and fans manually renew</li>
-                  <li>• You earn 100% of subscription revenue (no platform fee)</li>
-                  <li>• Create exclusive content marked as "subscribers only"</li>
-                </ul>
-              </div>
-            </div>
-          </GlassCard>
-
           {/* Save Buttons */}
           <div className="flex gap-4">
             <GlassButton
               variant="ghost"
               onClick={() => router.back()}
-              className="flex-1"
+              className="flex-1 !text-gray-800 !border-gray-300 hover:!border-gray-400"
             >
               Cancel
             </GlassButton>
@@ -319,7 +302,7 @@ export default function SubscriptionSetupPage() {
               onClick={handleSave}
               disabled={saving || !formData.name.trim()}
               shimmer
-              className="flex-1"
+              className="flex-1 !text-white"
             >
               {saving ? 'Saving...' : 'Save Settings'}
             </GlassButton>
