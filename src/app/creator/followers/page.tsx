@@ -120,29 +120,6 @@ export default function FollowersPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient">
       <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
-              <Users className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800">Your Community</h1>
-              <div className="flex items-center gap-3 text-gray-600 mt-1">
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span className="font-medium">{followers.length.toLocaleString()} {followers.length === 1 ? 'follower' : 'followers'}</span>
-                </div>
-                <span>·</span>
-                <div className="flex items-center gap-1">
-                  <UserPlus className="w-4 h-4" />
-                  <span className="font-medium">{following.length.toLocaleString()} following</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Tabs */}
         <div className="flex gap-3 mb-6">
           <button
