@@ -158,7 +158,7 @@ export default function CreatorAnalyticsPage() {
         {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Followers */}
-          <GlassCard className="p-8 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => router.push('/creator/analytics/followers')}>
+          <GlassCard className="p-8 hover:bg-white/10 transition-all cursor-pointer group" onClick={() => router.push('/creator/followers')}>
             <div className="flex items-start justify-between mb-4">
               <div className="p-3 bg-gradient-to-br from-digis-cyan/20 to-blue-500/20 rounded-xl">
                 <Users className="w-8 h-8 text-digis-cyan" />
@@ -167,16 +167,16 @@ export default function CreatorAnalyticsPage() {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">Followers</h3>
             <p className="text-gray-600 mb-4">
-              View your complete follower list, growth trends, and engagement metrics
+              View and manage your followers and following lists
             </p>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1 text-gray-600">
-                <TrendingUp className="w-4 h-4" />
-                <span>Growth tracking</span>
+                <Users className="w-4 h-4" />
+                <span>Follower list</span>
               </div>
               <div className="flex items-center gap-1 text-gray-600">
                 <Eye className="w-4 h-4" />
-                <span>Engagement stats</span>
+                <span>Following list</span>
               </div>
             </div>
           </GlassCard>
