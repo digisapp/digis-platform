@@ -141,7 +141,7 @@ export default function ExplorePage() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-4 pb-20 md:pb-8">
+        <div className="px-4 pt-0 md:pt-4 pb-20 md:pb-8">
         {/* Search Bar */}
         <div className="mb-8">
           <GlassCard className="p-4">

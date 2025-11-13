@@ -355,7 +355,7 @@ export default function GoLivePage() {
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 
-      <div className="container mx-auto px-4 pt-4 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8">
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex items-center gap-6 text-sm mb-8">

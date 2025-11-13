@@ -109,7 +109,7 @@ export default function LiveStreamsPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-4 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-4 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
