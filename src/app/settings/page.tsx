@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings, Star } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
@@ -53,7 +53,7 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
 
   // Tab state for creator rates
-  const [activeRateTab, setActiveRateTab] = useState<'video' | 'voice' | 'messages'>('video');
+  const [activeRateTab, setActiveRateTab] = useState<'video' | 'voice' | 'messages' | 'subscriptions'>('video');
 
   // Creator call settings
   const [callSettings, setCallSettings] = useState({
@@ -65,6 +65,14 @@ export default function SettingsPage() {
     isAvailableForCalls: true,
     isAvailableForVoiceCalls: true,
   });
+
+  // Subscription settings
+  const [subscriptionSettings, setSubscriptionSettings] = useState({
+    enabled: false,
+    subscriptionName: 'Superfan',
+    monthlyPrice: 50,
+  });
+  const [savingSubscriptionSettings, setSavingSubscriptionSettings] = useState(false);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -804,7 +812,7 @@ export default function SettingsPage() {
           <GlassCard className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <Settings className="w-5 h-5 text-digis-pink" />
-              <h2 className="text-xl font-semibold text-gray-800">Creator Rates & Availability</h2>
+              <h2 className="text-xl font-semibold text-gray-800">Rates & Subscriptions</h2>
             </div>
 
             {/* Tabs */}
@@ -855,6 +863,22 @@ export default function SettingsPage() {
                 </div>
                 {activeRateTab === 'messages' && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveRateTab('subscriptions')}
+                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                  activeRateTab === 'subscriptions'
+                    ? 'text-purple-500'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4" />
+                  Subscriptions
+                </div>
+                {activeRateTab === 'subscriptions' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />
                 )}
               </button>
             </div>
@@ -1021,6 +1045,82 @@ export default function SettingsPage() {
                     💡 When fans send you messages, they'll be automatically charged this amount. Set to 0 to receive free messages.
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Subscriptions Tab Content */}
+            {activeRateTab === 'subscriptions' && (
+              <div className="space-y-6">
+                {/* Enable Subscriptions Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <Star className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Enable Subscriptions</h3>
+                      <p className="text-xs text-gray-600">Allow fans to subscribe to your exclusive content</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSubscriptionSettings({ ...subscriptionSettings, enabled: !subscriptionSettings.enabled })}
+                    className="p-1"
+                  >
+                    {subscriptionSettings.enabled ? (
+                      <ToggleRight className="w-10 h-10 text-purple-500" />
+                    ) : (
+                      <ToggleLeft className="w-10 h-10 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Subscription Details - Only show when enabled */}
+                {subscriptionSettings.enabled && (
+                  <div className="space-y-4 border-t border-purple-200 pt-6">
+                    <h3 className="text-base font-bold text-gray-800 mb-4">Subscription Details</h3>
+
+                    {/* Subscription Name */}
+                    <div className="p-4 bg-white/50 rounded-xl">
+                      <label className="block text-sm font-semibold text-gray-800 mb-1">
+                        Subscription Name <span className="text-red-500">*</span>
+                      </label>
+                      <p className="text-xs text-gray-600 mb-3">What your subscribers will be called</p>
+                      <input
+                        type="text"
+                        value={subscriptionSettings.subscriptionName}
+                        onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, subscriptionName: e.target.value })}
+                        placeholder="Superfan"
+                        maxLength={30}
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold focus:outline-none focus:border-purple-500 transition-colors"
+                      />
+                    </div>
+
+                    {/* Monthly Price */}
+                    <div className="p-4 bg-white/50 rounded-xl">
+                      <label className="block text-sm font-semibold text-gray-800 mb-1">
+                        Monthly Price <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-2 mt-3">
+                        <input
+                          type="number"
+                          min="1"
+                          max="10000"
+                          value={subscriptionSettings.monthlyPrice}
+                          onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(e.target.value) || 1 })}
+                          className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                        <span className="text-sm text-gray-600 whitespace-nowrap">coins/month</span>
+                      </div>
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                      <p className="text-sm text-gray-700">
+                        💜 Subscribers get exclusive access to your subscriber-only content and perks. You'll earn {subscriptionSettings.monthlyPrice} coins monthly from each subscriber.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
