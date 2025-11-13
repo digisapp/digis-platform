@@ -335,21 +335,22 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                <div className="flex items-baseline gap-3 mb-6">
-                  <span className="text-5xl font-bold text-green-600">{earnings.toLocaleString()}</span>
-                  <span className="text-2xl text-gray-600">coins</span>
-                </div>
+                <div className="flex items-center justify-between gap-6">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-5xl font-bold text-green-600">{earnings.toLocaleString()}</span>
+                    <span className="text-2xl text-gray-600">coins</span>
+                  </div>
 
-                <GlassButton
-                  variant="gradient"
-                  size="lg"
-                  onClick={() => setShowBuyCoins(true)}
-                  shimmer
-                  className="whitespace-nowrap"
-                >
-                  <Coins className="w-5 h-5 mr-2" />
-                  Buy Coins
-                </GlassButton>
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    onClick={() => setShowBuyCoins(true)}
+                    shimmer
+                    className="whitespace-nowrap"
+                  >
+                    Buy Coins
+                  </GlassButton>
+                </div>
               </div>
             )}
 
@@ -398,7 +399,6 @@ export default function WalletPage() {
                         shimmer
                         className="whitespace-nowrap"
                       >
-                        <Coins className="w-5 h-5 mr-2" />
                         Buy Coins
                       </GlassButton>
                     </div>
@@ -429,7 +429,6 @@ export default function WalletPage() {
                   <p className="text-gray-700 mb-4 text-lg font-medium">No transactions yet</p>
                   <p className="text-gray-600 mb-6">Start by purchasing your first coins!</p>
                   <GlassButton variant="gradient" size="lg" onClick={() => setShowBuyCoins(true)} shimmer>
-                    <Coins className="w-5 h-5 mr-2" />
                     Buy Your First Coins
                   </GlassButton>
                 </div>
