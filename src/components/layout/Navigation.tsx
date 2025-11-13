@@ -547,9 +547,15 @@ export function Navigation() {
                   <p className="font-bold text-gray-900 text-base md:text-sm truncate">
                     {userProfile?.displayName || userProfile?.username || 'User'}
                   </p>
-                  <p className="text-sm md:text-sm text-gray-600 truncate">
-                    @{userProfile?.username || user?.email}
-                  </p>
+                  <button
+                    onClick={() => {
+                      router.push(`/${userProfile?.username || 'profile'}`);
+                      setShowProfileMenu(false);
+                    }}
+                    className="text-xs text-gray-500 hover:text-digis-cyan transition-colors truncate text-left"
+                  >
+                    digis.cc/{userProfile?.username || 'user'}
+                  </button>
                   <p className="text-xs text-gray-600 capitalize mt-1 md:mt-0.5">
                     {userRole}
                   </p>
