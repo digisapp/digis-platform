@@ -155,60 +155,68 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Filter Pills and Category Pills */}
+        {/* Filter Pills */}
         {!searchTerm && (
-          <>
-            {/* Special Filters */}
-            <div className="mb-3">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1">
-                {specialFilters.map((filter) => {
-                  const isSelected = filter === selectedFilter;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedFilter('');
-                        } else {
-                          setSelectedFilter(filter);
-                        }
-                      }}
-                      className={`
-                        flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
-                        ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'
-                            : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
-                        }
-                      `}
-                    >
-                      {filter}
-                    </button>
-                  );
-                })}
-              </div>
-              <style jsx>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-            </div>
+          <div className="mb-5">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1">
+              {/* All Categories button - show first */}
+              {categories.map((category) => {
+                const isSelected = category === selectedCategory && !selectedFilter;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setSelectedFilter('');
+                    }}
+                    className={`
+                      flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
+                      ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'
+                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                      }
+                    `}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
 
-            {/* Category Pills */}
-            <div className="mb-5">
-              <CategoryPills
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onSelectCategory={(cat) => {
-                  setSelectedCategory(cat);
-                  // Clear filter when changing category
-                  if (cat !== selectedCategory) {
-                    setSelectedFilter('');
-                  }
-                }}
-              />
+              {/* Special Filters */}
+              {specialFilters.map((filter) => {
+                const isSelected = filter === selectedFilter;
+                return (
+                  <button
+                    key={filter}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedFilter('');
+                      } else {
+                        setSelectedFilter(filter);
+                        setSelectedCategory('All');
+                      }
+                    }}
+                    className={`
+                      flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
+                      ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'
+                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                      }
+                    `}
+                  >
+                    {filter}
+                  </button>
+                );
+              })}
             </div>
-          </>
+            <style jsx>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+          </div>
         )}
 
         {/* Featured Carousel */}
