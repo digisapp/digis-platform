@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, Verified } from 'lucide-react';
+import { Search, UserCircle } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -301,25 +301,19 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
             <UserCircle className="w-16 h-16 md:w-20 md:h-20 text-gray-400" />
           </div>
         )}
-
-        {/* Online indicator */}
-        {creator.isOnline && (
-          <div className="absolute top-2.5 right-2.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
-        )}
       </div>
 
-      {/* Creator Name */}
+      {/* Creator Username */}
       <div className="p-3 md:p-3.5">
         <div className="flex items-center justify-center gap-1.5">
+          {/* Status dot - green for online, gray for offline */}
+          {/* TODO: Add isLive field to show red dot when actively streaming */}
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            creator.isOnline ? 'bg-green-500' : 'bg-gray-400'
+          }`} />
           <h3 className="text-sm md:text-base font-bold text-gray-900 truncate text-center">
-            {creator.displayName || creator.username}
+            @{creator.username}
           </h3>
-          {creator.isCreatorVerified && (
-            <Verified
-              className="w-4 h-4 text-digis-cyan fill-digis-cyan flex-shrink-0"
-              aria-label="Verified creator"
-            />
-          )}
         </div>
       </div>
     </div>
