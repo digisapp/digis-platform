@@ -282,7 +282,7 @@ export default function MessagesPage() {
                     className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
                   >
                     <Users className="w-4 h-4" />
-                    <span className="hidden sm:inline">Mass Message</span>
+                    <span className="hidden sm:inline">Mass</span>
                   </button>
                   {pendingRequests > 0 && (
                     <button
