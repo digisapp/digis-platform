@@ -85,8 +85,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         />
       </div>
       <div className="text-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Welcome Back!</h2>
-        <p className="text-gray-600 font-medium">Sign in to continue your journey</p>
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900">Sign In</h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-5" action="javascript:void(0)">
         <GlassInput
