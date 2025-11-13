@@ -275,8 +275,6 @@ function CreatorCardSkeleton() {
 }
 
 function CreatorCard({ creator, onClick }: CreatorCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   // Use creator card image first, fallback to banner, then gradient
   const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
 
@@ -284,8 +282,6 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
     <div
       className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* 4:5 Creator Card Image (Portrait) */}
       <div className="relative w-full" style={{ paddingBottom: '125%' }}>
@@ -309,13 +305,6 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
         {/* Online indicator */}
         {creator.isOnline && (
           <div className="absolute top-2.5 right-2.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
-        )}
-
-        {/* Hover overlay */}
-        {isHovered && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-center justify-center transition-all duration-300">
-            <span className="text-white font-bold text-sm md:text-base px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">View Profile</span>
-          </div>
         )}
       </div>
 
