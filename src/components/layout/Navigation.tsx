@@ -564,20 +564,6 @@ export function Navigation() {
                 <>
                   <button
                     onClick={() => {
-                      router.push('/creator/streams');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-base md:text-sm text-gray-900 font-semibold">Streams</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
                       router.push('/calls/history');
                       setShowProfileMenu(false);
                     }}
