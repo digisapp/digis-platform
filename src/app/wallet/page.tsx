@@ -427,10 +427,7 @@ export default function WalletPage() {
                     <History className="w-16 h-16 text-gray-400" />
                   </div>
                   <p className="text-gray-700 mb-4 text-lg font-medium">No transactions yet</p>
-                  <p className="text-gray-600 mb-6">Start by purchasing your first coins!</p>
-                  <GlassButton variant="gradient" size="lg" onClick={() => setShowBuyCoins(true)} shimmer>
-                    Buy Your First Coins
-                  </GlassButton>
+                  <p className="text-gray-600">Your transactions will appear here</p>
                 </div>
               ) : (
                 <div className="space-y-3">
