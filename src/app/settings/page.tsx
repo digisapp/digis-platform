@@ -54,7 +54,6 @@ export default function SettingsPage() {
     callRatePerMinute: 10,
     minimumCallDuration: 5,
     isAvailableForCalls: true,
-    autoAcceptCalls: false,
   });
 
   useEffect(() => {
@@ -125,7 +124,6 @@ export default function SettingsPage() {
             callRatePerMinute: data.settings.callRatePerMinute || 10,
             minimumCallDuration: data.settings.minimumCallDuration || 5,
             isAvailableForCalls: data.settings.isAvailableForCalls ?? true,
-            autoAcceptCalls: data.settings.autoAcceptCalls || false,
           });
         }
       }
@@ -836,39 +834,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-            </GlassCard>
-
-            {/* Auto Accept */}
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Phone className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Auto-Accept Calls</h3>
-                    <p className="text-sm text-gray-600">Automatically accept all call requests</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCallSettings({ ...callSettings, autoAcceptCalls: !callSettings.autoAcceptCalls })}
-                  className="p-2"
-                >
-                  {callSettings.autoAcceptCalls ? (
-                    <ToggleRight className="w-12 h-12 text-blue-500" />
-                  ) : (
-                    <ToggleLeft className="w-12 h-12 text-gray-400" />
-                  )}
-                </button>
-              </div>
-
-              {callSettings.autoAcceptCalls && (
-                <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <p className="text-sm text-yellow-700">
-                    ⚠️ With auto-accept enabled, all call requests will be immediately accepted. Make sure you're ready to take calls!
-                  </p>
-                </div>
-              )}
             </GlassCard>
 
             {/* Info Card */}

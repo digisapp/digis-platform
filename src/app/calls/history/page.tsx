@@ -130,7 +130,7 @@ export default function CallHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient py-20 px-4">
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-gray-700">Loading call history...</p>
         </div>
@@ -139,7 +139,7 @@ export default function CallHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient py-20 px-4">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20 py-20 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

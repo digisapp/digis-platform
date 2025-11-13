@@ -74,7 +74,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-8">
         <Image
           src="/images/digis-logo-black.png"
           alt="Digis Logo"
@@ -83,9 +83,6 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
           className="h-12 w-auto"
           priority
         />
-      </div>
-      <div className="text-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-black text-gray-900">Sign In</h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-5" action="javascript:void(0)">
         <GlassInput

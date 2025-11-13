@@ -69,12 +69,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           priority
         />
       </div>
-      <div className="text-center mb-6">
-        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">Join Digis</h2>
-        <p className="text-gray-600 font-medium">
-          Create your account to connect with creators and fans
-        </p>
-      </div>
       <form onSubmit={handleSubmit} className="space-y-5">
         <GlassInput
           type="email"

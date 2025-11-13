@@ -21,7 +21,6 @@ export class CallService {
           callRatePerMinute: 10, // Default 10 coins/min
           minimumCallDuration: 5, // Default 5 min minimum
           isAvailableForCalls: true,
-          autoAcceptCalls: false,
         })
         .returning();
 
@@ -108,12 +107,12 @@ export class CallService {
       .values({
         fanId,
         creatorId,
-        status: settings.autoAcceptCalls ? 'accepted' : 'pending',
+        status: 'pending',
         ratePerMinute: settings.callRatePerMinute,
         estimatedCoins,
         roomName,
         holdId: hold.id,
-        acceptedAt: settings.autoAcceptCalls ? new Date() : null,
+        acceptedAt: null,
       })
       .returning();
 
