@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Coins, Video, FileText, ShoppingCart, ChevronDown, Ticket } from 'lucide-react';
+import { Coins, Video, FileText, ChevronDown, Ticket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export function MobileWalletWidget() {
@@ -49,7 +49,7 @@ export function MobileWalletWidget() {
 
   if (loading) {
     return (
-      <div className="md:hidden mb-4 px-4">
+      <div className="md:hidden mt-4 mb-4 px-4">
         <div className="glass rounded-2xl border-2 border-purple-200 p-4 animate-pulse">
           <div className="flex items-center justify-between">
             <div className="h-5 w-24 bg-gray-300 rounded"></div>
@@ -61,7 +61,7 @@ export function MobileWalletWidget() {
   }
 
   return (
-    <div className="md:hidden mb-4 px-4 relative">
+    <div className="md:hidden mt-4 mb-4 px-4 relative">
       {/* Main Widget Button */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
@@ -110,7 +110,7 @@ export function MobileWalletWidget() {
               className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors border-b border-purple-100"
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                <ShoppingCart className="w-5 h-5 text-white" />
+                <Coins className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-left">
                 <div className="font-bold text-gray-900">Buy Coins</div>

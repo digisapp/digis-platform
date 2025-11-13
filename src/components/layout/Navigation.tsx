@@ -839,7 +839,7 @@ export function Navigation() {
             <div className="flex flex-col items-center justify-end flex-1 min-w-[60px] -mb-2">
               <button
                 onClick={() => setShowCreateMenu(true)}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_8px_24px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_8px_24px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group flex items-center justify-center"
                 style={{ minHeight: '64px', minWidth: '64px' }}
               >
                 {/* Animated gradient overlay */}
