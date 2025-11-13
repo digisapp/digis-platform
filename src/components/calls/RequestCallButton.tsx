@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign } from 'lucide-react';
+import { Phone, Clock, DollarSign, Mic } from 'lucide-react';
 
 interface RequestCallButtonProps {
   creatorId: string;
@@ -11,6 +11,7 @@ interface RequestCallButtonProps {
   minimumDuration: number;
   isAvailable: boolean;
   iconOnly?: boolean;
+  callType?: 'video' | 'voice';
 }
 
 export function RequestCallButton({
@@ -20,6 +21,7 @@ export function RequestCallButton({
   minimumDuration,
   isAvailable,
   iconOnly = false,
+  callType = 'video',
 }: RequestCallButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [requesting, setRequesting] = useState(false);
@@ -36,7 +38,7 @@ export function RequestCallButton({
       const response = await fetch('/api/calls/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ creatorId }),
+        body: JSON.stringify({ creatorId, callType }),
       });
 
       const data = await response.json();
@@ -57,17 +59,24 @@ export function RequestCallButton({
     }
   };
 
+  const Icon = callType === 'voice' ? Mic : Phone;
+  const buttonTitle = callType === 'voice' ? 'Request Voice Call' : 'Request Video Call';
+  const buttonText = callType === 'voice' ? 'Request Voice Call' : 'Request Call';
+  const gradientClass = callType === 'voice'
+    ? 'from-blue-500 to-indigo-500'
+    : 'from-green-500 to-emerald-500';
+
   if (!isAvailable) {
     if (iconOnly) {
       return (
-        <button disabled title="Calls Unavailable" className="w-11 h-11 rounded-xl font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
-          <Phone className="w-5 h-5" />
+        <button disabled title={`${callType === 'voice' ? 'Voice' : 'Video'} Calls Unavailable`} className="w-11 h-11 rounded-xl font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
+          <Icon className="w-5 h-5" />
         </button>
       );
     }
     return (
       <GlassButton variant="ghost" disabled className="w-full">
-        <Phone className="w-4 h-4 mr-2" />
+        <Icon className="w-4 h-4 mr-2" />
         Calls Unavailable
       </GlassButton>
     );
@@ -78,10 +87,10 @@ export function RequestCallButton({
       {iconOnly ? (
         <button
           onClick={() => setShowModal(true)}
-          title="Request Call"
-          className="w-11 h-11 rounded-xl font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:scale-105 transition-all flex items-center justify-center shadow-fun"
+          title={buttonTitle}
+          className={`w-11 h-11 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all flex items-center justify-center shadow-fun`}
         >
-          <Phone className="w-5 h-5" />
+          <Icon className="w-5 h-5" />
         </button>
       ) : (
         <GlassButton
@@ -90,100 +99,83 @@ export function RequestCallButton({
           className="w-full"
           shimmer
         >
-          <Phone className="w-4 h-4 mr-2" />
-          Request Call
+          <Icon className="w-4 h-4 mr-2" />
+          {buttonText}
         </GlassButton>
       )}
 
-      {/* Request Modal */}
+      {/* Request Modal - Clean & Simple */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="glass glass-hover rounded-2xl p-6 max-w-md w-full border border-white/20">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="glass rounded-2xl p-8 max-w-sm w-full border border-white/20 shadow-2xl animate-in zoom-in-95 duration-200">
             {success ? (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">✅</div>
-                <h3 className="text-2xl font-bold text-white mb-2">Request Sent!</h3>
-                <p className="text-gray-400">
-                  {creatorName} will be notified of your call request
+              <div className="text-center py-4">
+                <div className="text-5xl mb-3">✓</div>
+                <h3 className="text-xl font-bold text-white mb-2">Request Sent!</h3>
+                <p className="text-gray-300 text-sm">
+                  Waiting for {creatorName} to accept
                 </p>
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white">Request Video Call</h3>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="text-gray-400 hover:text-white text-2xl"
-                  >
-                    ×
-                  </button>
+                {/* Close button */}
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
+                {/* Icon and Title */}
+                <div className="text-center mb-6">
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center`}>
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-1">
+                    {callType === 'voice' ? 'Voice Call' : 'Video Call'}
+                  </h3>
+                  <p className="text-gray-300 text-sm">with {creatorName}</p>
                 </div>
 
-                <div className="mb-6">
-                  <p className="text-gray-300 mb-4">
-                    Request a 1-on-1 video call with <span className="text-digis-cyan font-semibold">{creatorName}</span>
-                  </p>
-
-                  <div className="space-y-3 bg-white/5 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <DollarSign className="w-4 h-4" />
-                        <span className="text-sm">Rate per minute</span>
-                      </div>
-                      <span className="text-white font-semibold">{ratePerMinute} coins</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm">Minimum duration</span>
-                      </div>
-                      <span className="text-white font-semibold">{minimumDuration} min</span>
-                    </div>
-
-                    <div className="pt-3 border-t border-white/10">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Estimated hold</span>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-                          {estimatedCost} coins
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        You&apos;ll be charged based on actual call duration
-                      </p>
-                    </div>
+                {/* Cost Info - Clean & Simple */}
+                <div className="bg-white/5 rounded-xl p-6 mb-6 text-center border border-white/10">
+                  <p className="text-gray-400 text-sm mb-2">Cost per Minute</p>
+                  <div className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+                    {ratePerMinute}
                   </div>
+                  <p className="text-gray-400 text-sm mt-1">coins</p>
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-300 text-sm">
+                  <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
                     {error}
                   </div>
                 )}
 
+                {/* Action Buttons - Clean & Simple */}
                 <div className="flex gap-3">
-                  <GlassButton
-                    variant="ghost"
+                  <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1"
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-all border border-white/20"
                   >
-                    Cancel
-                  </GlassButton>
-                  <GlassButton
-                    variant="gradient"
+                    Decline
+                  </button>
+                  <button
                     onClick={handleRequest}
                     disabled={requesting}
-                    className="flex-1"
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
                   >
                     {requesting ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         <LoadingSpinner size="sm" />
-                        <span>Requesting...</span>
+                        <span>Sending...</span>
                       </div>
                     ) : (
-                      'Confirm Request'
+                      'Accept'
                     )}
-                  </GlassButton>
+                  </button>
                 </div>
               </>
             )}

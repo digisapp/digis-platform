@@ -70,6 +70,9 @@ export async function GET(
           callRatePerMinute: settings.callRatePerMinute,
           minimumCallDuration: settings.minimumCallDuration,
           isAvailableForCalls: settings.isAvailableForCalls,
+          voiceCallRatePerMinute: settings.voiceCallRatePerMinute,
+          minimumVoiceCallDuration: settings.minimumVoiceCallDuration,
+          isAvailableForVoiceCalls: settings.isAvailableForVoiceCalls,
         };
       } catch (error) {
         // If no settings found, don't fail the request

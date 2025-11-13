@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film } from 'lucide-react';
+import { UserCircle, Users, Calendar, BadgeCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 
 interface ProfileData {
@@ -30,6 +30,9 @@ interface ProfileData {
     callRatePerMinute: number;
     minimumCallDuration: number;
     isAvailableForCalls: boolean;
+    voiceCallRatePerMinute: number;
+    minimumVoiceCallDuration: number;
+    isAvailableForVoiceCalls: boolean;
   };
 }
 
@@ -428,6 +431,20 @@ export default function ProfilePage() {
                 minimumDuration={profile.callSettings.minimumCallDuration}
                 isAvailable={profile.callSettings.isAvailableForCalls}
                 iconOnly
+                callType="video"
+              />
+            )}
+
+            {/* Voice Call Button */}
+            {user.role === 'creator' && profile.callSettings && (
+              <RequestCallButton
+                creatorId={user.id}
+                creatorName={user.displayName || user.username}
+                ratePerMinute={profile.callSettings.voiceCallRatePerMinute}
+                minimumDuration={profile.callSettings.minimumVoiceCallDuration}
+                isAvailable={profile.callSettings.isAvailableForVoiceCalls}
+                iconOnly
+                callType="voice"
               />
             )}
           </div>
