@@ -84,7 +84,7 @@ export default function ShowsDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-0 md:pt-6 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Ticketed Shows 🎟️</h1>

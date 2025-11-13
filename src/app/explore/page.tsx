@@ -126,7 +126,7 @@ export default function ExplorePage() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-6 pb-20 md:pb-8">
+        <div className="px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Category Pills */}
         {!searchTerm && (
           <div className="mb-5">
@@ -234,8 +234,8 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* 16:9 Creator Card Image */}
-      <div className="relative w-full" style={{ paddingBottom: '177.78%' }}>
+      {/* 4:5 Creator Card Image (Portrait) */}
+      <div className="relative w-full" style={{ paddingBottom: '125%' }}>
         {cardImageUrl ? (
           <>
             <img

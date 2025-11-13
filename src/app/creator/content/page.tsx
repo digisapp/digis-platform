@@ -96,7 +96,7 @@ export default function CreatorContentStudioPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="container mx-auto px-4 pt-0 md:pt-6 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
