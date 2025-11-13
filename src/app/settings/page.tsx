@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
@@ -51,6 +51,9 @@ export default function SettingsPage() {
   const [savingCallSettings, setSavingCallSettings] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  // Tab state for creator rates
+  const [activeRateTab, setActiveRateTab] = useState<'video' | 'voice' | 'messages'>('video');
 
   // Creator call settings
   const [callSettings, setCallSettings] = useState({
@@ -655,11 +658,14 @@ export default function SettingsPage() {
           </GlassCard>
         </div>
 
+        {/* Section Divider */}
+        <div className="border-t border-purple-200/50 my-8" />
+
         {/* Username Change Section */}
         <GlassCard className="p-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <AtSign className="w-5 h-5 text-digis-cyan" />
+              <AtSign className="w-5 h-5 text-digis-purple" />
               <h2 className="text-xl font-semibold text-gray-800">Change Username</h2>
             </div>
             <p className="text-sm text-gray-600">
@@ -718,6 +724,9 @@ export default function SettingsPage() {
             </GlassButton>
           </form>
         </GlassCard>
+
+        {/* Section Divider */}
+        <div className="border-t border-purple-200/50 my-8" />
 
         {/* Profile Information Section */}
         <GlassCard className="p-6">
@@ -787,202 +796,236 @@ export default function SettingsPage() {
           </form>
         </GlassCard>
 
-        {/* Call Settings - Creators Only */}
+        {/* Section Divider */}
+        <div className="border-t border-purple-200/50 my-8" />
+
+        {/* Creator Rates & Availability - Creators Only */}
         {currentUser?.role === 'creator' && (
-          <>
-            {/* Video Call Availability Toggle */}
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-500/20 rounded-xl">
-                    <Phone className="w-6 h-6 text-green-500" />
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Settings className="w-5 h-5 text-digis-pink" />
+              <h2 className="text-xl font-semibold text-gray-800">Creator Rates & Availability</h2>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6 border-b border-purple-200">
+              <button
+                onClick={() => setActiveRateTab('video')}
+                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                  activeRateTab === 'video'
+                    ? 'text-digis-cyan'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Video className="w-4 h-4" />
+                  Video Calls
+                </div>
+                {activeRateTab === 'video' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-digis-cyan" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveRateTab('voice')}
+                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                  activeRateTab === 'voice'
+                    ? 'text-blue-500'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Mic className="w-4 h-4" />
+                  Voice Calls
+                </div>
+                {activeRateTab === 'voice' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveRateTab('messages')}
+                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                  activeRateTab === 'messages'
+                    ? 'text-pink-500'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Messages
+                </div>
+                {activeRateTab === 'messages' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500" />
+                )}
+              </button>
+            </div>
+
+            {/* Video Calls Tab Content */}
+            {activeRateTab === 'video' && (
+              <div className="space-y-6">
+                {/* Availability Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-500/20 rounded-lg">
+                      <Phone className="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Available for Video Calls</h3>
+                      <p className="text-xs text-gray-600">Allow fans to request video calls</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Available for Video Calls</h3>
-                    <p className="text-sm text-gray-600">Allow fans to request video calls with you</p>
+                  <button
+                    onClick={() => setCallSettings({ ...callSettings, isAvailableForCalls: !callSettings.isAvailableForCalls })}
+                    className="p-1"
+                  >
+                    {callSettings.isAvailableForCalls ? (
+                      <ToggleRight className="w-10 h-10 text-green-500" />
+                    ) : (
+                      <ToggleLeft className="w-10 h-10 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Rate and Duration */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-white/50 rounded-xl">
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                      <DollarSign className="w-4 h-4 inline mr-1" />
+                      Rate Per Minute
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={callSettings.callRatePerMinute}
+                        onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      />
+                      <span className="text-sm text-gray-600 whitespace-nowrap">coins/min</span>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => setCallSettings({ ...callSettings, isAvailableForCalls: !callSettings.isAvailableForCalls })}
-                  className="p-2"
-                >
-                  {callSettings.isAvailableForCalls ? (
-                    <ToggleRight className="w-12 h-12 text-green-500" />
-                  ) : (
-                    <ToggleLeft className="w-12 h-12 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </GlassCard>
 
-            {/* Video Call Rate Per Minute */}
-            <GlassCard className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-amber-500/20 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-amber-500" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Video Call Rate</h3>
-                  <p className="text-sm text-gray-600 mb-4">Coins per minute for video calls</p>
-
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={callSettings.callRatePerMinute}
-                      onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
-                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
-                    />
-                    <span className="text-gray-600">coins/minute</span>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Video Call Minimum Duration */}
-            <GlassCard className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-purple-500/20 rounded-xl">
-                  <Clock className="w-6 h-6 text-purple-500" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Video Call Duration</h3>
-                  <p className="text-sm text-gray-600 mb-4">Shortest video call length you'll accept</p>
-
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="60"
-                      value={callSettings.minimumCallDuration}
-                      onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
-                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
-                    />
-                    <span className="text-gray-600">minutes</span>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Voice Call Availability Toggle */}
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Mic className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Available for Voice Calls</h3>
-                    <p className="text-sm text-gray-600">Allow fans to request voice-only calls with you</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCallSettings({ ...callSettings, isAvailableForVoiceCalls: !callSettings.isAvailableForVoiceCalls })}
-                  className="p-2"
-                >
-                  {callSettings.isAvailableForVoiceCalls ? (
-                    <ToggleRight className="w-12 h-12 text-blue-500" />
-                  ) : (
-                    <ToggleLeft className="w-12 h-12 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </GlassCard>
-
-            {/* Voice Call Rate Per Minute */}
-            <GlassCard className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-indigo-500/20 rounded-xl">
-                  <DollarSign className="w-6 h-6 text-indigo-500" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Voice Call Rate</h3>
-                  <p className="text-sm text-gray-600 mb-4">Coins per minute for voice-only calls</p>
-
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={callSettings.voiceCallRatePerMinute}
-                      onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
-                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
-                    />
-                    <span className="text-gray-600">coins/minute</span>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
-
-            {/* Voice Call Minimum Duration */}
-            <GlassCard className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-violet-500/20 rounded-xl">
-                  <Clock className="w-6 h-6 text-violet-500" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Minimum Voice Call Duration</h3>
-                  <p className="text-sm text-gray-600 mb-4">Shortest voice call length you'll accept</p>
-
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      min="1"
-                      max="60"
-                      value={callSettings.minimumVoiceCallDuration}
-                      onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
-                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
-                    />
-                    <span className="text-gray-600">minutes</span>
+                  <div className="p-4 bg-white/50 rounded-xl">
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                      <Clock className="w-4 h-4 inline mr-1" />
+                      Minimum Duration
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={callSettings.minimumCallDuration}
+                        onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      />
+                      <span className="text-sm text-gray-600 whitespace-nowrap">minutes</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </GlassCard>
+            )}
 
-            {/* Message Rate */}
-            <GlassCard className="p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 bg-pink-500/20 rounded-xl">
-                  <MessageSquare className="w-6 h-6 text-pink-500" />
+            {/* Voice Calls Tab Content */}
+            {activeRateTab === 'voice' && (
+              <div className="space-y-6">
+                {/* Availability Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <Mic className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">Available for Voice Calls</h3>
+                      <p className="text-xs text-gray-600">Allow fans to request voice-only calls</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCallSettings({ ...callSettings, isAvailableForVoiceCalls: !callSettings.isAvailableForVoiceCalls })}
+                    className="p-1"
+                  >
+                    {callSettings.isAvailableForVoiceCalls ? (
+                      <ToggleRight className="w-10 h-10 text-blue-500" />
+                    ) : (
+                      <ToggleLeft className="w-10 h-10 text-gray-400" />
+                    )}
+                  </button>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">Cost Per Message</h3>
-                  <p className="text-sm text-gray-600 mb-4">Default cost for fans to send you a message (0 = free)</p>
 
-                  <div className="flex items-center gap-4">
+                {/* Rate and Duration */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-white/50 rounded-xl">
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                      <DollarSign className="w-4 h-4 inline mr-1" />
+                      Rate Per Minute
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={callSettings.voiceCallRatePerMinute}
+                        onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      />
+                      <span className="text-sm text-gray-600 whitespace-nowrap">coins/min</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-white/50 rounded-xl">
+                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                      <Clock className="w-4 h-4 inline mr-1" />
+                      Minimum Duration
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={callSettings.minimumVoiceCallDuration}
+                        onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      />
+                      <span className="text-sm text-gray-600 whitespace-nowrap">minutes</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Messages Tab Content */}
+            {activeRateTab === 'messages' && (
+              <div className="space-y-6">
+                <div className="p-4 bg-white/50 rounded-xl">
+                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    <MessageSquare className="w-4 h-4 inline mr-1" />
+                    Cost Per Message
+                  </label>
+                  <p className="text-xs text-gray-600 mb-3">Set to 0 for free messages</p>
+                  <div className="flex items-center gap-2">
                     <input
                       type="number"
                       min="0"
                       max="1000"
                       value={callSettings.messageRate}
                       onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
-                      className="w-32 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                     />
-                    <span className="text-gray-600">coins/message</span>
+                    <span className="text-sm text-gray-600 whitespace-nowrap">coins/message</span>
                   </div>
                 </div>
-              </div>
-            </GlassCard>
 
-            {/* Info Card */}
-            <GlassCard className="p-6 bg-gradient-to-br from-digis-cyan/10 to-purple-500/10 border-digis-cyan/30">
-              <div className="flex items-start gap-4">
-                <span className="text-3xl">💡</span>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">How Video Calls Work</h4>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    <li>• Fans request calls from your profile</li>
-                    <li>• Coins are held when they request (not charged yet)</li>
-                    <li>• You can accept or reject requests</li>
-                    <li>• When the call ends, actual cost is calculated and charged</li>
-                  </ul>
+                {/* Info */}
+                <div className="p-4 bg-pink-500/10 border border-pink-500/20 rounded-xl">
+                  <p className="text-sm text-gray-700">
+                    💡 When fans send you messages, they'll be automatically charged this amount. Set to 0 to receive free messages.
+                  </p>
                 </div>
               </div>
-            </GlassCard>
+            )}
 
-            {/* Save Call Settings Button */}
-            <GlassCard className="p-6">
+            {/* Save Button */}
+            <div className="mt-6 pt-6 border-t border-purple-200">
               <GlassButton
                 variant="gradient"
                 onClick={saveCallSettings}
@@ -990,10 +1033,17 @@ export default function SettingsPage() {
                 shimmer
                 className="w-full"
               >
-                {savingCallSettings ? <LoadingSpinner size="sm" /> : 'Save Call Settings'}
+                {savingCallSettings ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  'Save Settings'
+                )}
               </GlassButton>
-            </GlassCard>
-          </>
+            </div>
+          </GlassCard>
         )}
 
         {/* Become Creator Section - Only for Fans */}
