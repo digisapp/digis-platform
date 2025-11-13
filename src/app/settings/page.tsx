@@ -498,7 +498,7 @@ export default function SettingsPage() {
               {/* Avatar & Info */}
               <div className="flex items-start gap-4 -mt-12 relative z-10 px-4">
                 {/* Avatar - Clickable */}
-                <label className="relative cursor-pointer group">
+                <label className="relative cursor-pointer group flex-shrink-0">
                   {(avatarPreview || avatarUrl) ? (
                     <>
                       <img src={avatarPreview || avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
@@ -529,6 +529,8 @@ export default function SettingsPage() {
                     className="hidden"
                   />
                 </label>
+
+                {/* Name & Bio */}
                 <div className="flex-1 mt-6">
                   <h4 className="font-bold text-gray-800 text-lg">{displayName || 'Your Name'}</h4>
                   <p className="text-sm text-gray-600">@{currentUser?.username}</p>
@@ -536,45 +538,45 @@ export default function SettingsPage() {
                     <p className="text-sm text-gray-700 mt-2 line-clamp-2">{bio}</p>
                   )}
                 </div>
-              </div>
 
-              {/* Creator Card Mini Preview - Clickable - Creators Only */}
-              {currentUser?.role === 'creator' && (
-                <div className="px-4 mt-4">
-                  <p className="text-xs font-semibold text-gray-600 mb-2">Creator Card (Explore Page)</p>
-                  <label className="relative cursor-pointer group block w-24 mx-auto">
-                    {(creatorCardPreview || creatorCardImageUrl) ? (
-                      <>
-                        <img
-                          src={creatorCardPreview || creatorCardImageUrl}
-                          alt="Creator Card"
-                          className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-purple-200 group-hover:border-digis-purple transition-all shadow-md"
-                        />
-                        <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Upload className="w-4 h-4 text-white" />
+                {/* Creator Card Mini Preview - Clickable - Creators Only */}
+                {currentUser?.role === 'creator' && (
+                  <div className="flex-shrink-0">
+                    <p className="text-xs font-semibold text-gray-600 mb-2 text-center">Creator Card</p>
+                    <label className="relative cursor-pointer group block w-24">
+                      {(creatorCardPreview || creatorCardImageUrl) ? (
+                        <>
+                          <img
+                            src={creatorCardPreview || creatorCardImageUrl}
+                            alt="Creator Card"
+                            className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-purple-200 group-hover:border-digis-purple transition-all shadow-md"
+                          />
+                          <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Upload className="w-4 h-4 text-white" />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
+                          <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
+                          <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
                         </div>
-                      </>
-                    ) : (
-                      <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
-                        <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
-                        <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
-                      </div>
-                    )}
-                    {uploadingCreatorCard && (
-                      <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
-                        <LoadingSpinner size="sm" />
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCreatorCardUpload}
-                      disabled={uploadingCreatorCard}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              )}
+                      )}
+                      {uploadingCreatorCard && (
+                        <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
+                          <LoadingSpinner size="sm" />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCreatorCardUpload}
+                        disabled={uploadingCreatorCard}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </GlassCard>
 
