@@ -82,10 +82,10 @@ export function CreatorCarousel({
           {creators.map((creator, index) => (
             <div
               key={creator.id}
-              className="relative flex-[0_0_70%] sm:flex-[0_0_45%] md:flex-[0_0_280px] min-w-0"
+              className="relative flex-[0_0_55%] sm:flex-[0_0_35%] md:flex-[0_0_220px] min-w-0"
             >
-              <GlassCard
-                className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-digis-cyan/60 group h-full"
+              <div
+                className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group h-full bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
                 onClick={() => router.push(`/${creator.username}`)}
               >
                 {/* 3:4 Portrait Image */}
@@ -141,13 +141,13 @@ export function CreatorCarousel({
                   </div>
 
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm md:text-base px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <span className="text-white font-bold text-sm md:text-base px-6 py-2.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
                       View Profile
                     </span>
                   </div>
                 </div>
-              </GlassCard>
+              </div>
             </div>
           ))}
         </div>

@@ -126,13 +126,10 @@ export default function ExplorePage() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-4 pb-20 md:pb-8">
+        <div className="px-4 pt-0 md:pt-6 pb-20 md:pb-8">
         {/* Category Pills */}
         {!searchTerm && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800">Featured Creators</h2>
-            </div>
+          <div className="mb-5">
             <CategoryPills
               categories={categories}
               selectedCategory={selectedCategory}
@@ -143,36 +140,34 @@ export default function ExplorePage() {
 
         {/* Featured Carousel */}
         {!searchTerm && featuredCreators.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-6">
             <CreatorCarousel creators={featuredCreators} autoPlay={true} interval={5000} />
           </div>
         )}
 
         {/* Search Bar */}
-        <div className="mb-8">
-          <GlassCard className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search creators by name, username, or bio..."
-                className="w-full pl-12 pr-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors"
-              />
-              {searching && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <LoadingSpinner size="sm" />
-                </div>
-              )}
-            </div>
-          </GlassCard>
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 z-10" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search creators..."
+              className="w-full pl-12 pr-12 py-3.5 bg-white/90 backdrop-blur-sm border-2 border-purple-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:bg-white transition-all shadow-sm"
+            />
+            {searching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <LoadingSpinner size="sm" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Browse All Section Header */}
         {!searchTerm && (
-          <div className="mb-4">
-            <h3 className="text-lg md:text-xl font-bold text-gray-800">
+          <div className="mb-5">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900">
               {selectedCategory === 'All' ? 'All Creators' : `${selectedCategory} Creators`}
             </h3>
           </div>
@@ -180,15 +175,15 @@ export default function ExplorePage() {
 
         {/* Creators Grid */}
         {creators.length === 0 ? (
-          <GlassCard className="p-12 text-center">
-            <Search className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">No creators found</h3>
-            <p className="text-gray-700">
+          <div className="p-16 text-center bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-purple-100">
+            <Search className="w-20 h-20 text-gray-400 mx-auto mb-5" />
+            <h3 className="text-2xl font-bold mb-2 text-gray-900">No creators found</h3>
+            <p className="text-gray-600 text-lg">
               {searchTerm ? 'Try a different search term' : 'Check back soon for new creators!'}
             </p>
-          </GlassCard>
+          </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {creators.map((creator) => (
               <CreatorCard
                 key={creator.id}
@@ -233,8 +228,8 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
   const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
 
   return (
-    <GlassCard
-      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:border-digis-cyan/60 group relative"
+    <div
+      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -246,7 +241,7 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
             <img
               src={cardImageUrl}
               alt={`${creator.displayName || creator.username}`}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
             />
             {/* Gradient overlay for better text contrast */}
@@ -260,21 +255,21 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
 
         {/* Online indicator */}
         {creator.isOnline && (
-          <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-md animate-pulse" />
+          <div className="absolute top-2.5 right-2.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg animate-pulse" />
         )}
 
         {/* Hover overlay */}
         {isHovered && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300">
-            <span className="text-white font-semibold text-sm md:text-base">View Profile</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent flex items-center justify-center transition-all duration-300">
+            <span className="text-white font-bold text-sm md:text-base px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">View Profile</span>
           </div>
         )}
       </div>
 
       {/* Creator Name */}
-      <div className="p-2 md:p-3">
-        <div className="flex items-center justify-center gap-1">
-          <h3 className="text-sm md:text-base font-bold text-gray-800 truncate text-center">
+      <div className="p-3 md:p-3.5">
+        <div className="flex items-center justify-center gap-1.5">
+          <h3 className="text-sm md:text-base font-bold text-gray-900 truncate text-center">
             {creator.displayName || creator.username}
           </h3>
           {creator.isCreatorVerified && (
@@ -285,6 +280,6 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
           )}
         </div>
       </div>
-    </GlassCard>
+    </div>
   );
 }
