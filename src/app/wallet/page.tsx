@@ -313,13 +313,6 @@ export default function WalletPage() {
             {isCreator && (
               <div className="mb-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-2xl border-2 border-green-500 p-8 shadow-fun">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                      <Coins className="w-8 h-8 text-green-600" />
-                      Your Earnings
-                    </h2>
-                    <p className="text-gray-600">Track your income across different time periods</p>
-                  </div>
                   <div className="flex gap-2 bg-white/60 rounded-lg p-1">
                     {[
                       { value: '24h', label: '24 Hours' },
@@ -342,37 +335,21 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                <div className="flex items-baseline gap-3 mb-2">
+                <div className="flex items-baseline gap-3 mb-6">
                   <span className="text-5xl font-bold text-green-600">{earnings.toLocaleString()}</span>
                   <span className="text-2xl text-gray-600">coins</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-6">
-                  {earningsPeriod === '24h' && 'Earned in the last 24 hours'}
-                  {earningsPeriod === '1w' && 'Earned in the last week'}
-                  {earningsPeriod === '1m' && 'Earned in the last month'}
-                  {earningsPeriod === 'total' && 'Total lifetime earnings'}
-                </p>
 
-                <div className="flex gap-3">
-                  <GlassButton
-                    variant="gradient"
-                    size="lg"
-                    onClick={() => setShowBuyCoins(true)}
-                    shimmer
-                    className="whitespace-nowrap"
-                  >
-                    <Coins className="w-5 h-5 mr-2" />
-                    Buy More Coins
-                  </GlassButton>
-                  <button
-                    onClick={() => setActiveTab('payouts')}
-                    disabled={balance < 1000}
-                    className="px-6 py-3 rounded-xl font-semibold text-green-700 bg-green-500/20 hover:bg-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 justify-center"
-                  >
-                    <DollarSign className="w-5 h-5" />
-                    Request Payout
-                  </button>
-                </div>
+                <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => setShowBuyCoins(true)}
+                  shimmer
+                  className="whitespace-nowrap"
+                >
+                  <Coins className="w-5 h-5 mr-2" />
+                  Buy Coins
+                </GlassButton>
               </div>
             )}
 
@@ -422,7 +399,7 @@ export default function WalletPage() {
                         className="whitespace-nowrap"
                       >
                         <Coins className="w-5 h-5 mr-2" />
-                        Buy More Coins
+                        Buy Coins
                       </GlassButton>
                     </div>
                   </div>
