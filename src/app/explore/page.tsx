@@ -48,7 +48,7 @@ export default function ExplorePage() {
   const [searching, setSearching] = useState(false);
 
   // Special filter options
-  const specialFilters = ['Online', 'New', 'Trending', 'Verified', 'Available for Calls', 'Live Now'];
+  const specialFilters = ['Online', 'New', 'Trending', 'Available for Calls', 'Live Now'];
 
   useEffect(() => {
     fetchCreators();
