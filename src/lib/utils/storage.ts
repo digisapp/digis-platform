@@ -4,7 +4,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 
-export type ImageKind = 'avatar' | 'banner';
+export type ImageKind = 'avatar' | 'banner' | 'creator-card';
 
 /**
  * Upload an image to Supabase Storage
@@ -19,7 +19,7 @@ export async function uploadImage(
   userId: string
 ): Promise<string> {
   const supabase = createClient();
-  const bucket = kind === 'avatar' ? 'avatars' : 'banners';
+  const bucket = kind === 'avatar' ? 'avatars' : 'banners'; // creator-card goes to banners bucket
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${userId}/${Date.now()}.${ext}`;
 
@@ -46,7 +46,7 @@ export async function uploadImage(
 /**
  * Validate image file before upload
  * @param file - The file to validate
- * @param kind - Type of image (avatar or banner)
+ * @param kind - Type of image (avatar, banner, or creator-card)
  * @returns Validation result
  */
 export function validateImageFile(
@@ -63,7 +63,7 @@ export function validateImageFile(
   }
 
   // Check file size
-  const maxSize = kind === 'avatar' ? 1 * 1024 * 1024 : 2 * 1024 * 1024; // 1MB for avatar, 2MB for banner
+  const maxSize = kind === 'avatar' ? 1 * 1024 * 1024 : 2 * 1024 * 1024; // 1MB for avatar, 2MB for banner/creator-card
   if (file.size > maxSize) {
     const maxSizeMB = maxSize / (1024 * 1024);
     return {

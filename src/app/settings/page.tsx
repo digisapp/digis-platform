@@ -323,7 +323,7 @@ export default function SettingsPage() {
     if (!file || !currentUser) return;
 
     // Validate file
-    const validation = validateImageFile(file, 'banner');
+    const validation = validateImageFile(file, 'creator-card');
     if (!validation.valid) {
       setError(validation.error || 'Invalid file');
       return;
