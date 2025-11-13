@@ -14,22 +14,9 @@ import {
   Wallet,
   Video,
   Sparkles,
-  Bell,
   Phone,
-  Coins,
-  Settings
+  Coins
 } from 'lucide-react';
-
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  actionUrl: string | null;
-  isRead: boolean;
-  imageUrl: string | null;
-  createdAt: Date;
-}
 
 export function Navigation() {
   const router = useRouter();
@@ -47,11 +34,7 @@ export function Navigation() {
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notificationCategory, setNotificationCategory] = useState<string>('all');
-  const [notificationCount, setNotificationCount] = useState(0);
 
   // Safe role setter - only upgrade, never downgrade (unless forced)
   const setRoleSafely = (nextRole?: string | null, opts: { force?: boolean } = {}) => {
@@ -166,8 +149,6 @@ export function Navigation() {
     // Only fetch balance and unread count if user is authenticated
     fetchBalance();
     fetchUnreadCount();
-    fetchNotifications();
-    fetchNotificationCount();
 
     // Subscribe to real-time updates
     const supabase = createClient();
@@ -186,34 +167,10 @@ export function Navigation() {
       )
       .subscribe();
 
-    const notificationsChannel = supabase
-      .channel('navigation-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-        },
-        () => {
-          fetchNotifications();
-          fetchNotificationCount();
-        }
-      )
-      .subscribe();
-
     return () => {
       supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(notificationsChannel);
     };
   }, [user]);
-
-  // Refetch notifications when category changes
-  useEffect(() => {
-    if (user && showNotifications) {
-      fetchNotifications();
-    }
-  }, [notificationCategory]);
 
   const checkUser = async () => {
     const supabase = createClient();
@@ -293,57 +250,6 @@ export function Navigation() {
     }
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const categoryParam = notificationCategory !== 'all' ? `&category=${notificationCategory}` : '';
-      const response = await fetch(`/api/notifications?limit=20${categoryParam}`);
-      const result = await response.json();
-      if (response.ok && result.data) {
-        setNotifications(result.data.notifications || []);
-      }
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-    }
-  };
-
-  const fetchNotificationCount = async () => {
-    try {
-      const response = await fetch('/api/notifications/unread-count');
-      const data = await response.json();
-      if (response.ok) {
-        setNotificationCount(data.count);
-      }
-    } catch (err) {
-      console.error('Error fetching notification count:', err);
-    }
-  };
-
-  const markNotificationAsRead = async (notificationId: string) => {
-    try {
-      await fetch(`/api/notifications/${notificationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isRead: true }),
-      });
-      fetchNotifications();
-      fetchNotificationCount();
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await fetch('/api/notifications/mark-all-read', {
-        method: 'POST',
-      });
-      fetchNotifications();
-      fetchNotificationCount();
-    } catch (err) {
-      console.error('Error marking all as read:', err);
-    }
-  };
-
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -376,47 +282,6 @@ export function Navigation() {
       active: isActive('/messages') || pathname?.startsWith('/messages'),
     },
   ];
-
-  const handleNotificationClick = async (notification: Notification) => {
-    await markNotificationAsRead(notification.id);
-    if (notification.actionUrl) {
-      router.push(notification.actionUrl);
-    }
-    setShowNotifications(false);
-  };
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'message':
-      case 'messages':
-        return <MessageCircle className="w-5 h-5 text-digis-cyan" />;
-      case 'tip':
-      case 'gift':
-      case 'earnings':
-      case 'stream_tip':
-        return <Coins className="w-5 h-5 text-yellow-500" />;
-      case 'follow':
-      case 'followers':
-        return <Flame className="w-5 h-5 text-red-500" />;
-      case 'system':
-        return <Bell className="w-5 h-5 text-gray-500" />;
-      default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  const formatNotificationTime = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
-  };
 
   if (!user) return null;
 
@@ -531,21 +396,6 @@ export function Navigation() {
 
               <button
                 onClick={() => {
-                  router.push('/settings');
-                  setShowProfileMenu(false);
-                }}
-                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
-                style={{ minHeight: '56px' }}
-              >
-                <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="text-base md:text-sm text-gray-900 font-semibold">Settings</span>
-              </button>
-
-              <button
-                onClick={() => {
                   handleLogout();
                   setShowProfileMenu(false);
                 }}
@@ -557,99 +407,6 @@ export function Navigation() {
                 </svg>
                 <span className="text-base md:text-sm text-red-600 font-bold">Sign Out</span>
               </button>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Notification Dropdown */}
-      {showNotifications && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-            onClick={() => setShowNotifications(false)}
-          />
-          <div className="fixed md:left-24 md:bottom-24 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-24 right-4 left-4 md:left-24 md:right-auto md:w-96 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 max-h-[70vh] md:max-h-[32rem] overflow-hidden shadow-2xl">
-            {/* Header with Categories */}
-            <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
-              <div className="flex items-center justify-between mb-4 md:mb-3">
-                <h3 className="font-bold text-gray-900 text-lg md:text-base">Notifications</h3>
-                <div className="flex items-center gap-3 md:gap-2">
-                  {notificationCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-sm md:text-xs text-digis-cyan hover:text-digis-pink active:text-digis-pink transition-colors font-bold active:scale-95"
-                      style={{ minHeight: '32px', minWidth: '32px' }}
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setShowNotifications(false)}
-                    className="text-gray-600 hover:text-gray-900 active:text-gray-900 transition-colors p-2 hover:bg-white/60 rounded-lg active:scale-95"
-                    style={{ minHeight: '40px', minWidth: '40px' }}
-                  >
-                    <svg className="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Category Tabs */}
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar">
-                {['all', 'earnings', 'followers'].map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setNotificationCategory(category)}
-                    className={`px-4 py-2.5 md:px-3 md:py-1 rounded-full text-sm md:text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
-                      notificationCategory === category
-                        ? 'bg-digis-cyan text-white shadow-lg'
-                        : 'bg-white/70 text-gray-800 hover:bg-white/90 active:bg-white'
-                    }`}
-                    style={{ minHeight: '40px' }}
-                  >
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Notifications List */}
-            <div className="overflow-y-auto max-h-[calc(70vh-180px)] md:max-h-96">
-              {notifications.length === 0 ? (
-                <div className="p-12 md:p-8 text-center text-gray-600">
-                  <Bell className="w-16 h-16 md:w-12 md:h-12 mx-auto mb-4 md:mb-3 text-gray-400" />
-                  <p className="text-base md:text-sm font-medium text-gray-700">No notifications yet</p>
-                </div>
-              ) : (
-                notifications.map((notification) => (
-                  <button
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`w-full p-5 md:p-4 border-b border-purple-100 hover:bg-white/50 active:bg-white/60 transition-all text-left active:scale-[0.99] ${
-                      !notification.isRead ? 'bg-digis-cyan/10' : ''
-                    }`}
-                    style={{ minHeight: '72px' }}
-                  >
-                    <div className="flex items-start gap-4 md:gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-base md:text-sm font-bold text-gray-900 mb-1.5 md:mb-1">{notification.title}</p>
-                        <p className="text-sm md:text-sm text-gray-700 leading-relaxed">{notification.message}</p>
-                        <p className="text-xs text-gray-600 mt-2 md:mt-1 font-medium">
-                          {formatNotificationTime(notification.createdAt)}
-                        </p>
-                      </div>
-                      {!notification.isRead && (
-                        <div className="w-2.5 h-2.5 md:w-2 md:h-2 rounded-full bg-digis-cyan flex-shrink-0 mt-2 shadow-lg" />
-                      )}
-                    </div>
-                  </button>
-                ))
-              )}
             </div>
           </div>
         </>
@@ -892,49 +649,6 @@ export function Navigation() {
             );
           })}
         </div>
-
-        {/* Notifications Button */}
-        <button
-          onClick={() => setShowNotifications(!showNotifications)}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
-            showNotifications
-              ? 'text-digis-cyan scale-105'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-white/20'
-          }`}
-          title="Notifications"
-        >
-          {/* Small active indicator dot */}
-          {showNotifications && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-digis-cyan rounded-r-full" />
-          )}
-          <div className="relative">
-            <Bell className="w-6 h-6" />
-            {notificationCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </div>
-            )}
-          </div>
-          <span className="text-xs font-medium">Alerts</span>
-        </button>
-
-        {/* Settings Button */}
-        <button
-          onClick={() => router.push('/settings')}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
-            isActive('/settings')
-              ? 'text-digis-cyan scale-105'
-              : 'text-gray-600 hover:text-gray-800 hover:bg-white/20'
-          }`}
-          title="Settings"
-        >
-          {/* Small active indicator dot */}
-          {isActive('/settings') && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-digis-cyan rounded-r-full" />
-          )}
-          <Settings className="w-6 h-6" />
-          <span className="text-xs font-medium">Settings</span>
-        </button>
       </nav>
 
       {/* Spacer for desktop side nav */}

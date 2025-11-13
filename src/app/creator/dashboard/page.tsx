@@ -49,11 +49,11 @@ interface Analytics {
 
 interface Activity {
   id: string;
-  type: 'gift' | 'follow' | 'call' | 'stream';
+  type: 'gift' | 'follow' | 'call' | 'stream' | 'tip' | 'notification';
   title: string;
   description: string;
   timestamp: string;
-  icon: 'gift' | 'userplus' | 'phone' | 'video';
+  icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins';
   color: string;
 }
 
@@ -158,9 +158,10 @@ export default function CreatorDashboard() {
   const fetchRecentActivities = async () => {
     try {
       // Fetch recent activities from multiple sources in parallel
-      const [callsRes, streamsRes] = await Promise.all([
+      const [callsRes, streamsRes, notificationsRes] = await Promise.all([
         fetch('/api/calls/history?limit=5&status=completed').catch(() => null),
-        fetch('/api/streams/my-streams?limit=5').catch(() => null)
+        fetch('/api/streams/my-streams?limit=5').catch(() => null),
+        fetch('/api/notifications?limit=20').catch(() => null)
       ]);
 
       const activities: Activity[] = [];
@@ -209,9 +210,41 @@ export default function CreatorDashboard() {
         }
       }
 
-      // Sort by timestamp and take top 10
+      // Process notifications
+      if (notificationsRes?.ok) {
+        try {
+          const notificationsData = await notificationsRes.json();
+          const notificationsArray = notificationsData.data?.notifications || [];
+          notificationsArray.forEach((notif: any) => {
+            let icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins' = 'coins';
+            let color = 'text-gray-400';
+
+            if (notif.type === 'follow' || notif.type === 'followers') {
+              icon = 'userplus';
+              color = 'text-pink-400';
+            } else if (notif.type === 'gift' || notif.type === 'tip' || notif.type === 'stream_tip' || notif.type === 'earnings') {
+              icon = 'gift';
+              color = 'text-yellow-400';
+            }
+
+            activities.push({
+              id: `notif-${notif.id}`,
+              type: 'notification',
+              title: notif.title || 'Notification',
+              description: notif.message || '',
+              timestamp: notif.createdAt,
+              icon,
+              color
+            });
+          });
+        } catch (e) {
+          console.error('Error parsing notifications data:', e);
+        }
+      }
+
+      // Sort by timestamp and take top 15
       activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities(activities.slice(0, 10));
+      setRecentActivities(activities.slice(0, 15));
     } catch (err) {
       console.error('Error fetching recent activities:', err);
       setRecentActivities([]);
@@ -308,6 +341,8 @@ export default function CreatorDashboard() {
         return <PhoneCall className="w-5 h-5" />;
       case 'video':
         return <Video className="w-5 h-5" />;
+      case 'coins':
+        return <Coins className="w-5 h-5" />;
       default:
         return <Clock className="w-5 h-5" />;
     }
