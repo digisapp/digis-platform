@@ -2,25 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Video, Eye, Clock, Coins, Calendar, TrendingUp } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
-type Stream = {
+interface Stream {
   id: string;
   title: string;
-  status: 'live' | 'ended' | 'scheduled';
-  createdAt: Date;
-  startedAt?: Date;
-  endedAt?: Date;
-  currentViewers: number;
+  startedAt: string;
+  endedAt: string | null;
+  status: string;
   peakViewers: number;
-  durationSeconds?: number;
-};
+  totalViews: number;
+  totalGifts: number;
+  duration: number | null;
+}
 
-export default function MyStreamsPage() {
+export default function StreamHistoryPage() {
   const router = useRouter();
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'live' | 'ended'>('all');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'live'>('all');
 
   useEffect(() => {
     fetchStreams();
@@ -29,13 +32,9 @@ export default function MyStreamsPage() {
   const fetchStreams = async () => {
     try {
       const response = await fetch('/api/streams/my-streams');
-      const result = await response.json();
-
-      if (response.ok && result.data) {
-        setStreams(result.data.streams || []);
-        if (result.degraded) {
-          console.warn('Streams data degraded:', result.error);
-        }
+      if (response.ok) {
+        const data = await response.json();
+        setStreams(data.streams || []);
       }
     } catch (error) {
       console.error('Error fetching streams:', error);
@@ -44,145 +43,192 @@ export default function MyStreamsPage() {
     }
   };
 
-  const filteredStreams = streams.filter((stream) => {
+  const filteredStreams = streams.filter(stream => {
+    if (filter === 'all') return true;
     if (filter === 'live') return stream.status === 'live';
-    if (filter === 'ended') return stream.status === 'ended';
+    if (filter === 'completed') return stream.status === 'ended';
     return true;
   });
 
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return '0m';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
+  const totalViews = streams.reduce((sum, s) => sum + (s.totalViews || 0), 0);
+  const totalGifts = streams.reduce((sum, s) => sum + (s.totalGifts || 0), 0);
+  const avgViewers = streams.length > 0
+    ? Math.round(streams.reduce((sum, s) => sum + (s.peakViewers || 0), 0) / streams.length)
+    : 0;
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return 'N/A';
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-pastel-gradient">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">My Streams 🎥</h1>
-          <p className="text-gray-400">View and manage your streaming history</p>
+          <button
+            onClick={() => router.back()}
+            className="text-gray-600 hover:text-gray-800 mb-4 flex items-center gap-2"
+          >
+            ← Back to Analytics
+          </button>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Stream History 🎥</h1>
+          <p className="text-gray-600">Review your streaming performance and analytics</p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Video className="w-5 h-5 text-purple-500" />
+              <span className="text-gray-600 text-sm">Total Streams</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-800">{streams.length}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-5 h-5 text-digis-cyan" />
+              <span className="text-gray-600 text-sm">Total Views</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-800">{totalViews}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              <span className="text-gray-600 text-sm">Avg Peak Viewers</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-800">{avgViewers}</p>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Coins className="w-5 h-5 text-amber-500" />
+              <span className="text-gray-600 text-sm">Total Gifts</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-800">{totalGifts}</p>
+          </GlassCard>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-4 mb-6">
+        <div className="mb-6 flex gap-3">
           <button
             onClick={() => setFilter('all')}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
               filter === 'all'
-                ? 'bg-digis-cyan text-black'
-                : 'bg-white/10 text-white hover:bg-white/20'
+                ? 'bg-gradient-to-r from-digis-cyan to-purple-500 text-white'
+                : 'bg-white/50 text-gray-700 hover:bg-white/70'
             }`}
           >
-            All ({streams.length})
+            All Streams
           </button>
           <button
             onClick={() => setFilter('live')}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
               filter === 'live'
-                ? 'bg-red-500 text-white'
-                : 'bg-white/10 text-white hover:bg-white/20'
+                ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                : 'bg-white/50 text-gray-700 hover:bg-white/70'
             }`}
           >
-            Live ({streams.filter((s) => s.status === 'live').length})
+            Live Now
           </button>
           <button
-            onClick={() => setFilter('ended')}
-            className={`px-6 py-2 rounded-full font-medium transition-all ${
-              filter === 'ended'
-                ? 'bg-gray-600 text-white'
-                : 'bg-white/10 text-white hover:bg-white/20'
+            onClick={() => setFilter('completed')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filter === 'completed'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                : 'bg-white/50 text-gray-700 hover:bg-white/70'
             }`}
           >
-            Ended ({streams.filter((s) => s.status === 'ended').length})
+            Completed
           </button>
         </div>
 
-        {/* Streams Grid */}
+        {/* Streams List */}
         {filteredStreams.length === 0 ? (
-          <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center">
-            <div className="text-6xl mb-4">📹</div>
-            <h3 className="text-xl font-bold text-white mb-2">No streams yet</h3>
-            <p className="text-gray-400 mb-6">
+          <GlassCard className="p-12 text-center">
+            <Video className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              {filter === 'all' ? 'No streams yet' : `No ${filter} streams`}
+            </h3>
+            <p className="text-gray-600">
               {filter === 'all'
                 ? 'Start your first stream to see it here!'
-                : `No ${filter} streams found`}
+                : 'Try changing the filter to see other streams'}
             </p>
-            <button
-              onClick={() => router.push('/creator/go-live')}
-              className="bg-gradient-to-r from-digis-cyan to-blue-500 text-black px-8 py-3 rounded-full font-bold hover:scale-105 transition-transform"
-            >
-              Go Live Now
-            </button>
-          </div>
+          </GlassCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {filteredStreams.map((stream) => (
-              <div
-                key={stream.id}
-                className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6 hover:border-digis-cyan transition-all cursor-pointer"
-                onClick={() =>
-                  stream.status === 'live'
-                    ? router.push(`/stream/broadcast/${stream.id}`)
-                    : null
-                }
-              >
-                {/* Status Badge */}
-                {stream.status === 'live' && (
-                  <div className="inline-flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold mb-4">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    LIVE
+              <GlassCard key={stream.id} className="p-6 hover:bg-white/10 transition-all">
+                <div className="flex items-start justify-between gap-4">
+                  {/* Stream Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-gray-800">{stream.title || 'Untitled Stream'}</h3>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        stream.status === 'live'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : stream.status === 'ended'
+                          ? 'bg-green-500/20 text-green-700'
+                          : 'bg-gray-500/20 text-gray-700'
+                      }`}>
+                        {stream.status === 'live' ? '🔴 LIVE' : stream.status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(stream.startedAt).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {stream.duration ? formatDuration(stream.duration) : 'In progress'}
+                      </span>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-digis-cyan" />
+                        <span className="text-sm text-gray-700">
+                          <span className="font-semibold">{stream.totalViews}</span> views
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-purple-500" />
+                        <span className="text-sm text-gray-700">
+                          <span className="font-semibold">{stream.peakViewers}</span> peak
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-4 h-4 text-amber-500" />
+                        <span className="text-sm text-gray-700">
+                          <span className="font-semibold">{stream.totalGifts}</span> gifts
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                {/* Title */}
-                <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">
-                  {stream.title}
-                </h3>
-
-                {/* Stats */}
-                <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
-                  <span className="flex items-center gap-1">
-                    👁️ {stream.currentViewers || 0} viewers
-                  </span>
-                  <span className="flex items-center gap-1">
-                    📊 {stream.peakViewers || 0} peak
-                  </span>
-                </div>
-
-                {/* Duration */}
-                {stream.durationSeconds && (
-                  <div className="text-sm text-gray-400 mb-2">
-                    ⏱️ {formatDuration(stream.durationSeconds)}
+                  {/* Started Time */}
+                  <div className="text-right text-sm text-gray-600">
+                    {formatDistanceToNow(new Date(stream.startedAt), { addSuffix: true })}
                   </div>
-                )}
-
-                {/* Date */}
-                <div className="text-xs text-gray-500">
-                  {formatDate(stream.createdAt)}
                 </div>
-              </div>
+              </GlassCard>
             ))}
           </div>
         )}
