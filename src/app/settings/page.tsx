@@ -113,6 +113,7 @@ export default function SettingsPage() {
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
       setCreatorCardImageUrl(data.creatorCardImageUrl || '');
+      setNewUsername(data.username || '');
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -669,41 +670,44 @@ export default function SettingsPage() {
         {/* Section Divider */}
         <div className="border-t border-purple-200/50 my-8" />
 
-        {/* Username Change Section */}
+        {/* Username Section */}
         <GlassCard className="p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <AtSign className="w-5 h-5 text-digis-purple" />
-              <h2 className="text-xl font-semibold text-gray-800">Change Username</h2>
-            </div>
-            <p className="text-sm text-gray-600">
-              Current: <span className="text-gray-900 font-semibold">@{currentUser?.username}</span>
-            </p>
+          <div className="flex items-center gap-2 mb-4">
+            <AtSign className="w-5 h-5 text-digis-purple" />
+            <h2 className="text-xl font-semibold text-gray-800">Username</h2>
           </div>
 
           {usernameCooldown && !usernameCooldown.canChange && (
             <p className="text-xs text-yellow-700 mb-3 flex items-center gap-2">
               <AlertCircle className="w-3 h-3" />
-              Available in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
+              You can change your username again in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
             </p>
           )}
 
           <form onSubmit={handleChangeUsername} className="space-y-3">
             <div className="relative">
-              <GlassInput
+              <input
                 type="text"
-                label="New Username"
-                placeholder="yournewhandle"
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                 disabled={!usernameCooldown?.canChange}
+                placeholder={currentUser?.username}
+                className={`w-full px-4 py-3 bg-white/50 border-2 rounded-lg text-gray-900 font-medium placeholder-gray-500 focus:outline-none transition-all ${
+                  !newUsername || newUsername === currentUser?.username
+                    ? 'border-purple-200 focus:border-digis-cyan'
+                    : usernameStatus === 'checking'
+                    ? 'border-yellow-400'
+                    : usernameStatus === 'available'
+                    ? 'border-green-500 focus:border-green-500'
+                    : 'border-red-500 focus:border-red-500'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               />
 
               {/* Status Indicator */}
-              {newUsername && (
-                <div className="absolute right-3 top-9">
+              {newUsername && newUsername !== currentUser?.username && (
+                <div className="absolute right-3 top-3.5">
                   {usernameStatus === 'checking' && (
-                    <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                    <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
                   )}
                   {usernameStatus === 'available' && (
                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -715,21 +719,16 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {/* Username Error or Success */}
-            {usernameError && (
-              <p className="text-sm text-red-600">{usernameError}</p>
+            {/* Only show button when username is different and available */}
+            {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
+              <GlassButton
+                type="submit"
+                variant="gradient"
+                disabled={savingUsername}
+              >
+                {savingUsername ? <LoadingSpinner size="sm" /> : 'Update'}
+              </GlassButton>
             )}
-            {usernameStatus === 'available' && (
-              <p className="text-sm text-green-600">@{newUsername} is available!</p>
-            )}
-
-            <GlassButton
-              type="submit"
-              variant="gradient"
-              disabled={!usernameCooldown?.canChange || usernameStatus !== 'available' || savingUsername}
-            >
-              {savingUsername ? <LoadingSpinner size="sm" /> : 'Update Username'}
-            </GlassButton>
           </form>
         </GlassCard>
 
