@@ -75,8 +75,8 @@ export async function GET(request: NextRequest) {
               .from(users)
               .$dynamic();
 
-            // Build base conditions for featured
-            const featuredConditions = [eq(users.role, 'creator')];
+            // Build base conditions for featured - only show online creators
+            const featuredConditions = [eq(users.role, 'creator'), eq(users.isOnline, true)];
 
             // Apply special filters to featured as well
             if (filter) {
