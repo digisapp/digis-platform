@@ -85,9 +85,9 @@ export async function GET(request: NextRequest) {
                   featuredConditions.push(eq(users.isOnline, true));
                   break;
                 case 'new':
-                  const thirtyDaysAgo = new Date();
-                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                  featuredConditions.push(gt(users.createdAt, thirtyDaysAgo.toISOString()));
+                  const thirtyDaysAgoFeatured = new Date();
+                  thirtyDaysAgoFeatured.setDate(thirtyDaysAgoFeatured.getDate() - 30);
+                  featuredConditions.push(gt(users.createdAt, thirtyDaysAgoFeatured));
                   break;
                 case 'trending':
                   featuredConditions.push(eq(users.isTrending, true));
@@ -162,9 +162,9 @@ export async function GET(request: NextRequest) {
                   break;
                 case 'new':
                   // Creators created in the last 30 days
-                  const thirtyDaysAgo = new Date();
-                  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                  baseConditions.push(gt(users.createdAt, thirtyDaysAgo.toISOString()));
+                  const thirtyDaysAgoMain = new Date();
+                  thirtyDaysAgoMain.setDate(thirtyDaysAgoMain.getDate() - 30);
+                  baseConditions.push(gt(users.createdAt, thirtyDaysAgoMain));
                   break;
                 case 'trending':
                   baseConditions.push(eq(users.isTrending, true));
