@@ -15,9 +15,6 @@ import {
   Video,
   Sparkles,
   Bell,
-  Plus,
-  Upload,
-  Ticket,
   Phone,
   Coins,
   Settings
@@ -51,7 +48,6 @@ export function Navigation() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationCategory, setNotificationCategory] = useState<string>('all');
@@ -422,97 +418,10 @@ export function Navigation() {
     return `${diffDays}d ago`;
   };
 
-  // Creator action options
-  const creatorActions = [
-    {
-      id: 'go-live',
-      icon: Video,
-      title: 'Go Live',
-      description: 'Start streaming now',
-      path: '/creator/go-live',
-      gradient: 'from-red-500 to-pink-500',
-      iconColor: 'text-red-500',
-    },
-    {
-      id: 'create-post',
-      icon: Upload,
-      title: 'Create Post',
-      description: 'Upload new content',
-      path: '/creator/content/new',
-      gradient: 'from-blue-500 to-cyan-500',
-      iconColor: 'text-blue-500',
-    },
-    {
-      id: 'new-show',
-      icon: Ticket,
-      title: 'New Show',
-      description: 'Create ticketed event',
-      path: '/creator/shows/new',
-      gradient: 'from-purple-500 to-pink-500',
-      iconColor: 'text-purple-500',
-    },
-  ];
-
   if (!user) return null;
 
   return (
     <>
-      {/* Creator Create Menu */}
-      {showCreateMenu && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-            onClick={() => setShowCreateMenu(false)}
-          />
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[90%] max-w-3xl">
-            {/* Close button */}
-            <button
-              onClick={() => setShowCreateMenu(false)}
-              className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-all"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Action Grid */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 p-3 md:p-4">
-              {creatorActions.map((action) => {
-                const IconComponent = action.icon;
-                return (
-                  <button
-                    key={action.id}
-                    onClick={() => {
-                      router.push(action.path);
-                      setShowCreateMenu(false);
-                    }}
-                    className="group relative p-4 md:p-8 bg-white/95 backdrop-blur-xl hover:bg-white border-2 border-transparent hover:border-white rounded-2xl transition-all hover:scale-105 shadow-2xl overflow-hidden"
-                  >
-                    {/* Animated gradient background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
-
-                    {/* Glow effect */}
-                    <div className={`absolute -inset-1 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300`} />
-
-                    {/* Content */}
-                    <div className="relative">
-                      {/* Icon */}
-                      <div className={`inline-flex p-3 md:p-4 rounded-2xl bg-gradient-to-br ${action.gradient} shadow-lg mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                      </div>
-
-                      {/* Text */}
-                      <h3 className="font-bold text-gray-800 text-base md:text-xl mb-1 md:mb-2">{action.title}</h3>
-                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed">{action.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Profile Dropdown Menu */}
       {showProfileMenu && (
         <>
@@ -564,10 +473,52 @@ export function Navigation() {
                 <>
                   <button
                     onClick={() => {
-                      router.push('/calls/history');
+                      router.push('/creator/go-live');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-base md:text-sm text-red-500 font-bold">Go Live</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/content/new');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Create Post</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/shows/new');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">New Show</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/calls/history');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98 border-t border-purple-100"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -763,25 +714,6 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Center Action Button - Creators Only */}
-          {userRole === 'creator' && (
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-5">
-              <button
-                onClick={() => setShowCreateMenu(true)}
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan via-digis-purple to-digis-pink shadow-[0_6px_20px_rgba(0,217,255,0.4)] border-[3px] border-white transition-all active:scale-90 active:shadow-[0_4px_12px_rgba(0,217,255,0.3)] relative overflow-hidden group flex items-center justify-center"
-                style={{ minHeight: '56px', minWidth: '56px' }}
-              >
-                {/* Animated gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-active:opacity-100 transition-opacity" />
-
-                <Plus className="w-7 h-7 text-white relative z-10 transition-transform group-active:rotate-90" strokeWidth={3} />
-
-                {/* Pulse effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink opacity-75 animate-ping" style={{ animationDuration: '2s' }} />
-              </button>
-            </div>
-          )}
-
           {/* Messages */}
           <button
             onClick={() => router.push(navItems[2].path)}
@@ -929,17 +861,6 @@ export function Navigation() {
           </div>
         </button>
 
-        {/* Creator Create Button - Canva Style */}
-        {userRole === 'creator' && (
-          <button
-            onClick={() => setShowCreateMenu(true)}
-            className="mb-8 w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink hover:scale-105 transition-all shadow-lg shadow-digis-cyan/50 flex items-center justify-center group"
-            title="Create"
-          >
-            <Plus className="w-7 h-7 text-white group-hover:rotate-90 transition-transform" />
-          </button>
-        )}
-
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-4">
           {navItems.map((item) => {
@@ -971,21 +892,6 @@ export function Navigation() {
               </button>
             );
           })}
-
-          {/* Go Live - Creators Only */}
-          {userRole === 'creator' && (
-            <button
-              onClick={() => router.push('/creator/go-live')}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/40 hover:scale-105 transition-all"
-              title="Go Live"
-            >
-              <div className="relative">
-                <Video className="w-6 h-6 text-red-500" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              </div>
-              <span className="text-xs font-bold text-red-500">LIVE</span>
-            </button>
-          )}
         </div>
 
         {/* Notifications Button */}
