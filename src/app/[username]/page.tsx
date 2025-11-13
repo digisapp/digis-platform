@@ -294,7 +294,7 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className="min-h-screen bg-pastel-gradient pb-8 md:pl-20">
+    <div className="min-h-screen bg-pastel-gradient pb-8 md:pl-20 -mt-4 md:mt-0 pt-4 md:pt-0">
       {/* Banner - Responsive height */}
       <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-digis-cyan/30 to-digis-pink/30">
         {user.bannerUrl ? (
