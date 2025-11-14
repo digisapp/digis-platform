@@ -137,17 +137,6 @@ export default function EventsPage() {
               <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
               Workshops
             </button>
-            <button
-              onClick={() => setTypeFilter('performance')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                typeFilter === 'performance'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Theater className="w-4 h-4" strokeWidth={2.5} />
-              Performances
-            </button>
           </div>
         </div>
 
