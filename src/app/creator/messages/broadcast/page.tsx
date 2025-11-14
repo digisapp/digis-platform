@@ -27,7 +27,7 @@ export default function BroadcastMessagePage() {
     caption: '',
     isLocked: false,
     unlockPrice: 20,
-    targetAudience: 'subscribers' as 'subscribers' | 'followers' | 'all',
+    targetAudience: 'all' as 'subscribers' | 'followers' | 'all',
   });
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -171,99 +171,9 @@ export default function BroadcastMessagePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 max-w-4xl">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back
-          </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Mass Message 📢</h1>
-          <p className="text-gray-600">Send PPV content to all your subscribers at once</p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="glass rounded-xl p-6 border-2 border-purple-200">
-            <div className="flex items-center gap-3 mb-2">
-              <Users className="w-6 h-6 text-purple-500" />
-              <span className="text-gray-600 text-sm font-medium">Active Subscribers</span>
-            </div>
-            <div className="text-3xl font-bold text-gray-800">{stats.activeSubscribers.toLocaleString()}</div>
-          </div>
-
-          <div className="glass rounded-xl p-6 border-2 border-purple-200">
-            <div className="flex items-center gap-3 mb-2">
-              <Users className="w-6 h-6 text-blue-500" />
-              <span className="text-gray-600 text-sm font-medium">Total Followers</span>
-            </div>
-            <div className="text-3xl font-bold text-gray-800">{stats.totalFollowers.toLocaleString()}</div>
-          </div>
-
-          <div className="glass rounded-xl p-6 border-2 border-purple-200">
-            <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-6 h-6 text-green-500" />
-              <span className="text-gray-600 text-sm font-medium">Total Audience</span>
-            </div>
-            <div className="text-3xl font-bold text-gray-800">
-              {(stats.activeSubscribers + stats.totalFollowers).toLocaleString()}
-            </div>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Target Audience */}
-          <div className="glass rounded-xl p-6 border-2 border-purple-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Target Audience</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, targetAudience: 'subscribers' })}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  formData.targetAudience === 'subscribers'
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
-                }`}
-              >
-                <Users className={`w-6 h-6 mx-auto mb-2 ${formData.targetAudience === 'subscribers' ? 'text-purple-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Subscribers</div>
-                <div className="text-xs text-gray-600">{stats.activeSubscribers} people</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, targetAudience: 'followers' })}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  formData.targetAudience === 'followers'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
-                }`}
-              >
-                <Users className={`w-6 h-6 mx-auto mb-2 ${formData.targetAudience === 'followers' ? 'text-blue-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Followers</div>
-                <div className="text-xs text-gray-600">{stats.totalFollowers} people</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, targetAudience: 'all' })}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  formData.targetAudience === 'all'
-                    ? 'border-green-500 bg-green-500/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
-                }`}
-              >
-                <Users className={`w-6 h-6 mx-auto mb-2 ${formData.targetAudience === 'all' ? 'text-green-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Everyone</div>
-                <div className="text-xs text-gray-600">{(stats.activeSubscribers + stats.totalFollowers)} people</div>
-              </button>
-            </div>
-          </div>
-
           {/* Message Type */}
           <div className="glass rounded-xl p-6 border-2 border-purple-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Message Type</h3>

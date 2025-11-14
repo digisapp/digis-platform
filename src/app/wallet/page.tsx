@@ -677,7 +677,7 @@ export default function WalletPage() {
                     shimmer
                   >
                     <Building2 className="w-5 h-5 mr-2" />
-                    Add Banking Information
+                    Add Banking
                   </GlassButton>
                 </div>
               )}
