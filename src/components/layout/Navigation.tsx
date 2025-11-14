@@ -16,7 +16,8 @@ import {
   Sparkles,
   Phone,
   Coins,
-  Settings
+  Settings,
+  Ticket
 } from 'lucide-react';
 
 export function Navigation() {
@@ -277,6 +278,12 @@ export function Navigation() {
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
+      label: 'Events',
+      icon: Ticket,
+      path: '/events',
+      active: isActive('/events'),
+    },
+    {
       label: 'Chats',
       icon: MessageCircle,
       path: '/messages',
@@ -504,7 +511,7 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Messages */}
+          {/* Events */}
           <button
             onClick={() => router.push(navItems[2].path)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
@@ -514,26 +521,17 @@ export function Navigation() {
             }`}
             style={{ minHeight: '48px' }}
           >
-            <div className="relative">
-              {(() => {
-                const Icon = navItems[2].icon;
-                return (
-                  <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                    <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
-                    {navItems[2].active && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
-                    )}
-                  </div>
-                );
-              })()}
-              {unreadCount > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                  <span className="text-[10px] font-bold text-white leading-none">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+            {(() => {
+              const Icon = navItems[2].icon;
+              return (
+                <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                  <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                  {navItems[2].active && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
             <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
               {navItems[2].label}
             </span>
@@ -571,6 +569,41 @@ export function Navigation() {
               </div>
             </button>
           </div>
+
+          {/* Messages/Chats */}
+          <button
+            onClick={() => router.push(navItems[3].path)}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+              navItems[3].active
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
+            }`}
+            style={{ minHeight: '48px' }}
+          >
+            <div className="relative">
+              {(() => {
+                const Icon = navItems[3].icon;
+                return (
+                  <div className={`relative transition-transform ${navItems[3].active ? 'scale-110' : ''}`}>
+                    <Icon className="w-6 h-6" strokeWidth={navItems[3].active ? 2.5 : 2} />
+                    {navItems[3].active && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                    )}
+                  </div>
+                );
+              })()}
+              {unreadCount > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                  <span className="text-[10px] font-bold text-white leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                </div>
+              )}
+            </div>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[3].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
+              {navItems[3].label}
+            </span>
+          </button>
 
           {/* Wallet */}
           <button
