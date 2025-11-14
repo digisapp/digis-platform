@@ -250,20 +250,20 @@ export default function MessagesPage() {
             <div className="flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                   filter === 'all'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('unread')}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
                   filter === 'unread'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 Unread
@@ -279,7 +279,7 @@ export default function MessagesPage() {
                 <>
                   <button
                     onClick={() => router.push('/creator/chats/broadcast')}
-                    className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
+                    className="px-3 py-1.5 bg-digis-cyan text-white shadow-lg border border-digis-cyan rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
                   >
                     <Users className="w-3.5 h-3.5" strokeWidth={2} />
                     <span className="hidden sm:inline">Mass</span>
@@ -287,7 +287,7 @@ export default function MessagesPage() {
                   {pendingRequests > 0 && (
                     <button
                       onClick={() => router.push('/chats/requests')}
-                      className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
+                      className="px-3 py-1.5 bg-digis-cyan text-white shadow-lg border border-digis-cyan rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
                     >
                       <span className="hidden sm:inline">Requests</span>
                       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">

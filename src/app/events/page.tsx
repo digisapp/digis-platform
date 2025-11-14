@@ -122,10 +122,10 @@ export default function EventsPage() {
           {/* Status Filter Pills */}
           <button
             onClick={() => setFilter('upcoming')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               filter === 'upcoming'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
@@ -133,26 +133,23 @@ export default function EventsPage() {
           </button>
           <button
             onClick={() => setFilter('live')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               filter === 'live'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? '' : 'text-red-500'}`} strokeWidth={2} />
             Live Now
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-gray-300 self-center mx-1" />
-
           {/* Event Type Filter Pills */}
           <button
             onClick={() => setTypeFilter('all')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               typeFilter === 'all'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Ticket className="w-3.5 h-3.5" strokeWidth={2} />
@@ -160,10 +157,10 @@ export default function EventsPage() {
           </button>
           <button
             onClick={() => setTypeFilter('workshop')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               typeFilter === 'workshop'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Dumbbell className="w-3.5 h-3.5" strokeWidth={2} />
