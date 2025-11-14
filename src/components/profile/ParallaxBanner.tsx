@@ -1,0 +1,51 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+interface ParallaxBannerProps {
+  imageUrl: string | null;
+  height?: string;
+}
+
+export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-64' }: ParallaxBannerProps) {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReducedMotion) {
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  return (
+    <div className={`relative ${height} overflow-hidden bg-gradient-to-br from-digis-cyan/30 to-digis-pink/30`}>
+      {imageUrl ? (
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            transform: `translateY(${scrollY * 0.5}px)`,
+            transition: 'transform 0.1s ease-out',
+          }}
+        >
+          <img
+            src={imageUrl}
+            alt="Profile banner"
+            className="w-full h-full object-cover scale-110"
+          />
+        </div>
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 via-digis-purple/20 to-digis-pink/20" />
+      )}
+
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+    </div>
+  );
+}
