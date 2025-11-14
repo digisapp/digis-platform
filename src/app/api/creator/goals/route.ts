@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { creatorGoals, users } from '@/db/schema';
+import { creatorGoals, users, subscriptions, wallets } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -85,16 +85,14 @@ export async function POST(request: NextRequest) {
       currentAmount = dbUser.followerCount || 0;
     } else if (goalType === 'subscribers') {
       // Count active subscriptions
-      const subscriptions = await db.query.subscriptions.findMany({
-        where: and(
-          eq(creatorGoals.creatorId, user.id),
-        ),
+      const userSubscriptions = await db.query.subscriptions.findMany({
+        where: eq(subscriptions.creatorId, user.id),
       });
-      currentAmount = subscriptions.length;
+      currentAmount = userSubscriptions.length;
     } else if (goalType === 'coins') {
       // Get wallet balance
       const wallet = await db.query.wallets.findFirst({
-        where: eq(users.id, user.id),
+        where: eq(wallets.userId, user.id),
       });
       currentAmount = wallet?.balance || 0;
     }
