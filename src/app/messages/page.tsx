@@ -250,25 +250,25 @@ export default function MessagesPage() {
             <div className="flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all min-h-[44px] ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                   filter === 'all'
-                    ? 'bg-digis-cyan text-gray-900'
-                    : 'bg-white/50 text-gray-700 hover:bg-white/70'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('unread')}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all min-h-[44px] ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   filter === 'unread'
-                    ? 'bg-digis-cyan text-gray-900'
-                    : 'bg-white/50 text-gray-700 hover:bg-white/70'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 Unread
                 {conversations.filter((c) => c.unreadCount > 0).length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                     {conversations.filter((c) => c.unreadCount > 0).length}
                   </span>
                 )}
@@ -279,18 +279,17 @@ export default function MessagesPage() {
                 <>
                   <button
                     onClick={() => router.push('/creator/messages/broadcast')}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
+                    className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
                   >
-                    <Users className="w-4 h-4" />
+                    <Users className="w-3.5 h-3.5" strokeWidth={2} />
                     <span className="hidden sm:inline">Mass</span>
                   </button>
                   {pendingRequests > 0 && (
                     <button
                       onClick={() => router.push('/messages/requests')}
-                      className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 min-h-[44px]"
+                      className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
                     >
                       <span className="hidden sm:inline">Requests</span>
-                      <span className="sm:hidden">📬</span>
                       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingRequests}
                       </span>
