@@ -123,12 +123,6 @@ export default function CreatorGoalsPage() {
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20 pb-20 md:pb-8">
       <div className="container mx-auto px-4 pt-6 md:pt-10 max-w-5xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Profile Goals</h1>
-          <p className="text-gray-600">Set goals for your profile that your followers can help you achieve</p>
-        </div>
-
         {/* Create Goal Button */}
         <button
           onClick={() => setShowCreateModal(true)}
