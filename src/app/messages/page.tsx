@@ -304,22 +304,9 @@ export default function MessagesPage() {
               {filteredConversations.length === 0 ? (
                 <div className="glass rounded-xl border-2 border-purple-200 p-8 text-center">
                   <div className="text-5xl mb-3">📭</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {filter === 'unread'
-                      ? 'All caught up!'
-                      : 'Start a conversation with a creator'}
-                  </p>
-                  {filter === 'all' && (
-                    <button
-                      onClick={() => router.push('/explore')}
-                      className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform min-h-[44px]"
-                    >
-                      Explore Creators
-                    </button>
-                  )}
                 </div>
               ) : (
                 filteredConversations.map((conversation) => (
