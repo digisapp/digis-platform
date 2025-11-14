@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle } from 'lucide-react';
+import { Search, UserCircle, Heart } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -34,6 +34,7 @@ interface Creator {
   followerCount: number;
   isOnline: boolean;
   isFollowing: boolean;
+  primaryCategory?: string | null;
 }
 
 export default function ExplorePage() {
@@ -115,6 +116,29 @@ export default function ExplorePage() {
       console.error('Error searching creators:', error);
     } finally {
       setSearching(false);
+    }
+  };
+
+  const handleFollow = async (creatorId: string, currentlyFollowing: boolean) => {
+    try {
+      const response = await fetch('/api/follows', {
+        method: currentlyFollowing ? 'DELETE' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ followingId: creatorId }),
+      });
+
+      if (response.ok) {
+        // Update the local state
+        setCreators(prevCreators =>
+          prevCreators.map(creator =>
+            creator.id === creatorId
+              ? { ...creator, isFollowing: !currentlyFollowing }
+              : creator
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error following/unfollowing creator:', error);
     }
   };
 
@@ -242,6 +266,7 @@ export default function ExplorePage() {
                 key={creator.id}
                 creator={creator}
                 onClick={() => router.push(`/${creator.username}`)}
+                onFollow={handleFollow}
               />
             ))}
           </div>
@@ -255,6 +280,7 @@ export default function ExplorePage() {
 interface CreatorCardProps {
   creator: Creator;
   onClick: () => void;
+  onFollow: (creatorId: string, currentlyFollowing: boolean) => void;
 }
 
 // Loading skeleton component
@@ -274,7 +300,7 @@ function CreatorCardSkeleton() {
   );
 }
 
-function CreatorCard({ creator, onClick }: CreatorCardProps) {
+function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
   // Use creator card image first, fallback to banner, then gradient
   const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
 
@@ -301,18 +327,36 @@ function CreatorCard({ creator, onClick }: CreatorCardProps) {
             <UserCircle className="w-16 h-16 md:w-20 md:h-20 text-gray-400" />
           </div>
         )}
+
+        {/* Follow button - top left */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onFollow(creator.id, creator.isFollowing);
+          }}
+          className="absolute top-2 left-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all z-10 hover:scale-110 active:scale-95"
+        >
+          <Heart className={`w-4 h-4 ${creator.isFollowing ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} />
+        </button>
+
+        {/* Category pill - top right */}
+        {creator.primaryCategory && (
+          <div className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm text-xs font-semibold text-gray-700 border border-purple-200">
+            {creator.primaryCategory}
+          </div>
+        )}
       </div>
 
       {/* Creator Username */}
       <div className="p-3 md:p-3.5">
         <div className="flex items-center justify-center gap-1.5">
-          {/* Status dot - green for online, gray for offline */}
+          {/* Status dot - green for online */}
           {/* TODO: Add isLive field to show red dot when actively streaming */}
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            creator.isOnline ? 'bg-green-500' : 'bg-gray-400'
-          }`} />
+          {creator.isOnline && (
+            <div className="w-2 h-2 rounded-full flex-shrink-0 bg-green-500" />
+          )}
           <h3 className="text-sm md:text-base font-bold text-gray-900 truncate text-center">
-            @{creator.username}
+            {creator.username}
           </h3>
         </div>
       </div>

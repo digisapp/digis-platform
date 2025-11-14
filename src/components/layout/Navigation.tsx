@@ -15,7 +15,8 @@ import {
   Video,
   Sparkles,
   Phone,
-  Coins
+  Coins,
+  Settings
 } from 'lucide-react';
 
 export function Navigation() {
@@ -296,24 +297,44 @@ export function Navigation() {
           />
           <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
-            <div className="p-5 md:p-4 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
-              <div className="mb-4 md:mb-3">
-                <p className="font-bold text-gray-900 text-lg md:text-base mb-1">
-                  {userProfile?.displayName || userProfile?.username || 'User'}
-                </p>
-                <button
-                  onClick={() => {
-                    router.push(`/${userProfile?.username || 'profile'}`);
-                    setShowProfileMenu(false);
-                  }}
-                  className="text-sm text-gray-500 hover:text-digis-cyan transition-colors text-left"
-                >
-                  digis.cc/{userProfile?.username || 'user'}
-                </button>
-                <p className="text-sm text-gray-600 capitalize mt-1">
-                  {userRole}
-                </p>
+            <div className="p-6 md:p-5 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
+              {/* Avatar */}
+              <div className="flex items-start gap-4 mb-5 md:mb-4">
+                <div className="relative flex-shrink-0">
+                  <div className="w-16 h-16 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
+                    <div className="w-full h-full rounded-full bg-white p-[2px]">
+                      {userProfile?.avatarUrl ? (
+                        <img
+                          src={userProfile.avatarUrl}
+                          alt="Your avatar"
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xl md:text-lg">
+                          {user?.email?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Name and Username */}
+                <div className="flex-1 min-w-0 pt-1">
+                  <h3 className="font-black text-gray-900 text-2xl md:text-xl mb-2 truncate">
+                    {userProfile?.displayName || userProfile?.username || 'User'}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      router.push(`/${userProfile?.username || 'profile'}`);
+                      setShowProfileMenu(false);
+                    }}
+                    className="text-sm md:text-xs text-gray-500 hover:text-digis-cyan transition-colors text-left"
+                  >
+                    @{userProfile?.username || 'user'}
+                  </button>
+                </div>
               </div>
+
               {/* Follower Count - Clickable */}
               <button
                 onClick={() => {
@@ -393,6 +414,18 @@ export function Navigation() {
                   </button>
                 </>
               )}
+
+              <button
+                onClick={() => {
+                  router.push('/settings');
+                  setShowProfileMenu(false);
+                }}
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left border-t border-purple-100 active:scale-98"
+                style={{ minHeight: '56px' }}
+              >
+                <Settings className="w-6 h-6 md:w-5 md:h-5 text-gray-700" />
+                <span className="text-base md:text-sm text-gray-900 font-semibold">Settings</span>
+              </button>
 
               <button
                 onClick={() => {
