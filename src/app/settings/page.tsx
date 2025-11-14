@@ -31,6 +31,12 @@ export default function SettingsPage() {
   const [bannerUrl, setBannerUrl] = useState('');
   const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
 
+  // Email change
+  const [newEmail, setNewEmail] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
+  const [emailError, setEmailError] = useState('');
+
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [bannerPreview, setBannerPreview] = useState<string | undefined>();
@@ -309,6 +315,53 @@ export default function SettingsPage() {
       setError(err.message);
     } finally {
       setSavingUsername(false);
+    }
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailMessage('');
+    setEmailError('');
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    // Check if it's the same as current email
+    if (newEmail.toLowerCase() === currentUser?.email?.toLowerCase()) {
+      setEmailError('This is already your current email');
+      return;
+    }
+
+    setSavingEmail(true);
+
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      // Update email via Supabase Auth
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setEmailMessage('Verification email sent! Please check your inbox and confirm your new email address.');
+      setNewEmail('');
+
+      setTimeout(() => {
+        setEmailMessage('');
+      }, 5000);
+    } catch (err: any) {
+      setEmailError(err.message || 'Failed to update email');
+      setTimeout(() => setEmailError(''), 5000);
+    } finally {
+      setSavingEmail(false);
     }
   };
 
@@ -616,15 +669,46 @@ export default function SettingsPage() {
               Account Information
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
-                  <Mail className="w-4 h-4 text-white" />
+              {/* Email Update Form */}
+              <form onSubmit={handleUpdateEmail} className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+                    <Mail className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-600 mb-1">Current Email Address</p>
+                    <p className="text-sm font-medium text-gray-800 mb-2">{currentUser?.email}</p>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter new email address"
+                      className="w-full px-3 py-2 bg-white/80 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
+                    />
+                  </div>
+                  <GlassButton
+                    type="submit"
+                    variant="cyan"
+                    size="sm"
+                    disabled={savingEmail || !newEmail}
+                    className="flex-shrink-0"
+                  >
+                    {savingEmail ? <LoadingSpinner size="sm" /> : 'Update'}
+                  </GlassButton>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-600">Email Address</p>
-                  <p className="text-sm font-medium text-gray-800">{currentUser?.email}</p>
-                </div>
-              </div>
+
+                {/* Success/Error Messages */}
+                {emailMessage && (
+                  <div className="p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-700 text-sm">
+                    {emailMessage}
+                  </div>
+                )}
+                {emailError && (
+                  <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
+                    {emailError}
+                  </div>
+                )}
+              </form>
 
               <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
                 <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
