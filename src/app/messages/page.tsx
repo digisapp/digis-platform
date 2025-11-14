@@ -306,7 +306,7 @@ export default function MessagesPage() {
                 <div className="glass rounded-xl border-2 border-purple-200 p-8 text-center">
                   <div className="text-5xl mb-3">📭</div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {filter === 'unread' ? 'No unread messages' : 'No messages yet'}
+                    {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
                   <p className="text-sm text-gray-700 mb-4">
                     {filter === 'unread'
@@ -435,7 +435,7 @@ export default function MessagesPage() {
             <div className="text-center max-w-md">
               <div className="text-7xl mb-6">💬</div>
               <h2 className="text-3xl font-bold text-gray-900">
-                Select a Conversation
+                Select a Chat
               </h2>
             </div>
           </div>
