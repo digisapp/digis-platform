@@ -382,12 +382,12 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <span className="text-base md:text-sm text-gray-900 font-semibold">Create Post</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Create</span>
                   </button>
 
                   <button
                     onClick={() => {
-                      router.push('/creator/shows/new');
+                      router.push('/creator/shows');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
@@ -396,7 +396,7 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
-                    <span className="text-base md:text-sm text-gray-900 font-semibold">New Show</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Shows</span>
                   </button>
 
                   <button
