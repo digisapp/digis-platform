@@ -15,7 +15,19 @@ export async function GET() {
     const testValue = { message: 'Hello from Upstash!', timestamp: new Date().toISOString() };
 
     await redis.set(testKey, JSON.stringify(testValue), { ex: 10 });
-    const retrieved = await redis.get(testKey);
+    const retrieved = await redis.get<string>(testKey);
+
+    // Parse retrieved value
+    let parsedRetrieved = null;
+    let match = false;
+    if (retrieved) {
+      try {
+        parsedRetrieved = typeof retrieved === 'string' ? JSON.parse(retrieved) : retrieved;
+        match = JSON.stringify(testValue) === JSON.stringify(parsedRetrieved);
+      } catch (e) {
+        parsedRetrieved = retrieved;
+      }
+    }
 
     // Test key deletion
     await redis.del(testKey);
@@ -29,8 +41,8 @@ export async function GET() {
       test: {
         key: testKey,
         written: testValue,
-        retrieved: retrieved ? JSON.parse(retrieved as string) : null,
-        match: JSON.stringify(testValue) === retrieved,
+        retrieved: parsedRetrieved,
+        match,
       },
       stats: {
         dbSize,
