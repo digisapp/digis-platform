@@ -279,7 +279,7 @@ export default function MessagesPage() {
                 <>
                   <button
                     onClick={() => router.push('/creator/messages/broadcast')}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 shadow-lg min-h-[44px]"
                   >
                     <Users className="w-4 h-4" />
                     <span className="hidden sm:inline">Mass</span>
@@ -287,7 +287,7 @@ export default function MessagesPage() {
                   {pendingRequests > 0 && (
                     <button
                       onClick={() => router.push('/messages/requests')}
-                      className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 min-h-[44px]"
+                      className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2 min-h-[44px]"
                     >
                       <span className="hidden sm:inline">Requests</span>
                       <span className="sm:hidden">📬</span>
@@ -316,7 +316,7 @@ export default function MessagesPage() {
                   {filter === 'all' && (
                     <button
                       onClick={() => router.push('/explore')}
-                      className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform min-h-[44px]"
+                      className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform min-h-[44px]"
                     >
                       Explore Creators
                     </button>

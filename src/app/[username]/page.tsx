@@ -286,7 +286,7 @@ export default function ProfilePage() {
           <p className="text-gray-600 mb-4">{error || 'User does not exist'}</p>
           <button
             onClick={() => router.push('/explore')}
-            className="px-6 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform"
+            className="px-6 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
           >
             Browse Creators
           </button>
@@ -391,7 +391,7 @@ export default function ProfilePage() {
               className={`w-11 h-11 rounded-xl font-semibold transition-all flex items-center justify-center ${
                 isFollowing
                   ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-2 border-gray-300'
-                  : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white hover:scale-105 shadow-fun'
+                  : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 hover:scale-105 shadow-fun'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {followLoading ? <LoadingSpinner size="sm" /> : <Users className="w-5 h-5" />}
@@ -402,7 +402,7 @@ export default function ProfilePage() {
               <button
                 onClick={handleSubscribe}
                 disabled={subscribeLoading}
-                className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fun"
+                className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fun"
               >
                 <Star className="w-4 h-4" />
                 {subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth.toLocaleString()} coins/mo`}
@@ -411,8 +411,8 @@ export default function ProfilePage() {
 
             {/* Subscribed Badge */}
             {user.role === 'creator' && isSubscribed && (
-              <div className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center gap-2">
-                <Star className="w-4 h-4 fill-white" />
+              <div className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 flex items-center justify-center gap-2">
+                <Star className="w-4 h-4 fill-gray-900" />
                 Subscribed
               </div>
             )}
@@ -605,7 +605,7 @@ export default function ProfilePage() {
                           {!isFollowing && (
                             <button
                               onClick={handleFollowToggle}
-                              className="px-6 py-2.5 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-fun"
+                              className="px-6 py-2.5 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-transform shadow-fun"
                             >
                               Follow {user.displayName || user.username}
                             </button>

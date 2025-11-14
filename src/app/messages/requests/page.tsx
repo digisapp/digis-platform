@@ -223,7 +223,7 @@ export default function MessageRequestsPage() {
                       <button
                         onClick={() => handleAccept(request.id)}
                         disabled={processing === request.id}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
                         {processing === request.id ? 'Accepting...' : 'Accept & Reply'}
                       </button>

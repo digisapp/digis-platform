@@ -101,14 +101,14 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
           <div className="w-20 h-20 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-5xl mx-auto mb-4 shimmer">
             🪙
           </div>
-          <p className="text-gray-300">
+          <p className="text-gray-700">
             Purchase Digis Coins to unlock video calls, live streams, and exclusive content
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+          <div className="p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -137,14 +137,14 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
               {/* Package Details */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-white">{pkg.name}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">{pkg.name}</h3>
                   {pkg.savings && (
                     <p className="text-sm text-digis-cyan font-medium">{pkg.savings}</p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-white">{pkg.price}</p>
-                  <p className="text-sm text-gray-400">${(pkg.priceValue / pkg.coins / 100).toFixed(2)} per coin</p>
+                  <p className="text-3xl font-bold text-gray-900">{pkg.price}</p>
+                  <p className="text-sm text-gray-600">${(pkg.priceValue / pkg.coins / 100).toFixed(2)} per coin</p>
                 </div>
               </div>
 
@@ -153,8 +153,8 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-xl">
                   🪙
                 </div>
-                <span className="text-2xl font-bold text-white">{pkg.coins.toLocaleString()}</span>
-                <span className="text-gray-400">Coins</span>
+                <span className="text-2xl font-bold text-gray-900">{pkg.coins.toLocaleString()}</span>
+                <span className="text-gray-600">Coins</span>
               </div>
 
               {/* Buy Button */}
@@ -179,7 +179,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
         </div>
 
         {/* Security Info */}
-        <div className="text-center text-sm text-gray-400 space-y-2">
+        <div className="text-center text-sm text-gray-600 space-y-2">
           <p>🔒 Secure payment processing by Stripe</p>
           <p>✨ Coins are added instantly after purchase</p>
           <p>💸 No recurring charges • Pay once, use anywhere</p>

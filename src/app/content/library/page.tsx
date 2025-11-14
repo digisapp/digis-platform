@@ -113,7 +113,7 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -123,7 +123,7 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('photo')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -134,7 +134,7 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('video')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >

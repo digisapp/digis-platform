@@ -138,7 +138,7 @@ export default function StreamHistoryPage() {
             onClick={() => setFilter('live')}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
               filter === 'live'
-                ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                ? 'bg-gradient-to-r from-red-500 to-pink-500 text-gray-900'
                 : 'bg-white/50 text-gray-700 hover:bg-white/70'
             }`}
           >
@@ -148,7 +148,7 @@ export default function StreamHistoryPage() {
             onClick={() => setFilter('completed')}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
               filter === 'completed'
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900'
                 : 'bg-white/50 text-gray-700 hover:bg-white/70'
             }`}
           >

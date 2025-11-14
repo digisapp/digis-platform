@@ -28,11 +28,11 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
     };
 
     const variantClasses = {
-      cyan: 'border-2 border-digis-cyan text-white hover:glow-cyan',
-      pink: 'border-2 border-digis-pink text-white hover:glow-pink',
-      purple: 'border-2 border-digis-purple text-white',
+      cyan: 'border-2 border-digis-cyan text-gray-900 hover:glow-cyan',
+      pink: 'border-2 border-digis-pink text-gray-900 hover:glow-pink',
+      purple: 'border-2 border-digis-purple text-gray-900',
       gradient: 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 font-semibold border-none',
-      ghost: 'border border-white/20 text-white hover:border-white/40',
+      ghost: 'border border-gray-300 text-gray-900 hover:border-gray-400',
     };
 
     const shimmerClass = shimmer ? 'shimmer' : '';

@@ -325,7 +325,7 @@ export default function TheaterModePage() {
           </h1>
           <button
             onClick={() => router.push('/live')}
-            className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
           >
             Browse Live Streams
           </button>

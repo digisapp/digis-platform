@@ -433,7 +433,7 @@ export default function StreamViewerPage() {
                   className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                     isFollowing
                       ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                      : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white hover:scale-105'
+                      : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 hover:scale-105'
                   } disabled:opacity-50`}
                 >
                   {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
