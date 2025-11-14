@@ -474,8 +474,8 @@ export default function CreatorDashboard() {
           {/* Left Column: Pending Calls */}
           <PendingCalls />
 
-          {/* Right Column: Create Goal Form + Recent Activity */}
-          <div className="space-y-6">
+          {/* Right Column: Activity + Create Goal Form */}
+          <div className="flex flex-col-reverse lg:flex-col gap-6">
             {/* Create Goal Form */}
             <div className="glass rounded-2xl border border-amber-200 p-4 shadow-fun">
               <h3 className="text-base font-bold text-gray-800 mb-3">Create Goal</h3>
@@ -544,11 +544,11 @@ export default function CreatorDashboard() {
               </form>
             </div>
 
-            {/* Recent Activity */}
+            {/* Activity */}
             <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-digis-pink" />
-              Recent Activity
+              Activity
             </h3>
             {recentActivities.length > 0 ? (
               <div className="space-y-3 max-h-96 overflow-y-auto">
