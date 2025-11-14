@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     const [senderTransaction] = await db.insert(walletTransactions).values({
       userId: authUser.id,
       amount: -amount,
-      type: 'tip',
+      type: 'dm_tip',
       status: 'completed',
       description: `Tip to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`,
       idempotencyKey,
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
     const [receiverTransaction] = await db.insert(walletTransactions).values({
       userId: receiver.id,
       amount: amount,
-      type: 'tip',
+      type: 'dm_tip',
       status: 'completed',
       description: `Tip received from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`,
       relatedTransactionId: senderTransaction.id,
