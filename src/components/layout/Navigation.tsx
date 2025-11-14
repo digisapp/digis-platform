@@ -604,18 +604,6 @@ export function Navigation() {
               {navItems[3].label}
             </span>
           </button>
-
-          {/* Wallet */}
-          <button
-            onClick={() => router.push('/wallet')}
-            className="flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 text-gray-600 active:bg-gray-100/50"
-            style={{ minHeight: '48px' }}
-          >
-            <Coins className="w-6 h-6 text-green-600" />
-            <span className="text-[11px] font-bold text-gray-800">
-              {balance}
-            </span>
-          </button>
         </div>
       </nav>
 
