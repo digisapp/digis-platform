@@ -76,6 +76,13 @@ export default function CreatorDashboard() {
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
   const [goals, setGoals] = useState<any[]>([]);
+  const [goalFormData, setGoalFormData] = useState({
+    title: '',
+    description: '',
+    targetAmount: 1000,
+    rewardText: '',
+  });
+  const [submittingGoal, setSubmittingGoal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -345,6 +352,43 @@ export default function CreatorDashboard() {
     }
   };
 
+  const handleCreateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingGoal(true);
+
+    try {
+      const response = await fetch('/api/creator/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...goalFormData,
+          goalType: 'coins',
+        }),
+      });
+
+      if (response.ok) {
+        // Reset form
+        setGoalFormData({
+          title: '',
+          description: '',
+          targetAmount: 1000,
+          rewardText: '',
+        });
+        // Refresh goals list
+        fetchGoals();
+        alert('Goal created successfully!');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to create goal');
+      }
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      alert('Failed to create goal');
+    } finally {
+      setSubmittingGoal(false);
+    }
+  };
+
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -425,84 +469,99 @@ export default function CreatorDashboard() {
           </div>
         )}
 
-        {/* Goals Widget */}
-        <div className="mb-8 glass rounded-2xl border border-amber-200 p-6 shadow-fun">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Target className="w-5 h-5 text-amber-500" />
-              Profile Goals
-            </h3>
-            <button
-              onClick={() => router.push('/creator/goals')}
-              className="text-sm text-gray-600 hover:text-digis-cyan transition-colors font-medium"
-            >
-              Manage All
-            </button>
-          </div>
-
-          {/* Create Goal Button */}
-          <button
-            onClick={() => router.push('/creator/goals')}
-            className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create Goal
-          </button>
-
-          {/* Active Goals List */}
-          {goals.filter(g => g.isActive && !g.isCompleted).length > 0 ? (
-            <div className="space-y-3">
-              {goals
-                .filter(g => g.isActive && !g.isCompleted)
-                .slice(0, 3)
-                .map((goal) => {
-                  const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
-                  return (
-                    <div key={goal.id} className="bg-white/60 rounded-lg p-4 border border-amber-100">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-gray-800 text-sm">{goal.title}</h4>
-                        <span className="text-xs text-gray-600 font-medium">
-                          {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden mb-2">
-                        <div
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple transition-all duration-700"
-                          style={{ width: `${percentage}%` }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-gray-900">
-                            {Math.round(percentage)}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        🎁 {goal.rewardText}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center mb-4">
-                <Target className="w-8 h-8 text-amber-500" />
-              </div>
-              <p className="text-gray-600 font-medium mb-2">No active goals</p>
-              <p className="text-sm text-gray-500 mb-4">Create your first goal to engage your followers!</p>
-            </div>
-          )}
-        </div>
-
-        {/* Pending Calls & Recent Activity - Side by Side */}
+        {/* Pending Calls, Recent Activity & Create Goal - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Pending Calls - Left Column */}
+          {/* Left Column: Pending Calls */}
           <PendingCalls />
 
-          {/* Recent Activity - Right Column */}
-          <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
+          {/* Right Column: Create Goal Form + Recent Activity */}
+          <div className="space-y-6">
+            {/* Create Goal Form */}
+            <div className="glass rounded-2xl border border-amber-200 p-6 shadow-fun">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Create Goal</h3>
+
+              <form onSubmit={handleCreateGoal} className="space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                  <input
+                    type="text"
+                    value={goalFormData.title}
+                    onChange={(e) => setGoalFormData({ ...goalFormData, title: e.target.value })}
+                    placeholder="e.g., Reach 1,000 Followers!"
+                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                  <input
+                    type="text"
+                    value={goalFormData.description}
+                    onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
+                    placeholder="Add a short description..."
+                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  />
+                </div>
+
+                {/* Goal (Coins) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Goal (Coins) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={goalFormData.targetAmount}
+                    onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
+                    placeholder="e.g., 10000"
+                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    required
+                  />
+                </div>
+
+                {/* Reward Text */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Reward Text *</label>
+                  <input
+                    type="text"
+                    value={goalFormData.rewardText}
+                    onChange={(e) => setGoalFormData({ ...goalFormData, rewardText: e.target.value })}
+                    placeholder="e.g., I'll post exclusive content!"
+                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    required
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGoalFormData({
+                        title: '',
+                        description: '',
+                        targetAmount: 1000,
+                        rewardText: '',
+                      });
+                    }}
+                    className="flex-1 px-6 py-3 bg-white/80 border-2 border-gray-300 text-gray-800 rounded-xl font-semibold hover:bg-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingGoal}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submittingGoal ? 'Creating...' : 'Create Goal'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-digis-pink" />
               Recent Activity
@@ -539,6 +598,7 @@ export default function CreatorDashboard() {
           </div>
         </div>
         </div>
+      </div>
       </div>
     </div>
   );
