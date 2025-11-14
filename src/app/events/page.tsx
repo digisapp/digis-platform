@@ -111,17 +111,6 @@ export default function EventsPage() {
               <Radio className="w-4 h-4 text-red-500" strokeWidth={2.5} />
               Live Now
             </button>
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                filter === 'all'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" strokeWidth={2.5} />
-              All Events
-            </button>
           </div>
 
           {/* Event Type Filter */}
@@ -147,17 +136,6 @@ export default function EventsPage() {
             >
               <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
               Workshops
-            </button>
-            <button
-              onClick={() => setTypeFilter('meetgreet')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                typeFilter === 'meetgreet'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Users className="w-4 h-4" strokeWidth={2.5} />
-              Meet & Greet
             </button>
             <button
               onClick={() => setTypeFilter('performance')}
