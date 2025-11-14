@@ -317,7 +317,7 @@ export default function ProfilePage() {
       {/* Profile Content - Mobile optimized */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Avatar and Header Section */}
-        <div className="relative -mt-16 sm:-mt-20 mb-6">
+        <div className="relative -mt-16 sm:-mt-20 md:mt-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
@@ -344,17 +344,17 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white md:text-gray-900 truncate drop-shadow-lg md:drop-shadow-none" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white md:text-gray-900 truncate drop-shadow-lg md:drop-shadow-none">
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
                   <div className="relative flex-shrink-0">
-                    <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 fill-blue-500" strokeWidth={2} />
+                    <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" strokeWidth={2} />
                   </div>
                 )}
               </div>
               {user.displayName && (
-                <p className="text-white/90 md:text-gray-600 mb-3 drop-shadow-md md:drop-shadow-none">@{user.username}</p>
+                <p className="text-white/90 md:text-gray-600 mb-3 drop-shadow-md md:drop-shadow-none">{user.username}</p>
               )}
 
               {/* Stats - Responsive grid */}
