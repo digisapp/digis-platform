@@ -335,9 +335,9 @@ export default function TheaterModePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 text-white flex flex-col">
       {/* Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/90 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.back()}
@@ -420,7 +420,7 @@ export default function TheaterModePage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-1 flex flex-col bg-black">
+        <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black">
           {/* Video */}
           <div className="flex-1 relative">
             <video
@@ -438,12 +438,12 @@ export default function TheaterModePage() {
             </video>
 
             {/* Video Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={toggleMute}
-                    className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
+                    className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
                   >
                     {muted ? (
                       <VolumeX className="w-6 h-6" />
@@ -455,7 +455,7 @@ export default function TheaterModePage() {
 
                 <button
                   onClick={toggleFullscreen}
-                  className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
+                  className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
                 >
                   {isFullscreen ? (
                     <Minimize className="w-6 h-6" />
@@ -468,23 +468,23 @@ export default function TheaterModePage() {
           </div>
 
           {/* Stream Info Bar */}
-          <div className="px-4 py-3 bg-black/90 border-t border-white/10">
-            <h2 className="text-xl font-bold mb-1">{stream.title}</h2>
+          <div className="px-4 py-3 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+            <h2 className="text-xl font-bold mb-1 bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent">{stream.title}</h2>
             {stream.description && (
-              <p className="text-sm text-white/70">{stream.description}</p>
+              <p className="text-sm text-white/80">{stream.description}</p>
             )}
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="px-4 py-3 bg-black/90 border-t border-white/10">
+          <div className="px-4 py-3 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-white/70 mr-2">Quick Tip:</span>
+              <span className="text-sm text-cyan-200 mr-2 font-semibold">Quick Tip:</span>
               {[5, 10, 25, 50, 100].map((amount) => (
                 <button
                   key={amount}
                   onClick={() => handleTip(amount)}
                   disabled={!currentUser}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 font-semibold text-sm hover:scale-105 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-400 via-amber-400 to-orange-400 text-gray-900 font-bold text-sm hover:scale-110 transition-all shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {amount} 🪙
                 </button>
@@ -492,7 +492,7 @@ export default function TheaterModePage() {
             </div>
 
             {currentUser && (
-              <div className="mt-2 text-xs text-white/50">
+              <div className="mt-2 text-xs text-cyan-300 font-medium">
                 Your balance: {userBalance} coins
               </div>
             )}
@@ -500,22 +500,22 @@ export default function TheaterModePage() {
 
           {/* Stream Goals Widget */}
           {stream.goals && stream.goals.length > 0 && (
-            <div className="px-4 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-t border-purple-400/30">
+            <div className="px-4 py-3 glass-dark border-t border-purple-400/30 backdrop-blur-xl shadow-[0_-2px_20px_rgba(168,85,247,0.15)]">
               <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-bold text-purple-400">Stream Goals</span>
+                <Target className="w-4 h-4 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Stream Goals</span>
               </div>
               {stream.goals.map((goal) => (
                 <div key={goal.id} className="mb-3 last:mb-0">
                   <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-white/80">{goal.description}</span>
-                    <span className="text-white/60">
+                    <span className="text-white/90 font-medium">{goal.description}</span>
+                    <span className="text-purple-300 font-semibold">
                       {goal.currentAmount} / {goal.targetAmount}
                     </span>
                   </div>
-                  <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm border border-purple-500/20">
                     <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
                       style={{
                         width: `${Math.min(
                           (goal.currentAmount / goal.targetAmount) * 100,
@@ -532,25 +532,25 @@ export default function TheaterModePage() {
 
         {/* Right Sidebar - Chat & Viewers */}
         {showChat && (
-          <div className="w-96 bg-black/90 border-l border-white/10 flex flex-col">
+          <div className="w-96 glass-dark border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
             {/* Sidebar Tabs */}
-            <div className="flex border-b border-white/10">
+            <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
               <button
                 onClick={() => setShowViewerList(false)}
-                className={`flex-1 px-4 py-3 font-semibold transition-colors ${
+                className={`flex-1 px-4 py-3 font-bold transition-all ${
                   !showViewerList
-                    ? 'bg-white/10 text-white border-b-2 border-digis-cyan'
-                    : 'text-white/60 hover:text-white'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-pink-500/20 text-white border-b-2 border-cyan-400 shadow-[0_2px_15px_rgba(34,211,238,0.3)]'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
                 Chat
               </button>
               <button
                 onClick={() => setShowViewerList(true)}
-                className={`flex-1 px-4 py-3 font-semibold transition-colors ${
+                className={`flex-1 px-4 py-3 font-bold transition-all ${
                   showViewerList
-                    ? 'bg-white/10 text-white border-b-2 border-digis-cyan'
-                    : 'text-white/60 hover:text-white'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-pink-500/20 text-white border-b-2 border-cyan-400 shadow-[0_2px_15px_rgba(34,211,238,0.3)]'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <div className="flex items-center justify-center gap-2">
@@ -566,23 +566,23 @@ export default function TheaterModePage() {
                 {/* Messages */}
                 <div
                   ref={chatContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-3"
+                  className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-cyan-500/5 to-transparent"
                 >
                   {messages.length === 0 ? (
-                    <div className="text-center text-white/40 text-sm mt-10">
+                    <div className="text-center text-cyan-300/60 text-sm mt-10 font-medium">
                       No messages yet. Be the first to chat!
                     </div>
                   ) : (
                     messages.map((msg) => (
-                      <div key={msg.id} className="flex gap-2">
+                      <div key={msg.id} className="flex gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
                         {msg.avatarUrl ? (
                           <img
                             src={msg.avatarUrl}
                             alt={msg.username}
-                            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-cyan-400/30"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">
                             {msg.displayName?.[0] || msg.username[0]}
                           </div>
                         )}
@@ -590,24 +590,24 @@ export default function TheaterModePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`text-sm font-semibold ${
-                                msg.isCreator ? 'text-yellow-400' : 'text-white'
+                              className={`text-sm font-bold ${
+                                msg.isCreator ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-cyan-100'
                               }`}
                             >
                               {msg.displayName || msg.username}
                             </span>
                             {msg.isCreator && (
-                              <span className="text-xs px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">
+                              <span className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 text-yellow-300 rounded border border-yellow-400/30 font-semibold">
                                 Creator
                               </span>
                             )}
                             {msg.isModerator && (
-                              <span className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded">
+                              <span className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-300 rounded border border-purple-400/30 font-semibold">
                                 Mod
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-white/90 break-words">
+                          <p className="text-sm text-white/95 break-words leading-relaxed">
                             {msg.content}
                           </p>
                         </div>
@@ -617,7 +617,7 @@ export default function TheaterModePage() {
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
                   {currentUser ? (
                     <div className="flex gap-2">
                       <input
@@ -627,21 +627,21 @@ export default function TheaterModePage() {
                         onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                         placeholder="Send a message..."
                         disabled={sendingMessage}
-                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-digis-cyan disabled:opacity-50"
+                        className="flex-1 px-4 py-2 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all"
                       />
                       <button
                         onClick={sendMessage}
                         disabled={!messageInput.trim() || sendingMessage}
-                        className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
                       >
                         <Send className="w-5 h-5" />
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-sm text-white/60">
+                    <div className="text-center text-sm text-white/70">
                       <button
                         onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
-                        className="text-digis-cyan hover:underline"
+                        className="text-cyan-400 hover:text-cyan-300 font-semibold hover:underline transition-colors"
                       >
                         Sign in
                       </button>{' '}
@@ -654,9 +654,9 @@ export default function TheaterModePage() {
 
             {/* Viewer List View */}
             {showViewerList && (
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-cyan-500/5 to-transparent">
                 {viewers.length === 0 ? (
-                  <div className="text-center text-white/40 text-sm mt-10">
+                  <div className="text-center text-cyan-300/60 text-sm mt-10 font-medium">
                     Loading viewers...
                   </div>
                 ) : (
@@ -664,25 +664,25 @@ export default function TheaterModePage() {
                     {viewers.map((viewer) => (
                       <div
                         key={viewer.id}
-                        className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors"
+                        className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] border border-transparent hover:border-cyan-400/30"
                       >
                         {viewer.avatarUrl ? (
                           <img
                             src={viewer.avatarUrl}
                             alt={viewer.username}
-                            className="w-10 h-10 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-cyan-400/30"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold shadow-lg shadow-cyan-500/30">
                             {viewer.displayName?.[0] || viewer.username[0]}
                           </div>
                         )}
 
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold truncate">
+                          <div className="font-bold truncate text-white">
                             {viewer.displayName || viewer.username}
                           </div>
-                          <div className="text-xs text-white/60 truncate">
+                          <div className="text-xs text-cyan-300/80 truncate font-medium">
                             @{viewer.username}
                           </div>
                         </div>
