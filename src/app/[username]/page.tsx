@@ -487,78 +487,67 @@ export default function ProfilePage() {
 
         {/* Content Tabs */}
         <div>
+          {/* Tab Pills - Mobile optimized */}
+          <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('photos')}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                activeTab === 'photos'
+                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <Image className="w-3.5 h-3.5" />
+              Photos
+            </button>
+            <button
+              onClick={() => setActiveTab('video')}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                activeTab === 'video'
+                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <Film className="w-3.5 h-3.5" />
+              Video
+            </button>
+            <button
+              onClick={() => setActiveTab('streams')}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                activeTab === 'streams'
+                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <Video className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Streams</span>
+              <span className="sm:hidden">Live</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('shows')}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                activeTab === 'shows'
+                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <Ticket className="w-3.5 h-3.5" />
+              Shows
+            </button>
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                activeTab === 'about'
+                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
+                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <UserCircle className="w-3.5 h-3.5" />
+              About
+            </button>
+          </div>
+
           <GlassCard className="overflow-hidden shadow-fun">
-            {/* Tab Headers - Mobile optimized */}
-            <div className="border-b border-purple-200 overflow-x-auto">
-              <div className="flex min-w-max sm:min-w-0">
-                <button
-                  onClick={() => setActiveTab('photos')}
-                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === 'photos'
-                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Image className="w-4 h-4" />
-                    Photos
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab('video')}
-                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === 'video'
-                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Film className="w-4 h-4" />
-                    Video
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab('streams')}
-                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === 'streams'
-                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Video className="w-4 h-4" />
-                    <span className="hidden sm:inline">Streams</span>
-                    <span className="sm:hidden">Live</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab('shows')}
-                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === 'shows'
-                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Ticket className="w-4 h-4" />
-                    Shows
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab('about')}
-                  className={`flex-1 px-4 sm:px-6 py-3 sm:py-4 font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === 'about'
-                      ? 'text-digis-cyan border-b-2 border-digis-cyan bg-digis-cyan/10'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-white/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <UserCircle className="w-4 h-4" />
-                    About
-                  </div>
-                </button>
-              </div>
-            </div>
 
             {/* Tab Content */}
             <div className="p-4 sm:p-6">
