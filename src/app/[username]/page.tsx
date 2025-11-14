@@ -10,6 +10,7 @@ import { TipModal } from '@/components/messages/TipModal';
 import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
+import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
 
 interface ProfileData {
   user: {
@@ -64,6 +65,7 @@ export default function ProfilePage() {
   const [contentLoading, setContentLoading] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [goals, setGoals] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -73,6 +75,7 @@ export default function ProfilePage() {
     if (profile?.user.id && profile.user.role === 'creator') {
       fetchContent();
       checkIfLive();
+      fetchGoals();
     }
   }, [profile?.user.id]);
 
@@ -180,6 +183,18 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error checking live status:', err);
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const response = await fetch(`/api/profile/${username}/goals`);
+      if (response.ok) {
+        const data = await response.json();
+        setGoals(data.goals || []);
+      }
+    } catch (err) {
+      console.error('Error fetching goals:', err);
     }
   };
 
@@ -508,6 +523,15 @@ export default function ProfilePage() {
                 <Video className="w-6 h-6 text-white flex-shrink-0" />
               </div>
             </button>
+          </div>
+        )}
+
+        {/* Profile Goals Widget */}
+        {user.role === 'creator' && goals.length > 0 && (
+          <div className="mb-6">
+            <GlassCard className="p-6">
+              <ProfileGoalsWidget goals={goals} maxDisplay={3} />
+            </GlassCard>
           </div>
         )}
 
