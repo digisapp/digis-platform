@@ -176,14 +176,7 @@ export default function EventsPage() {
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
                 <Calendar className="w-16 h-16 text-digis-purple" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black text-gray-900 mb-3">No Upcoming Events</h3>
-              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">Check back soon for new community events!</p>
-              <button
-                onClick={() => router.push('/explore')}
-                className="px-8 py-4 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-bold hover:scale-105 transition-all shadow-2xl"
-              >
-                Explore Creators
-              </button>
+              <h3 className="text-2xl font-black text-gray-900">No Upcoming Events</h3>
             </div>
           </div>
         ) : null}
