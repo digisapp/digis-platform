@@ -9,11 +9,6 @@ import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
 import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
-import { BentoGrid } from '@/components/profile/BentoGrid';
-import { QuickTipButtons } from '@/components/profile/QuickTipButtons';
-import { GoalsWidget } from '@/components/profile/GoalsWidget';
-import { TopSupportersWidget } from '@/components/profile/TopSupportersWidget';
-import { SmartFilters, ContentFilter, SortOption } from '@/components/profile/SmartFilters';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 
 interface ProfileData {
@@ -69,8 +64,6 @@ export default function ProfilePage() {
   const [contentLoading, setContentLoading] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [contentFilter, setContentFilter] = useState<ContentFilter>('all');
-  const [sortOption, setSortOption] = useState<SortOption>('latest');
 
   useEffect(() => {
     fetchProfile();
@@ -370,7 +363,7 @@ export default function ProfilePage() {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white md:text-gray-900 truncate drop-shadow-lg md:drop-shadow-none">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate" style={{ textShadow: '0 2px 8px rgba(255,255,255,0.9), 0 0 20px rgba(255,255,255,0.8)' }}>
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
@@ -380,7 +373,7 @@ export default function ProfilePage() {
                 )}
               </div>
               {user.displayName && (
-                <p className="text-white/90 md:text-gray-600 mb-3 drop-shadow-md md:drop-shadow-none">{user.username}</p>
+                <p className="text-gray-700 mb-3" style={{ textShadow: '0 1px 4px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.7)' }}>{user.username}</p>
               )}
 
               {/* Stats - Responsive grid */}
@@ -389,20 +382,12 @@ export default function ProfilePage() {
                   onClick={() => setActiveTab('about')}
                   className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors"
                 >
-                  <Users className="w-4 h-4 text-white/80 md:text-gray-500" />
-                  <span>
-                    <strong className="text-white md:text-gray-900">{followCounts.followers.toLocaleString()}</strong>{' '}
-                    <span className="text-white/80 md:text-gray-600">Followers</span>
+                  <Users className="w-4 h-4 text-gray-600" />
+                  <span style={{ textShadow: '0 1px 4px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.7)' }}>
+                    <strong className="text-gray-900">{followCounts.followers.toLocaleString()}</strong>{' '}
+                    <span className="text-gray-700">Followers</span>
                   </span>
                 </button>
-                <span className="text-white/60 md:hidden">•</span>
-                <span className="flex md:hidden items-center gap-1.5 text-white/80">
-                  <Calendar className="w-4 h-4 text-white/70" />
-                  Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
               </div>
             </div>
           </div>
@@ -493,20 +478,6 @@ export default function ProfilePage() {
               />
             )}
           </div>
-
-          {/* Quick Tip Buttons */}
-          {user.role === 'creator' && (
-            <div className="mt-4">
-              <QuickTipButtons
-                creatorId={user.id}
-                creatorName={user.displayName || user.username}
-                onTipSent={() => {
-                  setShowConfetti(true);
-                  setTimeout(() => setShowConfetti(false), 2000);
-                }}
-              />
-            </div>
-          )}
         </div>
 
         {/* Inline Live Stream Section */}
@@ -537,78 +508,6 @@ export default function ProfilePage() {
                 <Video className="w-6 h-6 text-white flex-shrink-0" />
               </div>
             </button>
-          </div>
-        )}
-
-        {/* Featured Bento Grid Section */}
-        {user.role === 'creator' && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-digis-cyan" />
-                Featured Content
-              </h2>
-            </div>
-            <BentoGrid
-              content={[
-                // Sample featured content - will be replaced with real data
-                {
-                  id: '1',
-                  type: 'photo',
-                  title: 'Latest Post',
-                  thumbnail: user.bannerUrl || undefined,
-                  likes: 0,
-                  views: 0,
-                  isLocked: false,
-                  timestamp: new Date().toISOString(),
-                  featured: true,
-                },
-              ]}
-            />
-          </div>
-        )}
-
-        {/* Widgets Section */}
-        {user.role === 'creator' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <GoalsWidget
-              goals={[
-                {
-                  id: '1',
-                  title: 'Next Milestone',
-                  description: 'Help me reach my next goal!',
-                  current: followCounts.followers,
-                  target: Math.ceil(followCounts.followers / 1000) * 1000,
-                  contributors: followCounts.followers,
-                  type: 'followers',
-                },
-              ]}
-            />
-            <TopSupportersWidget
-              supporters={[
-                // Sample data - will be replaced with real data
-              ]}
-            />
-          </div>
-        )}
-
-        {/* Smart Filters */}
-        {user.role === 'creator' && (
-          <div className="mb-6">
-            <SmartFilters
-              activeFilter={contentFilter}
-              activeSortOption={sortOption}
-              onFilterChange={setContentFilter}
-              onSortChange={setSortOption}
-              counts={{
-                all: streams.length + shows.length,
-                photos: 0,
-                videos: 0,
-                live: isLive ? 1 : 0,
-                exclusive: 0,
-                free: streams.length + shows.length,
-              }}
-            />
           </div>
         )}
 

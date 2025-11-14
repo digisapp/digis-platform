@@ -24,13 +24,13 @@ export function AnimatedAvatar({
   };
 
   return (
-    <div className={`relative flex-shrink-0 ${className}`}>
+    <div className={`relative ${sizeClasses[size]} flex-shrink-0 ${className}`}>
       {/* Animated gradient border */}
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink animate-spin-slow" />
       <div className="absolute inset-[3px] rounded-full bg-white" />
 
       {/* Avatar */}
-      <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden`}>
+      <div className={`relative w-full h-full rounded-full overflow-hidden`}>
         {src ? (
           <img
             src={src}
