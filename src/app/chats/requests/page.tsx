@@ -91,7 +91,7 @@ export default function MessageRequestsPage() {
       if (response.ok) {
         const data = await response.json();
         // Navigate to the new conversation
-        router.push(`/messages/${data.conversationId}`);
+        router.push(`/chats/${data.conversationId}`);
       }
     } catch (error) {
       console.error('Error accepting request:', error);
@@ -148,7 +148,7 @@ export default function MessageRequestsPage() {
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <button
-              onClick={() => router.push('/messages')}
+              onClick={() => router.push('/chats')}
               className="text-gray-600 hover:text-gray-800 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,10 +170,10 @@ export default function MessageRequestsPage() {
               <h3 className="text-xl font-semibold text-gray-800 mb-2">No pending requests</h3>
               <p className="text-gray-600 mb-6">You're all caught up!</p>
               <button
-                onClick={() => router.push('/messages')}
+                onClick={() => router.push('/chats')}
                 className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
               >
-                Back to Messages
+                Back to Chats
               </button>
             </div>
           ) : (

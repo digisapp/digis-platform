@@ -286,8 +286,8 @@ export function Navigation() {
     {
       label: 'Chats',
       icon: MessageCircle,
-      path: '/messages',
-      active: isActive('/messages') || pathname?.startsWith('/messages'),
+      path: '/chats',
+      active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
   ];
 

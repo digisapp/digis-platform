@@ -257,16 +257,16 @@ export default function ProfilePage() {
 
         if (existingConversation) {
           // Navigate to existing conversation
-          router.push(`/messages/${existingConversation.id}`);
+          router.push(`/chats/${existingConversation.id}`);
           return;
         }
       }
 
-      // No existing conversation, go to messages page
-      router.push('/messages');
+      // No existing conversation, go to chats page
+      router.push('/chats');
     } catch (error) {
       console.error('Error checking conversations:', error);
-      router.push('/messages');
+      router.push('/chats');
     }
   };
 

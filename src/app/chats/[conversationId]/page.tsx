@@ -335,10 +335,10 @@ export default function ChatPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Conversation not found</h2>
           <button
-            onClick={() => router.push('/messages')}
+            onClick={() => router.push('/chats')}
             className="px-6 py-3 bg-digis-cyan text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
           >
-            Back to Messages
+            Back to Chats
           </button>
         </div>
       </div>
@@ -354,7 +354,7 @@ export default function ChatPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => router.push('/messages')}
+                  onClick={() => router.push('/chats')}
                   className="text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

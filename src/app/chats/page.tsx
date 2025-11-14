@@ -278,7 +278,7 @@ export default function MessagesPage() {
               {userRole === 'creator' && (
                 <>
                   <button
-                    onClick={() => router.push('/creator/messages/broadcast')}
+                    onClick={() => router.push('/creator/chats/broadcast')}
                     className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
                   >
                     <Users className="w-3.5 h-3.5" strokeWidth={2} />
@@ -286,7 +286,7 @@ export default function MessagesPage() {
                   </button>
                   {pendingRequests > 0 && (
                     <button
-                      onClick={() => router.push('/messages/requests')}
+                      onClick={() => router.push('/chats/requests')}
                       className="px-4 py-1.5 bg-purple-600 text-white rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 hover:bg-purple-700"
                     >
                       <span className="hidden sm:inline">Requests</span>
@@ -313,7 +313,7 @@ export default function MessagesPage() {
                   <div
                     key={conversation.id}
                     className="relative w-full glass rounded-xl border border-purple-200 p-4 hover:border-digis-cyan hover:bg-white/80 transition-all cursor-pointer min-h-[80px]"
-                    onClick={() => router.push(`/messages/${conversation.id}`)}
+                    onClick={() => router.push(`/chats/${conversation.id}`)}
                   >
                     <div className="flex items-center gap-4">
                       {/* Avatar */}
