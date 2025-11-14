@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ShowCard } from '@/components/shows/ShowCard';
-import { Calendar, Filter, TrendingUp } from 'lucide-react';
+import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater } from 'lucide-react';
 
 interface Show {
   id: string;
@@ -83,47 +83,56 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Community Events 🎟️</h1>
-          <p className="text-gray-700">Join fitness classes, workshops, and exclusive events from creators in the community</p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 backdrop-blur-xl border border-white/40">
+              <Ticket className="w-8 h-8 text-digis-cyan" strokeWidth={2.5} />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink">
+              Community Events
+            </h1>
+          </div>
+          <p className="text-gray-600 text-lg">Join fitness classes, workshops, and exclusive events from creators in the community</p>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
+        <div className="mb-6 flex flex-col md:flex-row gap-3">
           {/* Status Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 filter === 'upcoming'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
-              <Calendar className="w-4 h-4 inline mr-2" />
+              <Calendar className="w-4 h-4" strokeWidth={2.5} />
               Upcoming
             </button>
             <button
               onClick={() => setFilter('live')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 filter === 'live'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
-              🔴 Live Now
+              <Radio className="w-4 h-4 text-red-500" strokeWidth={2.5} />
+              Live Now
             </button>
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 filter === 'all'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
+              <Sparkles className="w-4 h-4" strokeWidth={2.5} />
               All Events
             </button>
           </div>
@@ -132,43 +141,47 @@ export default function EventsPage() {
           <div className="flex gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setTypeFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 typeFilter === 'all'
-                  ? 'bg-purple-500 text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
+              <Ticket className="w-4 h-4" strokeWidth={2.5} />
               All Types
             </button>
             <button
               onClick={() => setTypeFilter('workshop')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 typeFilter === 'workshop'
-                  ? 'bg-purple-500 text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
-              🏋️ Workshops
+              <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
+              Workshops
             </button>
             <button
               onClick={() => setTypeFilter('meetgreet')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 typeFilter === 'meetgreet'
-                  ? 'bg-purple-500 text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
-              👋 Meet & Greet
+              <Users className="w-4 h-4" strokeWidth={2.5} />
+              Meet & Greet
             </button>
             <button
               onClick={() => setTypeFilter('performance')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
                 typeFilter === 'performance'
-                  ? 'bg-purple-500 text-gray-900'
-                  : 'glass text-gray-700 hover:bg-white/60'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
               }`}
             >
-              🎭 Performances
+              <Theater className="w-4 h-4" strokeWidth={2.5} />
+              Performances
             </button>
           </div>
         </div>
@@ -204,16 +217,21 @@ export default function EventsPage() {
             </div>
           </div>
         ) : filter === 'upcoming' && liveEvents.length === 0 ? (
-          <div className="glass rounded-xl border-2 border-purple-200 p-12 text-center">
-            <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Upcoming Events</h3>
-            <p className="text-gray-700 mb-6">Check back soon for new community events!</p>
-            <button
-              onClick={() => router.push('/explore')}
-              className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
-            >
-              Explore Creators
-            </button>
+          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
+            <div className="relative">
+              <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
+                <Calendar className="w-16 h-16 text-digis-purple" strokeWidth={2} />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">No Upcoming Events</h3>
+              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">Check back soon for new community events!</p>
+              <button
+                onClick={() => router.push('/explore')}
+                className="px-8 py-4 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-bold hover:scale-105 transition-all shadow-2xl"
+              >
+                Explore Creators
+              </button>
+            </div>
           </div>
         ) : null}
       </div>
