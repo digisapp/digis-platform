@@ -92,7 +92,7 @@ export default function EventsPage() {
             onClick={() => setFilter('upcoming')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filter === 'upcoming'
-                ? 'bg-gray-900 text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -103,11 +103,11 @@ export default function EventsPage() {
             onClick={() => setFilter('live')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filter === 'live'
-                ? 'bg-gray-900 text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            <Radio className="w-3.5 h-3.5 text-red-500" strokeWidth={2} />
+            <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? '' : 'text-red-500'}`} strokeWidth={2} />
             Live Now
           </button>
 
@@ -119,7 +119,7 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('all')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'all'
-                ? 'bg-gray-900 text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -130,7 +130,7 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('workshop')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'workshop'
-                ? 'bg-gray-900 text-white'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
