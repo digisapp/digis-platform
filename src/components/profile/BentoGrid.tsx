@@ -13,6 +13,8 @@ interface ContentItem {
   isLocked?: boolean;
   timestamp?: string;
   featured?: boolean;
+  unlockPrice?: number;
+  isFree?: boolean;
 }
 
 interface BentoGridProps {
@@ -79,10 +81,15 @@ export function BentoGrid({ content }: BentoGridProps) {
 
         {/* Lock indicator for locked content */}
         {item.isLocked && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="p-4 rounded-full bg-black/50 backdrop-blur-md">
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/30 backdrop-blur-sm">
+            <div className="p-4 rounded-full bg-black/60 backdrop-blur-md mb-2">
               <Lock className="w-8 h-8 text-white" />
             </div>
+            {item.unlockPrice !== undefined && item.unlockPrice > 0 && (
+              <div className="px-4 py-2 rounded-full bg-amber-500 text-white font-bold text-sm shadow-lg">
+                {item.unlockPrice} coins to unlock
+              </div>
+            )}
           </div>
         )}
 

@@ -11,6 +11,7 @@ import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
+import { BentoGrid } from '@/components/profile/BentoGrid';
 
 interface ProfileData {
   user: {
@@ -66,6 +67,7 @@ export default function ProfilePage() {
   const [showTipModal, setShowTipModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
+  const [content, setContent] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -76,6 +78,7 @@ export default function ProfilePage() {
       fetchContent();
       checkIfLive();
       fetchGoals();
+      fetchCreatorContent();
     }
   }, [profile?.user.id]);
 
@@ -195,6 +198,32 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error fetching goals:', err);
+    }
+  };
+
+  const fetchCreatorContent = async () => {
+    try {
+      const response = await fetch(`/api/profile/${username}/content`);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform content to bento grid format
+        const bentaContent = data.content.map((item: any) => ({
+          id: item.id,
+          type: item.contentType === 'video' ? 'video' : item.contentType === 'photo' ? 'photo' : 'photo',
+          title: item.title,
+          thumbnail: item.thumbnailUrl,
+          likes: 0, // TODO: Add likes functionality
+          views: item.viewCount,
+          isLocked: !item.isFree,
+          unlockPrice: item.unlockPrice,
+          isFree: item.isFree,
+          timestamp: new Date(item.createdAt).toLocaleDateString(),
+          featured: false,
+        }));
+        setContent(bentaContent);
+      }
+    } catch (err) {
+      console.error('Error fetching content:', err);
     }
   };
 
@@ -523,6 +552,19 @@ export default function ProfilePage() {
                 <Video className="w-6 h-6 text-white flex-shrink-0" />
               </div>
             </button>
+          </div>
+        )}
+
+        {/* Content Bento Grid */}
+        {user.role === 'creator' && content.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-digis-cyan" />
+                Featured Content
+              </h2>
+            </div>
+            <BentoGrid content={content.slice(0, 6)} />
           </div>
         )}
 
