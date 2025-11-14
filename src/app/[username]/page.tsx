@@ -6,6 +6,7 @@ import { GlassCard, LoadingSpinner } from '@/components/ui';
 import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
+import { TipModal } from '@/components/messages/TipModal';
 
 interface ProfileData {
   user: {
@@ -58,6 +59,7 @@ export default function ProfilePage() {
   const [isLive, setIsLive] = useState(false);
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -270,6 +272,33 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSendTip = async (amount: number, message: string) => {
+    if (!profile) return;
+
+    try {
+      const response = await fetch('/api/tips/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          receiverId: profile.user.id,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send tip');
+      }
+
+      // Success! The modal will close automatically
+      alert(`✨ Successfully sent ${amount} coins to ${profile.user.displayName || profile.user.username}!`);
+    } catch (error) {
+      throw error; // Re-throw to let the modal handle it
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
@@ -387,19 +416,17 @@ export default function ProfilePage() {
             <button
               onClick={handleFollowToggle}
               disabled={followLoading}
-              className={`min-h-[44px] px-4 md:px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              title={isFollowing ? 'Following' : 'Follow'}
+              className={`w-11 h-11 rounded-xl font-semibold transition-all flex items-center justify-center ${
                 isFollowing
-                  ? 'bg-white/80 text-gray-800 hover:bg-white border-2 border-gray-300 hover:border-gray-400'
-                  : 'bg-digis-cyan text-white hover:bg-digis-cyan/90 border-2 border-digis-cyan shadow-lg hover:scale-105'
+                  ? 'bg-digis-cyan text-white border-2 border-digis-cyan shadow-lg'
+                  : 'bg-white/80 text-gray-800 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {followLoading ? (
                 <LoadingSpinner size="sm" />
               ) : (
-                <>
-                  <Users className="w-5 h-5" />
-                  <span className="hidden md:inline">{isFollowing ? 'Following' : 'Follow'}</span>
-                </>
+                <Users className="w-5 h-5" />
               )}
             </button>
 
@@ -435,11 +462,8 @@ export default function ProfilePage() {
             {/* Tip Button */}
             {user.role === 'creator' && (
               <button
-                onClick={() => {
-                  // You can add tip modal functionality here
-                  alert('Tip feature coming soon!');
-                }}
-                className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white border-2 border-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg hover:scale-105"
+                onClick={() => setShowTipModal(true)}
+                className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
               >
                 <Gift className="w-5 h-5" />
                 <span className="hidden md:inline">Tip</span>
@@ -776,6 +800,15 @@ export default function ProfilePage() {
           </GlassCard>
         </div>
       </div>
+
+      {/* Tip Modal */}
+      {showTipModal && profile && (
+        <TipModal
+          onClose={() => setShowTipModal(false)}
+          onSend={handleSendTip}
+          receiverName={profile.user.displayName || profile.user.username}
+        />
+      )}
     </div>
   );
 }
