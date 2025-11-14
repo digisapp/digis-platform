@@ -645,7 +645,7 @@ export default function GoLivePage() {
               variant="gradient"
               size="lg"
               disabled={!title.trim() || !category || !mediaStream || isCreating}
-              className="flex-1 relative overflow-hidden group text-white font-semibold"
+              className="flex-1 relative overflow-hidden group"
               shimmer
               glow
             >
