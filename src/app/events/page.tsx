@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ShowCard } from '@/components/shows/ShowCard';
-import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater } from 'lucide-react';
+import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X } from 'lucide-react';
 
 interface Show {
   id: string;
@@ -32,6 +32,7 @@ export default function EventsPage() {
   const [shows, setShows] = useState<Show[]>([]);
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('upcoming');
   const [typeFilter, setTypeFilter] = useState<'all' | 'workshop' | 'meetgreet' | 'performance'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchShows();
@@ -63,7 +64,18 @@ export default function EventsPage() {
     let typeMatch = true;
     if (typeFilter !== 'all') typeMatch = show.showType === typeFilter;
 
-    return statusMatch && typeMatch;
+    // Search filter
+    let searchMatch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const title = (show.title || '').toLowerCase();
+      const description = (show.description || '').toLowerCase();
+      const creatorName = (show.creator.displayName || show.creator.username || '').toLowerCase();
+
+      searchMatch = title.includes(query) || description.includes(query) || creatorName.includes(query);
+    }
+
+    return statusMatch && typeMatch && searchMatch;
   });
 
   const sortedShows = [...filteredShows].sort((a, b) => {
@@ -85,6 +97,26 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search events..."
+            className="w-full pl-12 pr-12 py-3 bg-white/60 backdrop-blur-xl border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
         {/* Filters */}
         <div className="mb-8 flex flex-wrap gap-2">
           {/* Status Filter Pills */}
