@@ -300,7 +300,7 @@ export default function WalletPage() {
                 }`}
               >
                 <Building2 className="w-5 h-5" />
-                Banking Info
+                Banking
               </button>
             </>
           )}
@@ -676,7 +676,6 @@ export default function WalletPage() {
                     onClick={() => setShowBankingModal(true)}
                     shimmer
                   >
-                    <Building2 className="w-5 h-5 mr-2" />
                     Add Banking
                   </GlassButton>
                 </div>
