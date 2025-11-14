@@ -470,93 +470,77 @@ export default function CreatorDashboard() {
         )}
 
         {/* Pending Calls, Recent Activity & Create Goal - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6 mb-8">
           {/* Left Column: Pending Calls */}
           <PendingCalls />
 
           {/* Right Column: Create Goal Form + Recent Activity */}
           <div className="space-y-6">
             {/* Create Goal Form */}
-            <div className="glass rounded-2xl border border-amber-200 p-6 shadow-fun">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Create Goal</h3>
+            <div className="glass rounded-2xl border border-amber-200 p-4 shadow-fun">
+              <h3 className="text-base font-bold text-gray-800 mb-3">Create Goal</h3>
 
-              <form onSubmit={handleCreateGoal} className="space-y-4">
+              <form onSubmit={handleCreateGoal} className="space-y-3">
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
                   <input
                     type="text"
                     value={goalFormData.title}
                     onChange={(e) => setGoalFormData({ ...goalFormData, title: e.target.value })}
                     placeholder="e.g., Reach 1,000 Followers!"
-                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Description (Optional)</label>
                   <input
                     type="text"
                     value={goalFormData.description}
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
                     placeholder="Add a short description..."
-                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                   />
                 </div>
 
                 {/* Goal (Coins) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Goal (Coins) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Goal (Coins) *</label>
                   <input
                     type="number"
                     min="1"
                     value={goalFormData.targetAmount}
                     onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
                     placeholder="e.g., 10000"
-                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
 
                 {/* Reward Text */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Reward Text *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Reward Text *</label>
                   <input
                     type="text"
                     value={goalFormData.rewardText}
                     onChange={(e) => setGoalFormData({ ...goalFormData, rewardText: e.target.value })}
                     placeholder="e.g., I'll post exclusive content!"
-                    className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setGoalFormData({
-                        title: '',
-                        description: '',
-                        targetAmount: 1000,
-                        rewardText: '',
-                      });
-                    }}
-                    className="flex-1 px-6 py-3 bg-white/80 border-2 border-gray-300 text-gray-800 rounded-xl font-semibold hover:bg-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submittingGoal}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submittingGoal ? 'Creating...' : 'Create Goal'}
-                  </button>
-                </div>
+                {/* Action */}
+                <button
+                  type="submit"
+                  disabled={submittingGoal}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white text-sm rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submittingGoal ? 'Creating...' : 'Create Goal'}
+                </button>
               </form>
             </div>
 
