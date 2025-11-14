@@ -512,7 +512,7 @@ export function Navigation() {
           </button>
 
           {/* Center Profile Button */}
-          <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-2">
+          <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-6">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="relative transition-all active:scale-95"
