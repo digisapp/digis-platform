@@ -85,19 +85,6 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 backdrop-blur-xl border border-white/40">
-              <Ticket className="w-8 h-8 text-digis-cyan" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink">
-              Community Events
-            </h1>
-          </div>
-          <p className="text-gray-600 text-lg">Join fitness classes, workshops, and exclusive events from creators in the community</p>
-        </div>
-
         {/* Filters */}
         <div className="mb-6 flex flex-col md:flex-row gap-3">
           {/* Status Filter */}
