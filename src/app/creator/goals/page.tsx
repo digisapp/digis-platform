@@ -129,7 +129,7 @@ export default function CreatorGoalsPage() {
           className="w-full md:w-auto mb-6 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
-          Create New Goal
+          Create Goal
         </button>
 
         {/* Goals List */}
@@ -314,7 +314,7 @@ function GoalModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <GlassCard className="w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {goal ? 'Edit Goal' : 'Create New Goal'}
+          {goal ? 'Edit Goal' : 'Create Goal'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
