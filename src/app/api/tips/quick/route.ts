@@ -3,13 +3,35 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { wallets, walletTransactions, streams, users, notifications } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
+import { withIdempotency } from '@/lib/idempotency';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, streamId } = await req.json();
+    // Rate limiting: very strict for tips (10 req/min)
+    const rl = await rateLimit(req, 'tips:quick');
+    if (!rl.ok) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: rl.headers
+      });
+    }
+
+    // Get idempotency key from header (client-generated)
+    const idempotencyKey = req.headers.get('Idempotency-Key');
+    if (!idempotencyKey) {
+      return NextResponse.json(
+        { error: 'Idempotency-Key header required' },
+        { status: 400, headers: rl.headers }
+      );
+    }
+
+    // Wrap the entire tip processing in idempotency check
+    return await withIdempotency(`tips:${idempotencyKey}`, 60000, async () => {
+      const { amount, streamId } = await req.json();
 
     // Validate input
     if (!amount || !streamId || amount <= 0) {
@@ -76,9 +98,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Generate idempotency key to prevent double-charges
-    const idempotencyKey = `tip_${authUser.id}_${streamId}_${Date.now()}`;
 
     // Start transaction: Deduct from sender, credit to creator
     // 1. Deduct from sender
@@ -171,13 +190,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      amount,
-      newBalance: senderWallet.balance - amount,
-      transactionId: senderTransaction.id,
-      message: `Sent ${amount} coins to ${creator.displayName || creator.username}`,
-    });
+      return NextResponse.json({
+        success: true,
+        amount,
+        newBalance: senderWallet.balance - amount,
+        transactionId: senderTransaction.id,
+        message: `Sent ${amount} coins to ${creator.displayName || creator.username}`,
+      }, { headers: rl.headers });
+    }); // end withIdempotency
   } catch (error) {
     console.error('[tips/quick] Error:', error);
     return NextResponse.json(
