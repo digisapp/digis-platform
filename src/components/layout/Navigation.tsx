@@ -511,32 +511,6 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Events */}
-          <button
-            onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
-              navItems[2].active
-                ? 'text-digis-cyan'
-                : 'text-gray-600 active:bg-gray-100/50'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            {(() => {
-              const Icon = navItems[2].icon;
-              return (
-                <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
-                  {navItems[2].active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
-                  )}
-                </div>
-              );
-            })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
-              {navItems[2].label}
-            </span>
-          </button>
-
           {/* Center Profile Button */}
           <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mb-2">
             <button
@@ -569,6 +543,32 @@ export function Navigation() {
               </div>
             </button>
           </div>
+
+          {/* Events */}
+          <button
+            onClick={() => router.push(navItems[2].path)}
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+              navItems[2].active
+                ? 'text-digis-cyan'
+                : 'text-gray-600 active:bg-gray-100/50'
+            }`}
+            style={{ minHeight: '48px' }}
+          >
+            {(() => {
+              const Icon = navItems[2].icon;
+              return (
+                <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                  <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                  {navItems[2].active && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-digis-cyan" />
+                  )}
+                </div>
+              );
+            })()}
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-700'}`}>
+              {navItems[2].label}
+            </span>
+          </button>
 
           {/* Messages/Chats */}
           <button
