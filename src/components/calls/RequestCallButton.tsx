@@ -93,15 +93,13 @@ export function RequestCallButton({
           <Icon className="w-5 h-5" />
         </button>
       ) : (
-        <GlassButton
-          variant="gradient"
+        <button
           onClick={() => setShowModal(true)}
-          className="w-full"
-          shimmer
+          className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
         >
-          <Icon className="w-4 h-4 mr-2" />
-          {buttonText}
-        </GlassButton>
+          <Icon className="w-5 h-5" />
+          <span className="hidden md:inline">{callType === 'voice' ? 'Voice Call' : 'Video Call'}</span>
+        </button>
       )}
 
       {/* Request Modal - Clean & Simple */}

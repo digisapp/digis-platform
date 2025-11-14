@@ -387,14 +387,20 @@ export default function ProfilePage() {
             <button
               onClick={handleFollowToggle}
               disabled={followLoading}
-              title={isFollowing ? 'Following' : 'Follow'}
-              className={`w-11 h-11 rounded-xl font-semibold transition-all flex items-center justify-center ${
+              className={`min-h-[44px] px-4 md:px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
                 isFollowing
-                  ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-2 border-gray-300'
-                  : 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 hover:scale-105 shadow-fun'
+                  ? 'bg-white/80 text-gray-800 hover:bg-white border-2 border-gray-300 hover:border-gray-400'
+                  : 'bg-digis-cyan text-white hover:bg-digis-cyan/90 border-2 border-digis-cyan shadow-lg hover:scale-105'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {followLoading ? <LoadingSpinner size="sm" /> : <Users className="w-5 h-5" />}
+              {followLoading ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <>
+                  <Users className="w-5 h-5" />
+                  <span className="hidden md:inline">{isFollowing ? 'Following' : 'Follow'}</span>
+                </>
+              )}
             </button>
 
             {/* Subscribe Button */}
@@ -402,7 +408,7 @@ export default function ProfilePage() {
               <button
                 onClick={handleSubscribe}
                 disabled={subscribeLoading}
-                className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fun"
+                className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fun"
               >
                 <Star className="w-4 h-4" />
                 {subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth.toLocaleString()} coins/mo`}
@@ -411,8 +417,8 @@ export default function ProfilePage() {
 
             {/* Subscribed Badge */}
             {user.role === 'creator' && isSubscribed && (
-              <div className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 flex items-center justify-center gap-2">
-                <Star className="w-4 h-4 fill-gray-900" />
+              <div className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center gap-2">
+                <Star className="w-4 h-4 fill-white" />
                 Subscribed
               </div>
             )}
@@ -420,11 +426,25 @@ export default function ProfilePage() {
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              title="Message"
-              className="w-11 h-11 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center text-gray-800"
+              className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
             >
               <MessageCircle className="w-5 h-5" />
+              <span className="hidden md:inline">Message</span>
             </button>
+
+            {/* Tip Button */}
+            {user.role === 'creator' && (
+              <button
+                onClick={() => {
+                  // You can add tip modal functionality here
+                  alert('Tip feature coming soon!');
+                }}
+                className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white border-2 border-yellow-500 transition-all flex items-center justify-center gap-2 shadow-lg hover:scale-105"
+              >
+                <Gift className="w-5 h-5" />
+                <span className="hidden md:inline">Tip</span>
+              </button>
+            )}
 
             {/* Video Call Button */}
             {user.role === 'creator' && profile.callSettings && (
@@ -434,7 +454,7 @@ export default function ProfilePage() {
                 ratePerMinute={profile.callSettings.callRatePerMinute}
                 minimumDuration={profile.callSettings.minimumCallDuration}
                 isAvailable={profile.callSettings.isAvailableForCalls}
-                iconOnly
+                iconOnly={false}
                 callType="video"
               />
             )}
@@ -447,7 +467,7 @@ export default function ProfilePage() {
                 ratePerMinute={profile.callSettings.voiceCallRatePerMinute}
                 minimumDuration={profile.callSettings.minimumVoiceCallDuration}
                 isAvailable={profile.callSettings.isAvailableForVoiceCalls}
-                iconOnly
+                iconOnly={false}
                 callType="voice"
               />
             )}
