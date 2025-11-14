@@ -92,7 +92,7 @@ export default function EventsPage() {
             onClick={() => setFilter('upcoming')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filter === 'upcoming'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-purple-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -103,7 +103,7 @@ export default function EventsPage() {
             onClick={() => setFilter('live')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filter === 'live'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-purple-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -119,7 +119,7 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('all')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'all'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-purple-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -130,7 +130,7 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('workshop')}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
               typeFilter === 'workshop'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white'
+                ? 'bg-purple-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
