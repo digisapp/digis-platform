@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
-import { Search, X, Pin, Archive, MoreVertical, Users } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users, Inbox, MessageCircle } from 'lucide-react';
 
 type ConversationWithOtherUser = {
   id: string;
@@ -303,7 +303,7 @@ export default function MessagesPage() {
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {filteredConversations.length === 0 ? (
                 <div className="glass rounded-xl border-2 border-purple-200 p-8 text-center">
-                  <div className="text-5xl mb-3">📭</div>
+                  <Inbox className="w-16 h-16 mx-auto mb-3 text-gray-400" />
                   <h3 className="text-lg font-semibold text-gray-900">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
@@ -419,7 +419,7 @@ export default function MessagesPage() {
           {/* Right Column: Message Panel (Empty State) */}
           <div className="hidden lg:flex items-center justify-center glass rounded-3xl border-2 border-purple-200 p-12 h-[calc(100vh-180px)]">
             <div className="text-center max-w-md">
-              <div className="text-7xl mb-6">💬</div>
+              <MessageCircle className="w-24 h-24 mx-auto mb-6 text-gray-400" />
               <h2 className="text-3xl font-bold text-gray-900">
                 Select a Chat
               </h2>
