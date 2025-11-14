@@ -283,7 +283,7 @@ function GoalModal({
   const [formData, setFormData] = useState({
     title: goal?.title || '',
     description: goal?.description || '',
-    goalType: goal?.goalType || 'followers',
+    goalType: goal?.goalType || 'coins',
     targetAmount: goal?.targetAmount || 1000,
     rewardText: goal?.rewardText || '',
   });
@@ -324,32 +324,6 @@ function GoalModal({
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Goal Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Goal Type</label>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { type: 'followers', label: 'Followers', icon: Users, color: 'digis-cyan' },
-                { type: 'coins', label: 'Coins', icon: Coins, color: 'yellow-500' },
-                { type: 'subscribers', label: 'Subscribers', icon: Star, color: 'purple-500' },
-              ].map(({ type, label, icon: Icon, color }) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, goalType: type as any })}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    formData.goalType === type
-                      ? `border-${color} bg-${color}/10`
-                      : 'border-purple-200 bg-white/60 hover:bg-white/80'
-                  }`}
-                >
-                  <Icon className={`w-6 h-6 mx-auto mb-2 ${formData.goalType === type ? `text-${color}` : 'text-gray-600'}`} />
-                  <div className="text-sm font-semibold text-gray-800">{label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
@@ -375,14 +349,15 @@ function GoalModal({
             />
           </div>
 
-          {/* Target Amount */}
+          {/* Goal (Coins) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Target Amount *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Goal (Coins) *</label>
             <input
               type="number"
               min="1"
               value={formData.targetAmount}
               onChange={(e) => setFormData({ ...formData, targetAmount: parseInt(e.target.value) || 0 })}
+              placeholder="e.g., 10000"
               className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 focus:outline-none focus:border-digis-cyan"
               required
             />
