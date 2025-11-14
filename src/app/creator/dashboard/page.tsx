@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio } from 'lucide-react';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Target, Plus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -75,6 +75,7 @@ export default function CreatorDashboard() {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
+  const [goals, setGoals] = useState<any[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -83,6 +84,7 @@ export default function CreatorDashboard() {
     fetchRecentActivities();
     fetchUpcomingEvents();
     fetchPendingCounts();
+    fetchGoals();
   }, []);
 
   // Keyboard shortcuts
@@ -331,6 +333,18 @@ export default function CreatorDashboard() {
     }
   };
 
+  const fetchGoals = async () => {
+    try {
+      const response = await fetch('/api/creator/goals');
+      if (response.ok) {
+        const data = await response.json();
+        setGoals(data.goals || []);
+      }
+    } catch (err) {
+      console.error('Error fetching goals:', err);
+    }
+  };
+
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -410,6 +424,77 @@ export default function CreatorDashboard() {
             </div>
           </div>
         )}
+
+        {/* Goals Widget */}
+        <div className="mb-8 glass rounded-2xl border border-amber-200 p-6 shadow-fun">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <Target className="w-5 h-5 text-amber-500" />
+              Profile Goals
+            </h3>
+            <button
+              onClick={() => router.push('/creator/goals')}
+              className="text-sm text-gray-600 hover:text-digis-cyan transition-colors font-medium"
+            >
+              Manage All
+            </button>
+          </div>
+
+          {/* Create Goal Button */}
+          <button
+            onClick={() => router.push('/creator/goals')}
+            className="w-full mb-4 px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Create Goal
+          </button>
+
+          {/* Active Goals List */}
+          {goals.filter(g => g.isActive && !g.isCompleted).length > 0 ? (
+            <div className="space-y-3">
+              {goals
+                .filter(g => g.isActive && !g.isCompleted)
+                .slice(0, 3)
+                .map((goal) => {
+                  const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                  return (
+                    <div key={goal.id} className="bg-white/60 rounded-lg p-4 border border-amber-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold text-gray-800 text-sm">{goal.title}</h4>
+                        <span className="text-xs text-gray-600 font-medium">
+                          {goal.currentAmount.toLocaleString()} / {goal.targetAmount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden mb-2">
+                        <div
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple transition-all duration-700"
+                          style={{ width: `${percentage}%` }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-bold text-gray-900">
+                            {Math.round(percentage)}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        🎁 {goal.rewardText}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-500/20 flex items-center justify-center mb-4">
+                <Target className="w-8 h-8 text-amber-500" />
+              </div>
+              <p className="text-gray-600 font-medium mb-2">No active goals</p>
+              <p className="text-sm text-gray-500 mb-4">Create your first goal to engage your followers!</p>
+            </div>
+          )}
+        </div>
 
         {/* Pending Calls & Recent Activity - Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
