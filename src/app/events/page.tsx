@@ -86,58 +86,57 @@ export default function EventsPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
         {/* Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-3">
-          {/* Status Filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <button
-              onClick={() => setFilter('upcoming')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                filter === 'upcoming'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Calendar className="w-4 h-4" strokeWidth={2.5} />
-              Upcoming
-            </button>
-            <button
-              onClick={() => setFilter('live')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                filter === 'live'
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Radio className="w-4 h-4 text-red-500" strokeWidth={2.5} />
-              Live Now
-            </button>
-          </div>
+        <div className="mb-8 flex flex-wrap gap-2">
+          {/* Status Filter Pills */}
+          <button
+            onClick={() => setFilter('upcoming')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              filter === 'upcoming'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
+            Upcoming
+          </button>
+          <button
+            onClick={() => setFilter('live')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              filter === 'live'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5 text-red-500" strokeWidth={2} />
+            Live Now
+          </button>
 
-          {/* Event Type Filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <button
-              onClick={() => setTypeFilter('all')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                typeFilter === 'all'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Ticket className="w-4 h-4" strokeWidth={2.5} />
-              All Types
-            </button>
-            <button
-              onClick={() => setTypeFilter('workshop')}
-              className={`px-5 py-3 rounded-xl font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                typeFilter === 'workshop'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
-              Workshops
-            </button>
-          </div>
+          {/* Divider */}
+          <div className="w-px h-6 bg-gray-300 self-center mx-1" />
+
+          {/* Event Type Filter Pills */}
+          <button
+            onClick={() => setTypeFilter('all')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              typeFilter === 'all'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Ticket className="w-3.5 h-3.5" strokeWidth={2} />
+            All Types
+          </button>
+          <button
+            onClick={() => setTypeFilter('workshop')}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              typeFilter === 'workshop'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Dumbbell className="w-3.5 h-3.5" strokeWidth={2} />
+            Workshops
+          </button>
         </div>
 
         {/* Live Events */}
