@@ -7,6 +7,14 @@ import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket,
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
+import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
+import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
+import { BentoGrid } from '@/components/profile/BentoGrid';
+import { QuickTipButtons } from '@/components/profile/QuickTipButtons';
+import { GoalsWidget } from '@/components/profile/GoalsWidget';
+import { TopSupportersWidget } from '@/components/profile/TopSupportersWidget';
+import { SmartFilters, ContentFilter, SortOption } from '@/components/profile/SmartFilters';
+import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 
 interface ProfileData {
   user: {
@@ -60,6 +68,9 @@ export default function ProfilePage() {
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [contentFilter, setContentFilter] = useState<ContentFilter>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('latest');
 
   useEffect(() => {
     fetchProfile();
@@ -198,6 +209,12 @@ export default function ProfilePage() {
       // Update local state
       setIsFollowing(!isFollowing);
 
+      // Show confetti on follow
+      if (!isFollowing) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2000);
+      }
+
       // Update follower count
       if (profile) {
         setProfile({
@@ -234,6 +251,8 @@ export default function ProfilePage() {
       }
 
       setIsSubscribed(true);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2000);
       alert(data.message || 'Successfully subscribed!');
     } catch (err: any) {
       console.error('Subscribe error:', err);
@@ -328,46 +347,24 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient pb-8 md:pl-20 -mt-4 md:mt-0 pt-4 md:pt-0">
-      {/* Banner - Responsive height */}
-      <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-digis-cyan/30 to-digis-pink/30">
-        {user.bannerUrl ? (
-          <img
-            src={user.bannerUrl}
-            alt="Profile banner"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-digis-cyan/20 via-purple-500/20 to-digis-pink/20" />
-        )}
-        {/* Gradient overlay for better text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-      </div>
+      {/* Confetti Effect */}
+      <ConfettiEffect show={showConfetti} duration={2000} />
+
+      {/* Banner with Parallax Effect */}
+      <ParallaxBanner imageUrl={user.bannerUrl} height="h-48 sm:h-56 md:h-64" />
 
       {/* Profile Content - Mobile optimized */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Avatar and Header Section */}
         <div className="relative -mt-16 sm:-mt-20 md:mt-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
-            {/* Avatar */}
-            <div className="relative flex-shrink-0">
-              {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName || user.username}
-                  className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 border-white object-cover shadow-2xl ring-2 ring-digis-cyan/30"
-                />
-              ) : (
-                <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 border-white bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center shadow-2xl ring-2 ring-digis-cyan/30">
-                  <UserCircle className="w-16 h-16 sm:w-20 sm:h-20 text-white" />
-                </div>
-              )}
-              {/* Online indicator */}
-              {user.isOnline && (
-                <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-lg">
-                  <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75" />
-                </div>
-              )}
-            </div>
+            {/* Animated Avatar with Gradient Border */}
+            <AnimatedAvatar
+              src={user.avatarUrl}
+              alt={user.displayName || user.username}
+              size="large"
+              isOnline={user.isOnline}
+            />
 
             {/* Name and Stats - Mobile stacked */}
             <div className="flex-1 min-w-0">
@@ -496,6 +493,20 @@ export default function ProfilePage() {
               />
             )}
           </div>
+
+          {/* Quick Tip Buttons */}
+          {user.role === 'creator' && (
+            <div className="mt-4">
+              <QuickTipButtons
+                creatorId={user.id}
+                creatorName={user.displayName || user.username}
+                onTipSent={() => {
+                  setShowConfetti(true);
+                  setTimeout(() => setShowConfetti(false), 2000);
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Inline Live Stream Section */}
@@ -526,6 +537,78 @@ export default function ProfilePage() {
                 <Video className="w-6 h-6 text-white flex-shrink-0" />
               </div>
             </button>
+          </div>
+        )}
+
+        {/* Featured Bento Grid Section */}
+        {user.role === 'creator' && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-digis-cyan" />
+                Featured Content
+              </h2>
+            </div>
+            <BentoGrid
+              content={[
+                // Sample featured content - will be replaced with real data
+                {
+                  id: '1',
+                  type: 'photo',
+                  title: 'Latest Post',
+                  thumbnail: user.bannerUrl || undefined,
+                  likes: 0,
+                  views: 0,
+                  isLocked: false,
+                  timestamp: new Date().toISOString(),
+                  featured: true,
+                },
+              ]}
+            />
+          </div>
+        )}
+
+        {/* Widgets Section */}
+        {user.role === 'creator' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <GoalsWidget
+              goals={[
+                {
+                  id: '1',
+                  title: 'Next Milestone',
+                  description: 'Help me reach my next goal!',
+                  current: followCounts.followers,
+                  target: Math.ceil(followCounts.followers / 1000) * 1000,
+                  contributors: followCounts.followers,
+                  type: 'followers',
+                },
+              ]}
+            />
+            <TopSupportersWidget
+              supporters={[
+                // Sample data - will be replaced with real data
+              ]}
+            />
+          </div>
+        )}
+
+        {/* Smart Filters */}
+        {user.role === 'creator' && (
+          <div className="mb-6">
+            <SmartFilters
+              activeFilter={contentFilter}
+              activeSortOption={sortOption}
+              onFilterChange={setContentFilter}
+              onSortChange={setSortOption}
+              counts={{
+                all: streams.length + shows.length,
+                photos: 0,
+                videos: 0,
+                live: isLive ? 1 : 0,
+                exclusive: 0,
+                free: streams.length + shows.length,
+              }}
+            />
           </div>
         )}
 
