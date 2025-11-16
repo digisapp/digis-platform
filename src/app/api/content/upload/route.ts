@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes for large video uploads
 
 /**
  * POST - Upload content with file

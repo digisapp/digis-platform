@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
+import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Upload, Image, Video, Grid3x3, DollarSign, Lock, Eye, Plus } from 'lucide-react';
 
 export default function CreateContentPage() {
@@ -79,29 +80,88 @@ export default function CreateContentPage() {
     setUploading(true);
 
     try {
-      // Create FormData for file upload
-      const uploadData = new FormData();
+      // For videos: Upload directly to Supabase to bypass 4.5MB Vercel limit
+      if (formData.contentType === 'video' && formData.file) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      // For gallery: append all files
-      if (formData.contentType === 'gallery') {
-        formData.files.forEach((file, index) => {
-          uploadData.append('files', file);
+        if (!user) {
+          showToast('You must be logged in to upload content', 'error');
+          return;
+        }
+
+        // Upload video directly to Supabase storage
+        const ext = formData.file.name.split('.').pop()?.toLowerCase() || 'mp4';
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('content')
+          .upload(fileName, formData.file, {
+            cacheControl: '31536000',
+            upsert: false,
+            contentType: formData.file.type,
+          });
+
+        if (uploadError) {
+          showToast(`Upload failed: ${uploadError.message}`, 'error');
+          return;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage.from('content').getPublicUrl(fileName);
+
+        // Create content item via API (without file, just metadata)
+        const response = await fetch('/api/content/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description || '',
+            contentType: formData.contentType,
+            unlockPrice: formData.isFree ? 0 : formData.unlockPrice,
+            thumbnailUrl: publicUrl,
+            mediaUrl: publicUrl,
+            durationSeconds: 0, // TODO: Extract actual video duration
+          }),
         });
+
+        if (response.ok) {
+          showToast('Video uploaded successfully!', 'success');
+          setTimeout(() => {
+            router.push('/creator/content');
+          }, 1500);
+        } else {
+          // Clean up uploaded file if database creation fails
+          await supabase.storage.from('content').remove([fileName]);
+
+          const data = await response.json();
+          const errorMsg = data.details || data.error || 'Failed to create content';
+          showToast(errorMsg, 'error');
+        }
       } else {
-        // For photo/video: append single file
-        uploadData.append('file', formData.file!);
-      }
+        // For photos/galleries: Use API route (usually under 50MB)
+        const uploadData = new FormData();
 
-      uploadData.append('title', formData.title);
-      uploadData.append('description', formData.description || '');
-      uploadData.append('contentType', formData.contentType);
-      uploadData.append('unlockPrice', formData.unlockPrice.toString());
-      uploadData.append('isFree', formData.isFree.toString());
+        // For gallery: append all files
+        if (formData.contentType === 'gallery') {
+          formData.files.forEach((file, index) => {
+            uploadData.append('files', file);
+          });
+        } else {
+          // For photo: append single file
+          uploadData.append('file', formData.file!);
+        }
 
-      const response = await fetch('/api/content/upload', {
-        method: 'POST',
-        body: uploadData,
-      });
+        uploadData.append('title', formData.title);
+        uploadData.append('description', formData.description || '');
+        uploadData.append('contentType', formData.contentType);
+        uploadData.append('unlockPrice', formData.unlockPrice.toString());
+        uploadData.append('isFree', formData.isFree.toString());
+
+        const response = await fetch('/api/content/upload', {
+          method: 'POST',
+          body: uploadData,
+        });
 
       if (response.ok) {
         showToast('Content uploaded successfully!', 'success');
@@ -110,11 +170,22 @@ export default function CreateContentPage() {
           router.push('/creator/content');
         }, 1500);
       } else {
-        const data = await response.json();
-        const errorMsg = data.details || data.error || 'Failed to upload content';
-        showToast(errorMsg, 'error');
-        console.error('Upload error:', data);
+        // Handle 413 Content Too Large error
+        if (response.status === 413) {
+          showToast('File too large. Please use a smaller file or compress it first.', 'error');
+        } else {
+          try {
+            const data = await response.json();
+            const errorMsg = data.details || data.error || 'Failed to upload content';
+            showToast(errorMsg, 'error');
+            console.error('Upload error:', data);
+          } catch (e) {
+            // Response is not JSON (might be HTML error page)
+            showToast('Upload failed. Please try again with a smaller file.', 'error');
+          }
+        }
       }
+      } // Close else block for photos/galleries
     } catch (error) {
       console.error('Error uploading content:', error);
       showToast('Failed to upload content', 'error');
