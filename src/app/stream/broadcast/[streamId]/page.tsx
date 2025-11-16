@@ -522,7 +522,11 @@ export default function BroadcastStudioPage() {
             <div className="glass rounded-3xl border-2 border-purple-200 shadow-2xl p-8 max-w-2xl w-full">
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="text-6xl mb-4">🎉</div>
+                <div className="mb-4">
+                  <svg className="w-16 h-16 mx-auto text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
                 <h2 className="text-3xl font-bold text-white mb-2">Stream Complete!</h2>
                 <p className="text-gray-300">Great job! Here's how your stream performed</p>
               </div>
@@ -864,6 +868,7 @@ export default function BroadcastStudioPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* CSS for animated gradient border */}
