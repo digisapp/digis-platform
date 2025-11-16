@@ -523,8 +523,7 @@ export default function SettingsPage() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="relative z-10">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
         {/* Global Messages */}
         {message && (
           <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">

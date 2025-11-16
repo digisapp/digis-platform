@@ -259,7 +259,6 @@ export default function WalletPage() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="relative z-10">
       <BuyCoinsModal
         isOpen={showBuyCoins}
         onClose={() => setShowBuyCoins(false)}
@@ -272,7 +271,7 @@ export default function WalletPage() {
         existingInfo={bankingInfo}
       />
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 relative z-10">
         {/* Tabs */}
         <div className="mb-8 flex gap-3">
           <button

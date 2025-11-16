@@ -224,8 +224,7 @@ export default function MessagesPage() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="relative z-10">
-      <div className="container mx-auto max-w-7xl">
+      <div className="container mx-auto max-w-7xl relative z-10">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
@@ -435,7 +434,6 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
