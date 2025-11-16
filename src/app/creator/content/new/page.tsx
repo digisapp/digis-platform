@@ -218,7 +218,7 @@ export default function CreateContentPage() {
 
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, isFree: false })}
+                onClick={() => setFormData({ ...formData, isFree: false, unlockPrice: formData.unlockPrice || 100 })}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                   !formData.isFree
                     ? 'border-amber-500 bg-amber-500/10'
@@ -246,11 +246,13 @@ export default function CreateContentPage() {
                   <span className="text-gray-600">coins</span>
                 </div>
 
-                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    Fans will pay {formData.unlockPrice} coins to unlock and view this content
-                  </p>
-                </div>
+                {formData.unlockPrice > 0 && (
+                  <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      Fans will pay {formData.unlockPrice} coins to unlock and view this content
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </GlassCard>
