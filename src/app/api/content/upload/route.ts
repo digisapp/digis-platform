@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
         unlockPrice: isFree ? 0 : unlockPrice,
         isFree,
         thumbnailUrl,
-        mediaUrl: publicUrl,
+        mediaUrl,
         durationSeconds: contentType === 'video' ? 0 : null, // TODO: Extract video duration
         isPublished: true,
       }).returning();
