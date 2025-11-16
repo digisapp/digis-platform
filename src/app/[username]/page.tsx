@@ -212,6 +212,8 @@ export default function ProfilePage() {
           type: item.contentType === 'video' ? 'video' : item.contentType === 'photo' ? 'photo' : 'photo',
           title: item.title,
           thumbnail: item.thumbnailUrl,
+          url: item.mediaUrl,
+          description: item.description,
           likes: 0, // TODO: Add likes functionality
           views: item.viewCount,
           isLocked: !item.isFree,
