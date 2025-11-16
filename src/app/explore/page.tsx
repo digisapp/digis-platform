@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, UserPlus } from 'lucide-react';
+import { Search, UserCircle, UserPlus, CheckCircle, Users, TrendingUp } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -352,17 +352,58 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
       </div>
 
-      {/* Creator Username */}
-      <div className="p-3 md:p-3.5">
-        <div className="flex items-center justify-center gap-1.5">
-          {/* Status dot - green for online */}
-          {/* TODO: Add isLive field to show red dot when actively streaming */}
-          {creator.isOnline && (
-            <div className="w-2 h-2 rounded-full flex-shrink-0 bg-green-500" />
-          )}
-          <h3 className="text-sm md:text-base font-bold text-gray-900 truncate text-center">
-            {creator.username}
-          </h3>
+      {/* Creator Info - Premium Glassmorphism */}
+      <div className="relative p-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-md border-t-2 border-purple-200/50">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        <div className="relative z-10 space-y-2">
+          {/* Username with gradient + verified badge */}
+          <div className="flex items-center justify-center gap-1.5">
+            {creator.isOnline && (
+              <div className="relative flex-shrink-0">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+              </div>
+            )}
+            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[140px]">
+              {creator.displayName || creator.username}
+            </h3>
+            {creator.isCreatorVerified && (
+              <CheckCircle className="w-4 h-4 text-white fill-blue-500 flex-shrink-0" />
+            )}
+            {creator.isTrending && (
+              <div className="relative">
+                <TrendingUp className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
+              </div>
+            )}
+          </div>
+
+          {/* Stats row */}
+          <div className="flex items-center justify-center gap-3 text-xs">
+            {/* Follower count */}
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/60 border border-purple-200/50">
+              <Users className="w-3 h-3 text-digis-cyan" />
+              <span className="font-semibold text-gray-700">
+                {creator.followerCount >= 1000
+                  ? `${(creator.followerCount / 1000).toFixed(1)}k`
+                  : creator.followerCount}
+              </span>
+            </div>
+
+            {/* Username (if displayName exists) */}
+            {creator.displayName && (
+              <span className="text-gray-600 font-medium truncate max-w-[100px]">
+                @{creator.username}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Subtle glow effect on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-digis-cyan to-transparent blur-sm" />
         </div>
       </div>
     </div>
