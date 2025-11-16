@@ -327,7 +327,7 @@ export default function BroadcastStudioPage() {
   };
 
   const showGiftNotification = (data: { gift: VirtualGift; streamGift: StreamGift }) => {
-    // Add gift alert
+    // Add gift alert (sound will be played by GiftAlert component)
     const giftAlert: Alert = {
       type: 'gift',
       gift: data.gift,
@@ -352,8 +352,7 @@ export default function BroadcastStudioPage() {
       }, 3500);
     }
 
-    // Play sound with gift value for enhanced audio
-    playSound('gift', data.streamGift.totalCoins);
+    // Note: Sound is now handled by alert components (GiftAlert.tsx plays appropriate sound)
 
     console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
   };
@@ -686,7 +685,7 @@ export default function BroadcastStudioPage() {
 
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
 
-              <StreamHealthIndicator />
+              <StreamHealthIndicator streamId={streamId} />
 
               <div className="flex items-center gap-2">
                 <span className="text-yellow-400 font-bold">{totalEarnings}</span>

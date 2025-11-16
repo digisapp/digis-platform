@@ -1,48 +1,83 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useConnectionState, useConnectionQualityIndicator } from '@livekit/components-react';
-import { ConnectionState, ConnectionQuality } from 'livekit-client';
 
 interface StreamHealthIndicatorProps {
-  participantIdentity?: string;
+  streamId: string;
 }
 
 type HealthStatus = 'excellent' | 'good' | 'fair' | 'poor' | 'disconnected';
 
-export function StreamHealthIndicator({ participantIdentity }: StreamHealthIndicatorProps) {
-  const connectionState = useConnectionState();
-  const quality = useConnectionQualityIndicator({ participant: participantIdentity });
+export function StreamHealthIndicator({ streamId }: StreamHealthIndicatorProps) {
   const [healthStatus, setHealthStatus] = useState<HealthStatus>('excellent');
   const [showDetails, setShowDetails] = useState(false);
+  const [connectionState, setConnectionState] = useState<string>('Connected');
+  const [isOnline, setIsOnline] = useState(true);
+  const [ping, setPing] = useState<number>(0);
 
   useEffect(() => {
-    // Determine health status based on connection state and quality
-    if (connectionState === ConnectionState.Disconnected || connectionState === ConnectionState.Reconnecting) {
-      setHealthStatus('disconnected');
-      return;
-    }
+    // Monitor browser online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    if (connectionState !== ConnectionState.Connected) {
-      setHealthStatus('poor');
-      return;
-    }
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-    // Map LiveKit quality to our health status
-    switch (quality) {
-      case ConnectionQuality.Excellent:
-        setHealthStatus('excellent');
-        break;
-      case ConnectionQuality.Good:
-        setHealthStatus('good');
-        break;
-      case ConnectionQuality.Poor:
-        setHealthStatus('fair');
-        break;
-      default:
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Simple health check using ping to server
+    const checkHealth = async () => {
+      if (!isOnline) {
+        setHealthStatus('disconnected');
+        setConnectionState('Offline');
+        return;
+      }
+
+      try {
+        const start = Date.now();
+        const response = await fetch(`/api/streams/${streamId}/health`, {
+          method: 'HEAD',
+          cache: 'no-cache',
+        }).catch(() => null);
+
+        const latency = Date.now() - start;
+        setPing(latency);
+
+        if (!response || !response.ok) {
+          setHealthStatus('poor');
+          setConnectionState('Unstable');
+        } else if (latency < 100) {
+          setHealthStatus('excellent');
+          setConnectionState('Connected');
+        } else if (latency < 300) {
+          setHealthStatus('good');
+          setConnectionState('Connected');
+        } else if (latency < 600) {
+          setHealthStatus('fair');
+          setConnectionState('Connected');
+        } else {
+          setHealthStatus('poor');
+          setConnectionState('Connected');
+        }
+      } catch (error) {
         setHealthStatus('poor');
-    }
-  }, [connectionState, quality]);
+        setConnectionState('Error');
+      }
+    };
+
+    // Check immediately
+    checkHealth();
+
+    // Then check every 5 seconds
+    const interval = setInterval(checkHealth, 5000);
+
+    return () => clearInterval(interval);
+  }, [streamId, isOnline]);
 
   const getStatusConfig = () => {
     switch (healthStatus) {
@@ -146,8 +181,8 @@ export function StreamHealthIndicator({ participantIdentity }: StreamHealthIndic
               <span className="text-white font-medium">{connectionState}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Quality Level:</span>
-              <span className="text-white font-medium">{quality || 'Unknown'}</span>
+              <span className="text-gray-400">Latency:</span>
+              <span className="text-white font-medium">{ping > 0 ? `${ping}ms` : 'Checking...'}</span>
             </div>
           </div>
 
