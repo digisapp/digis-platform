@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic } from 'lucide-react';
+import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -412,7 +412,7 @@ export default function ProfilePage() {
                 </h1>
                 {user.isCreatorVerified && (
                   <div className="relative flex-shrink-0">
-                    <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-500 fill-yellow-500" strokeWidth={2} />
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 fill-blue-500" strokeWidth={2} />
                   </div>
                 )}
               </div>
