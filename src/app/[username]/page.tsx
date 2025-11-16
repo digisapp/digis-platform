@@ -468,8 +468,22 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {user.displayName && (
-                  <p className="text-cyan-300/90 mb-4 text-lg">@{user.username}</p>
+                  <p className="text-cyan-300/90 mb-2 text-lg">@{user.username}</p>
                 )}
+
+                {/* Follower Count */}
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`mb-4 transition-all ${
+                    isFollowing ? 'text-digis-cyan' : 'text-gray-400 hover:text-gray-300'
+                  } disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 hover:scale-105`}
+                >
+                  <Users className={`w-4 h-4 transition-all ${isFollowing ? 'fill-digis-cyan' : ''}`} />
+                  <span>
+                    <strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Follower{followCounts.followers !== 1 ? 's' : ''}
+                  </span>
+                </button>
 
                 {/* Bio */}
                 {user.bio && (
@@ -477,73 +491,6 @@ export default function ProfilePage() {
                     {user.bio}
                   </p>
                 )}
-
-                {/* Enhanced Stats Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                  {/* Followers */}
-                  <button
-                    onClick={handleFollowToggle}
-                    disabled={followLoading}
-                    className={`group relative overflow-hidden rounded-2xl p-4 transition-all ${
-                      isFollowing
-                        ? 'bg-gradient-to-br from-digis-cyan/20 to-digis-cyan/10 border border-digis-cyan/30'
-                        : 'bg-white/5 border border-white/10 hover:border-digis-cyan/50'
-                    } disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative">
-                      <Users className={`w-5 h-5 mb-2 ${isFollowing ? 'text-digis-cyan' : 'text-gray-400'}`} />
-                      <div className="text-2xl font-black text-white mb-1">
-                        {followCounts.followers.toLocaleString()}
-                      </div>
-                      <div className={`text-xs font-medium ${isFollowing ? 'text-digis-cyan' : 'text-gray-400'}`}>
-                        Followers
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* Content Count */}
-                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all group hover:scale-105">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative">
-                      <Sparkles className="w-5 h-5 text-purple-400 mb-2" />
-                      <div className="text-2xl font-black text-white mb-1">
-                        {content.length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-400">
-                        Posts
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Streams */}
-                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-pink-500/50 transition-all group hover:scale-105">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative">
-                      <Video className="w-5 h-5 text-pink-400 mb-2" />
-                      <div className="text-2xl font-black text-white mb-1">
-                        {streams.length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-400">
-                        Streams
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Shows */}
-                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-yellow-500/50 transition-all group hover:scale-105">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative">
-                      <Ticket className="w-5 h-5 text-yellow-400 mb-2" />
-                      <div className="text-2xl font-black text-white mb-1">
-                        {shows.length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-400">
-                        Shows
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
