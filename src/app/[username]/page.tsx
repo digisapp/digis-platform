@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle } from 'lucide-react';
+import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -11,7 +11,6 @@ import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
-import { BentoGrid } from '@/components/profile/BentoGrid';
 
 interface ProfileData {
   user: {
@@ -640,7 +639,56 @@ export default function ProfilePage() {
                           </p>
                         </div>
                       ) : (
-                        <BentoGrid content={content.filter(c => c.type === 'photo')} />
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {content.filter(c => c.type === 'photo').map((item) => (
+                            <div
+                              key={item.id}
+                              className="group relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                            >
+                              {/* Image */}
+                              {item.thumbnail ? (
+                                <img
+                                  src={item.thumbnail}
+                                  alt={item.title}
+                                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center">
+                                  <Image className="w-12 h-12 text-gray-400" />
+                                </div>
+                              )}
+
+                              {/* Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                              {/* Lock indicator */}
+                              {item.isLocked && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm">
+                                  <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
+                                    <Lock className="w-6 h-6 text-white" />
+                                  </div>
+                                  {item.unlockPrice && item.unlockPrice > 0 && (
+                                    <div className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-bold text-xs">
+                                      {item.unlockPrice} coins
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Info on hover */}
+                              <div className="absolute bottom-0 left-0 right-0 p-3 z-10 translate-y-full group-hover:translate-y-0 transition-transform">
+                                <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
+                                  {item.title}
+                                </h3>
+                                <div className="flex items-center gap-2 text-xs text-white/90">
+                                  {item.views !== undefined && (
+                                    <span>{item.views} views</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   )}
@@ -657,7 +705,63 @@ export default function ProfilePage() {
                           </p>
                         </div>
                       ) : (
-                        <BentoGrid content={content.filter(c => c.type === 'video')} />
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {content.filter(c => c.type === 'video').map((item) => (
+                            <div
+                              key={item.id}
+                              className="group relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                            >
+                              {/* Thumbnail */}
+                              {item.thumbnail ? (
+                                <img
+                                  src={item.thumbnail}
+                                  alt={item.title}
+                                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center">
+                                  <Film className="w-12 h-12 text-gray-400" />
+                                </div>
+                              )}
+
+                              {/* Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+                              {/* Play button */}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="p-4 rounded-full bg-black/60 backdrop-blur-md group-hover:scale-110 transition-transform">
+                                  <Play className="w-8 h-8 text-white" fill="white" />
+                                </div>
+                              </div>
+
+                              {/* Lock indicator */}
+                              {item.isLocked && (
+                                <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
+                                  <div className="p-2 rounded-full bg-black/60 backdrop-blur-md">
+                                    <Lock className="w-4 h-4 text-white" />
+                                  </div>
+                                  {item.unlockPrice && item.unlockPrice > 0 && (
+                                    <div className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-bold text-xs">
+                                      {item.unlockPrice} coins
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Info */}
+                              <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                                <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
+                                  {item.title}
+                                </h3>
+                                <div className="flex items-center gap-2 text-xs text-white/90">
+                                  {item.views !== undefined && (
+                                    <span>{item.views} views</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   )}
