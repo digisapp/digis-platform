@@ -5,6 +5,14 @@ import { Trophy, Target, Users, Coins, Star, Zap, Sparkles as SparklesIcon } fro
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 
+interface Tipper {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  totalAmount: number;
+}
+
 interface ProfileGoal {
   id: string;
   title: string;
@@ -15,6 +23,8 @@ interface ProfileGoal {
   rewardText: string;
   isActive: boolean;
   isCompleted: boolean;
+  metadata?: string | null;
+  showTopTippers?: boolean;
 }
 
 interface ProfileGoalsWidgetProps {
@@ -235,6 +245,71 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple rounded-xl blur opacity-50 group-hover/btn:opacity-100 transition-opacity -z-10" />
                   </button>
                 </div>
+
+                {/* Top Tippers */}
+                {goal.showTopTippers !== false && (() => {
+                  let tippers: Tipper[] = [];
+                  if (goal.metadata) {
+                    try {
+                      const metadata = JSON.parse(goal.metadata);
+                      tippers = (metadata.tippers || []).slice(0, 3);
+                    } catch (e) {
+                      console.error('Failed to parse goal metadata:', e);
+                    }
+                  }
+
+                  if (tippers.length === 0) return null;
+
+                  return (
+                    <div className="mt-3 pt-3 border-t border-gray-300/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-xs font-bold text-gray-700">Top Supporters</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {tippers.map((tipper, index) => (
+                          <div
+                            key={tipper.userId}
+                            className="flex items-center gap-2 text-xs"
+                          >
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              {/* Rank badge */}
+                              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
+                                index === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
+                                index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-700' :
+                                'bg-gradient-to-br from-amber-700 to-amber-800 text-white'
+                              }`}>
+                                {index + 1}
+                              </div>
+
+                              {/* Avatar */}
+                              {tipper.avatarUrl ? (
+                                <img
+                                  src={tipper.avatarUrl}
+                                  alt={tipper.displayName || tipper.username}
+                                  className="w-5 h-5 rounded-full flex-shrink-0 border border-purple-200"
+                                />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex-shrink-0 border border-purple-200" />
+                              )}
+
+                              {/* Name */}
+                              <span className="font-medium text-gray-800 truncate">
+                                {tipper.displayName || tipper.username}
+                              </span>
+                            </div>
+
+                            {/* Amount */}
+                            <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-300/50 flex-shrink-0">
+                              <Coins className="w-3 h-3 text-amber-600" />
+                              <span className="font-bold text-amber-700">{tipper.totalAmount.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );

@@ -38,7 +38,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { title, description, goalType, targetAmount, rewardText, isActive } = await request.json();
+    const { title, description, goalType, targetAmount, rewardText, isActive, showTopTippers } = await request.json();
 
     // Build update object
     const updates: any = {
@@ -70,6 +70,7 @@ export async function PUT(
     }
     if (rewardText !== undefined) updates.rewardText = rewardText;
     if (isActive !== undefined) updates.isActive = isActive;
+    if (showTopTippers !== undefined) updates.showTopTippers = showTopTippers;
 
     // Update the goal
     const [updatedGoal] = await db

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only creators can create goals' }, { status: 403 });
     }
 
-    const { title, description, goalType, targetAmount, rewardText } = await request.json();
+    const { title, description, goalType, targetAmount, rewardText, showTopTippers } = await request.json();
 
     // Validate required fields
     if (!title || !goalType || !targetAmount || !rewardText) {
@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
       targetAmount,
       currentAmount,
       rewardText,
+      showTopTippers: showTopTippers !== false,
       isActive: true,
       isCompleted: currentAmount >= targetAmount,
       completedAt: currentAmount >= targetAmount ? new Date() : null,

@@ -22,6 +22,10 @@ export const creatorGoals = pgTable('creator_goals', {
   isCompleted: boolean('is_completed').default(false).notNull(),
   completedAt: timestamp('completed_at'),
 
+  // Top tippers tracking
+  metadata: text('metadata'), // JSON string for tippers data: { tippers: [{ userId, username, displayName, avatarUrl, totalAmount }] }
+  showTopTippers: boolean('show_top_tippers').default(true).notNull(), // Creator toggle for showing top tippers
+
   // Display order
   displayOrder: integer('display_order').default(0).notNull(),
 

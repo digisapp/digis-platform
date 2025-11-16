@@ -138,9 +138,47 @@ export async function POST(
         .where(eq(wallets.userId, receiver.id));
     }
 
-    // 3. Update goal progress
+    // 3. Update goal progress and track tipper
     const newCurrentAmount = goal.currentAmount + amount;
     const isNowCompleted = newCurrentAmount >= goal.targetAmount;
+
+    // Parse existing tippers from metadata
+    let tippers: Array<{ userId: string; username: string; displayName: string | null; avatarUrl: string | null; totalAmount: number }> = [];
+    if (goal.metadata) {
+      try {
+        const metadata = JSON.parse(goal.metadata);
+        tippers = metadata.tippers || [];
+      } catch (e) {
+        console.error('Failed to parse goal metadata:', e);
+      }
+    }
+
+    // Update or add tipper
+    const existingTipper = tippers.find(t => t.userId === authUser.id);
+    if (existingTipper) {
+      existingTipper.totalAmount += amount;
+      existingTipper.username = sender?.username || existingTipper.username;
+      existingTipper.displayName = sender?.displayName || existingTipper.displayName;
+    } else {
+      // Get user's avatar
+      const tipperUser = await db.query.users.findFirst({
+        where: eq(users.id, authUser.id),
+        columns: {
+          avatarUrl: true,
+        },
+      });
+
+      tippers.push({
+        userId: authUser.id,
+        username: sender?.username || 'Anonymous',
+        displayName: sender?.displayName || null,
+        avatarUrl: tipperUser?.avatarUrl || null,
+        totalAmount: amount,
+      });
+    }
+
+    // Sort tippers by total amount (descending)
+    tippers.sort((a, b) => b.totalAmount - a.totalAmount);
 
     await db
       .update(creatorGoals)
@@ -148,6 +186,7 @@ export async function POST(
         currentAmount: newCurrentAmount,
         isCompleted: isNowCompleted,
         completedAt: isNowCompleted && !goal.isCompleted ? new Date() : goal.completedAt,
+        metadata: JSON.stringify({ tippers }),
         updatedAt: new Date(),
       })
       .where(eq(creatorGoals.id, goalId));

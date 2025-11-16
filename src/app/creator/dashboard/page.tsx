@@ -80,10 +80,9 @@ export default function CreatorDashboard() {
   const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
   const [goals, setGoals] = useState<any[]>([]);
   const [goalFormData, setGoalFormData] = useState({
-    title: '',
     description: '',
     targetAmount: 1000,
-    rewardText: '',
+    showTopTippers: true,
   });
   const [submittingGoal, setSubmittingGoal] = useState(false);
   const [deletingGoal, setDeletingGoal] = useState(false);
@@ -350,6 +349,16 @@ export default function CreatorDashboard() {
       if (response.ok) {
         const data = await response.json();
         setGoals(data.goals || []);
+
+        // Load active goal into form
+        const activeGoal = (data.goals || []).find((g: any) => g.isActive && !g.isCompleted);
+        if (activeGoal) {
+          setGoalFormData({
+            description: activeGoal.description || '',
+            targetAmount: activeGoal.targetAmount,
+            showTopTippers: activeGoal.showTopTippers !== false,
+          });
+        }
       }
     } catch (err) {
       console.error('Error fetching goals:', err);
@@ -365,19 +374,17 @@ export default function CreatorDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...goalFormData,
+          title: 'Tip Goal',
+          description: goalFormData.description,
+          targetAmount: goalFormData.targetAmount,
+          rewardText: 'Thank you for your support!',
           goalType: 'coins',
+          showTopTippers: goalFormData.showTopTippers,
         }),
       });
 
       if (response.ok) {
-        // Reset form
-        setGoalFormData({
-          title: '',
-          description: '',
-          targetAmount: 1000,
-          rewardText: '',
-        });
+        // Don't reset form - keep values so creator knows what the active goal is
         // Refresh goals list
         fetchGoals();
         showToast('Goal created successfully! 🎯', 'success');
@@ -402,7 +409,7 @@ export default function CreatorDashboard() {
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete the goal "${activeGoal.title}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to clear this goal? This action cannot be undone.`)) {
       return;
     }
 
@@ -413,6 +420,12 @@ export default function CreatorDashboard() {
       });
 
       if (response.ok) {
+        // Clear the form
+        setGoalFormData({
+          description: '',
+          targetAmount: 1000,
+          showTopTippers: true,
+        });
         // Refresh goals list
         fetchGoals();
         showToast('Goal cleared successfully! ✨', 'success');
@@ -578,34 +591,21 @@ export default function CreatorDashboard() {
               </div>
 
               <form onSubmit={handleCreateGoal} className="space-y-3">
-                {/* Title */}
+                {/* Goal Description */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Title *</label>
-                  <input
-                    type="text"
-                    value={goalFormData.title}
-                    onChange={(e) => setGoalFormData({ ...goalFormData, title: e.target.value })}
-                    placeholder="e.g., Reach 1,000 Followers!"
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
-                    required
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Description (Optional)</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Goal Description</label>
+                  <textarea
                     value={goalFormData.description}
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
-                    placeholder="Add a short description..."
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    placeholder="What are you raising coins for?"
+                    rows={2}
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   />
                 </div>
 
-                {/* Goal (Coins) */}
+                {/* Tip Goal (Coins) */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Goal (Coins) *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Tip Goal in Coins *</label>
                   <input
                     type="number"
                     min="1"
@@ -617,17 +617,25 @@ export default function CreatorDashboard() {
                   />
                 </div>
 
-                {/* Reward Text */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Reward Text *</label>
-                  <input
-                    type="text"
-                    value={goalFormData.rewardText}
-                    onChange={(e) => setGoalFormData({ ...goalFormData, rewardText: e.target.value })}
-                    placeholder="e.g., I'll post exclusive content!"
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
-                    required
-                  />
+                {/* Show Top Tippers Toggle */}
+                <div className="flex items-center justify-between py-2 px-3 bg-purple-50/50 rounded-lg border border-purple-200">
+                  <label htmlFor="showTopTippers" className="text-xs font-medium text-gray-700 cursor-pointer">
+                    Show Top Supporters
+                  </label>
+                  <button
+                    type="button"
+                    id="showTopTippers"
+                    onClick={() => setGoalFormData({ ...goalFormData, showTopTippers: !goalFormData.showTopTippers })}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      goalFormData.showTopTippers ? 'bg-gradient-to-r from-digis-cyan to-digis-pink' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        goalFormData.showTopTippers ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
                 </div>
 
                 {/* Action */}
