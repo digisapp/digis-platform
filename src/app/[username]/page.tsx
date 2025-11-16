@@ -571,9 +571,7 @@ export default function ProfilePage() {
         {/* Profile Goals Widget */}
         {user.role === 'creator' && goals.length > 0 && (
           <div className="mb-6">
-            <GlassCard className="p-6">
-              <ProfileGoalsWidget goals={goals} maxDisplay={3} onGoalUpdate={fetchGoals} />
-            </GlassCard>
+            <ProfileGoalsWidget goals={goals} maxDisplay={3} onGoalUpdate={fetchGoals} />
           </div>
         )}
 

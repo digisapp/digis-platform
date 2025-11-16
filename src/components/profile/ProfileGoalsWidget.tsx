@@ -132,20 +132,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
       />
     )}
 
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <Trophy className="w-6 h-6 text-amber-500" />
-          <div className="absolute -inset-1 bg-amber-500/20 rounded-full blur-md -z-10 animate-pulse" />
-        </div>
-        <h3 className="text-xl font-bold bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 bg-clip-text text-transparent">
-          Profile Goals
-        </h3>
-      </div>
-
-      {/* Goals List */}
-      <div className="space-y-3">
+    <div className="space-y-3">
         {displayGoals.map((goal) => {
           const Icon = getIcon(goal.goalType);
           const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
@@ -314,7 +301,6 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
             </div>
           );
         })}
-      </div>
 
       <style jsx>{`
         @keyframes shimmer {
