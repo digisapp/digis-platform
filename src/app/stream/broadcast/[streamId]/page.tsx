@@ -431,7 +431,7 @@ export default function BroadcastStudioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -439,10 +439,14 @@ export default function BroadcastStudioPage() {
 
   if (error || !stream) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center p-4">
-        <div className="glass rounded-2xl border-2 border-purple-200 p-8 text-center">
-          <div className="text-6xl mb-4">😔</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{error || 'Stream not found'}</h1>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center p-4">
+        <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-8 text-center">
+          <div className="mb-4">
+            <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">{error || 'Stream not found'}</h1>
           <GlassButton variant="gradient" onClick={() => router.push('/creator/dashboard')} shimmer glow className="text-white font-semibold">
             Back to Dashboard
           </GlassButton>
@@ -452,7 +456,15 @@ export default function BroadcastStudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-red-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative z-10">
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
@@ -469,10 +481,10 @@ export default function BroadcastStudioPage() {
         <>
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" onClick={() => setShowEndConfirm(false)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="glass rounded-3xl border-2 border-purple-200 shadow-2xl p-8 max-w-md w-full">
-              <div className="mb-6 bg-gradient-to-r from-digis-pink/10 to-digis-purple/10 rounded-2xl p-4 border border-purple-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">End Stream?</h3>
-                <p className="text-gray-700">
+            <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-8 max-w-md w-full">
+              <div className="mb-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-2xl p-4 border border-red-500/20">
+                <h3 className="text-2xl font-bold text-white mb-2">End Stream?</h3>
+                <p className="text-gray-300">
                   Are you sure you want to end this stream? Your viewers will be disconnected.
                 </p>
               </div>
@@ -492,7 +504,7 @@ export default function BroadcastStudioPage() {
                   variant="ghost"
                   size="lg"
                   onClick={() => setShowEndConfirm(false)}
-                  className="w-full text-gray-900 font-semibold"
+                  className="w-full text-white font-semibold"
                 >
                   Cancel
                 </GlassButton>
@@ -511,46 +523,69 @@ export default function BroadcastStudioPage() {
               {/* Header */}
               <div className="text-center mb-6">
                 <div className="text-6xl mb-4">🎉</div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Stream Complete!</h2>
-                <p className="text-gray-700">Great job! Here's how your stream performed</p>
+                <h2 className="text-3xl font-bold text-white mb-2">Stream Complete!</h2>
+                <p className="text-gray-300">Great job! Here's how your stream performed</p>
               </div>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
-                  <div className="text-3xl mb-2">⏱️</div>
+                  <div className="mb-2">
+                    <svg className="w-8 h-8 mx-auto text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <div className="text-2xl font-bold text-digis-cyan">{streamSummary.duration}</div>
-                  <div className="text-sm text-gray-700 font-medium">Duration</div>
+                  <div className="text-sm text-gray-300 font-medium">Duration</div>
                 </div>
                 <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
-                  <div className="text-3xl mb-2">👁️</div>
+                  <div className="mb-2">
+                    <svg className="w-8 h-8 mx-auto text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </div>
                   <div className="text-2xl font-bold text-digis-purple">{streamSummary.totalViewers}</div>
-                  <div className="text-sm text-gray-700 font-medium">Total Views</div>
+                  <div className="text-sm text-gray-300 font-medium">Total Views</div>
                 </div>
                 <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
-                  <div className="text-3xl mb-2">📊</div>
+                  <div className="mb-2">
+                    <svg className="w-8 h-8 mx-auto text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
                   <div className="text-2xl font-bold text-digis-pink">{streamSummary.peakViewers}</div>
-                  <div className="text-sm text-gray-700 font-medium">Peak Viewers</div>
+                  <div className="text-sm text-gray-300 font-medium">Peak Viewers</div>
                 </div>
                 <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
-                  <div className="text-3xl mb-2">💰</div>
+                  <div className="mb-2">
+                    <svg className="w-8 h-8 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                   <div className="text-2xl font-bold text-yellow-500">{streamSummary.totalEarnings}</div>
-                  <div className="text-sm text-gray-700 font-medium">Coins Earned</div>
+                  <div className="text-sm text-gray-300 font-medium">Coins Earned</div>
                 </div>
               </div>
 
               {/* Top Supporters */}
               {streamSummary.topSupporters.length > 0 && (
                 <div className="mb-6 glass rounded-xl border-2 border-purple-200 p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <span>🏆</span> Top Supporters
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Top Supporters
                   </h3>
                   <div className="space-y-2">
                     {streamSummary.topSupporters.map((supporter, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-white/50 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
-                          <span className="font-semibold text-gray-900">{supporter.username}</span>
+                          <span className="text-lg font-bold" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32' }}>
+                            #{index + 1}
+                          </span>
+                          <span className="font-semibold text-white">{supporter.username}</span>
                         </div>
                         <span className="text-digis-cyan font-bold">{supporter.totalCoins} coins</span>
                       </div>
@@ -570,15 +605,18 @@ export default function BroadcastStudioPage() {
                   }}
                   shimmer
                   glow
-                  className="w-full text-white font-semibold"
+                  className="w-full text-white font-semibold flex items-center justify-center gap-2"
                 >
-                  📤 Share Highlights
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                  Share Highlights
                 </GlassButton>
                 <GlassButton
                   variant="ghost"
                   size="lg"
                   onClick={() => router.push('/creator/dashboard')}
-                  className="w-full text-gray-900 font-semibold"
+                  className="w-full text-white font-semibold"
                 >
                   Back to Dashboard
                 </GlassButton>
@@ -589,27 +627,28 @@ export default function BroadcastStudioPage() {
       )}
 
       {/* Top Stats Bar */}
-      <div className="glass backdrop-blur-md border-b-2 border-purple-200 sticky top-0 z-40">
+      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 sticky top-0 z-40">
         <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-6 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-              <div className="relative flex items-center gap-2 px-4 py-2 glass rounded-lg border-2 border-red-500 overflow-hidden">
+              <div className="relative flex items-center gap-2 px-4 py-2 backdrop-blur-xl bg-white/10 rounded-lg border border-red-500 overflow-hidden">
                 {/* Animated gradient border effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-red-500 opacity-20 animate-pulse" />
-                <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-red-500 via-pink-500 to-red-500 animate-gradient-x opacity-50"
-                     style={{ WebkitMaskComposite: 'xor', maskComposite: 'exclude' }} />
                 <div className="relative flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-red-600 font-bold">LIVE</span>
-                  <span className="text-gray-900 ml-2 font-semibold">{formatDuration()}</span>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+                  <span className="text-red-400 font-bold">LIVE</span>
+                  <span className="text-white ml-2 font-semibold">{formatDuration()}</span>
                 </div>
               </div>
 
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
 
-              <div className="flex items-center gap-2 px-4 py-2 glass rounded-lg border-2 border-purple-200">
-                <span className="text-2xl">💰</span>
-                <span className="text-gray-900 font-bold">{totalEarnings} coins</span>
+              <div className="flex items-center gap-2 px-4 py-2 backdrop-blur-xl bg-white/10 rounded-lg border border-green-500/30">
+                <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                </svg>
+                <span className="text-white font-bold">{totalEarnings} coins</span>
               </div>
             </div>
 
@@ -619,20 +658,24 @@ export default function BroadcastStudioPage() {
                 size="lg"
                 onClick={() => setShowLeaderboard(!showLeaderboard)}
                 shimmer
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2"
               >
-                <span className="hidden sm:inline">🏆 Leaderboard</span>
-                <span className="sm:hidden">🏆</span>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="hidden sm:inline">Leaderboard</span>
               </GlassButton>
               <GlassButton
                 variant="gradient"
                 size="lg"
                 onClick={() => setShowGoalModal(true)}
                 shimmer
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2"
               >
-                <span className="hidden sm:inline">🎯 Set Goal</span>
-                <span className="sm:hidden">🎯</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                <span className="hidden sm:inline">Set Goal</span>
               </GlassButton>
               <GlassButton
                 variant="gradient"
@@ -640,10 +683,13 @@ export default function BroadcastStudioPage() {
                 onClick={() => setShowEndConfirm(true)}
                 shimmer
                 glow
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px]"
+                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
                 <span className="hidden sm:inline">End Stream</span>
-                <span className="sm:hidden">🛑</span>
               </GlassButton>
             </div>
           </div>
@@ -656,14 +702,19 @@ export default function BroadcastStudioPage() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setShowLeaderboard(false)} />
           <div className={`fixed ${isPortrait ? 'bottom-0 left-0 right-0 max-h-[70vh]' : 'right-0 top-0 bottom-0 w-80'} bg-white/95 backdrop-blur-md border-l-2 border-purple-200 z-40 lg:relative lg:z-0 transform transition-transform duration-300 ${showLeaderboard ? 'translate-x-0 translate-y-0' : isPortrait ? 'translate-y-full' : 'translate-x-full'} lg:translate-x-0 lg:translate-y-0 overflow-y-auto`}>
             <div className="p-4 border-b-2 border-purple-200 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <span>🏆</span> Top Gifters
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                Top Gifters
               </h3>
               <button
                 onClick={() => setShowLeaderboard(false)}
-                className="lg:hidden text-gray-600 hover:text-gray-900 p-2 min-h-[44px] min-w-[44px]"
+                className="lg:hidden text-gray-300 hover:text-white p-2 min-h-[44px] min-w-[44px]"
               >
-                ✕
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
             <div className="p-4 space-y-3">
@@ -672,25 +723,30 @@ export default function BroadcastStudioPage() {
                   <div key={index} className="glass rounded-xl border-2 border-purple-200 p-4 hover:border-digis-cyan transition-all duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                        <span className="text-xl font-bold" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
+                          #{index + 1}
                         </span>
                         <div>
-                          <div className="font-bold text-gray-900">{supporter.username}</div>
-                          <div className="text-xs text-gray-600">Supporter</div>
+                          <div className="font-bold text-white">{supporter.username}</div>
+                          <div className="text-xs text-gray-300">Supporter</div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-digis-cyan">{supporter.totalCoins}</div>
-                        <div className="text-xs text-gray-600">coins</div>
+                        <div className="text-xs text-gray-300">coins</div>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-600">
-                  <div className="text-4xl mb-2">🎁</div>
-                  <p>No gifts yet!</p>
+                <div className="text-center py-8 text-gray-300">
+                  <div className="mb-3">
+                    <svg className="w-12 h-12 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="text-white">No gifts yet!</p>
                   <p className="text-sm mt-2">Be the first to support this stream</p>
                 </div>
               )}
@@ -752,9 +808,9 @@ export default function BroadcastStudioPage() {
 
             {/* Stream Info */}
             <div className="glass rounded-2xl border-2 border-purple-200 p-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{stream.title}</h1>
+              <h1 className="text-2xl font-bold text-white mb-2">{stream.title}</h1>
               {stream.description && (
-                <p className="text-gray-700">{stream.description}</p>
+                <p className="text-gray-300">{stream.description}</p>
               )}
             </div>
 
@@ -764,19 +820,33 @@ export default function BroadcastStudioPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-cyan transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
-                <div className="text-3xl mb-2">👁️</div>
+                <div className="mb-2">
+                  <svg className="w-8 h-8 mx-auto text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
                 <div className="text-xl sm:text-2xl font-bold text-digis-cyan">{stream.totalViews}</div>
-                <div className="text-xs sm:text-sm text-gray-700 font-medium">Total Views</div>
+                <div className="text-xs sm:text-sm text-gray-300 font-medium">Total Views</div>
               </div>
               <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-pink transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
-                <div className="text-3xl mb-2">📊</div>
+                <div className="mb-2">
+                  <svg className="w-8 h-8 mx-auto text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
                 <div className="text-xl sm:text-2xl font-bold text-digis-pink">{peakViewers}</div>
-                <div className="text-xs sm:text-sm text-gray-700 font-medium">Peak Viewers</div>
+                <div className="text-xs sm:text-sm text-gray-300 font-medium">Peak Viewers</div>
               </div>
               <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-yellow-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
-                <div className="text-3xl mb-2">🎁</div>
+                <div className="mb-2">
+                  <svg className="w-8 h-8 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  </svg>
+                </div>
                 <div className="text-xl sm:text-2xl font-bold text-yellow-500">{totalEarnings}</div>
-                <div className="text-xs sm:text-sm text-gray-700 font-medium">Coins Earned</div>
+                <div className="text-xs sm:text-sm text-gray-300 font-medium">Coins Earned</div>
               </div>
             </div>
           </div>
