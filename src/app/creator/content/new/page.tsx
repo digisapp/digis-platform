@@ -4,10 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { Toast } from '@/components/ui/Toast';
+import { useToast } from '@/hooks/useToast';
 import { ArrowLeft, Upload, Image, Video, Grid3x3, DollarSign, Lock, Eye } from 'lucide-react';
 
 export default function CreateContentPage() {
   const router = useRouter();
+  const { toast, showToast, hideToast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -37,7 +40,7 @@ export default function CreateContentPage() {
     e.preventDefault();
 
     if (!formData.title || !formData.file) {
-      alert('Please provide a title and upload a file');
+      showToast('Please provide a title and upload a file', 'error');
       return;
     }
 
@@ -59,19 +62,20 @@ export default function CreateContentPage() {
       });
 
       if (response.ok) {
-        alert('Content uploaded successfully!');
-        router.push('/creator/content');
+        showToast('Content uploaded successfully!', 'success');
+        // Redirect after showing toast
+        setTimeout(() => {
+          router.push('/creator/content');
+        }, 1500);
       } else {
         const data = await response.json();
-        const errorMsg = data.details
-          ? `${data.error}\n\nDetails: ${data.details}`
-          : data.error || 'Failed to upload content';
-        alert(errorMsg);
+        const errorMsg = data.details || data.error || 'Failed to upload content';
+        showToast(errorMsg, 'error');
         console.error('Upload error:', data);
       }
     } catch (error) {
       console.error('Error uploading content:', error);
-      alert('Failed to upload content');
+      showToast('Failed to upload content', 'error');
     } finally {
       setUploading(false);
     }
@@ -279,6 +283,15 @@ export default function CreateContentPage() {
           </div>
         </form>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </div>
   );
 }
