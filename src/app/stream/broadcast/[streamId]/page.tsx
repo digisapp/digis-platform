@@ -9,6 +9,7 @@ import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { VideoControls } from '@/components/streaming/VideoControls';
 import { ViewerList } from '@/components/streaming/ViewerList';
+import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -30,11 +31,13 @@ export default function BroadcastStudioPage() {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [isEnding, setIsEnding] = useState(false);
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [completedGoalIds, setCompletedGoalIds] = useState<Set<string>>(new Set());
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
@@ -213,7 +216,28 @@ export default function BroadcastStudioPage() {
       const response = await fetch(`/api/streams/${streamId}/goals`);
       const data = await response.json();
       if (response.ok) {
-        setGoals(data.goals);
+        const newGoals = data.goals;
+
+        // Check for newly completed goals
+        newGoals.forEach((goal: StreamGoal) => {
+          const isComplete = goal.currentAmount >= goal.targetAmount;
+          const wasAlreadyCompleted = completedGoalIds.has(goal.id);
+
+          if (isComplete && !wasAlreadyCompleted && goal.isActive) {
+            // This goal was just completed!
+            setCompletedGoalIds(prev => new Set(prev).add(goal.id));
+
+            // Add celebration alert
+            const celebrationAlert: Alert = {
+              type: 'goalComplete',
+              goal,
+              id: `goal-${goal.id}-${Date.now()}`,
+            };
+            setAlerts(prev => [...prev, celebrationAlert]);
+          }
+        });
+
+        setGoals(newGoals);
       }
     } catch (err) {
       console.error('Error fetching goals:', err);
@@ -302,10 +326,34 @@ export default function BroadcastStudioPage() {
   };
 
   const showGiftNotification = (data: { gift: VirtualGift; streamGift: StreamGift }) => {
+    // Add gift alert
+    const giftAlert: Alert = {
+      type: 'gift',
+      gift: data.gift,
+      streamGift: data.streamGift,
+      senderUsername: data.streamGift.senderUsername || 'Anonymous',
+      id: `gift-${Date.now()}-${Math.random()}`,
+    };
+    setAlerts(prev => [...prev, giftAlert]);
+
+    // Check if this is a big tip (500+ coins) for top tipper spotlight
+    if (data.streamGift.totalCoins >= 500) {
+      const topTipperAlert: Alert = {
+        type: 'topTipper',
+        username: data.streamGift.senderUsername || 'Anonymous',
+        amount: data.streamGift.totalCoins,
+        avatarUrl: null, // TODO: Get from user data
+        id: `toptipper-${Date.now()}-${Math.random()}`,
+      };
+      // Add after a short delay so it doesn't overlap with gift alert
+      setTimeout(() => {
+        setAlerts(prev => [...prev, topTipperAlert]);
+      }, 3500);
+    }
+
     // Play sound with gift value for enhanced audio
     playSound('gift', data.streamGift.totalCoins);
 
-    // Could add a toast notification here
     console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
   };
 
@@ -467,6 +515,12 @@ export default function BroadcastStudioPage() {
       <div className="relative z-10">
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
+
+      {/* Alert Manager - Handles gift alerts, top tipper spotlight, and goal celebrations */}
+      <AlertManager
+        alerts={alerts}
+        onAlertComplete={(id) => setAlerts(prev => prev.filter(a => a.id !== id))}
+      />
 
       {/* Set Goal Modal */}
       <SetGoalModal
