@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, Heart, UserPlus } from 'lucide-react';
+import { Search, UserCircle, UserPlus } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -327,18 +327,6 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
             <UserCircle className="w-16 h-16 md:w-20 md:h-20 text-gray-400" />
           </div>
         )}
-
-        {/* Like button - top left */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onFollow(creator.id, creator.isFollowing);
-          }}
-          className="absolute top-2 left-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all z-10 hover:scale-110 active:scale-95"
-          title={creator.isFollowing ? 'Unlike' : 'Like'}
-        >
-          <Heart className={`w-4 h-4 ${creator.isFollowing ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} />
-        </button>
 
         {/* Follow button - top right */}
         <button
