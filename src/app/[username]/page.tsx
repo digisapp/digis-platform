@@ -67,6 +67,7 @@ export default function ProfilePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
   const [content, setContent] = useState<any[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -709,6 +710,11 @@ export default function ProfilePage() {
                           {content.filter(c => c.type === 'video').map((item) => (
                             <div
                               key={item.id}
+                              onClick={() => {
+                                if (!item.isLocked) {
+                                  setSelectedVideo(item);
+                                }
+                              }}
                               className="group relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
                             >
                               {/* Thumbnail */}
@@ -951,6 +957,45 @@ export default function ProfilePage() {
           onSend={handleSendTip}
           receiverName={profile.user.displayName || profile.user.username}
         />
+      )}
+
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedVideo(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full bg-gray-900 rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Video player */}
+            <video
+              src={selectedVideo.url}
+              controls
+              autoPlay
+              className="w-full aspect-video bg-black"
+            />
+
+            {/* Video info */}
+            <div className="p-6 bg-gray-900">
+              <h3 className="text-xl font-bold text-white mb-2">{selectedVideo.title}</h3>
+              {selectedVideo.description && (
+                <p className="text-gray-300 text-sm">{selectedVideo.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
