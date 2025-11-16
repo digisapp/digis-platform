@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, UserPlus, CheckCircle, Users, TrendingUp } from 'lucide-react';
+import { Search, UserCircle, UserPlus, TrendingUp } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -353,74 +353,29 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
       </div>
 
-      {/* Circular Avatar Overlay - positioned half on image, half on bottom */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(125% - 32px)' }}>
-        <div className="relative">
-          {/* Avatar */}
-          <div className="w-16 h-16 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 group-hover:border-digis-cyan transition-colors duration-300">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={creator.displayName || creator.username}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-400">
-                <UserCircle className="w-10 h-10 text-white" />
-              </div>
-            )}
-          </div>
-
-          {/* Online status indicator */}
-          {creator.isOnline && (
-            <div className="absolute bottom-0 right-0">
-              <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
-              <div className="absolute inset-0 w-4 h-4 rounded-full bg-green-500 animate-ping" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Creator Info - Glassmorphism Footer */}
-      <div className="relative pt-10 pb-4 px-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
+      {/* Creator Info - Simple Footer */}
+      <div className="relative p-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
 
-        <div className="relative z-10 space-y-2">
-          {/* Username with gradient + badges */}
+        <div className="relative z-10">
+          {/* Username only */}
           <div className="flex items-center justify-center gap-1.5">
-            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[120px]">
-              {creator.displayName || creator.username}
-            </h3>
-            {creator.isCreatorVerified && (
-              <CheckCircle className="w-4 h-4 text-white fill-blue-500 flex-shrink-0" />
+            {creator.isOnline && (
+              <div className="relative flex-shrink-0">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+              </div>
             )}
+            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[140px]">
+              {creator.username}
+            </h3>
             {creator.isTrending && (
               <div className="relative">
                 <TrendingUp className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
               </div>
             )}
-          </div>
-
-          {/* Username handle if displayName exists */}
-          {creator.displayName && (
-            <p className="text-xs text-gray-600 text-center truncate max-w-[150px] mx-auto">
-              @{creator.username}
-            </p>
-          )}
-
-          {/* Stats row */}
-          <div className="flex items-center justify-center gap-2 pt-1">
-            {/* Follower count */}
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/60 border border-purple-200/50 shadow-sm">
-              <Users className="w-3.5 h-3.5 text-digis-cyan" />
-              <span className="text-xs font-bold text-gray-700">
-                {creator.followerCount >= 1000
-                  ? `${(creator.followerCount / 1000).toFixed(1)}k`
-                  : creator.followerCount}
-              </span>
-            </div>
           </div>
         </div>
 
