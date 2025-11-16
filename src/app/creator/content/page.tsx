@@ -25,7 +25,6 @@ export default function CreatorContentStudioPage() {
   const router = useRouter();
   const [content, setContent] = useState<CreatorContent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<CreatorContent | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
@@ -88,23 +87,23 @@ export default function CreatorContentStudioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">Content Studio 🎬</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Content Studio 🎬</h1>
             <GlassButton
               variant="gradient"
               size="lg"
-              onClick={() => setShowUploadModal(true)}
+              onClick={() => router.push('/creator/content/new')}
               className="flex items-center gap-2"
               shimmer
             >
@@ -112,7 +111,7 @@ export default function CreatorContentStudioPage() {
               Upload Content
             </GlassButton>
           </div>
-          <p className="text-gray-400">Manage your exclusive content and track earnings</p>
+          <p className="text-gray-600">Manage your exclusive content and track earnings</p>
         </div>
 
         {/* Stats Overview */}
@@ -123,8 +122,8 @@ export default function CreatorContentStudioPage() {
                 <DollarSign className="w-6 h-6 text-digis-cyan" />
               </div>
               <div>
-                <div className="text-gray-400 text-sm">Total Earnings</div>
-                <div className="text-2xl font-bold text-white">{totalEarnings}</div>
+                <div className="text-gray-600 text-sm">Total Earnings</div>
+                <div className="text-2xl font-bold text-gray-900">{totalEarnings}</div>
                 <div className="text-xs text-gray-500">coins</div>
               </div>
             </div>
@@ -136,8 +135,8 @@ export default function CreatorContentStudioPage() {
                 <ShoppingCart className="w-6 h-6 text-digis-pink" />
               </div>
               <div>
-                <div className="text-gray-400 text-sm">Purchases</div>
-                <div className="text-2xl font-bold text-white">{totalPurchases}</div>
+                <div className="text-gray-600 text-sm">Purchases</div>
+                <div className="text-2xl font-bold text-gray-900">{totalPurchases}</div>
                 <div className="text-xs text-gray-500">total</div>
               </div>
             </div>
@@ -149,8 +148,8 @@ export default function CreatorContentStudioPage() {
                 <Eye className="w-6 h-6 text-purple-400" />
               </div>
               <div>
-                <div className="text-gray-400 text-sm">Total Views</div>
-                <div className="text-2xl font-bold text-white">{totalViews}</div>
+                <div className="text-gray-600 text-sm">Total Views</div>
+                <div className="text-2xl font-bold text-gray-900">{totalViews}</div>
                 <div className="text-xs text-gray-500">all time</div>
               </div>
             </div>
@@ -162,8 +161,8 @@ export default function CreatorContentStudioPage() {
                 <Plus className="w-6 h-6 text-green-400" />
               </div>
               <div>
-                <div className="text-gray-400 text-sm">Content Items</div>
-                <div className="text-2xl font-bold text-white">{content.length}</div>
+                <div className="text-gray-600 text-sm">Content Items</div>
+                <div className="text-2xl font-bold text-gray-900">{content.length}</div>
                 <div className="text-xs text-gray-500">published</div>
               </div>
             </div>
@@ -174,12 +173,12 @@ export default function CreatorContentStudioPage() {
         {content.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <div className="text-6xl mb-4">📸</div>
-            <h3 className="text-xl font-bold text-white mb-2">No content yet</h3>
-            <p className="text-gray-400 mb-6">Upload your first exclusive content to start earning!</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No content yet</h3>
+            <p className="text-gray-600 mb-6">Upload your first exclusive content to start earning!</p>
             <GlassButton
               variant="gradient"
               size="lg"
-              onClick={() => setShowUploadModal(true)}
+              onClick={() => router.push('/creator/content/new')}
               className="flex items-center gap-2 mx-auto"
               shimmer
             >
@@ -208,7 +207,7 @@ export default function CreatorContentStudioPage() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-xl font-bold text-white">{item.title}</h3>
+                          <h3 className="text-xl font-bold text-gray-900">{item.title}</h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             item.isPublished
                               ? 'bg-green-500/20 text-green-300'
@@ -221,7 +220,7 @@ export default function CreatorContentStudioPage() {
                           </span>
                         </div>
                         {item.description && (
-                          <p className="text-gray-400 text-sm line-clamp-2 mb-3">{item.description}</p>
+                          <p className="text-gray-600 text-sm line-clamp-2 mb-3">{item.description}</p>
                         )}
                       </div>
 
@@ -231,7 +230,7 @@ export default function CreatorContentStudioPage() {
                           onClick={() => setShowMenu(showMenu === item.id ? null : item.id)}
                           className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                         >
-                          <MoreVertical className="w-5 h-5 text-gray-400" />
+                          <MoreVertical className="w-5 h-5 text-gray-600" />
                         </button>
 
                         {showMenu === item.id && (
@@ -241,7 +240,7 @@ export default function CreatorContentStudioPage() {
                                 setSelectedContent(item);
                                 setShowMenu(null);
                               }}
-                              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
+                              className="w-full px-4 py-3 text-left text-gray-900 hover:bg-white/10 flex items-center gap-2 transition-colors"
                             >
                               <Edit className="w-4 h-4" />
                               Edit
@@ -251,7 +250,7 @@ export default function CreatorContentStudioPage() {
                                 handleTogglePublish(item.id, item.isPublished);
                                 setShowMenu(null);
                               }}
-                              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors"
+                              className="w-full px-4 py-3 text-left text-gray-900 hover:bg-white/10 transition-colors"
                             >
                               {item.isPublished ? 'Unpublish' : 'Publish'}
                             </button>
@@ -273,25 +272,25 @@ export default function CreatorContentStudioPage() {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-4 gap-4">
                       <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Price</div>
-                        <div className="text-white font-bold">
+                        <div className="text-gray-600 text-xs mb-1">Price</div>
+                        <div className="text-gray-900 font-bold">
                           {item.isFree ? 'Free' : `${item.unlockPrice} coins`}
                         </div>
                       </div>
 
                       <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Earnings</div>
+                        <div className="text-gray-600 text-xs mb-1">Earnings</div>
                         <div className="text-digis-cyan font-bold">{item.totalEarnings}</div>
                       </div>
 
                       <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Purchases</div>
-                        <div className="text-white font-bold">{item.purchaseCount}</div>
+                        <div className="text-gray-600 text-xs mb-1">Purchases</div>
+                        <div className="text-gray-900 font-bold">{item.purchaseCount}</div>
                       </div>
 
                       <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Views</div>
-                        <div className="text-white font-bold">{item.viewCount}</div>
+                        <div className="text-gray-600 text-xs mb-1">Views</div>
+                        <div className="text-gray-900 font-bold">{item.viewCount}</div>
                       </div>
                     </div>
                   </div>
@@ -301,41 +300,12 @@ export default function CreatorContentStudioPage() {
           </div>
         )}
 
-        {/* Upload Modal Placeholder */}
-        {showUploadModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <GlassCard className="p-8 max-w-2xl w-full">
-              <h2 className="text-2xl font-bold text-white mb-4">Upload Content</h2>
-              <p className="text-gray-400 mb-6">Content upload functionality will be implemented with file upload integration.</p>
-              <div className="flex gap-3">
-                <GlassButton
-                  variant="ghost"
-                  onClick={() => setShowUploadModal(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </GlassButton>
-                <GlassButton
-                  variant="gradient"
-                  onClick={() => {
-                    alert('Content upload coming soon!');
-                    setShowUploadModal(false);
-                  }}
-                  className="flex-1"
-                >
-                  Coming Soon
-                </GlassButton>
-              </div>
-            </GlassCard>
-          </div>
-        )}
-
         {/* Edit Modal Placeholder */}
         {selectedContent && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <GlassCard className="p-8 max-w-2xl w-full">
-              <h2 className="text-2xl font-bold text-white mb-4">Edit Content</h2>
-              <p className="text-gray-400 mb-6">Editing: {selectedContent.title}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Edit Content</h2>
+              <p className="text-gray-600 mb-6">Editing: {selectedContent.title}</p>
               <div className="flex gap-3">
                 <GlassButton
                   variant="ghost"
