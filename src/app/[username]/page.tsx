@@ -610,6 +610,7 @@ export default function ProfilePage() {
               />
             )}
           </div>
+          </div>
         </div>
 
         {/* Inline Live Stream Section */}
@@ -1080,7 +1081,7 @@ export default function ProfilePage() {
                 </>
               )}
             </div>
-          </GlassCard>
+          </div>
         </div>
       </div>
 
