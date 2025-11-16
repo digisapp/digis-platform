@@ -411,8 +411,8 @@ export default function ProfilePage() {
                   {user.displayName || user.username}
                 </h1>
                 {user.isCreatorVerified && (
-                  <div className="relative flex-shrink-0">
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 fill-blue-500" strokeWidth={2} />
+                  <div className="relative flex-shrink-0" title="Verified Creator">
+                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-blue-500" strokeWidth={2.5} />
                   </div>
                 )}
               </div>
