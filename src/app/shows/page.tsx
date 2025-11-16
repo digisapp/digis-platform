@@ -76,69 +76,87 @@ export default function ShowsDirectoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[600px] h-[600px] -top-48 -left-48 bg-yellow-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[500px] h-[500px] top-1/3 -right-48 bg-orange-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Ticketed Shows 🎟️</h1>
-          <p className="text-gray-700">Discover exclusive live events from your favorite creators</p>
+          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">
+            Exclusive Events
+          </h1>
+          <p className="text-gray-400 text-lg">Premium ticketed shows from top creators</p>
         </div>
 
         {/* Filters & Sort */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           {/* Filter Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 filter === 'all'
-                  ? 'bg-digis-cyan text-black'
-                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
+                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
               }`}
             >
-              All Shows
+              {filter === 'all' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <span className="relative z-10">All Shows</span>
             </button>
             <button
               onClick={() => setFilter('live')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2 ${
                 filter === 'live'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
+                  ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-red-500/50 hover:scale-105'
               }`}
             >
-              <span className={filter === 'live' ? 'animate-pulse' : ''}>🔴</span>
-              Live Now
+              {filter === 'live' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <div className={`relative z-10 w-2 h-2 bg-white rounded-full ${filter === 'live' ? 'animate-pulse' : ''}`}></div>
+              <span className="relative z-10">Live Now</span>
             </button>
             <button
               onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 filter === 'upcoming'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-white/50 text-gray-700 hover:bg-white/70'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-blue-500/50 hover:scale-105'
               }`}
             >
-              📅 Upcoming
+              {filter === 'upcoming' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <span className="relative z-10">Upcoming</span>
             </button>
           </div>
 
           {/* Sort */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700">Sort by:</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-400 whitespace-nowrap">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 bg-white/50 border border-purple-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-digis-cyan"
+              className="px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white text-sm focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer"
             >
-              <option value="date">Date</option>
-              <option value="price">Price</option>
-              <option value="popularity">Popularity</option>
+              <option value="date" className="bg-slate-900">Date</option>
+              <option value="price" className="bg-slate-900">Price</option>
+              <option value="popularity" className="bg-slate-900">Popularity</option>
             </select>
           </div>
         </div>
@@ -147,11 +165,14 @@ export default function ShowsDirectoryPage() {
         {liveShows.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                <h2 className="text-2xl font-bold text-gray-900">Live Now</h2>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-red-500 rounded-full blur opacity-75"></div>
+                  <div className="relative w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                </div>
+                <h2 className="text-3xl font-black text-white">Live Now</h2>
               </div>
-              <span className="text-sm text-gray-700">({liveShows.length})</span>
+              <span className="text-sm text-gray-400 bg-white/10 px-3 py-1 rounded-full">{liveShows.length}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveShows.map((show) => (
@@ -169,8 +190,8 @@ export default function ShowsDirectoryPage() {
         {upcomingShows.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Upcoming Shows</h2>
-              <span className="text-sm text-gray-700">({upcomingShows.length})</span>
+              <h2 className="text-3xl font-black text-white">Upcoming Events</h2>
+              <span className="text-sm text-gray-400 bg-white/10 px-3 py-1 rounded-full">{upcomingShows.length}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingShows.map((show) => (
@@ -186,16 +207,19 @@ export default function ShowsDirectoryPage() {
 
         {/* Empty State */}
         {sortedShows.length === 0 && (
-          <div className="glass rounded-2xl border border-purple-200 p-12 text-center">
-            <div className="text-6xl mb-4">🎟️</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 p-12 text-center">
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur-2xl opacity-50"></div>
+              <div className="relative text-6xl">🎟️</div>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">
               {filter === 'live'
                 ? 'No live shows right now'
                 : filter === 'upcoming'
                 ? 'No upcoming shows'
                 : 'No shows available'}
             </h3>
-            <p className="text-gray-700 mb-6">
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
               {filter === 'live'
                 ? 'Check back soon for live events!'
                 : filter === 'upcoming'
@@ -204,7 +228,7 @@ export default function ShowsDirectoryPage() {
             </p>
             <button
               onClick={() => router.push('/explore')}
-              className="px-6 py-3 bg-digis-cyan text-black rounded-lg font-medium hover:scale-105 transition-transform"
+              className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg shadow-yellow-500/50"
             >
               Explore Creators
             </button>
@@ -212,21 +236,30 @@ export default function ShowsDirectoryPage() {
         )}
 
         {/* Info Card */}
-        <div className="mt-12 bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-md rounded-2xl border border-purple-500/30 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">About Ticketed Shows</h3>
-          <div className="space-y-2 text-sm text-gray-800">
-            <p>
-              • Purchase tickets with coins to attend exclusive live events
-            </p>
-            <p>
-              • Join Q&A sessions, workshops, performances, and meet & greets
-            </p>
-            <p>
-              • Support your favorite creators directly
-            </p>
-            <p>
-              • Get notified before shows start
-            </p>
+        <div className="mt-12 backdrop-blur-xl bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-purple-500/10 rounded-3xl border border-yellow-500/20 p-8">
+          <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3">
+            <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            About Premium Events
+          </h3>
+          <div className="grid sm:grid-cols-2 gap-4 text-sm text-gray-300">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 flex-shrink-0"></div>
+              <p>Purchase tickets with coins for exclusive access to live events</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-orange-400 rounded-full mt-1.5 flex-shrink-0"></div>
+              <p>Join Q&A sessions, workshops, performances, and meet & greets</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-purple-400 rounded-full mt-1.5 flex-shrink-0"></div>
+              <p>Support your favorite creators directly through ticket sales</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-pink-400 rounded-full mt-1.5 flex-shrink-0"></div>
+              <p>Get notifications when shows are about to start</p>
+            </div>
           </div>
         </div>
       </div>
