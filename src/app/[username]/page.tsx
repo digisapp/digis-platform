@@ -663,7 +663,7 @@ export default function ProfilePage() {
 
                               {/* Lock indicator */}
                               {item.isLocked && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl">
                                   <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
                                     <Lock className="w-6 h-6 text-white" />
                                   </div>
@@ -736,9 +736,9 @@ export default function ProfilePage() {
 
                               {/* Lock indicator */}
                               {item.isLocked && (
-                                <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
-                                  <div className="p-2 rounded-full bg-black/60 backdrop-blur-md">
-                                    <Lock className="w-4 h-4 text-white" />
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl z-20">
+                                  <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
+                                    <Lock className="w-6 h-6 text-white" />
                                   </div>
                                   {item.unlockPrice && item.unlockPrice > 0 && (
                                     <div className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-bold text-xs">
