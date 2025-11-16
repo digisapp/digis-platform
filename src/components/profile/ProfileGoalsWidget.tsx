@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Trophy, Target, Users, Coins, Star, Zap, Sparkles as SparklesIcon } from 'lucide-react';
+import { Toast } from '@/components/ui/Toast';
+import { useToast } from '@/hooks/useToast';
 
 interface ProfileGoal {
   id: string;
@@ -22,6 +24,7 @@ interface ProfileGoalsWidgetProps {
 }
 
 export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: ProfileGoalsWidgetProps) {
+  const { toast, showToast, hideToast } = useToast();
   const [tippingGoalId, setTippingGoalId] = useState<string | null>(null);
   const [tipAmount, setTipAmount] = useState('');
   const [tipMessage, setTipMessage] = useState('');
@@ -57,7 +60,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
 
   const handleSendTip = async () => {
     if (!selectedGoalId || !tipAmount || parseFloat(tipAmount) <= 0) {
-      alert('Please enter a valid tip amount');
+      showToast('Please enter a valid tip amount', 'error');
       return;
     }
 
@@ -80,9 +83,9 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
 
       // Show success message
       if (data.goalCompleted) {
-        alert(`🎉 Amazing! Your ${data.amount} coin tip completed the goal "${data.goalTitle}"!`);
+        showToast(`🎉 Amazing! Your ${data.amount} coin tip completed the goal!`, 'success');
       } else {
-        alert(`✨ Successfully sent ${data.amount} coins toward the goal!`);
+        showToast(`✨ Successfully sent ${data.amount} coins toward the goal!`, 'success');
       }
 
       // Close modal and refresh
@@ -100,7 +103,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
       }
     } catch (error: any) {
       console.error('Tip error:', error);
-      alert(error.message || 'Failed to send tip');
+      showToast(error.message || 'Failed to send tip', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -110,6 +113,15 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
 
   return (
     <>
+    {/* Toast Notification */}
+    {toast && (
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={hideToast}
+      />
+    )}
+
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">

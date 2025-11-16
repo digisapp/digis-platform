@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
+import { Toast } from '@/components/ui/Toast';
+import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
 import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Target, Plus } from 'lucide-react';
@@ -67,6 +69,7 @@ interface UpcomingEvent {
 
 export default function CreatorDashboard() {
   const router = useRouter();
+  const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [isCreator, setIsCreator] = useState(false);
@@ -377,14 +380,14 @@ export default function CreatorDashboard() {
         });
         // Refresh goals list
         fetchGoals();
-        alert('Goal created successfully!');
+        showToast('Goal created successfully! 🎯', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to create goal');
+        showToast(data.error || 'Failed to create goal', 'error');
       }
     } catch (error) {
       console.error('Error creating goal:', error);
-      alert('Failed to create goal');
+      showToast('Failed to create goal', 'error');
     } finally {
       setSubmittingGoal(false);
     }
@@ -395,7 +398,7 @@ export default function CreatorDashboard() {
     const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
 
     if (!activeGoal) {
-      alert('No active goal to delete');
+      showToast('No active goal to delete', 'info');
       return;
     }
 
@@ -412,14 +415,14 @@ export default function CreatorDashboard() {
       if (response.ok) {
         // Refresh goals list
         fetchGoals();
-        alert('Goal deleted successfully!');
+        showToast('Goal cleared successfully! ✨', 'success');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete goal');
+        showToast(data.error || 'Failed to delete goal', 'error');
       }
     } catch (error) {
       console.error('Error deleting goal:', error);
-      alert('Failed to delete goal');
+      showToast('Failed to delete goal', 'error');
     } finally {
       setDeletingGoal(false);
     }
@@ -452,6 +455,15 @@ export default function CreatorDashboard() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+
       <div className="container mx-auto">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />

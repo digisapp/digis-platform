@@ -79,6 +79,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Target amount must be positive' }, { status: 400 });
     }
 
+    // Delete any existing active goals (only allow one active goal at a time)
+    const existingActiveGoals = await db.query.creatorGoals.findMany({
+      where: and(
+        eq(creatorGoals.creatorId, user.id),
+        eq(creatorGoals.isActive, true)
+      ),
+    });
+
+    // Delete all existing active goals
+    for (const existingGoal of existingActiveGoals) {
+      await db.delete(creatorGoals).where(eq(creatorGoals.id, existingGoal.id));
+    }
+
     // Get current amount based on goal type
     let currentAmount = 0;
     if (goalType === 'followers') {
@@ -97,7 +110,7 @@ export async function POST(request: NextRequest) {
       currentAmount = wallet?.balance || 0;
     }
 
-    // Create the goal
+    // Create the new goal
     const [goal] = await db.insert(creatorGoals).values({
       creatorId: user.id,
       title,
