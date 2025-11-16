@@ -549,19 +549,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Content Bento Grid */}
-        {user.role === 'creator' && content.length > 0 && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-digis-cyan" />
-                Featured Content
-              </h2>
-            </div>
-            <BentoGrid content={content.slice(0, 6)} />
-          </div>
-        )}
-
         {/* Profile Goals Widget */}
         {user.role === 'creator' && goals.length > 0 && (
           <div className="mb-6">
@@ -643,23 +630,35 @@ export default function ProfilePage() {
                 <>
                   {/* Photos Tab */}
                   {activeTab === 'photos' && (
-                    <div className="text-center py-12">
-                      <Image className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">No photos yet</h3>
-                      <p className="text-gray-600 px-4">
-                        Check back later for photo uploads
-                      </p>
+                    <div>
+                      {content.filter(c => c.type === 'photo').length === 0 ? (
+                        <div className="text-center py-12">
+                          <Image className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No photos yet</h3>
+                          <p className="text-gray-600 px-4">
+                            Check back later for photo uploads
+                          </p>
+                        </div>
+                      ) : (
+                        <BentoGrid content={content.filter(c => c.type === 'photo')} />
+                      )}
                     </div>
                   )}
 
                   {/* Video Tab */}
                   {activeTab === 'video' && (
-                    <div className="text-center py-12">
-                      <Film className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">No videos yet</h3>
-                      <p className="text-gray-600 px-4">
-                        Check back later for video content
-                      </p>
+                    <div>
+                      {content.filter(c => c.type === 'video').length === 0 ? (
+                        <div className="text-center py-12">
+                          <Film className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No videos yet</h3>
+                          <p className="text-gray-600 px-4">
+                            Check back later for video content
+                          </p>
+                        </div>
+                      ) : (
+                        <BentoGrid content={content.filter(c => c.type === 'video')} />
+                      )}
                     </div>
                   )}
 
