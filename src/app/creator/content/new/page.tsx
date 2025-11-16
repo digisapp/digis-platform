@@ -63,7 +63,11 @@ export default function CreateContentPage() {
         router.push('/creator/content');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to upload content');
+        const errorMsg = data.details
+          ? `${data.error}\n\nDetails: ${data.details}`
+          : data.error || 'Failed to upload content';
+        alert(errorMsg);
+        console.error('Upload error:', data);
       }
     } catch (error) {
       console.error('Error uploading content:', error);
