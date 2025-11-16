@@ -70,10 +70,18 @@ export default function ProfilePage() {
   const [content, setContent] = useState<any[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     fetchProfile();
+    checkAuth();
   }, [username]);
+
+  const checkAuth = async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    setIsAuthenticated(!!user);
+  };
 
   useEffect(() => {
     if (profile?.user.id && profile.user.role === 'creator') {
@@ -408,7 +416,7 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 pb-8 md:pl-20 -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden">
+    <div className={`min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
       {/* Animated Background Mesh */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-digis-cyan/20 rounded-full blur-3xl animate-pulse"></div>
