@@ -408,89 +408,156 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className="min-h-screen bg-pastel-gradient pb-8 md:pl-20 -mt-4 md:mt-0 pt-4 md:pt-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 pb-8 md:pl-20 -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-digis-cyan/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-digis-pink/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-digis-purple/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       {/* Confetti Effect */}
       <ConfettiEffect show={showConfetti} duration={2000} />
 
       {/* Banner with Parallax Effect */}
-      <ParallaxBanner imageUrl={user.bannerUrl} height="h-48 sm:h-56 md:h-64" />
+      <div className="relative">
+        <ParallaxBanner imageUrl={user.bannerUrl} height="h-64 sm:h-72 md:h-80" />
+        {/* Gradient Overlay for better contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950/80"></div>
+      </div>
 
       {/* Profile Content - Mobile optimized */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Avatar and Header Section */}
-        <div className="relative -mt-16 sm:-mt-20 md:mt-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
-            {/* Animated Avatar with Gradient Border */}
-            <AnimatedAvatar
-              src={user.avatarUrl}
-              alt={user.displayName || user.username}
-              size="large"
-              isOnline={user.isOnline}
-            />
-
-            {/* Name and Stats - Mobile stacked */}
-            <div className="flex-1 min-w-0">
-              {/* Name */}
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate" style={{ textShadow: '0 2px 8px rgba(255,255,255,0.9), 0 0 20px rgba(255,255,255,0.8)' }}>
-                  {user.displayName || user.username}
-                </h1>
-                {user.isCreatorVerified && (
-                  <div className="relative flex-shrink-0" title="Verified Creator">
-                    <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-blue-500" strokeWidth={2.5} />
-                  </div>
-                )}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Avatar and Header Section - Modern Glass Card */}
+        <div className="relative -mt-24 sm:-mt-28 mb-8">
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+              {/* Animated Avatar with Neon Glow */}
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink rounded-full blur-lg group-hover:blur-xl transition-all opacity-75 group-hover:opacity-100"></div>
+                <div className="relative">
+                  <AnimatedAvatar
+                    src={user.avatarUrl}
+                    alt={user.displayName || user.username}
+                    size="large"
+                    isOnline={user.isOnline}
+                  />
+                </div>
               </div>
-              {user.displayName && (
-                <p className="text-gray-700 mb-3" style={{ textShadow: '0 1px 4px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.7)' }}>{user.username}</p>
-              )}
 
-              {/* Stats - Responsive grid */}
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
-                <button
-                  onClick={handleFollowToggle}
-                  disabled={followLoading}
-                  className={`flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg ${
-                    isFollowing
-                      ? 'bg-digis-cyan/10 hover:bg-digis-cyan/20 border border-digis-cyan/30'
-                      : 'hover:bg-gray-100 border border-transparent hover:border-digis-cyan/30'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  title={isFollowing ? 'Click to unfollow' : 'Click to follow'}
-                >
-                  <Users className={`w-4 h-4 transition-colors ${
-                    isFollowing ? 'text-digis-cyan fill-digis-cyan' : 'text-gray-600'
-                  }`} />
-                  <span style={{ textShadow: '0 1px 4px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.7)' }}>
-                    <strong className={isFollowing ? 'text-digis-cyan' : 'text-gray-900'}>
-                      {followCounts.followers.toLocaleString()}
-                    </strong>{' '}
-                    <span className={isFollowing ? 'text-digis-cyan' : 'text-gray-700'}>
-                      Follower{followCounts.followers !== 1 ? 's' : ''}
-                    </span>
-                  </span>
-                </button>
+              {/* Name and Bio Section */}
+              <div className="flex-1 min-w-0">
+                {/* Name with Verification Badge */}
+                <div className="flex items-center gap-3 mb-3">
+                  <h1 className="text-3xl sm:text-4xl font-black text-white truncate bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                    {user.displayName || user.username}
+                  </h1>
+                  {user.isCreatorVerified && (
+                    <div className="relative flex-shrink-0 group" title="Verified Creator">
+                      <div className="absolute -inset-1 bg-blue-500 rounded-full blur opacity-75 group-hover:opacity-100"></div>
+                      <CheckCircle className="relative w-7 h-7 text-white fill-blue-500" strokeWidth={2.5} />
+                    </div>
+                  )}
+                </div>
+                {user.displayName && (
+                  <p className="text-cyan-300/90 mb-4 text-lg">@{user.username}</p>
+                )}
+
+                {/* Bio */}
+                {user.bio && (
+                  <p className="text-gray-300 mb-6 text-sm sm:text-base leading-relaxed line-clamp-3">
+                    {user.bio}
+                  </p>
+                )}
+
+                {/* Enhanced Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                  {/* Followers */}
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`group relative overflow-hidden rounded-2xl p-4 transition-all ${
+                      isFollowing
+                        ? 'bg-gradient-to-br from-digis-cyan/20 to-digis-cyan/10 border border-digis-cyan/30'
+                        : 'bg-white/5 border border-white/10 hover:border-digis-cyan/50'
+                    } disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative">
+                      <Users className={`w-5 h-5 mb-2 ${isFollowing ? 'text-digis-cyan' : 'text-gray-400'}`} />
+                      <div className="text-2xl font-black text-white mb-1">
+                        {followCounts.followers.toLocaleString()}
+                      </div>
+                      <div className={`text-xs font-medium ${isFollowing ? 'text-digis-cyan' : 'text-gray-400'}`}>
+                        Followers
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Content Count */}
+                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all group hover:scale-105">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative">
+                      <Sparkles className="w-5 h-5 text-purple-400 mb-2" />
+                      <div className="text-2xl font-black text-white mb-1">
+                        {content.length}
+                      </div>
+                      <div className="text-xs font-medium text-gray-400">
+                        Posts
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Streams */}
+                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-pink-500/50 transition-all group hover:scale-105">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative">
+                      <Video className="w-5 h-5 text-pink-400 mb-2" />
+                      <div className="text-2xl font-black text-white mb-1">
+                        {streams.length}
+                      </div>
+                      <div className="text-xs font-medium text-gray-400">
+                        Streams
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shows */}
+                  <div className="relative overflow-hidden rounded-2xl p-4 bg-white/5 border border-white/10 hover:border-yellow-500/50 transition-all group hover:scale-105">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative">
+                      <Ticket className="w-5 h-5 text-yellow-400 mb-2" />
+                      <div className="text-2xl font-black text-white mb-1">
+                        {shows.length}
+                      </div>
+                      <div className="text-xs font-medium text-gray-400">
+                        Shows
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons - Mobile stacked, tablet+ row */}
-          <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
+          {/* Action Buttons - Futuristic Design */}
+          <div className="mt-6 flex flex-wrap gap-3">
             {/* Subscribe Button */}
             {user.role === 'creator' && subscriptionTier && !isSubscribed && (
               <button
                 onClick={handleSubscribe}
                 disabled={subscribeLoading}
-                className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-fun"
+                className="group relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white hover:scale-105 transition-all duration-500 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
               >
-                <Star className="w-4 h-4" />
-                {subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth.toLocaleString()} coins/mo`}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
+                <Star className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">{subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth.toLocaleString()} coins/mo`}</span>
               </button>
             )}
 
             {/* Subscribed Badge */}
             {user.role === 'creator' && isSubscribed && (
-              <div className="min-h-[44px] px-6 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center gap-2">
-                <Star className="w-4 h-4 fill-white" />
+              <div className="relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50">
+                <Star className="w-5 h-5 fill-white" />
                 Subscribed
               </div>
             )}
@@ -498,20 +565,22 @@ export default function ProfilePage() {
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
+              className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
             >
-              <MessageCircle className="w-5 h-5" />
-              <span className="hidden md:inline">Message</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-digis-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <MessageCircle className="w-5 h-5 relative z-10" />
+              <span className="hidden md:inline relative z-10">Message</span>
             </button>
 
             {/* Tip Button */}
             {user.role === 'creator' && (
               <button
                 onClick={() => setShowTipModal(true)}
-                className="min-h-[44px] px-4 md:px-5 py-2.5 rounded-xl font-semibold bg-white/80 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan transition-all flex items-center justify-center gap-2 text-gray-800"
+                className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
               >
-                <Gift className="w-5 h-5" />
-                <span className="hidden md:inline">Tip</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <Gift className="w-5 h-5 relative z-10" />
+                <span className="hidden md:inline relative z-10">Tip</span>
               </button>
             )}
 
@@ -581,69 +650,85 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Content Tabs */}
+        {/* Content Tabs - Futuristic Design */}
         <div>
-          {/* Tab Pills - Mobile optimized */}
-          <div className="mb-4 flex flex-wrap gap-2 overflow-x-auto">
+          {/* Tab Pills - Glassmorphism */}
+          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2">
             <button
               onClick={() => setActiveTab('photos')}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'photos'
-                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-digis-cyan to-blue-500 text-white shadow-lg shadow-cyan-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-digis-cyan/50 hover:scale-105'
               }`}
             >
-              <Image className="w-3.5 h-3.5" />
-              Photos
+              {activeTab === 'photos' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <Image className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">Photos</span>
             </button>
             <button
               onClick={() => setActiveTab('video')}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'video'
-                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-pink-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-pink-500/50 hover:scale-105'
               }`}
             >
-              <Film className="w-3.5 h-3.5" />
-              Video
+              {activeTab === 'video' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <Film className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">Video</span>
             </button>
             <button
               onClick={() => setActiveTab('streams')}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'streams'
-                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg shadow-red-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-red-500/50 hover:scale-105'
               }`}
             >
-              <Video className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Streams</span>
-              <span className="sm:hidden">Live</span>
+              {activeTab === 'streams' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <Video className="w-4 h-4 relative z-10" />
+              <span className="hidden sm:inline relative z-10">Streams</span>
+              <span className="sm:hidden relative z-10">Live</span>
             </button>
             <button
               onClick={() => setActiveTab('shows')}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'shows'
-                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
               }`}
             >
-              <Ticket className="w-3.5 h-3.5" />
-              Shows
+              {activeTab === 'shows' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <Ticket className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">Shows</span>
             </button>
             <button
               onClick={() => setActiveTab('about')}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                 activeTab === 'about'
-                  ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                  : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50 hover:scale-105'
               }`}
             >
-              <UserCircle className="w-3.5 h-3.5" />
-              About
+              {activeTab === 'about' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <UserCircle className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">About</span>
             </button>
           </div>
 
-          <GlassCard className="overflow-hidden shadow-fun">
+          {/* Content Card with Glassmorphism */}
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
 
             {/* Tab Content */}
             <div className="p-4 sm:p-6">
@@ -657,15 +742,18 @@ export default function ProfilePage() {
                   {activeTab === 'photos' && (
                     <div>
                       {content.filter(c => c.type === 'photo').length === 0 ? (
-                        <div className="text-center py-12">
-                          <Image className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No photos yet</h3>
-                          <p className="text-gray-600 px-4">
+                        <div className="text-center py-16">
+                          <div className="relative inline-block mb-6">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-xl opacity-50"></div>
+                            <Image className="relative w-20 h-20 mx-auto text-gray-400" />
+                          </div>
+                          <h3 className="text-xl font-bold text-white mb-2">No photos yet</h3>
+                          <p className="text-gray-400 px-4">
                             Check back later for photo uploads
                           </p>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                           {content.filter(c => c.type === 'photo').map((item) => (
                             <div
                               key={item.id}
@@ -678,47 +766,59 @@ export default function ProfilePage() {
                                   setSelectedPhoto(item);
                                 }
                               }}
-                              className="group relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                              className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 border border-white/10 hover:border-cyan-500/50"
                             >
-                              {/* Image */}
-                              {item.thumbnail ? (
-                                <img
-                                  src={item.thumbnail}
-                                  alt={item.title}
-                                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-                              ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center">
-                                  <Image className="w-12 h-12 text-gray-400" />
-                                </div>
-                              )}
+                              {/* Glow Effect */}
+                              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
 
-                              {/* Overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                              {/* Lock indicator */}
-                              {item.isLocked && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl pointer-events-none">
-                                  <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
-                                    <Lock className="w-6 h-6 text-white" />
+                              {/* Card Content */}
+                              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-slate-900">
+                                {/* Image */}
+                                {item.thumbnail ? (
+                                  <img
+                                    src={item.thumbnail}
+                                    alt={item.title}
+                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-purple-900 to-slate-900 flex items-center justify-center">
+                                    <Image className="w-16 h-16 text-gray-600" />
                                   </div>
-                                  {item.unlockPrice && item.unlockPrice > 0 && (
-                                    <div className="px-3 py-1.5 rounded-full bg-amber-500 text-white font-bold text-xs">
-                                      {item.unlockPrice} coins
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                                )}
 
-                              {/* Info on hover */}
-                              <div className="absolute bottom-0 left-0 right-0 p-3 z-10 translate-y-full group-hover:translate-y-0 transition-transform pointer-events-none">
-                                <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
-                                  {item.title}
-                                </h3>
-                                <div className="flex items-center gap-2 text-xs text-white/90">
-                                  {item.views !== undefined && (
-                                    <span>{item.views} views</span>
-                                  )}
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
+
+                                {/* Lock indicator */}
+                                {item.isLocked && (
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-md bg-black/60 pointer-events-none">
+                                    <div className="relative mb-3">
+                                      <div className="absolute -inset-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur opacity-75"></div>
+                                      <div className="relative p-4 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
+                                        <Lock className="w-8 h-8 text-yellow-400" />
+                                      </div>
+                                    </div>
+                                    {item.unlockPrice && item.unlockPrice > 0 && (
+                                      <div className="px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm shadow-lg">
+                                        {item.unlockPrice} coins
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Info on hover */}
+                                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-0 group-hover:backdrop-blur-md transition-all pointer-events-none">
+                                  <h3 className="text-white font-bold text-sm line-clamp-1 mb-1 drop-shadow-lg">
+                                    {item.title}
+                                  </h3>
+                                  <div className="flex items-center gap-2 text-xs text-gray-300">
+                                    {item.views !== undefined && (
+                                      <span className="flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                                        {item.views} views
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
