@@ -239,7 +239,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Gallery</div>
+                <div className="text-sm font-semibold text-gray-800">Multiple</div>
               </button>
             </div>
           </GlassCard>
