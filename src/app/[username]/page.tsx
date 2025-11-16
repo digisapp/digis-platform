@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -68,6 +69,7 @@ export default function ProfilePage() {
   const [goals, setGoals] = useState<any[]>([]);
   const [content, setContent] = useState<any[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -305,6 +307,27 @@ export default function ProfilePage() {
     if (!profile) return;
 
     try {
+      // Check if user is authenticated
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        // User not authenticated, show login prompt
+        alert('Please sign in to send messages');
+        router.push('/');
+        return;
+      }
+
+      // Check if user is trying to message themselves
+      const currentUserResponse = await fetch('/api/user/profile');
+      if (currentUserResponse.ok) {
+        const currentUserData = await currentUserResponse.json();
+        if (currentUserData.user?.id === profile.user.id) {
+          alert("You can't message yourself");
+          return;
+        }
+      }
+
       // Fetch conversations to see if one exists with this user
       const response = await fetch('/api/messages/conversations');
       const data = await response.json();
@@ -646,6 +669,11 @@ export default function ProfilePage() {
                           {content.filter(c => c.type === 'photo').map((item) => (
                             <div
                               key={item.id}
+                              onClick={() => {
+                                if (!item.isLocked) {
+                                  setSelectedPhoto(item);
+                                }
+                              }}
                               className="group relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
                             >
                               {/* Image */}
@@ -994,6 +1022,47 @@ export default function ProfilePage() {
               <h3 className="text-xl font-bold text-white mb-2">{selectedVideo.title}</h3>
               {selectedVideo.description && (
                 <p className="text-gray-300 text-sm">{selectedVideo.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Viewer Modal */}
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Photo */}
+            <img
+              src={selectedPhoto.url}
+              alt={selectedPhoto.title}
+              className="w-full h-auto max-h-[85vh] object-contain rounded-2xl"
+            />
+
+            {/* Photo info */}
+            <div className="mt-4 p-6 bg-gray-900 rounded-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">{selectedPhoto.title}</h3>
+              {selectedPhoto.description && (
+                <p className="text-gray-300 text-sm">{selectedPhoto.description}</p>
+              )}
+              {selectedPhoto.views !== undefined && (
+                <p className="text-gray-400 text-sm mt-2">{selectedPhoto.views} views</p>
               )}
             </div>
           </div>
