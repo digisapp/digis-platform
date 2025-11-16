@@ -14,7 +14,7 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
 
   useEffect(() => {
     // Play spotlight sound
-    const audio = new Audio('/sounds/big-tip.mp3');
+    const audio = new Audio('/sounds/big-tip.wav');
     audio.volume = 0.6;
     audio.play().catch(() => {
       // Silently fail if audio doesn't play

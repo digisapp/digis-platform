@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sound Generator for Digis Alerts</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e293b 0%, #4c1d95 100%);
+      color: white;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #06b6d4, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+    .sound-section {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .sound-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .sound-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #06b6d4;
+    }
+    .sound-description {
+      color: #cbd5e1;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+    button {
+      background: linear-gradient(to right, #06b6d4, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .status.success {
+      background: rgba(34, 197, 94, 0.2);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .instructions {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+    .instructions h3 {
+      margin-top: 0;
+      color: #60a5fa;
+    }
+    .instructions ol {
+      margin-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 10px;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔊 Digis Alert Sound Generator</h1>
+    <p class="subtitle">Generate professional alert sounds using Web Audio API</p>
+
+    <!-- Gift Small -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">💎 Gift Small (Under 100 coins)</div>
+        <div class="btn-group">
+          <button onclick="playSound('gift-small')">▶️ Preview</button>
+          <button onclick="downloadSound('gift-small')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Light, pleasant "ding" sound - cheerful and quick</div>
+      <div id="status-gift-small"></div>
+    </div>
+
+    <!-- Gift Medium -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">💰 Gift Medium (100-499 coins)</div>
+        <div class="btn-group">
+          <button onclick="playSound('gift-medium')">▶️ Preview</button>
+          <button onclick="downloadSound('gift-medium')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Pleasant chime - more prominent than small</div>
+      <div id="status-gift-medium"></div>
+    </div>
+
+    <!-- Gift Large -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">💸 Gift Large (500-999 coins)</div>
+        <div class="btn-group">
+          <button onclick="playSound('gift-large')">▶️ Preview</button>
+          <button onclick="downloadSound('gift-large')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Exciting fanfare - builds excitement</div>
+      <div id="status-gift-large"></div>
+    </div>
+
+    <!-- Gift Epic -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">🌟 Gift Epic (1000+ coins)</div>
+        <div class="btn-group">
+          <button onclick="playSound('gift-epic')">▶️ Preview</button>
+          <button onclick="downloadSound('gift-epic')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Epic celebration - triumphant and memorable</div>
+      <div id="status-gift-epic"></div>
+    </div>
+
+    <!-- Big Tip -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">👑 Top Tipper (500+ coins)</div>
+        <div class="btn-group">
+          <button onclick="playSound('big-tip')">▶️ Preview</button>
+          <button onclick="downloadSound('big-tip')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Celebratory fanfare for big supporters</div>
+      <div id="status-big-tip"></div>
+    </div>
+
+    <!-- Goal Complete -->
+    <div class="sound-section">
+      <div class="sound-header">
+        <div class="sound-title">🎯 Goal Complete</div>
+        <div class="btn-group">
+          <button onclick="playSound('goal-complete')">▶️ Preview</button>
+          <button onclick="downloadSound('goal-complete')">⬇️ Download</button>
+        </div>
+      </div>
+      <div class="sound-description">Triumph fanfare when stream goals are reached</div>
+      <div id="status-goal-complete"></div>
+    </div>
+
+    <div class="instructions">
+      <h3>📋 Instructions</h3>
+      <ol>
+        <li>Click <strong>"Preview"</strong> to listen to each sound</li>
+        <li>Click <strong>"Download"</strong> to save the MP3 file</li>
+        <li>Move all downloaded files to <code>public/sounds/</code> folder</li>
+        <li>Refresh your stream to hear the new sounds in action!</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Sound generation functions
+    const soundGenerators = {
+      'gift-small': () => {
+        // Light "ding" - single bell tone
+        const duration = 0.3;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          // Bell sound: sine wave with quick decay
+          const envelope = Math.exp(-t * 8);
+          data[i] = Math.sin(2 * Math.PI * 800 * t) * envelope * 0.3 +
+                     Math.sin(2 * Math.PI * 1200 * t) * envelope * 0.15;
+        }
+        return buffer;
+      },
+
+      'gift-medium': () => {
+        // Pleasant chime - two bell tones
+        const duration = 0.5;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          const envelope = Math.exp(-t * 6);
+
+          // First chime
+          let sound = Math.sin(2 * Math.PI * 600 * t) * envelope * 0.25;
+
+          // Second chime (delayed)
+          if (t > 0.15) {
+            const t2 = t - 0.15;
+            const envelope2 = Math.exp(-t2 * 6);
+            sound += Math.sin(2 * Math.PI * 800 * t2) * envelope2 * 0.25;
+          }
+
+          data[i] = sound;
+        }
+        return buffer;
+      },
+
+      'gift-large': () => {
+        // Exciting fanfare - rising tones
+        const duration = 0.8;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          const envelope = Math.exp(-t * 4) * (1 - Math.exp(-t * 20));
+
+          // Rising fanfare with harmonics
+          const freq = 400 + t * 400; // Frequency sweep
+          data[i] = (
+            Math.sin(2 * Math.PI * freq * t) * 0.3 +
+            Math.sin(2 * Math.PI * freq * 1.5 * t) * 0.15 +
+            Math.sin(2 * Math.PI * freq * 2 * t) * 0.1
+          ) * envelope;
+        }
+        return buffer;
+      },
+
+      'gift-epic': () => {
+        // Epic celebration - complex harmony
+        const duration = 1.2;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          const envelope = Math.exp(-t * 3) * (1 - Math.exp(-t * 30));
+
+          // Epic fanfare with multiple harmonics
+          const baseFreq = 300;
+          let sound = 0;
+
+          // Major chord progression
+          sound += Math.sin(2 * Math.PI * baseFreq * t) * 0.25;        // Root
+          sound += Math.sin(2 * Math.PI * baseFreq * 1.25 * t) * 0.2;  // Major third
+          sound += Math.sin(2 * Math.PI * baseFreq * 1.5 * t) * 0.2;   // Fifth
+          sound += Math.sin(2 * Math.PI * baseFreq * 2 * t) * 0.15;    // Octave
+
+          // Add some shimmer
+          if (t > 0.3) {
+            const shimmer = Math.sin(2 * Math.PI * 1600 * t) * Math.exp(-(t-0.3) * 8) * 0.15;
+            sound += shimmer;
+          }
+
+          data[i] = sound * envelope;
+        }
+        return buffer;
+      },
+
+      'big-tip': () => {
+        // Celebratory fanfare - triumphant
+        const duration = 1.0;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          const envelope = Math.exp(-t * 3.5) * (1 - Math.exp(-t * 25));
+
+          // Fanfare with brass-like quality
+          const freq = 350;
+          let sound = 0;
+
+          sound += Math.sin(2 * Math.PI * freq * t) * 0.3;
+          sound += Math.sin(2 * Math.PI * freq * 1.5 * t) * 0.2;
+          sound += Math.sin(2 * Math.PI * freq * 2 * t) * 0.15;
+
+          // Add excitement with high frequency burst
+          if (t < 0.2) {
+            sound += Math.sin(2 * Math.PI * 1200 * t) * (0.2 - t) * 0.5;
+          }
+
+          data[i] = sound * envelope;
+        }
+        return buffer;
+      },
+
+      'goal-complete': () => {
+        // Triumph fanfare - victory sound
+        const duration = 1.5;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / audioContext.sampleRate;
+          const envelope = Math.exp(-t * 2.5) * (1 - Math.exp(-t * 20));
+
+          // Victory fanfare with ascending notes
+          let sound = 0;
+
+          // First note (0-0.3s)
+          if (t < 0.3) {
+            sound += Math.sin(2 * Math.PI * 400 * t) * 0.3;
+          }
+
+          // Second note (0.3-0.6s)
+          if (t >= 0.3 && t < 0.6) {
+            const t2 = t - 0.3;
+            sound += Math.sin(2 * Math.PI * 500 * t2) * 0.3;
+          }
+
+          // Third note (0.6s+)
+          if (t >= 0.6) {
+            const t3 = t - 0.6;
+            sound += Math.sin(2 * Math.PI * 600 * t3) * 0.35;
+            sound += Math.sin(2 * Math.PI * 900 * t3) * 0.2;  // Add harmony
+          }
+
+          // Add shimmer throughout
+          sound += Math.sin(2 * Math.PI * 2000 * t) * Math.exp(-t * 5) * 0.1;
+
+          data[i] = sound * envelope;
+        }
+        return buffer;
+      }
+    };
+
+    // Play sound
+    function playSound(soundType) {
+      const buffer = soundGenerators[soundType]();
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start();
+    }
+
+    // Convert AudioBuffer to WAV and download
+    function downloadSound(soundType) {
+      const statusEl = document.getElementById(`status-${soundType}`);
+      statusEl.innerHTML = '<div class="status">Generating...</div>';
+
+      try {
+        const buffer = soundGenerators[soundType]();
+        const wav = audioBufferToWav(buffer);
+        const blob = new Blob([wav], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${soundType}.wav`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+        statusEl.innerHTML = `<div class="status success">✓ Downloaded ${soundType}.wav - Move to public/sounds/</div>`;
+
+        setTimeout(() => {
+          statusEl.innerHTML = '';
+        }, 5000);
+      } catch (error) {
+        statusEl.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Convert AudioBuffer to WAV format
+    function audioBufferToWav(buffer) {
+      const length = buffer.length * buffer.numberOfChannels * 2;
+      const arrayBuffer = new ArrayBuffer(44 + length);
+      const view = new DataView(arrayBuffer);
+      const channels = [];
+      let offset = 0;
+      let pos = 0;
+
+      // Write WAV header
+      const setUint16 = (data) => {
+        view.setUint16(pos, data, true);
+        pos += 2;
+      };
+      const setUint32 = (data) => {
+        view.setUint32(pos, data, true);
+        pos += 4;
+      };
+
+      // RIFF identifier
+      setUint32(0x46464952);
+      // File length
+      setUint32(36 + length);
+      // RIFF type
+      setUint32(0x45564157);
+      // Format chunk identifier
+      setUint32(0x20746d66);
+      // Format chunk length
+      setUint32(16);
+      // Sample format (raw)
+      setUint16(1);
+      // Channel count
+      setUint16(buffer.numberOfChannels);
+      // Sample rate
+      setUint32(buffer.sampleRate);
+      // Byte rate
+      setUint32(buffer.sampleRate * 2 * buffer.numberOfChannels);
+      // Block align
+      setUint16(buffer.numberOfChannels * 2);
+      // Bits per sample
+      setUint16(16);
+      // Data chunk identifier
+      setUint32(0x61746164);
+      // Data chunk length
+      setUint32(length);
+
+      // Write interleaved data
+      for (let i = 0; i < buffer.numberOfChannels; i++) {
+        channels.push(buffer.getChannelData(i));
+      }
+
+      while (pos < arrayBuffer.byteLength) {
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+          let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+          view.setInt16(pos, sample, true);
+          pos += 2;
+        }
+        offset++;
+      }
+
+      return arrayBuffer;
+    }
+  </script>
+</body>
+</html>

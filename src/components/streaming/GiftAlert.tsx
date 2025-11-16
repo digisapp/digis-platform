@@ -15,14 +15,14 @@ export function GiftAlert({ gift, streamGift, senderUsername, onComplete }: Gift
 
   useEffect(() => {
     // Play gift sound based on coin value
-    let soundFile = '/sounds/gift-small.mp3'; // Default
+    let soundFile = '/sounds/gift-small.wav'; // Default
 
     if (gift.coinCost >= 1000) {
-      soundFile = '/sounds/gift-epic.mp3';
+      soundFile = '/sounds/gift-epic.wav';
     } else if (gift.coinCost >= 500) {
-      soundFile = '/sounds/gift-large.mp3';
+      soundFile = '/sounds/gift-large.wav';
     } else if (gift.coinCost >= 100) {
-      soundFile = '/sounds/gift-medium.mp3';
+      soundFile = '/sounds/gift-medium.wav';
     }
 
     const audio = new Audio(soundFile);

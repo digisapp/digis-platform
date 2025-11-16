@@ -10,6 +10,7 @@ import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { VideoControls } from '@/components/streaming/VideoControls';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
+import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -684,6 +685,8 @@ export default function BroadcastStudioPage() {
               </div>
 
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
+
+              <StreamHealthIndicator />
 
               <div className="flex items-center gap-2">
                 <span className="text-yellow-400 font-bold">{totalEarnings}</span>
