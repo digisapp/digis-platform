@@ -6,6 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { Toast } from '@/components/ui/Toast';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
@@ -86,6 +87,7 @@ export default function CreatorDashboard() {
   });
   const [submittingGoal, setSubmittingGoal] = useState(false);
   const [deletingGoal, setDeletingGoal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -400,7 +402,7 @@ export default function CreatorDashboard() {
     }
   };
 
-  const handleDeleteActiveGoal = async () => {
+  const handleDeleteActiveGoal = () => {
     // Find active goal
     const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
 
@@ -409,11 +411,17 @@ export default function CreatorDashboard() {
       return;
     }
 
-    if (!confirm(`Are you sure you want to clear this goal? This action cannot be undone.`)) {
-      return;
-    }
+    // Show confirmation modal
+    setShowDeleteConfirm(true);
+  };
 
+  const confirmDeleteGoal = async () => {
+    const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
+    if (!activeGoal) return;
+
+    setShowDeleteConfirm(false);
     setDeletingGoal(true);
+
     try {
       const response = await fetch(`/api/creator/goals/${activeGoal.id}`, {
         method: 'DELETE',
@@ -474,6 +482,19 @@ export default function CreatorDashboard() {
           message={toast.message}
           type={toast.type}
           onClose={hideToast}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <ConfirmModal
+          title="Clear Goal?"
+          message="Are you sure you want to clear this goal? This will remove it from your profile and cannot be undone."
+          confirmText="Clear Goal"
+          cancelText="Keep Goal"
+          variant="danger"
+          onConfirm={confirmDeleteGoal}
+          onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
 
