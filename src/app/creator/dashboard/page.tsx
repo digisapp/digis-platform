@@ -83,6 +83,7 @@ export default function CreatorDashboard() {
     rewardText: '',
   });
   const [submittingGoal, setSubmittingGoal] = useState(false);
+  const [deletingGoal, setDeletingGoal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -389,6 +390,41 @@ export default function CreatorDashboard() {
     }
   };
 
+  const handleDeleteActiveGoal = async () => {
+    // Find active goal
+    const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
+
+    if (!activeGoal) {
+      alert('No active goal to delete');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete the goal "${activeGoal.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingGoal(true);
+    try {
+      const response = await fetch(`/api/creator/goals/${activeGoal.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Refresh goals list
+        fetchGoals();
+        alert('Goal deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete goal');
+      }
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      alert('Failed to delete goal');
+    } finally {
+      setDeletingGoal(false);
+    }
+  };
+
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
@@ -515,7 +551,19 @@ export default function CreatorDashboard() {
 
             {/* Create Goal Form */}
             <div className="glass rounded-2xl border border-amber-200 p-4 shadow-fun">
-              <h3 className="text-base font-bold text-gray-800 mb-3">Create Goal</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-bold text-gray-800">Create Goal</h3>
+                {goals.some(g => g.isActive && !g.isCompleted) && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteActiveGoal}
+                    disabled={deletingGoal}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingGoal ? 'Deleting...' : 'Clear Goal'}
+                  </button>
+                )}
+              </div>
 
               <form onSubmit={handleCreateGoal} className="space-y-3">
                 {/* Title */}
