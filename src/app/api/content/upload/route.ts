@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/data/system';
-import { contentItems, users } from '@/db/schema';
+import { db, contentItems, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -82,8 +81,17 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+      console.error('[CONTENT UPLOAD] Storage upload error:', {
+        error: uploadError,
+        bucket,
+        fileName,
+        fileType: file.type,
+        fileSize: file.size,
+      });
+      return NextResponse.json({
+        error: 'Failed to upload file to storage',
+        details: uploadError.message
+      }, { status: 500 });
     }
 
     // Get public URL
@@ -95,22 +103,44 @@ export async function POST(request: NextRequest) {
       : publicUrl;
 
     // Create content item in database
-    const [content] = await db.insert(contentItems).values({
-      creatorId: user.id,
-      title,
-      description: description || null,
-      contentType: contentType as 'photo' | 'video' | 'gallery',
-      unlockPrice: isFree ? 0 : unlockPrice,
-      isFree,
-      thumbnailUrl,
-      mediaUrl: publicUrl,
-      durationSeconds: contentType === 'video' ? 0 : null, // TODO: Extract video duration
-      isPublished: true,
-    }).returning();
+    try {
+      const [content] = await db.insert(contentItems).values({
+        creatorId: user.id,
+        title,
+        description: description || null,
+        contentType: contentType as 'photo' | 'video' | 'gallery',
+        unlockPrice: isFree ? 0 : unlockPrice,
+        isFree,
+        thumbnailUrl,
+        mediaUrl: publicUrl,
+        durationSeconds: contentType === 'video' ? 0 : null, // TODO: Extract video duration
+        isPublished: true,
+      }).returning();
 
-    return NextResponse.json({ content }, { status: 201 });
+      return NextResponse.json({ content }, { status: 201 });
+    } catch (dbError: any) {
+      console.error('[CONTENT UPLOAD] Database error:', {
+        error: dbError.message,
+        userId: user.id,
+        contentType,
+      });
+
+      // Clean up uploaded file if database insert fails
+      await supabase.storage.from(bucket).remove([fileName]);
+
+      return NextResponse.json({
+        error: 'Failed to save content to database',
+        details: dbError.message
+      }, { status: 500 });
+    }
   } catch (error: any) {
-    console.error('[CONTENT UPLOAD ERROR]', error);
-    return NextResponse.json({ error: 'Failed to upload content' }, { status: 500 });
+    console.error('[CONTENT UPLOAD ERROR]', {
+      error: error.message,
+      stack: error.stack,
+    });
+    return NextResponse.json({
+      error: 'Failed to upload content',
+      details: error.message
+    }, { status: 500 });
   }
 }
