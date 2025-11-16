@@ -310,8 +310,8 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
       className="overflow-visible cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
       onClick={onClick}
     >
-      {/* 4:5 Creator Card Image (Portrait) */}
-      <div className="relative w-full overflow-hidden rounded-t-2xl" style={{ paddingBottom: '125%' }}>
+      {/* 4:5 Creator Card Image (Portrait) - Reduced size */}
+      <div className="relative w-full overflow-hidden rounded-t-2xl" style={{ paddingBottom: '110%' }}>
         {cardImageUrl ? (
           <>
             <img
@@ -354,7 +354,7 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
       </div>
 
       {/* Creator Info - Simple Footer */}
-      <div className="relative p-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
+      <div className="relative p-3 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
 
