@@ -152,11 +152,11 @@ export async function POST(
       })
       .where(eq(creatorGoals.id, goalId));
 
-    // 4. Create wallet transactions
+    // 4. Create wallet transactions (using 'dm_tip' type with goal metadata)
     const [senderTransaction] = await db.insert(walletTransactions).values({
       userId: authUser.id,
       amount: -amount,
-      type: 'goal_tip',
+      type: 'dm_tip',
       status: 'completed',
       description: `Tip toward goal: ${goal.title}${message ? ' - ' + message : ''}`,
       idempotencyKey,
@@ -165,6 +165,7 @@ export async function POST(
         recipientUsername: receiver.username,
         goalId: goal.id,
         goalTitle: goal.title,
+        isGoalTip: true,
         message: message || null,
       }),
     }).returning();
@@ -172,7 +173,7 @@ export async function POST(
     await db.insert(walletTransactions).values({
       userId: receiver.id,
       amount: amount,
-      type: 'goal_tip',
+      type: 'dm_tip',
       status: 'completed',
       description: `Goal tip from ${sender?.displayName || sender?.username || 'a fan'}: ${goal.title}${message ? ' - ' + message : ''}`,
       relatedTransactionId: senderTransaction.id,
@@ -181,6 +182,7 @@ export async function POST(
         senderUsername: sender?.username,
         goalId: goal.id,
         goalTitle: goal.title,
+        isGoalTip: true,
         message: message || null,
       }),
     });
@@ -192,7 +194,7 @@ export async function POST(
 
     await db.insert(notifications).values({
       userId: receiver.id,
-      type: 'goal_tip',
+      type: 'tip_received',
       title: isNowCompleted ? '🎉 Goal Completed!' : 'Goal Tip Received!',
       message: notificationMessage,
       metadata: JSON.stringify({
@@ -202,6 +204,7 @@ export async function POST(
         goalId: goal.id,
         goalTitle: goal.title,
         goalCompleted: isNowCompleted,
+        isGoalTip: true,
         message: message || null,
       }),
     });
