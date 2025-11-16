@@ -670,7 +670,11 @@ export default function ProfilePage() {
                             <div
                               key={item.id}
                               onClick={() => {
-                                if (!item.isLocked) {
+                                console.log('Photo clicked:', item);
+                                if (item.isLocked && !item.isFree) {
+                                  // TODO: Implement unlock/purchase flow
+                                  alert(`This content costs ${item.unlockPrice} coins to unlock. Purchase feature coming soon!`);
+                                } else {
                                   setSelectedPhoto(item);
                                 }
                               }}
@@ -690,11 +694,11 @@ export default function ProfilePage() {
                               )}
 
                               {/* Overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                               {/* Lock indicator */}
                               {item.isLocked && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl">
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl pointer-events-none">
                                   <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
                                     <Lock className="w-6 h-6 text-white" />
                                   </div>
@@ -707,7 +711,7 @@ export default function ProfilePage() {
                               )}
 
                               {/* Info on hover */}
-                              <div className="absolute bottom-0 left-0 right-0 p-3 z-10 translate-y-full group-hover:translate-y-0 transition-transform">
+                              <div className="absolute bottom-0 left-0 right-0 p-3 z-10 translate-y-full group-hover:translate-y-0 transition-transform pointer-events-none">
                                 <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
                                   {item.title}
                                 </h3>
