@@ -519,7 +519,7 @@ export default function BroadcastStudioPage() {
         <>
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="glass rounded-3xl border-2 border-purple-200 shadow-2xl p-8 max-w-2xl w-full">
+            <div className="backdrop-blur-xl bg-slate-900/95 rounded-3xl border border-white/20 shadow-2xl p-8 max-w-2xl w-full">
               {/* Header */}
               <div className="text-center mb-6">
                 <div className="mb-4">
@@ -528,54 +528,54 @@ export default function BroadcastStudioPage() {
                   </svg>
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2">Stream Complete!</h2>
-                <p className="text-gray-300">Great job! Here's how your stream performed</p>
+                <p className="text-gray-200">Great job! Here's how your stream performed</p>
               </div>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
+                <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center">
                   <div className="mb-2">
                     <svg className="w-8 h-8 mx-auto text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <div className="text-2xl font-bold text-digis-cyan">{streamSummary.duration}</div>
-                  <div className="text-sm text-gray-300 font-medium">Duration</div>
+                  <div className="text-2xl font-bold text-cyan-400">{streamSummary.duration}</div>
+                  <div className="text-sm text-gray-200 font-medium">Duration</div>
                 </div>
-                <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
+                <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center">
                   <div className="mb-2">
                     <svg className="w-8 h-8 mx-auto text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                   </div>
-                  <div className="text-2xl font-bold text-digis-purple">{streamSummary.totalViewers}</div>
-                  <div className="text-sm text-gray-300 font-medium">Total Views</div>
+                  <div className="text-2xl font-bold text-purple-400">{streamSummary.totalViewers}</div>
+                  <div className="text-sm text-gray-200 font-medium">Total Views</div>
                 </div>
-                <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
+                <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center">
                   <div className="mb-2">
                     <svg className="w-8 h-8 mx-auto text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <div className="text-2xl font-bold text-digis-pink">{streamSummary.peakViewers}</div>
-                  <div className="text-sm text-gray-300 font-medium">Peak Viewers</div>
+                  <div className="text-2xl font-bold text-pink-400">{streamSummary.peakViewers}</div>
+                  <div className="text-sm text-gray-200 font-medium">Peak Viewers</div>
                 </div>
-                <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center">
+                <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center">
                   <div className="mb-2">
                     <svg className="w-8 h-8 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <div className="text-2xl font-bold text-yellow-500">{streamSummary.totalEarnings}</div>
-                  <div className="text-sm text-gray-300 font-medium">Coins Earned</div>
+                  <div className="text-2xl font-bold text-yellow-400">{streamSummary.totalEarnings}</div>
+                  <div className="text-sm text-gray-200 font-medium">Coins Earned</div>
                 </div>
               </div>
 
               {/* Top Supporters */}
               {streamSummary.topSupporters.length > 0 && (
-                <div className="mb-6 glass rounded-xl border-2 border-purple-200 p-4">
+                <div className="mb-6 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
                   <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                     <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -584,14 +584,14 @@ export default function BroadcastStudioPage() {
                   </h3>
                   <div className="space-y-2">
                     {streamSummary.topSupporters.map((supporter, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-white/50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-2 bg-white/10 rounded-lg">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-bold" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32' }}>
                             #{index + 1}
                           </span>
                           <span className="font-semibold text-white">{supporter.username}</span>
                         </div>
-                        <span className="text-digis-cyan font-bold">{supporter.totalCoins} coins</span>
+                        <span className="text-cyan-400 font-bold">{supporter.totalCoins} coins</span>
                       </div>
                     ))}
                   </div>
@@ -647,49 +647,46 @@ export default function BroadcastStudioPage() {
 
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
 
-              <div className="flex items-center gap-2 px-4 py-2 backdrop-blur-xl bg-white/10 rounded-lg border border-green-500/30">
-                <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                </svg>
-                <span className="text-white font-bold">{totalEarnings} coins</span>
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400 font-bold">{totalEarnings}</span>
+                <span className="text-gray-300">coins</span>
               </div>
             </div>
 
             <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               <GlassButton
                 variant="gradient"
-                size="lg"
+                size="md"
                 onClick={() => setShowLeaderboard(!showLeaderboard)}
                 shimmer
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2"
+                className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 <span className="hidden sm:inline">Leaderboard</span>
               </GlassButton>
               <GlassButton
                 variant="gradient"
-                size="lg"
+                size="md"
                 onClick={() => setShowGoalModal(true)}
                 shimmer
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2"
+                className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
                 <span className="hidden sm:inline">Set Goal</span>
               </GlassButton>
               <GlassButton
                 variant="gradient"
-                size="lg"
+                size="md"
                 onClick={() => setShowEndConfirm(true)}
                 shimmer
                 glow
-                className="text-white font-semibold flex-1 sm:flex-initial min-h-[44px] flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
+                className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                 </svg>
@@ -704,8 +701,8 @@ export default function BroadcastStudioPage() {
       {showLeaderboard && (
         <>
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setShowLeaderboard(false)} />
-          <div className={`fixed ${isPortrait ? 'bottom-0 left-0 right-0 max-h-[70vh]' : 'right-0 top-0 bottom-0 w-80'} bg-white/95 backdrop-blur-md border-l-2 border-purple-200 z-40 lg:relative lg:z-0 transform transition-transform duration-300 ${showLeaderboard ? 'translate-x-0 translate-y-0' : isPortrait ? 'translate-y-full' : 'translate-x-full'} lg:translate-x-0 lg:translate-y-0 overflow-y-auto`}>
-            <div className="p-4 border-b-2 border-purple-200 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md">
+          <div className={`fixed ${isPortrait ? 'bottom-0 left-0 right-0 max-h-[70vh]' : 'right-0 top-0 bottom-0 w-80'} bg-slate-900/95 backdrop-blur-md border-l-2 border-white/20 z-40 lg:relative lg:z-0 transform transition-transform duration-300 ${showLeaderboard ? 'translate-x-0 translate-y-0' : isPortrait ? 'translate-y-full' : 'translate-x-full'} lg:translate-x-0 lg:translate-y-0 overflow-y-auto`}>
+            <div className="p-4 border-b-2 border-white/20 flex items-center justify-between sticky top-0 bg-slate-900/95 backdrop-blur-md">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -724,7 +721,7 @@ export default function BroadcastStudioPage() {
             <div className="p-4 space-y-3">
               {leaderboard.length > 0 ? (
                 leaderboard.map((supporter, index) => (
-                  <div key={index} className="glass rounded-xl border-2 border-purple-200 p-4 hover:border-digis-cyan transition-all duration-300">
+                  <div key={index} className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 hover:border-digis-cyan transition-all duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-xl font-bold" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
@@ -732,12 +729,12 @@ export default function BroadcastStudioPage() {
                         </span>
                         <div>
                           <div className="font-bold text-white">{supporter.username}</div>
-                          <div className="text-xs text-gray-300">Supporter</div>
+                          <div className="text-xs text-gray-400">Supporter</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-digis-cyan">{supporter.totalCoins}</div>
-                        <div className="text-xs text-gray-300">coins</div>
+                        <div className="text-lg font-bold text-cyan-400">{supporter.totalCoins}</div>
+                        <div className="text-xs text-gray-400">coins</div>
                       </div>
                     </div>
                   </div>
@@ -811,10 +808,10 @@ export default function BroadcastStudioPage() {
             </div>
 
             {/* Stream Info */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-6">
+            <div className="backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6">
               <h1 className="text-2xl font-bold text-white mb-2">{stream.title}</h1>
               {stream.description && (
-                <p className="text-gray-300">{stream.description}</p>
+                <p className="text-gray-200">{stream.description}</p>
               )}
             </div>
 
@@ -823,34 +820,34 @@ export default function BroadcastStudioPage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-cyan transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
+              <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center hover:border-cyan-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="mb-2">
                   <svg className="w-8 h-8 mx-auto text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-digis-cyan">{stream.totalViews}</div>
-                <div className="text-xs sm:text-sm text-gray-300 font-medium">Total Views</div>
+                <div className="text-xl sm:text-2xl font-bold text-cyan-400">{stream.totalViews}</div>
+                <div className="text-xs sm:text-sm text-gray-200 font-medium">Total Views</div>
               </div>
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-digis-pink transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
+              <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center hover:border-pink-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="mb-2">
                   <svg className="w-8 h-8 mx-auto text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-digis-pink">{peakViewers}</div>
-                <div className="text-xs sm:text-sm text-gray-300 font-medium">Peak Viewers</div>
+                <div className="text-xl sm:text-2xl font-bold text-pink-400">{peakViewers}</div>
+                <div className="text-xs sm:text-sm text-gray-200 font-medium">Peak Viewers</div>
               </div>
-              <div className="glass rounded-xl border-2 border-purple-200 p-4 text-center hover:border-yellow-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
+              <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 text-center hover:border-yellow-400 transition-all duration-300 hover:shadow-lg min-h-[100px] flex flex-col justify-center">
                 <div className="mb-2">
                   <svg className="w-8 h-8 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-yellow-500">{totalEarnings}</div>
-                <div className="text-xs sm:text-sm text-gray-300 font-medium">Coins Earned</div>
+                <div className="text-xl sm:text-2xl font-bold text-yellow-400">{totalEarnings}</div>
+                <div className="text-xs sm:text-sm text-gray-200 font-medium">Coins Earned</div>
               </div>
             </div>
           </div>
