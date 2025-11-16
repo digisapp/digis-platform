@@ -168,7 +168,11 @@ export default function ContentLibraryPage() {
         {/* Content Grid */}
         {content.length === 0 ? (
           <GlassCard className="p-12 text-center">
-            <div className="text-6xl mb-4">📭</div>
+            <div className="mb-4">
+              <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
             <h3 className="text-xl font-bold text-white mb-2">No content yet</h3>
             <p className="text-gray-400 mb-6">Start building your collection by purchasing exclusive content!</p>
             <button
@@ -211,7 +215,10 @@ export default function ContentLibraryPage() {
                     {/* Owned Badge */}
                     <div className="absolute top-3 right-3">
                       <div className="bg-green-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1 text-white font-bold text-sm">
-                        ✓ Owned
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Owned
                       </div>
                     </div>
 
@@ -249,7 +256,9 @@ export default function ContentLibraryPage() {
                           {item.creator.displayName || item.creator.username}
                         </span>
                         {item.creator.isCreatorVerified && (
-                          <span className="text-digis-cyan">✓</span>
+                          <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
                         )}
                       </div>
 

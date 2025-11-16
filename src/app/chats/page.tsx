@@ -209,14 +209,22 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative z-10">
       <div className="container mx-auto max-w-7xl">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
@@ -234,12 +242,12 @@ export default function MessagesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -253,7 +261,7 @@ export default function MessagesPage() {
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                   filter === 'all'
                     ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-300 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 All
@@ -263,7 +271,7 @@ export default function MessagesPage() {
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
                   filter === 'unread'
                     ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-300 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 Unread
@@ -304,7 +312,7 @@ export default function MessagesPage() {
               {filteredConversations.length === 0 ? (
                 <div className="glass rounded-xl border-2 border-purple-200 p-8 text-center">
                   <Inbox className="w-16 h-16 mx-auto mb-3 text-gray-400" />
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-white">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
                 </div>
@@ -344,7 +352,7 @@ export default function MessagesPage() {
                           {conversation.isPinned && (
                             <Pin className="w-4 h-4 text-digis-cyan fill-digis-cyan" />
                           )}
-                          <h3 className={`font-semibold truncate ${conversation.unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+                          <h3 className={`font-semibold truncate ${conversation.unreadCount > 0 ? 'text-white' : 'text-gray-300'}`}>
                             {conversation.otherUser.displayName || conversation.otherUser.username}
                           </h3>
                           {conversation.otherUser.role === 'creator' && (
@@ -353,14 +361,14 @@ export default function MessagesPage() {
                             </span>
                           )}
                         </div>
-                        <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-600'}`}>
+                        <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'text-white font-medium' : 'text-gray-400'}`}>
                           {conversation.lastMessageText || 'Start a conversation'}
                         </p>
                       </div>
 
                       {/* Time */}
                       <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-400">
                           {formatTime(conversation.lastMessageAt)}
                         </p>
                       </div>
@@ -372,7 +380,7 @@ export default function MessagesPage() {
                         e.stopPropagation();
                         setActiveMenu(activeMenu === conversation.id ? null : conversation.id);
                       }}
-                      className="absolute top-4 right-4 p-2 text-gray-600 hover:text-gray-800 hover:bg-white/60 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-white/60 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -392,8 +400,8 @@ export default function MessagesPage() {
                             }}
                             className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left min-h-[44px]"
                           >
-                            <Pin className="w-4 h-4 text-gray-700" />
-                            <span className="text-sm font-semibold text-gray-900">
+                            <Pin className="w-4 h-4 text-gray-300" />
+                            <span className="text-sm font-semibold text-white">
                               {conversation.isPinned ? 'Unpin' : 'Pin'}
                             </span>
                           </button>
@@ -404,8 +412,8 @@ export default function MessagesPage() {
                             }}
                             className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left border-t border-purple-100 min-h-[44px]"
                           >
-                            <Archive className="w-4 h-4 text-gray-700" />
-                            <span className="text-sm font-semibold text-gray-900">Archive</span>
+                            <Archive className="w-4 h-4 text-gray-300" />
+                            <span className="text-sm font-semibold text-white">Archive</span>
                           </button>
                         </div>
                       </>
@@ -420,7 +428,7 @@ export default function MessagesPage() {
           <div className="hidden lg:flex items-center justify-center glass rounded-3xl border-2 border-purple-200 p-12 h-[calc(100vh-180px)]">
             <div className="text-center max-w-md">
               <MessageCircle className="w-24 h-24 mx-auto mb-6 text-gray-400" />
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-white">
                 Select a Chat
               </h2>
             </div>

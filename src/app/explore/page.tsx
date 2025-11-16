@@ -154,8 +154,15 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
@@ -163,13 +170,13 @@ export default function ExplorePage() {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 bg-white/90 backdrop-blur-sm border-2 border-purple-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:bg-white transition-all shadow-sm"
+              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 transition-all"
             />
             {searching && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -197,8 +204,8 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/50 border border-cyan-500'
+                          : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-cyan-500/50 hover:scale-105'
                       }
                     `}
                   >
@@ -225,8 +232,8 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/50 border border-cyan-500'
+                          : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-cyan-500/50 hover:scale-105'
                       }
                     `}
                   >
@@ -252,10 +259,10 @@ export default function ExplorePage() {
 
         {/* Creators Grid */}
         {creators.length === 0 ? (
-          <div className="p-16 text-center bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-purple-100">
+          <div className="p-16 text-center backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20">
             <Search className="w-20 h-20 text-gray-400 mx-auto mb-5" />
-            <h3 className="text-2xl font-bold mb-2 text-gray-900">No creators found</h3>
-            <p className="text-gray-600 text-lg">
+            <h3 className="text-2xl font-bold mb-2 text-white">No creators found</h3>
+            <p className="text-gray-400 text-lg">
               {searchTerm ? 'Try a different search term' : 'Check back soon for new creators!'}
             </p>
           </div>
@@ -307,7 +314,7 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
 
   return (
     <div
-      className="overflow-visible cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
+      className="overflow-visible cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 hover:border-cyan-500/50"
       onClick={onClick}
     >
       {/* 4:5 Creator Card Image (Portrait) - Reduced size */}
@@ -354,9 +361,9 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
       </div>
 
       {/* Creator Info - Simple Footer */}
-      <div className="relative p-3 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
+      <div className="relative p-3 backdrop-blur-xl bg-white/10 border-t border-white/20 rounded-b-2xl">
         {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
 
         <div className="relative z-10">
           {/* Username only */}
@@ -367,12 +374,12 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
                 <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
               </div>
             )}
-            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[140px]">
+            <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px]">
               {creator.username}
             </h3>
             {creator.isTrending && (
               <div className="relative">
-                <TrendingUp className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
               </div>
             )}
@@ -381,7 +388,7 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
 
         {/* Subtle glow effect on hover */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-b-2xl">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-digis-cyan to-transparent blur-sm" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent blur-sm" />
         </div>
       </div>
     </div>

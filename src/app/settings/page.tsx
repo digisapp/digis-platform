@@ -508,14 +508,22 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 py-12 px-4 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative z-10">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Global Messages */}
         {message && (
@@ -540,7 +548,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Profile Media */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-digis-cyan" />
               Profile Media
             </h3>
@@ -614,17 +622,17 @@ export default function SettingsPage() {
 
                 {/* Name & Bio */}
                 <div className="flex-1 mt-6">
-                  <h4 className="font-bold text-gray-800 text-lg">{displayName || 'Your Name'}</h4>
-                  <p className="text-sm text-gray-600">@{currentUser?.username}</p>
+                  <h4 className="font-bold text-white text-lg">{displayName || 'Your Name'}</h4>
+                  <p className="text-sm text-gray-400">@{currentUser?.username}</p>
                   {bio && (
-                    <p className="text-sm text-gray-700 mt-2 line-clamp-2">{bio}</p>
+                    <p className="text-sm text-gray-300 mt-2 line-clamp-2">{bio}</p>
                   )}
                 </div>
 
                 {/* Creator Card Mini Preview - Clickable - Creators Only */}
                 {currentUser?.role === 'creator' && (
                   <div className="flex-shrink-0">
-                    <p className="text-xs font-semibold text-gray-600 mb-2 text-center">Creator Card</p>
+                    <p className="text-xs font-semibold text-gray-400 mb-2 text-center">Creator Card</p>
                     <label className="relative cursor-pointer group block w-24">
                       {(creatorCardPreview || creatorCardImageUrl) ? (
                         <>
@@ -664,7 +672,7 @@ export default function SettingsPage() {
 
           {/* Account Information */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Shield className="w-5 h-5 text-digis-pink" />
               Account Information
             </h3>
@@ -676,14 +684,14 @@ export default function SettingsPage() {
                     <Mail className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-gray-600 mb-1">Current Email Address</p>
-                    <p className="text-sm font-medium text-gray-800 mb-2">{currentUser?.email}</p>
+                    <p className="text-xs text-gray-400 mb-1">Current Email Address</p>
+                    <p className="text-sm font-medium text-white mb-2">{currentUser?.email}</p>
                     <input
                       type="email"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="Enter new email address"
-                      className="w-full px-3 py-2 bg-white/80 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
+                      className="w-full px-3 py-2 bg-white/80 border border-gray-300 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
                     />
                   </div>
                   <GlassButton
@@ -715,8 +723,8 @@ export default function SettingsPage() {
                   <AtSign className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Username</p>
-                  <p className="text-sm font-medium text-gray-800">@{currentUser?.username}</p>
+                  <p className="text-xs text-gray-400">Username</p>
+                  <p className="text-sm font-medium text-white">@{currentUser?.username}</p>
                 </div>
               </div>
 
@@ -729,8 +737,8 @@ export default function SettingsPage() {
                   )}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Account Type</p>
-                  <p className="text-sm font-medium text-gray-800 capitalize">{currentUser?.role}</p>
+                  <p className="text-xs text-gray-400">Account Type</p>
+                  <p className="text-sm font-medium text-white capitalize">{currentUser?.role}</p>
                 </div>
               </div>
 
@@ -740,8 +748,8 @@ export default function SettingsPage() {
                     <Calendar className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600">Member Since</p>
-                    <p className="text-sm font-medium text-gray-800">
+                    <p className="text-xs text-gray-400">Member Since</p>
+                    <p className="text-sm font-medium text-white">
                       {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
@@ -758,7 +766,7 @@ export default function SettingsPage() {
         <GlassCard className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <AtSign className="w-5 h-5 text-digis-purple" />
-            <h2 className="text-xl font-semibold text-gray-800">Username</h2>
+            <h2 className="text-xl font-semibold text-white">Username</h2>
           </div>
 
           {usernameCooldown && !usernameCooldown.canChange && (
@@ -776,7 +784,7 @@ export default function SettingsPage() {
                 onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                 disabled={!usernameCooldown?.canChange}
                 placeholder={currentUser?.username}
-                className={`w-full px-4 py-3 bg-white/50 border-2 rounded-lg text-gray-900 font-medium placeholder-gray-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-3 bg-white/50 border-2 rounded-lg text-white font-medium placeholder-gray-500 focus:outline-none transition-all ${
                   !newUsername || newUsername === currentUser?.username
                     ? 'border-purple-200 focus:border-digis-cyan'
                     : usernameStatus === 'checking'
@@ -823,7 +831,7 @@ export default function SettingsPage() {
         <GlassCard className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-digis-pink" />
-            <h2 className="text-xl font-semibold text-gray-800">Profile Information</h2>
+            <h2 className="text-xl font-semibold text-white">Profile Information</h2>
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -836,19 +844,19 @@ export default function SettingsPage() {
             />
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
+              <label className="block text-sm font-medium mb-2 text-gray-300">
                 <MessageSquare className="w-4 h-4 inline mr-1" />
                 Bio
               </label>
               <textarea
-                className="w-full px-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
+                className="w-full px-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
                 placeholder="Tell us about yourself..."
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={200}
               />
-              <p className="text-xs text-gray-600 mt-1">{bio.length}/200 characters</p>
+              <p className="text-xs text-gray-400 mt-1">{bio.length}/200 characters</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -895,7 +903,7 @@ export default function SettingsPage() {
           <GlassCard className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <Settings className="w-5 h-5 text-digis-pink" />
-              <h2 className="text-xl font-semibold text-gray-800">Rates & Subscriptions</h2>
+              <h2 className="text-xl font-semibold text-white">Rates & Subscriptions</h2>
             </div>
 
             {/* Tabs */}
@@ -905,7 +913,7 @@ export default function SettingsPage() {
                 className={`px-4 py-2 font-semibold text-sm transition-all relative ${
                   activeRateTab === 'video'
                     ? 'text-digis-cyan'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -921,7 +929,7 @@ export default function SettingsPage() {
                 className={`px-4 py-2 font-semibold text-sm transition-all relative ${
                   activeRateTab === 'voice'
                     ? 'text-blue-500'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -937,7 +945,7 @@ export default function SettingsPage() {
                 className={`px-4 py-2 font-semibold text-sm transition-all relative ${
                   activeRateTab === 'messages'
                     ? 'text-pink-500'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -953,7 +961,7 @@ export default function SettingsPage() {
                 className={`px-4 py-2 font-semibold text-sm transition-all relative ${
                   activeRateTab === 'subscriptions'
                     ? 'text-purple-500'
-                    : 'text-gray-600 hover:text-gray-800'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -976,8 +984,8 @@ export default function SettingsPage() {
                       <Phone className="w-5 h-5 text-green-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">Available for Video Calls</h3>
-                      <p className="text-xs text-gray-600">Allow fans to request video calls</p>
+                      <h3 className="font-semibold text-white">Available for Video Calls</h3>
+                      <p className="text-xs text-gray-400">Allow fans to request video calls</p>
                     </div>
                   </div>
                   <button
@@ -995,7 +1003,7 @@ export default function SettingsPage() {
                 {/* Rate and Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-white/50 rounded-xl">
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    <label className="block text-sm font-semibold text-white mb-2">
                       <DollarSign className="w-4 h-4 inline mr-1" />
                       Rate Per Minute
                     </label>
@@ -1006,14 +1014,14 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.callRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
-                      <span className="text-sm text-gray-600 whitespace-nowrap">coins/min</span>
+                      <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
                   </div>
 
                   <div className="p-4 bg-white/50 rounded-xl">
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    <label className="block text-sm font-semibold text-white mb-2">
                       <Clock className="w-4 h-4 inline mr-1" />
                       Minimum Duration
                     </label>
@@ -1024,9 +1032,9 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
-                      <span className="text-sm text-gray-600 whitespace-nowrap">minutes</span>
+                      <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
                   </div>
                 </div>
@@ -1043,8 +1051,8 @@ export default function SettingsPage() {
                       <Mic className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">Available for Voice Calls</h3>
-                      <p className="text-xs text-gray-600">Allow fans to request voice-only calls</p>
+                      <h3 className="font-semibold text-white">Available for Voice Calls</h3>
+                      <p className="text-xs text-gray-400">Allow fans to request voice-only calls</p>
                     </div>
                   </div>
                   <button
@@ -1062,7 +1070,7 @@ export default function SettingsPage() {
                 {/* Rate and Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-white/50 rounded-xl">
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    <label className="block text-sm font-semibold text-white mb-2">
                       <DollarSign className="w-4 h-4 inline mr-1" />
                       Rate Per Minute
                     </label>
@@ -1073,14 +1081,14 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.voiceCallRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
-                      <span className="text-sm text-gray-600 whitespace-nowrap">coins/min</span>
+                      <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
                   </div>
 
                   <div className="p-4 bg-white/50 rounded-xl">
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">
+                    <label className="block text-sm font-semibold text-white mb-2">
                       <Clock className="w-4 h-4 inline mr-1" />
                       Minimum Duration
                     </label>
@@ -1091,9 +1099,9 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumVoiceCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
-                      <span className="text-sm text-gray-600 whitespace-nowrap">minutes</span>
+                      <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
                   </div>
                 </div>
@@ -1104,11 +1112,11 @@ export default function SettingsPage() {
             {activeRateTab === 'messages' && (
               <div className="space-y-6">
                 <div className="p-4 bg-white/50 rounded-xl">
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     <MessageSquare className="w-4 h-4 inline mr-1" />
                     Cost Per Message
                   </label>
-                  <p className="text-xs text-gray-600 mb-3">Set to 0 for free messages</p>
+                  <p className="text-xs text-gray-400 mb-3">Set to 0 for free messages</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -1116,16 +1124,16 @@ export default function SettingsPage() {
                       max="1000"
                       value={callSettings.messageRate}
                       onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
-                      className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                     />
-                    <span className="text-sm text-gray-600 whitespace-nowrap">coins/message</span>
+                    <span className="text-sm text-gray-400 whitespace-nowrap">coins/message</span>
                   </div>
                 </div>
 
                 {/* Info */}
                 <div className="p-4 bg-pink-500/10 border border-pink-500/20 rounded-xl">
-                  <p className="text-sm text-gray-700">
-                    💡 When fans send you messages, they'll be automatically charged this amount. Set to 0 to receive free messages.
+                  <p className="text-sm text-gray-300">
+                    When fans send you messages, they'll be automatically charged this amount. Set to 0 to receive free messages.
                   </p>
                 </div>
               </div>
@@ -1141,8 +1149,8 @@ export default function SettingsPage() {
                       <Star className="w-5 h-5 text-purple-500" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">Enable Subscriptions</h3>
-                      <p className="text-xs text-gray-600">Allow fans to subscribe to your exclusive content</p>
+                      <h3 className="font-semibold text-white">Enable Subscriptions</h3>
+                      <p className="text-xs text-gray-400">Allow fans to subscribe to your exclusive content</p>
                     </div>
                   </div>
                   <button
@@ -1160,27 +1168,27 @@ export default function SettingsPage() {
                 {/* Subscription Details - Only show when enabled */}
                 {subscriptionSettings.enabled && (
                   <div className="space-y-4 border-t border-purple-200 pt-6">
-                    <h3 className="text-base font-bold text-gray-800 mb-4">Subscription Details</h3>
+                    <h3 className="text-base font-bold text-white mb-4">Subscription Details</h3>
 
                     {/* Subscription Name */}
                     <div className="p-4 bg-white/50 rounded-xl">
-                      <label className="block text-sm font-semibold text-gray-800 mb-1">
+                      <label className="block text-sm font-semibold text-white mb-1">
                         Subscription Name <span className="text-red-500">*</span>
                       </label>
-                      <p className="text-xs text-gray-600 mb-3">What your subscribers will be called</p>
+                      <p className="text-xs text-gray-400 mb-3">What your subscribers will be called</p>
                       <input
                         type="text"
                         value={subscriptionSettings.subscriptionName}
                         onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, subscriptionName: e.target.value })}
                         placeholder="Superfan"
                         maxLength={30}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold focus:outline-none focus:border-purple-500 transition-colors"
                       />
                     </div>
 
                     {/* Monthly Price */}
                     <div className="p-4 bg-white/50 rounded-xl">
-                      <label className="block text-sm font-semibold text-gray-800 mb-1">
+                      <label className="block text-sm font-semibold text-white mb-1">
                         Monthly Price <span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center gap-2 mt-3">
@@ -1190,16 +1198,16 @@ export default function SettingsPage() {
                           max="10000"
                           value={subscriptionSettings.monthlyPrice}
                           onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(e.target.value) || 1 })}
-                          className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-gray-800 font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
+                          className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
                         />
-                        <span className="text-sm text-gray-600 whitespace-nowrap">coins/month</span>
+                        <span className="text-sm text-gray-400 whitespace-nowrap">coins/month</span>
                       </div>
                     </div>
 
                     {/* Info Box */}
                     <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                      <p className="text-sm text-gray-700">
-                        💜 Subscribers get exclusive access to your subscriber-only content and perks. You'll earn {subscriptionSettings.monthlyPrice} coins monthly from each subscriber.
+                      <p className="text-sm text-gray-300">
+                        Subscribers get exclusive access to your subscriber-only content and perks. You'll earn {subscriptionSettings.monthlyPrice} coins monthly from each subscriber.
                       </p>
                     </div>
                   </div>
@@ -1236,14 +1244,14 @@ export default function SettingsPage() {
               <svg className="w-5 h-5 text-digis-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              <h2 className="text-xl font-semibold text-gray-800">Become a Creator</h2>
+              <h2 className="text-xl font-semibold text-white">Become a Creator</h2>
             </div>
-            <p className="text-sm text-gray-700 mb-4">
+            <p className="text-sm text-gray-300 mb-4">
               Join our community of creators and start earning from your content, live shows, and more.
             </p>
             <button
               onClick={() => router.push('/creator/apply')}
-              className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform"
+              className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold text-white hover:scale-105 transition-transform"
             >
               Apply to Become a Creator
             </button>

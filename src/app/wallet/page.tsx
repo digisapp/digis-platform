@@ -196,8 +196,8 @@ export default function WalletPage() {
       case 'stream_tip': return <Star className={`${iconClass} text-yellow-600`} />;
       case 'ppv_unlock': return <Lock className={`${iconClass} text-purple-600`} />;
       case 'creator_payout': return <ArrowDownLeft className={`${iconClass} text-red-600`} />;
-      case 'refund': return <DollarSign className={`${iconClass} text-gray-600`} />;
-      default: return <Coins className={`${iconClass} text-gray-600`} />;
+      case 'refund': return <DollarSign className={`${iconClass} text-gray-400`} />;
+      default: return <Coins className={`${iconClass} text-gray-400`} />;
     }
   };
 
@@ -231,7 +231,7 @@ export default function WalletPage() {
           Failed
         </span>;
       case 'cancelled':
-        return <span className="flex items-center gap-1 px-2 py-1 bg-gray-500/20 rounded-full text-xs font-semibold text-gray-700">
+        return <span className="flex items-center gap-1 px-2 py-1 bg-gray-500/20 rounded-full text-xs font-semibold text-white">
           <XCircle className="w-3 h-3" />
           Cancelled
         </span>;
@@ -244,14 +244,22 @@ export default function WalletPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Animated Background Mesh */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative z-10">
       <BuyCoinsModal
         isOpen={showBuyCoins}
         onClose={() => setShowBuyCoins(false)}
@@ -271,8 +279,8 @@ export default function WalletPage() {
             onClick={() => setActiveTab('balance')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
               activeTab === 'balance'
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
-                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
             }`}
           >
             <Coins className="w-5 h-5" />
@@ -284,8 +292,8 @@ export default function WalletPage() {
                 onClick={() => setActiveTab('payouts')}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                   activeTab === 'payouts'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
-                    : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                    : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
                 <History className="w-5 h-5" />
@@ -295,8 +303,8 @@ export default function WalletPage() {
                 onClick={() => setActiveTab('banking')}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                   activeTab === 'banking'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-gray-900 shadow-lg scale-105'
-                    : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                    : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
                 <Building2 className="w-5 h-5" />
@@ -311,9 +319,9 @@ export default function WalletPage() {
           <>
             {/* Earnings with Period Selector - Creators Only */}
             {isCreator && (
-              <div className="mb-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-md rounded-2xl border-2 border-green-500 p-8 shadow-fun">
+              <div className="mb-8 backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-                  <div className="flex gap-2 bg-white/60 rounded-lg p-1">
+                  <div className="flex gap-2 backdrop-blur-xl bg-white/10 rounded-lg p-1">
                     {[
                       { value: '24h', label: '24 Hours' },
                       { value: '1w', label: '1 Week' },
@@ -325,8 +333,8 @@ export default function WalletPage() {
                         onClick={() => setEarningsPeriod(period.value as '24h' | '1w' | '1m' | 'total')}
                         className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                           earningsPeriod === period.value
-                            ? 'bg-green-500 text-white shadow-md'
-                            : 'text-gray-600 hover:bg-white/80'
+                            ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50'
+                            : 'text-gray-300 hover:bg-white/10'
                         }`}
                       >
                         {period.label}
@@ -337,8 +345,8 @@ export default function WalletPage() {
 
                 <div className="flex items-center justify-between gap-6">
                   <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-bold text-green-600">{earnings.toLocaleString()}</span>
-                    <span className="text-2xl text-gray-600">coins</span>
+                    <span className="text-5xl font-bold text-green-400">{earnings.toLocaleString()}</span>
+                    <span className="text-2xl text-gray-300">coins</span>
                   </div>
 
                   <GlassButton
@@ -363,7 +371,7 @@ export default function WalletPage() {
                     <div className="flex-1 w-full">
                       <div className="flex items-center gap-2 mb-4">
                         <Sparkles className="w-5 h-5 text-green-600" />
-                        <p className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Your Balance</p>
+                        <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Your Balance</p>
                       </div>
 
                       <div className="flex items-center gap-6 mb-6">
@@ -380,9 +388,9 @@ export default function WalletPage() {
                               <TrendingUp className="w-8 h-8 text-green-600" />
                             )}
                           </div>
-                          <p className="text-xl font-bold text-gray-700">Digis Coins</p>
+                          <p className="text-xl font-bold text-white">Digis Coins</p>
                           {balance > 0 && (
-                            <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+                            <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                               <Sparkles className="w-4 h-4 text-green-600" />
                               Keep earning and growing!
                             </p>
@@ -414,10 +422,10 @@ export default function WalletPage() {
                   <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg">
                     <History className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-800">Transaction History</h2>
+                  <h2 className="text-2xl font-bold text-white">Transaction History</h2>
                 </div>
                 {transactions.length > 0 && (
-                  <span className="text-sm text-gray-600">{transactions.length} transactions</span>
+                  <span className="text-sm text-gray-400">{transactions.length} transactions</span>
                 )}
               </div>
 
@@ -426,8 +434,8 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <History className="w-16 h-16 text-gray-400" />
                   </div>
-                  <p className="text-gray-700 mb-4 text-lg font-medium">No transactions yet</p>
-                  <p className="text-gray-600">Your transactions will appear here</p>
+                  <p className="text-white mb-4 text-lg font-medium">No transactions yet</p>
+                  <p className="text-gray-400">Your transactions will appear here</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -442,11 +450,11 @@ export default function WalletPage() {
                             {getTransactionIcon(tx.type)}
                           </div>
                           <div className="flex-1">
-                            <p className="text-gray-900 font-semibold mb-1">
+                            <p className="text-white font-semibold mb-1">
                               {tx.description || 'Transaction'}
                             </p>
                             <div className="flex items-center gap-3">
-                              <p className="text-xs text-gray-600">
+                              <p className="text-xs text-gray-400">
                                 {new Date(tx.createdAt).toLocaleString()}
                               </p>
                               {getStatusBadge(tx.status)}
@@ -457,7 +465,7 @@ export default function WalletPage() {
                           <p className={`text-2xl font-bold ${tx.amount > 0 ? 'text-green-700' : 'text-red-700'}`}>
                             {tx.amount > 0 ? '+' : ''}{tx.amount}
                           </p>
-                          <p className="text-xs text-gray-600">coins</p>
+                          <p className="text-xs text-gray-400">coins</p>
                         </div>
                       </div>
                     </div>
@@ -479,7 +487,7 @@ export default function WalletPage() {
                   <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-800">Request Payout</h2>
+                  <h2 className="text-2xl font-bold text-white">Request Payout</h2>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 rounded-xl p-6 border border-green-200">
@@ -488,11 +496,11 @@ export default function WalletPage() {
                       <Coins className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Available for Payout</p>
+                      <p className="text-sm text-gray-400 mb-1">Available for Payout</p>
                       <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                         {balance.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-600">coins</p>
+                      <p className="text-sm text-gray-400">coins</p>
                     </div>
                   </div>
                   <GlassButton
@@ -544,7 +552,7 @@ export default function WalletPage() {
                 <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
                   <History className="w-6 h-6 text-purple-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Payout History</h2>
+                <h2 className="text-2xl font-bold text-white">Payout History</h2>
               </div>
 
               {payouts.length === 0 ? (
@@ -552,8 +560,8 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <DollarSign className="w-16 h-16 text-gray-400" />
                   </div>
-                  <p className="text-gray-700 text-lg font-medium mb-2">No payouts yet</p>
-                  <p className="text-gray-600">Your payout requests will appear here</p>
+                  <p className="text-white text-lg font-medium mb-2">No payouts yet</p>
+                  <p className="text-gray-400">Your payout requests will appear here</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -568,11 +576,11 @@ export default function WalletPage() {
                             <DollarSign className="w-6 h-6 text-white" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-gray-900 font-bold text-lg mb-1">
+                            <p className="text-white font-bold text-lg mb-1">
                               {payout.amount.toLocaleString()} coins
                             </p>
                             <div className="space-y-1">
-                              <p className="text-xs text-gray-600 flex items-center gap-1">
+                              <p className="text-xs text-gray-400 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 Requested: {new Date(payout.requestedAt).toLocaleDateString()}
                               </p>
@@ -612,7 +620,7 @@ export default function WalletPage() {
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Banking Information</h2>
+                <h2 className="text-2xl font-bold text-white">Banking Information</h2>
               </div>
 
               {bankingInfo ? (
@@ -626,32 +634,32 @@ export default function WalletPage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
-                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />
                         Account Holder
                       </p>
-                      <p className="text-gray-900 font-semibold text-lg">{bankingInfo.accountHolderName}</p>
+                      <p className="text-white font-semibold text-lg">{bankingInfo.accountHolderName}</p>
                     </div>
                     <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
-                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
                         Account Type
                       </p>
-                      <p className="text-gray-900 font-semibold text-lg capitalize">{bankingInfo.accountType}</p>
+                      <p className="text-white font-semibold text-lg capitalize">{bankingInfo.accountType}</p>
                     </div>
                     <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
-                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
                         Bank Name
                       </p>
-                      <p className="text-gray-900 font-semibold text-lg">{bankingInfo.bankName || 'Not specified'}</p>
+                      <p className="text-white font-semibold text-lg">{bankingInfo.bankName || 'Not specified'}</p>
                     </div>
                     <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
-                      <p className="text-sm text-gray-600 mb-2 flex items-center gap-1">
+                      <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Lock className="w-4 h-4" />
                         Account Number
                       </p>
-                      <p className="text-gray-900 font-semibold text-lg font-mono">••••{bankingInfo.lastFourDigits}</p>
+                      <p className="text-white font-semibold text-lg font-mono">••••{bankingInfo.lastFourDigits}</p>
                     </div>
                   </div>
 
@@ -668,8 +676,8 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <Building2 className="w-16 h-16 text-blue-600" />
                   </div>
-                  <p className="text-gray-800 text-lg font-semibold mb-2">No Banking Information</p>
-                  <p className="text-gray-600 mb-6">Add your banking information to start receiving payouts</p>
+                  <p className="text-white text-lg font-semibold mb-2">No Banking Information</p>
+                  <p className="text-gray-400 mb-6">Add your banking information to start receiving payouts</p>
                   <GlassButton
                     variant="gradient"
                     size="lg"
