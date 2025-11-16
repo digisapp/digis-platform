@@ -434,6 +434,7 @@ export default function MessagesPage() {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
