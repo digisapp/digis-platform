@@ -303,14 +303,15 @@ function CreatorCardSkeleton() {
 function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
   // Use creator card image first, fallback to banner, then gradient
   const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
+  const avatarUrl = creator.avatarUrl;
 
   return (
     <div
-      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
+      className="overflow-visible cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group relative bg-white/90 backdrop-blur-sm rounded-2xl border-2 border-purple-200 hover:border-digis-cyan/70"
       onClick={onClick}
     >
       {/* 4:5 Creator Card Image (Portrait) */}
-      <div className="relative w-full" style={{ paddingBottom: '125%' }}>
+      <div className="relative w-full overflow-hidden rounded-t-2xl" style={{ paddingBottom: '125%' }}>
         {cardImageUrl ? (
           <>
             <img
@@ -352,21 +353,43 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
       </div>
 
-      {/* Creator Info - Premium Glassmorphism */}
-      <div className="relative p-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-md border-t-2 border-purple-200/50">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-        <div className="relative z-10 space-y-2">
-          {/* Username with gradient + verified badge */}
-          <div className="flex items-center justify-center gap-1.5">
-            {creator.isOnline && (
-              <div className="relative flex-shrink-0">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+      {/* Circular Avatar Overlay - positioned half on image, half on bottom */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-20" style={{ top: 'calc(125% - 32px)' }}>
+        <div className="relative">
+          {/* Avatar */}
+          <div className="w-16 h-16 rounded-full border-4 border-white shadow-xl overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 group-hover:border-digis-cyan transition-colors duration-300">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={creator.displayName || creator.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-400">
+                <UserCircle className="w-10 h-10 text-white" />
               </div>
             )}
-            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[140px]">
+          </div>
+
+          {/* Online status indicator */}
+          {creator.isOnline && (
+            <div className="absolute bottom-0 right-0">
+              <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
+              <div className="absolute inset-0 w-4 h-4 rounded-full bg-green-500 animate-ping" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Creator Info - Glassmorphism Footer */}
+      <div className="relative pt-10 pb-4 px-4 bg-gradient-to-br from-white/95 via-purple-50/90 to-cyan-50/90 backdrop-blur-xl border-t-2 border-purple-200/50 rounded-b-2xl">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-digis-cyan/5 via-digis-pink/5 to-digis-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
+
+        <div className="relative z-10 space-y-2">
+          {/* Username with gradient + badges */}
+          <div className="flex items-center justify-center gap-1.5">
+            <h3 className="text-sm md:text-base font-bold bg-gradient-to-r from-gray-900 via-digis-cyan to-digis-pink bg-clip-text text-transparent truncate max-w-[120px]">
               {creator.displayName || creator.username}
             </h3>
             {creator.isCreatorVerified && (
@@ -380,29 +403,29 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
             )}
           </div>
 
+          {/* Username handle if displayName exists */}
+          {creator.displayName && (
+            <p className="text-xs text-gray-600 text-center truncate max-w-[150px] mx-auto">
+              @{creator.username}
+            </p>
+          )}
+
           {/* Stats row */}
-          <div className="flex items-center justify-center gap-3 text-xs">
+          <div className="flex items-center justify-center gap-2 pt-1">
             {/* Follower count */}
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/60 border border-purple-200/50">
-              <Users className="w-3 h-3 text-digis-cyan" />
-              <span className="font-semibold text-gray-700">
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/60 border border-purple-200/50 shadow-sm">
+              <Users className="w-3.5 h-3.5 text-digis-cyan" />
+              <span className="text-xs font-bold text-gray-700">
                 {creator.followerCount >= 1000
                   ? `${(creator.followerCount / 1000).toFixed(1)}k`
                   : creator.followerCount}
               </span>
             </div>
-
-            {/* Username (if displayName exists) */}
-            {creator.displayName && (
-              <span className="text-gray-600 font-medium truncate max-w-[100px]">
-                @{creator.username}
-              </span>
-            )}
           </div>
         </div>
 
         {/* Subtle glow effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-b-2xl">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-digis-cyan to-transparent blur-sm" />
         </div>
       </div>
