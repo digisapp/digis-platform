@@ -423,13 +423,25 @@ export default function ProfilePage() {
               {/* Stats - Responsive grid */}
               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
                 <button
-                  onClick={() => setActiveTab('about')}
-                  className="flex items-center gap-1.5 hover:text-digis-cyan transition-colors"
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`flex items-center gap-1.5 transition-all px-3 py-1.5 rounded-lg ${
+                    isFollowing
+                      ? 'bg-digis-cyan/10 hover:bg-digis-cyan/20 border border-digis-cyan/30'
+                      : 'hover:bg-gray-100 border border-transparent hover:border-digis-cyan/30'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={isFollowing ? 'Click to unfollow' : 'Click to follow'}
                 >
-                  <Users className="w-4 h-4 text-gray-600" />
+                  <Users className={`w-4 h-4 transition-colors ${
+                    isFollowing ? 'text-digis-cyan fill-digis-cyan' : 'text-gray-600'
+                  }`} />
                   <span style={{ textShadow: '0 1px 4px rgba(255,255,255,0.9), 0 0 12px rgba(255,255,255,0.7)' }}>
-                    <strong className="text-gray-900">{followCounts.followers.toLocaleString()}</strong>{' '}
-                    <span className="text-gray-700">Followers</span>
+                    <strong className={isFollowing ? 'text-digis-cyan' : 'text-gray-900'}>
+                      {followCounts.followers.toLocaleString()}
+                    </strong>{' '}
+                    <span className={isFollowing ? 'text-digis-cyan' : 'text-gray-700'}>
+                      Follower{followCounts.followers !== 1 ? 's' : ''}
+                    </span>
                   </span>
                 </button>
               </div>
@@ -438,24 +450,6 @@ export default function ProfilePage() {
 
           {/* Action Buttons - Mobile stacked, tablet+ row */}
           <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
-            {/* Follow Button */}
-            <button
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              title={isFollowing ? 'Following' : 'Follow'}
-              className={`w-11 h-11 rounded-xl font-semibold transition-all flex items-center justify-center ${
-                isFollowing
-                  ? 'bg-digis-cyan text-white border-2 border-digis-cyan shadow-lg'
-                  : 'bg-white/80 text-gray-800 hover:bg-white border-2 border-gray-300 hover:border-digis-cyan'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {followLoading ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                <Users className="w-5 h-5" />
-              )}
-            </button>
-
             {/* Subscribe Button */}
             {user.role === 'creator' && subscriptionTier && !isSubscribed && (
               <button
