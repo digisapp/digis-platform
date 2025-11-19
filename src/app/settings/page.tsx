@@ -461,7 +461,12 @@ export default function SettingsPage() {
 
   const handleCreatorCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !currentUser) return;
+    if (!file) return;
+
+    if (!currentUser || !currentUser.id) {
+      setError('User not found. Please refresh the page and try again.');
+      return;
+    }
 
     // Validate file
     const validation = validateImageFile(file, 'creator-card');
