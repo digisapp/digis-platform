@@ -30,21 +30,29 @@ export async function POST(request: NextRequest) {
     const { data: updatedUser, error: updateError } = await adminClient
       .from('users')
       .update({
-        display_name: displayName || null,
-        bio: bio || null,
-        avatar_url: avatarUrl || null,
-        banner_url: bannerUrl || null,
-        creator_card_image_url: creatorCardImageUrl || null,
+        display_name: displayName !== undefined ? displayName : undefined,
+        bio: bio !== undefined ? bio : undefined,
+        avatar_url: avatarUrl !== undefined ? avatarUrl : undefined,
+        banner_url: bannerUrl !== undefined ? bannerUrl : undefined,
+        creator_card_image_url: creatorCardImageUrl !== undefined ? creatorCardImageUrl : undefined,
         updated_at: new Date().toISOString(),
       })
       .eq('id', authUser.id)
       .select()
       .single();
 
-    if (updateError || !updatedUser) {
+    if (updateError) {
       console.error('Update user error:', updateError);
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: `Failed to update profile: ${updateError.message}` },
+        { status: 500 }
+      );
+    }
+
+    if (!updatedUser) {
+      console.error('User not found in database:', authUser.id);
+      return NextResponse.json(
+        { error: 'User not found in database' },
         { status: 404 }
       );
     }
