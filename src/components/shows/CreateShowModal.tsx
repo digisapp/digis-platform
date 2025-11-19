@@ -165,9 +165,6 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 max={10000}
                 className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                You'll earn 100% ({formData.ticketPrice} coins per ticket)
-              </p>
             </div>
 
             {/* Max Tickets */}
