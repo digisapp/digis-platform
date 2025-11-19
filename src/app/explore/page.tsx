@@ -331,20 +331,20 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
           </div>
         )}
 
-        {/* Follow button - top right */}
+        {/* Follow button - top right with glass futuristic style */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onFollow(creator.id, creator.isFollowing);
           }}
-          className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm transition-all z-10 hover:scale-110 active:scale-95 ${
+          className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm border transition-all z-10 hover:scale-110 active:scale-95 ${
             creator.isFollowing
-              ? 'bg-digis-cyan text-white hover:bg-digis-cyan/90'
-              : 'bg-white/90 text-gray-700 hover:bg-white'
+              ? 'bg-digis-cyan/30 border-digis-cyan/50 text-white hover:bg-digis-cyan/40'
+              : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
           }`}
           title={creator.isFollowing ? 'Unfollow' : 'Follow'}
         >
-          <UserPlus className={`w-4 h-4 ${creator.isFollowing ? 'fill-current' : ''}`} />
+          <UserPlus className={`w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${creator.isFollowing ? 'fill-current' : ''}`} />
         </button>
 
         {/* Category badge - top left */}
