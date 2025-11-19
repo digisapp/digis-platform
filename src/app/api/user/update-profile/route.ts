@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/data/system';
+import { users, profiles } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -20,34 +22,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use admin client for database operations
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Build update object with only provided fields
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
 
-    // Update user in database
-    const { data: updatedUser, error: updateError } = await adminClient
-      .from('users')
-      .update({
-        display_name: displayName !== undefined ? displayName : undefined,
-        bio: bio !== undefined ? bio : undefined,
-        avatar_url: avatarUrl !== undefined ? avatarUrl : undefined,
-        banner_url: bannerUrl !== undefined ? bannerUrl : undefined,
-        creator_card_image_url: creatorCardImageUrl !== undefined ? creatorCardImageUrl : undefined,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', authUser.id)
-      .select()
-      .single();
+    if (displayName !== undefined) updateData.displayName = displayName;
+    if (bio !== undefined) updateData.bio = bio;
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (bannerUrl !== undefined) updateData.bannerUrl = bannerUrl;
+    if (creatorCardImageUrl !== undefined) updateData.creatorCardImageUrl = creatorCardImageUrl;
 
-    if (updateError) {
-      console.error('Update user error:', updateError);
-      return NextResponse.json(
-        { error: `Failed to update profile: ${updateError.message}` },
-        { status: 500 }
-      );
-    }
+    // Update user in database using Drizzle ORM
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, authUser.id))
+      .returning();
 
     if (!updatedUser) {
       console.error('User not found in database:', authUser.id);
@@ -57,34 +48,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update or create profile with city, state, and phone number
+    // Update or create profile with city, state, and phone number using Drizzle
     if (city !== undefined || state !== undefined || phoneNumber !== undefined) {
-      const { data: existingProfile } = await adminClient
-        .from('profiles')
-        .select('id')
-        .eq('user_id', authUser.id)
-        .single();
+      const existingProfile = await db.query.profiles.findFirst({
+        where: eq(profiles.userId, authUser.id),
+      });
+
+      const profileData: any = {
+        updatedAt: new Date(),
+      };
+      if (city !== undefined) profileData.city = city;
+      if (state !== undefined) profileData.state = state;
+      if (phoneNumber !== undefined) profileData.phoneNumber = phoneNumber;
 
       if (existingProfile) {
         // Update existing profile
-        await adminClient
-          .from('profiles')
-          .update({
-            city: city || null,
-            state: state || null,
-            phone_number: phoneNumber || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', authUser.id);
+        await db
+          .update(profiles)
+          .set(profileData)
+          .where(eq(profiles.userId, authUser.id));
       } else {
         // Create new profile
-        await adminClient
-          .from('profiles')
-          .insert({
-            user_id: authUser.id,
+        await db
+          .insert(profiles)
+          .values({
+            userId: authUser.id,
             city: city || null,
             state: state || null,
-            phone_number: phoneNumber || null,
+            phoneNumber: phoneNumber || null,
           });
       }
     }
