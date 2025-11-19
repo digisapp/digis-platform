@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
+import { Upload, X } from 'lucide-react';
 
 interface CreateShowModalProps {
   onClose: () => void;
@@ -12,6 +14,8 @@ interface CreateShowModalProps {
 export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -21,6 +25,50 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
     durationMinutes: 60,
     coverImageUrl: '',
   });
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file, 'banner');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setUploadingCover(true);
+    setError('');
+
+    try {
+      // Get current user ID
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+      if (!data.user?.id) {
+        throw new Error('Not authenticated');
+      }
+
+      // Resize image to max 1920x1080 (16:9)
+      const resizedFile = await resizeImage(file, 1920, 1080);
+
+      // Upload to Supabase Storage (using banners bucket for now)
+      const url = await uploadImage(resizedFile, 'banner', data.user.id);
+
+      // Update form data and preview
+      setFormData({ ...formData, coverImageUrl: url });
+      setCoverPreview(url);
+    } catch (err: any) {
+      console.error('Cover upload error:', err);
+      setError(err.message || 'Failed to upload cover image');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const removeCoverImage = () => {
+    setFormData({ ...formData, coverImageUrl: '' });
+    setCoverPreview('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,18 +237,52 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
               </p>
             </div>
 
-            {/* Cover Image URL */}
+            {/* Cover Image Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cover Image URL (optional)
+                Cover Image (optional)
               </label>
-              <input
-                type="url"
-                value={formData.coverImageUrl}
-                onChange={(e) => setFormData({ ...formData, coverImageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400"
-              />
+
+              {coverPreview ? (
+                <div className="relative">
+                  <img
+                    src={coverPreview}
+                    alt="Cover preview"
+                    className="w-full h-48 object-cover rounded-lg border-2 border-purple-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeCoverImage}
+                    className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-purple-200 rounded-lg cursor-pointer bg-white/60 hover:bg-white/80 transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {uploadingCover ? (
+                      <>
+                        <LoadingSpinner size="md" />
+                        <p className="mt-2 text-sm text-gray-600">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-10 h-10 text-gray-400 mb-3" />
+                        <p className="text-sm text-gray-600 font-semibold">Click to upload cover image</p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF or WebP (max 2MB)</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleCoverUpload}
+                    disabled={uploadingCover}
+                  />
+                </label>
+              )}
             </div>
 
             {error && (
