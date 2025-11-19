@@ -93,7 +93,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
             variant="ghost"
             size="lg"
             onClick={onClose}
-            className="flex-1 text-white font-semibold"
+            className="flex-1 !text-gray-900 font-semibold"
           >
             Cancel
           </GlassButton>
