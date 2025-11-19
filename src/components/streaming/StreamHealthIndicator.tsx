@@ -141,12 +141,15 @@ export function StreamHealthIndicator({ streamId }: StreamHealthIndicatorProps) 
 
   return (
     <div className="relative">
-      {/* Simple Status Indicator - No Dropdown */}
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${config.borderColor} ${config.bgColor} backdrop-blur-sm`}>
-        <span className="text-sm">{config.icon}</span>
-        <span className={`text-sm font-semibold ${config.color}`}>
+      {/* Simple Status Indicator - Uniform Style */}
+      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${config.borderColor} ${config.bgColor} backdrop-blur-sm`}>
+        <span className="text-xl">{config.icon}</span>
+        <span className={`font-bold ${config.color}`}>
           {config.label}
         </span>
+        {ping > 0 && (
+          <span className="text-xs text-gray-400">{ping}ms</span>
+        )}
       </div>
     </div>
   );

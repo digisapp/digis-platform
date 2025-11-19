@@ -60,11 +60,12 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20 hover:bg-white/20 transition-all backdrop-blur-sm"
         title="View Viewers"
       >
+        <span className="text-2xl">👤</span>
         <span className="text-white font-bold">{currentViewers}</span>
-        <span className="text-gray-300">viewers</span>
+        <span className="text-gray-300 text-sm">viewers</span>
       </button>
 
       {/* Viewer List Panel */}

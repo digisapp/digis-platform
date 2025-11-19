@@ -32,21 +32,26 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+      {/* Backdrop - Darker with more blur */}
       <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
       />
 
-      {/* Modal - Light/White Theme */}
-      <div className={`relative backdrop-blur-xl bg-white/95 rounded-3xl w-full ${sizeClasses[size]} border-2 border-purple-200 shadow-2xl`}>
+      {/* Modal - Futuristic Glass Dark Theme */}
+      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl w-full ${sizeClasses[size]} border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn`}>
+        {/* Animated gradient border effect */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" />
+        </div>
+
         {/* Header */}
         {title && (
-          <div className="px-6 py-4 border-b-2 border-purple-200 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -56,10 +61,37 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
         )}
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 relative">
           {children}
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+        .animate-shimmer {
+          animation: shimmer 3s infinite;
+        }
+      `}</style>
     </div>
   );
 }

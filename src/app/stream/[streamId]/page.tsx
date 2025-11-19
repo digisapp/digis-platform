@@ -345,15 +345,15 @@ export default function StreamViewerPage() {
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
       <div className={`${isTheaterMode ? 'max-w-screen-2xl' : 'container'} mx-auto px-4 py-6`}>
-        <div className={`grid grid-cols-1 ${isTheaterMode ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
+        <div className={`flex flex-col ${isTheaterMode ? 'lg:grid lg:grid-cols-4' : 'lg:grid lg:grid-cols-3'} gap-6`}>
           {/* Main Video Area */}
-          <div className={`${isTheaterMode ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-4`}>
+          <div className={`${isTheaterMode ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-4 order-1`}>
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
                 isLandscape
                   ? 'aspect-video'
-                  : 'md:aspect-video aspect-[9/16]'
+                  : 'aspect-video md:aspect-video'
               }`}
               data-lk-video-container
             >
@@ -475,7 +475,7 @@ export default function StreamViewerPage() {
           </div>
 
           {/* Chat Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="lg:col-span-1 space-y-4 order-2">
             <div className="h-[600px]">
               <StreamChat
                 streamId={streamId}

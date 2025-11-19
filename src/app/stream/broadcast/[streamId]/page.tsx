@@ -768,7 +768,7 @@ export default function BroadcastStudioPage() {
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
                 isLandscape
                   ? 'aspect-video'
-                  : 'md:aspect-video aspect-[9/16]'
+                  : 'aspect-video md:aspect-video'
               }`}
               data-lk-video-container
             >
