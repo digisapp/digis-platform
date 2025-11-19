@@ -2,6 +2,7 @@ export * from './users';
 export * from './wallet';
 export * from './calls';
 export * from './streams';
+export * from './vods';
 export * from './messages';
 export * from './explore';
 export * from './admin';

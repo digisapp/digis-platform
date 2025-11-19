@@ -7,6 +7,7 @@ import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
+import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
 import { VideoControls } from '@/components/streaming/VideoControls';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
@@ -44,6 +45,7 @@ export default function BroadcastStudioPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [showStreamSummary, setShowStreamSummary] = useState(false);
+  const [showSaveStreamModal, setShowSaveStreamModal] = useState(false);
   const [streamSummary, setStreamSummary] = useState<{
     duration: string;
     totalViewers: number;
@@ -663,6 +665,16 @@ export default function BroadcastStudioPage() {
               {/* Actions */}
               <div className="space-y-3">
                 <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => setShowSaveStreamModal(true)}
+                  shimmer
+                  glow
+                  className="w-full text-gray-900 font-semibold"
+                >
+                  💾 Save Stream Replay
+                </GlassButton>
+                <GlassButton
                   variant="ghost"
                   size="lg"
                   onClick={() => router.push('/creator/dashboard')}
@@ -867,6 +879,22 @@ export default function BroadcastStudioPage() {
         </div>
       </div>
       </div>
+
+      {/* Save Stream Modal */}
+      {stream && (
+        <SaveStreamModal
+          isOpen={showSaveStreamModal}
+          onClose={() => setShowSaveStreamModal(false)}
+          streamId={streamId}
+          streamTitle={stream.title}
+          streamDescription={stream.description || undefined}
+          onSaved={(vodId) => {
+            console.log('Stream saved as VOD:', vodId);
+            // Optionally show success message or redirect
+            alert('Stream saved successfully! You can find it in your VOD library.');
+          }}
+        />
+      )}
 
       {/* CSS for animated gradient border */}
       <style jsx>{`
