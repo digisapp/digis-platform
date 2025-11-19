@@ -1,0 +1,137 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/data/system';
+import { vods } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
+import { WalletService } from '@/lib/wallet/wallet-service';
+import { purchaseVODAccess } from '@/lib/vods/vod-access';
+import { v4 as uuidv4 } from 'uuid';
+
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * Purchase access to a VOD
+ */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ vodId: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { vodId } = await params;
+
+    // Get VOD details
+    const vod = await db.query.vods.findFirst({
+      where: eq(vods.id, vodId),
+      with: {
+        creator: {
+          columns: {
+            id: true,
+            username: true,
+            displayName: true,
+          },
+        },
+      },
+    });
+
+    if (!vod) {
+      return NextResponse.json(
+        { error: 'VOD not found' },
+        { status: 404 }
+      );
+    }
+
+    // Can't purchase your own VOD
+    if (vod.creatorId === user.id) {
+      return NextResponse.json(
+        { error: 'You cannot purchase your own VOD' },
+        { status: 400 }
+      );
+    }
+
+    // Can't purchase a free/public VOD
+    if (vod.isPublic || vod.priceCoins === 0) {
+      return NextResponse.json(
+        { error: 'This VOD is free to watch' },
+        { status: 400 }
+      );
+    }
+
+    const price = vod.priceCoins;
+
+    // Deduct coins from buyer's wallet
+    const deductResult = await WalletService.createTransaction({
+      userId: user.id,
+      amount: -price,
+      type: 'vod_purchase',
+      description: `Purchased VOD: ${vod.title}`,
+      idempotencyKey: `vod_purchase_${vodId}_${user.id}_${Date.now()}`,
+    });
+
+    if (!deductResult.success) {
+      return NextResponse.json(
+        { error: deductResult.error || 'Insufficient balance' },
+        { status: 400 }
+      );
+    }
+
+    // Record the purchase
+    const purchaseResult = await purchaseVODAccess({
+      vodId,
+      userId: user.id,
+    });
+
+    if (!purchaseResult.success) {
+      // Refund if purchase recording fails
+      await WalletService.createTransaction({
+        userId: user.id,
+        amount: price,
+        type: 'refund',
+        description: `Refund for failed VOD purchase: ${vod.title}`,
+        idempotencyKey: `vod_refund_${vodId}_${user.id}_${Date.now()}`,
+      });
+
+      return NextResponse.json(
+        { error: purchaseResult.error || 'Failed to complete purchase' },
+        { status: 500 }
+      );
+    }
+
+    // Credit the creator
+    await WalletService.createTransaction({
+      userId: vod.creatorId,
+      amount: price,
+      type: 'vod_sale',
+      description: `VOD sale: ${vod.title}`,
+      idempotencyKey: `vod_sale_${vodId}_${user.id}_${Date.now()}`,
+    });
+
+    // Get updated balance
+    const balanceResult = await WalletService.getBalance(user.id);
+
+    console.log(`[VOD Purchase] User ${user.id} purchased VOD ${vodId} for ${price} coins`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'VOD access purchased successfully',
+      newBalance: balanceResult.success ? balanceResult.balance : 0,
+    });
+  } catch (error: any) {
+    console.error('[VOD Purchase] Error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to purchase VOD access' },
+      { status: 500 }
+    );
+  }
+}
