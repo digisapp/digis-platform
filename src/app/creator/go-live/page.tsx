@@ -23,6 +23,34 @@ const STREAM_CATEGORIES = [
   'Other',
 ];
 
+// Quick start templates
+const QUICK_TEMPLATES = [
+  {
+    title: 'Just Chatting',
+    category: 'Talk Show',
+    description: 'Casual conversation with viewers',
+    emoji: '💬'
+  },
+  {
+    title: 'Gaming Session',
+    category: 'Gaming',
+    description: 'Playing games with the community',
+    emoji: '🎮'
+  },
+  {
+    title: 'Music Performance',
+    category: 'Music',
+    description: 'Live music and singing',
+    emoji: '🎵'
+  },
+  {
+    title: 'Creative Work',
+    category: 'Art & Design',
+    description: 'Art, design, or creative projects',
+    emoji: '🎨'
+  },
+];
+
 // Privacy options
 const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Public', description: 'Anyone can watch' },
@@ -352,15 +380,27 @@ export default function GoLivePage() {
     );
   }
 
+  const applyTemplate = (template: typeof QUICK_TEMPLATES[0]) => {
+    setTitle(template.title);
+    setCategory(template.category);
+    setDescription(template.description);
+  };
+
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-32 md:pb-10">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Go Live 📹</h1>
+          <p className="text-gray-700">Set up your stream and connect with your audience</p>
+        </div>
+
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
-          <div className="flex items-center gap-6 text-sm mb-8">
+          <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
             <div className="glass rounded-lg px-4 py-2 border border-purple-200">
               <span className="text-gray-600">Avg Viewers:</span>
               <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
@@ -372,12 +412,38 @@ export default function GoLivePage() {
           </div>
         )}
 
+        {/* Quick Start Templates */}
+        <div className="mb-8">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Start</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {QUICK_TEMPLATES.map((template) => (
+              <button
+                key={template.title}
+                type="button"
+                onClick={() => applyTemplate(template)}
+                className="glass rounded-xl border-2 border-purple-200 p-4 hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 text-left group"
+              >
+                <div className="text-3xl mb-2">{template.emoji}</div>
+                <div className="font-bold text-gray-900 text-sm mb-1 group-hover:text-digis-cyan transition-colors">
+                  {template.title}
+                </div>
+                <div className="text-xs text-gray-600">
+                  {template.description}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 2-Column Layout */}
         <form onSubmit={handleStartStream} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left Column: Form */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-8 space-y-6 hover:border-digis-cyan/50 transition-all duration-300">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Stream Details</h2>
+            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-6 hover:border-digis-cyan/50 transition-all duration-300">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">Stream Details</h2>
+                <p className="text-sm text-gray-600 mt-1">Fill in the details for your stream</p>
+              </div>
 
               {/* Title */}
               <div>
@@ -513,8 +579,11 @@ export default function GoLivePage() {
             </div>
 
             {/* Right Column: Device Preview */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-8 space-y-6 hover:border-digis-purple/50 transition-all duration-300">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Device Preview</h2>
+            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-6 hover:border-digis-purple/50 transition-all duration-300">
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">Device Preview</h2>
+                <p className="text-sm text-gray-600 mt-1">Check your camera and microphone</p>
+              </div>
 
               {/* Video Preview */}
               {devicesLoading ? (
@@ -629,14 +698,36 @@ export default function GoLivePage() {
             </div>
           )}
 
+          {/* Helpful Tips */}
+          <div className="max-w-7xl mx-auto glass rounded-xl border-2 border-digis-cyan/30 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5 p-6">
+            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="text-xl">💡</span>
+              Pro Tips for a Great Stream
+            </h3>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="font-semibold text-digis-cyan">• Good Lighting:</span>
+                <span className="text-gray-700"> Face a window or use a ring light</span>
+              </div>
+              <div>
+                <span className="font-semibold text-digis-cyan">• Clear Audio:</span>
+                <span className="text-gray-700"> Reduce background noise</span>
+              </div>
+              <div>
+                <span className="font-semibold text-digis-cyan">• Engage Viewers:</span>
+                <span className="text-gray-700"> Read chat and respond often</span>
+              </div>
+            </div>
+          </div>
+
           {/* Actions */}
-          <div className="flex gap-4 max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-7xl mx-auto">
             <GlassButton
               type="button"
               variant="ghost"
               size="lg"
               onClick={() => router.back()}
-              className="flex-1 hover:scale-105 transition-transform duration-300 text-gray-900 font-semibold"
+              className="w-full sm:flex-1 hover:scale-105 transition-transform duration-300 text-gray-900 font-semibold"
             >
               Cancel
             </GlassButton>
@@ -645,7 +736,7 @@ export default function GoLivePage() {
               variant="gradient"
               size="lg"
               disabled={!title.trim() || !category || !mediaStream || isCreating}
-              className="flex-1 relative overflow-hidden group"
+              className="w-full sm:flex-1 relative overflow-hidden group"
               shimmer
               glow
             >
@@ -657,7 +748,7 @@ export default function GoLivePage() {
               ) : (
                 <>
                   <span className="text-xl mr-2">📹</span>
-                  Start Streaming
+                  <span className="font-bold">Start Streaming</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}
