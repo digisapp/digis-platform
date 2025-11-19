@@ -309,11 +309,11 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
 
   return (
     <div
-      className="overflow-visible cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 hover:border-cyan-500/50"
+      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border border-white/20 hover:border-cyan-500/50"
       onClick={onClick}
     >
-      {/* 4:5 Creator Card Image (Portrait) - Reduced size */}
-      <div className="relative w-full overflow-hidden rounded-t-2xl" style={{ paddingBottom: '110%' }}>
+      {/* 4:5 Creator Card Image (Portrait) with overlaid name */}
+      <div className="relative w-full overflow-hidden rounded-2xl" style={{ paddingBottom: '110%' }}>
         {cardImageUrl ? (
           <>
             <img
@@ -322,8 +322,8 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
             />
-            {/* Gradient overlay for better text contrast */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
+            {/* Gradient overlay for better text contrast - stronger at bottom */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
           </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
@@ -347,43 +347,43 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
           <UserPlus className={`w-4 h-4 ${creator.isFollowing ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Category badge - bottom left */}
+        {/* Category badge - top left */}
         {creator.primaryCategory && (
-          <div className="absolute bottom-14 left-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20">
+          <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20">
             {creator.primaryCategory}
           </div>
         )}
-      </div>
 
-      {/* Creator Info - Simple Footer */}
-      <div className="relative p-3 backdrop-blur-xl bg-white/10 border-t border-white/20 rounded-b-2xl">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
+        {/* Creator Name - Overlaid at bottom with glass effect */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-xl bg-black/30 border-t border-white/10">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-        <div className="relative z-10">
-          {/* Username only */}
-          <div className="flex items-center justify-center gap-1.5">
-            {creator.isOnline && (
-              <div className="relative flex-shrink-0">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
-              </div>
-            )}
-            <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px]">
-              {creator.username}
-            </h3>
-            {creator.isTrending && (
-              <div className="relative">
-                <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
-              </div>
-            )}
+          <div className="relative z-10">
+            {/* Username with indicators */}
+            <div className="flex items-center justify-center gap-1.5">
+              {creator.isOnline && (
+                <div className="relative flex-shrink-0">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
+                </div>
+              )}
+              <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px] drop-shadow-lg">
+                {creator.username}
+              </h3>
+              {creator.isTrending && (
+                <div className="relative">
+                  <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Subtle glow effect on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-b-2xl">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent blur-sm" />
+          {/* Subtle glow effect on hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent blur-sm" />
+          </div>
         </div>
       </div>
     </div>
