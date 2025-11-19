@@ -33,18 +33,35 @@ export async function POST(request: NextRequest) {
     if (bannerUrl !== undefined) updateData.bannerUrl = bannerUrl;
     if (creatorCardImageUrl !== undefined) updateData.creatorCardImageUrl = creatorCardImageUrl;
 
-    // Update user in database using Drizzle ORM
-    const [updatedUser] = await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.id, authUser.id))
-      .returning();
+    // Update user in database using Drizzle ORM with retry logic
+    let updatedUser;
+    let retries = 3;
+    let lastError;
+
+    while (retries > 0) {
+      try {
+        [updatedUser] = await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, authUser.id))
+          .returning();
+        break; // Success, exit retry loop
+      } catch (err: any) {
+        lastError = err;
+        console.error(`Database update error (${retries} retries left):`, err);
+        retries--;
+        if (retries > 0) {
+          // Wait 500ms before retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    }
 
     if (!updatedUser) {
-      console.error('User not found in database:', authUser.id);
+      console.error('Failed to update user after retries:', authUser.id, lastError);
       return NextResponse.json(
-        { error: 'User not found in database' },
-        { status: 404 }
+        { error: lastError?.message || 'Failed to update profile after multiple attempts' },
+        { status: 500 }
       );
     }
 
