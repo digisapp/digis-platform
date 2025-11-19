@@ -31,7 +31,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
     if (!file) return;
 
     // Validate file
-    const validation = validateImageFile(file, 'banner');
+    const validation = validateImageFile(file, 'show-cover');
     if (!validation.valid) {
       setError(validation.error || 'Invalid file');
       return;
@@ -51,8 +51,8 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
       // Resize image to max 1920x1080 (16:9)
       const resizedFile = await resizeImage(file, 1920, 1080);
 
-      // Upload to Supabase Storage (using banners bucket for now)
-      const url = await uploadImage(resizedFile, 'banner', data.user.id);
+      // Upload to Supabase Storage (show-covers bucket)
+      const url = await uploadImage(resizedFile, 'show-cover', data.user.id);
 
       // Update form data and preview
       setFormData({ ...formData, coverImageUrl: url });
@@ -270,7 +270,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                       <>
                         <Upload className="w-10 h-10 text-gray-400 mb-3" />
                         <p className="text-sm text-gray-600 font-semibold">Click to upload cover image</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF or WebP (max 2MB)</p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF or WebP (max 5MB)</p>
                       </>
                     )}
                   </div>

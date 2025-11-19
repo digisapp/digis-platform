@@ -4,12 +4,12 @@
 
 import { createClient } from '@/lib/supabase/client';
 
-export type ImageKind = 'avatar' | 'banner' | 'creator-card';
+export type ImageKind = 'avatar' | 'banner' | 'creator-card' | 'show-cover';
 
 /**
  * Upload an image to Supabase Storage
  * @param file - The image file to upload
- * @param kind - Type of image (avatar or banner)
+ * @param kind - Type of image (avatar, banner, creator-card, or show-cover)
  * @param userId - User ID for folder organization
  * @returns Public URL of the uploaded image
  */
@@ -19,7 +19,17 @@ export async function uploadImage(
   userId: string
 ): Promise<string> {
   const supabase = createClient();
-  const bucket = kind === 'avatar' ? 'avatars' : 'banners'; // creator-card goes to banners bucket
+
+  // Map image kind to bucket
+  let bucket: string;
+  if (kind === 'avatar') {
+    bucket = 'avatars';
+  } else if (kind === 'show-cover') {
+    bucket = 'show-covers';
+  } else {
+    bucket = 'banners'; // banner and creator-card go to banners bucket
+  }
+
   const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${userId}/${Date.now()}.${ext}`;
 
@@ -46,7 +56,7 @@ export async function uploadImage(
 /**
  * Validate image file before upload
  * @param file - The file to validate
- * @param kind - Type of image (avatar, banner, or creator-card)
+ * @param kind - Type of image (avatar, banner, creator-card, or show-cover)
  * @returns Validation result
  */
 export function validateImageFile(
@@ -62,8 +72,16 @@ export function validateImageFile(
     };
   }
 
-  // Check file size
-  const maxSize = kind === 'avatar' ? 1 * 1024 * 1024 : 2 * 1024 * 1024; // 1MB for avatar, 2MB for banner/creator-card
+  // Check file size - avatar 1MB, show-covers 5MB, others 2MB
+  let maxSize: number;
+  if (kind === 'avatar') {
+    maxSize = 1 * 1024 * 1024; // 1MB
+  } else if (kind === 'show-cover') {
+    maxSize = 5 * 1024 * 1024; // 5MB for show covers (higher quality)
+  } else {
+    maxSize = 2 * 1024 * 1024; // 2MB for banner/creator-card
+  }
+
   if (file.size > maxSize) {
     const maxSizeMB = maxSize / (1024 * 1024);
     return {
