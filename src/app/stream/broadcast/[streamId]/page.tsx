@@ -566,7 +566,7 @@ export default function BroadcastStudioPage() {
                   variant="ghost"
                   size="lg"
                   onClick={() => setShowEndConfirm(false)}
-                  className="w-full text-white font-semibold !text-white"
+                  className="w-full font-semibold !text-gray-900 !bg-white/80 !border-white/40 hover:!bg-white"
                 >
                   Cancel
                 </GlassButton>
@@ -666,7 +666,7 @@ export default function BroadcastStudioPage() {
                   variant="ghost"
                   size="lg"
                   onClick={() => router.push('/creator/dashboard')}
-                  className="w-full text-white font-semibold !text-white"
+                  className="w-full font-semibold !text-gray-900 !bg-white/80 !border-white/40 hover:!bg-white"
                 >
                   Back to Dashboard
                 </GlassButton>
