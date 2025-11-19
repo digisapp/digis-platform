@@ -355,7 +355,7 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
 
         {/* Creator Name - Overlaid at bottom with minimal opacity to show image */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-md bg-white/20 border-t border-white/30 group-hover:bg-white/30 transition-all duration-300">
+        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-white/20 group-hover:bg-white/20 transition-all duration-300">
           <div className="relative z-10">
             {/* Username with indicators */}
             <div className="flex items-center justify-center gap-1.5">
