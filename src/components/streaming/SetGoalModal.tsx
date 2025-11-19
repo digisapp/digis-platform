@@ -1,21 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GlassModal, GlassInput, GlassButton } from '@/components/ui';
+
+interface StreamGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  rewardText: string;
+}
 
 interface SetGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   streamId: string;
   onGoalCreated: () => void;
+  existingGoal?: StreamGoal | null; // For editing
 }
 
-export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGoalModalProps) {
+export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated, existingGoal }: SetGoalModalProps) {
   const [title, setTitle] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [rewardText, setRewardText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Populate form when editing
+  useEffect(() => {
+    if (existingGoal) {
+      setTitle(existingGoal.title);
+      setTargetAmount(existingGoal.targetAmount.toString());
+      setRewardText(existingGoal.rewardText);
+    } else {
+      setTitle('');
+      setTargetAmount('');
+      setRewardText('');
+    }
+    setError('');
+  }, [existingGoal, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +45,13 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/streams/${streamId}/goals`, {
-        method: 'POST',
+      const method = existingGoal ? 'PATCH' : 'POST';
+      const url = existingGoal
+        ? `/api/streams/${streamId}/goals/${existingGoal.id}`
+        : `/api/streams/${streamId}/goals`;
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title,
@@ -36,7 +63,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to create goal');
+        throw new Error(data.error || `Failed to ${existingGoal ? 'update' : 'create'} goal`);
       }
 
       // Success!
@@ -53,7 +80,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title="Set Stream Goal" size="md">
+    <GlassModal isOpen={isOpen} onClose={onClose} title={existingGoal ? "Edit Stream Goal" : "Set Stream Goal"} size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <GlassInput
           label="Goal Title"
@@ -106,7 +133,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated }: SetGo
             glow
             className="flex-1 text-white font-semibold"
           >
-            {loading ? 'Creating...' : 'Create Goal'}
+            {loading ? (existingGoal ? 'Updating...' : 'Creating...') : (existingGoal ? 'Update Goal' : 'Create Goal')}
           </GlassButton>
         </div>
       </form>

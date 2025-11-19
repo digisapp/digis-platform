@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { Edit2, XCircle } from 'lucide-react';
 import type { StreamGoal, VirtualGift } from '@/db/schema';
 
 interface GoalWithGift extends StreamGoal {
@@ -8,10 +10,39 @@ interface GoalWithGift extends StreamGoal {
 
 interface GoalProgressBarProps {
   goals: GoalWithGift[];
+  isBroadcaster?: boolean;
+  streamId?: string;
+  onEdit?: (goal: GoalWithGift) => void;
+  onGoalEnded?: () => void;
 }
 
-export function GoalProgressBar({ goals }: GoalProgressBarProps) {
+export function GoalProgressBar({ goals, isBroadcaster = false, streamId, onEdit, onGoalEnded }: GoalProgressBarProps) {
+  const [endingGoalId, setEndingGoalId] = useState<string | null>(null);
   const activeGoals = goals.filter(g => g.isActive && !g.isCompleted);
+
+  const handleEndGoal = async (goalId: string) => {
+    if (!streamId) return;
+    if (!confirm('Are you sure you want to end this goal? This cannot be undone.')) return;
+
+    setEndingGoalId(goalId);
+    try {
+      const response = await fetch(`/api/streams/${streamId}/goals/${goalId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to end goal');
+      }
+
+      // Notify parent to refresh goals
+      onGoalEnded?.();
+    } catch (error: any) {
+      alert(error.message || 'Failed to end goal');
+    } finally {
+      setEndingGoalId(null);
+    }
+  };
 
   if (activeGoals.length === 0) {
     return null;
@@ -29,7 +60,7 @@ export function GoalProgressBar({ goals }: GoalProgressBarProps) {
             className="bg-black/40 backdrop-blur-md rounded-xl border border-white/10 p-4"
           >
             <div className="flex items-start justify-between mb-2">
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h4 className="text-white font-semibold">{goal.title}</h4>
                   {goal.gift && <span className="text-2xl">{goal.gift.emoji}</span>}
@@ -38,10 +69,31 @@ export function GoalProgressBar({ goals }: GoalProgressBarProps) {
                   <p className="text-sm text-gray-400 mt-1">{goal.description}</p>
                 )}
               </div>
-              <div className="text-right">
-                <span className="text-digis-cyan font-bold">
-                  {goal.currentAmount} / {goal.targetAmount}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <span className="text-digis-cyan font-bold">
+                    {goal.currentAmount} / {goal.targetAmount}
+                  </span>
+                </div>
+                {isBroadcaster && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onEdit?.(goal)}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      title="Edit goal"
+                    >
+                      <Edit2 className="w-4 h-4 text-cyan-400" />
+                    </button>
+                    <button
+                      onClick={() => handleEndGoal(goal.id)}
+                      disabled={endingGoalId === goal.id}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                      title="End goal"
+                    >
+                      <XCircle className="w-4 h-4 text-red-400" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

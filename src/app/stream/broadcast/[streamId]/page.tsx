@@ -38,6 +38,7 @@ export default function BroadcastStudioPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<StreamGoal | null>(null);
   const [completedGoalIds, setCompletedGoalIds] = useState<Set<string>>(new Set());
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -525,9 +526,16 @@ export default function BroadcastStudioPage() {
       {/* Set Goal Modal */}
       <SetGoalModal
         isOpen={showGoalModal}
-        onClose={() => setShowGoalModal(false)}
+        onClose={() => {
+          setShowGoalModal(false);
+          setEditingGoal(null);
+        }}
         streamId={streamId}
-        onGoalCreated={fetchGoals}
+        onGoalCreated={() => {
+          fetchGoals();
+          setEditingGoal(null);
+        }}
+        existingGoal={editingGoal}
       />
 
       {/* End Stream Confirmation Modal */}
@@ -702,7 +710,16 @@ export default function BroadcastStudioPage() {
               <GlassButton
                 variant="gradient"
                 size="md"
-                onClick={() => setShowGoalModal(true)}
+                onClick={() => {
+                  // Check if there's already an active goal
+                  const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                  if (hasActiveGoal) {
+                    alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
+                    return;
+                  }
+                  setEditingGoal(null); // Ensure we're creating new, not editing
+                  setShowGoalModal(true);
+                }}
                 shimmer
                 className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2"
               >
@@ -785,7 +802,18 @@ export default function BroadcastStudioPage() {
             </div>
 
             {/* Active Goals */}
-            {goals.length > 0 && <GoalProgressBar goals={goals} />}
+            {goals.length > 0 && (
+              <GoalProgressBar
+                goals={goals}
+                isBroadcaster={true}
+                streamId={streamId}
+                onEdit={(goal) => {
+                  setEditingGoal(goal);
+                  setShowGoalModal(true);
+                }}
+                onGoalEnded={fetchGoals}
+              />
+            )}
 
             {/* Top Gifters Leaderboard - Half Width */}
             <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 max-w-md">
