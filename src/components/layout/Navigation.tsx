@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { type Role, ROLE_ORDER, isValidRole, parseRole } from '@/types/auth';
 import { getRoleWithFallback } from '@/lib/auth/jwt-utils';
+import { clearAppCaches, detectAndHandleUserChange, setLastAuthUserId } from '@/lib/cache-utils';
 import {
   Home,
   Search,
@@ -83,6 +84,16 @@ export function Navigation() {
         (session?.user?.user_metadata as any)?.role ??
         null;
 
+      // 🛡️ Detect user change and clear caches if needed
+      if (session?.user?.id) {
+        const userChanged = detectAndHandleUserChange(session.user.id, { forceReload: true });
+        if (userChanged) {
+          console.log('[Navigation] User changed - caches cleared and page will reload');
+          // Page will reload, so no need to continue
+          return;
+        }
+      }
+
       // 🛡️ Last-resort fallback: decode JWT from localStorage if session is null
       const roleWithFallback = getRoleWithFallback(jwtRole);
 
@@ -121,13 +132,21 @@ export function Navigation() {
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
+        console.log('[Navigation] User signed out - clearing all caches');
         setUser(null);
         setUserRole('fan');
         setBalance(0);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('digis_user_role');
-        }
+        // Clear all app caches on logout
+        clearAppCaches();
+        setLastAuthUserId(null);
       } else if (event === 'SIGNED_IN' && session?.user) {
+        console.log('[Navigation] User signed in - checking for user change');
+        // Detect user change and clear caches if needed (with force reload)
+        const userChanged = detectAndHandleUserChange(session.user.id, { forceReload: true });
+        if (userChanged) {
+          console.log('[Navigation] User changed on sign-in - page will reload');
+          return; // Page will reload
+        }
         checkUser();
         // Also check for role in JWT on sign-in
         const jwtRole = (session.user.app_metadata as any)?.role ?? (session.user.user_metadata as any)?.role;
@@ -253,7 +272,13 @@ export function Navigation() {
   };
 
   const handleLogout = async () => {
+    console.log('[Navigation] Logout initiated - clearing all caches');
     const supabase = createClient();
+
+    // Clear all app caches before signing out
+    clearAppCaches();
+    setLastAuthUserId(null);
+
     await supabase.auth.signOut();
     setUser(null); // Clear user state to hide navigation
     router.push('/');
