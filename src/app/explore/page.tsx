@@ -312,8 +312,8 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
       className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border border-white/20 hover:border-cyan-500/50"
       onClick={onClick}
     >
-      {/* 4:5 Creator Card Image (Portrait) with overlaid name */}
-      <div className="relative w-full overflow-hidden rounded-2xl" style={{ paddingBottom: '110%' }}>
+      {/* 16:9 Creator Card Image with overlaid name */}
+      <div className="relative w-full overflow-hidden rounded-2xl" style={{ paddingBottom: '56.25%' }}>
         {cardImageUrl ? (
           <>
             <img
