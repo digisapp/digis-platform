@@ -262,7 +262,7 @@ export default function ExplorePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-3">
+          <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-3">
             {creators.map((creator) => (
               <CreatorCard
                 key={creator.id}
@@ -354,36 +354,31 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
           </div>
         )}
 
-        {/* Creator Name - Overlaid at bottom with glass effect */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 backdrop-blur-md bg-black/20 border-t border-white/10 group-hover:bg-white/30 transition-colors duration-300">
-          {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
+        {/* Creator Name - Overlaid at bottom with Telegram-inspired clear glass effect */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-xl bg-white/95 border-t border-white/40 shadow-lg group-hover:bg-gradient-to-r group-hover:from-white/95 group-hover:via-cyan-50/95 group-hover:to-white/95 transition-all duration-300">
           <div className="relative z-10">
             {/* Username with indicators */}
             <div className="flex items-center justify-center gap-1.5">
               {creator.isOnline && (
                 <div className="relative flex-shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <div className="w-2 h-2 rounded-full bg-green-500 ring-2 ring-white" />
                   <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
                 </div>
               )}
-              <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px] drop-shadow-lg">
+              <h3 className="text-sm md:text-base font-bold text-gray-900 truncate max-w-[140px]" style={{ letterSpacing: '-0.015em' }}>
                 {creator.username}
               </h3>
               {creator.isTrending && (
                 <div className="relative">
-                  <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <div className="absolute -inset-1 bg-amber-400/30 rounded-full blur-sm animate-pulse" />
+                  <TrendingUp className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <div className="absolute -inset-1 bg-amber-400/20 rounded-full blur-sm animate-pulse" />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Subtle glow effect on hover */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent blur-sm" />
-          </div>
+          {/* Accent line on hover - Telegram style */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-digis-cyan to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
       </div>
     </div>
