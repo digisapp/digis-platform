@@ -502,7 +502,7 @@ export default function CreatorDashboard() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-10">
+        <div className="px-4 pt-0 md:pt-10 pb-24 md:pb-10">
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (
