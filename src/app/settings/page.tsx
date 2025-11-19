@@ -479,32 +479,44 @@ export default function SettingsPage() {
     setError('');
 
     try {
+      console.log('[Creator Card Upload] Starting upload for user:', currentUser.id);
+
       // Resize image to 4:5 portrait ratio (800x1000)
       const resizedFile = await resizeImage(file, 800, 1000);
+      console.log('[Creator Card Upload] Image resized successfully');
 
       // Upload to Supabase Storage
+      console.log('[Creator Card Upload] Uploading to storage...');
       const url = await uploadImage(resizedFile, 'creator-card', currentUser.id);
+      console.log('[Creator Card Upload] Upload successful. URL:', url);
 
-      // Update preview
+      // Update preview immediately
       setCreatorCardPreview(url);
 
       // Save to database
+      console.log('[Creator Card Upload] Saving URL to database...');
       const response = await fetch('/api/user/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ creatorCardImageUrl: url }),
       });
 
+      console.log('[Creator Card Upload] Database response status:', response.status);
+
       if (!response.ok) {
         const data = await response.json();
+        console.error('[Creator Card Upload] Database save failed:', data);
         throw new Error(data.error || 'Failed to save creator card');
       }
+
+      const result = await response.json();
+      console.log('[Creator Card Upload] Database save successful:', result);
 
       setCreatorCardImageUrl(url);
       setMessage('Creator card updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
-      console.error('Creator card upload error:', err);
+      console.error('[Creator Card Upload] Error occurred:', err);
       setError(err.message || 'Failed to upload creator card');
     } finally {
       setUploadingCreatorCard(false);
