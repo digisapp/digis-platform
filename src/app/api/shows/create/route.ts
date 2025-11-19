@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
-      showType,
+      showType = 'live_show', // Default to live_show (will be replaced with categories later)
       ticketPrice,
       maxTickets,
       scheduledStart,
@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!title || !showType || ticketPrice === undefined || !scheduledStart) {
+    if (!title || ticketPrice === undefined || !scheduledStart) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, showType, ticketPrice, scheduledStart' },
+        { error: 'Missing required fields: title, ticketPrice, scheduledStart' },
         { status: 400 }
       );
     }

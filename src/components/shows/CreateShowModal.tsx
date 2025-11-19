@@ -15,18 +15,12 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    showType: 'live_show' as const,
     ticketPrice: 50,
     maxTickets: null as number | null,
     scheduledStart: '',
     durationMinutes: 60,
     coverImageUrl: '',
   });
-
-  const showTypes = [
-    { value: 'live_show', label: 'Live Show', emoji: '🎥' },
-    { value: 'workshop', label: 'Workshop', emoji: '🎓' },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +77,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
       <div className="backdrop-blur-xl bg-white/95 rounded-3xl border-2 border-purple-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Create New Show 🎟️</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Create New Show</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-900 text-2xl"
@@ -121,30 +115,6 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400 resize-none"
                 maxLength={500}
               />
-            </div>
-
-            {/* Show Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Show Type *
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {showTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, showType: type.value as any })}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      formData.showType === type.value
-                        ? 'border-digis-cyan bg-digis-cyan/20'
-                        : 'border-purple-200 bg-white/60 backdrop-blur-sm hover:border-purple-300'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{type.emoji}</div>
-                    <div className="text-sm font-medium text-gray-900">{type.label}</div>
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Date & Time */}
