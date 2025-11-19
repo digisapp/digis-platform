@@ -355,7 +355,7 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
 
         {/* Creator Name - Overlaid at bottom with glass effect */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-md bg-black/20 border-t border-white/10 group-hover:bg-white/30 transition-colors duration-300">
+        <div className="absolute bottom-0 left-0 right-0 p-2 backdrop-blur-md bg-black/20 border-t border-white/10 group-hover:bg-white/30 transition-colors duration-300">
           {/* Animated gradient background */}
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
