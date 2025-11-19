@@ -57,6 +57,7 @@ export async function GET(
         creator: vod.creator,
       },
       access: accessCheck,
+      isCreator: user?.id === vod.creatorId,
     });
   } catch (error: any) {
     console.error('[VOD Details] Error:', error);

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
-import { Play, Eye, ShoppingCart, DollarSign, Clock, Trash2 } from 'lucide-react';
+import { Play, Eye, ShoppingCart, DollarSign, Clock, Trash2, Edit3 } from 'lucide-react';
+import { EditVODModal } from './EditVODModal';
 
 interface VOD {
   id: string;
@@ -26,6 +27,8 @@ export function VODLibrary() {
   const [vods, setVods] = useState<VOD[]>([]);
   const [totals, setTotals] = useState({ totalViews: 0, totalPurchases: 0, totalEarnings: 0 });
   const [loading, setLoading] = useState(true);
+  const [editingVOD, setEditingVOD] = useState<VOD | null>(null);
+  const [deletingVOD, setDeletingVOD] = useState<string | null>(null);
 
   useEffect(() => {
     fetchVODs();
@@ -64,6 +67,33 @@ export function VODLibrary() {
       return <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs font-semibold">Subscribers</span>;
     }
     return <span className="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded-full text-xs font-semibold">PPV</span>;
+  };
+
+  const handleDelete = async (vodId: string) => {
+    if (!confirm('Are you sure you want to delete this VOD? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingVOD(vodId);
+
+    try {
+      const response = await fetch(`/api/vods/${vodId}/edit`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete VOD');
+      }
+
+      // Refresh VODs list
+      await fetchVODs();
+    } catch (error) {
+      console.error('Error deleting VOD:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete VOD');
+    } finally {
+      setDeletingVOD(null);
+    }
   };
 
   if (loading) {
@@ -217,11 +247,49 @@ export function VODLibrary() {
                     <Play className="w-3 h-3" />
                     <span>Watch</span>
                   </GlassButton>
+                  <GlassButton
+                    variant="purple"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingVOD(vod);
+                    }}
+                    className="flex items-center justify-center gap-1"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                  </GlassButton>
+                  <GlassButton
+                    variant="pink"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(vod.id);
+                    }}
+                    className="flex items-center justify-center gap-1"
+                    disabled={deletingVOD === vod.id}
+                  >
+                    {deletingVOD === vod.id ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                  </GlassButton>
                 </div>
               </div>
             </GlassCard>
           ))}
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingVOD && (
+        <EditVODModal
+          vod={editingVOD}
+          onClose={() => setEditingVOD(null)}
+          onSuccess={() => {
+            fetchVODs(); // Refresh VODs list
+          }}
+        />
       )}
     </div>
   );

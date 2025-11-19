@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { VODAccessModal } from '@/components/vods/VODAccessModal';
+import { EditVODModal } from '@/components/vods/EditVODModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { Play, Users, Eye, Clock, TrendingUp } from 'lucide-react';
+import { Play, Users, Eye, Clock, TrendingUp, Edit3 } from 'lucide-react';
 
 interface VODData {
   id: string;
@@ -49,6 +50,8 @@ export default function VODPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
     fetchVOD();
@@ -62,6 +65,7 @@ export default function VODPlayerPage() {
       if (response.ok) {
         setVod(data.vod);
         setAccess(data.access);
+        setIsCreator(data.isCreator || false);
 
         // Show access modal if purchase required
         if (data.access.requiresPurchase && !data.access.hasAccess) {
@@ -166,7 +170,20 @@ export default function VODPlayerPage() {
 
             {/* VOD Info */}
             <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-              <h1 className="text-2xl font-bold text-white mb-2">{vod.title}</h1>
+              <div className="flex items-start justify-between mb-2">
+                <h1 className="text-2xl font-bold text-white flex-1">{vod.title}</h1>
+                {isCreator && (
+                  <GlassButton
+                    variant="purple"
+                    size="sm"
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>Edit</span>
+                  </GlassButton>
+                )}
+              </div>
               {vod.description && (
                 <p className="text-gray-400 mb-4">{vod.description}</p>
               )}
@@ -288,6 +305,24 @@ export default function VODPlayerPage() {
           onClose={() => setShowAccessModal(false)}
           onSuccess={() => {
             fetchVOD(); // Refresh to get updated access
+          }}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && vod && (
+        <EditVODModal
+          vod={{
+            id: vod.id,
+            title: vod.title,
+            description: vod.description,
+            priceCoins: vod.priceCoins,
+            isPublic: vod.isPublic,
+            subscribersOnly: vod.subscribersOnly,
+          }}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            fetchVOD(); // Refresh to get updated VOD data
           }}
         />
       )}
