@@ -225,7 +225,7 @@ export default function CreatorShowsPage() {
                   className="shadow-2xl"
                 >
                   <Plus className="w-5 h-5 mr-2" strokeWidth={2.5} />
-                  Create Your First Show
+                  Create Show
                 </GlassButton>
               )}
             </div>

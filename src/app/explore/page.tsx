@@ -171,7 +171,7 @@ export default function ExplorePage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 transition-all"
+              className="w-full pl-12 pr-12 py-3.5 bg-white/60 backdrop-blur-xl border border-purple-200 rounded-2xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-all"
             />
             {searching && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -199,8 +199,8 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/50 border border-cyan-500'
-                          : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-cyan-500/50 hover:scale-105'
+                          ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
+                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}
                   >
@@ -227,8 +227,8 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/50 border border-cyan-500'
-                          : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-cyan-500/50 hover:scale-105'
+                          ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
+                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}
                   >
