@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { users, streams } from '@/lib/data/system';
+import { users, streams, follows } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 export interface StreamInfo {
@@ -135,9 +135,13 @@ export async function hasAccess({
 
     // For followers-only streams, check if user follows the creator
     if (stream.kind === 'members_only') {
-      // TODO: Check if user follows creator
-      // For now, return false - can be enhanced later
-      return false;
+      const followRelation = await db.query.follows.findFirst({
+        where: and(
+          eq(follows.followerId, userId),
+          eq(follows.followingId, stream.creatorId)
+        ),
+      });
+      return !!followRelation;
     }
 
     // For private streams, for now allow any logged-in user

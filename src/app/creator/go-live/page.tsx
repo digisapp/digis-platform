@@ -382,12 +382,7 @@ export default function GoLivePage() {
         <form onSubmit={handleStartStream} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left Column: Form */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-6 hover:border-digis-cyan/50 transition-all duration-300">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900">Stream Details</h2>
-                <p className="text-sm text-gray-600 mt-1">Fill in the details for your stream</p>
-              </div>
-
+            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-cyan/50 transition-all duration-300">
               {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
@@ -522,12 +517,7 @@ export default function GoLivePage() {
             </div>
 
             {/* Right Column: Device Preview */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-6 hover:border-digis-purple/50 transition-all duration-300">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900">Device Preview</h2>
-                <p className="text-sm text-gray-600 mt-1">Check your camera and microphone</p>
-              </div>
-
+            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-purple/50 transition-all duration-300">
               {/* Video Preview */}
               {devicesLoading ? (
                 <VideoPreviewSkeleton />
@@ -641,28 +631,6 @@ export default function GoLivePage() {
             </div>
           )}
 
-          {/* Helpful Tips */}
-          <div className="max-w-7xl mx-auto glass rounded-xl border-2 border-digis-cyan/30 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5 p-6">
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="text-xl">💡</span>
-              Pro Tips for a Great Stream
-            </h3>
-            <div className="grid md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="font-semibold text-digis-cyan">• Good Lighting:</span>
-                <span className="text-gray-700"> Face a window or use a ring light</span>
-              </div>
-              <div>
-                <span className="font-semibold text-digis-cyan">• Clear Audio:</span>
-                <span className="text-gray-700"> Reduce background noise</span>
-              </div>
-              <div>
-                <span className="font-semibold text-digis-cyan">• Engage Viewers:</span>
-                <span className="text-gray-700"> Read chat and respond often</span>
-              </div>
-            </div>
-          </div>
-
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-7xl mx-auto">
             <GlassButton
@@ -686,12 +654,12 @@ export default function GoLivePage() {
               {isCreating ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  <span className="ml-2">Starting Stream...</span>
+                  <span className="ml-2 text-gray-900 font-bold">Starting Stream...</span>
                 </>
               ) : (
                 <>
                   <span className="text-xl mr-2">📹</span>
-                  <span className="font-bold">Start Streaming</span>
+                  <span className="font-bold text-gray-900">Start Streaming</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}
