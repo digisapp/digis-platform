@@ -23,34 +23,6 @@ const STREAM_CATEGORIES = [
   'Other',
 ];
 
-// Quick start templates
-const QUICK_TEMPLATES = [
-  {
-    title: 'Just Chatting',
-    category: 'Talk Show',
-    description: 'Casual conversation with viewers',
-    emoji: '💬'
-  },
-  {
-    title: 'Gaming Session',
-    category: 'Gaming',
-    description: 'Playing games with the community',
-    emoji: '🎮'
-  },
-  {
-    title: 'Music Performance',
-    category: 'Music',
-    description: 'Live music and singing',
-    emoji: '🎵'
-  },
-  {
-    title: 'Creative Work',
-    category: 'Art & Design',
-    description: 'Art, design, or creative projects',
-    emoji: '🎨'
-  },
-];
-
 // Privacy options
 const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Public', description: 'Anyone can watch' },
@@ -380,12 +352,6 @@ export default function GoLivePage() {
     );
   }
 
-  const applyTemplate = (template: typeof QUICK_TEMPLATES[0]) => {
-    setTitle(template.title);
-    setCategory(template.category);
-    setDescription(template.description);
-  };
-
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <ParticleEffect trigger={showParticles} />
@@ -411,29 +377,6 @@ export default function GoLivePage() {
             </div>
           </div>
         )}
-
-        {/* Quick Start Templates */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Start</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {QUICK_TEMPLATES.map((template) => (
-              <button
-                key={template.title}
-                type="button"
-                onClick={() => applyTemplate(template)}
-                className="glass rounded-xl border-2 border-purple-200 p-4 hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 text-left group"
-              >
-                <div className="text-3xl mb-2">{template.emoji}</div>
-                <div className="font-bold text-gray-900 text-sm mb-1 group-hover:text-digis-cyan transition-colors">
-                  {template.title}
-                </div>
-                <div className="text-xs text-gray-600">
-                  {template.description}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* 2-Column Layout */}
         <form onSubmit={handleStartStream} className="space-y-6">
