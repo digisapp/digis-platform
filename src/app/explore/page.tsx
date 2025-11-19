@@ -355,9 +355,9 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
         )}
 
         {/* Creator Name - Overlaid at bottom with glass effect */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-xl bg-black/30 border-t border-white/10">
+        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-md bg-black/20 border-t border-white/10">
           {/* Animated gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-pink-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-pink-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           <div className="relative z-10">
             {/* Username with indicators */}
