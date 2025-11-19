@@ -354,8 +354,8 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
           </div>
         )}
 
-        {/* Creator Name - Overlaid at bottom with Telegram-inspired clear glass effect */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-xl bg-white/95 border-t border-white/40 shadow-lg group-hover:bg-gradient-to-r group-hover:from-white/95 group-hover:via-cyan-50/95 group-hover:to-white/95 transition-all duration-300">
+        {/* Creator Name - Overlaid at bottom with minimal opacity to show image */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-md bg-white/20 border-t border-white/30 group-hover:bg-white/30 transition-all duration-300">
           <div className="relative z-10">
             {/* Username with indicators */}
             <div className="flex items-center justify-center gap-1.5">
@@ -365,20 +365,20 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
                   <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
                 </div>
               )}
-              <h3 className="text-sm md:text-base font-bold text-gray-900 truncate max-w-[140px]" style={{ letterSpacing: '-0.015em' }}>
+              <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" style={{ letterSpacing: '-0.015em' }}>
                 {creator.username}
               </h3>
               {creator.isTrending && (
                 <div className="relative">
-                  <TrendingUp className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
                   <div className="absolute -inset-1 bg-amber-400/20 rounded-full blur-sm animate-pulse" />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Accent line on hover - Telegram style */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-digis-cyan to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Accent line on hover */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
       </div>
     </div>
