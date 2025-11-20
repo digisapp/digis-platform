@@ -109,14 +109,14 @@ export default function CreatorShowsPage() {
             </h1>
             <GlassButton
               variant="gradient"
-              size="md"
+              size="sm"
               onClick={() => setShowCreateModal(true)}
               shimmer
               glow
-              className="ml-auto"
+              className="ml-auto md:text-base"
             >
-              <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-              Create Show
+              <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" strokeWidth={2.5} />
+              <span className="text-sm md:text-base">Create Show</span>
             </GlassButton>
           </div>
           <p className="text-gray-600 text-lg">Create and manage your ticketed events</p>
