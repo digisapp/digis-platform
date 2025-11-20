@@ -72,19 +72,19 @@ export function MobileWalletWidget() {
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-sm">
               {username[0]?.toUpperCase() || 'U'}
             </div>
-            <span className="font-bold text-gray-900 text-lg">
+            <span className="font-bold text-white text-lg drop-shadow-lg">
               {username}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/10 to-emerald-500/10 px-3 py-2 rounded-xl border border-green-500/30">
               <Coins className="w-5 h-5 text-green-600" />
-              <span className="font-black text-gray-900 text-lg">
+              <span className="font-black text-white text-lg drop-shadow-lg">
                 {balance}
               </span>
             </div>
             <ChevronDown
-              className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 text-white/70 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
             />
           </div>
         </div>
@@ -113,8 +113,8 @@ export function MobileWalletWidget() {
                 <Coins className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-left">
-                <div className="font-bold text-gray-900">Buy Coins</div>
-                <div className="text-xs text-gray-600">Add coins to your wallet</div>
+                <div className="font-bold text-white drop-shadow">Buy Coins</div>
+                <div className="text-xs text-white/70">Add coins to your wallet</div>
               </div>
             </button>
 
@@ -133,8 +133,8 @@ export function MobileWalletWidget() {
                     <Video className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-gray-900">Go Live</div>
-                    <div className="text-xs text-gray-600">Start streaming now</div>
+                    <div className="font-bold text-white drop-shadow">Go Live</div>
+                    <div className="text-xs text-white/70">Start streaming now</div>
                   </div>
                 </button>
 
@@ -150,8 +150,8 @@ export function MobileWalletWidget() {
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-gray-900">Create Post</div>
-                    <div className="text-xs text-gray-600">Share PPV content</div>
+                    <div className="font-bold text-white drop-shadow">Create Post</div>
+                    <div className="text-xs text-white/70">Share PPV content</div>
                   </div>
                 </button>
 
@@ -167,8 +167,8 @@ export function MobileWalletWidget() {
                     <Ticket className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-gray-900">Ticketed Shows</div>
-                    <div className="text-xs text-gray-600">Create exclusive events</div>
+                    <div className="font-bold text-white drop-shadow">Ticketed Shows</div>
+                    <div className="text-xs text-white/70">Create exclusive events</div>
                   </div>
                 </button>
               </>
