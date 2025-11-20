@@ -76,7 +76,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
       <div className="flex justify-center mb-8">
         <Image
-          src="/images/digis-logo-black.png"
+          src="/images/digis-logo-white.png"
           alt="Digis Logo"
           width={150}
           height={50}
@@ -122,7 +122,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
           ) : 'Sign In'}
         </button>
 
-        <div className="text-center text-gray-700 text-sm md:text-base font-medium">
+        <div className="text-center text-white text-sm md:text-base font-medium">
           Don&apos;t have an account?{' '}
           <button
             type="button"
