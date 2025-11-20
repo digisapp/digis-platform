@@ -672,7 +672,7 @@ export default function BroadcastStudioPage() {
                   onClick={() => setShowSaveStreamModal(true)}
                   shimmer
                   glow
-                  className="w-full text-gray-900 font-semibold"
+                  className="w-full !text-white font-semibold"
                 >
                   Save Stream Replay
                 </GlassButton>
