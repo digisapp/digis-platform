@@ -604,7 +604,7 @@ export default function GoLivePage() {
               type="submit"
               variant="gradient"
               size="lg"
-              disabled={!title.trim() || !category || !mediaStream || isCreating}
+              disabled={!title.trim() || !mediaStream || isCreating}
               className="w-full sm:flex-1 relative overflow-hidden group"
               shimmer
               glow
