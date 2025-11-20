@@ -165,76 +165,75 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
               />
             </div>
 
-            {/* Date & Time */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Show Date & Time *
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.scheduledStart}
-                onChange={(e) => setFormData({ ...formData, scheduledStart: e.target.value })}
-                min={getMinDateTime()}
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Must be at least 1 hour from now
-              </p>
+            {/* Date & Time + Duration */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Show Date & Time *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.scheduledStart}
+                  onChange={(e) => setFormData({ ...formData, scheduledStart: e.target.value })}
+                  min={getMinDateTime()}
+                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  At least 1 hour from now
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Duration *
+                </label>
+                <select
+                  value={formData.durationMinutes}
+                  onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                >
+                  <option value={30}>30 minutes</option>
+                  <option value={60}>1 hour</option>
+                  <option value={90}>1.5 hours</option>
+                  <option value={120}>2 hours</option>
+                  <option value={180}>3 hours</option>
+                </select>
+              </div>
             </div>
 
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duration (minutes) *
-              </label>
-              <select
-                value={formData.durationMinutes}
-                onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
-              >
-                <option value={30}>30 minutes</option>
-                <option value={60}>1 hour</option>
-                <option value={90}>1.5 hours</option>
-                <option value={120}>2 hours</option>
-                <option value={180}>3 hours</option>
-              </select>
-            </div>
+            {/* Ticket Price + Max Tickets */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ticket Price (coins) *
+                </label>
+                <input
+                  type="number"
+                  value={formData.ticketPrice}
+                  onChange={(e) => setFormData({ ...formData, ticketPrice: parseInt(e.target.value) || 0 })}
+                  min={1}
+                  max={10000}
+                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                />
+              </div>
 
-            {/* Ticket Price */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ticket Price (coins) *
-              </label>
-              <input
-                type="number"
-                value={formData.ticketPrice}
-                onChange={(e) => setFormData({ ...formData, ticketPrice: parseInt(e.target.value) || 0 })}
-                min={1}
-                max={10000}
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
-              />
-            </div>
-
-            {/* Max Tickets */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Maximum Tickets (optional)
-              </label>
-              <input
-                type="number"
-                value={formData.maxTickets || ''}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  maxTickets: e.target.value ? parseInt(e.target.value) : null
-                })}
-                placeholder="Unlimited"
-                min={1}
-                max={10000}
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Leave empty for unlimited tickets
-              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Maximum Tickets
+                </label>
+                <input
+                  type="number"
+                  value={formData.maxTickets || ''}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    maxTickets: e.target.value ? parseInt(e.target.value) : null
+                  })}
+                  placeholder="Unlimited"
+                  min={1}
+                  max={10000}
+                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400"
+                />
+              </div>
             </div>
 
             {/* Cover Image Upload */}
