@@ -859,7 +859,7 @@ export default function BroadcastStudioPage() {
 
           {/* Chat Sidebar */}
           <div className="lg:col-span-1">
-            <div className={`${isPortrait ? 'h-[300px]' : 'h-[calc(100vh-12rem)]'} lg:sticky lg:top-24`}>
+            <div className={`${isPortrait ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}
