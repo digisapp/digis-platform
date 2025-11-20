@@ -123,7 +123,7 @@ export function SaveStreamModal({
             size="lg"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 !text-gray-900 !bg-white/90 font-semibold border-white/40 hover:!bg-white"
+            className="flex-1 !text-white !bg-white/10 font-semibold border-white/40 hover:!bg-white/20"
           >
             Cancel
           </GlassButton>

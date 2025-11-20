@@ -131,7 +131,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated, existin
             disabled={loading}
             shimmer
             glow
-            className="flex-1 text-gray-900 font-semibold"
+            className="flex-1 !text-white font-semibold"
           >
             {loading ? (existingGoal ? 'Updating...' : 'Creating...') : (existingGoal ? 'Update Goal' : 'Create Goal')}
           </GlassButton>
