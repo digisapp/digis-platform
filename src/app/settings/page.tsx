@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings, Star } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
@@ -533,6 +534,8 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 py-12 px-4 relative overflow-hidden">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
       {/* Removed animated background mesh - cleaner light mode */}
 
       <div className="max-w-5xl mx-auto space-y-6 relative z-10">

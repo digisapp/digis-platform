@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CallRequestQueue } from '@/components/calls/CallRequestQueue';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Phone, Video, Clock, TrendingUp, Calendar } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
@@ -48,7 +49,9 @@ export default function CreatorCallsPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <button
