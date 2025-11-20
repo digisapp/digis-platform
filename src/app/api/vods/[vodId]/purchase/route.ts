@@ -70,18 +70,18 @@ export async function POST(
 
     const price = vod.priceCoins;
 
-    // Deduct coins from buyer's wallet
-    const deductResult = await WalletService.createTransaction({
-      userId: user.id,
-      amount: -price,
-      type: 'ppv_unlock',
-      description: `Purchased VOD: ${vod.title}`,
-      idempotencyKey: `vod_purchase_${vodId}_${user.id}_${Date.now()}`,
-    });
-
-    if (!deductResult.success) {
+    try {
+      // Deduct coins from buyer's wallet
+      await WalletService.createTransaction({
+        userId: user.id,
+        amount: -price,
+        type: 'ppv_unlock',
+        description: `Purchased VOD: ${vod.title}`,
+        idempotencyKey: `vod_purchase_${vodId}_${user.id}_${Date.now()}`,
+      });
+    } catch (walletError: any) {
       return NextResponse.json(
-        { error: deductResult.error || 'Insufficient balance' },
+        { error: walletError.message || 'Insufficient balance' },
         { status: 400 }
       );
     }
@@ -118,14 +118,14 @@ export async function POST(
     });
 
     // Get updated balance
-    const balanceResult = await WalletService.getBalance(user.id);
+    const newBalance = await WalletService.getBalance(user.id);
 
     console.log(`[VOD Purchase] User ${user.id} purchased VOD ${vodId} for ${price} coins`);
 
     return NextResponse.json({
       success: true,
       message: 'VOD access purchased successfully',
-      newBalance: balanceResult.success ? balanceResult.balance : 0,
+      newBalance,
     });
   } catch (error: any) {
     console.error('[VOD Purchase] Error:', error);
