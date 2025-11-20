@@ -8,6 +8,8 @@ import {
   users,
   wallets,
   walletTransactions,
+  follows,
+  subscriptions,
 } from '@/lib/data/system';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -363,6 +365,83 @@ export class StreamService {
         },
       },
     });
+  }
+
+  /**
+   * Check if a user has access to view a stream based on privacy settings
+   */
+  static async checkStreamAccess(streamId: string, userId: string | null): Promise<{ hasAccess: boolean; reason?: string }> {
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+      with: {
+        creator: {
+          columns: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!stream) {
+      return { hasAccess: false, reason: 'Stream not found' };
+    }
+
+    // Creator always has access to their own stream
+    if (userId && stream.creatorId === userId) {
+      return { hasAccess: true };
+    }
+
+    // Public streams are accessible to everyone
+    if (stream.privacy === 'public') {
+      return { hasAccess: true };
+    }
+
+    // For followers-only and subscribers-only, user must be authenticated
+    if (!userId) {
+      return {
+        hasAccess: false,
+        reason: stream.privacy === 'followers'
+          ? 'This stream is for followers only. Please follow to watch.'
+          : 'This stream is for subscribers only. Please subscribe to watch.'
+      };
+    }
+
+    // Check followers-only access
+    if (stream.privacy === 'followers') {
+      const isFollowing = await db.query.follows.findFirst({
+        where: and(
+          eq(follows.followerId, userId),
+          eq(follows.followingId, stream.creatorId)
+        ),
+      });
+
+      if (!isFollowing) {
+        return { hasAccess: false, reason: 'You must follow this creator to watch this stream.' };
+      }
+
+      return { hasAccess: true };
+    }
+
+    // Check subscribers-only access
+    if (stream.privacy === 'subscribers') {
+      const activeSubscription = await db.query.subscriptions.findFirst({
+        where: and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, stream.creatorId),
+          eq(subscriptions.status, 'active'),
+          sql`${subscriptions.expiresAt} > NOW()`
+        ),
+      });
+
+      if (!activeSubscription) {
+        return { hasAccess: false, reason: 'You must be an active subscriber to watch this stream.' };
+      }
+
+      return { hasAccess: true };
+    }
+
+    // Default: deny access for unknown privacy settings
+    return { hasAccess: false, reason: 'Unable to verify stream access' };
   }
 
   /**

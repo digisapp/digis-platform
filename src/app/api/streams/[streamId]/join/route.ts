@@ -24,6 +24,16 @@ export async function POST(
 
     const { streamId } = await params;
 
+    // Check access control before allowing join
+    const accessCheck = await StreamService.checkStreamAccess(streamId, user.id);
+
+    if (!accessCheck.hasAccess) {
+      return NextResponse.json(
+        { error: accessCheck.reason || 'Access denied' },
+        { status: 403 }
+      );
+    }
+
     // Get user details for username
     const dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.id),

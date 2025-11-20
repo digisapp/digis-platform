@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
+import { NotificationService } from '@/lib/services/notification-service';
 import { createClient } from '@/lib/supabase/server';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, failure } from '@/types/api';
@@ -76,6 +77,20 @@ export async function POST(req: NextRequest) {
         streamId: stream.id,
         status: 'success'
       });
+
+      // Send notifications to followers/subscribers based on privacy level
+      // Only send notifications if stream is going live immediately (not scheduled)
+      if (!scheduledAt || scheduledAt <= new Date()) {
+        // Fire and forget - don't wait for notifications to complete
+        NotificationService.notifyStreamStart(
+          user.id,
+          stream.id,
+          title,
+          privacy || 'public'
+        ).catch((err) => {
+          console.error('[STREAMS/CREATE] Failed to send notifications:', err);
+        });
+      }
 
       return NextResponse.json(
         success(stream, requestId),

@@ -201,6 +201,20 @@ export class RealtimeService {
   }
 
   /**
+   * Broadcast a notification to a specific user
+   */
+  static async broadcastNotification(userId: string, notification: any) {
+    const supabase = createClient();
+    const channelName = `user:${userId}:notifications`;
+
+    await supabase.channel(channelName).send({
+      type: 'broadcast',
+      event: 'notification',
+      payload: notification,
+    });
+  }
+
+  /**
    * Clean up all channels
    */
   static async cleanup() {

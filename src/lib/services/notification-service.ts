@@ -1,0 +1,215 @@
+import { db } from '@/lib/data/system';
+import { notifications, follows, subscriptions, users } from '@/lib/data/system';
+import { eq, and, sql } from 'drizzle-orm';
+import { RealtimeService } from '@/lib/streams/realtime-service';
+
+/**
+ * NotificationService handles creating and sending notifications to users
+ */
+export class NotificationService {
+  /**
+   * Send a notification to a single user
+   */
+  static async sendNotification(
+    userId: string,
+    type: string,
+    title: string,
+    message: string,
+    actionUrl?: string,
+    imageUrl?: string,
+    metadata?: any
+  ) {
+    const [notification] = await db
+      .insert(notifications)
+      .values({
+        userId,
+        type,
+        title,
+        message,
+        actionUrl,
+        imageUrl,
+        metadata: metadata ? JSON.stringify(metadata) : undefined,
+      })
+      .returning();
+
+    // Broadcast real-time notification via Supabase Realtime
+    // This will be picked up by the user's notification listener
+    await RealtimeService.broadcastNotification(userId, notification);
+
+    return notification;
+  }
+
+  /**
+   * Notify all followers when a creator goes live
+   */
+  static async notifyFollowersOfStream(
+    creatorId: string,
+    streamId: string,
+    streamTitle: string,
+    creatorName: string,
+    creatorAvatarUrl: string | null,
+    privacy: string
+  ) {
+    // Get all followers of this creator
+    const followers = await db.query.follows.findMany({
+      where: eq(follows.followingId, creatorId),
+      with: {
+        follower: {
+          columns: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (followers.length === 0) return;
+
+    // Only notify followers if stream is public or followers-only
+    // Don't spam followers about subscribers-only streams
+    if (privacy !== 'public' && privacy !== 'followers') {
+      return;
+    }
+
+    // Send notification to each follower
+    const notificationPromises = followers.map((follow) =>
+      this.sendNotification(
+        follow.followerId,
+        'stream',
+        `${creatorName} is live! 🔴`,
+        streamTitle,
+        `/stream/${streamId}`,
+        creatorAvatarUrl || undefined,
+        {
+          creatorId,
+          streamId,
+          privacy,
+        }
+      )
+    );
+
+    await Promise.all(notificationPromises);
+
+    console.log(`Notified ${followers.length} followers about stream ${streamId}`);
+  }
+
+  /**
+   * Notify all active subscribers when a creator goes live with a subscribers-only stream
+   */
+  static async notifySubscribersOfStream(
+    creatorId: string,
+    streamId: string,
+    streamTitle: string,
+    creatorName: string,
+    creatorAvatarUrl: string | null
+  ) {
+    // Get all active subscribers of this creator
+    const activeSubscribers = await db.query.subscriptions.findMany({
+      where: and(
+        eq(subscriptions.creatorId, creatorId),
+        eq(subscriptions.status, 'active'),
+        sql`${subscriptions.expiresAt} > NOW()`
+      ),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    if (activeSubscribers.length === 0) return;
+
+    // Send notification to each subscriber
+    const notificationPromises = activeSubscribers.map((subscription) =>
+      this.sendNotification(
+        subscription.userId,
+        'stream',
+        `${creatorName} is live! 🔴 (Subscribers Only)`,
+        `${streamTitle} - Exclusive for subscribers`,
+        `/stream/${streamId}`,
+        creatorAvatarUrl || undefined,
+        {
+          creatorId,
+          streamId,
+          privacy: 'subscribers',
+          subscriberOnly: true,
+        }
+      )
+    );
+
+    await Promise.all(notificationPromises);
+
+    console.log(`Notified ${activeSubscribers.length} subscribers about stream ${streamId}`);
+  }
+
+  /**
+   * Notify appropriate users when a stream starts based on privacy level
+   */
+  static async notifyStreamStart(
+    creatorId: string,
+    streamId: string,
+    streamTitle: string,
+    privacy: string
+  ) {
+    // Get creator details
+    const creator = await db.query.users.findFirst({
+      where: eq(users.id, creatorId),
+      columns: {
+        displayName: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    if (!creator) {
+      console.error('Creator not found for notifications');
+      return;
+    }
+
+    const creatorName = creator.displayName || creator.username || 'A creator';
+
+    // Send notifications based on privacy level
+    switch (privacy) {
+      case 'public':
+        // Notify all followers for public streams
+        await this.notifyFollowersOfStream(
+          creatorId,
+          streamId,
+          streamTitle,
+          creatorName,
+          creator.avatarUrl,
+          privacy
+        );
+        break;
+
+      case 'followers':
+        // Notify all followers for followers-only streams
+        await this.notifyFollowersOfStream(
+          creatorId,
+          streamId,
+          streamTitle,
+          creatorName,
+          creator.avatarUrl,
+          privacy
+        );
+        break;
+
+      case 'subscribers':
+        // Only notify active subscribers for subscribers-only streams
+        await this.notifySubscribersOfStream(
+          creatorId,
+          streamId,
+          streamTitle,
+          creatorName,
+          creator.avatarUrl
+        );
+        break;
+
+      default:
+        console.log(`Unknown privacy level: ${privacy}. No notifications sent.`);
+    }
+  }
+}

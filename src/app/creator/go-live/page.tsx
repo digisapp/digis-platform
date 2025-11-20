@@ -27,7 +27,7 @@ const STREAM_CATEGORIES = [
 const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Public', description: 'Anyone can watch' },
   { value: 'followers', label: 'Followers Only', description: 'Only your followers' },
-  { value: 'private', label: 'Private', description: 'Invite only' },
+  { value: 'subscribers', label: 'Subscribers Only', description: 'Only paid subscribers' },
 ];
 
 export default function GoLivePage() {
