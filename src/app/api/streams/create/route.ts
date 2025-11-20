@@ -25,18 +25,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, category, privacy, thumbnail_url, scheduled_at } = await req.json();
+    const { title, description, privacy, thumbnail_url, scheduled_at } = await req.json();
 
     if (!title) {
       return NextResponse.json(
         failure('Title is required', 'validation', requestId),
-        { status: 400, headers: { 'x-request-id': requestId } }
-      );
-    }
-
-    if (!category) {
-      return NextResponse.json(
-        failure('Category is required', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
@@ -48,7 +41,6 @@ export async function POST(req: NextRequest) {
       requestId,
       userId: user.id,
       title,
-      category,
       privacy,
       scheduled: !!scheduledAt,
     });
@@ -60,7 +52,7 @@ export async function POST(req: NextRequest) {
           user.id,
           title,
           description,
-          category,
+          undefined, // category removed
           privacy,
           thumbnail_url,
           scheduledAt
