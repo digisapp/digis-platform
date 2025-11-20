@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Toast } from '@/components/ui/Toast';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useToast } from '@/hooks/useToast';
@@ -476,6 +477,9 @@ export default function CreatorDashboard() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -502,7 +506,7 @@ export default function CreatorDashboard() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-10 pb-24 md:pb-10">
+        <div className="px-4 pt-14 md:pt-10 pb-24 md:pb-10">
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (

@@ -4,6 +4,7 @@ import { useEffect, useState, memo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
@@ -158,10 +159,13 @@ export default function ExplorePage() {
       {/* Removed animated background mesh - cleaner light mode */}
 
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Mobile Header with Logo */}
+        <MobileHeader />
+
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+        <div className="px-4 pt-14 md:pt-10 pb-20 md:pb-8">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">

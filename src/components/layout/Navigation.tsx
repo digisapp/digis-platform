@@ -327,9 +327,9 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 glass backdrop-blur-xl border-2 border-purple-200 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-2xl max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-3xl bg-white/40 border border-white/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.12)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
-            <div className="p-6 md:p-5 border-b border-purple-200 bg-gradient-to-br from-digis-cyan/10 to-digis-pink/10">
+            <div className="p-6 md:p-5 border-b border-white/20 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
               {/* Avatar */}
               <div className="flex items-start gap-4 mb-5 md:mb-4">
                 <div className="relative flex-shrink-0">
@@ -477,10 +477,10 @@ export function Navigation() {
         </>
       )}
 
-      {/* Mobile Bottom Navigation (iPhone Optimized) */}
+      {/* Mobile Bottom Navigation (iPhone Optimized) - Telegram-style glass */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        {/* Backdrop with enhanced blur */}
-        <div className="absolute inset-0 bg-white/90 backdrop-blur-2xl border-t border-purple-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]" />
+        {/* Backdrop with Telegram-style glass effect */}
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl border-t border-white/30 shadow-[0_-2px_16px_rgba(0,0,0,0.08)]" />
 
         {/* Navigation content */}
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">

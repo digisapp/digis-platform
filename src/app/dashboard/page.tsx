@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
 import { Calendar, Clock, Ticket, Phone, Video, MapPin, Play, Library, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -128,6 +129,9 @@ export default function FanDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
       {/* Animated Background Mesh - Desktop only */}
       <div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -135,7 +139,7 @@ export default function FanDashboard() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 relative z-10">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-20 md:pb-8 relative z-10">
         {/* Upcoming Events Section */}
         {loadingEvents ? (
           <div className="mb-8 backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-8">

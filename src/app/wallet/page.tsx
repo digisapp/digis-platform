@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
 import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp, Wallet, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
@@ -252,6 +253,9 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
       {/* Animated Background Mesh - Desktop only */}
       <div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -271,7 +275,7 @@ export default function WalletPage() {
         existingInfo={bankingInfo}
       />
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 relative z-10">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-20 md:pb-8 relative z-10">
         {/* Tabs */}
         <div className="mb-8 flex gap-3">
           <button
