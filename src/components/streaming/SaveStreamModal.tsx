@@ -123,7 +123,7 @@ export function SaveStreamModal({
             size="lg"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 !text-white font-semibold border-white/20 hover:bg-white/10"
+            className="flex-1 !text-gray-900 !bg-white/90 font-semibold border-white/40 hover:!bg-white"
           >
             Cancel
           </GlassButton>
@@ -134,7 +134,7 @@ export function SaveStreamModal({
             disabled={loading}
             shimmer
             glow
-            className="flex-1 text-gray-900 font-semibold"
+            className="flex-1 !text-white font-semibold"
           >
             {loading ? (
               <>
