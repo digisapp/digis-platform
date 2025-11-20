@@ -13,6 +13,7 @@ interface VODData {
   title: string;
   description: string | null;
   thumbnailUrl: string | null;
+  videoUrl: string | null;
   category: string | null;
   duration: number;
   viewCount: number;
