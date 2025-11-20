@@ -62,10 +62,10 @@ export function MobileWalletWidget() {
 
   return (
     <div className="md:hidden mb-2 px-4 pt-1 relative">
-      {/* Main Widget Button */}
+      {/* Main Widget Button - Ultra Transparent */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="w-full glass rounded-2xl border-2 border-purple-200 p-4 hover:border-digis-cyan transition-all active:scale-98 shadow-lg"
+        className="w-full backdrop-blur-3xl bg-white/15 rounded-2xl border border-white/20 p-4 hover:border-white/30 transition-all active:scale-98 shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -99,15 +99,15 @@ export function MobileWalletWidget() {
             onClick={() => setShowDropdown(false)}
           />
 
-          {/* Dropdown Content */}
-          <div className="absolute top-full left-4 right-4 mt-2 z-50 glass rounded-2xl border-2 border-purple-200 shadow-xl overflow-hidden">
+          {/* Dropdown Content - Ultra Transparent */}
+          <div className="absolute top-full left-4 right-4 mt-2 z-50 backdrop-blur-3xl bg-white/15 rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] overflow-hidden">
             {/* Buy Coins */}
             <button
               onClick={() => {
                 setShowDropdown(false);
                 router.push('/wallet');
               }}
-              className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors border-b border-purple-100"
+              className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10"
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
@@ -127,7 +127,7 @@ export function MobileWalletWidget() {
                     setShowDropdown(false);
                     router.push('/creator/go-live');
                   }}
-                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors border-b border-purple-100"
+                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
                     <Video className="w-5 h-5 text-white" />
@@ -144,7 +144,7 @@ export function MobileWalletWidget() {
                     setShowDropdown(false);
                     router.push('/creator/content/new');
                   }}
-                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors border-b border-purple-100"
+                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors border-b border-white/10"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center">
                     <FileText className="w-5 h-5 text-white" />
@@ -161,7 +161,7 @@ export function MobileWalletWidget() {
                     setShowDropdown(false);
                     router.push('/creator/shows');
                   }}
-                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/60 transition-colors"
+                  className="w-full px-4 py-4 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-colors"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
                     <Ticket className="w-5 h-5 text-white" />

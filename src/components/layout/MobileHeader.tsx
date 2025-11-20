@@ -17,7 +17,7 @@ export function MobileHeader() {
   const logoSrc = isDarkPage ? '/images/digis-logo-white.png' : '/images/digis-logo-black.png';
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-3xl bg-white/20 border-b border-white/20 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-3xl bg-white/15 border-b border-white/20 shadow-[0_2px_16px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-center h-14 px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <Image
           src={logoSrc}
