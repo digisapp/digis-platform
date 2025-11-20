@@ -79,7 +79,9 @@ export default function BroadcastStudioPage() {
   // Check orientation on mount and window resize
   useEffect(() => {
     const checkOrientation = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth);
+      // Only detect portrait mode on mobile devices (max-width: 768px)
+      const isMobile = window.innerWidth <= 768;
+      setIsPortrait(isMobile && window.innerHeight > window.innerWidth);
       const isLandscapeOrientation = window.matchMedia('(orientation: landscape)').matches;
       setIsLandscape(isLandscapeOrientation);
     };
@@ -865,7 +867,7 @@ export default function BroadcastStudioPage() {
           </div>
 
           {/* Chat Sidebar */}
-          <div className={`${isPortrait ? 'lg:col-span-1 order-first' : 'lg:col-span-1'}`}>
+          <div className="lg:col-span-1">
             <div className={`${isPortrait ? 'h-[300px]' : 'h-[calc(100vh-12rem)]'} lg:sticky lg:top-24`}>
               <StreamChat
                 streamId={streamId}
