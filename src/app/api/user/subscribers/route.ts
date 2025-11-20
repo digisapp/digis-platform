@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { subscriptions, users } from '@/lib/data/system';
+import { subscriptions, subscriptionTiers, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
@@ -28,12 +28,14 @@ export async function GET(req: NextRequest) {
         isCreatorVerified: users.isCreatorVerified,
         followerCount: users.followerCount,
         subscriptionStatus: subscriptions.status,
-        subscriptionTier: subscriptions.tier,
+        subscriptionTier: subscriptionTiers.tier,
+        subscriptionTierName: subscriptionTiers.name,
         subscriptionStartedAt: subscriptions.createdAt,
         subscriptionExpiresAt: subscriptions.expiresAt,
       })
       .from(subscriptions)
       .innerJoin(users, eq(subscriptions.userId, users.id))
+      .innerJoin(subscriptionTiers, eq(subscriptions.tierId, subscriptionTiers.id))
       .where(
         and(
           eq(subscriptions.creatorId, user.id),

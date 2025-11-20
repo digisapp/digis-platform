@@ -694,7 +694,7 @@ export default function SettingsPage() {
               {/* Email Update Form */}
               <form onSubmit={handleUpdateEmail} className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-digis-cyan to-blue-500 rounded-lg">
                     <Mail className="w-4 h-4 text-gray-900" />
                   </div>
                   <div className="flex-1">
@@ -733,17 +733,17 @@ export default function SettingsPage() {
               </form>
 
               <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+                <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-pink rounded-lg">
                   <AtSign className="w-4 h-4 text-gray-900" />
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Username</p>
-                  <p className="text-sm font-medium text-gray-900">@{currentUser?.username}</p>
+                  <p className="text-sm font-medium text-gray-900">{currentUser?.username}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-                <div className={`p-2 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-yellow-500 to-amber-500' : 'from-green-500 to-emerald-500'} rounded-lg`}>
+                <div className={`p-2 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-lg`}>
                   {currentUser?.role === 'creator' ? (
                     <Crown className="w-4 h-4 text-gray-900" />
                   ) : (
@@ -758,7 +758,7 @@ export default function SettingsPage() {
 
               {currentUser?.createdAt && (
                 <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
-                  <div className="p-2 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-lg">
                     <Calendar className="w-4 h-4 text-gray-900" />
                   </div>
                   <div>
