@@ -25,8 +25,8 @@ export function AnimatedAvatar({
 
   return (
     <div className={`relative ${sizeClasses[size]} flex-shrink-0 ${className}`}>
-      {/* Animated gradient border */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink animate-spin-slow" />
+      {/* Gradient border - animation only on desktop without reduced motion */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink animate-spin-slow-conditional" />
       <div className="absolute inset-[3px] rounded-full bg-white" />
 
       {/* Avatar */}
@@ -36,6 +36,7 @@ export function AnimatedAvatar({
             src={src}
             alt={alt}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center">
@@ -48,7 +49,7 @@ export function AnimatedAvatar({
       {isOnline && (
         <div className="absolute bottom-2 right-2 z-10">
           <div className="relative w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-lg">
-            <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75" />
+            <div className="absolute inset-0 bg-green-500 rounded-full animate-ping-conditional opacity-75" />
           </div>
         </div>
       )}
@@ -62,8 +63,14 @@ export function AnimatedAvatar({
             transform: rotate(360deg);
           }
         }
-        .animate-spin-slow {
-          animation: spin-slow 3s linear infinite;
+        /* Only animate on desktop with no motion preference */
+        @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+          .animate-spin-slow-conditional {
+            animation: spin-slow 3s linear infinite;
+          }
+          .animate-ping-conditional {
+            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
         }
       `}</style>
     </div>

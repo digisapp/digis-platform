@@ -70,7 +70,6 @@ body {
 }
 
 .shimmer {
-  animation: shimmer 2s infinite linear;
   background: linear-gradient(
     to right,
     transparent 0%,
@@ -78,6 +77,12 @@ body {
     transparent 100%
   );
   background-size: 1000px 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer {
+    animation: shimmer 2s infinite linear;
+  }
 }
 
 /* Vibrant glow effects */
@@ -96,9 +101,11 @@ body {
               0 4px 20px rgba(168, 85, 247, 0.2);
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* Smooth scrolling - only on desktop with no motion preference */
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* Hide scrollbar but keep functionality */
@@ -123,7 +130,12 @@ html {
 
 .animate-gradient {
   background-size: 200% 200%;
-  animation: gradient-shift 8s ease infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-gradient {
+    animation: gradient-shift 8s ease infinite;
+  }
 }
 
 /* Shimmer effect for active tabs */
@@ -136,8 +148,10 @@ html {
   }
 }
 
-.animate-shimmer {
-  animation: shimmer-slide 2s infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .animate-shimmer {
+    animation: shimmer-slide 2s infinite;
+  }
 }
 
 /* Floating animation for elements */
@@ -150,8 +164,10 @@ html {
   }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
 }
 
 /* Gradient background position utilities */

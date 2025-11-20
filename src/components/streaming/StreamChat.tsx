@@ -19,9 +19,10 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive - instant on mobile for performance
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const isMobile = window.innerWidth < 768;
+    chatEndRef.current?.scrollIntoView({ behavior: isMobile ? 'auto' : 'smooth' });
   }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -252,8 +252,8 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
-      {/* Animated Background Mesh */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Animated Background Mesh - Desktop only */}
+      <div className="hidden md:block absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-green-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>

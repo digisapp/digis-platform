@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
@@ -119,7 +119,7 @@ export default function ExplorePage() {
     }
   };
 
-  const handleFollow = async (creatorId: string, currentlyFollowing: boolean) => {
+  const handleFollow = useCallback(async (creatorId: string, currentlyFollowing: boolean) => {
     try {
       const response = await fetch('/api/follows', {
         method: currentlyFollowing ? 'DELETE' : 'POST',
@@ -140,7 +140,7 @@ export default function ExplorePage() {
     } catch (error) {
       console.error('Error following/unfollowing creator:', error);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -302,7 +302,7 @@ function CreatorCardSkeleton() {
   );
 }
 
-function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
+const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
   // Use creator card image first, fallback to banner, then gradient
   const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
   const avatarUrl = creator.avatarUrl;
@@ -383,4 +383,4 @@ function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
       </div>
     </div>
   );
-}
+});

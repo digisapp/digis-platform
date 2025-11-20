@@ -30,41 +30,49 @@ export default function LiveStreamsPage() {
     fetchUserRole();
     fetchLiveStreams();
 
-    // Refresh every 10 seconds
-    const interval = setInterval(fetchLiveStreams, 10000);
+    // Refresh every 30 seconds on mobile, 15 seconds on desktop for better performance
+    const isMobile = window.innerWidth < 768;
+    const refreshInterval = isMobile ? 30000 : 15000;
+
+    const interval = setInterval(fetchLiveStreams, refreshInterval);
     return () => clearInterval(interval);
   }, []);
 
-  // Filter and sort streams
+  // Filter and sort streams - useMemo to prevent recalculation on every render
   useEffect(() => {
-    let filtered = [...streams];
+    // Defer filtering/sorting to not block main thread
+    const timeoutId = setTimeout(() => {
+      let filtered = [...streams];
 
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (stream) =>
-          stream.title.toLowerCase().includes(query) ||
-          stream.description?.toLowerCase().includes(query) ||
-          stream.creator.displayName?.toLowerCase().includes(query) ||
-          stream.creator.username?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'viewers':
-          return b.currentViewers - a.currentViewers;
-        case 'coins':
-          return b.totalGiftsReceived - a.totalGiftsReceived;
-        case 'recent':
-        default:
-          return new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime();
+      // Apply search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = filtered.filter(
+          (stream) =>
+            stream.title.toLowerCase().includes(query) ||
+            stream.description?.toLowerCase().includes(query) ||
+            stream.creator.displayName?.toLowerCase().includes(query) ||
+            stream.creator.username?.toLowerCase().includes(query)
+        );
       }
-    });
 
-    setFilteredStreams(filtered);
+      // Apply sorting
+      filtered.sort((a, b) => {
+        switch (sortBy) {
+          case 'viewers':
+            return b.currentViewers - a.currentViewers;
+          case 'coins':
+            return b.totalGiftsReceived - a.totalGiftsReceived;
+          case 'recent':
+          default:
+            return new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime();
+        }
+      });
+
+      setFilteredStreams(filtered);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [streams, searchQuery, sortBy]);
 
   const fetchUserRole = async () => {

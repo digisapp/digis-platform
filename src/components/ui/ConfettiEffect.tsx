@@ -13,7 +13,11 @@ export function ConfettiEffect({ show, duration = 2000 }: ConfettiEffectProps) {
 
   useEffect(() => {
     if (show) {
-      const newParticles = [...Array(30)].map((_, i) => ({
+      // Reduce particles on mobile for better performance
+      const isMobile = window.innerWidth < 768;
+      const particleCount = isMobile ? 10 : 30;
+
+      const newParticles = [...Array(particleCount)].map((_, i) => ({
         id: i,
         left: Math.random() * 100,
         delay: Math.random() * 0.5,
