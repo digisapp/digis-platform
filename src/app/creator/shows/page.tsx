@@ -96,30 +96,21 @@ export default function CreatorShowsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 backdrop-blur-xl border border-white/40">
-              <Ticket className="w-8 h-8 text-digis-cyan" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink">
-              My Shows
-            </h1>
-            <GlassButton
-              variant="gradient"
-              size="sm"
-              onClick={() => setShowCreateModal(true)}
-              shimmer
-              glow
-              className="ml-auto md:text-base"
-            >
-              <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" strokeWidth={2.5} />
-              <span className="text-sm md:text-base">Create Show</span>
-            </GlassButton>
-          </div>
-          <p className="text-gray-600 text-lg">Create and manage your ticketed events</p>
+        {/* Create Show Button */}
+        <div className="mb-8 flex justify-end">
+          <GlassButton
+            variant="gradient"
+            size="sm"
+            onClick={() => setShowCreateModal(true)}
+            shimmer
+            glow
+            className="md:text-base"
+          >
+            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" strokeWidth={2.5} />
+            <span className="text-sm md:text-base">Create Show</span>
+          </GlassButton>
         </div>
 
         {/* Stats Grid */}
