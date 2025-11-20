@@ -792,8 +792,9 @@ export default function BroadcastStudioPage() {
                       },
                       publishDefaults: {
                         videoSimulcastLayers: [
-                          VideoPresets.h1440, // 2K for high-quality viewers
-                          VideoPresets.h720,  // 720p fallback
+                          VideoPresets.h1440, // 2K (1440p) for premium viewers
+                          VideoPresets.h1080, // 1080p for high-quality
+                          VideoPresets.h720,  // 720p for medium quality
                           VideoPresets.h360,  // 360p for low bandwidth
                         ],
                         videoEncoding: VideoPresets.h1440,
