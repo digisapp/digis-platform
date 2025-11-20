@@ -761,15 +761,6 @@ export default function BroadcastStudioPage() {
         </div>
       </div>
 
-      {/* Portrait Mode Indicator */}
-      {isPortrait && (
-        <div className="bg-gradient-to-r from-digis-cyan/20 to-digis-purple/20 border-b-2 border-purple-200 px-4 py-2 text-center">
-          <p className="text-sm text-white font-semibold drop-shadow-lg">
-            📱 Portrait Mode Active - Optimized for vertical streaming
-          </p>
-        </div>
-      )}
-
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
         <div className={`grid grid-cols-1 ${isPortrait ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
