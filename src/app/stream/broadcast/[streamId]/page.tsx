@@ -674,7 +674,7 @@ export default function BroadcastStudioPage() {
                   glow
                   className="w-full text-gray-900 font-semibold"
                 >
-                  💾 Save Stream Replay
+                  Save Stream Replay
                 </GlassButton>
                 <GlassButton
                   variant="ghost"
