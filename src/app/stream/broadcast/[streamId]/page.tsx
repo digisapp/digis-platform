@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { VideoPresets, Room } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
@@ -782,6 +783,24 @@ export default function BroadcastStudioPage() {
                     token={token}
                     serverUrl={serverUrl}
                     className="h-full"
+                    options={{
+                      adaptiveStream: true,
+                      dynacast: true,
+                      videoCaptureDefaults: {
+                        resolution: VideoPresets.h1440,
+                        facingMode: 'user',
+                      },
+                      publishDefaults: {
+                        videoSimulcastLayers: [
+                          VideoPresets.h1440, // 2K for high-quality viewers
+                          VideoPresets.h720,  // 720p fallback
+                          VideoPresets.h360,  // 360p for low bandwidth
+                        ],
+                        videoEncoding: VideoPresets.h1440,
+                        dtx: true,
+                        red: true,
+                      },
+                    }}
                   >
                     <VideoConference />
                     <RoomAudioRenderer />

@@ -431,6 +431,10 @@ export default function StreamViewerPage() {
                     token={token}
                     serverUrl={serverUrl}
                     className="h-full"
+                    options={{
+                      adaptiveStream: true,
+                      dynacast: true,
+                    }}
                   >
                     <VideoConference />
                     <RoomAudioRenderer />

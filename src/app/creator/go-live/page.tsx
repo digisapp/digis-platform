@@ -175,8 +175,18 @@ export default function GoLivePage() {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: selectedVideoDevice },
-        audio: { deviceId: selectedAudioDevice },
+        video: {
+          deviceId: selectedVideoDevice,
+          width: { ideal: 2560 },
+          height: { ideal: 1440 },
+          frameRate: { ideal: 30 },
+        },
+        audio: {
+          deviceId: selectedAudioDevice,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
 
       setMediaStream(stream);
