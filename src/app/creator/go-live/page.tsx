@@ -360,7 +360,7 @@ export default function GoLivePage() {
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-32 md:pb-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Go Live 📹</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Go Live</h1>
         </div>
 
         {/* Stats */}
