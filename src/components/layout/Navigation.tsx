@@ -327,9 +327,9 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-3xl bg-white/15 border border-white/20 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.06)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-3xl bg-white/90 border border-white/40 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.1)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
-            <div className="p-6 md:p-5 border-b border-white/10 bg-white/0">
+            <div className="p-6 md:p-5 border-b border-gray-200 bg-white/0">
               {/* Avatar */}
               <div className="flex items-start gap-4 mb-5 md:mb-4">
                 <div className="relative flex-shrink-0">
@@ -352,7 +352,7 @@ export function Navigation() {
 
                 {/* Name and Username */}
                 <div className="flex-1 min-w-0 pt-1">
-                  <h3 className="font-black text-white text-2xl md:text-xl mb-2 truncate drop-shadow-lg">
+                  <h3 className="font-black text-gray-900 text-2xl md:text-xl mb-2 truncate">
                     {userProfile?.displayName || userProfile?.username || 'User'}
                   </h3>
                   <button
@@ -360,7 +360,7 @@ export function Navigation() {
                       router.push(`/${userProfile?.username || 'profile'}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-sm md:text-xs text-white/80 hover:text-digis-cyan transition-colors text-left drop-shadow"
+                    className="text-sm md:text-xs text-gray-600 hover:text-digis-cyan transition-colors text-left"
                   >
                     @{userProfile?.username || 'user'}
                   </button>
@@ -373,13 +373,13 @@ export function Navigation() {
                   router.push('/creator/followers');
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/5 hover:bg-white/15 active:bg-white/25 rounded-xl md:rounded-lg transition-all active:scale-98"
+                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-xl md:rounded-lg transition-all active:scale-98"
                 style={{ minHeight: '48px' }}
               >
-                <svg className="w-5 h-5 md:w-4 md:h-4 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-4 md:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm font-semibold text-white drop-shadow">
+                <span className="text-sm font-semibold text-gray-900">
                   {followerCount.toLocaleString()} {followerCount === 1 ? 'Follower' : 'Followers'}
                 </span>
               </button>
@@ -394,7 +394,7 @@ export function Navigation() {
                       router.push('/creator/go-live');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/8 active:bg-white/15 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-gray-100 active:bg-gray-200 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,13 +408,13 @@ export function Navigation() {
                       router.push('/creator/content/new');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/8 active:bg-white/15 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-gray-100 active:bg-gray-200 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold drop-shadow">Create</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Create</span>
                   </button>
 
                   <button
@@ -422,13 +422,13 @@ export function Navigation() {
                       router.push('/creator/shows');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/8 active:bg-white/15 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-gray-100 active:bg-gray-200 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold drop-shadow">Shows</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Shows</span>
                   </button>
 
                   <button
@@ -436,13 +436,13 @@ export function Navigation() {
                       router.push('/calls/history');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/8 active:bg-white/15 transition-all text-left active:scale-98 border-t border-purple-100"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-gray-100 active:bg-gray-200 transition-all text-left active:scale-98 border-t border-purple-100"
                     style={{ minHeight: '56px' }}
                   >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold drop-shadow">Calls</span>
+                    <span className="text-base md:text-sm text-gray-900 font-semibold">Calls</span>
                   </button>
                 </>
               )}
@@ -452,11 +452,11 @@ export function Navigation() {
                   router.push('/settings');
                   setShowProfileMenu(false);
                 }}
-                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/8 active:bg-white/15 transition-all text-left border-t border-purple-100 active:scale-98"
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-gray-100 active:bg-gray-200 transition-all text-left border-t border-purple-100 active:scale-98"
                 style={{ minHeight: '56px' }}
               >
-                <Settings className="w-6 h-6 md:w-5 md:h-5 text-white drop-shadow" />
-                <span className="text-base md:text-sm text-white font-semibold drop-shadow">Settings</span>
+                <Settings className="w-6 h-6 md:w-5 md:h-5 text-gray-700" />
+                <span className="text-base md:text-sm text-gray-900 font-semibold">Settings</span>
               </button>
 
               <button
@@ -490,7 +490,7 @@ export function Navigation() {
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[0].active
                 ? 'text-digis-cyan'
-                : 'text-white/90 active:bg-white/10'
+                : 'text-gray-800 active:bg-gray-100'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -505,7 +505,7 @@ export function Navigation() {
                 </div>
               );
             })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[0].active ? 'text-digis-cyan' : 'text-white drop-shadow'}`}>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[0].active ? 'text-digis-cyan' : 'text-gray-800'}`}>
               {navItems[0].label}
             </span>
           </button>
@@ -516,7 +516,7 @@ export function Navigation() {
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[1].active
                 ? 'text-digis-cyan'
-                : 'text-white/90 active:bg-white/10'
+                : 'text-gray-800 active:bg-gray-100'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -531,7 +531,7 @@ export function Navigation() {
                 </div>
               );
             })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[1].active ? 'text-digis-cyan' : 'text-white drop-shadow'}`}>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[1].active ? 'text-digis-cyan' : 'text-gray-800'}`}>
               {navItems[1].label}
             </span>
           </button>
@@ -575,7 +575,7 @@ export function Navigation() {
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[2].active
                 ? 'text-digis-cyan'
-                : 'text-white/90 active:bg-white/10'
+                : 'text-gray-800 active:bg-gray-100'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -590,7 +590,7 @@ export function Navigation() {
                 </div>
               );
             })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-white drop-shadow'}`}>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-digis-cyan' : 'text-gray-800'}`}>
               {navItems[2].label}
             </span>
           </button>
@@ -601,7 +601,7 @@ export function Navigation() {
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
               navItems[3].active
                 ? 'text-digis-cyan'
-                : 'text-white/90 active:bg-white/10'
+                : 'text-gray-800 active:bg-gray-100'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -625,7 +625,7 @@ export function Navigation() {
                 </div>
               )}
             </div>
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[3].active ? 'text-digis-cyan' : 'text-white drop-shadow'}`}>
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[3].active ? 'text-digis-cyan' : 'text-gray-800'}`}>
               {navItems[3].label}
             </span>
           </button>
@@ -707,7 +707,7 @@ export function Navigation() {
                 className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all relative ${
                   item.active
                     ? 'text-digis-cyan scale-105'
-                    : 'text-white/90 hover:text-white hover:bg-white/20'
+                    : 'text-gray-800 hover:text-gray-900 hover:bg-gray-100'
                 }`}
                 title={item.label}
               >

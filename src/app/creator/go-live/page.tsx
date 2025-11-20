@@ -361,7 +361,6 @@ export default function GoLivePage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Go Live 📹</h1>
-          <p className="text-gray-700">Set up your stream and connect with your audience</p>
         </div>
 
         {/* Stats */}
