@@ -63,7 +63,7 @@ export async function hasVODAccess({
     if (vod.subscribersOnly) {
       const subscription = await db.query.subscriptions.findFirst({
         where: and(
-          eq(subscriptions.subscriberId, userId),
+          eq(subscriptions.userId, userId),
           eq(subscriptions.creatorId, vod.creatorId),
           eq(subscriptions.status, 'active')
         ),
