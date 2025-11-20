@@ -106,7 +106,7 @@ export default function ContentFeedPage() {
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
                 ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
           >
             All Content
@@ -116,7 +116,7 @@ export default function ContentFeedPage() {
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
                 ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -127,7 +127,7 @@ export default function ContentFeedPage() {
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
                 ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
           >
             <Play className="w-4 h-4" />

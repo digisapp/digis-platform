@@ -239,7 +239,7 @@ export default function MessagesPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
               />
               {searchQuery && (
                 <button

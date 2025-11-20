@@ -217,17 +217,17 @@ export default function WalletPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <span className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full text-xs font-semibold text-green-700">
+        return <span className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full text-xs font-semibold text-green-300">
           <CheckCircle className="w-3 h-3" />
           Completed
         </span>;
       case 'processing':
-        return <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 rounded-full text-xs font-semibold text-yellow-700">
+        return <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 rounded-full text-xs font-semibold text-yellow-300">
           <Clock className="w-3 h-3" />
           Processing
         </span>;
       case 'failed':
-        return <span className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full text-xs font-semibold text-red-700">
+        return <span className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full text-xs font-semibold text-red-300">
           <XCircle className="w-3 h-3" />
           Failed
         </span>;
@@ -465,7 +465,7 @@ export default function WalletPage() {
                           </div>
                         </div>
                         <div className="text-right ml-4">
-                          <p className={`text-2xl font-bold ${tx.amount > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                          <p className={`text-2xl font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {tx.amount > 0 ? '+' : ''}{tx.amount}
                           </p>
                           <p className="text-xs text-gray-400">coins</p>

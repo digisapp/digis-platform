@@ -790,8 +790,8 @@ export default function ProfilePage() {
                       {content.filter(c => c.type === 'video').length === 0 ? (
                         <div className="text-center py-12">
                           <Film className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No videos yet</h3>
-                          <p className="text-gray-600 px-4">
+                          <h3 className="text-lg font-semibold text-white mb-2">No videos yet</h3>
+                          <p className="text-gray-400 px-4">
                             Check back later for video content
                           </p>
                         </div>
@@ -868,8 +868,8 @@ export default function ProfilePage() {
                       {streams.length === 0 ? (
                         <div className="text-center py-12">
                           <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No past streams yet</h3>
-                          <p className="text-gray-600 mb-4 px-4">
+                          <h3 className="text-lg font-semibold text-white mb-2">No past streams yet</h3>
+                          <p className="text-gray-400 mb-4 px-4">
                             {isFollowing
                               ? "You'll be notified when they go live"
                               : 'Follow to get notified when they go live'}
@@ -953,12 +953,12 @@ export default function ProfilePage() {
 
                               {/* Show details */}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-2 mb-1">{show.title}</h3>
+                                <h3 className="text-base sm:text-lg font-bold text-white line-clamp-2 mb-1">{show.title}</h3>
                                 {show.description && (
-                                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">{show.description}</p>
+                                  <p className="text-sm text-gray-300 line-clamp-2 mb-2">{show.description}</p>
                                 )}
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                                  <span className="flex items-center gap-1 text-gray-600">
+                                  <span className="flex items-center gap-1 text-gray-300">
                                     <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     {new Date(show.scheduledStart).toLocaleString('en-US', {
                                       month: 'short',
@@ -967,11 +967,11 @@ export default function ProfilePage() {
                                       minute: '2-digit',
                                     })}
                                   </span>
-                                  <span className="text-yellow-600 font-bold">
+                                  <span className="text-yellow-400 font-bold">
                                     {show.ticketPrice?.toLocaleString()} coins
                                   </span>
                                   {show.ticketsSold !== undefined && show.maxTickets && (
-                                    <span className="text-gray-600">
+                                    <span className="text-gray-300">
                                       {show.ticketsSold}/{show.maxTickets} sold
                                     </span>
                                   )}
@@ -988,46 +988,46 @@ export default function ProfilePage() {
                   {activeTab === 'about' && (
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                           <Sparkles className="w-5 h-5 text-digis-cyan" />
                           About
                         </h3>
                         {user.bio ? (
-                          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{user.bio}</p>
+                          <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{user.bio}</p>
                         ) : (
-                          <p className="text-gray-500 italic">No bio yet</p>
+                          <p className="text-gray-400 italic">No bio yet</p>
                         )}
                       </div>
 
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Stats</h3>
+                        <h3 className="text-lg font-semibold text-white mb-4">Stats</h3>
                         <div className="grid grid-cols-2 gap-3 sm:gap-4">
                           <div className="p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl border-2 border-purple-200 hover:border-purple-400 transition-colors">
-                            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {followCounts.followers.toLocaleString()}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-600 font-medium">Followers</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Followers</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 rounded-xl border-2 border-cyan-200 hover:border-cyan-400 transition-colors">
-                            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {streams.length}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-600 font-medium">Past Streams</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Past Streams</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-xl border-2 border-pink-200 hover:border-pink-400 transition-colors">
-                            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {shows.length}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-600 font-medium">Upcoming Shows</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Upcoming Shows</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
-                            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                            <div className="text-xl sm:text-2xl font-bold text-white mb-1">
                               {new Date(user.createdAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-600 font-medium">Joined</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Joined</div>
                           </div>
                         </div>
                       </div>
