@@ -13,7 +13,6 @@ export const vods = pgTable('vods', {
   title: text('title').notNull(),
   description: text('description'),
   thumbnailUrl: text('thumbnail_url'),
-  category: text('category'),
 
   // Video details
   videoUrl: text('video_url'), // URL to stored video file (S3, Cloudflare Stream, etc.)

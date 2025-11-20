@@ -23,8 +23,8 @@ export const conversations = pgTable('conversations', {
   lastMessageSenderId: uuid('last_message_sender_id').references(() => users.id),
 
   // Unread counts (per user)
-  user1UnreadCount: text('user1_unread_count').default('0').notNull(),
-  user2UnreadCount: text('user2_unread_count').default('0').notNull(),
+  user1UnreadCount: integer('user1_unread_count').default(0).notNull(),
+  user2UnreadCount: integer('user2_unread_count').default(0).notNull(),
 
   // Archive/pin status (per user)
   user1Archived: boolean('user1_archived').default(false).notNull(),
@@ -98,7 +98,7 @@ export const messageRequests = pgTable('message_requests', {
 
   // Payment (optional - paid requests bypass approval)
   isPaid: boolean('is_paid').default(false).notNull(),
-  paidAmount: text('paid_amount').default('0'),
+  paidAmount: integer('paid_amount').default(0),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

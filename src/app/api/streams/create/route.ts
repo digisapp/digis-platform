@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
           user.id,
           title,
           description,
-          undefined, // category removed
           privacy,
           thumbnail_url,
           scheduledAt

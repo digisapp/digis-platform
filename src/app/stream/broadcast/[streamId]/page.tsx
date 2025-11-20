@@ -797,7 +797,10 @@ export default function BroadcastStudioPage() {
                           VideoPresets.h720,  // 720p for medium quality
                           VideoPresets.h360,  // 360p for low bandwidth
                         ],
-                        videoEncoding: VideoPresets.h1440,
+                        videoEncoding: {
+                          maxBitrate: 8_000_000, // 8 Mbps for 2K quality
+                          maxFramerate: 30,
+                        },
                         dtx: true,
                         red: true,
                       },

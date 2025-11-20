@@ -30,7 +30,6 @@ export class StreamService {
     creatorId: string,
     title: string,
     description?: string,
-    category?: string,
     privacy?: string,
     thumbnailUrl?: string,
     scheduledAt?: Date
@@ -44,7 +43,6 @@ export class StreamService {
         creatorId,
         title,
         description,
-        category,
         privacy: privacy || 'public',
         thumbnailUrl,
         roomName,
