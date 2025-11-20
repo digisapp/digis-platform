@@ -367,7 +367,7 @@ export default function WalletPage() {
 
             {/* Balance for Fans */}
             {!isCreator && (
-              <GlassCard className="mb-8 relative overflow-hidden">
+              <GlassCard className="!bg-white/10 backdrop-blur-xl mb-8 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
                 <div className="relative p-8">
                   <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -419,7 +419,7 @@ export default function WalletPage() {
             )}
 
             {/* Transaction History */}
-            <GlassCard className="p-6">
+            <GlassCard className="!bg-white/10 backdrop-blur-xl p-6 !bg-white/10 backdrop-blur-xl">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg">
@@ -483,7 +483,7 @@ export default function WalletPage() {
         {activeTab === 'payouts' && isCreator && (
           <div className="space-y-6">
             {/* Payout Request Card */}
-            <GlassCard className="relative overflow-hidden">
+            <GlassCard className="!bg-white/10 backdrop-blur-xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-emerald-500/10 to-green-500/5" />
               <div className="relative p-6">
                 <div className="flex items-center gap-3 mb-6">
@@ -550,7 +550,7 @@ export default function WalletPage() {
             </GlassCard>
 
             {/* Payout History */}
-            <GlassCard className="p-6">
+            <GlassCard className="!bg-white/10 backdrop-blur-xl p-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
                   <History className="w-6 h-6 text-purple-600" />
@@ -616,7 +616,7 @@ export default function WalletPage() {
 
         {/* Banking Info Tab */}
         {activeTab === 'banking' && isCreator && (
-          <GlassCard className="relative overflow-hidden">
+          <GlassCard className="!bg-white/10 backdrop-blur-xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-blue-500/5" />
             <div className="relative p-6">
               <div className="flex items-center gap-3 mb-6">
