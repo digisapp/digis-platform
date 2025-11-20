@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Search, X, Pin, Archive, MoreVertical, Users, Inbox, MessageCircle } from 'lucide-react';
 
 type ConversationWithOtherUser = {
@@ -217,13 +218,15 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 relative overflow-hidden">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
       {/* Removed animated background mesh - cleaner light mode */}
 
       <div className="container mx-auto max-w-7xl relative z-10">
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-0 md:pt-10">
+        <div className="px-4 pt-14 md:pt-10">
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
           {/* Left Column: Conversations Sidebar */}

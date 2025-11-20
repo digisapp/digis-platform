@@ -327,9 +327,9 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-3xl bg-white/40 border border-white/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.12)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-3xl bg-white/20 border border-white/20 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.08)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
-            <div className="p-6 md:p-5 border-b border-white/20 bg-gradient-to-br from-digis-cyan/5 to-digis-pink/5">
+            <div className="p-6 md:p-5 border-b border-white/10 bg-white/5">
               {/* Avatar */}
               <div className="flex items-start gap-4 mb-5 md:mb-4">
                 <div className="relative flex-shrink-0">
@@ -373,7 +373,7 @@ export function Navigation() {
                   router.push('/creator/followers');
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/60 hover:bg-white/80 active:bg-white/90 rounded-xl md:rounded-lg transition-all active:scale-98"
+                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl md:rounded-lg transition-all active:scale-98"
                 style={{ minHeight: '48px' }}
               >
                 <svg className="w-5 h-5 md:w-4 md:h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,7 +394,7 @@ export function Navigation() {
                       router.push('/creator/go-live');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,7 +408,7 @@ export function Navigation() {
                       router.push('/creator/content/new');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,7 +422,7 @@ export function Navigation() {
                       router.push('/creator/shows');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -436,7 +436,7 @@ export function Navigation() {
                       router.push('/calls/history');
                       setShowProfileMenu(false);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left active:scale-98 border-t border-purple-100"
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-all text-left active:scale-98 border-t border-purple-100"
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,7 +452,7 @@ export function Navigation() {
                   router.push('/settings');
                   setShowProfileMenu(false);
                 }}
-                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/60 active:bg-white/70 transition-all text-left border-t border-purple-100 active:scale-98"
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/10 active:bg-white/20 transition-all text-left border-t border-purple-100 active:scale-98"
                 style={{ minHeight: '56px' }}
               >
                 <Settings className="w-6 h-6 md:w-5 md:h-5 text-gray-700" />
