@@ -93,7 +93,7 @@ export default function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 pt-6 md:pt-12 pb-20 md:pb-32">
+        <div className="relative z-10 container mx-auto px-4 pt-6 md:pt-12 pb-24 md:pb-32">
           {/* Navigation */}
           <nav className="glass rounded-full px-6 md:px-8 py-4 mb-16 md:mb-24 max-w-4xl mx-auto flex items-center justify-between backdrop-blur-xl border-2 border-white/50 shadow-xl">
             <div className="flex items-center">

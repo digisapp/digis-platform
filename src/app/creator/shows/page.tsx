@@ -97,7 +97,7 @@ export default function CreatorShowsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">

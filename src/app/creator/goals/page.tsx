@@ -121,7 +121,7 @@ export default function CreatorGoalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20 pb-20 md:pb-8">
+    <div className="min-h-screen bg-pastel-gradient md:pl-20 pb-24 md:pb-8">
       <div className="container mx-auto px-4 pt-6 md:pt-10 max-w-5xl">
         {/* Create Goal Button */}
         <button

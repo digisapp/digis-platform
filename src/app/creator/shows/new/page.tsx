@@ -122,7 +122,7 @@ export default function CreateShowPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 max-w-7xl">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <GlassCard className="p-6">

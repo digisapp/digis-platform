@@ -165,7 +165,7 @@ export default function ExplorePage() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-14 md:pt-10 pb-20 md:pb-8">
+        <div className="px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">

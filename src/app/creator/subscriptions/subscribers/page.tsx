@@ -79,7 +79,7 @@ export default function SubscribersPage() {
 
   return (
     <div className="min-h-screen bg-pastel-gradient">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 max-w-6xl">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
           <button

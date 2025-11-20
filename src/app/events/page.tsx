@@ -100,7 +100,7 @@ export default function EventsPage() {
       {/* Mobile Header with Logo */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-20 md:pb-8">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Search Bar */}
         <div className="relative mb-4">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />

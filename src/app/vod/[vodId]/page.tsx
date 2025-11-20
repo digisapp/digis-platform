@@ -115,7 +115,7 @@ export default function VODPlayerPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-10">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Video Area */}
           <div className="lg:col-span-2 space-y-4">

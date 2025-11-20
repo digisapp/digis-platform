@@ -91,7 +91,7 @@ export default function ShowsDirectoryPage() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-20 md:pb-8 relative z-10">
+      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">

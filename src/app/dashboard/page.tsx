@@ -139,7 +139,7 @@ export default function FanDashboard() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-20 md:pb-8 relative z-10">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Upcoming Events Section */}
         {loadingEvents ? (
           <div className="mb-8 backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-8">
