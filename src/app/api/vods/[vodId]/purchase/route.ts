@@ -74,7 +74,7 @@ export async function POST(
     const deductResult = await WalletService.createTransaction({
       userId: user.id,
       amount: -price,
-      type: 'vod_purchase',
+      type: 'ppv_unlock',
       description: `Purchased VOD: ${vod.title}`,
       idempotencyKey: `vod_purchase_${vodId}_${user.id}_${Date.now()}`,
     });
@@ -112,7 +112,7 @@ export async function POST(
     await WalletService.createTransaction({
       userId: vod.creatorId,
       amount: price,
-      type: 'vod_sale',
+      type: 'creator_payout',
       description: `VOD sale: ${vod.title}`,
       idempotencyKey: `vod_sale_${vodId}_${user.id}_${Date.now()}`,
     });
