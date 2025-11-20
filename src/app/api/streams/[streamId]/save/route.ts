@@ -89,7 +89,6 @@ export async function POST(
         title: title.trim(),
         description: description?.trim() || null,
         thumbnailUrl: stream.thumbnailUrl || null,
-        category: stream.category || null,
         videoUrl: null, // Will be set later when video is processed/uploaded
         duration,
         isPublic: isPublic || false,
