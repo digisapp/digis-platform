@@ -113,6 +113,23 @@ export default function CreatorShowsPage() {
           </GlassButton>
         </div>
 
+        {/* Filter Tabs */}
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+          {(['all', 'scheduled', 'live', 'ended'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilter(tab)}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
+                filter === tab
+                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-8">
           <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-purple-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
@@ -169,23 +186,6 @@ export default function CreatorShowsPage() {
               <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Revenue</div>
             </div>
           </div>
-        </div>
-
-        {/* Filter Tabs */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          {(['all', 'scheduled', 'live', 'ended'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
-                filter === tab
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
         </div>
 
         {/* Shows Grid */}
