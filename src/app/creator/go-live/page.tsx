@@ -9,20 +9,6 @@ import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { createClient } from '@/lib/supabase/client';
 import { Upload } from 'lucide-react';
 
-// Stream categories
-const STREAM_CATEGORIES = [
-  'Gaming',
-  'Music',
-  'Lifestyle',
-  'Education',
-  'Technology',
-  'Art & Design',
-  'Fitness',
-  'Cooking',
-  'Talk Show',
-  'Other',
-];
-
 // Privacy options
 const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Public', description: 'Anyone can watch' },
@@ -34,7 +20,6 @@ export default function GoLivePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
   const [privacy, setPrivacy] = useState('public');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -251,10 +236,6 @@ export default function GoLivePage() {
       return;
     }
 
-    if (!category) {
-      setError('Please select a category');
-      return;
-    }
 
     if (!mediaStream) {
       setError('Camera/microphone not ready. Please check your devices.');
@@ -287,7 +268,6 @@ export default function GoLivePage() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || undefined,
-          category,
           privacy,
           thumbnail_url: thumbnailUrl,
         }),
@@ -400,27 +380,6 @@ export default function GoLivePage() {
                 <div className="mt-2 text-xs text-gray-600 text-right">
                   {title.length}/100
                 </div>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label htmlFor="category" className="block text-sm font-semibold text-gray-800 mb-2">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300"
-                  required
-                >
-                  <option value="">Select a category...</option>
-                  {STREAM_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               {/* Description */}

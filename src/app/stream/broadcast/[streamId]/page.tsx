@@ -550,9 +550,6 @@ export default function BroadcastStudioPage() {
             <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-8 max-w-md w-full">
               <div className="mb-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-2xl p-4 border border-red-500/20">
                 <h3 className="text-2xl font-bold text-white mb-2">End Stream?</h3>
-                <p className="text-gray-300">
-                  Are you sure you want to end this stream? Your viewers will be disconnected.
-                </p>
               </div>
               <div className="space-y-3">
                 <GlassButton
