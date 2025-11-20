@@ -18,20 +18,28 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || null;
 
+    // Get stream first to determine creator info
+    const stream = await StreamService.getStream(streamId);
+
+    if (!stream) {
+      return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
+    }
+
     // Check access control
     const accessCheck = await StreamService.checkStreamAccess(streamId, userId);
 
     if (!accessCheck.hasAccess) {
       return NextResponse.json(
-        { error: accessCheck.reason || 'Access denied' },
+        {
+          error: accessCheck.reason || 'Access denied',
+          accessDenied: true,
+          creatorId: stream.creator?.id,
+          creatorUsername: stream.creator?.username,
+          requiresSubscription: stream.privacy === 'subscribers',
+          requiresFollow: stream.privacy === 'followers',
+        },
         { status: 403 }
       );
-    }
-
-    const stream = await StreamService.getStream(streamId);
-
-    if (!stream) {
-      return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
     }
 
     return NextResponse.json({ stream });

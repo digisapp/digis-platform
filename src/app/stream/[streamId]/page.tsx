@@ -35,6 +35,13 @@ export default function StreamViewerPage() {
   const [isJoined, setIsJoined] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [accessDenied, setAccessDenied] = useState<{
+    reason: string;
+    creatorId?: string;
+    creatorUsername?: string;
+    requiresSubscription?: boolean;
+    requiresFollow?: boolean;
+  } | null>(null);
   const [userBalance, setUserBalance] = useState(0);
   const [viewerCount, setViewerCount] = useState(0);
   const [peakViewers, setPeakViewers] = useState(0);
@@ -138,6 +145,15 @@ export default function StreamViewerPage() {
         setStream(data.stream);
         setViewerCount(data.stream.currentViewers);
         setPeakViewers(data.stream.peakViewers);
+      } else if (data.accessDenied) {
+        // Access denied - show helpful UI with action buttons
+        setAccessDenied({
+          reason: data.error,
+          creatorId: data.creatorId,
+          creatorUsername: data.creatorUsername,
+          requiresSubscription: data.requiresSubscription,
+          requiresFollow: data.requiresFollow,
+        });
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -321,6 +337,56 @@ export default function StreamViewerPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Handle access denied with actionable buttons
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-white mb-3">Access Restricted</h1>
+          <p className="text-gray-300 mb-6">{accessDenied.reason}</p>
+
+          <div className="flex flex-col gap-3">
+            {accessDenied.requiresSubscription && accessDenied.creatorUsername && (
+              <GlassButton
+                variant="gradient"
+                size="lg"
+                shimmer
+                glow
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full"
+              >
+                Subscribe to Watch
+              </GlassButton>
+            )}
+
+            {accessDenied.requiresFollow && accessDenied.creatorUsername && (
+              <GlassButton
+                variant="gradient"
+                size="lg"
+                shimmer
+                glow
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full"
+              >
+                Follow to Watch
+              </GlassButton>
+            )}
+
+            <GlassButton
+              variant="ghost"
+              size="lg"
+              onClick={() => router.push('/live')}
+              className="w-full"
+            >
+              Browse Other Streams
+            </GlassButton>
+          </div>
+        </div>
       </div>
     );
   }
