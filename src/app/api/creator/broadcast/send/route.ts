@@ -170,8 +170,8 @@ export async function POST(req: NextRequest) {
               lastMessageSenderId: user.id,
               // Increment unread count for recipient
               ...(conversation.user1Id === recipientId
-                ? { user1UnreadCount: String(parseInt(conversation.user1UnreadCount) + 1) }
-                : { user2UnreadCount: String(parseInt(conversation.user2UnreadCount) + 1) }
+                ? { user1UnreadCount: conversation.user1UnreadCount + 1 }
+                : { user2UnreadCount: conversation.user2UnreadCount + 1 }
               ),
             })
             .where(eq(conversations.id, conversation.id));

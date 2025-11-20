@@ -342,8 +342,8 @@ export class MessageService {
       const isUser1 = conv.user1Id === userId;
       const otherUser = isUser1 ? conv.user2 : conv.user1;
       const unreadCount = isUser1
-        ? parseInt(conv.user1UnreadCount)
-        : parseInt(conv.user2UnreadCount);
+        ? conv.user1UnreadCount
+        : conv.user2UnreadCount;
       const isArchived = isUser1 ? conv.user1Archived : conv.user2Archived;
       const isPinned = isUser1 ? conv.user1Pinned : conv.user2Pinned;
 
@@ -388,7 +388,7 @@ export class MessageService {
         toUserId,
         initialMessage,
         isPaid,
-        paidAmount: paidAmount.toString(),
+        paidAmount,
       })
       .returning();
 
