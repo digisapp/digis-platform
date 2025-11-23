@@ -75,14 +75,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update user with username and display name
-    await db.update(users)
-      .set({
+    // Insert or update user with username and display name
+    if (currentUser) {
+      // User exists, update it
+      await db.update(users)
+        .set({
+          username: username.toLowerCase(),
+          displayName: displayName || username,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
+    } else {
+      // User doesn't exist, create it
+      await db.insert(users).values({
+        id: user.id,
+        email: user.email!,
         username: username.toLowerCase(),
         displayName: displayName || username,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, user.id));
+        role: 'fan',
+      });
+    }
+
+    // Update the user's auth metadata with role and username
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          role: currentUser?.role || 'fan',
+          username: username.toLowerCase(),
+          display_name: displayName || username,
+        }
+      });
+    } catch (metadataError) {
+      console.error('[SET_USERNAME] Failed to update user metadata:', metadataError);
+      // Non-critical error, continue
+    }
 
     console.log('[SET_USERNAME_SUCCESS]', {
       requestId,
