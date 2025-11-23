@@ -18,6 +18,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,9 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/welcome/username`,
+        },
       });
 
       if (signupError) {
@@ -41,11 +45,18 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         throw new Error('Signup failed - no user returned');
       }
 
-      // Clear form
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        // Email confirmation required
+        setSuccess(true);
+        setEmail('');
+        setPassword('');
+        return;
+      }
+
+      // User is logged in immediately (no confirmation required)
       setEmail('');
       setPassword('');
-
-      // Close modal and redirect to username setup
       onClose();
       router.push('/welcome/username');
 
@@ -69,7 +80,27 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           priority
         />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-5">
+
+      {success ? (
+        <div className="space-y-4">
+          <div className="p-6 rounded-xl bg-green-500/20 border-2 border-green-500 text-white">
+            <h3 className="text-xl font-bold mb-2">Check your email!</h3>
+            <p className="text-sm text-gray-300">
+              We've sent you a confirmation link. Click the link in the email to verify your account and complete your signup.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setSuccess(false);
+              onSwitchToLogin();
+            }}
+            className="w-full px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
+          >
+            Back to Sign In
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
         <GlassInput
           type="email"
           label="Email"
@@ -119,6 +150,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           </button>
         </div>
       </form>
+      )}
     </GlassModal>
   );
 }
