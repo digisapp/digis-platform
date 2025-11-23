@@ -45,11 +45,15 @@ export default function ContentLibraryPage() {
       const response = await fetch(`/api/content/library?${params}`);
       const data = await response.json();
 
-      if (response.ok) {
-        setContent(data.content);
+      if (response.ok && data.library) {
+        setContent(data.library);
+      } else {
+        // Handle error or empty response
+        setContent([]);
       }
     } catch (error) {
       console.error('Error fetching library:', error);
+      setContent([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -96,7 +100,7 @@ export default function ContentLibraryPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">My Library 📚</h1>
+            <h1 className="text-4xl font-bold text-white">My Content 📚</h1>
             <button
               onClick={() => router.push('/content')}
               className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
@@ -144,7 +148,7 @@ export default function ContentLibraryPage() {
         </div>
 
         {/* Stats Summary */}
-        {content.length > 0 && (
+        {content && content.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <GlassCard className="p-6">
               <div className="text-gray-400 text-sm mb-1">Total Items</div>
@@ -153,13 +157,13 @@ export default function ContentLibraryPage() {
             <GlassCard className="p-6">
               <div className="text-gray-400 text-sm mb-1">Total Spent</div>
               <div className="text-3xl font-bold text-digis-cyan">
-                {content.reduce((sum, item) => sum + item.coinsSpent, 0)} coins
+                {content.reduce((sum, item) => sum + (item.coinsSpent || 0), 0)} coins
               </div>
             </GlassCard>
             <GlassCard className="p-6">
               <div className="text-gray-400 text-sm mb-1">Creators Supported</div>
               <div className="text-3xl font-bold text-digis-pink">
-                {new Set(content.map(item => item.creator.id)).size}
+                {new Set(content.map(item => item.creator?.id).filter(Boolean)).size}
               </div>
             </GlassCard>
           </div>
