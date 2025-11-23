@@ -50,6 +50,7 @@ export default function CallHistoryPage() {
   });
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'fan' | 'creator' | null>(null);
 
   useEffect(() => {
     fetchCallHistory();
@@ -57,40 +58,42 @@ export default function CallHistoryPage() {
 
   const fetchCallHistory = async () => {
     try {
+      // Fetch user profile to determine role
+      const profileRes = await fetch('/api/user/profile');
+      const profileData = await profileRes.json();
+      const currentUserId = profileData.user?.id;
+      const currentUserRole = profileData.user?.role || 'fan';
+
+      setUserId(currentUserId);
+      setUserRole(currentUserRole);
+
       const res = await fetch('/api/calls/history');
       if (!res.ok) throw new Error('Failed to fetch call history');
-      
+
       const data = await res.json();
-      setCalls(data.calls);
-      
+      setCalls(data.calls || []);
+
       // Calculate stats
-      const completedCalls = data.calls.filter((call: CallHistoryItem) => call.status === 'completed');
+      const completedCalls = (data.calls || []).filter((call: CallHistoryItem) => call.status === 'completed');
       const totalMinutes = completedCalls.reduce((sum: number, call: CallHistoryItem) => {
         return sum + (call.durationSeconds ? Math.ceil(call.durationSeconds / 60) : 0);
       }, 0);
-      
-      // Determine current user ID from first call
-      if (data.calls.length > 0) {
-        const firstCall = data.calls[0];
-        // The user making the request is the one viewing the history
-        setUserId(firstCall.fanId);
-      }
-      
+
       const totalCoinsSpent = completedCalls
-        .filter((call: CallHistoryItem) => call.fanId === data.calls[0]?.fanId)
+        .filter((call: CallHistoryItem) => call.fanId === currentUserId)
         .reduce((sum: number, call: CallHistoryItem) => sum + (call.actualCoins || 0), 0);
-      
+
       const totalCoinsEarned = completedCalls
-        .filter((call: CallHistoryItem) => call.creatorId === data.calls[0]?.creatorId)
+        .filter((call: CallHistoryItem) => call.creatorId === currentUserId)
         .reduce((sum: number, call: CallHistoryItem) => sum + (call.actualCoins || 0), 0);
-      
+
       setStats({
         totalCalls: completedCalls.length,
         totalMinutes,
         totalCoinsSpent,
         totalCoinsEarned,
       });
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching call history:', error);
@@ -161,10 +164,21 @@ export default function CallHistoryPage() {
 
           <GlassCard className="p-6">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-5 h-5 text-green-400" />
-              <span className="text-gray-600 text-sm">Coins Earned</span>
+              {userRole === 'creator' ? (
+                <>
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                  <span className="text-gray-600 text-sm">Coins Earned</span>
+                </>
+              ) : (
+                <>
+                  <Coins className="w-5 h-5 text-yellow-400" />
+                  <span className="text-gray-600 text-sm">Coins Spent</span>
+                </>
+              )}
             </div>
-            <p className="text-3xl font-bold text-gray-800">{stats.totalCoinsEarned}</p>
+            <p className={`text-3xl font-bold ${userRole === 'creator' ? 'text-green-600' : 'text-yellow-600'}`}>
+              {userRole === 'creator' ? stats.totalCoinsEarned : stats.totalCoinsSpent}
+            </p>
           </GlassCard>
         </div>
 
