@@ -313,21 +313,7 @@ export default function FanDashboard() {
                 <Ticket className="w-6 h-6 text-purple-400" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
-              <p className="text-sm text-gray-400">Exclusive live events</p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => router.push('/shows/my-tickets')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-purple-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center mb-3">
-                <Ticket className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">My Tickets</h3>
-              <p className="text-sm text-gray-400">View your purchased tickets</p>
+              <p className="text-sm text-gray-400">Exclusive live events & your tickets</p>
             </div>
           </button>
 
@@ -354,7 +340,7 @@ export default function FanDashboard() {
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-teal-500/30 flex items-center justify-center mb-3">
                 <Library className="w-6 h-6 text-cyan-400" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">My Library</h3>
+              <h3 className="text-lg font-bold text-white mb-2">My Content</h3>
               <p className="text-sm text-gray-400">View purchased content</p>
             </div>
           </button>

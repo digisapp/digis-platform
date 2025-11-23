@@ -29,12 +29,17 @@ export default function ShowsDirectoryPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
+  const [myTickets, setMyTickets] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'my-tickets'>('all');
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'price' | 'popularity'>('date');
 
   useEffect(() => {
     fetchShows();
-  }, []);
+    if (activeTab === 'my-tickets') {
+      fetchMyTickets();
+    }
+  }, [activeTab]);
 
   const fetchShows = async () => {
     try {
@@ -48,6 +53,22 @@ export default function ShowsDirectoryPage() {
       console.error('Error fetching shows:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMyTickets = async () => {
+    try {
+      const response = await fetch('/api/shows/my-tickets');
+      const data = await response.json();
+
+      if (response.ok && data.data) {
+        setMyTickets(data.data || []);
+      } else {
+        setMyTickets([]);
+      }
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
+      setMyTickets([]);
     }
   };
 
@@ -100,10 +121,41 @@ export default function ShowsDirectoryPage() {
           <p className="text-gray-400 text-lg">Premium ticketed shows from top creators</p>
         </div>
 
-        {/* Filters & Sort */}
-        <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          {/* Filter Tabs */}
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        {/* Tab Navigation */}
+        <div className="mb-8 flex gap-3">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`group relative px-8 py-4 rounded-2xl font-bold text-base transition-all ${
+              activeTab === 'all'
+                ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
+                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
+            }`}
+          >
+            {activeTab === 'all' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+            )}
+            <span className="relative z-10">All Shows</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('my-tickets')}
+            className={`group relative px-8 py-4 rounded-2xl font-bold text-base transition-all ${
+              activeTab === 'my-tickets'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50 scale-105'
+                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50 hover:scale-105'
+            }`}
+          >
+            {activeTab === 'my-tickets' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+            )}
+            <span className="relative z-10">My Tickets</span>
+          </button>
+        </div>
+
+        {/* Filters & Sort - Only show on All Shows tab */}
+        {activeTab === 'all' && (
+          <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            {/* Filter Tabs */}
+            <div className="flex gap-3 overflow-x-auto pb-2">
             <button
               onClick={() => setFilter('all')}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
@@ -160,7 +212,11 @@ export default function ShowsDirectoryPage() {
             </select>
           </div>
         </div>
+        )}
 
+        {/* All Shows Tab Content */}
+        {activeTab === 'all' && (
+          <>
         {/* Live Shows Section */}
         {liveShows.length > 0 && (
           <div className="mb-12">
@@ -262,6 +318,42 @@ export default function ShowsDirectoryPage() {
             </div>
           </div>
         </div>
+          </>
+        )}
+
+        {/* My Tickets Tab Content */}
+        {activeTab === 'my-tickets' && (
+          <div>
+            {myTickets.length === 0 ? (
+              <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 p-12 text-center">
+                <div className="relative inline-block mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
+                  <div className="relative text-6xl">🎟️</div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">No tickets yet</h3>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                  You haven't purchased any tickets yet. Browse upcoming shows to get started!
+                </p>
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg shadow-purple-500/50"
+                >
+                  Browse Shows
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {myTickets.map((ticket: any) => (
+                  <ShowCard
+                    key={ticket.id}
+                    show={ticket.show}
+                    isCreator={false}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
