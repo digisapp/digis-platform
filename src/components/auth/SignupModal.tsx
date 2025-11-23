@@ -58,6 +58,9 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     try {
       const supabase = createClient();
 
+      console.log('=== SIGNUP STARTED ===');
+      console.log('Email:', email);
+
       // Sign up with Supabase Auth
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
@@ -67,7 +70,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         },
       });
 
+      console.log('Signup response:', { data, error: signupError });
+
       if (signupError) {
+        console.error('Signup error:', signupError);
         throw signupError;
       }
 
@@ -75,9 +81,13 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         throw new Error('Signup failed - no user returned');
       }
 
+      console.log('User created:', data.user.id);
+      console.log('Session exists:', !!data.session);
+
       // Check if email confirmation is required
       if (data.user && !data.session) {
-        // Email confirmation required
+        // Email confirmation required - show success popup
+        console.log('=== EMAIL CONFIRMATION REQUIRED ===');
         setSignupEmail(email); // Save email for resend functionality
         setSuccess(true);
         setEmail('');
@@ -86,6 +96,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       }
 
       // User is logged in immediately (no confirmation required)
+      console.log('=== USER LOGGED IN IMMEDIATELY ===');
       setEmail('');
       setPassword('');
       onClose();
