@@ -7,6 +7,8 @@ Beautiful, branded email templates for Supabase authentication emails using Rese
 1. **confirm-signup.html** - Email confirmation for new signups
 2. **magic-link.html** - Passwordless sign-in magic link
 3. **reset-password.html** - Password reset emails
+4. **change-email.html** - Confirm email address change (sent to NEW email)
+5. **email-change-notice.html** - Security notification (sent to OLD email)
 
 ## 🎨 Features
 
@@ -43,12 +45,13 @@ Beautiful, branded email templates for Supabase authentication emails using Rese
 
 #### Template Mappings:
 
-| Supabase Template | File to Use |
-|------------------|-------------|
-| Confirm signup | `confirm-signup.html` |
-| Magic Link | `magic-link.html` |
-| Reset Password | `reset-password.html` |
-| Change Email | Use `confirm-signup.html` as base |
+| Supabase Template | File to Use | Notes |
+|------------------|-------------|-------|
+| Confirm signup | `confirm-signup.html` | Sent to new users |
+| Magic Link | `magic-link.html` | Passwordless sign-in |
+| Reset Password | `reset-password.html` | Password recovery |
+| Change Email Address | `change-email.html` | Sent to NEW email |
+| Email Change (Old) | `email-change-notice.html` | Security notice to OLD email |
 
 ### Step 3: Test Your Emails
 
@@ -66,6 +69,38 @@ Supabase provides these variables you can use:
 - `{{ .TokenHash }}` - The hashed token
 - `{{ .SiteURL }}` - Your site URL
 - `{{ .Email }}` - User's email address
+
+## 🔐 Understanding Reauthentication
+
+**What is Reauthentication?**
+
+Reauthentication is a security feature that requires users to confirm their identity before performing sensitive actions. It prevents unauthorized changes if someone temporarily has access to a logged-in device.
+
+**When is it used?**
+- Changing email address
+- Changing password
+- Deleting account
+- Updating payment information
+- Accessing sensitive settings
+
+**How it works in Supabase:**
+1. User requests a sensitive action (e.g., email change)
+2. Supabase may require password re-entry
+3. Confirmation emails are sent (to both old and new email for email changes)
+4. User must click the link to confirm the action
+5. Action is completed only after confirmation
+
+**Email Change Flow:**
+1. User changes email in settings
+2. **NEW email** receives `change-email.html` (requires confirmation)
+3. **OLD email** receives `email-change-notice.html` (security notification)
+4. User clicks link in NEW email to confirm
+5. Email is updated, OLD email can no longer sign in
+
+This dual-email approach ensures:
+- ✅ User controls both email addresses
+- ✅ Original owner is notified of changes
+- ✅ Prevents account hijacking
 
 ## 📝 Customization Tips
 
