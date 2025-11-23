@@ -16,11 +16,9 @@ export default function CreatorApplyPage() {
 
   const [formData, setFormData] = useState({
     displayName: '',
-    bio: '',
     instagramHandle: '',
     twitterHandle: '',
     website: '',
-    whyCreator: '',
     contentType: '',
   });
 
@@ -89,37 +87,37 @@ export default function CreatorApplyPage() {
             {existingApplication.status === 'pending' && (
               <>
                 <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Application Pending</h2>
-                <p className="text-gray-400 mb-4">
+                <h2 className="text-2xl font-bold mb-2 text-white">Application Pending</h2>
+                <p className="text-gray-300 mb-4">
                   Your creator application is currently under review. We'll notify you once it's been reviewed.
                 </p>
-                <div className="text-left mt-6 p-4 bg-white/5 rounded-lg">
+                <div className="text-left mt-6 p-4 bg-black/40 border border-white/20 rounded-lg">
                   <p className="text-sm text-gray-400 mb-2">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
-                  <p className="text-sm"><strong>Display Name:</strong> {existingApplication.displayName}</p>
-                  <p className="text-sm"><strong>Content Type:</strong> {existingApplication.contentType}</p>
+                  <p className="text-sm text-gray-200"><strong className="text-white">Display Name:</strong> {existingApplication.displayName}</p>
+                  <p className="text-sm text-gray-200"><strong className="text-white">Content Type:</strong> {existingApplication.contentType}</p>
                 </div>
               </>
             )}
             {existingApplication.status === 'approved' && (
               <>
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">You're Already a Creator!</h2>
-                <p className="text-gray-400 mb-4">
+                <h2 className="text-2xl font-bold mb-2 text-white">You're Already a Creator!</h2>
+                <p className="text-gray-300 mb-4">
                   Your application has been approved. You can start creating content now.
                 </p>
                 <button
                   onClick={() => router.push('/creator/dashboard')}
-                  className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+                  className="px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-gray-900 rounded-xl font-bold text-lg hover:scale-105 hover:shadow-2xl shadow-lg transition-all"
                 >
-                  Go to Creator Dashboard
+                  Go to Creator Dashboard →
                 </button>
               </>
             )}
             {existingApplication.status === 'rejected' && (
               <>
                 <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Application Not Approved</h2>
-                <p className="text-gray-400 mb-4">
+                <h2 className="text-2xl font-bold mb-2 text-white">Application Not Approved</h2>
+                <p className="text-gray-300 mb-4">
                   Unfortunately, your previous application was not approved.
                 </p>
                 {existingApplication.rejectionReason && (
@@ -184,69 +182,83 @@ export default function CreatorApplyPage() {
 
         <GlassCard className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <GlassInput
-              label="Display Name"
-              placeholder="Your creator name"
-              value={formData.displayName}
-              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-              required
-            />
-
+            {/* Display Name */}
             <div>
-              <label className="block text-sm font-medium mb-2">Bio</label>
-              <textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself..."
-                rows={4}
+              <label className="block text-sm font-medium mb-2 text-gray-200">
+                Display Name <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.displayName}
+                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                placeholder="Your creator name"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all"
               />
             </div>
 
-            <GlassInput
-              label="Content Type"
-              placeholder="e.g., Gaming, Music, Art, Education"
-              value={formData.contentType}
-              onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-              required
-            />
-
+            {/* Content Type */}
             <div>
-              <label className="block text-sm font-medium mb-2">Why do you want to be a creator?</label>
-              <textarea
-                value={formData.whyCreator}
-                onChange={(e) => setFormData({ ...formData, whyCreator: e.target.value })}
-                placeholder="Share your motivation..."
-                rows={4}
+              <label className="block text-sm font-medium mb-2 text-gray-200">
+                Content Type <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.contentType}
+                onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
+                placeholder="e.g., Gaming, Music, Art, Education, Fitness"
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <GlassInput
-                label="Instagram Handle (optional)"
-                placeholder="@username"
-                value={formData.instagramHandle}
-                onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value })}
-              />
+            {/* Social Links Section */}
+            <div className="pt-4 border-t border-white/10">
+              <h3 className="text-lg font-semibold mb-4 text-gray-200">Social Links</h3>
+              <div className="space-y-4">
+                {/* Instagram */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-200">
+                    Instagram Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.instagramHandle}
+                    onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value })}
+                    placeholder="@username"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all"
+                  />
+                </div>
 
-              <GlassInput
-                label="Twitter Handle (optional)"
-                placeholder="@username"
-                value={formData.twitterHandle}
-                onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
-              />
+                {/* Twitter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-200">
+                    Twitter Handle
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.twitterHandle}
+                    onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
+                    placeholder="@username"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all"
+                  />
+                </div>
+
+                {/* Website */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-200">
+                    Website
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all"
+                  />
+                </div>
+              </div>
             </div>
-
-            <GlassInput
-              label="Website (optional)"
-              placeholder="https://..."
-              type="url"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            />
 
             {error && (
               <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
@@ -257,10 +269,19 @@ export default function CreatorApplyPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-gray-900 rounded-xl font-bold text-lg hover:scale-105 hover:shadow-2xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {loading ? 'Submitting...' : 'Submit Application'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                  <span>Submitting...</span>
+                </div>
+              ) : 'Submit Application →'}
             </button>
+
+            <p className="text-xs text-gray-500 text-center">
+              We'll review your application and notify you within 24-48 hours
+            </p>
           </form>
         </GlassCard>
       </div>
