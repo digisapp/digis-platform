@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
+import { Tv, Search, Radio } from 'lucide-react';
 import type { Stream } from '@/db/schema';
 
 type LiveStream = Stream & {
@@ -162,7 +163,7 @@ export default function LiveStreamsPage() {
                 className="group relative overflow-hidden px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white hover:scale-105 transition-all duration-500 flex items-center gap-2 shadow-lg shadow-red-500/50"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
-                <span className="relative z-10 text-xl">🔴</span>
+                <Radio className="relative z-10 w-5 h-5" />
                 <span className="relative z-10">Go Live</span>
               </button>
             </div>
@@ -214,7 +215,7 @@ export default function LiveStreamsPage() {
           <div className="text-center py-20">
             <div className="relative inline-block mb-8">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
-              <div className="relative text-8xl">📺</div>
+              <Tv className="relative w-32 h-32 text-white mx-auto" strokeWidth={1.5} />
             </div>
             {userRole === 'creator' ? (
               <>
@@ -249,7 +250,7 @@ export default function LiveStreamsPage() {
           <div className="text-center py-20">
             <div className="relative inline-block mb-8">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-2xl opacity-50"></div>
-              <div className="relative text-8xl">🔍</div>
+              <Search className="relative w-32 h-32 text-white mx-auto" strokeWidth={1.5} />
             </div>
             <h2 className="text-3xl font-bold text-white mb-4">
               No streams found

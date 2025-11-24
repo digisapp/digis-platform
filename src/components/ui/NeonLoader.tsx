@@ -30,11 +30,11 @@ export function NeonLoader({
   };
 
   const content = (
-    <div className={`flex flex-col items-center justify-center gap-6 ${fullScreen ? 'min-h-screen bg-pastel-gradient' : ''}`}>
+    <div className={`flex flex-col items-center justify-center gap-6 ${fullScreen ? 'min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900' : ''}`}>
       {/* Simple breathing Digis logo */}
       <div className="relative animate-breathe">
         <Image
-          src="/images/digis-logo-black.png"
+          src="/images/digis-logo-white.png"
           alt="Digis"
           width={logoWidths[size]}
           height={logoHeights[size]}
@@ -44,7 +44,7 @@ export function NeonLoader({
       </div>
 
       {text && (
-        <p className="text-gray-700 font-medium">
+        <p className="text-white font-medium">
           {text}
         </p>
       )}

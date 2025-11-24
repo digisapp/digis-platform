@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ShowCard } from '@/components/shows/ShowCard';
+import { Ticket } from 'lucide-react';
 
 interface Show {
   id: string;
@@ -116,7 +117,7 @@ export default function ShowsDirectoryPage() {
               }}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 activeTab === 'all' && filter === 'all'
-                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-sm scale-105'
+                  ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 shadow-sm scale-105'
                   : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-yellow-500/50 hover:scale-105'
               }`}
             >
@@ -241,8 +242,8 @@ export default function ShowsDirectoryPage() {
         {sortedShows.length === 0 && (
           <div className="backdrop-blur-xl backdrop-blur-xl bg-white/10 rounded-3xl border border-cyan-500/30 p-12 text-center shadow-sm">
             <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur-2xl opacity-30"></div>
-              <div className="relative text-6xl">🎟️</div>
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full blur-2xl opacity-30"></div>
+              <Ticket className="relative w-24 h-24 text-white mx-auto" strokeWidth={1.5} />
             </div>
             <h3 className="text-2xl font-bold text-white mb-3">
               {filter === 'live'
@@ -260,7 +261,7 @@ export default function ShowsDirectoryPage() {
             </p>
             <button
               onClick={() => router.push('/explore')}
-              className="px-8 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-sm"
+              className="px-8 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 rounded-2xl font-bold hover:scale-105 transition-all shadow-sm"
             >
               Explore Creators
             </button>
@@ -277,7 +278,7 @@ export default function ShowsDirectoryPage() {
               <div className="backdrop-blur-xl backdrop-blur-xl bg-white/10 rounded-3xl border border-cyan-500/30 p-12 text-center shadow-sm">
                 <div className="relative inline-block mb-6">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-2xl opacity-30"></div>
-                  <div className="relative text-6xl">🎟️</div>
+                  <Ticket className="relative w-24 h-24 text-white mx-auto" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">No tickets yet</h3>
                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
