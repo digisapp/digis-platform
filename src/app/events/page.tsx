@@ -184,7 +184,7 @@ export default function EventsPage() {
           ))}
         </div>
 
-        {/* Live Events */}
+        {/* Live Streams */}
         {liveEvents.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4 flex items-center gap-2">
@@ -202,11 +202,11 @@ export default function EventsPage() {
           </div>
         )}
 
-        {/* Upcoming Events */}
+        {/* Upcoming Streams */}
         {upcomingEvents.length > 0 ? (
           <div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
-              {filter === 'upcoming' ? 'Upcoming Events' : 'Scheduled'}
+              {filter === 'upcoming' ? 'Upcoming Streams' : 'Scheduled'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingEvents.map((show) => (
@@ -221,7 +221,7 @@ export default function EventsPage() {
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
                 <Calendar className="w-16 h-16 text-cyan-400" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Events</h3>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Streams</h3>
             </div>
           </div>
         ) : null}

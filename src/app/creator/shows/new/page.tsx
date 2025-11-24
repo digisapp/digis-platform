@@ -77,13 +77,13 @@ export default function CreateShowPage() {
         throw new Error('Ticket price must be at least 1 coin');
       }
       if (!formData.scheduledStart) {
-        throw new Error('Show date and time is required');
+        throw new Error('Stream date and time is required');
       }
 
       // Check if scheduled time is in the future
       const scheduledDate = new Date(formData.scheduledStart);
       if (scheduledDate <= new Date()) {
-        throw new Error('Show must be scheduled in the future');
+        throw new Error('Stream must be scheduled in the future');
       }
 
       const response = await fetch('/api/shows/create', {
@@ -95,13 +95,13 @@ export default function CreateShowPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create show');
+        throw new Error(data.error || 'Failed to create stream');
       }
 
-      // Redirect to shows page on success
+      // Redirect to streams page on success
       router.push('/creator/shows');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create show');
+      setError(err instanceof Error ? err.message : 'Failed to create stream');
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function CreateShowPage() {
           <GlassCard className="p-6">
             <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-purple-600" />
-              Show Title *
+              Stream Title *
             </label>
             <input
               type="text"
@@ -151,7 +151,7 @@ export default function CreateShowPage() {
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Tell your fans what to expect from this show..."
+              placeholder="Tell your fans what to expect from this stream..."
               rows={4}
               className="w-full px-4 py-3 bg-white/60 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 resize-none transition-colors"
               maxLength={500}
@@ -159,10 +159,10 @@ export default function CreateShowPage() {
             <p className="text-xs text-gray-500 mt-2">{formData.description.length}/500 characters</p>
           </GlassCard>
 
-          {/* Show Type */}
+          {/* Stream Type */}
           <GlassCard className="p-6">
             <label className="block text-sm font-semibold text-gray-700 mb-4">
-              Show Type *
+              Stream Category *
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {showTypes.map((type) => (
@@ -189,7 +189,7 @@ export default function CreateShowPage() {
             <GlassCard className="p-6">
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-blue-600" />
-                Show Date & Time *
+                Stream Date & Time *
               </label>
               <input
                 type="datetime-local"
@@ -279,7 +279,7 @@ export default function CreateShowPage() {
               className="w-full px-4 py-3 bg-white/60 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-pink-500 transition-colors"
             />
             <p className="text-xs text-gray-500 mt-2">
-              Optional: Add a cover image for your show
+              Optional: Add a cover image for your stream
             </p>
           </GlassCard>
 
@@ -318,7 +318,7 @@ export default function CreateShowPage() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Ticket className="w-5 h-5" />
-                  Create Show
+                  Create Stream
                 </div>
               )}
             </GlassButton>

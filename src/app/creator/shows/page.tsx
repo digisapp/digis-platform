@@ -137,7 +137,7 @@ export default function CreatorShowsPage() {
             className="md:text-base whitespace-nowrap flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-            Create Show
+            Create Stream
           </GlassButton>
         </div>
 
@@ -168,7 +168,7 @@ export default function CreatorShowsPage() {
                 <BarChart3 className="w-5 h-5 text-purple-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-gray-900 mb-1">{stats.totalShows}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Shows</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Streams</div>
             </div>
           </div>
 
@@ -226,12 +226,12 @@ export default function CreatorShowsPage() {
                 <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-3">
-                {filter === 'all' ? 'No shows yet' : `No ${filter} shows`}
+                {filter === 'all' ? 'No streams yet' : `No ${filter} streams`}
               </h3>
               <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
                 {filter === 'all'
-                  ? 'Create your first ticketed show and start earning!'
-                  : `You don't have any ${filter} shows at the moment.`}
+                  ? 'Create your first stream and start earning!'
+                  : `You don't have any ${filter} streams at the moment.`}
               </p>
               {filter === 'all' && (
                 <GlassButton
@@ -243,7 +243,7 @@ export default function CreatorShowsPage() {
                   className="shadow-2xl"
                 >
                   <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-                  Create Show
+                  Create Stream
                 </GlassButton>
               )}
             </div>
