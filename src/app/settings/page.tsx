@@ -894,13 +894,13 @@ export default function SettingsPage() {
                     Primary Category
                   </label>
                   <select
-                    className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm"
+                    className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]"
                     value={primaryCategory}
                     onChange={(e) => setPrimaryCategory(e.target.value)}
                   >
-                    <option value="" className="bg-gray-900">Select a category...</option>
+                    <option value="" className="bg-gray-900 text-gray-400">Select a category...</option>
                     {CREATOR_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value} className="bg-gray-900">
+                      <option key={cat.value} value={cat.value} className="bg-gray-900 text-white py-2">
                         {cat.emoji} {cat.label}
                       </option>
                     ))}
@@ -914,13 +914,13 @@ export default function SettingsPage() {
                     Secondary Category (Optional)
                   </label>
                   <select
-                    className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm"
+                    className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]"
                     value={secondaryCategory}
                     onChange={(e) => setSecondaryCategory(e.target.value)}
                   >
-                    <option value="" className="bg-gray-900">None</option>
+                    <option value="" className="bg-gray-900 text-gray-400">None</option>
                     {CREATOR_CATEGORIES.filter(cat => cat.value !== primaryCategory).map((cat) => (
-                      <option key={cat.value} value={cat.value} className="bg-gray-900">
+                      <option key={cat.value} value={cat.value} className="bg-gray-900 text-white py-2">
                         {cat.emoji} {cat.label}
                       </option>
                     ))}
