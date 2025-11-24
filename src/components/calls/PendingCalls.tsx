@@ -121,7 +121,7 @@ export function PendingCalls() {
           <Phone className="w-5 h-5 text-digis-pink" />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-gray-800">Call Requests</h2>
+          <h2 className="text-lg font-bold text-gray-900">Calls</h2>
           <p className="text-xs text-gray-600">
             {calls.length === 0 ? 'No pending requests' : `${calls.length} pending`}
           </p>

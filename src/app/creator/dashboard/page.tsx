@@ -622,9 +622,9 @@ export default function CreatorDashboard() {
                   <textarea
                     value={goalFormData.description}
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
-                    placeholder="What are you raising coins for?"
+                    placeholder="Describe your goal. Tip goals will be displayed on your creator profile."
                     rows={2}
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   />
                 </div>
 
