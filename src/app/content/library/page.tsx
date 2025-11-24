@@ -89,18 +89,25 @@ export default function ContentLibraryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       {/* Mobile Header */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
 
         {/* Filters */}
         <div className="flex gap-3 mb-8">
@@ -108,8 +115,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             All Content
@@ -118,8 +125,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('photo')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -129,8 +136,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('video')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             <Play className="w-4 h-4" />
@@ -141,19 +148,19 @@ export default function ContentLibraryPage() {
         {/* Stats Summary */}
         {content && content.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="text-gray-600 text-sm mb-1">Total Items</div>
-              <div className="text-3xl font-bold text-gray-900">{content.length}</div>
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+              <div className="text-gray-400 text-sm mb-1">Total Items</div>
+              <div className="text-3xl font-bold text-white">{content.length}</div>
             </div>
-            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="text-gray-600 text-sm mb-1">Total Spent</div>
-              <div className="text-3xl font-bold text-cyan-600">
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+              <div className="text-gray-400 text-sm mb-1">Total Spent</div>
+              <div className="text-3xl font-bold text-cyan-400">
                 {content.reduce((sum, item) => sum + (item.coinsSpent || 0), 0)} coins
               </div>
             </div>
-            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="text-gray-600 text-sm mb-1">Creators Supported</div>
-              <div className="text-3xl font-bold text-pink-600">
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+              <div className="text-gray-400 text-sm mb-1">Creators Supported</div>
+              <div className="text-3xl font-bold text-pink-400">
                 {new Set(content.map(item => item.creator?.id).filter(Boolean)).size}
               </div>
             </div>
@@ -162,17 +169,17 @@ export default function ContentLibraryPage() {
 
         {/* Content Grid */}
         {content.length === 0 ? (
-          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="mb-4">
-              <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-16 h-16 text-cyan-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No content yet</h3>
-            <p className="text-gray-600 mb-6">Start building your collection by purchasing exclusive content!</p>
+            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-2">No content yet</h3>
+            <p className="text-gray-400 mb-6">Start building your collection by purchasing exclusive content!</p>
             <button
               onClick={() => router.push('/content')}
-              className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform shadow-sm"
+              className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg"
             >
               Browse Content
             </button>
@@ -185,7 +192,7 @@ export default function ContentLibraryPage() {
                 onClick={() => router.push(`/content/${item.id}`)}
                 className="group cursor-pointer"
               >
-                <GlassCard className="p-0 overflow-hidden hover:scale-105 transition-transform">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-0 overflow-hidden hover:scale-105 hover:border-cyan-500/50 transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                   {/* Thumbnail */}
                   <div className="relative aspect-[3/4] overflow-hidden bg-black">
                     <img

@@ -77,29 +77,36 @@ export default function ContentFeedPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-gray-900">Exclusive Content 🔥</h1>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Exclusive Content 🔥</h1>
             <button
               onClick={() => router.push('/content/library')}
-              className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-sm"
+              className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
             >
               My Library
             </button>
           </div>
-          <p className="text-gray-600">Unlock exclusive photos and videos from your favorite creators</p>
+          <p className="text-gray-400">Unlock exclusive photos and videos from your favorite creators</p>
         </div>
 
         {/* Filters */}
@@ -108,8 +115,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             All Content
@@ -118,8 +125,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('photo')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -129,8 +136,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('video')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
-                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
             }`}
           >
             <Play className="w-4 h-4" />
@@ -140,10 +147,10 @@ export default function ContentFeedPage() {
 
         {/* Content Grid */}
         {content.length === 0 ? (
-          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">No content yet</h3>
-            <p className="text-gray-600">Check back soon for exclusive content!</p>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">No content yet</h3>
+            <p className="text-gray-400">Check back soon for exclusive content!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -153,7 +160,7 @@ export default function ContentFeedPage() {
                 onClick={() => router.push(`/content/${item.id}`)}
                 className="group cursor-pointer"
               >
-                <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-0 overflow-hidden hover:scale-105 hover:border-purple-500/50 transition-all shadow-sm">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-0 overflow-hidden hover:scale-105 hover:border-cyan-500/50 transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                   {/* Thumbnail */}
                   <div className="relative aspect-[3/4] overflow-hidden bg-black">
                     <img
