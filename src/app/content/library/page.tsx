@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Play, Image as ImageIcon, Download, Calendar } from 'lucide-react';
 
 interface PurchasedContent {
@@ -88,27 +89,30 @@ export default function ContentLibraryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+      {/* Mobile Header */}
+      <MobileHeader />
+
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">My Content 📚</h1>
+            <h1 className="text-4xl font-bold text-gray-900">My Content 📚</h1>
             <button
               onClick={() => router.push('/content')}
-              className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+              className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform shadow-sm"
             >
               Browse Content
             </button>
           </div>
-          <p className="text-gray-400">Your purchased content collection</p>
+          <p className="text-gray-600">Your purchased content collection</p>
         </div>
 
         {/* Filters */}
@@ -117,8 +121,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             All Content
@@ -127,8 +131,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('photo')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -138,8 +142,8 @@ export default function ContentLibraryPage() {
             onClick={() => setFilter('video')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             <Play className="w-4 h-4" />
@@ -150,42 +154,42 @@ export default function ContentLibraryPage() {
         {/* Stats Summary */}
         {content && content.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <GlassCard className="p-6">
-              <div className="text-gray-400 text-sm mb-1">Total Items</div>
-              <div className="text-3xl font-bold text-white">{content.length}</div>
-            </GlassCard>
-            <GlassCard className="p-6">
-              <div className="text-gray-400 text-sm mb-1">Total Spent</div>
-              <div className="text-3xl font-bold text-digis-cyan">
+            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-gray-600 text-sm mb-1">Total Items</div>
+              <div className="text-3xl font-bold text-gray-900">{content.length}</div>
+            </div>
+            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-gray-600 text-sm mb-1">Total Spent</div>
+              <div className="text-3xl font-bold text-cyan-600">
                 {content.reduce((sum, item) => sum + (item.coinsSpent || 0), 0)} coins
               </div>
-            </GlassCard>
-            <GlassCard className="p-6">
-              <div className="text-gray-400 text-sm mb-1">Creators Supported</div>
-              <div className="text-3xl font-bold text-digis-pink">
+            </div>
+            <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 shadow-sm">
+              <div className="text-gray-600 text-sm mb-1">Creators Supported</div>
+              <div className="text-3xl font-bold text-pink-600">
                 {new Set(content.map(item => item.creator?.id).filter(Boolean)).size}
               </div>
-            </GlassCard>
+            </div>
           </div>
         )}
 
         {/* Content Grid */}
         {content.length === 0 ? (
-          <GlassCard className="p-12 text-center">
+          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
             <div className="mb-4">
               <svg className="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">No content yet</h3>
-            <p className="text-gray-400 mb-6">Start building your collection by purchasing exclusive content!</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No content yet</h3>
+            <p className="text-gray-600 mb-6">Start building your collection by purchasing exclusive content!</p>
             <button
               onClick={() => router.push('/content')}
-              className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+              className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform shadow-sm"
             >
               Browse Content
             </button>
-          </GlassCard>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {content.map((item) => (
