@@ -186,47 +186,53 @@ export function RequestCallButton({
         </button>
       )}
 
-      {/* Request Modal - Clean & Simple */}
+      {/* Request Modal - Tron Theme */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200">
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{ animation: 'shimmer 3s infinite' }} />
+            </div>
+            <div className="relative">
             {waiting ? (
               /* Waiting State */
               <div className="text-center py-4">
                 <button
                   onClick={handleCancelRequest}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
                 >
                   <X className="w-6 h-6" />
                 </button>
 
                 <div className="relative inline-block mb-4">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center animate-pulse">
+                  <div className="absolute -inset-2 bg-cyan-500/30 rounded-full blur-xl animate-pulse"></div>
+                  <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center animate-pulse shadow-[0_0_30px_rgba(34,211,238,0.5)]">
                     <Icon className="w-10 h-10 text-white" />
                   </div>
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Waiting for {creatorName}...</h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-2">Waiting for {creatorName}...</h3>
+                <p className="text-gray-400 text-sm mb-4">
                   {creatorName} has {timeRemaining} seconds to respond
                 </p>
 
                 {/* Countdown Progress Bar */}
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-6">
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-6 border border-cyan-500/30">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-600 to-purple-600 transition-all duration-1000"
+                    className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-1000 shadow-[0_0_10px_rgba(34,211,238,0.6)]"
                     style={{ width: `${(timeRemaining / 120) * 100}%` }}
                   ></div>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center justify-center gap-2 text-sm text-cyan-400">
                   <Clock className="w-4 h-4" />
                   <span>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</span>
                 </div>
 
                 <button
                   onClick={handleCancelRequest}
-                  className="mt-6 px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                  className="mt-6 px-6 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium"
                 >
                   Cancel Request
                 </button>
@@ -236,7 +242,7 @@ export function RequestCallButton({
                 {/* Close button */}
                 <button
                   onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -245,35 +251,38 @@ export function RequestCallButton({
 
                 {/* Icon and Title */}
                 <div className="text-center mb-6">
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-lg`}>
-                    <Icon className="w-8 h-8 text-white" />
+                  <div className="relative inline-block mb-4">
+                    <div className="absolute -inset-2 bg-cyan-500/30 rounded-full blur-xl"></div>
+                    <div className={`relative w-16 h-16 mx-auto rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.4)]`}>
+                      <Icon className="w-8 h-8 text-white" />
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-1">
                     {callType === 'voice' ? 'Voice Call' : 'Video Call'}
                   </h3>
-                  <p className="text-gray-600 text-sm">with {creatorName}</p>
+                  <p className="text-gray-400 text-sm">with {creatorName}</p>
                 </div>
 
-                {/* Cost Info - Clean & Simple */}
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mb-6 text-center border-2 border-purple-200">
-                  <p className="text-gray-600 text-sm mb-2 font-medium">Cost per Minute</p>
-                  <div className="text-4xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+                {/* Cost Info - Tron Style */}
+                <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-xl p-6 mb-6 text-center border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                  <p className="text-gray-400 text-sm mb-2 font-medium">Cost per Minute</p>
+                  <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                     {ratePerMinute}
                   </div>
-                  <p className="text-gray-600 text-sm mt-1 font-medium">coins</p>
+                  <p className="text-gray-400 text-sm mt-1 font-medium">coins</p>
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
                     {error}
                   </div>
                 )}
 
-                {/* Action Buttons - Clean & Simple */}
+                {/* Action Buttons - Tron Style */}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-300"
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-all border border-gray-600"
                   >
                     Decline
                   </button>
@@ -294,6 +303,7 @@ export function RequestCallButton({
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
       )}
