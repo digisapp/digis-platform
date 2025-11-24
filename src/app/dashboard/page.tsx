@@ -114,14 +114,21 @@ export default function FanDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       {/* Mobile Header */}
       <MobileHeader />
 
@@ -135,12 +142,12 @@ export default function FanDashboard() {
                   <div className="absolute -inset-1 bg-red-500 rounded-full blur opacity-75"></div>
                   <div className="relative w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
                 </div>
-                <h2 className="text-3xl font-black text-gray-900">Live Now</h2>
-                <span className="text-sm text-gray-600 bg-white/60 px-3 py-1 rounded-full border border-gray-200">{liveStreams.length}</span>
+                <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Live Now</h2>
+                <span className="text-sm text-cyan-400 bg-white/5 px-3 py-1 rounded-full border border-cyan-500/30">{liveStreams.length}</span>
               </div>
               <button
                 onClick={() => router.push('/live')}
-                className="text-sm text-purple-600 hover:text-pink-600 transition-colors font-semibold"
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
               </button>
@@ -192,8 +199,8 @@ export default function FanDashboard() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-gray-900 font-semibold text-sm line-clamp-1 mb-1">{stream.title}</h3>
-                      <p className="text-gray-600 text-xs line-clamp-1">{stream.creator.displayName || stream.creator.username}</p>
+                      <h3 className="text-white font-semibold text-sm line-clamp-1 mb-1">{stream.title}</h3>
+                      <p className="text-gray-400 text-xs line-clamp-1">{stream.creator.displayName || stream.creator.username}</p>
                     </div>
                   </div>
                 </div>
@@ -206,10 +213,10 @@ export default function FanDashboard() {
         {featuredCreators.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black text-gray-900">Featured Creators</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
               <button
                 onClick={() => router.push('/explore')}
-                className="text-sm text-purple-600 hover:text-pink-600 transition-colors font-semibold"
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 Explore all →
               </button>
@@ -222,7 +229,7 @@ export default function FanDashboard() {
                   onClick={() => router.push(`/${creator.username}`)}
                   className="group cursor-pointer"
                 >
-                  <div className="relative backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-4 hover:border-purple-500/50 hover:scale-105 transition-all text-center shadow-sm">
+                  <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-4 hover:border-cyan-500/50 hover:scale-105 transition-all text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                     {/* Avatar */}
                     <div className="relative inline-block mb-3">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center mx-auto">
@@ -240,10 +247,10 @@ export default function FanDashboard() {
                     </div>
 
                     {/* Creator Info */}
-                    <h3 className="text-gray-900 font-bold text-sm line-clamp-1 mb-1">
+                    <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
                       {creator.displayName || creator.username}
                     </h3>
-                    <p className="text-gray-600 text-xs mb-2 flex items-center justify-center gap-1">
+                    <p className="text-cyan-400 text-xs mb-2 flex items-center justify-center gap-1">
                       <Users className="w-3 h-3" />
                       {creator.followerCount}
                     </p>
@@ -258,10 +265,10 @@ export default function FanDashboard() {
         {upcomingShows.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black text-gray-900">Upcoming Shows</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Upcoming Shows</h2>
               <button
                 onClick={() => router.push('/shows')}
-                className="text-sm text-purple-600 hover:text-pink-600 transition-colors font-semibold"
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
               </button>
@@ -274,7 +281,7 @@ export default function FanDashboard() {
                   onClick={() => router.push(`/shows/${show.id}`)}
                   className="group cursor-pointer"
                 >
-                  <div className="relative backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 overflow-hidden hover:border-purple-500/50 hover:scale-105 transition-all shadow-sm">
+                  <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 overflow-hidden hover:border-cyan-500/50 hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                     {/* Cover Image */}
                     <div className="relative aspect-video bg-slate-900">
                       {show.coverImageUrl ? (
@@ -294,7 +301,7 @@ export default function FanDashboard() {
 
                     {/* Show Info */}
                     <div className="p-4">
-                      <h3 className="text-gray-900 font-bold text-lg mb-2 line-clamp-1">{show.title}</h3>
+                      <h3 className="text-white font-bold text-lg mb-2 line-clamp-1">{show.title}</h3>
 
                       {/* Creator */}
                       <div className="flex items-center gap-2 mb-3">
@@ -305,13 +312,13 @@ export default function FanDashboard() {
                             <span className="text-white text-xs font-bold">{(show.creator.displayName || show.creator.username)[0].toUpperCase()}</span>
                           )}
                         </div>
-                        <span className="text-gray-600 text-sm">{show.creator.displayName || show.creator.username}</span>
+                        <span className="text-gray-400 text-sm">{show.creator.displayName || show.creator.username}</span>
                       </div>
 
                       {/* Price & Tickets */}
                       <div className="flex items-center justify-between">
-                        <span className="text-yellow-600 font-bold">{show.ticketPrice} coins</span>
-                        <span className="text-gray-600 text-xs">
+                        <span className="text-yellow-400 font-bold">{show.ticketPrice} coins</span>
+                        <span className="text-gray-400 text-xs">
                           {show.ticketsSold}/{show.maxTickets || '∞'} sold
                         </span>
                       </div>
@@ -325,10 +332,10 @@ export default function FanDashboard() {
 
         {/* Empty State - Only if nothing to show */}
         {liveStreams.length === 0 && featuredCreators.length === 0 && upcomingShows.length === 0 && (
-          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="text-6xl mb-4">🎬</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Digis!</h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">Welcome to Digis!</h3>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
               Discover live streams, exclusive shows, and connect with amazing creators
             </p>
             <button
