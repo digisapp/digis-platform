@@ -213,7 +213,7 @@ export default function FanDashboard() {
         {featuredCreators.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
+              <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -225,10 +225,10 @@ export default function FanDashboard() {
                 >
                   {/* 4:5 Portrait Card */}
                   <div className="relative w-full overflow-hidden rounded-2xl" style={{paddingBottom: '125%'}}>
-                    {creator.avatarUrl || creator.bannerUrl ? (
+                    {creator.avatarUrl ? (
                       <>
                         <img
-                          src={creator.avatarUrl || creator.bannerUrl}
+                          src={creator.avatarUrl}
                           alt={creator.displayName || creator.username}
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
