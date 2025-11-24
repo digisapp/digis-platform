@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings, Star } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Phone, Clock, DollarSign, ToggleLeft, ToggleRight, PhoneCall, Mic, Video, Settings, Star, Tag } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
+import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 
 interface UsernameStatus {
   canChange: boolean;
@@ -31,6 +32,8 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
   const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
+  const [primaryCategory, setPrimaryCategory] = useState('');
+  const [secondaryCategory, setSecondaryCategory] = useState('');
 
   // Email change
   const [newEmail, setNewEmail] = useState('');
@@ -121,6 +124,8 @@ export default function SettingsPage() {
       setBannerUrl(data.bannerUrl || '');
       setCreatorCardImageUrl(data.creatorCardImageUrl || '');
       setNewUsername(data.username || '');
+      setPrimaryCategory(data.primaryCategory || '');
+      setSecondaryCategory(data.secondaryCategory || '');
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -256,6 +261,8 @@ export default function SettingsPage() {
           avatarUrl,
           bannerUrl,
           creatorCardImageUrl,
+          primaryCategory: primaryCategory || null,
+          secondaryCategory: secondaryCategory || null,
         }),
       });
 
@@ -877,6 +884,51 @@ export default function SettingsPage() {
               />
               <p className="text-xs text-gray-400 mt-1">{bio.length}/200 characters</p>
             </div>
+
+            {/* Category selectors - Only for creators */}
+            {currentUser?.role === 'creator' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <Tag className="w-4 h-4 inline mr-1" />
+                    Primary Category
+                  </label>
+                  <select
+                    className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm"
+                    value={primaryCategory}
+                    onChange={(e) => setPrimaryCategory(e.target.value)}
+                  >
+                    <option value="" className="bg-gray-900">Select a category...</option>
+                    {CREATOR_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value} className="bg-gray-900">
+                        {cat.emoji} {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">Main content category for discovery</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <Tag className="w-4 h-4 inline mr-1" />
+                    Secondary Category (Optional)
+                  </label>
+                  <select
+                    className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm"
+                    value={secondaryCategory}
+                    onChange={(e) => setSecondaryCategory(e.target.value)}
+                  >
+                    <option value="" className="bg-gray-900">None</option>
+                    {CREATOR_CATEGORIES.filter(cat => cat.value !== primaryCategory).map((cat) => (
+                      <option key={cat.value} value={cat.value} className="bg-gray-900">
+                        {cat.emoji} {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">Additional content category</p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <GlassInput

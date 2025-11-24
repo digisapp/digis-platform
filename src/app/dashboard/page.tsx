@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
 import { Clock, Users, Eye } from 'lucide-react';
+import { getCategoryLabel, getCategoryColor } from '@/lib/constants/categories';
 
 interface LiveStream {
   id: string;
@@ -29,6 +30,8 @@ interface FeaturedCreator {
   bio: string | null;
   followerCount: number;
   isLive: boolean;
+  primaryCategory: string | null;
+  secondaryCategory: string | null;
 }
 
 interface UpcomingShow {
@@ -242,11 +245,25 @@ export default function FanDashboard() {
 
                     {/* Live indicator */}
                     {creator.isLive && (
-                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1.5">
+                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1.5 z-10">
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                         LIVE
                       </div>
                     )}
+
+                    {/* Category badges */}
+                    <div className={`absolute ${creator.isLive ? 'top-11' : 'top-2'} left-2 flex flex-wrap gap-1.5 z-10`}>
+                      {creator.primaryCategory && (
+                        <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${getCategoryColor(creator.primaryCategory)} text-white text-[10px] font-bold backdrop-blur-sm shadow-lg`}>
+                          {getCategoryLabel(creator.primaryCategory)}
+                        </div>
+                      )}
+                      {creator.secondaryCategory && (
+                        <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${getCategoryColor(creator.secondaryCategory)} text-white text-[10px] font-bold backdrop-blur-sm shadow-lg opacity-90`}>
+                          {getCategoryLabel(creator.secondaryCategory)}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Creator info overlay at bottom */}
                     <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-cyan-500/30 group-hover:bg-white/20 transition-all duration-300">

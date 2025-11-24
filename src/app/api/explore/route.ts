@@ -71,6 +71,8 @@ export async function GET(request: NextRequest) {
                 isOnline: users.isOnline,
                 isTrending: users.isTrending,
                 followerCount: users.followerCount,
+                primaryCategory: users.primaryCategory,
+                secondaryCategory: users.secondaryCategory,
               })
               .from(users)
               .$dynamic();
@@ -147,6 +149,8 @@ export async function GET(request: NextRequest) {
                 isTrending: users.isTrending,
                 followerCount: users.followerCount,
                 isOnline: users.isOnline,
+                primaryCategory: users.primaryCategory,
+                secondaryCategory: users.secondaryCategory,
               })
               .from(users)
               .$dynamic();

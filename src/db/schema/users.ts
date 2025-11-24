@@ -13,6 +13,10 @@ export const users = pgTable('users', {
   creatorCardImageUrl: text('creator_card_image_url'), // 16:9 image for creator cards on explore page
   bio: text('bio'),
   role: userRoleEnum('role').default('fan').notNull(),
+
+  // Creator categories (for content discovery)
+  primaryCategory: text('primary_category'), // Main category e.g., "Gaming", "Music"
+  secondaryCategory: text('secondary_category'), // Optional second category
   isCreatorVerified: boolean('is_creator_verified').default(false),
   isTrending: boolean('is_trending').default(false),
   isOnline: boolean('is_online').default(false),
