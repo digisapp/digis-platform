@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Lock, Play, Image as ImageIcon } from 'lucide-react';
 
 interface ContentItem {
@@ -76,27 +77,29 @@ export default function ContentFeedPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+      <MobileHeader />
+
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">Exclusive Content 🔥</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Exclusive Content 🔥</h1>
             <button
               onClick={() => router.push('/content/library')}
-              className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-transform"
+              className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-sm"
             >
               My Library
             </button>
           </div>
-          <p className="text-gray-400">Unlock exclusive photos and videos from your favorite creators</p>
+          <p className="text-gray-600">Unlock exclusive photos and videos from your favorite creators</p>
         </div>
 
         {/* Filters */}
@@ -105,8 +108,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('all')}
             className={`px-6 py-3 rounded-xl font-medium transition-all ${
               filter === 'all'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             All Content
@@ -115,8 +118,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('photo')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'photo'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -126,8 +129,8 @@ export default function ContentFeedPage() {
             onClick={() => setFilter('video')}
             className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
               filter === 'video'
-                ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-sm'
+                : 'bg-white/80 text-gray-700 hover:bg-white border border-gray-200'
             }`}
           >
             <Play className="w-4 h-4" />
@@ -137,11 +140,11 @@ export default function ContentFeedPage() {
 
         {/* Content Grid */}
         {content.length === 0 ? (
-          <GlassCard className="p-12 text-center">
+          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
             <div className="text-6xl mb-4">📭</div>
-            <h3 className="text-xl font-bold text-white mb-2">No content yet</h3>
-            <p className="text-gray-400">Check back soon for exclusive content!</p>
-          </GlassCard>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">No content yet</h3>
+            <p className="text-gray-600">Check back soon for exclusive content!</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {content.map((item) => (
@@ -150,7 +153,7 @@ export default function ContentFeedPage() {
                 onClick={() => router.push(`/content/${item.id}`)}
                 className="group cursor-pointer"
               >
-                <GlassCard className="p-0 overflow-hidden hover:scale-105 transition-transform">
+                <div className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-0 overflow-hidden hover:scale-105 hover:border-purple-500/50 transition-all shadow-sm">
                   {/* Thumbnail */}
                   <div className="relative aspect-[3/4] overflow-hidden bg-black">
                     <img
@@ -217,7 +220,7 @@ export default function ContentFeedPage() {
                       </div>
                     </div>
                   </div>
-                </GlassCard>
+                </div>
               </div>
             ))}
           </div>

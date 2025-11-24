@@ -101,19 +101,6 @@ export default function ContentLibraryPage() {
       <MobileHeader />
 
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-gray-900">My Content 📚</h1>
-            <button
-              onClick={() => router.push('/content')}
-              className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-lg font-semibold hover:scale-105 transition-transform shadow-sm"
-            >
-              Browse Content
-            </button>
-          </div>
-          <p className="text-gray-600">Your purchased content collection</p>
-        </div>
 
         {/* Filters */}
         <div className="flex gap-3 mb-8">
