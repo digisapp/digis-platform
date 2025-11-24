@@ -16,12 +16,13 @@ export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimu
 
 // Coin packages available for purchase
 // Pricing competitive with Twitch Bits ($0.014/bit) and TikTok Coins ($0.013/coin)
+// Net margins: 25-40% after Stripe fees
 export const COIN_PACKAGES = [
   {
     id: 'starter',
     name: '100 Digis Coins',
     coins: 100,
-    price: 149, // $1.49 in cents (~$0.0149/coin)
+    price: 179, // $1.79 in cents (~$0.0179/coin)
     popular: false,
     description: 'Perfect for trying out',
   },
@@ -29,36 +30,36 @@ export const COIN_PACKAGES = [
     id: 'value',
     name: '500 Digis Coins',
     coins: 500,
-    price: 699, // $6.99 in cents (~$0.0139/coin)
+    price: 849, // $8.49 in cents (~$0.0169/coin)
     popular: true,
-    savings: '7% Bonus',
+    savings: '6% Bonus',
     description: 'Most popular choice',
   },
   {
     id: 'popular',
     name: '1000 Digis Coins',
     coins: 1000,
-    price: 1299, // $12.99 in cents (~$0.0129/coin)
+    price: 1599, // $15.99 in cents (~$0.0159/coin)
     popular: false,
-    savings: '13% Bonus',
+    savings: '11% Bonus',
     description: 'Great value',
   },
   {
     id: 'best',
     name: '2500 Digis Coins',
     coins: 2500,
-    price: 2999, // $29.99 in cents (~$0.0119/coin)
+    price: 3699, // $36.99 in cents (~$0.0147/coin)
     popular: false,
-    savings: '20% Bonus',
+    savings: '18% Bonus',
     description: 'Best value',
   },
   {
     id: 'ultimate',
     name: '5000 Digis Coins',
     coins: 5000,
-    price: 5499, // $54.99 in cents (~$0.0109/coin)
+    price: 6799, // $67.99 in cents (~$0.0135/coin)
     popular: false,
-    savings: '27% Bonus',
+    savings: '25% Bonus',
     description: 'Maximum savings',
   },
 ];
