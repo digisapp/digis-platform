@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, creatorBankingInfo } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { encrypt, getLastFourDigits } from '@/lib/crypto/encryption';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
         accountHolderName: banking.accountHolderName,
         accountType: banking.accountType,
         bankName: banking.bankName,
-        lastFourDigits: banking.accountNumber.slice(-4),
+        lastFourDigits: getLastFourDigits(banking.accountNumber),
         isVerified: banking.isVerified === 1,
       }
     });
@@ -66,6 +67,10 @@ export async function POST(request: NextRequest) {
       where: eq(creatorBankingInfo.creatorId, user.id),
     });
 
+    // Encrypt account number before storing
+    const encryptedAccountNumber = encrypt(accountNumber);
+    const encryptedRoutingNumber = encrypt(routingNumber);
+
     if (existing) {
       // Update existing
       const [updated] = await db
@@ -73,8 +78,8 @@ export async function POST(request: NextRequest) {
         .set({
           accountHolderName,
           accountType,
-          routingNumber,
-          accountNumber, // In production, this should be encrypted
+          routingNumber: encryptedRoutingNumber,
+          accountNumber: encryptedAccountNumber,
           bankName,
           isVerified: 0, // Reset verification on update
           updatedAt: new Date(),
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
           accountHolderName: updated.accountHolderName,
           accountType: updated.accountType,
           bankName: updated.bankName,
-          lastFourDigits: updated.accountNumber.slice(-4),
+          lastFourDigits: getLastFourDigits(updated.accountNumber),
           isVerified: updated.isVerified === 1,
         }
       });
@@ -101,8 +106,8 @@ export async function POST(request: NextRequest) {
           creatorId: user.id,
           accountHolderName,
           accountType,
-          routingNumber,
-          accountNumber, // In production, this should be encrypted
+          routingNumber: encryptedRoutingNumber,
+          accountNumber: encryptedAccountNumber,
           bankName,
         })
         .returning();
@@ -114,7 +119,7 @@ export async function POST(request: NextRequest) {
           accountHolderName: created.accountHolderName,
           accountType: created.accountType,
           bankName: created.bankName,
-          lastFourDigits: created.accountNumber.slice(-4),
+          lastFourDigits: getLastFourDigits(created.accountNumber),
           isVerified: created.isVerified === 1,
         }
       }, { status: 201 });
