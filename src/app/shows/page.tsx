@@ -32,7 +32,7 @@ export default function ShowsDirectoryPage() {
   const [shows, setShows] = useState<Show[]>([]);
   const [myTickets, setMyTickets] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'my-tickets'>('all');
-  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
+  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('live');
   const [sortBy, setSortBy] = useState<'date' | 'price' | 'popularity'>('date');
 
   useEffect(() => {
@@ -110,22 +110,6 @@ export default function ShowsDirectoryPage() {
         {/* Filter Tabs */}
         <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex gap-3 overflow-x-auto pb-2 w-full md:w-auto">
-            <button
-              onClick={() => {
-                setActiveTab('all');
-                setFilter('all');
-              }}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
-                activeTab === 'all' && filter === 'all'
-                  ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-gray-900 shadow-sm scale-105'
-                  : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-yellow-500/50 hover:scale-105'
-              }`}
-            >
-              {activeTab === 'all' && filter === 'all' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <span className="relative z-10">All Shows</span>
-            </button>
             <button
               onClick={() => {
                 setActiveTab('all');
