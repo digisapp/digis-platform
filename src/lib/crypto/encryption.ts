@@ -2,19 +2,24 @@ import crypto from 'crypto';
 
 // Encryption key from environment variable
 // MUST be 32 bytes (64 hex characters) for AES-256
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '';
 
 if (!ENCRYPTION_KEY) {
+  console.error('ENCRYPTION_KEY environment variable is not set');
   throw new Error('ENCRYPTION_KEY environment variable is required');
 }
 
 if (ENCRYPTION_KEY.length !== 64) {
+  console.error(`ENCRYPTION_KEY length: ${ENCRYPTION_KEY.length}, expected: 64`);
   throw new Error('ENCRYPTION_KEY must be 64 hex characters (32 bytes) for AES-256');
 }
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
+
+// Convert key to buffer once at initialization
+const KEY_BUFFER = Buffer.from(ENCRYPTION_KEY, 'hex');
 
 /**
  * Encrypt sensitive data (bank account numbers, SSN, etc.)
@@ -29,7 +34,7 @@ export function encrypt(text: string): string {
   // Create cipher
   const cipher = crypto.createCipheriv(
     ALGORITHM,
-    Buffer.from(ENCRYPTION_KEY, 'hex'),
+    KEY_BUFFER,
     iv
   );
 
@@ -67,7 +72,7 @@ export function decrypt(encryptedData: string): string {
     // Create decipher
     const decipher = crypto.createDecipheriv(
       ALGORITHM,
-      Buffer.from(ENCRYPTION_KEY, 'hex'),
+      KEY_BUFFER,
       iv
     );
 
