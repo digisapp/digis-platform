@@ -216,38 +216,48 @@ export default function FanDashboard() {
               <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {featuredCreators.map((creator) => (
                 <div
                   key={creator.id}
                   onClick={() => router.push(`/${creator.username}`)}
-                  className="group cursor-pointer"
+                  className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border-2 border-cyan-500/30 hover:border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
                 >
-                  <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-4 hover:border-cyan-500/50 hover:scale-105 transition-all text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-                    {/* Avatar */}
-                    <div className="relative inline-block mb-3">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center mx-auto">
-                        {creator.avatarUrl ? (
-                          <img src={creator.avatarUrl} alt={creator.displayName || creator.username} className="w-full h-full rounded-full object-cover" />
-                        ) : (
-                          <span className="text-white font-bold text-2xl">{(creator.displayName || creator.username)[0].toUpperCase()}</span>
-                        )}
+                  {/* 4:5 Portrait Card */}
+                  <div className="relative w-full overflow-hidden rounded-2xl" style={{paddingBottom: '125%'}}>
+                    {creator.avatarUrl || creator.bannerUrl ? (
+                      <>
+                        <img
+                          src={creator.avatarUrl || creator.bannerUrl}
+                          alt={creator.displayName || creator.username}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                        <Users className="w-16 h-16 text-cyan-400" />
                       </div>
-                      {creator.isLive && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        </div>
-                      )}
-                    </div>
+                    )}
 
-                    {/* Creator Info */}
-                    <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
-                      {creator.displayName || creator.username}
-                    </h3>
-                    <p className="text-cyan-400 text-xs mb-2 flex items-center justify-center gap-1">
-                      <Users className="w-3 h-3" />
-                      {creator.followerCount}
-                    </p>
+                    {/* Live indicator */}
+                    {creator.isLive && (
+                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1.5">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        LIVE
+                      </div>
+                    )}
+
+                    {/* Creator info overlay at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-cyan-500/30 group-hover:bg-white/20 transition-all duration-300">
+                      <h3 className="text-sm font-bold text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                        {creator.displayName || creator.username}
+                      </h3>
+                      <p className="text-cyan-400 text-xs flex items-center gap-1 mt-1">
+                        <Users className="w-3 h-3" />
+                        {creator.followerCount}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
