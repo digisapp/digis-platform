@@ -36,10 +36,13 @@ export default function SettingsPage() {
   const [secondaryCategory, setSecondaryCategory] = useState('');
 
   // Email change
+  const [email, setEmail] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailMessage, setEmailMessage] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
 
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
@@ -126,6 +129,7 @@ export default function SettingsPage() {
       setNewUsername(data.username || '');
       setPrimaryCategory(data.primaryCategory || '');
       setSecondaryCategory(data.secondaryCategory || '');
+      setEmail(data.email || '');
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -242,6 +246,33 @@ export default function SettingsPage() {
     return () => clearTimeout(timeoutId);
   }, [newUsername, currentUser]);
 
+  const handleEmailChange = async () => {
+    try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      // Use Supabase Auth to update email with verification
+      const response = await fetch('/api/user/update-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEmail: email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update email');
+      }
+
+      setEmailVerificationSent(true);
+    } catch (err: any) {
+      throw new Error(`Email update failed: ${err.message}`);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
@@ -249,6 +280,15 @@ export default function SettingsPage() {
     setSaving(true);
 
     try {
+      // Check if email has changed
+      const emailChanged = email !== currentUser?.email;
+
+      if (emailChanged) {
+        // Handle email change with verification
+        await handleEmailChange();
+      }
+
+      // Update other profile fields
       const response = await fetch('/api/user/update-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -272,8 +312,12 @@ export default function SettingsPage() {
         throw new Error(data.error || 'Failed to update profile');
       }
 
-      setMessage('Profile updated successfully!');
-      setTimeout(() => setMessage(''), 3000);
+      if (emailChanged) {
+        setMessage('Profile updated! Please check your new email address to verify the change.');
+      } else {
+        setMessage('Profile updated successfully!');
+      }
+      setTimeout(() => setMessage(''), 5000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -703,47 +747,6 @@ export default function SettingsPage() {
               Account Information
             </h3>
             <div className="space-y-3">
-              {/* Email Update Form */}
-              <form onSubmit={handleUpdateEmail} className="space-y-3">
-                <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-                  <div className="p-2 bg-gradient-to-br from-digis-cyan to-blue-500 rounded-lg">
-                    <Mail className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-400 mb-1">Current Email Address</p>
-                    <p className="text-sm font-medium text-white mb-2">{currentUser?.email}</p>
-                    <input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="Enter new email address"
-                      className="w-full px-3 py-2 backdrop-blur-xl bg-white/10 border border-cyan-500/30 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
-                    />
-                  </div>
-                  <GlassButton
-                    type="submit"
-                    variant="cyan"
-                    size="sm"
-                    disabled={savingEmail || !newEmail}
-                    className="flex-shrink-0"
-                  >
-                    {savingEmail ? <LoadingSpinner size="sm" /> : 'Update'}
-                  </GlassButton>
-                </div>
-
-                {/* Success/Error Messages */}
-                {emailMessage && (
-                  <div className="p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-300 text-sm">
-                    {emailMessage}
-                  </div>
-                )}
-                {emailError && (
-                  <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
-                    {emailError}
-                  </div>
-                )}
-              </form>
-
               <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
                 <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-pink rounded-lg">
                   <AtSign className="w-4 h-4 text-white" />
@@ -955,6 +958,33 @@ export default function SettingsPage() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                <Mail className="w-4 h-4 inline mr-1" />
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                {currentUser?.email && email === currentUser.email && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-400 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Verified
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Changing your email will require verification
+              </p>
+            </div>
 
             <GlassButton
               type="submit"
