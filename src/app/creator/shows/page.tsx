@@ -137,7 +137,7 @@ export default function CreatorShowsPage() {
             className="md:text-base whitespace-nowrap flex items-center"
           >
             <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-            Create Stream
+            Create Ticketed Stream
           </GlassButton>
         </div>
 
@@ -243,7 +243,7 @@ export default function CreatorShowsPage() {
                   className="shadow-2xl"
                 >
                   <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-                  Create Stream
+                  Create Ticketed Stream
                 </GlassButton>
               )}
             </div>

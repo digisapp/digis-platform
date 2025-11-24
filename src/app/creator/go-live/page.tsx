@@ -323,8 +323,8 @@ export default function GoLivePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full glass rounded-2xl border-2 border-purple-200 p-8 text-center">
           <div className="text-6xl mb-4">🎥</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Creator Access Required</h1>
-          <p className="text-gray-700 mb-6">
+          <h1 className="text-2xl font-bold text-white mb-4">Creator Access Required</h1>
+          <p className="text-gray-300 mb-6">
             You need to be a verified creator to start live streaming.
           </p>
           <GlassButton
@@ -348,20 +348,15 @@ export default function GoLivePage() {
       <SuccessAnimation show={showSuccess} />
 
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-32 md:pb-10">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">Go Live</h1>
-        </div>
-
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
             <div className="glass rounded-lg px-4 py-2 border border-purple-200">
-              <span className="text-gray-600">Avg Viewers:</span>
+              <span className="text-gray-300">Avg Viewers:</span>
               <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
             </div>
             <div className="glass rounded-lg px-4 py-2 border border-purple-200">
-              <span className="text-gray-600">Total Streams:</span>
+              <span className="text-gray-300">Total Streams:</span>
               <span className="ml-2 font-bold text-digis-purple">{recentStats.totalStreams}</span>
             </div>
           </div>
@@ -374,7 +369,7 @@ export default function GoLivePage() {
             <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-cyan/50 transition-all duration-300">
               {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">
+                <label htmlFor="title" className="block text-sm font-semibold text-white mb-2">
                   Stream Title *
                 </label>
                 <input
@@ -387,14 +382,14 @@ export default function GoLivePage() {
                   maxLength={100}
                   required
                 />
-                <div className="mt-2 text-xs text-gray-600 text-right">
+                <div className="mt-2 text-xs text-gray-400 text-right">
                   {title.length}/100
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-white mb-2">
                   Description (Optional)
                 </label>
                 <textarea
@@ -406,14 +401,14 @@ export default function GoLivePage() {
                   rows={4}
                   maxLength={500}
                 />
-                <div className="mt-2 text-xs text-gray-600 text-right">
+                <div className="mt-2 text-xs text-gray-400 text-right">
                   {description.length}/500
                 </div>
               </div>
 
               {/* Privacy Settings */}
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                <label className="block text-sm font-semibold text-white mb-2">
                   Privacy *
                 </label>
                 <div className="space-y-2">
@@ -435,8 +430,8 @@ export default function GoLivePage() {
                         className="w-4 h-4 text-digis-cyan focus:ring-digis-cyan"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900">{option.label}</div>
-                        <div className="text-xs text-gray-600">{option.description}</div>
+                        <div className="font-semibold text-white">{option.label}</div>
+                        <div className="text-xs text-gray-300">{option.description}</div>
                       </div>
                     </label>
                   ))}
@@ -445,7 +440,7 @@ export default function GoLivePage() {
 
               {/* Thumbnail */}
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                <label className="block text-sm font-semibold text-white mb-2">
                   Thumbnail (Optional)
                 </label>
                 <div className="space-y-2">
@@ -470,7 +465,7 @@ export default function GoLivePage() {
                       className="flex flex-col items-center justify-center gap-2 p-4 bg-white/50 border-2 border-purple-200 rounded-xl hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 w-full"
                     >
                       <Upload className="w-6 h-6 text-digis-cyan" />
-                      <span className="text-xs font-semibold text-gray-700">Upload Thumbnail</span>
+                      <span className="text-xs font-semibold text-gray-300">Upload Thumbnail</span>
                     </button>
                   )}
                   <input
@@ -526,7 +521,7 @@ export default function GoLivePage() {
               <div className="space-y-4">
                 {/* Camera */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     📹 Camera
                   </label>
                   <select
@@ -545,7 +540,7 @@ export default function GoLivePage() {
 
                 {/* Microphone */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     🎤 Microphone
                   </label>
                   <select
@@ -564,7 +559,7 @@ export default function GoLivePage() {
 
                 {/* Audio Level */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     Audio Level
                   </label>
                   <div className="relative w-full h-4 bg-white/50 rounded-full overflow-hidden border-2 border-purple-200">
@@ -580,10 +575,10 @@ export default function GoLivePage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-gray-700 font-semibold">
+                    <p className="text-xs text-gray-300 font-semibold">
                       {audioLevel > 5 ? '🟢 Microphone active' : '🔴 Speak to test mic'}
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-400">
                       {Math.round(audioLevel)}%
                     </p>
                   </div>
@@ -606,7 +601,7 @@ export default function GoLivePage() {
               variant="ghost"
               size="lg"
               onClick={() => router.back()}
-              className="w-full sm:flex-1 hover:scale-105 transition-transform duration-300 text-gray-900 font-semibold"
+              className="w-full sm:flex-1 hover:scale-105 transition-transform duration-300 text-white font-semibold"
             >
               Cancel
             </GlassButton>
