@@ -31,11 +31,13 @@ interface Ticket {
 }
 
 const showTypeEmojis: Record<string, string> = {
-  live_show: '🎥',
-  qna: '❓',
-  workshop: '🎓',
-  meetgreet: '👋',
   performance: '🎭',
+  class: '🧘',
+  qna: '💬',
+  hangout: '💕',
+  gaming: '🎮',
+  workshop: '🎓',
+  other: '🎪',
 };
 
 export default function MyTicketsPage() {

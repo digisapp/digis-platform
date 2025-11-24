@@ -29,19 +29,23 @@ interface Show {
 }
 
 const showTypeLabels: Record<string, string> = {
-  live_show: 'Live Show',
-  qna: 'Q&A Session',
-  workshop: 'Workshop',
-  meetgreet: 'Meet & Greet',
   performance: 'Performance',
+  class: 'Class',
+  qna: 'Q&A',
+  hangout: 'Hangout',
+  gaming: 'Gaming',
+  workshop: 'Workshop',
+  other: 'Other',
 };
 
 const showTypeEmojis: Record<string, string> = {
-  live_show: '🎥',
-  qna: '❓',
-  workshop: '🎓',
-  meetgreet: '👋',
   performance: '🎭',
+  class: '🧘',
+  qna: '💬',
+  hangout: '💕',
+  gaming: '🎮',
+  workshop: '🎓',
+  other: '🎪',
 };
 
 export default function ShowDetailPage() {

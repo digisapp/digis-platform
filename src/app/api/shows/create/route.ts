@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const {
       title,
       description,
-      showType = 'live_show', // Default to live_show (will be replaced with categories later)
+      showType = 'other', // Default to 'other' category
       ticketPrice,
       maxTickets,
       scheduledStart,
