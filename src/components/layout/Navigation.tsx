@@ -596,10 +596,10 @@ export function Navigation() {
               )}
 
               {/* Gradient border ring */}
-              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] shadow-lg transition-all ${
-                isActive('/settings') || showProfileMenu ? 'scale-110' : ''
+              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all ${
+                isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''
               }`}>
-                <div className="rounded-full bg-white p-[2px]">
+                <div className="rounded-full bg-gray-900 p-[2px]">
                   {userProfile?.avatarUrl ? (
                     <img
                       src={userProfile.avatarUrl}
@@ -712,8 +712,8 @@ export function Navigation() {
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-md opacity-60 group-hover:opacity-100 animate-pulse" />
 
           {/* Gradient border ring */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] group-hover:p-[4px] transition-all">
-            <div className="w-full h-full rounded-full bg-white p-[2px]">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] group-hover:p-[4px] transition-all shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+            <div className="w-full h-full rounded-full bg-gray-900 p-[2px]">
               {userProfile?.avatarUrl ? (
                 <img
                   src={userProfile.avatarUrl}
