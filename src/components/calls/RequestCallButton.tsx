@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign, Video } from 'lucide-react';
+import { Phone, Clock, DollarSign, Video, X } from 'lucide-react';
 
 interface RequestCallButtonProps {
   creatorId: string;
@@ -23,12 +24,97 @@ export function RequestCallButton({
   iconOnly = false,
   callType = 'video',
 }: RequestCallButtonProps) {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const [callId, setCallId] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(120);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const estimatedCost = ratePerMinute * minimumDuration;
+
+  // Cleanup polling and countdown on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    };
+  }, []);
+
+  // Poll for call status
+  const startPolling = (id: string) => {
+    // Start countdown
+    setTimeRemaining(120);
+    countdownIntervalRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          handleTimeout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Poll call status every 2 seconds
+    pollingIntervalRef.current = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/calls/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          const status = data.call?.status;
+
+          if (status === 'accepted' || status === 'active') {
+            // Creator accepted! Redirect to call
+            stopPolling();
+            router.push(`/calls/${id}`);
+          } else if (status === 'rejected') {
+            // Creator rejected
+            stopPolling();
+            setWaiting(false);
+            setError('Call request was declined');
+            setTimeout(() => {
+              setShowModal(false);
+              setError('');
+            }, 2000);
+          }
+        }
+      } catch (err) {
+        console.error('Error polling call status:', err);
+      }
+    }, 2000);
+  };
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  };
+
+  const handleTimeout = () => {
+    stopPolling();
+    setWaiting(false);
+    setError('Call request timed out. Creator did not respond.');
+    setTimeout(() => {
+      setShowModal(false);
+      setError('');
+      setCallId(null);
+    }, 3000);
+  };
+
+  const handleCancelRequest = () => {
+    stopPolling();
+    setWaiting(false);
+    setCallId(null);
+    setShowModal(false);
+  };
 
   const handleRequest = async () => {
     setError('');
@@ -44,11 +130,9 @@ export function RequestCallButton({
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(true);
-        setTimeout(() => {
-          setShowModal(false);
-          setSuccess(false);
-        }, 2000);
+        setCallId(data.call.id);
+        setWaiting(true);
+        startPolling(data.call.id);
       } else {
         setError(data.error || 'Failed to request call');
       }
@@ -106,13 +190,46 @@ export function RequestCallButton({
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            {success ? (
+            {waiting ? (
+              /* Waiting State */
               <div className="text-center py-4">
-                <div className="text-5xl mb-3">✓</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Request Sent!</h3>
-                <p className="text-gray-600 text-sm">
-                  Waiting for {creatorName} to accept
+                <button
+                  onClick={handleCancelRequest}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="relative inline-block mb-4">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center animate-pulse">
+                    <Icon className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Waiting for {creatorName}...</h3>
+                <p className="text-gray-600 text-sm mb-4">
+                  {creatorName} has {timeRemaining} seconds to respond
                 </p>
+
+                {/* Countdown Progress Bar */}
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-6">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-600 to-purple-600 transition-all duration-1000"
+                    style={{ width: `${(timeRemaining / 120) * 100}%` }}
+                  ></div>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                  <Clock className="w-4 h-4" />
+                  <span>{Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}</span>
+                </div>
+
+                <button
+                  onClick={handleCancelRequest}
+                  className="mt-6 px-6 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                >
+                  Cancel Request
+                </button>
               </div>
             ) : (
               <>
