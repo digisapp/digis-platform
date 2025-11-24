@@ -208,9 +208,9 @@ export default function WalletPage() {
       case 'gift': return 'from-pink-500/20 to-rose-500/20 border-pink-200';
       case 'call_charge': return 'from-blue-500/20 to-cyan-500/20 border-blue-200';
       case 'stream_tip': return 'from-yellow-500/20 to-amber-500/20 border-yellow-200';
-      case 'ppv_unlock': return 'from-purple-500/20 to-violet-500/20 border-purple-200';
+      case 'ppv_unlock': return 'from-purple-500/20 to-violet-500/20 border-cyan-500/30';
       case 'creator_payout': return 'from-red-500/20 to-orange-500/20 border-red-200';
-      default: return 'from-gray-500/20 to-slate-500/20 border-gray-200';
+      default: return 'from-gray-500/20 to-slate-500/20 border-cyan-500/30';
     }
   };
 
@@ -449,7 +449,7 @@ export default function WalletPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="p-3 bg-white/80 rounded-xl shadow-sm">
+                          <div className="p-3 backdrop-blur-xl bg-white/10 rounded-xl shadow-sm">
                             {getTransactionIcon(tx.type)}
                           </div>
                           <div className="flex-1">
@@ -493,7 +493,7 @@ export default function WalletPage() {
                   <h2 className="text-2xl font-bold text-white">Request Payout</h2>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/40 rounded-xl p-6 border border-green-200">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-xl bg-white/5 rounded-xl p-6 border border-green-200">
                   <div className="flex items-center gap-4">
                     <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl">
                       <Coins className="w-10 h-10 text-white" />
@@ -571,7 +571,7 @@ export default function WalletPage() {
                   {payouts.map((payout) => (
                     <div
                       key={payout.id}
-                      className="p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:shadow-md transition-all"
+                      className="p-4 rounded-xl border border-cyan-500/30 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:shadow-md transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
@@ -636,28 +636,28 @@ export default function WalletPage() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                    <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />
                         Account Holder
                       </p>
                       <p className="text-white font-semibold text-lg">{bankingInfo.accountHolderName}</p>
                     </div>
-                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                    <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
                         Account Type
                       </p>
                       <p className="text-white font-semibold text-lg capitalize">{bankingInfo.accountType}</p>
                     </div>
-                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                    <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
                         Bank Name
                       </p>
                       <p className="text-white font-semibold text-lg">{bankingInfo.bankName || 'Not specified'}</p>
                     </div>
-                    <div className="bg-white/60 rounded-xl p-4 border border-blue-200">
+                    <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Lock className="w-4 h-4" />
                         Account Number

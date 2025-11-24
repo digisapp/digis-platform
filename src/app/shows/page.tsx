@@ -176,11 +176,11 @@ export default function ShowsDirectoryPage() {
           {/* Sort - Only show on All Shows tab */}
           {activeTab === 'all' && (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 whitespace-nowrap">Sort by:</span>
+              <span className="text-sm text-gray-400 whitespace-nowrap">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-4 py-3 bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl text-gray-700 text-sm focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer"
+                className="px-4 py-3 backdrop-blur-xl bg-white/10 backdrop-blur-md border border-cyan-500/30 rounded-2xl text-gray-300 text-sm focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer"
               >
                 <option value="date" className="bg-white">Date</option>
                 <option value="price" className="bg-white">Price</option>
@@ -202,9 +202,9 @@ export default function ShowsDirectoryPage() {
                   <div className="absolute -inset-1 bg-red-500 rounded-full blur opacity-75"></div>
                   <div className="relative w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
                 </div>
-                <h2 className="text-3xl font-black text-gray-900">Live Now</h2>
+                <h2 className="text-3xl font-black text-white">Live Now</h2>
               </div>
-              <span className="text-sm text-gray-600 bg-white/60 px-3 py-1 rounded-full border border-gray-200">{liveShows.length}</span>
+              <span className="text-sm text-gray-400 backdrop-blur-xl bg-white/5 px-3 py-1 rounded-full border border-cyan-500/30">{liveShows.length}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {liveShows.map((show) => (
@@ -222,8 +222,8 @@ export default function ShowsDirectoryPage() {
         {upcomingShows.length > 0 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <h2 className="text-3xl font-black text-gray-900">Upcoming Events</h2>
-              <span className="text-sm text-gray-600 bg-white/60 px-3 py-1 rounded-full border border-gray-200">{upcomingShows.length}</span>
+              <h2 className="text-3xl font-black text-white">Upcoming Events</h2>
+              <span className="text-sm text-gray-400 backdrop-blur-xl bg-white/5 px-3 py-1 rounded-full border border-cyan-500/30">{upcomingShows.length}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingShows.map((show) => (
@@ -239,19 +239,19 @@ export default function ShowsDirectoryPage() {
 
         {/* Empty State */}
         {sortedShows.length === 0 && (
-          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
+          <div className="backdrop-blur-xl backdrop-blur-xl bg-white/10 rounded-3xl border border-cyan-500/30 p-12 text-center shadow-sm">
             <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur-2xl opacity-30"></div>
               <div className="relative text-6xl">🎟️</div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            <h3 className="text-2xl font-bold text-white mb-3">
               {filter === 'live'
                 ? 'No live shows right now'
                 : filter === 'upcoming'
                 ? 'No upcoming shows'
                 : 'No shows available'}
             </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
               {filter === 'live'
                 ? 'Check back soon for live events!'
                 : filter === 'upcoming'
@@ -274,13 +274,13 @@ export default function ShowsDirectoryPage() {
         {activeTab === 'my-tickets' && (
           <div>
             {myTickets.length === 0 ? (
-              <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
+              <div className="backdrop-blur-xl backdrop-blur-xl bg-white/10 rounded-3xl border border-cyan-500/30 p-12 text-center shadow-sm">
                 <div className="relative inline-block mb-6">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-2xl opacity-30"></div>
                   <div className="relative text-6xl">🎟️</div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No tickets yet</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-white mb-3">No tickets yet</h3>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   You haven't purchased any tickets yet. Browse upcoming shows to get started!
                 </p>
                 <button

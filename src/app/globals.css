@@ -40,13 +40,13 @@ body {
   }
 }
 
-/* Glassmorphism base styles - Lighter theme */
+/* Glassmorphism base styles - Tron Dark Theme */
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(17, 24, 39, 0.6) 50%, rgba(0, 0, 0, 0.4) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.2);
 }
 
 .glass-hover {
@@ -54,9 +54,10 @@ body {
 }
 
 .glass-hover:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 217, 255, 0.4);
-  box-shadow: 0 8px 30px rgba(0, 217, 255, 0.2);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(17, 24, 39, 0.7) 50%, rgba(0, 0, 0, 0.5) 100%);
+  border-color: rgba(34, 211, 238, 0.5);
+  box-shadow: 0 0 50px rgba(34, 211, 238, 0.3);
+  transform: scale(1.02);
 }
 
 /* Shimmer animation */

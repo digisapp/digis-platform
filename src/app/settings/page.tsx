@@ -546,7 +546,7 @@ export default function SettingsPage() {
       <div className="max-w-5xl mx-auto space-y-6 relative z-10">
         {/* Global Messages */}
         {message && (
-          <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="p-2 bg-green-500 rounded-lg">
               <CheckCircle className="w-5 h-5 text-white" />
             </div>
@@ -555,7 +555,7 @@ export default function SettingsPage() {
         )}
 
         {error && (
-          <div className="glass p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-pink-500/10 border-2 border-red-500 text-red-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-pink-500/10 border-2 border-red-500 text-red-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="p-2 bg-red-500 rounded-lg">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
@@ -658,14 +658,14 @@ export default function SettingsPage() {
                           <img
                             src={creatorCardPreview || creatorCardImageUrl}
                             alt="Creator Card"
-                            className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-purple-200 group-hover:border-digis-purple transition-all shadow-md"
+                            className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-cyan-500/30 group-hover:border-digis-purple transition-all shadow-md"
                           />
                           <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Upload className="w-4 h-4 text-white" />
                           </div>
                         </>
                       ) : (
-                        <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-purple-200 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center bg-white/50">
+                        <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-cyan-500/30 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center backdrop-blur-xl bg-white/5">
                           <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
                           <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
                         </div>
@@ -698,7 +698,7 @@ export default function SettingsPage() {
             <div className="space-y-3">
               {/* Email Update Form */}
               <form onSubmit={handleUpdateEmail} className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
                   <div className="p-2 bg-gradient-to-br from-digis-cyan to-blue-500 rounded-lg">
                     <Mail className="w-4 h-4 text-white" />
                   </div>
@@ -710,7 +710,7 @@ export default function SettingsPage() {
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="Enter new email address"
-                      className="w-full px-3 py-2 bg-white/80 border border-gray-300 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
+                      className="w-full px-3 py-2 backdrop-blur-xl bg-white/10 border border-cyan-500/30 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-digis-cyan"
                     />
                   </div>
                   <GlassButton
@@ -726,18 +726,18 @@ export default function SettingsPage() {
 
                 {/* Success/Error Messages */}
                 {emailMessage && (
-                  <div className="p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-700 text-sm">
+                  <div className="p-3 rounded-lg bg-green-500/20 border border-green-500 text-green-300 text-sm">
                     {emailMessage}
                   </div>
                 )}
                 {emailError && (
-                  <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-700 text-sm">
+                  <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
                     {emailError}
                   </div>
                 )}
               </form>
 
-              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
                 <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-pink rounded-lg">
                   <AtSign className="w-4 h-4 text-white" />
                 </div>
@@ -747,7 +747,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
                 <div className={`p-2 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-lg`}>
                   {currentUser?.role === 'creator' ? (
                     <Crown className="w-4 h-4 text-white" />
@@ -762,7 +762,7 @@ export default function SettingsPage() {
               </div>
 
               {currentUser?.createdAt && (
-                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
                   <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-lg">
                     <Calendar className="w-4 h-4 text-white" />
                   </div>
@@ -779,7 +779,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section Divider */}
-        <div className="border-t border-purple-200/50 my-8" />
+        <div className="border-t border-cyan-500/30/50 my-8" />
 
         {/* Username Section */}
         <GlassCard className="p-6">
@@ -789,7 +789,7 @@ export default function SettingsPage() {
           </div>
 
           {usernameCooldown && !usernameCooldown.canChange && (
-            <p className="text-xs text-yellow-700 mb-3 flex items-center gap-2">
+            <p className="text-xs text-yellow-300 mb-3 flex items-center gap-2">
               <AlertCircle className="w-3 h-3" />
               You can change your username again in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
             </p>
@@ -803,9 +803,9 @@ export default function SettingsPage() {
                 onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                 disabled={!usernameCooldown?.canChange}
                 placeholder={currentUser?.username}
-                className={`w-full px-4 py-3 bg-white/50 border-2 rounded-lg text-white font-medium placeholder-gray-500 focus:outline-none transition-all ${
+                className={`w-full px-4 py-3 backdrop-blur-xl bg-white/5 border-2 rounded-lg text-white font-medium placeholder-gray-500 focus:outline-none transition-all ${
                   !newUsername || newUsername === currentUser?.username
-                    ? 'border-purple-200 focus:border-digis-cyan'
+                    ? 'border-cyan-500/30 focus:border-digis-cyan'
                     : usernameStatus === 'checking'
                     ? 'border-yellow-400'
                     : usernameStatus === 'available'
@@ -844,7 +844,7 @@ export default function SettingsPage() {
         </GlassCard>
 
         {/* Section Divider */}
-        <div className="border-t border-purple-200/50 my-8" />
+        <div className="border-t border-cyan-500/30/50 my-8" />
 
         {/* Profile Information Section */}
         <GlassCard className="p-6">
@@ -868,7 +868,7 @@ export default function SettingsPage() {
                 Bio
               </label>
               <textarea
-                className="w-full px-4 py-3 bg-white/50 border border-purple-200 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
+                className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-digis-cyan/50 backdrop-blur-sm resize-none"
                 placeholder="Tell us about yourself..."
                 rows={4}
                 value={bio}
@@ -915,7 +915,7 @@ export default function SettingsPage() {
         </GlassCard>
 
         {/* Section Divider */}
-        <div className="border-t border-purple-200/50 my-8" />
+        <div className="border-t border-cyan-500/30/50 my-8" />
 
         {/* Creator Rates & Availability - Creators Only */}
         {currentUser?.role === 'creator' && (
@@ -926,7 +926,7 @@ export default function SettingsPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-purple-200">
+            <div className="flex gap-2 mb-6 border-b border-cyan-500/30">
               <button
                 onClick={() => setActiveRateTab('video')}
                 className={`px-4 py-2 font-semibold text-sm transition-all relative ${
@@ -997,7 +997,7 @@ export default function SettingsPage() {
             {activeRateTab === 'video' && (
               <div className="space-y-6">
                 {/* Availability Toggle */}
-                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                <div className="flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-green-500/20 rounded-lg">
                       <Phone className="w-5 h-5 text-green-500" />
@@ -1021,7 +1021,7 @@ export default function SettingsPage() {
 
                 {/* Rate and Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/50 rounded-xl">
+                  <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                     <label className="block text-sm font-semibold text-white mb-2">
                       <DollarSign className="w-4 h-4 inline mr-1" />
                       Rate Per Minute
@@ -1033,13 +1033,13 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.callRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-white/50 rounded-xl">
+                  <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                     <label className="block text-sm font-semibold text-white mb-2">
                       <Clock className="w-4 h-4 inline mr-1" />
                       Minimum Duration
@@ -1051,7 +1051,7 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
@@ -1064,7 +1064,7 @@ export default function SettingsPage() {
             {activeRateTab === 'voice' && (
               <div className="space-y-6">
                 {/* Availability Toggle */}
-                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                <div className="flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/20 rounded-lg">
                       <Mic className="w-5 h-5 text-blue-500" />
@@ -1088,7 +1088,7 @@ export default function SettingsPage() {
 
                 {/* Rate and Duration */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/50 rounded-xl">
+                  <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                     <label className="block text-sm font-semibold text-white mb-2">
                       <DollarSign className="w-4 h-4 inline mr-1" />
                       Rate Per Minute
@@ -1100,13 +1100,13 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.voiceCallRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-white/50 rounded-xl">
+                  <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                     <label className="block text-sm font-semibold text-white mb-2">
                       <Clock className="w-4 h-4 inline mr-1" />
                       Minimum Duration
@@ -1118,7 +1118,7 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumVoiceCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
@@ -1130,7 +1130,7 @@ export default function SettingsPage() {
             {/* Messages Tab Content */}
             {activeRateTab === 'messages' && (
               <div className="space-y-6">
-                <div className="p-4 bg-white/50 rounded-xl">
+                <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                   <label className="block text-sm font-semibold text-white mb-2">
                     <MessageSquare className="w-4 h-4 inline mr-1" />
                     Cost Per Message
@@ -1143,7 +1143,7 @@ export default function SettingsPage() {
                       max="1000"
                       value={callSettings.messageRate}
                       onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
-                      className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      className="w-full md:w-64 px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                     />
                     <span className="text-sm text-gray-400 whitespace-nowrap">coins/message</span>
                   </div>
@@ -1162,7 +1162,7 @@ export default function SettingsPage() {
             {activeRateTab === 'subscriptions' && (
               <div className="space-y-6">
                 {/* Enable Subscriptions Toggle */}
-                <div className="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                <div className="flex items-center justify-between p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-500/20 rounded-lg">
                       <Star className="w-5 h-5 text-purple-500" />
@@ -1186,11 +1186,11 @@ export default function SettingsPage() {
 
                 {/* Subscription Details - Only show when enabled */}
                 {subscriptionSettings.enabled && (
-                  <div className="space-y-4 border-t border-purple-200 pt-6">
+                  <div className="space-y-4 border-t border-cyan-500/30 pt-6">
                     <h3 className="text-base font-bold text-white mb-4">Subscription Details</h3>
 
                     {/* Subscription Name */}
-                    <div className="p-4 bg-white/50 rounded-xl">
+                    <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                       <label className="block text-sm font-semibold text-white mb-1">
                         Subscription Name <span className="text-red-500">*</span>
                       </label>
@@ -1201,12 +1201,12 @@ export default function SettingsPage() {
                         onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, subscriptionName: e.target.value })}
                         placeholder="Superfan"
                         maxLength={30}
-                        className="w-full px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold focus:outline-none focus:border-purple-500 transition-colors"
                       />
                     </div>
 
                     {/* Monthly Price */}
-                    <div className="p-4 bg-white/50 rounded-xl">
+                    <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                       <label className="block text-sm font-semibold text-white mb-1">
                         Monthly Price <span className="text-red-500">*</span>
                       </label>
@@ -1217,7 +1217,7 @@ export default function SettingsPage() {
                           max="10000"
                           value={subscriptionSettings.monthlyPrice}
                           onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(e.target.value) || 1 })}
-                          className="w-full md:w-64 px-4 py-2 bg-white border border-purple-200 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
+                          className="w-full md:w-64 px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
                         />
                         <span className="text-sm text-gray-400 whitespace-nowrap">coins/month</span>
                       </div>
@@ -1235,7 +1235,7 @@ export default function SettingsPage() {
             )}
 
             {/* Save Button */}
-            <div className="mt-6 pt-6 border-t border-purple-200">
+            <div className="mt-6 pt-6 border-t border-cyan-500/30">
               <GlassButton
                 variant="gradient"
                 onClick={saveCallSettings}

@@ -28,11 +28,11 @@ export const GlassButton = forwardRef<HTMLButtonElement, GlassButtonProps>(
     };
 
     const variantClasses = {
-      cyan: 'border-2 border-digis-cyan text-gray-900 hover:glow-cyan',
-      pink: 'border-2 border-digis-pink text-gray-900 hover:glow-pink',
-      purple: 'border-2 border-digis-purple text-gray-900',
-      gradient: 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 font-semibold border-none',
-      ghost: 'border border-gray-300 text-gray-900 hover:border-gray-400',
+      cyan: 'border-2 border-digis-cyan text-white hover:glow-cyan hover:bg-cyan-500/10',
+      pink: 'border-2 border-digis-pink text-white hover:glow-pink hover:bg-pink-500/10',
+      purple: 'border-2 border-digis-purple text-white hover:bg-purple-500/10',
+      gradient: 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white font-semibold border-none hover:from-cyan-500 hover:to-purple-500',
+      ghost: 'border-2 border-cyan-500/30 text-white hover:border-cyan-500/50 hover:bg-white/5',
     };
 
     const shimmerClass = shimmer ? 'shimmer' : '';
