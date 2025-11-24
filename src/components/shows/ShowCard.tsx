@@ -3,11 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+
 interface Show {
   id: string;
   title: string;
   description: string | null;
-  showType: 'live_show' | 'qna' | 'workshop' | 'meetgreet' | 'performance';
+  showType: ShowType;
   ticketPrice: number;
   maxTickets: number | null;
   ticketsSold: number;
@@ -28,20 +30,24 @@ interface ShowCardProps {
   onUpdate?: () => void;
 }
 
-const showTypeIcons = {
-  live_show: '🎥',
-  qna: '❓',
-  workshop: '🎓',
-  meetgreet: '👋',
+const showTypeIcons: Record<ShowType, string> = {
   performance: '🎭',
+  class: '🧘',
+  qna: '💬',
+  hangout: '💕',
+  gaming: '🎮',
+  workshop: '🎓',
+  other: '🎪',
 };
 
-const showTypeLabels = {
-  live_show: 'Live Show',
-  qna: 'Q&A',
-  workshop: 'Workshop',
-  meetgreet: 'Meet & Greet',
+const showTypeLabels: Record<ShowType, string> = {
   performance: 'Performance',
+  class: 'Class',
+  qna: 'Q&A',
+  hangout: 'Hangout',
+  gaming: 'Gaming',
+  workshop: 'Workshop',
+  other: 'Other',
 };
 
 const statusColors = {
