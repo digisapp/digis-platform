@@ -279,7 +279,7 @@ export default function ContentLibraryPage() {
                       </div>
                     </div>
                   </div>
-                </GlassCard>
+                </div>
               </div>
             ))}
           </div>
