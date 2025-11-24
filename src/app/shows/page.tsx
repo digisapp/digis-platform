@@ -109,7 +109,7 @@ export default function ShowsDirectoryPage() {
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Filter Tabs */}
         <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex gap-3 overflow-x-auto pb-2 w-full md:w-auto">
+          <div className="flex gap-3 overflow-x-auto pb-2 w-full md:w-auto scrollbar-hide">
             <button
               onClick={() => {
                 setActiveTab('all');
@@ -289,6 +289,16 @@ export default function ShowsDirectoryPage() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
