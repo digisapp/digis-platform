@@ -208,7 +208,7 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
+                          ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
                           : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}
@@ -236,7 +236,7 @@ export default function ExplorePage() {
                       flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
                       ${
                         isSelected
-                          ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
+                          ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
                           : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}

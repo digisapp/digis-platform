@@ -374,7 +374,7 @@ export default function GoLivePage() {
             <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-cyan/50 transition-all duration-300">
               {/* Title */}
               <div>
-                <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
+                <label htmlFor="title" className="block text-sm font-semibold text-gray-900 mb-2">
                   Stream Title *
                 </label>
                 <input
@@ -394,7 +394,7 @@ export default function GoLivePage() {
 
               {/* Description */}
               <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-gray-800 mb-2">
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-900 mb-2">
                   Description (Optional)
                 </label>
                 <textarea
@@ -413,7 +413,7 @@ export default function GoLivePage() {
 
               {/* Privacy Settings */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Privacy *
                 </label>
                 <div className="space-y-2">
@@ -445,7 +445,7 @@ export default function GoLivePage() {
 
               {/* Thumbnail */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Thumbnail (Optional)
                 </label>
                 <div className="space-y-2">
@@ -526,7 +526,7 @@ export default function GoLivePage() {
               <div className="space-y-4">
                 {/* Camera */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     📹 Camera
                   </label>
                   <select
@@ -545,7 +545,7 @@ export default function GoLivePage() {
 
                 {/* Microphone */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     🎤 Microphone
                   </label>
                   <select
@@ -564,7 +564,7 @@ export default function GoLivePage() {
 
                 {/* Audio Level */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Audio Level
                   </label>
                   <div className="relative w-full h-4 bg-white/50 rounded-full overflow-hidden border-2 border-purple-200">
@@ -622,12 +622,12 @@ export default function GoLivePage() {
               {isCreating ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  <span className="ml-2 text-gray-900 font-bold">Starting Stream...</span>
+                  <span className="ml-2 text-white font-bold">Starting Stream...</span>
                 </>
               ) : (
                 <>
                   <span className="text-xl mr-2">📹</span>
-                  <span className="font-bold text-gray-900">Start Streaming</span>
+                  <span className="font-bold text-white">Start Streaming</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}

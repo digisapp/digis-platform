@@ -122,7 +122,7 @@ export default function CreatorShowsPage() {
               className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
                 filter === tab
                   ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-700 hover:bg-white/60 hover:scale-105'
+                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-900 hover:bg-white/60 hover:scale-105'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -139,7 +139,7 @@ export default function CreatorShowsPage() {
                 <BarChart3 className="w-5 h-5 text-purple-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-gray-900 mb-1">{stats.totalShows}</div>
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Shows</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Shows</div>
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export default function CreatorShowsPage() {
                 <Calendar className="w-5 h-5 text-cyan-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-cyan-600 mb-1">{stats.scheduled}</div>
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Upcoming</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Upcoming</div>
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export default function CreatorShowsPage() {
                 <CheckCircle2 className="w-5 h-5 text-green-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-green-600 mb-1">{stats.completed}</div>
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Completed</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Completed</div>
             </div>
           </div>
 
@@ -172,7 +172,7 @@ export default function CreatorShowsPage() {
                 <Ticket className="w-5 h-5 text-pink-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-pink-600 mb-1">{stats.totalTicketsSold}</div>
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Tickets Sold</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Tickets Sold</div>
             </div>
           </div>
 
@@ -183,7 +183,7 @@ export default function CreatorShowsPage() {
                 <DollarSign className="w-5 h-5 text-yellow-600" strokeWidth={2.5} />
               </div>
               <div className="text-3xl font-black text-yellow-600 mb-1">{stats.totalRevenue}</div>
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Total Revenue</div>
+              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Revenue</div>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function CreatorShowsPage() {
               <h3 className="text-2xl font-black text-gray-900 mb-3">
                 {filter === 'all' ? 'No shows yet' : `No ${filter} shows`}
               </h3>
-              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+              <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
                 {filter === 'all'
                   ? 'Create your first ticketed show and start earning!'
                   : `You don't have any ${filter} shows at the moment.`}

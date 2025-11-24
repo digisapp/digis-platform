@@ -264,7 +264,7 @@ export default function MessagesPage() {
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                   filter === 'all'
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 All
@@ -274,7 +274,7 @@ export default function MessagesPage() {
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
                   filter === 'unread'
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                 }`}
               >
                 Unread

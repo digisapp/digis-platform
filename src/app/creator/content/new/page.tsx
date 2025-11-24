@@ -201,7 +201,7 @@ export default function CreateContentPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Content Type */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Content Type</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Type</h3>
             <div className="grid grid-cols-3 gap-4">
               <button
                 type="button"
@@ -213,7 +213,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Image className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'photo' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Photo</div>
+                <div className="text-sm font-semibold text-gray-900">Photo</div>
               </button>
 
               <button
@@ -226,7 +226,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Video className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'video' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Video</div>
+                <div className="text-sm font-semibold text-gray-900">Video</div>
               </button>
 
               <button
@@ -239,14 +239,14 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Multiple</div>
+                <div className="text-sm font-semibold text-gray-900">Multiple</div>
               </button>
             </div>
           </GlassCard>
 
           {/* File Upload */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {formData.contentType === 'gallery' ? 'Upload Images (Multiple)' : 'Upload File'}
             </h3>
 
@@ -355,7 +355,7 @@ export default function CreateContentPage() {
 
           {/* Title & Description */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Details</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
@@ -364,7 +364,7 @@ export default function CreateContentPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Give your content a catchy title"
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                   required
                 />
               </div>
@@ -376,7 +376,7 @@ export default function CreateContentPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what fans will get..."
                   rows={4}
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                 />
               </div>
             </div>
@@ -384,7 +384,7 @@ export default function CreateContentPage() {
 
           {/* Pricing */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Pricing</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h3>
 
             <div className="flex items-center gap-4 mb-4">
               <button
@@ -397,7 +397,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Free</div>
+                <div className="text-sm font-semibold text-gray-900">Free</div>
                 <div className="text-xs text-gray-600">Everyone can view</div>
               </button>
 
@@ -411,7 +411,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-800">Locked</div>
+                <div className="text-sm font-semibold text-gray-900">Locked</div>
                 <div className="text-xs text-gray-600">Pay to unlock</div>
               </button>
             </div>
@@ -426,7 +426,7 @@ export default function CreateContentPage() {
                     min="1"
                     value={formData.unlockPrice}
                     onChange={(e) => setFormData({ ...formData, unlockPrice: parseInt(e.target.value) || 0 })}
-                    className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
                   />
                   <span className="text-gray-600">coins</span>
                 </div>
