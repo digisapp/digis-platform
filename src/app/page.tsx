@@ -133,28 +133,12 @@ export default function Home() {
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight animate-gradient">
               Connect With Creators
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
+            <p className="text-lg md:text-xl lg:text-2xl text-gray-800 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
               Experience personalized video calls, live streams, and exclusive content.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <button
-                onClick={() => setShowSignup(true)}
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-2xl hover:shadow-digis-cyan/50"
-              >
-                Start for Free →
-              </button>
-              <button
-                onClick={() => setShowLogin(true)}
-                className="w-full sm:w-auto px-8 py-4 glass border-2 border-white/30 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all hover:border-digis-cyan"
-              >
-                Sign In
-              </button>
-            </div>
-
             {/* Trust Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/80 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-gray-700 text-sm">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -184,8 +168,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-white mb-3">Video Calls</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-3">Video Calls</h3>
+                <p className="text-gray-700 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
               </div>
 
               {/* Live Streaming */}
@@ -196,8 +180,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-white mb-3">Live Streams</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Watch live performances and interact with virtual gifts</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-3">Live Streams</h3>
+                <p className="text-gray-700 font-medium leading-relaxed">Watch live performances and interact with virtual gifts</p>
               </div>
 
               {/* Exclusive Content */}
@@ -207,40 +191,11 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-white mb-3">Exclusive Content</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Access premium content and messages from creators</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-3">Exclusive Content</h3>
+                <p className="text-gray-700 font-medium leading-relaxed">Access premium content and messages from creators</p>
               </div>
             </div>
 
-            {/* Coin Showcase */}
-            <div className="mt-24 glass p-12 md:p-16 rounded-3xl border-2 border-yellow-400/50 hover:border-yellow-400 hover:shadow-2xl transition-all backdrop-blur-xl">
-              <div className="flex items-center justify-center mb-8">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur-xl opacity-60 animate-pulse"></div>
-                  <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600 flex items-center justify-center shadow-2xl">
-                    <Coins className="w-14 h-14 text-white" strokeWidth={2.5} />
-                  </div>
-                </div>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Powered by Digis Coins</h2>
-              <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-semibold leading-relaxed">
-                Our secure digital currency makes transactions seamless. Buy coins once, use them across all creator interactions.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
-                <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="font-bold">Fast & Secure</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="font-bold">No Hidden Fees</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span className="font-bold">Universal Currency</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
