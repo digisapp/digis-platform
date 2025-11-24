@@ -124,8 +124,8 @@ export default function UsernameSetupPage() {
         throw new Error(data.error || 'Failed to set username');
       }
 
-      // Success! Redirect to dashboard
-      router.push('/dashboard');
+      // Success! Redirect to role selection
+      router.push('/welcome/role');
 
     } catch (err: any) {
       console.error('Error setting username:', err);
