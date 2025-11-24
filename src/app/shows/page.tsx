@@ -6,11 +6,13 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket } from 'lucide-react';
 
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+
 interface Show {
   id: string;
   title: string;
   description: string | null;
-  showType: 'live_show' | 'qna' | 'workshop' | 'meetgreet' | 'performance';
+  showType: ShowType;
   ticketPrice: number;
   maxTickets: number | null;
   ticketsSold: number;
