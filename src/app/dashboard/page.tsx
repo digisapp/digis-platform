@@ -83,10 +83,10 @@ export default function FanDashboard() {
       }
 
       // Fetch featured creators (from explore)
-      const creatorsRes = await fetch('/api/creators/explore');
+      const creatorsRes = await fetch('/api/explore?limit=6');
       if (creatorsRes.ok) {
         const creatorsData = await creatorsRes.json();
-        setFeaturedCreators((creatorsData.creators || []).slice(0, 6));
+        setFeaturedCreators(creatorsData.data?.creators || []);
       }
 
       // Fetch upcoming shows
