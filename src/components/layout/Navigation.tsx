@@ -330,7 +330,7 @@ export function Navigation() {
           <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Animated gradient border effect */}
             <div className="absolute inset-0 rounded-2xl md:rounded-xl overflow-hidden pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{ animation: 'shimmer 3s infinite' }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
             </div>
 
             {/* Profile Header */}

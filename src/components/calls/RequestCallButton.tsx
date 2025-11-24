@@ -192,7 +192,7 @@ export function RequestCallButton({
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200">
             {/* Animated gradient border effect */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{ animation: 'shimmer 3s infinite' }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
             </div>
             <div className="relative">
             {waiting ? (
