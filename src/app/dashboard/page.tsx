@@ -214,12 +214,6 @@ export default function FanDashboard() {
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
-              <button
-                onClick={() => router.push('/explore')}
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
-              >
-                Explore all →
-              </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
