@@ -687,7 +687,7 @@ export function Navigation() {
       </nav>
 
       {/* Desktop Side Navigation */}
-      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 glass backdrop-blur-xl border-r border-purple-200 flex-col items-center py-6 z-50 shadow-lg">
+      <nav className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 backdrop-blur-xl bg-white/80 border-r border-gray-200 flex-col items-center py-6 z-50 shadow-sm">
         {/* Logo */}
         <button
           onClick={() => router.push(userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard')}
