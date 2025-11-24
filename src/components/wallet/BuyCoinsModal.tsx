@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { GlassModal, GlassButton, LoadingSpinner } from '@/components/ui';
 import { loadStripe } from '@stripe/stripe-js';
+import { COIN_PACKAGES } from '@/lib/stripe/config';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -12,43 +13,24 @@ interface BuyCoinsModalProps {
   onSuccess?: () => void;
 }
 
-const COIN_PACKAGES = [
-  {
-    id: 'starter',
-    name: '100 Coins',
-    coins: 100,
-    price: '$9.99',
-    priceValue: 999,
-    popular: false,
-  },
-  {
-    id: 'popular',
-    name: '500 Coins',
-    coins: 500,
-    price: '$44.99',
-    priceValue: 4499,
-    popular: true,
-    savings: '10% Bonus',
-  },
-  {
-    id: 'premium',
-    name: '1000 Coins',
-    coins: 1000,
-    price: '$79.99',
-    priceValue: 7999,
-    popular: false,
-    savings: '20% Bonus',
-  },
-  {
-    id: 'ultimate',
-    name: '5000 Coins',
-    coins: 5000,
-    price: '$349.99',
-    priceValue: 34999,
-    popular: false,
-    savings: '30% Bonus',
-  },
-];
+// Format coin packages for display
+const formatPrice = (cents: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(cents / 100);
+};
+
+const DISPLAY_PACKAGES = COIN_PACKAGES.map(pkg => ({
+  id: pkg.id,
+  name: pkg.name,
+  coins: pkg.coins,
+  price: formatPrice(pkg.price),
+  priceValue: pkg.price,
+  popular: pkg.popular,
+  savings: pkg.savings,
+  description: pkg.description,
+}));
 
 export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
@@ -115,7 +97,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
         {/* Package Grid */}
         <div className="grid md:grid-cols-2 gap-4">
-          {COIN_PACKAGES.map((pkg) => (
+          {DISPLAY_PACKAGES.map((pkg) => (
             <div
               key={pkg.id}
               className={`
