@@ -105,7 +105,7 @@ export default function CreatorEarningsPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4">
-        <MobileHeader title="Earnings" showBack />
+        <MobileHeader />
         <div className="max-w-7xl mx-auto pt-20">
           <GlassCard className="p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -122,7 +122,7 @@ export default function CreatorEarningsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-20">
-      <MobileHeader title="Earnings" showBack />
+      <MobileHeader />
 
       <div className="max-w-7xl mx-auto px-4 pt-20 space-y-6">
         {/* Balance Overview */}
