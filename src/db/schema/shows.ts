@@ -8,7 +8,8 @@ import { relations } from 'drizzle-orm';
 export const showTypeEnum = pgEnum('show_type', [
   'performance',    // 🎭 Concerts, comedy, theater
   'class',         // 🧘 Yoga, pilates, fitness, dance
-  'qna',           // 💬 Q&A, meet & greet, hangout
+  'qna',           // 💬 Q&A, fan interaction, group chat
+  'hangout',       // 💕 Private dates, 1-on-1 time, intimate sessions
   'gaming',        // 🎮 Gaming streams, playthroughs
   'workshop',      // 🎓 Tutorials, teaching, how-to
   'other',         // 🎪 Everything else

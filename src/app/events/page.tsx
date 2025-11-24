@@ -7,7 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
 
 interface Show {
   id: string;
@@ -42,6 +42,7 @@ export default function EventsPage() {
     { value: 'performance' as const, label: 'Performance', icon: '🎭' },
     { value: 'class' as const, label: 'Class', icon: '🧘' },
     { value: 'qna' as const, label: 'Q&A', icon: '💬' },
+    { value: 'hangout' as const, label: 'Hangout', icon: '💕' },
     { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
     { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
     { value: 'other' as const, label: 'Other', icon: '🎪' },

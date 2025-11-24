@@ -9,7 +9,7 @@ import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
 
 interface Show {
   id: string;
@@ -96,6 +96,7 @@ export default function CreatorShowsPage() {
     { value: 'performance' as const, label: 'Performance', icon: '🎭' },
     { value: 'class' as const, label: 'Class', icon: '🧘' },
     { value: 'qna' as const, label: 'Q&A', icon: '💬' },
+    { value: 'hangout' as const, label: 'Hangout', icon: '💕' },
     { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
     { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
     { value: 'other' as const, label: 'Other', icon: '🎪' },

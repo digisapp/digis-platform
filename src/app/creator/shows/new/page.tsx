@@ -27,9 +27,10 @@ export default function CreateShowPage() {
   const showTypes = [
     { value: 'performance', label: 'Performance', icon: '🎭', description: 'Concerts, comedy, theater', gradient: 'from-amber-500 to-orange-500' },
     { value: 'class', label: 'Class', icon: '🧘', description: 'Yoga, pilates, fitness, dance', gradient: 'from-green-500 to-emerald-500' },
-    { value: 'qna', label: 'Q&A / Meet & Greet', icon: '💬', description: 'Hangout, chat, Q&A', gradient: 'from-blue-500 to-cyan-500' },
+    { value: 'qna', label: 'Q&A', icon: '💬', description: 'Fan Q&A, group meet & greet', gradient: 'from-blue-500 to-cyan-500' },
+    { value: 'hangout', label: 'Hangout', icon: '💕', description: 'Private dates, 1-on-1 time', gradient: 'from-pink-500 to-rose-500' },
     { value: 'gaming', label: 'Gaming', icon: '🎮', description: 'Gaming streams, playthroughs', gradient: 'from-purple-500 to-violet-500' },
-    { value: 'workshop', label: 'Workshop', icon: '🎓', description: 'Tutorials, teaching, how-to', gradient: 'from-pink-500 to-rose-500' },
+    { value: 'workshop', label: 'Workshop', icon: '🎓', description: 'Tutorials, teaching, how-to', gradient: 'from-indigo-500 to-blue-500' },
     { value: 'other', label: 'Other', icon: '🎪', description: 'Everything else', gradient: 'from-gray-500 to-slate-500' },
   ];
 
