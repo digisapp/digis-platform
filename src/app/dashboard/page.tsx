@@ -330,7 +330,7 @@ export default function FanDashboard() {
             <div className="text-6xl mb-4">🎬</div>
             <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">Welcome to Digis!</h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              Discover live streams, exclusive shows, and connect with amazing creators
+              No live content right now, but there's plenty to discover
             </p>
             <button
               onClick={() => router.push('/explore')}
