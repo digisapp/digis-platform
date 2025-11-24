@@ -591,10 +591,10 @@ export default function CreatorDashboard() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                  <Clock className="w-8 h-8 text-gray-600" />
+                  <Clock className="w-8 h-8 text-gray-300" />
                 </div>
-                <p className="text-gray-700 font-medium mb-2">No recent activity</p>
-                <p className="text-sm text-gray-600">Your activity will appear here</p>
+                <p className="text-white font-medium mb-2">No recent activity</p>
+                <p className="text-sm text-gray-300">Your activity will appear here</p>
               </div>
             )}
           </div>

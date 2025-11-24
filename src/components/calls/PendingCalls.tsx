@@ -121,8 +121,8 @@ export function PendingCalls() {
           <Phone className="w-5 h-5 text-digis-pink" />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-gray-900">Calls</h2>
-          <p className="text-xs text-gray-600">
+          <h2 className="text-lg font-bold text-white">Calls</h2>
+          <p className="text-xs text-gray-300">
             {calls.length === 0 ? 'No pending requests' : `${calls.length} pending`}
           </p>
         </div>
@@ -136,8 +136,8 @@ export function PendingCalls() {
       {calls.length === 0 ? (
         <div className="text-center py-6">
           <div className="text-3xl mb-2">📞</div>
-          <p className="text-gray-700 text-sm mb-1">No pending call requests</p>
-          <p className="text-xs text-gray-600">
+          <p className="text-white text-sm mb-1">No pending call requests</p>
+          <p className="text-xs text-gray-300">
             When fans request calls, they&apos;ll appear here
           </p>
         </div>
