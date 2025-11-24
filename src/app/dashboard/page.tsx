@@ -253,10 +253,6 @@ export default function FanDashboard() {
                       <h3 className="text-sm font-bold text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                         {creator.displayName || creator.username}
                       </h3>
-                      <p className="text-cyan-400 text-xs flex items-center gap-1 mt-1">
-                        <Users className="w-3 h-3" />
-                        {creator.followerCount}
-                      </p>
                     </div>
                   </div>
                 </div>
