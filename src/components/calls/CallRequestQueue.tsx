@@ -112,7 +112,7 @@ export function CallRequestQueue({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-6 border-2 border-purple-200">
+      <div className="backdrop-blur-xl bg-black/40 rounded-xl p-6 border-2 border-yellow-400/30">
         <div className="flex items-center justify-center py-8">
           <LoadingSpinner size="lg" />
         </div>
@@ -122,13 +122,13 @@ export function CallRequestQueue({
 
   if (requests.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 border-2 border-purple-200">
+      <div className="backdrop-blur-xl bg-black/40 rounded-xl p-6 border-2 border-yellow-400/30">
         <div className="text-center py-8">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Phone className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 bg-yellow-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Phone className="w-8 h-8 text-yellow-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">No Pending Requests</h3>
-          <p className="text-gray-600 text-sm">
+          <h3 className="text-lg font-semibold text-white mb-2">No Pending Requests</h3>
+          <p className="text-gray-300 text-sm">
             Call requests will appear here when fans want to connect with you.
           </p>
         </div>
@@ -139,9 +139,9 @@ export function CallRequestQueue({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Phone className="w-6 h-6 text-purple-500" />
-          Call Requests
+        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          <Phone className="w-6 h-6 text-yellow-400" />
+          Pending Requests
           {requests.length > 0 && (
             <span className="ml-2 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full animate-pulse">
               {requests.length}
@@ -154,7 +154,7 @@ export function CallRequestQueue({
         {requests.map((request) => (
           <div
             key={request.id}
-            className="bg-white rounded-xl p-6 border-2 border-purple-200 hover:border-digis-cyan transition-all"
+            className="backdrop-blur-xl bg-black/40 rounded-xl p-6 border-2 border-yellow-400/50 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(250,204,21,0.3)] transition-all"
           >
             <div className="flex items-start gap-4">
               {/* Caller Avatar */}
@@ -163,10 +163,10 @@ export function CallRequestQueue({
                   <img
                     src={request.callerAvatar}
                     alt={request.callerName}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-purple-200"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-yellow-400/50"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl border-2 border-purple-200">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-cyan-400 flex items-center justify-center text-gray-900 font-bold text-xl border-2 border-yellow-400/50">
                     {request.callerName[0].toUpperCase()}
                   </div>
                 )}
@@ -176,20 +176,20 @@ export function CallRequestQueue({
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    <h3 className="text-lg font-bold text-white mb-1">
                       {request.callerName}
                     </h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-300">
                       <div className="flex items-center gap-1">
                         {request.callType === 'video' ? (
-                          <Video className="w-4 h-4 text-green-500" />
+                          <Video className="w-4 h-4 text-cyan-400" />
                         ) : (
-                          <Phone className="w-4 h-4 text-blue-500" />
+                          <Phone className="w-4 h-4 text-yellow-400" />
                         )}
                         <span className="capitalize">{request.callType} Call</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4 text-gray-500" />
+                        <Clock className="w-4 h-4 text-gray-400" />
                         <span>{getTimeAgo(request.requestedAt)}</span>
                       </div>
                     </div>
@@ -197,33 +197,32 @@ export function CallRequestQueue({
 
                   {/* Rate Badge */}
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-green-600 font-bold">
-                      <DollarSign className="w-5 h-5" />
-                      <span className="text-2xl">{request.ratePerMinute}</span>
+                    <div className="flex items-center gap-1 font-bold">
+                      <span className="text-2xl bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">{request.ratePerMinute}</span>
                     </div>
-                    <p className="text-xs text-gray-600">per minute</p>
+                    <p className="text-xs text-gray-300">coins/min</p>
                   </div>
                 </div>
 
                 {/* Estimated Earnings */}
                 {request.estimatedDuration && (
-                  <div className="mb-3 p-3 bg-gradient-to-r from-yellow-50 to-green-50 border border-yellow-200 rounded-lg">
+                  <div className="mb-3 p-3 bg-yellow-400/10 border border-yellow-400/30 rounded-lg">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700">
+                      <span className="text-gray-300">
                         Estimated {request.estimatedDuration}min call
                       </span>
-                      <span className="font-bold text-green-700">
-                        ~${(request.ratePerMinute * request.estimatedDuration) / 100} earnings
+                      <span className="font-bold bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+                        ~{request.ratePerMinute * request.estimatedDuration} coins
                       </span>
                     </div>
                   </div>
                 )}
 
                 {/* Warning Notice */}
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mb-4 p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-blue-700">
+                    <AlertCircle className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-gray-300">
                       You'll earn {request.ratePerMinute} coins/min while on the call. Timer starts
                       when you accept.
                     </p>
@@ -235,7 +234,7 @@ export function CallRequestQueue({
                   <button
                     onClick={() => handleReject(request.id)}
                     disabled={processingId === request.id}
-                    className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-3 backdrop-blur-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {processingId === request.id ? (
                       <LoadingSpinner size="sm" />
@@ -250,7 +249,7 @@ export function CallRequestQueue({
                   <button
                     onClick={() => handleAccept(request.id)}
                     disabled={processingId === request.id}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 shadow-lg shadow-yellow-500/50 flex items-center justify-center gap-2"
                   >
                     {processingId === request.id ? (
                       <LoadingSpinner size="sm" />
