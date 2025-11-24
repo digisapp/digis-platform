@@ -99,15 +99,15 @@ export default function CreatorShowsPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
         {/* Filter Tabs + Create Show Button */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+        <div className="mb-6 flex gap-3">
           {(['all', 'scheduled', 'live', 'ended'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
               className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
                 filter === tab
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 shadow-lg scale-105'
-                  : 'bg-white/40 backdrop-blur-xl border border-white/60 text-gray-900 hover:bg-white/60 hover:scale-105'
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg shadow-yellow-500/50 scale-105'
+                  : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-yellow-500/50'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
