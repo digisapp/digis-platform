@@ -108,11 +108,11 @@ export function VideoCall({ callId }: VideoCallProps) {
   };
 
   const handleDisconnect = useCallback(() => {
-    router.push('/calls/history');
+    router.push('/calls');
   }, [router]);
 
   const handleEndCall = useCallback(() => {
-    router.push('/calls/history');
+    router.push('/calls');
   }, [router]);
 
   if (loading) {
@@ -136,7 +136,7 @@ export function VideoCall({ callId }: VideoCallProps) {
             <div className="text-6xl mb-4">❌</div>
             <h2 className="text-2xl font-bold text-white mb-4">Call Error</h2>
             <p className="text-gray-300 mb-6">{error}</p>
-            <GlassButton variant="cyan" onClick={() => router.push('/calls/history')}>
+            <GlassButton variant="cyan" onClick={() => router.push('/calls')}>
               Back to Calls
             </GlassButton>
           </div>

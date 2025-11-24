@@ -182,11 +182,11 @@ export default function CreatorCallsPage() {
         {/* Call History Link */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => router.push('/calls/history')}
+            onClick={() => router.push('/calls')}
             className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-purple-200 text-gray-900 rounded-xl font-semibold hover:border-digis-cyan hover:scale-105 transition-all"
           >
             <Calendar className="w-5 h-5" />
-            View Call History
+            View Calls
           </button>
         </div>
       </div>

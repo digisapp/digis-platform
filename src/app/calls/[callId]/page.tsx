@@ -137,8 +137,8 @@ export default function VideoCallPage() {
       const result = await res.json();
       console.log('Call ended:', result);
 
-      // Redirect to call history or dashboard
-      router.push('/calls/history');
+      // Redirect to calls page
+      router.push('/calls');
     } catch (err: any) {
       console.error('Error ending call:', err);
       alert('Failed to end call properly. Please try again.');
@@ -167,7 +167,7 @@ export default function VideoCallPage() {
             <p className="text-gray-400">{error}</p>
           </div>
           <button
-            onClick={() => router.push('/calls/history')}
+            onClick={() => router.push('/calls')}
             className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
           >
             Back to Calls
