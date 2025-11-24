@@ -390,7 +390,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -398,7 +398,7 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
         <GlassCard className="max-w-md w-full p-8 text-center">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
           <p className="text-gray-600 mb-4">{error || 'User does not exist'}</p>

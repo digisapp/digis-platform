@@ -195,7 +195,7 @@ export default function CreateContentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -48,7 +48,7 @@ export default function CreatorCallsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Mobile Header with Logo */}
       <MobileHeader />
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">

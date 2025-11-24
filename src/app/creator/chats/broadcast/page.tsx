@@ -161,7 +161,7 @@ export default function BroadcastMessagePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-digis-cyan mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -171,7 +171,7 @@ export default function BroadcastMessagePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-4xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Message Type */}

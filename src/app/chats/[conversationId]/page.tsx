@@ -323,7 +323,7 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -331,7 +331,7 @@ export default function ChatPage() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Conversation not found</h2>
           <button
@@ -347,7 +347,7 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-pastel-gradient flex flex-col">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col">
         {/* Header */}
         <div className="glass backdrop-blur-xl border-b border-purple-200 sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4 max-w-4xl">

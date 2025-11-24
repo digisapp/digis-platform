@@ -17,11 +17,11 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
   return (
     <div className={`animate-breathe ${className}`}>
       <Image
-        src="/images/digis-logo-black.png"
+        src="/images/digis-logo-white.png"
         alt="Loading"
         width={logoSizes[size].width}
         height={logoSizes[size].height}
-        className="w-auto h-auto"
+        className="w-auto h-auto drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
       />
       <style jsx>{`
         @keyframes breathe {

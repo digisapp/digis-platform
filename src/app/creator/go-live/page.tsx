@@ -312,7 +312,7 @@ export default function GoLivePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -320,7 +320,7 @@ export default function GoLivePage() {
 
   if (!isCreator) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full glass rounded-2xl border-2 border-purple-200 p-8 text-center">
           <div className="text-6xl mb-4">🎥</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Creator Access Required</h1>
@@ -343,7 +343,7 @@ export default function GoLivePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 

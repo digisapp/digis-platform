@@ -114,14 +114,14 @@ export default function CreatorGoalsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient md:pl-20 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 pb-24 md:pb-8">
       <div className="container mx-auto px-4 pt-6 md:pt-10 max-w-5xl">
         {/* Create Goal Button */}
         <button
