@@ -12,8 +12,6 @@ interface Call {
   creatorId: string;
   status: string;
   ratePerMinute: number;
-  duration: number | null;
-  scheduledFor: string | null;
   durationSeconds: number | null;
   requestedAt: string;
   creator: {
@@ -26,7 +24,7 @@ interface Call {
 
 export default function CallsPage() {
   const router = useRouter();
-  const [upcomingCalls, setUpcomingCalls] = useState<Call[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<Call[]>([]);
   const [pastCalls, setPastCalls] = useState<Call[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,29 +40,16 @@ export default function CallsPage() {
       const data = await res.json();
       const allCalls = data.calls || [];
 
-      // Separate upcoming (pending + scheduled future) from past
-      const now = new Date();
-      const upcoming = allCalls.filter((call: Call) => {
-        if (call.status === 'pending' || call.status === 'active') return true;
-        if (call.scheduledFor) {
-          const scheduledDate = new Date(call.scheduledFor);
-          return scheduledDate > now;
-        }
-        return false;
-      });
+      // Separate pending/active (waiting for response or in progress) from past (completed/rejected/cancelled)
+      const pending = allCalls.filter((call: Call) =>
+        call.status === 'pending' || call.status === 'accepted' || call.status === 'active'
+      );
 
-      const past = allCalls.filter((call: Call) => {
-        if (call.status === 'completed' || call.status === 'cancelled' || call.status === 'rejected') {
-          return true;
-        }
-        if (call.scheduledFor) {
-          const scheduledDate = new Date(call.scheduledFor);
-          return scheduledDate <= now;
-        }
-        return false;
-      });
+      const past = allCalls.filter((call: Call) =>
+        call.status === 'completed' || call.status === 'cancelled' || call.status === 'rejected'
+      );
 
-      setUpcomingCalls(upcoming);
+      setPendingRequests(pending);
       setPastCalls(past);
       setLoading(false);
     } catch (error) {
@@ -94,13 +79,35 @@ export default function CallsPage() {
       case 'completed':
         return 'bg-green-100 text-green-700 border border-green-200';
       case 'pending':
-      case 'active':
+        return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+      case 'accepted':
         return 'bg-blue-100 text-blue-700 border border-blue-200';
+      case 'active':
+        return 'bg-purple-100 text-purple-700 border border-purple-200';
       case 'rejected':
       case 'cancelled':
         return 'bg-red-100 text-red-700 border border-red-200';
       default:
         return 'bg-gray-100 text-gray-700 border border-gray-200';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Waiting for response';
+      case 'accepted':
+        return 'Accepted - Ready to join';
+      case 'active':
+        return 'In progress';
+      case 'completed':
+        return 'Completed';
+      case 'rejected':
+        return 'Declined';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
     }
   };
 
@@ -119,19 +126,28 @@ export default function CallsPage() {
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Video Calls</h1>
-          <p className="text-gray-600">Book 1-on-1 video calls with your favorite creators</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Calls</h1>
+          <p className="text-gray-600">Your call requests and history with creators</p>
         </div>
 
-        {/* Upcoming Calls */}
-        {upcomingCalls.length > 0 && (
+        {/* Pending Requests */}
+        {pendingRequests.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Upcoming Calls</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Active Requests</h2>
             <div className="space-y-4">
-              {upcomingCalls.map((call) => (
+              {pendingRequests.map((call) => (
                 <div
                   key={call.id}
-                  className="backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 hover:border-purple-500/50 transition-all shadow-sm"
+                  onClick={() => {
+                    if (call.status === 'accepted' || call.status === 'active') {
+                      router.push(`/calls/${call.id}`);
+                    }
+                  }}
+                  className={`backdrop-blur-xl bg-white/80 rounded-2xl border border-gray-200 p-6 transition-all shadow-sm ${
+                    call.status === 'accepted' || call.status === 'active'
+                      ? 'hover:border-purple-500/50 cursor-pointer'
+                      : ''
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1">
@@ -155,30 +171,35 @@ export default function CallsPage() {
                             {call.creator.displayName || call.creator.username}
                           </h3>
                           <span className={`text-xs px-2 py-1 rounded-full font-semibold ${getStatusColor(call.status)}`}>
-                            {call.status}
+                            {getStatusText(call.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            {call.scheduledFor ? formatDate(call.scheduledFor) : formatDate(call.requestedAt)}
+                            Requested {formatDate(call.requestedAt)}
                           </span>
-                          {call.duration && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {call.duration} min
-                            </span>
-                          )}
+                          <span className="text-gray-600">
+                            {call.ratePerMinute} coins/min
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Rate */}
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">
-                        {call.ratePerMinute} coins/min
+                    {/* Join Button for Accepted/Active */}
+                    {(call.status === 'accepted' || call.status === 'active') && (
+                      <div>
+                        <button
+                          className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:scale-105 transition-all shadow-sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/calls/${call.id}`);
+                          }}
+                        >
+                          {call.status === 'active' ? 'Rejoin Call' : 'Join Call'}
+                        </button>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -243,7 +264,7 @@ export default function CallsPage() {
         )}
 
         {/* Empty State */}
-        {upcomingCalls.length === 0 && pastCalls.length === 0 && (
+        {pendingRequests.length === 0 && pastCalls.length === 0 && (
           <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-12 text-center shadow-sm">
             <Phone className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-2xl font-bold text-gray-900 mb-3">No calls yet</h3>
