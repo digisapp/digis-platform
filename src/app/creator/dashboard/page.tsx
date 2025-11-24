@@ -591,10 +591,10 @@ export default function CreatorDashboard() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                  <Clock className="w-8 h-8 text-gray-400" />
+                  <Clock className="w-8 h-8 text-gray-600" />
                 </div>
-                <p className="text-gray-400 font-medium mb-2">No recent activity</p>
-                <p className="text-sm text-gray-400">Your activity will appear here</p>
+                <p className="text-gray-700 font-medium mb-2">No recent activity</p>
+                <p className="text-sm text-gray-600">Your activity will appear here</p>
               </div>
             )}
           </div>
@@ -624,7 +624,7 @@ export default function CreatorDashboard() {
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
                     placeholder="What are you raising coins for?"
                     rows={2}
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   />
                 </div>
 
@@ -637,7 +637,7 @@ export default function CreatorDashboard() {
                     value={goalFormData.targetAmount}
                     onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
                     placeholder="e.g., 10000"
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
