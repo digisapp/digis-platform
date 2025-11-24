@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, payoutRequests, wallets, creatorBankingInfo } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe/config';
+import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -74,6 +75,20 @@ export async function POST(request: NextRequest) {
       bankingInfoId: banking.id,
       status: 'pending',
     }).returning();
+
+    // Send confirmation email
+    try {
+      await sendPayoutRequestEmail({
+        creatorEmail: user.email || '',
+        creatorName: profile.user?.displayName || profile.user?.username || 'Creator',
+        amount,
+        status: 'pending',
+        requestedAt: new Date(payout.requestedAt),
+      });
+    } catch (emailError) {
+      console.error('Failed to send payout request email:', emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,
