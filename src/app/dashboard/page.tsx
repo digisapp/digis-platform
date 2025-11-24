@@ -5,31 +5,60 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
-import { Calendar, Clock, Ticket, Phone, Video, MapPin, Play, Library, Search } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Clock, Users, Eye } from 'lucide-react';
 
-interface UpcomingEvent {
+interface LiveStream {
   id: string;
-  type: 'show' | 'call';
   title: string;
-  creatorName: string;
-  creatorUsername?: string;
-  scheduledFor: Date;
-  location?: string;
-  ticketPrice?: number;
-  duration?: number;
-  status?: string;
+  thumbnailUrl: string | null;
+  viewerCount: number;
+  status: string;
+  creator: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+}
+
+interface FeaturedCreator {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  followerCount: number;
+  isLive: boolean;
+}
+
+interface UpcomingShow {
+  id: string;
+  title: string;
+  description: string | null;
+  showType: string;
+  ticketPrice: number;
+  ticketsSold: number;
+  maxTickets: number | null;
+  scheduledStart: string;
+  coverImageUrl: string | null;
+  creator: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
 }
 
 export default function FanDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
-  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
+  const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
+  const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
 
   useEffect(() => {
     checkAuth();
-    fetchUpcomingEvents();
+    fetchContent();
   }, []);
 
   const checkAuth = async () => {
@@ -44,79 +73,43 @@ export default function FanDashboard() {
     setLoading(false);
   };
 
-  const fetchUpcomingEvents = async () => {
+  const fetchContent = async () => {
     try {
-      setLoadingEvents(true);
-      const events: UpcomingEvent[] = [];
-
-      // Fetch purchased tickets for upcoming shows
-      const ticketsRes = await fetch('/api/shows/my-tickets');
-      if (ticketsRes.ok) {
-        const ticketsData = await ticketsRes.json();
-        (ticketsData.data || [])
-          .filter((ticket: any) => {
-            const showDate = new Date(ticket.show?.scheduledFor);
-            return showDate > new Date() && ticket.show?.status !== 'ended';
-          })
-          .forEach((ticket: any) => {
-            events.push({
-              id: `show-${ticket.show.id}`,
-              type: 'show',
-              title: ticket.show.title,
-              creatorName: ticket.show.creatorName || 'Creator',
-              creatorUsername: ticket.show.creatorUsername,
-              scheduledFor: new Date(ticket.show.scheduledFor),
-              ticketPrice: ticket.show.ticketPrice,
-              status: ticket.show.status,
-            });
-          });
+      // Fetch live streams
+      const streamsRes = await fetch('/api/streams/live');
+      if (streamsRes.ok) {
+        const streamsData = await streamsRes.json();
+        setLiveStreams(streamsData.streams || []);
       }
 
-      // Fetch scheduled calls
-      const callsRes = await fetch('/api/calls/history?status=pending&limit=50');
-      if (callsRes.ok) {
-        const callsData = await callsRes.json();
-        (callsData.data || [])
-          .filter((call: any) => {
-            if (!call.scheduledFor) return false;
-            const callDate = new Date(call.scheduledFor);
-            return callDate > new Date();
-          })
-          .forEach((call: any) => {
-            events.push({
-              id: `call-${call.id}`,
-              type: 'call',
-              title: `Video Call with ${call.creatorName || 'Creator'}`,
-              creatorName: call.creatorName || 'Creator',
-              creatorUsername: call.creatorUsername,
-              scheduledFor: new Date(call.scheduledFor),
-              duration: call.duration,
-              status: call.status,
-            });
-          });
+      // Fetch featured creators (from explore)
+      const creatorsRes = await fetch('/api/creators/explore');
+      if (creatorsRes.ok) {
+        const creatorsData = await creatorsRes.json();
+        setFeaturedCreators((creatorsData.creators || []).slice(0, 6));
       }
 
-      // Sort by date (soonest first)
-      events.sort((a, b) => a.scheduledFor.getTime() - b.scheduledFor.getTime());
-      setUpcomingEvents(events);
+      // Fetch upcoming shows
+      const showsRes = await fetch('/api/shows/upcoming');
+      if (showsRes.ok) {
+        const showsData = await showsRes.json();
+        setUpcomingShows((showsData.shows || []).slice(0, 6));
+      }
     } catch (err) {
-      console.error('Error fetching upcoming events:', err);
-    } finally {
-      setLoadingEvents(false);
+      console.error('Error fetching content:', err);
     }
   };
 
-  const getTimeUntilEvent = (date: Date) => {
+  const formatShowDate = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diff = date.getTime() - now.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `in ${hours} hour${hours > 1 ? 's' : ''}`;
-    const minutes = Math.floor(diff / (1000 * 60));
-    if (minutes > 0) return `in ${minutes} min${minutes > 1 ? 's' : ''}`;
-    return 'Starting soon!';
+    if (days > 0) return `in ${days}d`;
+    if (hours > 0) return `in ${hours}h`;
+    return 'Soon';
   };
 
   if (loading) {
@@ -129,7 +122,7 @@ export default function FanDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 md:pl-20 relative overflow-hidden">
-      {/* Mobile Header with Logo */}
+      {/* Mobile Header */}
       <MobileHeader />
 
       {/* Animated Background Mesh - Desktop only */}
@@ -140,225 +133,219 @@ export default function FanDashboard() {
       </div>
 
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Upcoming Events Section */}
-        {loadingEvents ? (
-          <div className="mb-8 backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-8">
-            <div className="flex items-center justify-center">
-              <LoadingSpinner size="md" />
-              <span className="ml-3 text-gray-300">Loading your upcoming events...</span>
-            </div>
-          </div>
-        ) : upcomingEvents.length > 0 && (
-          <div className="mb-8 backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6">
+        {/* Live Streams Section */}
+        {liveStreams.length > 0 && (
+          <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <Calendar className="w-6 h-6 text-cyan-400" />
-                  Upcoming Events
-                </h2>
-                <p className="text-sm text-gray-400 mt-1">
-                  {upcomingEvents.length} event{upcomingEvents.length > 1 ? 's' : ''} scheduled
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-red-500 rounded-full blur opacity-75"></div>
+                  <div className="relative w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                </div>
+                <h2 className="text-3xl font-black text-white">Live Now</h2>
+                <span className="text-sm text-gray-400 bg-white/10 px-3 py-1 rounded-full">{liveStreams.length}</span>
               </div>
               <button
-                onClick={() => router.push('/shows/my-tickets')}
+                onClick={() => router.push('/live')}
                 className="text-sm text-cyan-400 hover:text-pink-400 transition-colors font-semibold"
               >
                 View all →
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingEvents.slice(0, 4).map((event) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {liveStreams.slice(0, 8).map((stream) => (
                 <div
-                  key={event.id}
-                  className="group relative cursor-pointer"
-                  onClick={() => {
-                    if (event.type === 'show') {
-                      router.push(`/shows/${event.id.replace('show-', '')}`);
-                    } else {
-                      router.push('/calls/history');
-                    }
-                  }}
+                  key={stream.id}
+                  onClick={() => router.push(`/live/${stream.creator.username}`)}
+                  className="group cursor-pointer"
                 >
-                  {/* Neon Glow Effect */}
-                  <div className={`absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500 ${
-                    event.type === 'show'
-                      ? 'bg-gradient-to-r from-purple-500 to-indigo-500'
-                      : 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                  }`}></div>
+                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 mb-3">
+                    {stream.thumbnailUrl ? (
+                      <img
+                        src={stream.thumbnailUrl}
+                        alt={stream.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                        <span className="text-4xl">🎥</span>
+                      </div>
+                    )}
 
-                  <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl p-4 border border-white/20 hover:border-cyan-500/50 transition-all">
-                    {/* Event Type Badge */}
-                    <div className="absolute top-4 right-4">
-                      {event.type === 'show' ? (
-                        <div className="bg-purple-500/30 text-purple-300 px-2 py-1 rounded-full flex items-center gap-1">
-                          <Ticket className="w-3 h-3" />
-                          <span className="text-xs font-semibold">Ticket</span>
-                        </div>
+                    {/* Live Badge */}
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      LIVE
+                    </div>
+
+                    {/* Viewer Count */}
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      {stream.viewerCount}
+                    </div>
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+
+                  {/* Stream Info */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                      {stream.creator.avatarUrl ? (
+                        <img src={stream.creator.avatarUrl} alt={stream.creator.displayName || stream.creator.username} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        <div className="bg-blue-500/30 text-blue-300 px-2 py-1 rounded-full flex items-center gap-1">
-                          <Phone className="w-3 h-3" />
-                          <span className="text-xs font-semibold">Call</span>
-                        </div>
+                        <span className="text-white font-bold text-sm">{(stream.creator.displayName || stream.creator.username)[0].toUpperCase()}</span>
                       )}
                     </div>
-
-                    {/* Event Icon */}
-                    <div className="mb-3">
-                      {event.type === 'show' ? (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/30 to-indigo-500/30 flex items-center justify-center">
-                          <Video className="w-6 h-6 text-purple-400" />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500/30 to-cyan-500/30 flex items-center justify-center">
-                          <Phone className="w-6 h-6 text-blue-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Event Details */}
-                    <h3 className="font-bold text-white mb-1 pr-20">{event.title}</h3>
-                    <p className="text-sm text-gray-400 mb-3">with {event.creatorName}</p>
-
-                    {/* Date & Time */}
-                    <div className="flex flex-col gap-2 mb-3">
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span>
-                          {event.scheduledFor.toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span>
-                          {event.scheduledFor.toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        {event.duration && (
-                          <span className="text-gray-400">({event.duration} min)</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Countdown */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/20">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-cyan-400" />
-                        <span className="text-sm font-semibold text-cyan-400">
-                          {getTimeUntilEvent(event.scheduledFor)}
-                        </span>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (event.type === 'show') {
-                            router.push(`/shows/${event.id.replace('show-', '')}`);
-                          } else {
-                            router.push('/calls/history');
-                          }
-                        }}
-                        className="text-sm text-cyan-400 hover:text-pink-400 transition-colors font-semibold"
-                      >
-                        View details →
-                      </button>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-sm line-clamp-1 mb-1">{stream.title}</h3>
+                      <p className="text-gray-400 text-xs line-clamp-1">{stream.creator.displayName || stream.creator.username}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {upcomingEvents.length > 4 && (
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => router.push('/shows/my-tickets')}
-                  className="text-sm text-gray-400 hover:text-cyan-400 transition-colors"
-                >
-                  + {upcomingEvents.length - 4} more upcoming events
-                </button>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          <button
-            onClick={() => router.push('/live')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-cyan-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-500/30 flex items-center justify-center mb-3">
-                <Play className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Live Streams</h3>
-              <p className="text-sm text-gray-400">Watch creators streaming now</p>
+        {/* Featured Creators Section */}
+        {featuredCreators.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-black text-white">Featured Creators</h2>
+              <button
+                onClick={() => router.push('/explore')}
+                className="text-sm text-cyan-400 hover:text-pink-400 transition-colors font-semibold"
+              >
+                Explore all →
+              </button>
             </div>
-          </button>
 
-          <button
-            onClick={() => router.push('/shows')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-purple-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/30 to-indigo-500/30 flex items-center justify-center mb-3">
-                <Ticket className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Ticketed Shows</h3>
-              <p className="text-sm text-gray-400">Exclusive live events & your tickets</p>
-            </div>
-          </button>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {featuredCreators.map((creator) => (
+                <div
+                  key={creator.id}
+                  onClick={() => router.push(`/${creator.username}`)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-4 hover:border-cyan-500/50 hover:scale-105 transition-all text-center">
+                    {/* Avatar */}
+                    <div className="relative inline-block mb-3">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center mx-auto">
+                        {creator.avatarUrl ? (
+                          <img src={creator.avatarUrl} alt={creator.displayName || creator.username} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <span className="text-white font-bold text-2xl">{(creator.displayName || creator.username)[0].toUpperCase()}</span>
+                        )}
+                      </div>
+                      {creator.isLive && (
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-slate-950 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        </div>
+                      )}
+                    </div>
 
-          <button
-            onClick={() => router.push('/calls/history')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-pink-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-rose-500/30 flex items-center justify-center mb-3">
-                <Phone className="w-6 h-6 text-pink-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Video Calls</h3>
-              <p className="text-sm text-gray-400">Book 1-on-1 calls with creators</p>
+                    {/* Creator Info */}
+                    <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
+                      {creator.displayName || creator.username}
+                    </h3>
+                    <p className="text-gray-400 text-xs mb-2 flex items-center justify-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {creator.followerCount}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </button>
+          </div>
+        )}
 
-          <button
-            onClick={() => router.push('/content/library')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-cyan-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-teal-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-teal-500/30 flex items-center justify-center mb-3">
-                <Library className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">My Content</h3>
-              <p className="text-sm text-gray-400">View purchased content</p>
+        {/* Upcoming Shows Section */}
+        {upcomingShows.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-black text-white">Upcoming Shows</h2>
+              <button
+                onClick={() => router.push('/shows')}
+                className="text-sm text-cyan-400 hover:text-pink-400 transition-colors font-semibold"
+              >
+                View all →
+              </button>
             </div>
-          </button>
 
-          <button
-            onClick={() => router.push('/explore')}
-            className="group relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 p-6 hover:border-cyan-500/50 hover:scale-105 transition-all text-left"
-          >
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 flex items-center justify-center mb-3">
-                <Search className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">Explore Creators</h3>
-              <p className="text-sm text-gray-400">Find new creators to follow</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {upcomingShows.map((show) => (
+                <div
+                  key={show.id}
+                  onClick={() => router.push(`/shows/${show.id}`)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden hover:border-purple-500/50 hover:scale-105 transition-all">
+                    {/* Cover Image */}
+                    <div className="relative aspect-video bg-slate-900">
+                      {show.coverImageUrl ? (
+                        <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
+                          <span className="text-5xl">🎟️</span>
+                        </div>
+                      )}
+
+                      {/* Time Badge */}
+                      <div className="absolute top-3 right-3 bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatShowDate(show.scheduledStart)}
+                      </div>
+                    </div>
+
+                    {/* Show Info */}
+                    <div className="p-4">
+                      <h3 className="text-white font-bold text-lg mb-2 line-clamp-1">{show.title}</h3>
+
+                      {/* Creator */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                          {show.creator.avatarUrl ? (
+                            <img src={show.creator.avatarUrl} alt={show.creator.displayName || show.creator.username} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            <span className="text-white text-xs font-bold">{(show.creator.displayName || show.creator.username)[0].toUpperCase()}</span>
+                          )}
+                        </div>
+                        <span className="text-gray-400 text-sm">{show.creator.displayName || show.creator.username}</span>
+                      </div>
+
+                      {/* Price & Tickets */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-yellow-400 font-bold">{show.ticketPrice} coins</span>
+                        <span className="text-gray-400 text-xs">
+                          {show.ticketsSold}/{show.maxTickets || '∞'} sold
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </button>
-        </div>
+          </div>
+        )}
+
+        {/* Empty State - Only if nothing to show */}
+        {liveStreams.length === 0 && featuredCreators.length === 0 && upcomingShows.length === 0 && (
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 p-12 text-center">
+            <div className="text-6xl mb-4">🎬</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Welcome to Digis!</h3>
+            <p className="text-gray-400 mb-6 max-w-md mx-auto">
+              Discover live streams, exclusive shows, and connect with amazing creators
+            </p>
+            <button
+              onClick={() => router.push('/explore')}
+              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg shadow-cyan-500/50"
+            >
+              Explore Creators
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -113,106 +113,89 @@ export default function ShowsDirectoryPage() {
       </div>
 
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 bg-gradient-to-r from-white via-yellow-200 to-white bg-clip-text text-transparent">
-            Exclusive Events
-          </h1>
-          <p className="text-gray-400 text-lg">Premium ticketed shows from top creators</p>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="mb-8 flex gap-3">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`group relative px-8 py-4 rounded-2xl font-bold text-base transition-all ${
-              activeTab === 'all'
-                ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
-                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
-            }`}
-          >
-            {activeTab === 'all' && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-            )}
-            <span className="relative z-10">All Shows</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('my-tickets')}
-            className={`group relative px-8 py-4 rounded-2xl font-bold text-base transition-all ${
-              activeTab === 'my-tickets'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50 scale-105'
-                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50 hover:scale-105'
-            }`}
-          >
-            {activeTab === 'my-tickets' && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-            )}
-            <span className="relative z-10">My Tickets</span>
-          </button>
-        </div>
-
-        {/* Filters & Sort - Only show on All Shows tab */}
-        {activeTab === 'all' && (
-          <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            {/* Filter Tabs */}
-            <div className="flex gap-3 overflow-x-auto pb-2">
+        {/* Filter Tabs */}
+        <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex gap-3 overflow-x-auto pb-2">
             <button
-              onClick={() => setFilter('all')}
+              onClick={() => {
+                setActiveTab('all');
+                setFilter('all');
+              }}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
-                filter === 'all'
+                activeTab === 'all' && filter === 'all'
                   ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
                   : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
               }`}
             >
-              {filter === 'all' && (
+              {activeTab === 'all' && filter === 'all' && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
               )}
               <span className="relative z-10">All Shows</span>
             </button>
             <button
-              onClick={() => setFilter('live')}
+              onClick={() => {
+                setActiveTab('all');
+                setFilter('live');
+              }}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2 ${
-                filter === 'live'
+                activeTab === 'all' && filter === 'live'
                   ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg shadow-red-500/50 scale-105'
                   : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-red-500/50 hover:scale-105'
               }`}
             >
-              {filter === 'live' && (
+              {activeTab === 'all' && filter === 'live' && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
               )}
-              <div className={`relative z-10 w-2 h-2 bg-white rounded-full ${filter === 'live' ? 'animate-pulse' : ''}`}></div>
+              <div className={`relative z-10 w-2 h-2 bg-white rounded-full ${activeTab === 'all' && filter === 'live' ? 'animate-pulse' : ''}`}></div>
               <span className="relative z-10">Live Now</span>
             </button>
             <button
-              onClick={() => setFilter('upcoming')}
+              onClick={() => {
+                setActiveTab('all');
+                setFilter('upcoming');
+              }}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
-                filter === 'upcoming'
+                activeTab === 'all' && filter === 'upcoming'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/50 scale-105'
                   : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-blue-500/50 hover:scale-105'
               }`}
             >
-              {filter === 'upcoming' && (
+              {activeTab === 'all' && filter === 'upcoming' && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
               )}
               <span className="relative z-10">Upcoming</span>
             </button>
+            <button
+              onClick={() => setActiveTab('my-tickets')}
+              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
+                activeTab === 'my-tickets'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50 scale-105'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50 hover:scale-105'
+              }`}
+            >
+              {activeTab === 'my-tickets' && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+              )}
+              <span className="relative z-10">My Tickets</span>
+            </button>
           </div>
 
-          {/* Sort */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-400 whitespace-nowrap">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white text-sm focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer"
-            >
-              <option value="date" className="bg-slate-900">Date</option>
-              <option value="price" className="bg-slate-900">Price</option>
-              <option value="popularity" className="bg-slate-900">Popularity</option>
-            </select>
-          </div>
+          {/* Sort - Only show on All Shows tab */}
+          {activeTab === 'all' && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-400 whitespace-nowrap">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white text-sm focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer"
+              >
+                <option value="date" className="bg-slate-900">Date</option>
+                <option value="price" className="bg-slate-900">Price</option>
+                <option value="popularity" className="bg-slate-900">Popularity</option>
+              </select>
+            </div>
+          )}
         </div>
-        )}
 
         {/* All Shows Tab Content */}
         {activeTab === 'all' && (
@@ -291,33 +274,6 @@ export default function ShowsDirectoryPage() {
           </div>
         )}
 
-        {/* Info Card */}
-        <div className="mt-12 backdrop-blur-xl bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-purple-500/10 rounded-3xl border border-yellow-500/20 p-8">
-          <h3 className="text-2xl font-black text-white mb-4 flex items-center gap-3">
-            <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-            </svg>
-            About Premium Events
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-4 text-sm text-gray-300">
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full mt-1.5 flex-shrink-0"></div>
-              <p>Purchase tickets with coins for exclusive access to live events</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-400 rounded-full mt-1.5 flex-shrink-0"></div>
-              <p>Join Q&A sessions, workshops, performances, and meet & greets</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-purple-400 rounded-full mt-1.5 flex-shrink-0"></div>
-              <p>Support your favorite creators directly through ticket sales</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-pink-400 rounded-full mt-1.5 flex-shrink-0"></div>
-              <p>Get notifications when shows are about to start</p>
-            </div>
-          </div>
-        </div>
           </>
         )}
 
