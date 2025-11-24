@@ -226,14 +226,14 @@ export default function CreatorShowsPage() {
                 <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-3">
-                {filter === 'all' ? 'No streams yet' : `No ${filter} streams`}
+                {statusFilter === 'all' ? 'No streams yet' : `No ${statusFilter} streams`}
               </h3>
               <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
-                {filter === 'all'
+                {statusFilter === 'all'
                   ? 'Create your first stream and start earning!'
-                  : `You don't have any ${filter} streams at the moment.`}
+                  : `You don't have any ${statusFilter} streams at the moment.`}
               </p>
-              {filter === 'all' && (
+              {statusFilter === 'all' && (
                 <GlassButton
                   variant="gradient"
                   size="md"
