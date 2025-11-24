@@ -1200,13 +1200,6 @@ export default function SettingsPage() {
                     <span className="text-sm text-gray-400 whitespace-nowrap">coins/message</span>
                   </div>
                 </div>
-
-                {/* Info */}
-                <div className="p-4 bg-pink-500/10 border border-pink-500/20 rounded-xl">
-                  <p className="text-sm text-gray-300">
-                    When fans send you messages, they'll be automatically charged this amount. Set to 0 to receive free messages.
-                  </p>
-                </div>
               </div>
             )}
 
