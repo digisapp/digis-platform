@@ -512,11 +512,11 @@ export default function CreatorDashboard() {
         {upcomingEvents.length > 0 && (
           <div className="mb-8 glass rounded-2xl border border-purple-200 p-6 shadow-fun">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-digis-cyan" />
                 Upcoming Events
               </h3>
-              <span className="text-sm text-gray-600">{upcomingEvents.length} scheduled</span>
+              <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
             </div>
             <div className="space-y-3">
               {upcomingEvents.map((event) => (
@@ -537,15 +537,15 @@ export default function CreatorDashboard() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800 mb-1">{event.title}</div>
-                    <div className="text-sm text-gray-600 mb-1">
+                    <div className="font-semibold text-white mb-1">{event.title}</div>
+                    <div className="text-sm text-gray-400 mb-1">
                       {new Date(event.scheduledFor).toLocaleDateString()} at {new Date(event.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     {event.details && (
-                      <div className="text-xs text-gray-600">{event.details}</div>
+                      <div className="text-xs text-gray-400">{event.details}</div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
                     <Clock className="w-4 h-4" />
                     {formatDistanceToNow(new Date(event.scheduledFor), { addSuffix: true })}
                   </div>
@@ -564,7 +564,7 @@ export default function CreatorDashboard() {
           <div className="flex flex-col gap-6">
             {/* Activity */}
             <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Clock className="w-5 h-5 text-digis-pink" />
               Activity
             </h3>
@@ -579,10 +579,10 @@ export default function CreatorDashboard() {
                       {getActivityIcon(activity.icon)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-800 text-sm mb-1">{activity.title}</div>
-                      <div className="text-xs text-gray-600">{activity.description}</div>
+                      <div className="font-medium text-white text-sm mb-1">{activity.title}</div>
+                      <div className="text-xs text-gray-400">{activity.description}</div>
                     </div>
-                    <div className="text-xs text-gray-600 whitespace-nowrap">
+                    <div className="text-xs text-gray-400 whitespace-nowrap">
                       {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                     </div>
                   </div>
@@ -593,8 +593,8 @@ export default function CreatorDashboard() {
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center mb-4">
                   <Clock className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-600 font-medium mb-2">No recent activity</p>
-                <p className="text-sm text-gray-500">Your activity will appear here</p>
+                <p className="text-gray-400 font-medium mb-2">No recent activity</p>
+                <p className="text-sm text-gray-400">Your activity will appear here</p>
               </div>
             )}
           </div>
@@ -602,7 +602,7 @@ export default function CreatorDashboard() {
             {/* Create Goal Form */}
             <div className="glass rounded-2xl border border-amber-200 p-4 shadow-fun">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-bold text-gray-800">Create Goal</h3>
+                <h3 className="text-base font-bold text-white">Create Goal</h3>
                 {goals.some(g => g.isActive && !g.isCompleted) && (
                   <button
                     type="button"
@@ -618,33 +618,33 @@ export default function CreatorDashboard() {
               <form onSubmit={handleCreateGoal} className="space-y-3">
                 {/* Goal Description */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Goal Description</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">Goal Description</label>
                   <textarea
                     value={goalFormData.description}
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
                     placeholder="What are you raising coins for?"
                     rows={2}
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   />
                 </div>
 
                 {/* Tip Goal (Coins) */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Tip Goal in Coins *</label>
+                  <label className="block text-xs font-medium text-gray-300 mb-1">Tip Goal in Coins *</label>
                   <input
                     type="number"
                     min="1"
                     value={goalFormData.targetAmount}
                     onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
                     placeholder="e.g., 10000"
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
 
                 {/* Show Top Tippers Toggle */}
                 <div className="flex items-center justify-between py-2 px-3 bg-purple-50/50 rounded-lg border border-purple-200">
-                  <label htmlFor="showTopTippers" className="text-xs font-medium text-gray-700 cursor-pointer">
+                  <label htmlFor="showTopTippers" className="text-xs font-medium text-gray-300 cursor-pointer">
                     Show Top Supporters
                   </label>
                   <button
