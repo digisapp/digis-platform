@@ -4,13 +4,14 @@ import { streams } from './streams';
 import { walletTransactions } from './wallet';
 import { relations } from 'drizzle-orm';
 
-// Show types enum
+// Show types/categories enum
 export const showTypeEnum = pgEnum('show_type', [
-  'live_show',
-  'qna',
-  'workshop',
-  'meetgreet',
-  'performance',
+  'performance',    // 🎭 Concerts, comedy, theater
+  'class',         // 🧘 Yoga, pilates, fitness, dance
+  'qna',           // 💬 Q&A, meet & greet, hangout
+  'gaming',        // 🎮 Gaming streams, playthroughs
+  'workshop',      // 🎓 Tutorials, teaching, how-to
+  'other',         // 🎪 Everything else
 ]);
 
 // Show status enum
@@ -29,7 +30,7 @@ export const shows = pgTable('shows', {
   // Show Details
   title: text('title').notNull(),
   description: text('description'),
-  showType: showTypeEnum('show_type').default('live_show').notNull(),
+  showType: showTypeEnum('show_type').default('other').notNull(),
 
   // Ticketing
   ticketPrice: integer('ticket_price').notNull(),

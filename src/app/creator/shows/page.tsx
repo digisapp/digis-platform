@@ -9,11 +9,13 @@ import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 
+type ShowType = 'performance' | 'class' | 'qna' | 'gaming' | 'workshop' | 'other';
+
 interface Show {
   id: string;
   title: string;
   description: string | null;
-  showType: 'live_show' | 'qna' | 'workshop' | 'meetgreet' | 'performance';
+  showType: ShowType;
   ticketPrice: number;
   maxTickets: number | null;
   ticketsSold: number;
@@ -29,7 +31,8 @@ export default function CreatorShowsPage() {
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'scheduled' | 'live' | 'ended'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'live' | 'ended'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<ShowType | 'all'>('all');
 
   useEffect(() => {
     checkAuth();
@@ -83,9 +86,20 @@ export default function CreatorShowsPage() {
   }
 
   const filteredShows = shows.filter(show => {
-    if (filter === 'all') return true;
-    return show.status === filter;
+    const matchesStatus = statusFilter === 'all' || show.status === statusFilter;
+    const matchesCategory = categoryFilter === 'all' || show.showType === categoryFilter;
+    return matchesStatus && matchesCategory;
   });
+
+  const categoryOptions = [
+    { value: 'all' as const, label: 'All Categories', icon: '📋' },
+    { value: 'performance' as const, label: 'Performance', icon: '🎭' },
+    { value: 'class' as const, label: 'Class', icon: '🧘' },
+    { value: 'qna' as const, label: 'Q&A', icon: '💬' },
+    { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
+    { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
+    { value: 'other' as const, label: 'Other', icon: '🎪' },
+  ];
 
   const stats = {
     totalShows: shows.length,
@@ -98,14 +112,14 @@ export default function CreatorShowsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
-        {/* Filter Tabs + Create Show Button */}
-        <div className="mb-6 flex gap-3">
+        {/* Status Filter Tabs + Create Show Button */}
+        <div className="mb-4 flex gap-3 overflow-x-auto pb-2">
           {(['all', 'scheduled', 'live', 'ended'] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setFilter(tab)}
+              onClick={() => setStatusFilter(tab)}
               className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
-                filter === tab
+                statusFilter === tab
                   ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg shadow-yellow-500/50 scale-105'
                   : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-yellow-500/50'
               }`}
@@ -124,6 +138,24 @@ export default function CreatorShowsPage() {
             <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
             Create Show
           </GlassButton>
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+          {categoryOptions.map((category) => (
+            <button
+              key={category.value}
+              onClick={() => setCategoryFilter(category.value)}
+              className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap text-sm ${
+                categoryFilter === category.value
+                  ? 'bg-white text-gray-900 shadow-lg scale-105'
+                  : 'backdrop-blur-xl bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20'
+              }`}
+            >
+              <span className="mr-2">{category.icon}</span>
+              {category.label}
+            </button>
+          ))}
         </div>
 
         {/* Stats Grid */}

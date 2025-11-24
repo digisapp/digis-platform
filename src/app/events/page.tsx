@@ -7,11 +7,13 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X } from 'lucide-react';
 
+type ShowType = 'performance' | 'class' | 'qna' | 'gaming' | 'workshop' | 'other';
+
 interface Show {
   id: string;
   title: string;
   description: string | null;
-  showType: 'live_show' | 'qna' | 'workshop' | 'meetgreet' | 'performance';
+  showType: ShowType;
   ticketPrice: number;
   maxTickets: number | null;
   ticketsSold: number;
@@ -32,8 +34,18 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('upcoming');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'workshop' | 'meetgreet' | 'performance'>('all');
+  const [typeFilter, setTypeFilter] = useState<ShowType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const categoryOptions = [
+    { value: 'all' as const, label: 'All', icon: '📋' },
+    { value: 'performance' as const, label: 'Performance', icon: '🎭' },
+    { value: 'class' as const, label: 'Class', icon: '🧘' },
+    { value: 'qna' as const, label: 'Q&A', icon: '💬' },
+    { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
+    { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
+    { value: 'other' as const, label: 'Other', icon: '🎪' },
+  ];
 
   useEffect(() => {
     fetchShows();
@@ -115,7 +127,7 @@ export default function EventsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search events..."
+            placeholder="Search shows..."
             className="w-full pl-12 pr-12 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.2)]"
           />
           {searchQuery && (
@@ -154,29 +166,21 @@ export default function EventsPage() {
             Live Now
           </button>
 
-          {/* Event Type Filter Pills */}
-          <button
-            onClick={() => setTypeFilter('all')}
-            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
-              typeFilter === 'all'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
-            }`}
-          >
-            <Ticket className="w-3.5 h-3.5" strokeWidth={2} />
-            All Types
-          </button>
-          <button
-            onClick={() => setTypeFilter('workshop')}
-            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
-              typeFilter === 'workshop'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
-            }`}
-          >
-            <Dumbbell className="w-3.5 h-3.5" strokeWidth={2} />
-            Workshops
-          </button>
+          {/* Category Filter Pills */}
+          {categoryOptions.map((category) => (
+            <button
+              key={category.value}
+              onClick={() => setTypeFilter(category.value)}
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                typeFilter === category.value
+                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+              }`}
+            >
+              <span>{category.icon}</span>
+              {category.label}
+            </button>
+          ))}
         </div>
 
         {/* Live Events */}

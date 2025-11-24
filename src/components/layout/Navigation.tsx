@@ -303,7 +303,7 @@ export function Navigation() {
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
-      label: 'Events',
+      label: 'Shows',
       icon: Ticket,
       path: '/events',
       active: isActive('/events'),

@@ -16,7 +16,7 @@ export default function CreateShowPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    showType: 'live_show' as const,
+    showType: 'other' as const,
     ticketPrice: 50,
     maxTickets: null as number | null,
     scheduledStart: '',
@@ -25,11 +25,12 @@ export default function CreateShowPage() {
   });
 
   const showTypes = [
-    { value: 'live_show', label: 'Live Show', icon: '🎥', gradient: 'from-red-500 to-pink-500' },
-    { value: 'qna', label: 'Q&A Session', icon: '❓', gradient: 'from-blue-500 to-cyan-500' },
-    { value: 'workshop', label: 'Workshop', icon: '🎓', gradient: 'from-purple-500 to-violet-500' },
-    { value: 'meetgreet', label: 'Meet & Greet', icon: '👋', gradient: 'from-green-500 to-emerald-500' },
-    { value: 'performance', label: 'Performance', icon: '🎭', gradient: 'from-amber-500 to-orange-500' },
+    { value: 'performance', label: 'Performance', icon: '🎭', description: 'Concerts, comedy, theater', gradient: 'from-amber-500 to-orange-500' },
+    { value: 'class', label: 'Class', icon: '🧘', description: 'Yoga, pilates, fitness, dance', gradient: 'from-green-500 to-emerald-500' },
+    { value: 'qna', label: 'Q&A / Meet & Greet', icon: '💬', description: 'Hangout, chat, Q&A', gradient: 'from-blue-500 to-cyan-500' },
+    { value: 'gaming', label: 'Gaming', icon: '🎮', description: 'Gaming streams, playthroughs', gradient: 'from-purple-500 to-violet-500' },
+    { value: 'workshop', label: 'Workshop', icon: '🎓', description: 'Tutorials, teaching, how-to', gradient: 'from-pink-500 to-rose-500' },
+    { value: 'other', label: 'Other', icon: '🎪', description: 'Everything else', gradient: 'from-gray-500 to-slate-500' },
   ];
 
   useEffect(() => {
@@ -168,14 +169,15 @@ export default function CreateShowPage() {
                   key={type.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, showType: type.value as any })}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-4 rounded-xl border-2 transition-all text-left ${
                     formData.showType === type.value
                       ? 'border-purple-500 bg-purple-500/10 shadow-lg scale-105'
                       : 'border-gray-200 bg-white/40 hover:border-purple-300 hover:bg-white/60'
                   }`}
                 >
                   <div className="text-3xl mb-2">{type.icon}</div>
-                  <div className="text-sm font-semibold text-gray-800">{type.label}</div>
+                  <div className="text-sm font-semibold text-gray-800 mb-1">{type.label}</div>
+                  <div className="text-xs text-gray-600">{type.description}</div>
                 </button>
               ))}
             </div>
