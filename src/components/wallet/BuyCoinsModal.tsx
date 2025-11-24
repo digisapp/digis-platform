@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { GlassModal, GlassButton, LoadingSpinner } from '@/components/ui';
 import { loadStripe } from '@stripe/stripe-js';
-import { COIN_PACKAGES } from '@/lib/stripe/config';
+import { COIN_PACKAGES } from '@/lib/stripe/constants';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 

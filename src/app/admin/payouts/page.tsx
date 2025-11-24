@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { DollarSign, Clock, CheckCircle, XCircle, Eye, User, AlertCircle } from 'lucide-react';
-import { formatCoinsAsUSD } from '@/lib/stripe/config';
+import { formatCoinsAsUSD } from '@/lib/stripe/constants';
 
 interface PayoutRequest {
   id: string;
