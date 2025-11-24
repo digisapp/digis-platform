@@ -213,7 +213,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Image className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'photo' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-900">Photo</div>
+                <div className="text-sm font-semibold text-white">Photo</div>
               </button>
 
               <button
@@ -226,7 +226,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Video className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'video' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-900">Video</div>
+                <div className="text-sm font-semibold text-white">Video</div>
               </button>
 
               <button
@@ -239,7 +239,7 @@ export default function CreateContentPage() {
                 }`}
               >
                 <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-900">Multiple</div>
+                <div className="text-sm font-semibold text-white">Multiple</div>
               </button>
             </div>
           </GlassCard>
@@ -279,7 +279,7 @@ export default function CreateContentPage() {
                 <label className="block">
                   <div className="border-2 border-dashed border-purple-300 rounded-xl p-6 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/40 transition-all">
                     <Plus className="w-8 h-8 mx-auto mb-2 text-gray-500" />
-                    <p className="text-gray-700 font-medium text-sm">Add more images</p>
+                    <p className="text-white font-medium text-sm">Add more images</p>
                   </div>
                   <input
                     type="file"
@@ -330,11 +330,11 @@ export default function CreateContentPage() {
               /* Upload Prompt */
               <label className="block">
                 <div className="border-2 border-dashed border-purple-300 rounded-xl p-12 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/40 transition-all">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                  <p className="text-gray-700 font-medium mb-2">
+                  <Upload className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-white font-medium mb-2">
                     {formData.contentType === 'gallery' ? 'Click to upload multiple images' : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-300">
                     {formData.contentType === 'gallery'
                       ? 'Select 2 or more images (JPG, PNG up to 50MB each)'
                       : formData.contentType === 'video'
@@ -358,7 +358,7 @@ export default function CreateContentPage() {
             <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                <label className="block text-sm font-medium text-white mb-2">Title *</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -370,7 +370,7 @@ export default function CreateContentPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-white mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -396,9 +396,9 @@ export default function CreateContentPage() {
                     : 'border-purple-200 bg-white/60 hover:bg-white/80'
                 }`}
               >
-                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-900">Free</div>
-                <div className="text-xs text-gray-600">Everyone can view</div>
+                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-300'}`} />
+                <div className="text-sm font-semibold text-white">Free</div>
+                <div className="text-xs text-gray-300">Everyone can view</div>
               </button>
 
               <button
@@ -410,15 +410,15 @@ export default function CreateContentPage() {
                     : 'border-purple-200 bg-white/60 hover:bg-white/80'
                 }`}
               >
-                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-600'}`} />
-                <div className="text-sm font-semibold text-gray-900">Locked</div>
-                <div className="text-xs text-gray-600">Pay to unlock</div>
+                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-300'}`} />
+                <div className="text-sm font-semibold text-white">Locked</div>
+                <div className="text-xs text-gray-300">Pay to unlock</div>
               </button>
             </div>
 
             {!formData.isFree && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Unlock Price</label>
+                <label className="block text-sm font-medium text-white mb-2">Unlock Price</label>
                 <div className="flex items-center gap-4">
                   <DollarSign className="w-6 h-6 text-amber-500" />
                   <input
@@ -428,7 +428,7 @@ export default function CreateContentPage() {
                     onChange={(e) => setFormData({ ...formData, unlockPrice: parseInt(e.target.value) || 0 })}
                     className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
                   />
-                  <span className="text-gray-600">coins</span>
+                  <span className="text-gray-300">coins</span>
                 </div>
 
                 {formData.unlockPrice > 0 && (
