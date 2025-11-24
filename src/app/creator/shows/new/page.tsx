@@ -19,6 +19,7 @@ export default function CreateShowPage() {
     showType: 'other' as const,
     ticketPrice: 50,
     maxTickets: null as number | null,
+    isPrivate: false,
     scheduledStart: '',
     durationMinutes: 60,
     coverImageUrl: '',
@@ -114,6 +115,13 @@ export default function CreateShowPage() {
     return now.toISOString().slice(0, 16);
   };
 
+  // Quick schedule presets for "going live soon"
+  const setQuickSchedule = (minutes: number) => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutes);
+    setFormData({ ...formData, scheduledStart: now.toISOString().slice(0, 16) });
+  };
+
   if (pageLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
@@ -198,9 +206,39 @@ export default function CreateShowPage() {
                 min={getMinDateTime()}
                 className="w-full px-4 py-3 bg-white/60 border-2 border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:border-blue-500 transition-colors"
               />
-              <p className="text-xs text-gray-500 mt-2">
-                Must be at least 1 hour from now
-              </p>
+              <div className="mt-3">
+                <p className="text-xs text-gray-600 font-semibold mb-2">Quick Start:</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuickSchedule(5)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    5 min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickSchedule(10)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    10 min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickSchedule(15)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    15 min
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickSchedule(30)}
+                    className="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    30 min
+                  </button>
+                </div>
+              </div>
             </GlassCard>
 
             <GlassCard className="p-6">
@@ -221,6 +259,41 @@ export default function CreateShowPage() {
               </select>
             </GlassCard>
           </div>
+
+          {/* Access Control */}
+          <GlassCard className="p-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-4">
+              Stream Access *
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, isPrivate: false })}
+                className={`p-5 rounded-xl border-2 transition-all text-left ${
+                  !formData.isPrivate
+                    ? 'border-green-500 bg-green-500/10 shadow-lg'
+                    : 'border-gray-200 bg-white/40 hover:border-green-300'
+                }`}
+              >
+                <div className="text-3xl mb-2">🌍</div>
+                <div className="text-sm font-bold text-gray-800 mb-1">Public Stream</div>
+                <div className="text-xs text-gray-600">Anyone can find and join with a ticket</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, isPrivate: true })}
+                className={`p-5 rounded-xl border-2 transition-all text-left ${
+                  formData.isPrivate
+                    ? 'border-purple-500 bg-purple-500/10 shadow-lg'
+                    : 'border-gray-200 bg-white/40 hover:border-purple-300'
+                }`}
+              >
+                <div className="text-3xl mb-2">🔒</div>
+                <div className="text-sm font-bold text-gray-800 mb-1">Private Stream</div>
+                <div className="text-xs text-gray-600">Only ticket holders can access (not publicly listed)</div>
+              </button>
+            </div>
+          </GlassCard>
 
           {/* Pricing & Tickets */}
           <div className="grid md:grid-cols-2 gap-6">
