@@ -400,11 +400,11 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
         <GlassCard className="max-w-md w-full p-8 text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Profile Not Found</h2>
-          <p className="text-gray-600 mb-4">{error || 'User does not exist'}</p>
+          <h2 className="text-xl font-semibold text-white mb-2">Profile Not Found</h2>
+          <p className="text-gray-400 mb-4">{error || 'User does not exist'}</p>
           <button
             onClick={() => router.push('/explore')}
-            className="px-6 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
+            className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-lg font-semibold hover:scale-105 transition-transform"
           >
             Browse Creators
           </button>
@@ -416,12 +416,12 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
-      {/* Animated Background Mesh */}
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
+      {/* Animated Background Mesh - Tron Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-digis-cyan/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-digis-pink/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-digis-purple/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
 
       {/* Confetti Effect */}
@@ -430,8 +430,8 @@ export default function ProfilePage() {
       {/* Banner with Parallax Effect */}
       <div className="relative">
         <ParallaxBanner imageUrl={user.bannerUrl} height="h-64 sm:h-72 md:h-80" />
-        {/* Gradient Overlay for better contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950/80"></div>
+        {/* Gradient Overlay for better contrast - Tron Theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90"></div>
       </div>
 
       {/* Profile Content - Mobile optimized */}
