@@ -97,14 +97,14 @@ export default function ShowsDirectoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
       <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Filter Tabs */}
         <div className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -117,7 +117,7 @@ export default function ShowsDirectoryPage() {
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 activeTab === 'all' && filter === 'all'
                   ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-sm scale-105'
-                  : 'bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 hover:border-yellow-500/50 hover:scale-105'
+                  : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-yellow-500/50 hover:scale-105'
               }`}
             >
               {activeTab === 'all' && filter === 'all' && (
@@ -133,7 +133,7 @@ export default function ShowsDirectoryPage() {
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2 ${
                 activeTab === 'all' && filter === 'live'
                   ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-sm scale-105'
-                  : 'bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 hover:border-red-500/50 hover:scale-105'
+                  : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-red-500/50 hover:scale-105'
               }`}
             >
               {activeTab === 'all' && filter === 'live' && (
@@ -150,7 +150,7 @@ export default function ShowsDirectoryPage() {
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 activeTab === 'all' && filter === 'upcoming'
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm scale-105'
-                  : 'bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 hover:border-blue-500/50 hover:scale-105'
+                  : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-blue-500/50 hover:scale-105'
               }`}
             >
               {activeTab === 'all' && filter === 'upcoming' && (
@@ -163,7 +163,7 @@ export default function ShowsDirectoryPage() {
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all whitespace-nowrap ${
                 activeTab === 'my-tickets'
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm scale-105'
-                  : 'bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 hover:border-purple-500/50 hover:scale-105'
+                  : 'backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 text-white hover:border-purple-500/50 hover:scale-105'
               }`}
             >
               {activeTab === 'my-tickets' && (

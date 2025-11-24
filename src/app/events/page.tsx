@@ -89,32 +89,39 @@ export default function EventsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
       {/* Mobile Header with Logo */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8">
+      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Search Bar */}
         <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search events..."
-            className="w-full pl-12 pr-12 py-3 bg-white/60 backdrop-blur-xl border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-colors"
+            className="w-full pl-12 pr-12 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.2)]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -128,8 +135,8 @@ export default function EventsPage() {
             onClick={() => setFilter('upcoming')}
             className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               filter === 'upcoming'
-                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
@@ -139,8 +146,8 @@ export default function EventsPage() {
             onClick={() => setFilter('live')}
             className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               filter === 'live'
-                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? '' : 'text-red-500'}`} strokeWidth={2} />
@@ -152,8 +159,8 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('all')}
             className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               typeFilter === 'all'
-                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Ticket className="w-3.5 h-3.5" strokeWidth={2} />
@@ -163,8 +170,8 @@ export default function EventsPage() {
             onClick={() => setTypeFilter('workshop')}
             className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               typeFilter === 'workshop'
-                ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
             }`}
           >
             <Dumbbell className="w-3.5 h-3.5" strokeWidth={2} />
@@ -175,7 +182,7 @@ export default function EventsPage() {
         {/* Live Events */}
         {liveEvents.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4 flex items-center gap-2">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -193,7 +200,7 @@ export default function EventsPage() {
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 ? (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
               {filter === 'upcoming' ? 'Upcoming Events' : 'Scheduled'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -203,13 +210,13 @@ export default function EventsPage() {
             </div>
           </div>
         ) : filter === 'upcoming' && liveEvents.length === 0 ? (
-          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl p-12 text-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
             <div className="relative">
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
-                <Calendar className="w-16 h-16 text-digis-purple" strokeWidth={2} />
+                <Calendar className="w-16 h-16 text-cyan-400" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black text-gray-900">No Upcoming Events</h3>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Events</h3>
             </div>
           </div>
         ) : null}

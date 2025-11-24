@@ -210,17 +210,23 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
       {/* Mobile Header with Logo */}
       <MobileHeader />
-      {/* Removed animated background mesh - cleaner light mode */}
 
       <div className="container mx-auto max-w-7xl relative z-10">
         {/* Mobile Wallet Widget */}
@@ -233,18 +239,18 @@ export default function MessagesPage() {
           <div className="flex flex-col h-[calc(100vh-180px)]">
             {/* Search Bar */}
             <div className="relative mb-4">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-12 pr-12 py-3 glass border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="w-full pl-12 pr-12 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.2)]"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-cyan-400 hover:text-cyan-300"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -257,8 +263,8 @@ export default function MessagesPage() {
                 onClick={() => setFilter('all')}
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                   filter === 'all'
-                    ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-300 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
               >
                 All
@@ -267,8 +273,8 @@ export default function MessagesPage() {
                 onClick={() => setFilter('unread')}
                 className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
                   filter === 'unread'
-                    ? 'bg-digis-cyan text-white shadow-lg border border-digis-cyan'
-                    : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-300 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
               >
                 Unread
@@ -284,7 +290,7 @@ export default function MessagesPage() {
                 <>
                   <button
                     onClick={() => router.push('/creator/chats/broadcast')}
-                    className="px-3 py-1.5 bg-digis-cyan text-white shadow-lg border border-digis-cyan rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
+                    className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
                   >
                     <Users className="w-3.5 h-3.5" strokeWidth={2} />
                     <span className="hidden sm:inline">Mass</span>
@@ -292,7 +298,7 @@ export default function MessagesPage() {
                   {pendingRequests > 0 && (
                     <button
                       onClick={() => router.push('/chats/requests')}
-                      className="px-3 py-1.5 bg-digis-cyan text-white shadow-lg border border-digis-cyan rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
+                      className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
                     >
                       <span className="hidden sm:inline">Requests</span>
                       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -307,9 +313,9 @@ export default function MessagesPage() {
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {filteredConversations.length === 0 ? (
-                <div className="glass rounded-xl border-2 border-purple-200 p-8 text-center">
-                  <Inbox className="w-16 h-16 mx-auto mb-3 text-gray-400" />
-                  <h3 className="text-lg font-semibold text-white">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                  <Inbox className="w-16 h-16 mx-auto mb-3 text-cyan-400" />
+                  <h3 className="text-lg font-semibold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
                 </div>
@@ -317,7 +323,7 @@ export default function MessagesPage() {
                 filteredConversations.map((conversation) => (
                   <div
                     key={conversation.id}
-                    className="relative w-full glass rounded-xl border border-purple-200 p-4 hover:border-digis-cyan hover:bg-white/80 transition-all cursor-pointer min-h-[80px]"
+                    className="relative w-full backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-4 hover:border-cyan-500/50 hover:scale-[1.02] transition-all cursor-pointer min-h-[80px] shadow-[0_0_20px_rgba(34,211,238,0.2)]"
                     onClick={() => router.push(`/chats/${conversation.id}`)}
                   >
                     <div className="flex items-center gap-4">
@@ -377,7 +383,7 @@ export default function MessagesPage() {
                         e.stopPropagation();
                         setActiveMenu(activeMenu === conversation.id ? null : conversation.id);
                       }}
-                      className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-white/60 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      className="absolute top-4 right-4 p-2 text-cyan-400 hover:text-cyan-300 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -389,15 +395,15 @@ export default function MessagesPage() {
                           className="fixed inset-0 z-40"
                           onClick={() => setActiveMenu(null)}
                         />
-                        <div className="absolute top-14 right-4 z-50 glass border border-purple-200 rounded-xl shadow-lg overflow-hidden min-w-[160px]">
+                        <div className="absolute top-14 right-4 z-50 backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 border-2 border-cyan-500/30 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.3)] overflow-hidden min-w-[160px]">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePinConversation(conversation.id);
                             }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left min-h-[44px]"
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors text-left min-h-[44px]"
                           >
-                            <Pin className="w-4 h-4 text-gray-300" />
+                            <Pin className="w-4 h-4 text-cyan-400" />
                             <span className="text-sm font-semibold text-white">
                               {conversation.isPinned ? 'Unpin' : 'Pin'}
                             </span>
@@ -407,9 +413,9 @@ export default function MessagesPage() {
                               e.stopPropagation();
                               handleArchiveConversation(conversation.id);
                             }}
-                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/60 transition-colors text-left border-t border-purple-100 min-h-[44px]"
+                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/10 transition-colors text-left border-t border-cyan-500/20 min-h-[44px]"
                           >
-                            <Archive className="w-4 h-4 text-gray-300" />
+                            <Archive className="w-4 h-4 text-cyan-400" />
                             <span className="text-sm font-semibold text-white">Archive</span>
                           </button>
                         </div>
@@ -422,10 +428,10 @@ export default function MessagesPage() {
           </div>
 
           {/* Right Column: Message Panel (Empty State) */}
-          <div className="hidden lg:flex items-center justify-center glass rounded-3xl border-2 border-purple-200 p-12 h-[calc(100vh-180px)]">
+          <div className="hidden lg:flex items-center justify-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 h-[calc(100vh-180px)] shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="text-center max-w-md">
-              <MessageCircle className="w-24 h-24 mx-auto mb-6 text-gray-400" />
-              <h2 className="text-3xl font-bold text-white">
+              <MessageCircle className="w-24 h-24 mx-auto mb-6 text-cyan-400" />
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
                 Select a Chat
               </h2>
             </div>

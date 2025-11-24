@@ -155,8 +155,13 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 md:pl-20 relative overflow-hidden">
-      {/* Removed animated background mesh - cleaner light mode */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Mobile Header with Logo */}
@@ -169,13 +174,13 @@ export default function ExplorePage() {
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-400 z-10" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 bg-white/60 backdrop-blur-xl border border-purple-200 rounded-2xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-all"
+              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-all"
             />
             {searching && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -204,7 +209,7 @@ export default function ExplorePage() {
                       ${
                         isSelected
                           ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
-                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}
                   >
@@ -232,7 +237,7 @@ export default function ExplorePage() {
                       ${
                         isSelected
                           ? 'bg-digis-cyan text-white shadow-lg shadow-cyan-500/50 border border-digis-cyan'
-                          : 'bg-white/90 backdrop-blur-sm border border-purple-200 text-gray-700 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
                       }
                     `}
                   >
