@@ -201,7 +201,7 @@ export default function CreateContentPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Content Type */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Type</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Content Type</h3>
             <div className="grid grid-cols-3 gap-4">
               <button
                 type="button"
@@ -246,7 +246,7 @@ export default function CreateContentPage() {
 
           {/* File Upload */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-white mb-4">
               {formData.contentType === 'gallery' ? 'Upload Images (Multiple)' : 'Upload File'}
             </h3>
 
@@ -355,7 +355,7 @@ export default function CreateContentPage() {
 
           {/* Title & Description */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Details</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
@@ -384,7 +384,7 @@ export default function CreateContentPage() {
 
           {/* Pricing */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Pricing</h3>
 
             <div className="flex items-center gap-4 mb-4">
               <button
