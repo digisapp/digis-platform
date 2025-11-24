@@ -5,6 +5,7 @@ export const CREATOR_CATEGORIES = [
   { value: 'fitness', label: 'Fitness', emoji: '💪', color: 'from-orange-500 to-red-500' },
   { value: 'wellness', label: 'Wellness', emoji: '🧘', color: 'from-green-400 to-teal-400' },
   { value: 'therapy', label: 'Therapy', emoji: '🧠', color: 'from-blue-400 to-teal-500' },
+  { value: 'asmr', label: 'ASMR', emoji: '🎧', color: 'from-purple-400 to-indigo-500' },
   { value: 'cooking', label: 'Cooking', emoji: '🍳', color: 'from-yellow-500 to-orange-500' },
   { value: 'education', label: 'Education', emoji: '📚', color: 'from-indigo-500 to-purple-500' },
   { value: 'entertainment', label: 'Entertainment', emoji: '🎭', color: 'from-fuchsia-500 to-pink-500' },
