@@ -54,17 +54,23 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full border-4 border-digis-cyan border-t-transparent animate-spin"></div>
-          <div className="text-white text-xl font-semibold">Loading...</div>
+          <Image
+            src="/images/digis-logo-black.png"
+            alt="Digis"
+            width={120}
+            height={40}
+            className="animate-breathe"
+            priority
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-pastel-gradient">
       {/* Auth Modals */}
       <LoginModal
         isOpen={showLogin}
@@ -245,6 +251,23 @@ export default function Home() {
           <p>&copy; 2025 Digis. All rights reserved.</p>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes breathe {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.7;
+            transform: scale(0.98);
+          }
+        }
+
+        .animate-breathe {
+          animation: breathe 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
