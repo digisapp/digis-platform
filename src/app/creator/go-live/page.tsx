@@ -7,7 +7,6 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { createClient } from '@/lib/supabase/client';
-import { Upload } from 'lucide-react';
 
 // Privacy options
 const PRIVACY_OPTIONS = [
@@ -21,8 +20,6 @@ export default function GoLivePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
-  const [thumbnail, setThumbnail] = useState<string | null>(null);
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [isCreator, setIsCreator] = useState(false);
@@ -47,7 +44,6 @@ export default function GoLivePage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number>();
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     checkCreatorStatus();
@@ -116,18 +112,6 @@ export default function GoLivePage() {
       }
     } catch (err) {
       console.error('Failed to fetch stats:', err);
-    }
-  };
-
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setThumbnailFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnail(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -257,21 +241,6 @@ export default function GoLivePage() {
     setShowParticles(true);
 
     try {
-      // Upload thumbnail if exists
-      let thumbnailUrl = null;
-      if (thumbnailFile) {
-        const formData = new FormData();
-        formData.append('file', thumbnailFile);
-        const uploadResponse = await fetch('/api/upload/thumbnail', {
-          method: 'POST',
-          body: formData,
-        });
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          thumbnailUrl = uploadData.url;
-        }
-      }
-
       const response = await fetch('/api/streams/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -279,7 +248,6 @@ export default function GoLivePage() {
           title: title.trim(),
           description: description.trim() || undefined,
           privacy,
-          thumbnail_url: thumbnailUrl,
         }),
       });
 
@@ -438,45 +406,6 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Thumbnail */}
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">
-                  Thumbnail (Optional)
-                </label>
-                <div className="space-y-2">
-                  {thumbnail ? (
-                    <div className="relative aspect-video rounded-xl overflow-hidden border-2 border-purple-200">
-                      <img src={thumbnail} alt="Thumbnail" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setThumbnail(null);
-                          setThumbnailFile(null);
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => thumbnailInputRef.current?.click()}
-                      className="flex flex-col items-center justify-center gap-2 p-4 bg-white/50 border-2 border-purple-200 rounded-xl hover:border-digis-cyan hover:bg-digis-cyan/10 transition-all duration-300 w-full"
-                    >
-                      <Upload className="w-6 h-6 text-digis-cyan" />
-                      <span className="text-xs font-semibold text-gray-300">Upload Thumbnail</span>
-                    </button>
-                  )}
-                  <input
-                    ref={thumbnailInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleThumbnailUpload}
-                    className="hidden"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Right Column: Device Preview */}
