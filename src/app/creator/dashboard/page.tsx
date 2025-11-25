@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Toast } from '@/components/ui/Toast';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -514,9 +513,6 @@ export default function CreatorDashboard() {
       )}
 
       <div className="container mx-auto">
-        {/* Mobile Wallet Widget */}
-        <MobileWalletWidget />
-
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10">
 
         {/* Upcoming Events */}

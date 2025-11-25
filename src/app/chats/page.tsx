@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Search, X, Pin, Archive, MoreVertical, Users, Inbox, MessageCircle } from 'lucide-react';
 
@@ -232,9 +231,6 @@ export default function MessagesPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto max-w-7xl relative z-10">
-        {/* Mobile Wallet Widget */}
-        <MobileWalletWidget />
-
         <div className="px-4 pt-2 md:pt-10">
         {/* Two-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">

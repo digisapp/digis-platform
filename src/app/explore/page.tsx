@@ -3,7 +3,6 @@
 import { useEffect, useState, memo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { MobileWalletWidget } from '@/components/ui/MobileWalletWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
@@ -169,9 +168,6 @@ export default function ExplorePage() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Spacer for fixed mobile header */}
         <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
-
-        {/* Mobile Wallet Widget */}
-        <MobileWalletWidget />
 
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-8">
         {/* Search Bar */}
