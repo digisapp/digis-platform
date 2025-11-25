@@ -1,7 +1,8 @@
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, spendHolds } from '@/lib/data/system';
+import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { calculateTier } from '@/lib/tiers/spend-tiers';
 
 /**
  * WalletService handles all financial transactions using Drizzle ORM.
@@ -153,6 +154,40 @@ export class WalletService {
           updatedAt: new Date(),
         })
         .where(eq(wallets.userId, userId));
+
+      // If this is a spending transaction (negative amount), update lifetime spending and tier
+      if (amount < 0) {
+        const spentAmount = Math.abs(amount);
+
+        // Update lifetime spending
+        await tx
+          .update(users)
+          .set({
+            lifetimeSpending: sql`${users.lifetimeSpending} + ${spentAmount}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, userId));
+
+        // Get updated lifetime spending to recalculate tier
+        const updatedUser = await tx.query.users.findFirst({
+          where: eq(users.id, userId),
+          columns: {
+            lifetimeSpending: true,
+          },
+        });
+
+        if (updatedUser) {
+          const newTier = calculateTier(updatedUser.lifetimeSpending);
+
+          // Update tier if it changed
+          await tx
+            .update(users)
+            .set({
+              spendTier: newTier,
+            })
+            .where(eq(users.id, userId));
+        }
+      }
 
       return transaction;
     });

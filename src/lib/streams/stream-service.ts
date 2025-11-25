@@ -310,6 +310,8 @@ export class StreamService {
         user: {
           columns: {
             avatarUrl: true,
+            spendTier: true,
+            lifetimeSpending: true,
           },
         },
       },

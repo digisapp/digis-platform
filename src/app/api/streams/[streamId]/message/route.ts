@@ -27,7 +27,7 @@ export async function POST(
       return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
     }
 
-    // Get user details
+    // Get user details including spend tier
     const dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.id),
       columns: {
@@ -35,6 +35,7 @@ export async function POST(
         username: true,
         displayName: true,
         avatarUrl: true,
+        spendTier: true,
       },
     });
 
@@ -57,6 +58,7 @@ export async function POST(
       username: dbUser.username || 'Anonymous',
       displayName: dbUser.displayName,
       avatarUrl: dbUser.avatarUrl,
+      spendTier: dbUser.spendTier,
       content: savedMessage.message,
       timestamp: savedMessage.createdAt.getTime(),
       type: 'message',

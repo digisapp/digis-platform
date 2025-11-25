@@ -2,6 +2,7 @@ import { pgTable, uuid, text, timestamp, boolean, pgEnum, integer } from 'drizzl
 import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
+export const spendTierEnum = pgEnum('spend_tier', ['none', 'bronze', 'silver', 'gold', 'platinum', 'diamond']);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(), // Supabase auth user ID
@@ -24,6 +25,11 @@ export const users = pgTable('users', {
   usernameLastChangedAt: timestamp('username_last_changed_at'), // Track username changes (30-day limit)
   followerCount: integer('follower_count').default(0).notNull(),
   followingCount: integer('following_count').default(0).notNull(),
+
+  // Lifetime spending tiers (global platform reputation)
+  lifetimeSpending: integer('lifetime_spending').default(0).notNull(), // Total coins spent across platform
+  spendTier: spendTierEnum('spend_tier').default('none').notNull(), // Calculated tier based on lifetime spending
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

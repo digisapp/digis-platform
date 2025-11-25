@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
+import { getTierColor, type SpendTier } from '@/lib/tiers/spend-tiers';
 
 interface Message {
   id: string;
@@ -11,6 +12,7 @@ interface Message {
   timestamp: number;
   type?: 'message' | 'tip';
   amount?: number;
+  spendTier?: SpendTier;
 }
 
 interface QuickChatProps {
@@ -126,21 +128,25 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
         {messages.length === 0 ? (
           <div className="text-gray-400 text-center py-4">No messages yet</div>
         ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className="flex gap-2">
-              {msg.type === 'tip' ? (
-                <div className="flex-1 bg-yellow-500/20 rounded px-2 py-1">
-                  <span className="font-semibold text-yellow-300">{msg.username}</span>
-                  <span className="text-yellow-200"> tipped ${msg.amount}</span>
-                </div>
-              ) : (
-                <>
-                  <span className="font-semibold text-white/80">{msg.username}:</span>
-                  <span className="text-white/70 flex-1">{msg.content}</span>
-                </>
-              )}
-            </div>
-          ))
+          messages.map((msg) => {
+            const tierColor = msg.spendTier ? getTierColor(msg.spendTier) : 'text-white/80';
+
+            return (
+              <div key={msg.id} className="flex gap-2">
+                {msg.type === 'tip' ? (
+                  <div className="flex-1 bg-yellow-500/20 rounded px-2 py-1">
+                    <span className={`font-semibold ${tierColor}`}>{msg.username}</span>
+                    <span className="text-yellow-200"> tipped ${msg.amount}</span>
+                  </div>
+                ) : (
+                  <>
+                    <span className={`font-semibold ${tierColor}`}>{msg.username}:</span>
+                    <span className="text-white/70 flex-1">{msg.content}</span>
+                  </>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 

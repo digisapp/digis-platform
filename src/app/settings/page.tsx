@@ -8,6 +8,7 @@ import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
+import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 
 interface UsernameStatus {
   canChange: boolean;
@@ -784,6 +785,54 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Spend Tier Progress */}
+              {(() => {
+                const lifetimeSpending = currentUser?.lifetimeSpending || 0;
+                const spendTier = currentUser?.spendTier || 'none';
+                const progress = getNextTierProgress(lifetimeSpending);
+                const currentTierConfig = getTierConfig(spendTier as SpendTier);
+
+                return (
+                  <div className="p-4 backdrop-blur-xl bg-white/5 rounded-lg border border-cyan-500/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-digis-cyan" />
+                        <p className="text-xs text-gray-400">Spend Tier</p>
+                      </div>
+                      <p className={`text-sm font-bold ${currentTierConfig.color}`}>
+                        {currentTierConfig.emoji && `${currentTierConfig.emoji} `}{currentTierConfig.displayName}
+                      </p>
+                    </div>
+
+                    {progress.nextTier && (
+                      <>
+                        <div className="mb-2">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-gray-400">{lifetimeSpending.toLocaleString()} coins</span>
+                            <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
+                          </div>
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink transition-all duration-500"
+                              style={{ width: `${progress.progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400">
+                          {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
+                        </p>
+                      </>
+                    )}
+
+                    {!progress.nextTier && (
+                      <p className="text-xs text-gray-400">
+                        Maximum tier achieved! Total: {lifetimeSpending.toLocaleString()} coins
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </GlassCard>
         </div>
