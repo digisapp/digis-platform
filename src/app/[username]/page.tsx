@@ -353,11 +353,28 @@ export default function ProfilePage() {
         }
       }
 
-      // No existing conversation, go to chats page
-      router.push('/chats');
+      // No existing conversation - create one by sending an initial message
+      // This allows creators to message fans directly
+      const createResponse = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientId: profile.user.id,
+          content: '👋', // Send a friendly wave emoji to start the conversation
+        }),
+      });
+
+      if (createResponse.ok) {
+        const createData = await createResponse.json();
+        // Navigate to the newly created conversation
+        router.push(`/chats/${createData.conversationId}`);
+      } else {
+        const errorData = await createResponse.json();
+        alert(errorData.error || 'Failed to start conversation');
+      }
     } catch (error) {
-      console.error('Error checking conversations:', error);
-      router.push('/chats');
+      console.error('Error starting conversation:', error);
+      alert('Failed to start conversation. Please try again.');
     }
   };
 
