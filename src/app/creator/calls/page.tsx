@@ -51,7 +51,10 @@ export default function CreatorCallsPage() {
       {/* Mobile Header with Logo */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Pending Requests - Top of page */}
         <div className="mb-8">
           <CallRequestQueue autoRefresh refreshInterval={5000} />

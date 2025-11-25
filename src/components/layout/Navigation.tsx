@@ -526,8 +526,12 @@ export function Navigation() {
 
       {/* Mobile Bottom Navigation (iPhone Optimized) - Dark Tron Theme */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        {/* Backdrop with dark glass effect */}
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-3xl border-t-2 border-cyan-500/30 shadow-[0_-2px_30px_rgba(34,211,238,0.2)]" />
+        {/* Tron-themed background */}
+        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" />
+
+        {/* Animated gradient line at top */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)]" />
 
         {/* Navigation content */}
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">

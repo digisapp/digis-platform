@@ -127,13 +127,13 @@ export default function CreatorDashboard() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [router]);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<boolean> => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       router.push('/');
-      return;
+      return false;
     }
 
     // Check if user is creator
@@ -142,11 +142,12 @@ export default function CreatorDashboard() {
 
     if (data.user?.role !== 'creator') {
       router.push('/dashboard');
-      return;
+      return false;
     }
 
     setIsCreator(true);
     setLoading(false);
+    return true;
   };
 
   const fetchBalance = async () => {
@@ -487,6 +488,9 @@ export default function CreatorDashboard() {
       {/* Mobile Header with Logo */}
       <MobileHeader />
 
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -513,7 +517,7 @@ export default function CreatorDashboard() {
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-14 md:pt-10 pb-24 md:pb-10">
+        <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10">
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (

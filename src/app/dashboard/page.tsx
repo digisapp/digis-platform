@@ -135,7 +135,10 @@ export default function FanDashboard() {
       {/* Mobile Header */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-14 md:pt-10 pb-24 md:pb-8 relative z-10">
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Live Streams Section */}
         {liveStreams.length > 0 && (
           <div className="mb-12">

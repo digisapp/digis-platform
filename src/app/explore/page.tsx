@@ -163,14 +163,17 @@ export default function ExplorePage() {
         <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
 
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Mobile Header with Logo */}
-        <MobileHeader />
+        {/* Spacer for fixed mobile header */}
+        <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
         {/* Mobile Wallet Widget */}
         <MobileWalletWidget />
 
-        <div className="px-4 pt-14 md:pt-10 pb-24 md:pb-8">
+        <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-8">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">

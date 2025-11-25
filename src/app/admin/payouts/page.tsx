@@ -115,10 +115,13 @@ export default function AdminPayoutsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8">
       <MobileHeader />
 
-      <div className="max-w-7xl mx-auto px-4 pt-20 space-y-6">
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-10 space-y-6">
         {/* Header Stats */}
         <div className="grid md:grid-cols-4 gap-4">
           <GlassCard className="p-4">
