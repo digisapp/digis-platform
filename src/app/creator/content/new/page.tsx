@@ -208,7 +208,7 @@ export default function CreateContentPage() {
               className="flex items-center gap-2"
             >
               <Grid3x3 className="w-5 h-5" />
-              View All Content
+              All Content
             </GlassButton>
           </div>
           <p className="text-gray-400">Share exclusive photos, videos, and galleries with your fans</p>
