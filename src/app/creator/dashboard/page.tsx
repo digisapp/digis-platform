@@ -91,13 +91,20 @@ export default function CreatorDashboard() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    fetchBalance();
-    fetchAnalytics();
-    fetchRecentActivities();
-    fetchUpcomingEvents();
-    fetchPendingCounts();
-    fetchGoals();
+    // Check auth first, then fetch data in parallel
+    checkAuth().then((isAuthorized) => {
+      if (isAuthorized) {
+        // Fetch all data in parallel for faster loading
+        Promise.all([
+          fetchBalance(),
+          fetchAnalytics(),
+          fetchRecentActivities(),
+          fetchUpcomingEvents(),
+          fetchPendingCounts(),
+          fetchGoals(),
+        ]);
+      }
+    });
   }, []);
 
   // Keyboard shortcuts
