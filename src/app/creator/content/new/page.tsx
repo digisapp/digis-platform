@@ -371,12 +371,12 @@ export default function CreateContentPage() {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Description</label>
-                <textarea
+                <input
+                  type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what fans will get..."
-                  rows={4}
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                 />
               </div>
             </div>
@@ -396,9 +396,9 @@ export default function CreateContentPage() {
                     : 'border-purple-200 bg-white/60 hover:bg-white/80'
                 }`}
               >
-                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-300'}`} />
-                <div className="text-sm font-semibold text-white">Free</div>
-                <div className="text-xs text-gray-300">Everyone can view</div>
+                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-600'}`} />
+                <div className="text-sm font-semibold text-gray-900">Free</div>
+                <div className="text-xs text-gray-700">Everyone can view</div>
               </button>
 
               <button
@@ -410,9 +410,9 @@ export default function CreateContentPage() {
                     : 'border-purple-200 bg-white/60 hover:bg-white/80'
                 }`}
               >
-                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-300'}`} />
-                <div className="text-sm font-semibold text-white">Locked</div>
-                <div className="text-xs text-gray-300">Pay to unlock</div>
+                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-600'}`} />
+                <div className="text-sm font-semibold text-gray-900">Locked</div>
+                <div className="text-xs text-gray-700">Pay to unlock</div>
               </button>
             </div>
 
@@ -430,14 +430,6 @@ export default function CreateContentPage() {
                   />
                   <span className="text-gray-300">coins</span>
                 </div>
-
-                {formData.unlockPrice > 0 && (
-                  <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-sm text-blue-700">
-                      Fans will pay {formData.unlockPrice} coins to unlock and view this content
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </GlassCard>
@@ -463,7 +455,7 @@ export default function CreateContentPage() {
               shimmer
               className="flex-1"
             >
-              {uploading ? 'Uploading...' : 'Publish Content'}
+              <span className="text-white font-semibold">{uploading ? 'Uploading...' : 'Publish Content'}</span>
             </GlassButton>
           </div>
         </form>
