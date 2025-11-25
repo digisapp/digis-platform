@@ -14,16 +14,34 @@ export default function Home() {
   const [showSignup, setShowSignup] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in - redirect immediately for speed
+  // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
-        // Redirect to explore immediately - it's the fastest path
-        // The dashboard/explore pages will handle role-specific redirects if needed
-        router.replace('/explore');
+        // Fetch user role to redirect appropriately
+        try {
+          const response = await fetch('/api/user/profile');
+          if (response.ok) {
+            const data = await response.json();
+            const role = data.user?.role;
+
+            // Redirect based on role
+            if (role === 'admin') {
+              router.replace('/admin');
+            } else if (role === 'creator') {
+              router.replace('/creator/dashboard');
+            } else {
+              router.replace('/explore');
+            }
+          } else {
+            router.replace('/explore');
+          }
+        } catch {
+          router.replace('/explore');
+        }
       } else {
         setLoading(false);
       }
