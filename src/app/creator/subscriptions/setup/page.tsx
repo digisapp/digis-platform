@@ -133,8 +133,8 @@ export default function SubscriptionSetupPage() {
                     <Users className="w-6 h-6 text-purple-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Active Subscribers</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.subscriberCount}</p>
+                    <p className="text-sm text-gray-400">Active Subscribers</p>
+                    <p className="text-2xl font-bold text-white">{stats.subscriberCount}</p>
                   </div>
                 </div>
               </GlassCard>
@@ -145,8 +145,8 @@ export default function SubscriptionSetupPage() {
                     <DollarSign className="w-6 h-6 text-green-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Monthly Revenue</p>
-                    <p className="text-2xl font-bold text-gray-800">{stats.monthlyRevenue} coins</p>
+                    <p className="text-sm text-gray-400">Monthly Revenue</p>
+                    <p className="text-2xl font-bold text-white">{stats.monthlyRevenue} coins</p>
                   </div>
                 </div>
               </GlassCard>
@@ -161,8 +161,8 @@ export default function SubscriptionSetupPage() {
                   <Star className="w-6 h-6 text-digis-cyan" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Enable Subscriptions</h3>
-                  <p className="text-sm text-gray-600">Allow fans to subscribe to your exclusive content</p>
+                  <h3 className="text-lg font-semibold text-white">Enable Subscriptions</h3>
+                  <p className="text-sm text-gray-400">Allow fans to subscribe to your exclusive content</p>
                 </div>
               </div>
               <button
@@ -180,12 +180,12 @@ export default function SubscriptionSetupPage() {
 
           {/* Subscription Details */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Subscription Details</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Subscription Details</h3>
 
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Subscription Name *
                 </label>
                 <input
@@ -193,39 +193,32 @@ export default function SubscriptionSetupPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Superfan, VIP, Supporter"
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  className="w-full px-4 py-3 bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                   maxLength={50}
                 />
-                <p className="text-xs text-gray-600 mt-1">What your subscribers will be called</p>
               </div>
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Monthly Price *
                 </label>
-                <div className="flex items-center gap-4">
-                  <DollarSign className="w-6 h-6 text-amber-500" />
+                <div className="flex items-center gap-2">
                   <input
                     type="number"
                     min="1"
                     max="10000"
                     value={formData.pricePerMonth}
                     onChange={(e) => setFormData({ ...formData, pricePerMonth: parseInt(e.target.value) || 1 })}
-                    className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="flex-1 px-4 py-3 bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                   />
-                  <span className="text-gray-600 font-medium">coins/month</span>
-                </div>
-                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    Fans will pay {formData.pricePerMonth} coins every 30 days to maintain their subscription
-                  </p>
+                  <span className="text-gray-300 font-medium whitespace-nowrap">coins/month</span>
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Description
                 </label>
                 <textarea
@@ -234,13 +227,13 @@ export default function SubscriptionSetupPage() {
                   placeholder="Tell fans what they get with a subscription..."
                   rows={3}
                   maxLength={500}
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                 />
               </div>
 
               {/* Benefits */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Benefits
                 </label>
 
@@ -249,13 +242,13 @@ export default function SubscriptionSetupPage() {
                   {formData.benefits.map((benefit, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-white/60 border border-purple-200 rounded-lg"
+                      className="flex items-center gap-3 p-3 bg-black/40 border-2 border-cyan-500/30 rounded-lg"
                     >
                       <span className="text-green-500">✓</span>
-                      <span className="flex-1 text-gray-800">{benefit}</span>
+                      <span className="flex-1 text-white">{benefit}</span>
                       <button
                         onClick={() => removeBenefit(index)}
-                        className="text-gray-500 hover:text-red-500 transition-colors"
+                        className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -272,7 +265,7 @@ export default function SubscriptionSetupPage() {
                       onChange={(e) => setNewBenefit(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && addBenefit()}
                       placeholder="Add a benefit..."
-                      className="flex-1 px-4 py-2 bg-white/60 border border-purple-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                      className="flex-1 px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                       maxLength={100}
                     />
                     <button
