@@ -80,6 +80,11 @@ export async function GET(request: NextRequest) {
             // Build base conditions for featured - only show online creators
             const featuredConditions = [eq(users.role, 'creator'), eq(users.isOnline, true)];
 
+            // Exclude current user from featured if logged in
+            if (currentUserId) {
+              featuredConditions.push(sql`${users.id} != ${currentUserId}`);
+            }
+
             // Apply special filters to featured as well
             if (filter) {
               switch (filter) {
@@ -157,6 +162,11 @@ export async function GET(request: NextRequest) {
 
             // Build base conditions
             const baseConditions = [eq(users.role, 'creator')];
+
+            // Exclude current user from grid if logged in
+            if (currentUserId) {
+              baseConditions.push(sql`${users.id} != ${currentUserId}`);
+            }
 
             // Apply special filters
             if (filter) {
