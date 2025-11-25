@@ -1276,7 +1276,7 @@ export default function SettingsPage() {
                         onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, subscriptionName: e.target.value })}
                         placeholder="Superfan"
                         maxLength={30}
-                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold focus:outline-none focus:border-purple-500 transition-colors"
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                     </div>
 
@@ -1292,17 +1292,10 @@ export default function SettingsPage() {
                           max="10000"
                           value={subscriptionSettings.monthlyPrice}
                           onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(e.target.value) || 1 })}
-                          className="w-full md:w-64 px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 transition-colors"
+                          className="w-full md:w-64 px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                         />
                         <span className="text-sm text-gray-400 whitespace-nowrap">coins/month</span>
                       </div>
-                    </div>
-
-                    {/* Info Box */}
-                    <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                      <p className="text-sm text-gray-300">
-                        Subscribers get exclusive access to your subscriber-only content and perks. You'll earn {subscriptionSettings.monthlyPrice} coins monthly from each subscriber.
-                      </p>
                     </div>
                   </div>
                 )}
