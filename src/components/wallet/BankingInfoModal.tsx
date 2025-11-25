@@ -123,13 +123,13 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
           <div className="w-20 h-20 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-5xl mx-auto mb-4">
             🏦
           </div>
-          <p className="text-gray-700">
+          <p className="text-gray-300">
             Add your bank account to receive payouts from your Digis earnings
           </p>
         </div>
 
         {/* Security Notice */}
-        <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm text-blue-700">
+        <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm text-blue-300">
           <p className="font-medium mb-2">🔒 Your information is secure</p>
           <p className="text-xs">
             Your banking details are encrypted and used only for processing payouts.
@@ -148,7 +148,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
         <div className="space-y-4">
           {/* Account Holder Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Account Holder Name *
             </label>
             <input
@@ -163,7 +163,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Account Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Account Type *
             </label>
             <select
@@ -179,7 +179,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Bank Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Bank Name (Optional)
             </label>
             <input
@@ -193,7 +193,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Routing Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Routing Number *
             </label>
             <input
@@ -210,7 +210,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Account Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Account Number *
             </label>
             <input
@@ -225,7 +225,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Confirm Account Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Confirm Account Number *
             </label>
             <input
@@ -240,7 +240,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
 
           {/* Existing Info Notice */}
           {existingInfo && (
-            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-700">
+            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-300">
               <p className="font-medium mb-1">Updating Banking Information</p>
               <p className="text-xs">
                 Current account ending in ••••{existingInfo.lastFourDigits}
@@ -269,7 +269,6 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
             size="lg"
             className="flex-1"
             disabled={loading}
-            shimmer
           >
             {loading ? (
               <LoadingSpinner size="sm" />
@@ -280,7 +279,7 @@ export function BankingInfoModal({ isOpen, onClose, onSuccess, existingInfo }: B
         </div>
 
         {/* Disclaimer */}
-        <div className="text-center text-xs text-gray-600">
+        <div className="text-center text-xs text-gray-400">
           By adding your banking information, you agree to our terms and confirm
           that you are authorized to use this account for payouts.
         </div>
