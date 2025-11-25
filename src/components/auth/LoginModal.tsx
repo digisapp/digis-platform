@@ -49,12 +49,9 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
         await supabase.auth.setSession(data.session);
       }
 
-      // Short delay to ensure session is set
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       // Redirect based on user role
       const role = data.user?.role;
-      let redirectPath = '/dashboard';
+      let redirectPath = '/explore';
 
       if (role === 'admin') {
         redirectPath = '/admin';
@@ -63,7 +60,9 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
       }
 
       console.log('Login successful, redirecting to:', redirectPath);
-      window.location.href = redirectPath;
+
+      // Force a full page reload to ensure session is recognized
+      window.location.replace(redirectPath);
     } catch (err) {
       console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
