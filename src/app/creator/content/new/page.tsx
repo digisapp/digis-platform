@@ -198,20 +198,16 @@ export default function CreateContentPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">Upload Content 📸</h1>
-            <GlassButton
-              variant="ghost"
-              size="lg"
-              onClick={() => router.push('/creator/content')}
-              className="flex items-center gap-2"
-            >
-              <Grid3x3 className="w-5 h-5" />
-              All Content
-            </GlassButton>
-          </div>
-          <p className="text-gray-400">Share exclusive photos, videos, and galleries with your fans</p>
+        <div className="mb-8 flex items-center justify-end">
+          <GlassButton
+            variant="ghost"
+            size="lg"
+            onClick={() => router.push('/creator/content')}
+            className="flex items-center gap-2"
+          >
+            <Grid3x3 className="w-5 h-5" />
+            All Content
+          </GlassButton>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
