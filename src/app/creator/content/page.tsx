@@ -97,21 +97,17 @@ export default function CreatorContentStudioPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold text-white">Content Studio 🎬</h1>
-            <GlassButton
-              variant="gradient"
-              size="lg"
-              onClick={() => router.push('/creator/content/new')}
-              className="flex items-center gap-2"
-              shimmer
-            >
-              <Plus className="w-5 h-5" />
-              Upload Content
-            </GlassButton>
-          </div>
-          <p className="text-gray-400">Manage your exclusive content and track earnings</p>
+        <div className="mb-8 flex items-center justify-end">
+          <GlassButton
+            variant="gradient"
+            size="lg"
+            onClick={() => router.push('/creator/content/new')}
+            className="flex items-center gap-2"
+            shimmer
+          >
+            <Plus className="w-5 h-5" />
+            Upload Content
+          </GlassButton>
         </div>
 
         {/* Stats Overview */}
