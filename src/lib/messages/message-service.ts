@@ -228,7 +228,7 @@ export class MessageService {
         await db.insert(walletTransactions).values({
           userId: senderId,
           amount: -COLD_OUTREACH_FEE,
-          type: 'cold_outreach_fee',
+          type: 'message_charge',
           status: 'completed',
           description: `Message unlock: ${receiver.displayName || receiver.username}`,
           idempotencyKey: `${transactionId}-cold-outreach`,
