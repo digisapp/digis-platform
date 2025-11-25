@@ -138,7 +138,7 @@ export function MobileWalletWidget() {
                   </div>
                 </button>
 
-                {/* Create Post */}
+                {/* Upload */}
                 <button
                   onClick={() => {
                     setShowDropdown(false);
@@ -150,7 +150,7 @@ export function MobileWalletWidget() {
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-white drop-shadow">Create Post</div>
+                    <div className="font-bold text-white drop-shadow">Upload</div>
                     <div className="text-xs text-white/70">Share PPV content</div>
                   </div>
                 </button>
