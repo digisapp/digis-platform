@@ -121,14 +121,14 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="backdrop-blur-xl bg-white/95 rounded-3xl border-2 border-purple-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl border-2 border-digis-cyan shadow-[0_0_30px_rgba(0,255,255,0.3)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Create New Show</h2>
+            <h2 className="text-2xl font-bold text-white">Create Paid Stream</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-900 text-2xl"
+              className="text-gray-400 hover:text-digis-cyan text-2xl transition-colors"
             >
               ✕
             </button>
@@ -137,30 +137,30 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Show Title *
+              <label className="block text-sm font-semibold text-white mb-2">
+                Stream Title *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="My Exclusive Live Performance"
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400"
+                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
                 maxLength={100}
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-white mb-2">
                 Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Tell your fans what to expect from this show..."
+                placeholder="Tell your fans what to expect from this stream..."
                 rows={4}
-                className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400 resize-none"
+                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all resize-none"
                 maxLength={500}
               />
             </div>
@@ -168,29 +168,29 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
             {/* Date & Time + Duration */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Show Date & Time *
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Stream Date & Time *
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.scheduledStart}
                   onChange={(e) => setFormData({ ...formData, scheduledStart: e.target.value })}
                   min={getMinDateTime()}
-                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   At least 1 hour from now
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-white mb-2">
                   Duration *
                 </label>
                 <select
                   value={formData.durationMinutes}
                   onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
                 >
                   <option value={30}>30 minutes</option>
                   <option value={60}>1 hour</option>
@@ -204,7 +204,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
             {/* Ticket Price + Max Tickets */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-white mb-2">
                   Ticket Price (coins) *
                 </label>
                 <input
@@ -213,12 +213,12 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   onChange={(e) => setFormData({ ...formData, ticketPrice: parseInt(e.target.value) || 0 })}
                   min={1}
                   max={10000}
-                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-purple-400"
+                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-pink/30 rounded-lg text-white focus:outline-none focus:border-digis-pink focus:shadow-[0_0_10px_rgba(255,20,147,0.3)] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-white mb-2">
                   Maximum Tickets
                 </label>
                 <input
@@ -231,14 +231,14 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   placeholder="Unlimited"
                   min={1}
                   max={10000}
-                  className="w-full px-4 py-3 bg-white/60 backdrop-blur-sm border border-purple-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:border-purple-400"
+                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-pink/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-pink focus:shadow-[0_0_10px_rgba(255,20,147,0.3)] transition-all"
                 />
               </div>
             </div>
 
             {/* Cover Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-white mb-2">
                 Cover Image (optional)
               </label>
 
@@ -247,29 +247,29 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   <img
                     src={coverPreview}
                     alt="Cover preview"
-                    className="w-full h-48 object-cover rounded-lg border-2 border-purple-200"
+                    className="w-full h-48 object-cover rounded-lg border-2 border-digis-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]"
                   />
                   <button
                     type="button"
                     onClick={removeCoverImage}
-                    className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+                    className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-[0_0_10px_rgba(255,0,0,0.5)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-purple-200 rounded-lg cursor-pointer bg-white/60 hover:bg-white/80 transition-colors">
+                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-digis-cyan/30 rounded-lg cursor-pointer bg-black/40 hover:bg-black/60 hover:border-digis-cyan transition-all">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     {uploadingCover ? (
                       <>
                         <LoadingSpinner size="md" />
-                        <p className="mt-2 text-sm text-gray-600">Uploading...</p>
+                        <p className="mt-2 text-sm text-gray-300">Uploading...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="w-10 h-10 text-gray-400 mb-3" />
-                        <p className="text-sm text-gray-600 font-semibold">Click to upload cover image</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF or WebP (max 5MB)</p>
+                        <Upload className="w-10 h-10 text-digis-cyan mb-3" />
+                        <p className="text-sm text-white font-semibold">Click to upload cover image</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF or WebP (max 5MB)</p>
                       </>
                     )}
                   </div>
@@ -285,7 +285,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-200 text-sm">
+              <div className="bg-red-500/20 border-2 border-red-500 rounded-lg p-3 text-red-300 text-sm shadow-[0_0_15px_rgba(255,0,0,0.3)]">
                 {error}
               </div>
             )}
@@ -297,7 +297,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 variant="ghost"
                 size="lg"
                 onClick={onClose}
-                className="flex-1 !text-gray-900 font-semibold"
+                className="flex-1 !text-white font-semibold border-2 border-gray-600 hover:border-gray-400"
                 disabled={loading}
               >
                 Cancel
@@ -311,7 +311,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 shimmer
                 glow
               >
-                {loading ? <LoadingSpinner size="sm" /> : 'Create Show'}
+                {loading ? <LoadingSpinner size="sm" /> : <span className="text-white font-bold">Create Paid Stream</span>}
               </GlassButton>
             </div>
           </form>
