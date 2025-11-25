@@ -353,10 +353,10 @@ export default function FanDashboard() {
         {/* Empty State - Only if nothing to show */}
         {liveStreams.length === 0 && featuredCreators.length === 0 && upcomingShows.length === 0 && (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-            <div className="text-6xl mb-4">🎬</div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">Welcome to Digis!</h3>
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">Discover Creators</h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              No live content right now, but there's plenty to discover
+              No live content right now. Explore and find creators to follow!
             </p>
             <button
               onClick={() => router.push('/explore')}

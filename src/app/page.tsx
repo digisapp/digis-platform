@@ -14,36 +14,16 @@ export default function Home() {
   const [showSignup, setShowSignup] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in
+  // Check if user is already logged in - redirect immediately for speed
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
-        // Get user role to redirect appropriately
-        try {
-          const response = await fetch('/api/user/profile');
-          if (response.ok) {
-            const data = await response.json();
-            const role = data.user?.role;
-
-            // Redirect based on role
-            if (role === 'admin') {
-              router.push('/admin');
-            } else if (role === 'creator') {
-              router.push('/creator/dashboard');
-            } else {
-              router.push('/dashboard');
-            }
-          } else {
-            // Fallback to dashboard if profile fetch fails
-            router.push('/dashboard');
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          router.push('/dashboard');
-        }
+        // Redirect to explore immediately - it's the fastest path
+        // The dashboard/explore pages will handle role-specific redirects if needed
+        router.replace('/explore');
       } else {
         setLoading(false);
       }
@@ -54,16 +34,20 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-pastel-gradient flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Image
-            src="/images/digis-logo-black.png"
-            alt="Digis"
-            width={120}
-            height={40}
-            className="animate-breathe"
-            priority
-          />
+          <div className="relative">
+            {/* Glow effect */}
+            <div className="absolute inset-0 blur-xl bg-cyan-400/40 scale-150" />
+            <Image
+              src="/images/digis-logo-white.png"
+              alt="Digis"
+              width={120}
+              height={40}
+              className="relative animate-pulse drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
+              priority
+            />
+          </div>
         </div>
       </div>
     );
