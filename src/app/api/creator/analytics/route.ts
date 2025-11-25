@@ -49,9 +49,47 @@ export async function GET() {
         error: 'Failed to verify user role',
         userId: user.id
       });
+
+      // Return degraded analytics instead of 503
+      const emptyAnalytics = {
+        overview: {
+          totalEarnings: 0,
+          totalGiftCoins: 0,
+          totalCallEarnings: 0,
+          totalStreams: 0,
+          totalCalls: 0,
+          totalStreamViews: 0,
+          peakViewers: 0,
+        },
+        streams: {
+          totalStreams: 0,
+          totalViews: 0,
+          peakViewers: 0,
+          averageViewers: 0,
+        },
+        calls: {
+          totalCalls: 0,
+          totalMinutes: 0,
+          totalEarnings: 0,
+          averageCallLength: 0,
+        },
+        gifts: {
+          totalGifts: 0,
+          totalCoins: 0,
+          averageGiftValue: 0,
+        },
+        topGifters: [],
+        recentActivity: [],
+      };
+
       return NextResponse.json(
-        failure('Database temporarily unavailable', 'timeout', requestId),
-        { status: 503, headers: { 'x-request-id': requestId } }
+        degraded(
+          emptyAnalytics,
+          'Analytics temporarily unavailable - please try again in a moment',
+          'timeout',
+          requestId
+        ),
+        { headers: { 'x-request-id': requestId } }
       );
     }
 
