@@ -147,11 +147,14 @@ export default function CreatorShowsPage() {
             <button
               key={category.value}
               onClick={() => setCategoryFilter(category.value)}
-              className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap text-sm ${
-                categoryFilter === category.value
-                  ? 'bg-white text-gray-900 shadow-lg scale-105'
-                  : 'backdrop-blur-xl bg-white/10 border border-white/20 text-gray-300 hover:bg-white/20'
-              }`}
+              className={`
+                flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 whitespace-nowrap
+                ${
+                  categoryFilter === category.value
+                    ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:scale-105'
+                }
+              `}
             >
               <span className="mr-2">{category.icon}</span>
               {category.label}
