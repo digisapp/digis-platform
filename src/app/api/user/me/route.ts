@@ -14,11 +14,14 @@ export async function GET() {
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !authUser) {
+      console.error('[USER_ME] Auth error:', authError);
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
+
+    console.log('[USER_ME] Fetching user:', authUser.id);
 
     // Use Drizzle ORM to query users table
     // Try to fetch with profile, but handle gracefully if relation fails
@@ -33,17 +36,22 @@ export async function GET() {
     } catch (relationError) {
       // If relation fails (migration not run yet), fetch without profile
       console.warn('[USER_ME] Profile relation failed, fetching without profile:', relationError);
-      user = await db.query.users.findFirst({
-        where: eq(users.id, authUser.id),
-      });
+      try {
+        user = await db.query.users.findFirst({
+          where: eq(users.id, authUser.id),
+        });
+      } catch (dbError) {
+        console.error('[USER_ME] Database query failed completely:', dbError);
+        // Fall through to auth fallback below
+      }
     }
 
     // If user not found in database, return auth data as fallback
     if (!user) {
-      console.error('User not found in database - using auth data fallback');
+      console.warn('[USER_ME] User not found in database - using auth data fallback');
       const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
 
-      return NextResponse.json({
+      const fallbackUser = {
         id: authUser.id,
         email: authUser.email!,
         username: authUser.user_metadata?.username || `user_${authUser.id.substring(0, 8)}`,
@@ -61,8 +69,16 @@ export async function GET() {
         createdAt: authUser.created_at,
         updatedAt: authUser.created_at,
         profile: null,
-      });
+      };
+
+      const response = NextResponse.json(fallbackUser);
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      return response;
     }
+
+    console.log('[USER_ME] User found:', { id: user.id, username: user.username, role: user.role });
 
     const response = NextResponse.json(user);
 
@@ -73,9 +89,13 @@ export async function GET() {
 
     return response;
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error('[USER_ME] Unhandled error:', error);
+    // Return a fallback response instead of 500 to prevent auth breaking
     return NextResponse.json(
-      { error: 'An error occurred while fetching user data' },
+      {
+        error: 'An error occurred while fetching user data',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
