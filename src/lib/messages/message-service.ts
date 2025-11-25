@@ -8,10 +8,10 @@ import {
   walletTransactions,
   wallets,
   creatorSettings,
-  tips,
   subscriptions,
   calls,
   contentPurchases,
+  streamGifts,
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -51,15 +51,15 @@ export class MessageService {
       }
     }
 
-    // Check if recipient has tipped sender
-    const hasTipped = await db.query.tips.findFirst({
+    // Check if recipient has sent gifts to sender in any stream
+    const hasSentGifts = await db.query.streamGifts.findFirst({
       where: and(
-        eq(tips.senderId, recipientId),
-        eq(tips.recipientId, senderId)
+        eq(streamGifts.senderId, recipientId),
+        eq(streamGifts.recipientId, senderId)
       ),
     });
 
-    if (hasTipped) return true;
+    if (hasSentGifts) return true;
 
     // Check if recipient is subscribed to sender
     const hasSubscription = await db.query.subscriptions.findFirst({

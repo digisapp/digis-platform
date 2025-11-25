@@ -328,8 +328,10 @@ export default function ProfilePage() {
 
       // Check if user is trying to message themselves
       const currentUserResponse = await fetch('/api/user/profile');
+      let currentUserData: any = null;
+
       if (currentUserResponse.ok) {
-        const currentUserData = await currentUserResponse.json();
+        currentUserData = await currentUserResponse.json();
         if (currentUserData.user?.id === profile.user.id) {
           alert("You can't message yourself");
           return;
