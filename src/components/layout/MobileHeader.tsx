@@ -14,9 +14,9 @@ export function MobileHeader() {
   useEffect(() => {
     const fetchBalance = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (user) {
+      if (session) {
         setIsLoggedIn(true);
         try {
           const response = await fetch('/api/wallet/balance');
@@ -26,6 +26,7 @@ export function MobileHeader() {
           }
         } catch (error) {
           console.error('Error fetching balance:', error);
+          setBalance(0); // Show 0 on error instead of hiding
         }
       }
     };
