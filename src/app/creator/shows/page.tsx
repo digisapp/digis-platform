@@ -31,7 +31,7 @@ export default function CreatorShowsPage() {
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'scheduled' | 'live' | 'ended'>('all');
+  const [statusFilter, setStatusFilter] = useState<'scheduled' | 'ended'>('scheduled');
   const [categoryFilter, setCategoryFilter] = useState<ShowType | 'all'>('all');
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function CreatorShowsPage() {
   }
 
   const filteredShows = shows.filter(show => {
-    const matchesStatus = statusFilter === 'all' || show.status === statusFilter;
+    const matchesStatus = show.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || show.showType === categoryFilter;
     return matchesStatus && matchesCategory;
   });
@@ -115,7 +115,7 @@ export default function CreatorShowsPage() {
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
         {/* Status Filter Tabs + Create Show Button */}
         <div className="mb-4 flex gap-3 overflow-x-auto pb-2">
-          {(['all', 'scheduled', 'live', 'ended'] as const).map((tab) => (
+          {(['scheduled', 'ended'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setStatusFilter(tab)}
@@ -226,14 +226,14 @@ export default function CreatorShowsPage() {
                 <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-3">
-                {statusFilter === 'all' ? 'No streams yet' : `No ${statusFilter} streams`}
+                No {statusFilter} streams
               </h3>
               <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
-                {statusFilter === 'all'
-                  ? 'Create your first stream and start earning!'
-                  : `You don't have any ${statusFilter} streams at the moment.`}
+                {statusFilter === 'scheduled'
+                  ? 'Create your first paid stream and start earning!'
+                  : 'Your completed streams will appear here.'}
               </p>
-              {statusFilter === 'all' && (
+              {statusFilter === 'scheduled' && (
                 <GlassButton
                   variant="gradient"
                   size="md"
