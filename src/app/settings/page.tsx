@@ -1115,7 +1115,7 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.callRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
@@ -1133,7 +1133,7 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
@@ -1182,7 +1182,7 @@ export default function SettingsPage() {
                         max="1000"
                         value={callSettings.voiceCallRatePerMinute}
                         onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
@@ -1200,7 +1200,7 @@ export default function SettingsPage() {
                         max="60"
                         value={callSettings.minimumVoiceCallDuration}
                         onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
-                        className="w-full px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
@@ -1225,7 +1225,7 @@ export default function SettingsPage() {
                       max="1000"
                       value={callSettings.messageRate}
                       onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
-                      className="w-full md:w-64 px-4 py-2 bg-white border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
+                      className="w-full md:w-64 px-4 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-digis-cyan transition-colors"
                     />
                     <span className="text-sm text-gray-400 whitespace-nowrap">coins/message</span>
                   </div>
