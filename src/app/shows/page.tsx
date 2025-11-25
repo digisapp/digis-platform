@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket } from 'lucide-react';
 
@@ -108,6 +109,9 @@ export default function ShowsDirectoryPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Mobile Header */}
+      <MobileHeader />
+
       {/* Spacer for fixed mobile header */}
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
