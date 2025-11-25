@@ -6,6 +6,7 @@
 html, body {
   margin: 0 !important;
   padding: 0 !important;
+  background-color: #000 !important;
 }
 
 @media (max-width: 768px) {
@@ -16,21 +17,13 @@ html, body {
 }
 
 :root {
-  --background: #F0F4FF;
-  --foreground: #1F2937;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #F0F4FF;
-    --foreground: #1F2937;
-  }
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 body {
   color: var(--foreground);
-  background: linear-gradient(135deg, #FAF5FF 0%, #EFF6FF 50%, #F0F9FF 100%);
-  background-attachment: fixed;
+  background: #000000;
   font-family: Arial, Helvetica, sans-serif;
 }
 
