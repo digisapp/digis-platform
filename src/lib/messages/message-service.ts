@@ -8,11 +8,94 @@ import {
   walletTransactions,
   wallets,
   creatorSettings,
+  tips,
+  subscriptions,
+  calls,
+  contentPurchases,
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
+// Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
+const COLD_OUTREACH_FEE = 50;
+
 export class MessageService {
+  /**
+   * Check if sender has a relationship with recipient
+   * Relationship exists if recipient has: tipped, subscribed, messaged first, been on call, or purchased content
+   */
+  static async hasRelationship(senderId: string, recipientId: string): Promise<boolean> {
+    // Check if they already have a conversation (recipient messaged first)
+    const existingConversation = await db.query.conversations.findFirst({
+      where: or(
+        and(
+          eq(conversations.user1Id, senderId),
+          eq(conversations.user2Id, recipientId)
+        ),
+        and(
+          eq(conversations.user1Id, recipientId),
+          eq(conversations.user2Id, senderId)
+        )
+      ),
+    });
+
+    // If conversation exists, check if recipient sent the first message
+    if (existingConversation) {
+      const firstMessage = await db.query.messages.findFirst({
+        where: eq(messages.conversationId, existingConversation.id),
+        orderBy: [messages.createdAt],
+      });
+
+      if (firstMessage && firstMessage.senderId === recipientId) {
+        return true; // Recipient messaged first, so relationship exists
+      }
+    }
+
+    // Check if recipient has tipped sender
+    const hasTipped = await db.query.tips.findFirst({
+      where: and(
+        eq(tips.senderId, recipientId),
+        eq(tips.recipientId, senderId)
+      ),
+    });
+
+    if (hasTipped) return true;
+
+    // Check if recipient is subscribed to sender
+    const hasSubscription = await db.query.subscriptions.findFirst({
+      where: and(
+        eq(subscriptions.userId, recipientId),
+        eq(subscriptions.creatorId, senderId),
+        eq(subscriptions.status, 'active')
+      ),
+    });
+
+    if (hasSubscription) return true;
+
+    // Check if recipient has had a call with sender
+    const hasCall = await db.query.calls.findFirst({
+      where: and(
+        eq(calls.fanId, recipientId),
+        eq(calls.creatorId, senderId),
+        eq(calls.status, 'completed')
+      ),
+    });
+
+    if (hasCall) return true;
+
+    // Check if recipient has purchased sender's content
+    const hasPurchasedContent = await db.query.contentPurchases.findFirst({
+      where: and(
+        eq(contentPurchases.userId, recipientId),
+        sql`${contentPurchases.contentId} IN (SELECT id FROM content_items WHERE creator_id = ${senderId})`
+      ),
+    });
+
+    if (hasPurchasedContent) return true;
+
+    // No relationship found
+    return false;
+  }
   /**
    * Get or create a conversation between two users
    */
@@ -116,12 +199,63 @@ export class MessageService {
         ? conversation.user2Id
         : conversation.user1Id;
 
-    // Check if receiver is a creator with a message rate
-    const receiver = await db.query.users.findFirst({
-      where: eq(users.id, receiverId),
-    });
+    // Get sender and receiver info
+    const [sender, receiver] = await Promise.all([
+      db.query.users.findFirst({ where: eq(users.id, senderId) }),
+      db.query.users.findFirst({ where: eq(users.id, receiverId) }),
+    ]);
+
+    if (!sender || !receiver) {
+      throw new Error('User not found');
+    }
 
     let messageCost = 0;
+
+    // COLD OUTREACH FEE: Charge creators 50 coins to message fans without a relationship
+    // Check if this is the first message in the conversation (cold outreach)
+    const existingMessages = await db.query.messages.findFirst({
+      where: eq(messages.conversationId, conversationId),
+    });
+
+    const isFirstMessage = !existingMessages;
+
+    if (isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
+      // Sender is a creator, receiver is a fan - check if they have a relationship
+      const hasRelationship = await MessageService.hasRelationship(senderId, receiverId);
+
+      if (!hasRelationship) {
+        // No relationship - charge cold outreach fee
+        const senderWallet = await db.query.wallets.findFirst({
+          where: eq(wallets.userId, senderId),
+        });
+
+        if (!senderWallet || senderWallet.balance < COLD_OUTREACH_FEE) {
+          throw new Error(`Insufficient balance. You need ${COLD_OUTREACH_FEE} coins to message users you don't have a relationship with.`);
+        }
+
+        // Charge the cold outreach fee (platform keeps 100%)
+        const transactionId = uuidv4();
+
+        await db.insert(walletTransactions).values({
+          userId: senderId,
+          amount: -COLD_OUTREACH_FEE,
+          type: 'cold_outreach_fee',
+          status: 'completed',
+          description: `Message unlock: ${receiver.displayName || receiver.username}`,
+          idempotencyKey: `${transactionId}-cold-outreach`,
+        });
+
+        // Update sender's wallet balance
+        await db
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} - ${COLD_OUTREACH_FEE}`,
+          })
+          .where(eq(wallets.userId, senderId));
+
+        messageCost = COLD_OUTREACH_FEE; // Track total cost
+      }
+    }
 
     if (receiver && receiver.role === 'creator') {
       // Get creator settings to check message rate

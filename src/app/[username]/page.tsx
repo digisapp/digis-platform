@@ -353,8 +353,26 @@ export default function ProfilePage() {
         }
       }
 
-      // No existing conversation - create one by sending an initial message
-      // This allows creators to message fans directly
+      // No existing conversation - check if cold outreach fee applies
+      // If current user is a creator messaging a fan without a relationship, they'll be charged 50 coins
+      const currentUser = currentUserData?.user;
+      const isCreatorMessagingFan = currentUser?.role === 'creator' && profile.user.role !== 'creator';
+
+      if (isCreatorMessagingFan) {
+        // Show confirmation for cold outreach fee
+        const confirmed = confirm(
+          `Message Unlock: 50 coins\n\n` +
+          `You'll be charged 50 coins to send your first message to ${profile.user.displayName || profile.user.username}.\n\n` +
+          `After that, messaging is free!\n\n` +
+          `Note: Free if they've tipped, subscribed, or messaged you first.`
+        );
+
+        if (!confirmed) {
+          return; // User cancelled
+        }
+      }
+
+      // Create conversation by sending initial message
       const createResponse = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
