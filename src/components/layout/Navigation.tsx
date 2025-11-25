@@ -526,22 +526,22 @@ export function Navigation() {
 
       {/* Mobile Bottom Navigation (iPhone Optimized) - Dark Tron Theme */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        {/* Tron-themed background */}
-        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl" />
+        {/* Tron-themed background - pointer-events-none to not block touches */}
+        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl pointer-events-none" />
 
-        {/* Animated gradient line at top */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)]" />
+        {/* Animated gradient line at top - pointer-events-none to not block touches */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)] pointer-events-none" />
 
         {/* Navigation content */}
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
           {/* Home */}
           <button
             onClick={() => router.push(navItems[0].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
               navItems[0].active
                 ? 'text-cyan-400'
-                : 'text-gray-300 active:bg-white/10'
+                : 'text-gray-300'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -564,10 +564,10 @@ export function Navigation() {
           {/* Explore */}
           <button
             onClick={() => router.push(navItems[1].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
               navItems[1].active
                 ? 'text-cyan-400'
-                : 'text-gray-300 active:bg-white/10'
+                : 'text-gray-300'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -591,12 +591,12 @@ export function Navigation() {
           <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mt-4">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="relative transition-all active:scale-95"
+              className="relative touch-manipulation"
               style={{ minHeight: '56px', minWidth: '56px' }}
             >
               {/* Enhanced glow effect */}
               {(isActive('/settings') || showProfileMenu) && (
-                <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse" />
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse pointer-events-none" />
               )}
 
               {/* Gradient border ring */}
@@ -623,10 +623,10 @@ export function Navigation() {
           {/* Events */}
           <button
             onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
               navItems[2].active
                 ? 'text-cyan-400'
-                : 'text-gray-300 active:bg-white/10'
+                : 'text-gray-300'
             }`}
             style={{ minHeight: '48px' }}
           >
@@ -649,10 +649,10 @@ export function Navigation() {
           {/* Messages/Chats */}
           <button
             onClick={() => router.push(navItems[3].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl transition-all active:scale-95 ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
               navItems[3].active
                 ? 'text-cyan-400'
-                : 'text-gray-300 active:bg-white/10'
+                : 'text-gray-300'
             }`}
             style={{ minHeight: '48px' }}
           >
