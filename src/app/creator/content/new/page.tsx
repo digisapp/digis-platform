@@ -406,11 +406,11 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, isFree: false, unlockPrice: formData.unlockPrice || 100 })}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                   !formData.isFree
-                    ? 'border-amber-500 bg-amber-500/10'
+                    ? 'border-yellow-400 bg-yellow-500/10'
                     : 'border-purple-200 bg-white/60 hover:bg-white/80'
                 }`}
               >
-                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-amber-500' : 'text-gray-600'}`} />
+                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-yellow-400' : 'text-gray-600'}`} />
                 <div className={`text-sm font-semibold ${!formData.isFree ? 'text-white' : 'text-gray-900'}`}>Locked</div>
                 <div className={`text-xs ${!formData.isFree ? 'text-gray-300' : 'text-gray-700'}`}>Pay to unlock</div>
               </button>
