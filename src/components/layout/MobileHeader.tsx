@@ -4,35 +4,37 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Coins } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 export function MobileHeader() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useAuth();
   const [balance, setBalance] = useState<number | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Fetch balance when user is authenticated
   useEffect(() => {
-    const fetchBalance = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+    if (!authUser) {
+      setBalance(null);
+      return;
+    }
 
-      if (session) {
-        setIsLoggedIn(true);
-        try {
-          const response = await fetch('/api/wallet/balance');
-          const data = await response.json();
-          if (response.ok) {
-            setBalance(data.balance || 0);
-          }
-        } catch (error) {
-          console.error('Error fetching balance:', error);
-          setBalance(0); // Show 0 on error instead of hiding
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch('/api/wallet/balance');
+        const data = await response.json();
+        if (response.ok) {
+          setBalance(data.balance || 0);
         }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+        setBalance(0); // Show 0 on error instead of hiding
       }
     };
 
     fetchBalance();
-  }, []);
+  }, [authUser?.id]);
+
+  const isLoggedIn = !!authUser;
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>

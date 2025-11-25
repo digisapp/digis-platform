@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Digis - Creator Economy Platform",
@@ -18,8 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-black">
       <body className="antialiased bg-black min-h-screen">
-        <Navigation />
-        {children}
+        <AuthProvider>
+          <Navigation />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

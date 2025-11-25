@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
-import { type Role, ROLE_ORDER, isValidRole, parseRole } from '@/types/auth';
-import { getRoleWithFallback } from '@/lib/auth/jwt-utils';
-import { clearAppCaches, detectAndHandleUserChange, setLastAuthUserId } from '@/lib/cache-utils';
+import { clearAppCaches, setLastAuthUserId } from '@/lib/cache-utils';
+import { useAuth } from '@/context/AuthContext';
 import {
   Home,
   Search,
@@ -24,100 +23,43 @@ import {
 export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
-  // Initialize role from localStorage to prevent flash
-  const [userRole, setUserRole] = useState<Role>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('digis_user_role');
-      return parseRole(stored, 'fan');
-    }
-    return 'fan';
-  });
+  const { user: authUser, loading: authLoading, isCreator, isAdmin } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Safe role setter - only upgrade, never downgrade (unless forced)
-  const setRoleSafely = (nextRole?: string | null, opts: { force?: boolean } = {}) => {
-    if (!nextRole || !isValidRole(nextRole)) {
-      console.warn('[Navigation] Invalid role provided:', nextRole);
-      return;
-    }
+  // Derive userRole from AuthContext
+  const userRole = authUser?.role || 'fan';
 
-    // Force option for authoritative changes (e.g., admin changed user's role)
-    if (opts.force) {
-      console.log('[Navigation] Force updating role:', userRole, '->', nextRole);
-      setUserRole(nextRole);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('digis_user_role', nextRole);
-      }
-      return;
-    }
-
-    // Never-downgrade logic for transient errors
-    const currentOrder = ROLE_ORDER[userRole];
-    const nextOrder = ROLE_ORDER[nextRole];
-
-    // Only update if same level or higher
-    if (nextOrder >= currentOrder) {
-      setUserRole(nextRole);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('digis_user_role', nextRole);
-      }
-    } else {
-      console.log('[Navigation] Ignoring role downgrade:', userRole, '->', nextRole);
-    }
-  };
-
+  // Fetch profile data when auth user changes
   useEffect(() => {
-    let aborted = false;
+    if (!authUser) return;
 
-    const init = async () => {
-      // ⚡ CRITICAL: Assert role from JWT IMMEDIATELY (before API call)
-      // This prevents fan flash even if /api/user/profile briefly fails
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const jwtRole =
-        (session?.user?.app_metadata as any)?.role ??
-        (session?.user?.user_metadata as any)?.role ??
-        null;
-
-      // 🛡️ Detect user change and clear caches if needed
-      if (session?.user?.id) {
-        const userChanged = detectAndHandleUserChange(session.user.id, { forceReload: true });
-        if (userChanged) {
-          console.log('[Navigation] User changed - caches cleared and page will reload');
-          // Page will reload, so no need to continue
-          return;
-        }
-      }
-
-      // 🛡️ Last-resort fallback: decode JWT from localStorage if session is null
-      const roleWithFallback = getRoleWithFallback(jwtRole);
-
-      if (!aborted && roleWithFallback && isValidRole(roleWithFallback)) {
-        console.log('[Navigation] Asserting role immediately:', roleWithFallback, {
-          source: jwtRole ? 'JWT session' : 'localStorage fallback'
+    const fetchProfileData = async () => {
+      try {
+        const response = await fetch('/api/user/profile', {
+          cache: 'no-store',
         });
-        setRoleSafely(roleWithFallback, { force: true });
-      } else if (!aborted && !roleWithFallback) {
-        console.log('[Navigation] No role found in JWT or localStorage, will fetch from API');
-      }
 
-      // Now fetch full profile (which may also update role)
-      if (!aborted) {
-        await checkUser();
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.user) {
+            setUserProfile(data.user);
+            setFollowerCount(data.user.followerCount || 0);
+          }
+        }
+      } catch (error) {
+        console.error('[Navigation] Error fetching profile:', error);
       }
     };
 
-    init();
+    fetchProfileData();
+  }, [authUser?.id]);
 
-    return () => {
-      aborted = true;
-    };
-
+  // Heartbeat and auth state listener for cache clearing
+  useEffect(() => {
     // Heartbeat to keep session alive (every 60 seconds)
     const heartbeatInterval = setInterval(() => {
       fetch('/api/auth/heartbeat', {
@@ -128,33 +70,14 @@ export function Navigation() {
       });
     }, 60000);
 
-    // Listen for auth state changes (logout, session expiry, etc.)
+    // Listen for auth state changes for cache clearing
     const supabase = createClient();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         console.log('[Navigation] User signed out - clearing all caches');
-        setUser(null);
-        setUserRole('fan');
         setBalance(0);
-        // Clear all app caches on logout
         clearAppCaches();
         setLastAuthUserId(null);
-      } else if (event === 'SIGNED_IN' && session?.user) {
-        console.log('[Navigation] User signed in - checking for user change');
-        // Detect user change and clear caches if needed (with force reload)
-        const userChanged = detectAndHandleUserChange(session.user.id, { forceReload: true });
-        if (userChanged) {
-          console.log('[Navigation] User changed on sign-in - page will reload');
-          return; // Page will reload
-        }
-        checkUser();
-        // Also check for role in JWT on sign-in
-        const jwtRole = (session.user.app_metadata as any)?.role ?? (session.user.user_metadata as any)?.role;
-        if (jwtRole) setRoleSafely(jwtRole);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Update role from refreshed JWT
-        const jwtRole = (session.user.app_metadata as any)?.role ?? (session.user.user_metadata as any)?.role;
-        if (jwtRole) setRoleSafely(jwtRole);
       }
     });
 
@@ -165,7 +88,7 @@ export function Navigation() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!authUser) return;
 
     // Only fetch balance and unread count if user is authenticated
     fetchBalance();
@@ -191,61 +114,7 @@ export function Navigation() {
     return () => {
       supabase.removeChannel(messagesChannel);
     };
-  }, [user]);
-
-  const checkUser = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user) {
-      setUser(user);
-
-      // Get user role and profile data (including avatar)
-      // Force no-cache to prevent stale role data
-      try {
-        const response = await fetch('/api/user/profile', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          }
-        });
-
-        if (!response.ok) {
-          console.error('[Navigation] Profile API error:', response.status);
-          // Don't reset role on error - keep current state
-          return;
-        }
-
-        const data = await response.json();
-        console.log('[Navigation] User profile fetched:', {
-          email: data.user?.email,
-          username: data.user?.username,
-          role: data.user?.role,
-          isCreatorVerified: data.user?.isCreatorVerified
-        });
-
-        if (!data?.user || !data.user.role) {
-          // 🚨 DIAGNOSTIC: Log full payload to debug invalid responses
-          console.error('[Navigation] Invalid profile payload - preserving current role:', {
-            hasData: !!data,
-            hasUser: !!data?.user,
-            hasRole: !!data?.user?.role,
-            fullPayload: data
-          });
-          return;
-        }
-
-        // Force update role from profile API (it comes from JWT app_metadata or DB, which is authoritative)
-        setRoleSafely(data.user.role, { force: true });
-        setUserProfile(data.user);
-        setFollowerCount(data.user.followerCount || 0);
-      } catch (error) {
-        console.error('[Navigation] Error fetching profile - preserving current role:', error);
-        // Don't reset role on error - keep current state
-      }
-    }
-  };
+  }, [authUser]);
 
   const fetchBalance = async () => {
     try {
@@ -280,7 +149,6 @@ export function Navigation() {
     setLastAuthUserId(null);
 
     await supabase.auth.signOut();
-    setUser(null); // Clear user state to hide navigation
     router.push('/');
   };
 
@@ -316,7 +184,8 @@ export function Navigation() {
     },
   ];
 
-  if (!user) return null;
+  // Don't show navigation while loading or if no user
+  if (authLoading || !authUser) return null;
 
   return (
     <>
@@ -348,7 +217,7 @@ export function Navigation() {
                         />
                       ) : (
                         <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xl md:text-lg">
-                          {user?.email?.[0]?.toUpperCase() || 'U'}
+                          {authUser?.email?.[0]?.toUpperCase() || 'U'}
                         </div>
                       )}
                     </div>
@@ -612,7 +481,7 @@ export function Navigation() {
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
+                      {authUser?.email?.[0]?.toUpperCase() || 'U'}
                     </div>
                   )}
                 </div>
@@ -726,7 +595,7 @@ export function Navigation() {
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold text-white">
-                  {user?.email?.[0]?.toUpperCase() || 'U'}
+                  {authUser?.email?.[0]?.toUpperCase() || 'U'}
                 </div>
               )}
             </div>
