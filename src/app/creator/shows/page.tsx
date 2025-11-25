@@ -159,8 +159,52 @@ export default function CreatorShowsPage() {
           ))}
         </div>
 
+        {/* Shows Grid */}
+        {filteredShows.length === 0 ? (
+          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
+            <div className="relative">
+              <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
+                <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 mb-3">
+                No {statusFilter} streams
+              </h3>
+              <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
+                {statusFilter === 'scheduled'
+                  ? 'Create your first paid stream and start earning!'
+                  : 'Your completed streams will appear here.'}
+              </p>
+              {statusFilter === 'scheduled' && (
+                <GlassButton
+                  variant="gradient"
+                  size="md"
+                  onClick={() => setShowCreateModal(true)}
+                  shimmer
+                  glow
+                  className="shadow-2xl"
+                >
+                  <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
+                  Create Paid Stream
+                </GlassButton>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredShows.map((show) => (
+              <ShowCard
+                key={show.id}
+                show={show}
+                isCreator
+                onUpdate={fetchShows}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mt-8">
           <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-purple-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
@@ -216,50 +260,6 @@ export default function CreatorShowsPage() {
             </div>
           </div>
         </div>
-
-        {/* Shows Grid */}
-        {filteredShows.length === 0 ? (
-          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
-            <div className="relative">
-              <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
-                <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
-              </div>
-              <h3 className="text-2xl font-black text-gray-900 mb-3">
-                No {statusFilter} streams
-              </h3>
-              <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
-                {statusFilter === 'scheduled'
-                  ? 'Create your first paid stream and start earning!'
-                  : 'Your completed streams will appear here.'}
-              </p>
-              {statusFilter === 'scheduled' && (
-                <GlassButton
-                  variant="gradient"
-                  size="md"
-                  onClick={() => setShowCreateModal(true)}
-                  shimmer
-                  glow
-                  className="shadow-2xl"
-                >
-                  <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-                  Create Paid Stream
-                </GlassButton>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredShows.map((show) => (
-              <ShowCard
-                key={show.id}
-                show={show}
-                isCreator
-                onUpdate={fetchShows}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Create Show Modal */}
