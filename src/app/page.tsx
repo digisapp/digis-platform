@@ -186,15 +186,15 @@ export default function Home() {
                 <p className="text-gray-700 font-medium leading-relaxed">Watch live performances and interact with virtual gifts</p>
               </div>
 
-              {/* Exclusive Content */}
+              {/* Chats */}
               <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-purple hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-purple to-digis-pink mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Exclusive Content</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Access premium content and messages from creators</p>
+                <h3 className="text-2xl font-black text-gray-900 mb-3">Chats</h3>
+                <p className="text-gray-700 font-medium leading-relaxed">Message your favorite creators directly and get personal responses</p>
               </div>
             </div>
 
