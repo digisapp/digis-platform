@@ -23,6 +23,7 @@ type StreamWithCreator = Stream & {
     displayName: string | null;
     username: string | null;
   };
+  orientation?: 'landscape' | 'portrait';
 };
 
 export default function StreamViewerPage() {
@@ -442,9 +443,9 @@ export default function StreamViewerPage() {
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
-                isLandscape
-                  ? 'aspect-video'
-                  : 'aspect-video md:aspect-video'
+                stream.orientation === 'portrait'
+                  ? 'aspect-[9/16] max-w-[400px] mx-auto'
+                  : 'aspect-video'
               }`}
               data-lk-video-container
             >

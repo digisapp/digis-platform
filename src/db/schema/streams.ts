@@ -34,6 +34,7 @@ export const streams = pgTable('streams', {
   // Metadata
   thumbnailUrl: text('thumbnail_url'),
   privacy: text('privacy').default('public').notNull(), // public, followers, private
+  orientation: text('orientation').default('landscape').notNull(), // landscape, portrait
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

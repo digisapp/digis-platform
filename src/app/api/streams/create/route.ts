@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, privacy, thumbnail_url, scheduled_at } = await req.json();
+    const { title, description, privacy, thumbnail_url, scheduled_at, orientation } = await req.json();
 
     if (!title) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       title,
       privacy,
+      orientation: orientation || 'landscape',
       scheduled: !!scheduledAt,
     });
 
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
           description,
           privacy,
           thumbnail_url,
-          scheduledAt
+          scheduledAt,
+          orientation || 'landscape'
         ),
         {
           timeoutMs: 8000,

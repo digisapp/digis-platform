@@ -32,7 +32,8 @@ export class StreamService {
     description?: string,
     privacy?: string,
     thumbnailUrl?: string,
-    scheduledAt?: Date
+    scheduledAt?: Date,
+    orientation?: 'landscape' | 'portrait'
   ) {
     const roomName = `stream_${uuidv4()}`;
     const isScheduled = scheduledAt && scheduledAt > new Date();
@@ -49,6 +50,7 @@ export class StreamService {
         status: isScheduled ? 'scheduled' : 'live',
         scheduledFor: scheduledAt,
         startedAt: isScheduled ? undefined : new Date(),
+        orientation: orientation || 'landscape',
       })
       .returning();
 

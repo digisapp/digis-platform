@@ -15,11 +15,18 @@ const PRIVACY_OPTIONS = [
   { value: 'subscribers', label: 'Subscribers Only', description: 'Only paid subscribers' },
 ];
 
+// Orientation options
+const ORIENTATION_OPTIONS = [
+  { value: 'landscape', label: 'Landscape', icon: '📺', description: 'Best for gaming, desktop viewers' },
+  { value: 'portrait', label: 'Portrait', icon: '📱', description: 'Best for mobile, TikTok-style' },
+];
+
 export default function GoLivePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
+  const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [isCreator, setIsCreator] = useState(false);
@@ -63,12 +70,12 @@ export default function GoLivePage() {
     };
   }, []);
 
-  // Start media stream when devices are selected
+  // Start media stream when devices or orientation change
   useEffect(() => {
     if (selectedVideoDevice && selectedAudioDevice) {
       startMediaStream();
     }
-  }, [selectedVideoDevice, selectedAudioDevice]);
+  }, [selectedVideoDevice, selectedAudioDevice, orientation]);
 
   const checkCreatorStatus = async () => {
     try {
@@ -158,13 +165,23 @@ export default function GoLivePage() {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
 
+      // Set video dimensions based on orientation
+      const videoConstraints = orientation === 'portrait'
+        ? {
+            deviceId: selectedVideoDevice,
+            width: { ideal: 1080 },
+            height: { ideal: 1920 },
+            frameRate: { ideal: 30 },
+          }
+        : {
+            deviceId: selectedVideoDevice,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 },
+          };
+
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          deviceId: selectedVideoDevice,
-          width: { ideal: 2560 },
-          height: { ideal: 1440 },
-          frameRate: { ideal: 30 },
-        },
+        video: videoConstraints,
         audio: {
           deviceId: selectedAudioDevice,
           echoCancellation: true,
@@ -248,6 +265,7 @@ export default function GoLivePage() {
           title: title.trim(),
           description: description.trim() || undefined,
           privacy,
+          orientation,
         }),
       });
 
@@ -406,6 +424,31 @@ export default function GoLivePage() {
                 </div>
               </div>
 
+              {/* Orientation Toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Stream Orientation
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {ORIENTATION_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setOrientation(option.value as 'landscape' | 'portrait')}
+                      className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
+                        orientation === option.value
+                          ? 'border-digis-cyan bg-digis-cyan/10 ring-2 ring-digis-cyan/20'
+                          : 'border-purple-200 bg-white/30 hover:border-digis-cyan/50'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{option.icon}</div>
+                      <div className="font-semibold text-white text-sm">{option.label}</div>
+                      <div className="text-xs text-gray-300 mt-1">{option.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
             {/* Right Column: Device Preview */}
@@ -430,7 +473,11 @@ export default function GoLivePage() {
                   </div>
                 </div>
               ) : (
-                <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-purple-200 group">
+                <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-200 group mx-auto ${
+                  orientation === 'portrait'
+                    ? 'aspect-[9/16] max-w-[280px]'
+                    : 'aspect-video w-full'
+                }`}>
                   <video
                     ref={videoRef}
                     autoPlay
@@ -442,6 +489,10 @@ export default function GoLivePage() {
                   <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
                     <div className="w-2 h-2 bg-white rounded-full" />
                     PREVIEW
+                  </div>
+                  {/* Orientation badge */}
+                  <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                    {orientation === 'portrait' ? '📱 Portrait' : '📺 Landscape'}
                   </div>
                 </div>
               )}
