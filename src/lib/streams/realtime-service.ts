@@ -3,8 +3,19 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { StreamMessage, StreamGift, VirtualGift } from '@/db/schema';
 
 export type StreamEvent = {
-  type: 'chat' | 'gift' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended';
+  type: 'chat' | 'gift' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended' | 'reaction';
   data: any;
+};
+
+export type ReactionEvent = {
+  type: 'reaction';
+  data: {
+    id: string;
+    emoji: string;
+    userId: string;
+    username: string;
+    timestamp: number;
+  };
 };
 
 export type ChatMessageEvent = {
@@ -80,6 +91,9 @@ export class RealtimeService {
       })
       .on('broadcast', { event: 'stream_ended' }, (payload) => {
         onEvent({ type: 'stream_ended', data: payload.payload });
+      })
+      .on('broadcast', { event: 'reaction' }, (payload) => {
+        onEvent({ type: 'reaction', data: payload.payload });
       })
       .subscribe();
 
@@ -197,6 +211,31 @@ export class RealtimeService {
       type: 'broadcast',
       event: 'stream_ended',
       payload: { streamId },
+    });
+  }
+
+  /**
+   * Broadcast emoji reaction
+   */
+  static async broadcastReaction(
+    streamId: string,
+    emoji: string,
+    userId: string,
+    username: string
+  ) {
+    const supabase = createClient();
+    const channelName = `stream:${streamId}`;
+
+    await supabase.channel(channelName).send({
+      type: 'broadcast',
+      event: 'reaction',
+      payload: {
+        id: `${userId}-${Date.now()}`,
+        emoji,
+        userId,
+        username,
+        timestamp: Date.now(),
+      },
     });
   }
 

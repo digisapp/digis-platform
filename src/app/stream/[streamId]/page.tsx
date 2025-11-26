@@ -9,6 +9,8 @@ import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { VideoControls } from '@/components/streaming/VideoControls';
 import { QuickGiftButtons } from '@/components/streaming/QuickGiftButtons';
+import { QuickEmojiReactions } from '@/components/streaming/QuickEmojiReactions';
+import { EmojiReactionBurstSimple } from '@/components/streaming/EmojiReactionBurst';
 import { ShareButton } from '@/components/streaming/ShareButton';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
@@ -54,6 +56,7 @@ export default function StreamViewerPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
 
   // Fetch stream details
   useEffect(() => {
@@ -125,6 +128,9 @@ export default function StreamViewerPage() {
         case 'stream_ended':
           alert('Stream has ended');
           router.push('/live');
+          break;
+        case 'reaction':
+          setReactions(prev => [...prev, event.data]);
           break;
       }
     };
@@ -280,6 +286,22 @@ export default function StreamViewerPage() {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleReaction = async (emoji: string) => {
+    try {
+      await fetch(`/api/streams/${streamId}/reaction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji }),
+      });
+    } catch (error) {
+      console.error('Error sending reaction:', error);
+    }
+  };
+
+  const removeReaction = useCallback((id: string) => {
+    setReactions(prev => prev.filter(r => r.id !== id));
+  }, []);
+
   const fetchFollowStatus = async () => {
     if (!stream?.creator?.id) return;
 
@@ -407,6 +429,9 @@ export default function StreamViewerPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
+      {/* Emoji Reactions Overlay */}
+      <EmojiReactionBurstSimple reactions={reactions} onComplete={removeReaction} />
+
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
@@ -457,7 +482,13 @@ export default function StreamViewerPage() {
             </div>
 
             {/* Quick Actions Bar */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Quick Emoji Reactions */}
+              <QuickEmojiReactions
+                streamId={streamId}
+                onReaction={handleReaction}
+              />
+
               <QuickGiftButtons
                 streamId={streamId}
                 onSendGift={handleSendGift}

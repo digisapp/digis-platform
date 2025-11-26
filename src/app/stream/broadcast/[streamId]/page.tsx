@@ -13,6 +13,7 @@ import { VideoControls } from '@/components/streaming/VideoControls';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
+import { EmojiReactionBurstSimple } from '@/components/streaming/EmojiReactionBurst';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -58,6 +59,7 @@ export default function BroadcastStudioPage() {
   const [isPortrait, setIsPortrait] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
 
   // Update timer every second
   useEffect(() => {
@@ -159,6 +161,9 @@ export default function BroadcastStudioPage() {
         case 'viewer_count':
           setViewerCount(event.data.currentViewers);
           setPeakViewers(event.data.peakViewers);
+          break;
+        case 'reaction':
+          setReactions(prev => [...prev, event.data]);
           break;
       }
     };
@@ -431,6 +436,10 @@ export default function BroadcastStudioPage() {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeReaction = (id: string) => {
+    setReactions(prev => prev.filter(r => r.id !== id));
+  };
+
   const handleSendMessage = async (message: string) => {
     try {
       const response = await fetch(`/api/streams/${streamId}/message`, {
@@ -519,6 +528,9 @@ export default function BroadcastStudioPage() {
       </div>
 
       <div className="relative z-10">
+      {/* Emoji Reactions Overlay */}
+      <EmojiReactionBurstSimple reactions={reactions} onComplete={removeReaction} />
+
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
