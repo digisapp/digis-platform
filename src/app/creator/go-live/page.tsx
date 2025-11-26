@@ -376,7 +376,7 @@ export default function GoLivePage() {
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-semibold text-white mb-2">
-                  Description (Optional)
+                  Description
                 </label>
                 <textarea
                   id="description"
@@ -384,7 +384,7 @@ export default function GoLivePage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tell viewers what to expect..."
                   className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300 resize-none"
-                  rows={4}
+                  rows={2}
                   maxLength={500}
                 />
                 <div className="mt-2 text-xs text-gray-400 text-right">
