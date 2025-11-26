@@ -80,9 +80,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-5xl mx-auto mb-4 shimmer">
-            🪙
-          </div>
+          <div className="text-6xl mb-4">🪙</div>
           <p className="text-gray-300">
             Purchase Digis Coins to unlock video calls, live streams, and exclusive content
           </p>
@@ -132,9 +130,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
               {/* Coin Display */}
               <div className="flex items-center justify-center space-x-2 py-4 bg-white/10 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-xl">
-                  🪙
-                </div>
+                <span className="text-2xl">🪙</span>
                 <span className="text-2xl font-bold text-white">{pkg.coins.toLocaleString()}</span>
                 <span className="text-gray-400">Coins</span>
               </div>
