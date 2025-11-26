@@ -252,7 +252,7 @@ export default function StreamViewerPage() {
       const response = await fetch(`/api/streams/${streamId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ content: message }),
       });
 
       if (!response.ok) {
