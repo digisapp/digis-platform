@@ -21,10 +21,24 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { content } = await req.json();
 
-    if (!content || content.trim().length === 0) {
-      return NextResponse.json({ error: 'Message cannot be empty' }, { status: 400 });
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('[streams/message] JSON parse error:', parseError);
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    const content = body?.content || body?.message; // Support both field names
+
+    console.log('[streams/message] Received:', { streamId, body, content, userId: user.id });
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return NextResponse.json({
+        error: 'Message cannot be empty',
+        debug: { receivedBody: body, contentValue: content }
+      }, { status: 400 });
     }
 
     // Get user details including spend tier

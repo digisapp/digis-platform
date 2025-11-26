@@ -256,7 +256,9 @@ export default function StreamViewerPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const data = await response.json().catch(() => ({}));
+        console.error('Chat message error:', data);
+        throw new Error(data.error || 'Failed to send message');
       }
     } catch (err: any) {
       throw err;

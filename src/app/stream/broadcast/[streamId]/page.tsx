@@ -442,16 +442,25 @@ export default function BroadcastStudioPage() {
 
   const handleSendMessage = async (message: string) => {
     try {
+      const payload = { content: message };
+      console.log('[Broadcast] Sending message:', payload);
+
       const response = await fetch(`/api/streams/${streamId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: message }),
+        body: JSON.stringify(payload),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        console.error('Chat message error:', response.status, data);
+        throw new Error(data.error || 'Failed to send message');
       }
+
+      console.log('[Broadcast] Message sent successfully:', data);
     } catch (err: any) {
+      console.error('[Broadcast] Send message failed:', err);
       throw err;
     }
   };
