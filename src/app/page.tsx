@@ -132,7 +132,7 @@ export default function Home() {
 
           {/* Hero */}
           <div className="text-center max-w-5xl mx-auto">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight animate-gradient">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-relaxed animate-gradient">
               what's your digis?
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-gray-800 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
