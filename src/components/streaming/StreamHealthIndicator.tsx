@@ -139,17 +139,29 @@ export function StreamHealthIndicator({ streamId }: StreamHealthIndicatorProps) 
 
   const config = getStatusConfig();
 
+  const getDotColor = () => {
+    switch (healthStatus) {
+      case 'excellent':
+      case 'good':
+        return 'bg-green-500 shadow-green-500/50';
+      case 'fair':
+        return 'bg-yellow-500 shadow-yellow-500/50';
+      case 'poor':
+        return 'bg-orange-500 shadow-orange-500/50';
+      case 'disconnected':
+        return 'bg-red-500 shadow-red-500/50';
+    }
+  };
+
   return (
-    <div className="relative">
-      {/* Simple Status Indicator - Uniform Style */}
-      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${config.borderColor} ${config.bgColor} backdrop-blur-sm`}>
-        <span className="text-xl">{config.icon}</span>
-        <span className={`font-bold ${config.color}`}>
-          {config.label}
-        </span>
-        {ping > 0 && (
-          <span className="text-xs text-gray-400">{ping}ms</span>
-        )}
+    <div className="relative group">
+      {/* Simple colored circle */}
+      <div className={`w-3 h-3 rounded-full ${getDotColor()} shadow-lg ${healthStatus === 'disconnected' ? 'animate-pulse' : ''}`} />
+
+      {/* Tooltip on hover */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 rounded-lg text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {config.label}
+        {ping > 0 && <span className="text-gray-400 ml-1">({ping}ms)</span>}
       </div>
     </div>
   );
