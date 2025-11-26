@@ -117,7 +117,7 @@ export default function Home() {
             <div className="flex items-center space-x-3 md:space-x-4">
               <button
                 onClick={() => setShowLogin(true)}
-                className="px-4 md:px-6 py-2 md:py-2.5 rounded-full bg-white text-digis-cyan font-bold text-sm md:text-base hover:scale-105 transition-all shadow-lg"
+                className="px-4 md:px-6 py-2 md:py-2.5 rounded-full bg-white text-blue-700 font-bold text-sm md:text-base hover:scale-105 transition-all shadow-lg"
               >
                 Sign In
               </button>
