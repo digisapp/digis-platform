@@ -183,7 +183,7 @@ export default function Home() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-3">Live Streams</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Watch live performances and interact with virtual gifts</p>
+                <p className="text-gray-700 font-medium leading-relaxed">Connect Live with Creators, Join Class and be part of a community</p>
               </div>
 
               {/* Chats */}
