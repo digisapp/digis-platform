@@ -163,17 +163,6 @@ export default function Home() {
 
             {/* Features Grid */}
             <div className="grid md:grid-cols-3 gap-6 mt-24">
-              {/* Video Calls */}
-              <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-cyan hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-cyan to-blue-500 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Video Calls</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
-              </div>
-
               {/* Live Streaming */}
               <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-pink hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-pink to-digis-purple mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -184,6 +173,17 @@ export default function Home() {
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-3">Live Streams</h3>
                 <p className="text-gray-700 font-medium leading-relaxed">Connect Live with Creators, Join Class and be part of a community</p>
+              </div>
+
+              {/* Video Calls */}
+              <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-cyan hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-cyan to-blue-500 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-3">Video Calls</h3>
+                <p className="text-gray-700 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
               </div>
 
               {/* Chats */}
