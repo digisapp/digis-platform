@@ -133,7 +133,7 @@ export default function Home() {
           {/* Hero */}
           <div className="text-center max-w-5xl mx-auto">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight animate-gradient">
-              What's Your Digis?
+              what's your digis?
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-gray-800 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
               Connect with your favorite Creators via Live Streaming, Video Calls, Live Events and Chats
