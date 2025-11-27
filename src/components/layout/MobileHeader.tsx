@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Coins } from 'lucide-react';
+import { Coins, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export function MobileHeader() {
@@ -46,9 +46,9 @@ export function MobileHeader() {
       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)]" />
 
       {/* Content */}
-      <div className="relative flex items-center justify-between h-12 px-4">
+      <div className="relative flex items-center justify-between h-14 px-4 py-2">
         {/* Left spacer for balance */}
-        <div className="w-24" />
+        <div className="w-28" />
 
         {/* Center Logo */}
         <div className="relative">
@@ -65,17 +65,25 @@ export function MobileHeader() {
           />
         </div>
 
-        {/* Right - Floating Wallet Button */}
+        {/* Right - Wallet Button (logged in) or Sign In Button (logged out) */}
         {isLoggedIn && balance !== null ? (
           <button
             onClick={() => router.push('/wallet')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)] touch-manipulation active:scale-95 transition-transform"
+            className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-black/60 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)] touch-manipulation active:scale-95 transition-transform"
           >
-            <Coins className="w-5 h-5 text-green-400" />
-            <span className="text-base font-bold text-green-400">{balance}</span>
+            <Coins className="w-6 h-6 text-green-400" />
+            <span className="text-lg font-bold text-green-400">{balance}</span>
+          </button>
+        ) : !isLoggedIn && !authLoading ? (
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 shadow-[0_0_15px_rgba(34,211,238,0.4)] touch-manipulation active:scale-95 transition-transform"
+          >
+            <LogIn className="w-5 h-5 text-white" />
+            <span className="text-sm font-bold text-white">Sign In</span>
           </button>
         ) : (
-          <div className="w-24" />
+          <div className="w-28" />
         )}
       </div>
     </div>
@@ -83,5 +91,5 @@ export function MobileHeader() {
 }
 
 // Height constant for consistent spacing across app
-// Use: pt-[calc(48px+env(safe-area-inset-top))] or this value
-export const MOBILE_HEADER_HEIGHT = 48; // h-12 = 48px
+// Use: pt-[calc(56px+env(safe-area-inset-top))] or this value
+export const MOBILE_HEADER_HEIGHT = 56; // h-14 = 56px

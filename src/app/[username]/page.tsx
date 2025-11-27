@@ -453,7 +453,7 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
       {/* Animated Background Mesh - Tron Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -508,19 +508,13 @@ export default function ProfilePage() {
                   <p className="text-cyan-300/90 mb-2 text-lg">@{user.username}</p>
                 )}
 
-                {/* Follower Count */}
-                <button
-                  onClick={handleFollowToggle}
-                  disabled={followLoading}
-                  className={`mb-4 transition-all ${
-                    isFollowing ? 'text-digis-cyan' : 'text-gray-400 hover:text-gray-300'
-                  } disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2 hover:scale-105`}
-                >
-                  <Users className={`w-4 h-4 transition-all ${isFollowing ? 'fill-digis-cyan' : ''}`} />
+                {/* Follower Count - Display only */}
+                <div className="mb-4 text-sm font-medium flex items-center gap-2 text-gray-400">
+                  <Users className="w-4 h-4" />
                   <span>
                     <strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Follower{followCounts.followers !== 1 ? 's' : ''}
                   </span>
-                </button>
+                </div>
 
                 {/* Bio */}
                 {user.bio && (
@@ -533,6 +527,23 @@ export default function ProfilePage() {
 
           {/* Action Buttons - Futuristic Design */}
           <div className="mt-6 flex flex-wrap gap-3">
+            {/* Follow Button - Primary CTA */}
+            <button
+              onClick={handleFollowToggle}
+              disabled={followLoading}
+              className={`group relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 ${
+                isFollowing
+                  ? 'bg-white/10 backdrop-blur-md border-2 border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:bg-cyan-500/10'
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50 hover:scale-105 hover:shadow-cyan-500/70'
+              }`}
+            >
+              {!isFollowing && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
+              )}
+              <Users className={`w-5 h-5 relative z-10 ${isFollowing ? 'fill-cyan-400' : ''}`} />
+              <span className="relative z-10">{followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}</span>
+            </button>
+
             {/* Subscribe Button */}
             {user.role === 'creator' && subscriptionTier && !isSubscribed && (
               <button
