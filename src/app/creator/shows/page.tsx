@@ -9,7 +9,7 @@ import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
 
 interface Show {
   id: string;

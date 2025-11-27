@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
 
 interface Show {
   id: string;

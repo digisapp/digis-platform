@@ -12,6 +12,7 @@ import { ParallaxBanner } from '@/components/profile/ParallaxBanner';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface ProfileData {
   user: {
@@ -454,6 +455,9 @@ export default function ProfilePage() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
+      {/* Mobile Header with Logo and Wallet */}
+      <MobileHeader />
+
       {/* Animated Background Mesh - Tron Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -657,7 +661,7 @@ export default function ProfilePage() {
         {/* Content Tabs - Futuristic Design */}
         <div className="overflow-hidden">
           {/* Tab Pills - Glassmorphism */}
-          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2 px-1">
+          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2 pl-4 pr-1">
             <button
               onClick={() => setActiveTab('photos')}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
