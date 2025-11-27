@@ -575,18 +575,6 @@ export default function ProfilePage() {
               <span className="hidden md:inline relative z-10">Message</span>
             </button>
 
-            {/* Tip Button */}
-            {user.role === 'creator' && (
-              <button
-                onClick={() => setShowTipModal(true)}
-                className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Gift className="w-5 h-5 relative z-10" />
-                <span className="hidden md:inline relative z-10">Tip</span>
-              </button>
-            )}
-
             {/* Video Call Button */}
             {user.role === 'creator' && profile.callSettings && (
               <RequestCallButton
@@ -611,6 +599,18 @@ export default function ProfilePage() {
                 iconOnly={false}
                 callType="voice"
               />
+            )}
+
+            {/* Tip Button - Last */}
+            {user.role === 'creator' && (
+              <button
+                onClick={() => setShowTipModal(true)}
+                className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <Gift className="w-5 h-5 relative z-10" />
+                <span className="hidden md:inline relative z-10">Tip</span>
+              </button>
             )}
           </div>
           </div>
@@ -655,9 +655,9 @@ export default function ProfilePage() {
         )}
 
         {/* Content Tabs - Futuristic Design */}
-        <div>
+        <div className="overflow-hidden">
           {/* Tab Pills - Glassmorphism */}
-          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2">
+          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2 px-1">
             <button
               onClick={() => setActiveTab('photos')}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${

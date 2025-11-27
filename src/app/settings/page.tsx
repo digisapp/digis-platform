@@ -629,40 +629,42 @@ export default function SettingsPage() {
               Profile Media
             </h3>
             <div className="space-y-4">
-              {/* Banner Preview - Clickable */}
-              <label className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 cursor-pointer group block">
-                {(bannerPreview || bannerUrl) ? (
-                  <>
-                    <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="text-center">
-                        <Upload className="w-6 h-6 text-white mx-auto mb-1" />
-                        <p className="text-xs text-white font-medium">Change Banner</p>
+              {/* Banner Preview - Clickable - Creators Only */}
+              {currentUser?.role === 'creator' && (
+                <label className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 cursor-pointer group block">
+                  {(bannerPreview || bannerUrl) ? (
+                    <>
+                      <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="text-center">
+                          <Upload className="w-6 h-6 text-white mx-auto mb-1" />
+                          <p className="text-xs text-white font-medium">Change Banner</p>
+                        </div>
                       </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-digis-pink transition-colors">
+                      <Upload className="w-8 h-8 mb-2" />
+                      <p className="text-sm font-medium">Click to add banner</p>
                     </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-digis-pink transition-colors">
-                    <Upload className="w-8 h-8 mb-2" />
-                    <p className="text-sm font-medium">Click to add banner</p>
-                  </div>
-                )}
-                {uploadingBanner && (
-                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                    <LoadingSpinner size="sm" />
-                  </div>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerUpload}
-                  disabled={uploadingBanner}
-                  className="hidden"
-                />
-              </label>
+                  )}
+                  {uploadingBanner && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                      <LoadingSpinner size="sm" />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                    className="hidden"
+                  />
+                </label>
+              )}
 
               {/* Avatar & Info */}
-              <div className="flex items-start gap-4 -mt-12 relative z-10 px-4">
+              <div className={`flex items-start gap-4 relative z-10 px-4 ${currentUser?.role === 'creator' ? '-mt-12' : ''}`}>
                 {/* Avatar - Clickable */}
                 <label className="relative cursor-pointer group flex-shrink-0">
                   {(avatarPreview || avatarUrl) ? (

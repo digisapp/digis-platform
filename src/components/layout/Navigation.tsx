@@ -173,8 +173,8 @@ export function Navigation() {
     {
       label: 'Streams',
       icon: Ticket,
-      path: '/events',
-      active: isActive('/events'),
+      path: '/streams',
+      active: isActive('/streams'),
     },
     {
       label: 'Chats',

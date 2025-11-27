@@ -116,30 +116,25 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
               {/* Package Details */}
               <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{pkg.name}</h3>
-                  {pkg.savings && (
-                    <p className="text-sm text-digis-cyan font-medium">{pkg.savings}</p>
-                  )}
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🪙</span>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white">{pkg.name}</h3>
+                    {pkg.savings && (
+                      <p className="text-sm text-digis-cyan font-medium">{pkg.savings}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-bold text-white">{pkg.price}</p>
-                  <p className="text-sm text-gray-400">${(pkg.priceValue / pkg.coins / 100).toFixed(2)} per coin</p>
                 </div>
-              </div>
-
-              {/* Coin Display */}
-              <div className="flex items-center justify-center space-x-2 py-4 bg-white/10 rounded-lg">
-                <span className="text-2xl">🪙</span>
-                <span className="text-2xl font-bold text-white">{pkg.coins.toLocaleString()}</span>
-                <span className="text-gray-400">Coins</span>
               </div>
 
               {/* Buy Button */}
               <GlassButton
                 variant={pkg.popular ? 'gradient' : 'cyan'}
                 size="lg"
-                className="w-full mt-4"
+                className="w-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handlePurchase(pkg.id);
@@ -149,7 +144,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
                 {loading && selectedPackage === pkg.id ? (
                   <LoadingSpinner size="sm" />
                 ) : (
-                  `Buy ${pkg.coins} Coins`
+                  `Buy for ${pkg.price}`
                 )}
               </GlassButton>
             </div>

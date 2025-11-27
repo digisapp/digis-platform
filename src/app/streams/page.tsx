@@ -7,7 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
 
 interface Show {
   id: string;
@@ -29,7 +29,7 @@ interface Show {
   };
 }
 
-export default function EventsPage() {
+export default function StreamsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
@@ -38,14 +38,15 @@ export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const categoryOptions = [
-    { value: 'all' as const, label: 'All', icon: '📋' },
-    { value: 'performance' as const, label: 'Performance', icon: '🎭' },
-    { value: 'class' as const, label: 'Class', icon: '🧘' },
-    { value: 'qna' as const, label: 'Q&A', icon: '💬' },
-    { value: 'hangout' as const, label: 'Hangout', icon: '💕' },
-    { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
-    { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
-    { value: 'other' as const, label: 'Other', icon: '🎪' },
+    { value: 'all' as const, label: 'All' },
+    { value: 'hangout' as const, label: 'Hangout' },
+    { value: 'class' as const, label: 'Class' },
+    { value: 'date' as const, label: 'Date' },
+    { value: 'performance' as const, label: 'Performance' },
+    { value: 'qna' as const, label: 'Q&A' },
+    { value: 'gaming' as const, label: 'Gaming' },
+    { value: 'workshop' as const, label: 'Workshop' },
+    { value: 'other' as const, label: 'Other' },
   ];
 
   useEffect(() => {
@@ -175,13 +176,12 @@ export default function EventsPage() {
             <button
               key={category.value}
               onClick={() => setTypeFilter(category.value)}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                 typeFilter === category.value
                   ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
                   : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
               }`}
             >
-              <span>{category.icon}</span>
               {category.label}
             </button>
           ))}
