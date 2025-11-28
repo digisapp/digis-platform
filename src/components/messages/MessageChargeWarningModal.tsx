@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Wallet, DollarSign, X, Send } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface MessageChargeWarningModalProps {
@@ -59,167 +59,87 @@ export function MessageChargeWarningModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Paid Message</h2>
-              <p className="text-sm text-gray-600">Confirm before sending</p>
-            </div>
-          </div>
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200 mx-auto">
+        {/* Animated gradient border effect */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
+        </div>
+
+        <div className="relative">
+          {/* Close button */}
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 transition-colors"
+            className="absolute -top-2 -right-2 text-gray-400 hover:text-white transition-colors z-10"
           >
             <X className="w-6 h-6" />
           </button>
-        </div>
 
-        <div className="p-6 space-y-6">
-          {/* Message Preview */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Your Message
-            </label>
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-              <p className="text-gray-800 text-sm line-clamp-3">
-                {messagePreview}
-              </p>
-            </div>
-          </div>
-
-          {/* Recipient */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sending To
-            </label>
-            <div className="flex items-center gap-2 text-gray-900 font-medium">
-              <span className="text-lg">📨</span>
-              <span>{recipientName}</span>
-            </div>
-          </div>
-
-          {/* Cost Breakdown */}
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-purple-600" />
-                <span className="text-gray-700 font-medium">Message Cost</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-                  {messageCharge}
-                </span>
-                <span className="text-gray-600">coins</span>
+          {/* Icon and Title */}
+          <div className="text-center mb-6">
+            <div className="relative inline-block mb-4">
+              <div className="absolute -inset-2 bg-purple-500/30 rounded-full blur-xl"></div>
+              <div className="relative w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+                <Send className="w-8 h-8 text-white" />
               </div>
             </div>
-
-            <div className="pt-4 border-t border-purple-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Wallet className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700 font-medium">Your Balance</span>
-                </div>
-                {loadingBalance ? (
-                  <LoadingSpinner size="sm" />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xl font-bold ${
-                        hasEnoughBalance ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {balance}
-                    </span>
-                    <span className="text-gray-600">coins</span>
-                  </div>
-                )}
-              </div>
-
-              {!loadingBalance && !hasEnoughBalance && (
-                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700 font-medium">
-                    Insufficient balance. Need {messageCharge - balance} more coins.
-                  </p>
-                </div>
-              )}
-            </div>
+            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-1">
+              Paid Message
+            </h3>
+            <p className="text-gray-400 text-sm">to {recipientName}</p>
           </div>
 
-          {/* Info Notice */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <span className="text-xl">ℹ️</span>
-              <div className="text-sm text-blue-700">
-                <p className="font-semibold mb-1">Why am I being charged?</p>
-                <p>
-                  {recipientName} has enabled paid messages. This helps creators
-                  manage their inbox and compensates them for their time.
-                </p>
-              </div>
+          {/* Cost Info - Tron Style */}
+          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 mb-6 text-center border-2 border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+            <p className="text-gray-400 text-sm mb-2 font-medium">Cost per Message</p>
+            <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              {messageCharge}
             </div>
+            <p className="text-gray-400 text-sm mt-1 font-medium">coins</p>
           </div>
 
-          {/* Benefits */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-green-500">✓</span>
-              <span>Your message gets priority delivery</span>
+          {/* Insufficient balance warning */}
+          {!loadingBalance && !hasEnoughBalance && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
+              Insufficient balance. You have {balance} coins.
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-green-500">✓</span>
-              <span>Higher chance of getting a response</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <span className="text-green-500">✓</span>
-              <span>Support your favorite creator directly</span>
-            </div>
-          </div>
+          )}
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          {/* Action Buttons - Tron Style */}
+          <div className="flex gap-3">
             <button
               onClick={onClose}
               disabled={confirming}
-              className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-xl font-semibold transition-colors disabled:opacity-50"
+              className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-all border border-gray-600"
             >
-              Cancel
+              Decline
             </button>
 
             {hasEnoughBalance ? (
               <button
                 onClick={handleConfirm}
                 disabled={confirming || loadingBalance}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl font-semibold transition-all disabled:opacity-50 hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {confirming ? (
-                  <LoadingSpinner size="sm" />
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    <span>Sending...</span>
+                  </div>
                 ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    <span>Send for {messageCharge} coins</span>
-                  </>
+                  'Accept'
                 )}
               </button>
             ) : (
               <button
                 onClick={() => router.push('/wallet')}
                 disabled={loadingBalance}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-lg disabled:opacity-50"
+                className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50"
               >
-                Add Coins
+                Buy Coins
               </button>
             )}
           </div>
-
-          <p className="text-xs text-gray-500 text-center">
-            Charged messages cannot be refunded
-          </p>
         </div>
       </div>
     </div>
