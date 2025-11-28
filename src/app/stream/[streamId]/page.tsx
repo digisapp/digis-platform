@@ -15,6 +15,7 @@ import { ShareButton } from '@/components/streaming/ShareButton';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 type StreamWithCreator = Stream & {
@@ -173,25 +174,36 @@ export default function StreamViewerPage() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/messages`);
+      const response = await fetchWithRetry(`/api/streams/${streamId}/messages`, {
+        retries: 3,
+        backoffMs: 1000,
+      });
       const data = await response.json();
       if (response.ok) {
         setMessages(data.messages.reverse()); // Oldest first
       }
     } catch (err) {
-      console.error('Error fetching messages:', err);
+      if (isOnline()) {
+        console.error('Error fetching messages:', err);
+      }
     }
   };
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/leaderboard`);
+      const response = await fetchWithRetry(`/api/streams/${streamId}/leaderboard`, {
+        retries: 3,
+        backoffMs: 1000,
+      });
       const data = await response.json();
       if (response.ok) {
         setLeaderboard(data.leaderboard);
       }
     } catch (err) {
-      console.error('Error fetching leaderboard:', err);
+      // Only log if not a network-related issue (those are expected during reconnection)
+      if (isOnline()) {
+        console.error('Error fetching leaderboard:', err);
+      }
     }
   };
 
@@ -209,13 +221,19 @@ export default function StreamViewerPage() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/goals`);
+      const response = await fetchWithRetry(`/api/streams/${streamId}/goals`, {
+        retries: 3,
+        backoffMs: 1000,
+      });
       const data = await response.json();
       if (response.ok) {
         setGoals(data.goals);
       }
     } catch (err) {
-      console.error('Error fetching goals:', err);
+      // Only log if not a network-related issue (those are expected during reconnection)
+      if (isOnline()) {
+        console.error('Error fetching goals:', err);
+      }
     }
   };
 
