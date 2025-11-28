@@ -31,7 +31,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-md"
@@ -39,7 +39,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
       />
 
       {/* Modal - Futuristic Glass Dark Theme - centered on VIEWPORT not container */}
-      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl w-full ${sizeClasses[size]} border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
+      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto my-auto`}>
         {/* Animated gradient border effect */}
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" />
@@ -47,7 +47,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
 
         {/* Header */}
         {title && (
-          <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative">
+          <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative flex-shrink-0">
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">{title}</h2>
             <button
               onClick={onClose}
@@ -60,8 +60,8 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
           </div>
         )}
 
-        {/* Content */}
-        <div className="p-6 relative">
+        {/* Content - scrollable if needed */}
+        <div className="p-6 relative overflow-y-auto flex-1">
           {children}
         </div>
       </div>
