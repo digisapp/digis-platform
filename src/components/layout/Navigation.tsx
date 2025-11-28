@@ -299,7 +299,7 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
-                      router.push('/creator/shows');
+                      router.push('/creator/streams/paid');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"

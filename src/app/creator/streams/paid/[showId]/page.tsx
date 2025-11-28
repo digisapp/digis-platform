@@ -6,5 +6,5 @@ interface PageProps {
 
 export default async function CreatorShowDetailRedirect({ params }: PageProps) {
   const { showId } = await params;
-  redirect(`/creator/streams/paid/${showId}`);
+  redirect(`/shows/${showId}`);
 }

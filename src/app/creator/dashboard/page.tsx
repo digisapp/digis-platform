@@ -117,7 +117,7 @@ export default function CreatorDashboard() {
           router.push('/creator/go-live');
           break;
         case 's':
-          router.push('/creator/shows');
+          router.push('/creator/streams/paid');
           break;
       }
     };
@@ -532,7 +532,7 @@ export default function CreatorDashboard() {
                   className="flex items-start gap-4 bg-white/60 rounded-lg p-4 hover:bg-white/80 transition-colors cursor-pointer border border-purple-100"
                   onClick={() => {
                     if (event.type === 'show') {
-                      router.push(`/creator/shows/${event.id.replace('show-', '')}`);
+                      router.push(`/creator/streams/paid/${event.id.replace('show-', '')}`);
                     }
                   }}
                 >
