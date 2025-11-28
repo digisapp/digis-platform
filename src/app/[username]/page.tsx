@@ -597,10 +597,9 @@ export default function ProfilePage() {
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              className="group px-4 py-2.5 rounded-xl font-semibold bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm"
+              className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span>Message</span>
+              <MessageCircle className="w-5 h-5" />
             </button>
 
             {/* Video Call Button */}
@@ -633,10 +632,9 @@ export default function ProfilePage() {
             {user.role === 'creator' && (
               <button
                 onClick={() => setShowTipModal(true)}
-                className="group px-4 py-2.5 rounded-xl font-semibold bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm"
+                className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
               >
-                <Gift className="w-4 h-4" />
-                <span>Tip</span>
+                <Gift className="w-5 h-5" />
               </button>
             )}
           </div>
