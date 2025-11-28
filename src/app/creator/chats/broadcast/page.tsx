@@ -219,7 +219,7 @@ export default function BroadcastMessagePage() {
                 placeholder="Write your message to fans..."
                 rows={6}
                 maxLength={1000}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
               />
               <p className="text-xs text-gray-400 mt-2">{formData.textMessage.length}/1000</p>
             </div>
@@ -281,7 +281,7 @@ export default function BroadcastMessagePage() {
                       placeholder="Add a caption..."
                       rows={3}
                       maxLength={500}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                     />
                     <p className="text-xs text-gray-400 mt-1">{formData.caption.length}/500</p>
                   </div>

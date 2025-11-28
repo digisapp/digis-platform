@@ -21,7 +21,7 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
           className={`
             w-full px-4 py-3 backdrop-blur-xl bg-white/10 rounded-lg
             border-2 border-cyan-500/30
-            text-white placeholder-gray-400
+            text-white placeholder-gray-500
             focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)]
             transition-all duration-300
             ${error ? 'border-red-500' : ''}

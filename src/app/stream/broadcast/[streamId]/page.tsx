@@ -585,10 +585,7 @@ export default function BroadcastStudioPage() {
         <>
           <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" onClick={() => setShowEndConfirm(false)} />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-8 max-w-md w-full">
-              <div className="mb-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-2xl p-4 border border-red-500/20">
-                <h3 className="text-2xl font-bold text-white mb-2">End Stream?</h3>
-              </div>
+            <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full">
               <div className="space-y-3">
                 <GlassButton
                   variant="gradient"
@@ -597,9 +594,9 @@ export default function BroadcastStudioPage() {
                   disabled={isEnding}
                   shimmer
                   glow
-                  className="w-full text-white font-semibold"
+                  className="w-full text-white font-semibold bg-gradient-to-r from-red-600 to-pink-600"
                 >
-                  {isEnding ? 'Ending...' : 'Yes, End Stream'}
+                  {isEnding ? 'Ending...' : 'End Stream'}
                 </GlassButton>
                 <GlassButton
                   variant="ghost"

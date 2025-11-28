@@ -86,7 +86,7 @@ export function SaveStreamModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe what happened in this stream..."
-            className="w-full px-4 py-3 backdrop-blur-xl bg-white/10 rounded-lg border-2 border-cyan-500/30 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300 resize-none"
+            className="w-full px-4 py-3 backdrop-blur-xl bg-white/10 rounded-lg border-2 border-cyan-500/30 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all duration-300 resize-none"
             rows={3}
           />
         </div>

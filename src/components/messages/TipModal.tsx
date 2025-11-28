@@ -122,7 +122,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
             placeholder="Enter amount..."
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors"
+            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
             min="1"
           />
         </div>
@@ -134,7 +134,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Say something nice..."
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
             rows={3}
             maxLength={200}
           />

@@ -179,7 +179,7 @@ export default function ExplorePage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-all"
+              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
             />
             {searching && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
