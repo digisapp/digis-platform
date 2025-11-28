@@ -375,6 +375,69 @@ export class StreamService {
   }
 
   /**
+   * Send a coin tip during a stream (without a virtual gift)
+   */
+  static async sendTip(
+    streamId: string,
+    senderId: string,
+    senderUsername: string,
+    amount: number
+  ) {
+    if (amount < 1) {
+      throw new Error('Minimum tip is 1 coin');
+    }
+
+    // Deduct coins from sender
+    await WalletService.createTransaction({
+      userId: senderId,
+      amount: -amount,
+      type: 'stream_tip',
+      description: `Tipped ${amount} coins during stream`,
+      idempotencyKey: `tip_${uuidv4()}`,
+    });
+
+    // Update stream total gifts/tips
+    await db
+      .update(streams)
+      .set({
+        totalGiftsReceived: sql`${streams.totalGiftsReceived} + ${amount}`,
+      })
+      .where(eq(streams.id, streamId));
+
+    // Create tip message (use 'gift' type since it involves coins)
+    await db.insert(streamMessages).values({
+      streamId,
+      userId: senderId,
+      username: senderUsername,
+      message: `tipped ${amount} coins`,
+      messageType: 'gift',
+      giftAmount: amount,
+    });
+
+    // Get stream creator and credit them
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+    });
+
+    if (stream) {
+      await WalletService.createTransaction({
+        userId: stream.creatorId,
+        amount: amount,
+        type: 'stream_tip',
+        description: `Received ${amount} coin tip during stream`,
+        idempotencyKey: `tip_receive_${streamId}_${Date.now()}`,
+      });
+    }
+
+    // Get new balance
+    const wallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, senderId),
+    });
+
+    return { newBalance: wallet?.balance || 0 };
+  }
+
+  /**
    * Get chat messages for a stream
    */
   static async getMessages(streamId: string, limit: number = 100) {

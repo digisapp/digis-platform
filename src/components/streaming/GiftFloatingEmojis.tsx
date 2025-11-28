@@ -16,11 +16,13 @@ type GiftFloatingEmojisProps = {
 };
 
 // Sound files for different gift rarities (using existing sound files)
+// Each rarity has a unique sound file with different length/intensity
 const GIFT_SOUNDS: Record<string, string> = {
-  common: '/sounds/gift-small.wav',
-  rare: '/sounds/gift-medium.wav',
-  epic: '/sounds/gift-large.wav',
-  legendary: '/sounds/gift-epic.wav',
+  common: '/sounds/gift-small.wav',      // ~0.5s - simple chime
+  rare: '/sounds/gift-medium.wav',        // ~1.0s - coin jingle
+  epic: '/sounds/gift-large.wav',         // ~1.5s - bigger coin cascade
+  legendary: '/sounds/gift-epic.wav',     // ~2.0s - full jackpot celebration
+  tip: '/sounds/big-tip.wav',             // coin jingling for tips
 };
 
 // Gift burst counts and sizes by rarity
@@ -29,6 +31,7 @@ const RARITY_CONFIG: Record<string, { burstCount: number; baseScale: number; glo
   rare: { burstCount: 5, baseScale: 1.2, glowColor: 'rgba(59, 130, 246, 0.6)' },
   epic: { burstCount: 8, baseScale: 1.4, glowColor: 'rgba(168, 85, 247, 0.7)' },
   legendary: { burstCount: 12, baseScale: 1.6, glowColor: 'rgba(234, 179, 8, 0.8)' },
+  tip: { burstCount: 6, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)' },
 };
 
 export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProps) {
@@ -57,31 +60,42 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
   // Maximum sound duration (5 seconds)
   const MAX_SOUND_DURATION = 5000;
 
-  // Play sound for a rarity
+  // Volume levels by rarity (user wants different intensities)
+  const VOLUME_LEVELS: Record<string, number> = {
+    common: 0.25,
+    rare: 0.35,
+    epic: 0.45,
+    legendary: 0.55,
+    tip: 0.4,
+  };
+
+  // Play sound for a rarity - creates fresh audio to ensure correct file plays
   const playSound = (rarity: string) => {
-    const audio = audioRefs.current.get(rarity);
-    if (audio) {
-      // Clone the audio to allow overlapping sounds
-      const soundClone = audio.cloneNode() as HTMLAudioElement;
-      soundClone.volume = rarity === 'legendary' ? 0.5 : rarity === 'epic' ? 0.4 : 0.3;
+    // Use the rarity if it exists in sounds, otherwise fallback to common
+    const soundKey = GIFT_SOUNDS[rarity] ? rarity : 'common';
+    const soundSrc = GIFT_SOUNDS[soundKey];
 
-      // Play the sound
-      soundClone.play().catch(() => {
-        // Audio play failed - likely no user interaction yet
-      });
+    // Create fresh audio element each time for correct sound
+    const audio = new Audio(soundSrc);
+    audio.volume = VOLUME_LEVELS[soundKey] || 0.3;
 
-      // Force stop after max duration (5 seconds)
-      setTimeout(() => {
-        soundClone.pause();
-        soundClone.currentTime = 0;
-        soundClone.src = '';
-      }, MAX_SOUND_DURATION);
+    // Play the sound
+    audio.play().catch(() => {
+      // Audio play failed - likely no user interaction yet
+    });
 
-      // Also stop when naturally ended
-      soundClone.onended = () => {
-        soundClone.src = '';
-      };
-    }
+    // Force stop after max duration (5 seconds)
+    const timeout = setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = '';
+    }, MAX_SOUND_DURATION);
+
+    // Also stop when naturally ended
+    audio.onended = () => {
+      clearTimeout(timeout);
+      audio.src = '';
+    };
   };
 
   useEffect(() => {

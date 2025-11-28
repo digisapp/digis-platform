@@ -3,7 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { StreamMessage, StreamGift, VirtualGift } from '@/db/schema';
 
 export type StreamEvent = {
-  type: 'chat' | 'gift' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended' | 'reaction' | 'goal_update';
+  type: 'chat' | 'gift' | 'tip' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended' | 'reaction' | 'goal_update';
   data: any;
 };
 
@@ -98,6 +98,9 @@ export class RealtimeService {
       .on('broadcast', { event: 'goal_update' }, (payload) => {
         onEvent({ type: 'goal_update', data: payload.payload });
       })
+      .on('broadcast', { event: 'tip' }, (payload) => {
+        onEvent({ type: 'tip', data: payload.payload });
+      })
       .subscribe();
 
     this.channels.set(channelName, channel);
@@ -146,6 +149,28 @@ export class RealtimeService {
       type: 'broadcast',
       event: 'gift',
       payload: { streamGift, gift },
+    });
+  }
+
+  /**
+   * Broadcast coin tip (without virtual gift)
+   */
+  static async broadcastTip(
+    streamId: string,
+    tipData: {
+      senderId: string;
+      senderUsername: string;
+      senderAvatarUrl?: string | null;
+      amount: number;
+    }
+  ) {
+    const supabase = createClient();
+    const channelName = `stream:${streamId}`;
+
+    await supabase.channel(channelName).send({
+      type: 'broadcast',
+      event: 'tip',
+      payload: tipData,
     });
   }
 

@@ -29,8 +29,6 @@ const DISPLAY_PACKAGES = COIN_PACKAGES.map(pkg => ({
   price: formatPrice(pkg.price),
   priceValue: pkg.price,
   popular: pkg.popular,
-  savings: pkg.savings,
-  description: pkg.description,
 }));
 
 export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps) {
@@ -127,9 +125,6 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white">{pkg.name}</h3>
-                    {pkg.savings && (
-                      <p className="text-sm text-digis-cyan font-medium">{pkg.savings}</p>
-                    )}
                   </div>
                 </div>
                 <div className="text-right">

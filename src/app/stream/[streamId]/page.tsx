@@ -206,6 +206,19 @@ export default function StreamViewerPage() {
           fetchLeaderboard();
           fetchGoals();
           break;
+        case 'tip':
+          // Add floating coin emoji for tips with dedicated tip sound
+          const tipData = event.data as { amount: number };
+          if (tipData.amount) {
+            setFloatingGifts(prev => [...prev, {
+              id: `tip-${Date.now()}-${Math.random()}`,
+              emoji: '💰',
+              rarity: 'tip', // Uses dedicated coin jingling sound
+              timestamp: Date.now()
+            }]);
+          }
+          fetchLeaderboard();
+          break;
         case 'viewer_count':
           setViewerCount(event.data.currentViewers);
           setPeakViewers(event.data.peakViewers);
@@ -401,6 +414,19 @@ export default function StreamViewerPage() {
     if (!response.ok) {
       const data = await response.json();
       throw new Error(data.error || 'Failed to send gift');
+    }
+    fetchUserBalance();
+  };
+
+  const handleSendTip = async (amount: number) => {
+    const response = await fetch(`/api/streams/${streamId}/tip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to send tip');
     }
     fetchUserBalance();
   };
@@ -968,6 +994,10 @@ export default function StreamViewerPage() {
                   streamId={streamId}
                   onSendGift={async (giftId, qty) => {
                     await handleSendGift(giftId, qty);
+                    setShowGiftPanel(false);
+                  }}
+                  onSendTip={async (amount) => {
+                    await handleSendTip(amount);
                     setShowGiftPanel(false);
                   }}
                   userBalance={userBalance}
