@@ -508,9 +508,10 @@ export default function ProfilePage() {
         {/* Avatar and Header Section - Modern Glass Card */}
         <div className="relative -mt-24 sm:-mt-28 mb-8">
           <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+            {/* Top Row: Avatar, Name, Follow Button */}
+            <div className="flex items-start gap-4 sm:gap-6">
               {/* Animated Avatar with Neon Glow */}
-              <div className="relative group">
+              <div className="relative group flex-shrink-0">
                 <div className="absolute -inset-1 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink rounded-full blur-lg group-hover:blur-xl transition-all opacity-75 group-hover:opacity-100"></div>
                 <div className="relative">
                   <AnimatedAvatar
@@ -522,89 +523,84 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Name and Bio Section */}
+              {/* Name, Username, Followers */}
               <div className="flex-1 min-w-0">
                 {/* Name with Verification Badge */}
-                <div className="flex items-center gap-3 mb-3">
-                  <h1 className="text-3xl sm:text-4xl font-black text-white truncate bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-2xl sm:text-3xl font-black text-white truncate bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
                     {user.displayName || user.username}
                   </h1>
                   {user.isCreatorVerified && (
                     <div className="relative flex-shrink-0 group" title="Verified Creator">
                       <div className="absolute -inset-1 bg-blue-500 rounded-full blur opacity-75 group-hover:opacity-100"></div>
-                      <CheckCircle className="relative w-7 h-7 text-white fill-blue-500" strokeWidth={2.5} />
+                      <CheckCircle className="relative w-5 h-5 sm:w-6 sm:h-6 text-white fill-blue-500" strokeWidth={2.5} />
                     </div>
                   )}
                 </div>
                 {user.displayName && (
-                  <p className="text-cyan-300/90 mb-2 text-lg">@{user.username}</p>
+                  <p className="text-cyan-300/90 text-sm sm:text-base mb-1">@{user.username}</p>
                 )}
 
-                {/* Follower Count - Display only */}
-                <div className="mb-4 text-sm font-medium flex items-center gap-2 text-gray-400">
+                {/* Follower Count */}
+                <div className="text-sm font-medium flex items-center gap-2 text-gray-400">
                   <Users className="w-4 h-4" />
                   <span>
                     <strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Follower{followCounts.followers !== 1 ? 's' : ''}
                   </span>
                 </div>
-
-                {/* Bio */}
-                {user.bio && (
-                  <p className="text-gray-300 mb-6 text-sm sm:text-base leading-relaxed line-clamp-3">
-                    {user.bio}
-                  </p>
-                )}
               </div>
+
+              {/* Follow Button - Top Right, Compact */}
+              <button
+                onClick={handleFollowToggle}
+                disabled={followLoading}
+                className={`flex-shrink-0 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 disabled:opacity-50 ${
+                  isFollowing
+                    ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-lg shadow-cyan-500/30'
+                }`}
+              >
+                <Users className={`w-4 h-4 ${isFollowing ? 'fill-cyan-400' : ''}`} />
+                <span>{followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}</span>
+              </button>
             </div>
 
-          {/* Action Buttons - Futuristic Design */}
-          <div className="mt-6 flex flex-wrap gap-3">
-            {/* Follow Button - Primary CTA */}
-            <button
-              onClick={handleFollowToggle}
-              disabled={followLoading}
-              className={`group relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 ${
-                isFollowing
-                  ? 'bg-white/10 backdrop-blur-md border-2 border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:bg-cyan-500/10'
-                  : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50 hover:scale-105 hover:shadow-cyan-500/70'
-              }`}
-            >
-              {!isFollowing && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
-              )}
-              <Users className={`w-5 h-5 relative z-10 ${isFollowing ? 'fill-cyan-400' : ''}`} />
-              <span className="relative z-10">{followLoading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}</span>
-            </button>
+            {/* Bio */}
+            {user.bio && (
+              <p className="text-gray-300 mt-4 text-sm sm:text-base leading-relaxed line-clamp-3">
+                {user.bio}
+              </p>
+            )}
 
-            {/* Subscribe Button */}
+          {/* Action Buttons Row */}
+          <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
+            {/* Subscribe Button - Primary for Creators */}
             {user.role === 'creator' && subscriptionTier && !isSubscribed && (
               <button
                 onClick={handleSubscribe}
                 disabled={subscribeLoading}
-                className="group relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white hover:scale-105 transition-all duration-500 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50"
+                className="group relative overflow-hidden px-4 sm:px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-500/30 text-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
-                <Star className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">{subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth.toLocaleString()} coins/mo`}</span>
+                <Star className="w-4 h-4" />
+                <span>{subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth} coins/mo`}</span>
               </button>
             )}
 
             {/* Subscribed Badge */}
             {user.role === 'creator' && isSubscribed && (
-              <div className="relative overflow-hidden min-h-[48px] px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center gap-2 shadow-lg shadow-purple-500/50">
-                <Star className="w-5 h-5 fill-white" />
-                Subscribed
+              <div className="px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center gap-2 shadow-lg shadow-purple-500/30 text-sm">
+                <Star className="w-4 h-4 fill-white" />
+                <span>Subscribed</span>
               </div>
             )}
 
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
+              className="group px-4 py-2.5 rounded-xl font-semibold bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-digis-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <MessageCircle className="w-5 h-5 relative z-10" />
-              <span className="hidden md:inline relative z-10">Message</span>
+              <MessageCircle className="w-4 h-4" />
+              <span>Message</span>
             </button>
 
             {/* Video Call Button */}
@@ -633,15 +629,14 @@ export default function ProfilePage() {
               />
             )}
 
-            {/* Tip Button - Last */}
+            {/* Tip Button */}
             {user.role === 'creator' && (
               <button
                 onClick={() => setShowTipModal(true)}
-                className="group relative overflow-hidden min-h-[48px] px-5 py-3 rounded-2xl font-bold bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center gap-2 text-white shadow-lg"
+                className="group px-4 py-2.5 rounded-xl font-semibold bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Gift className="w-5 h-5 relative z-10" />
-                <span className="hidden md:inline relative z-10">Tip</span>
+                <Gift className="w-4 h-4" />
+                <span>Tip</span>
               </button>
             )}
           </div>
