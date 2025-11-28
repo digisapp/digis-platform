@@ -7,6 +7,19 @@ import { Coins, LogIn, Plus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
+// Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
+const formatCoinBalance = (coins: number): string => {
+  if (coins >= 1000000) {
+    const millions = coins / 1000000;
+    return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+  }
+  if (coins >= 1000) {
+    const thousands = coins / 1000;
+    return thousands % 1 === 0 ? `${thousands}k` : `${thousands.toFixed(1)}k`;
+  }
+  return coins.toString();
+};
+
 export function MobileHeader() {
   const router = useRouter();
   const { user: authUser, loading: authLoading } = useAuth();
@@ -113,7 +126,7 @@ export function MobileHeader() {
               className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-black/60 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)] touch-manipulation active:scale-95 transition-transform"
             >
               <Coins className="w-6 h-6 text-green-400" />
-              <span className="text-lg font-bold text-green-400">{balance}</span>
+              <span className="text-lg font-bold text-green-400">{formatCoinBalance(balance)}</span>
             </button>
 
             {/* Fan Dropdown - Buy Coins */}

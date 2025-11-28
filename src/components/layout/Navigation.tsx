@@ -21,6 +21,19 @@ import {
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
+// Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
+const formatCoinBalance = (coins: number): string => {
+  if (coins >= 1000000) {
+    const millions = coins / 1000000;
+    return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+  }
+  if (coins >= 1000) {
+    const thousands = coins / 1000;
+    return thousands % 1 === 0 ? `${thousands}k` : `${thousands.toFixed(1)}k`;
+  }
+  return coins.toString();
+};
+
 export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
@@ -626,7 +639,7 @@ export function Navigation() {
           >
             <Coins className="w-7 h-7 text-green-400 group-hover:rotate-12 transition-transform" />
             <div className="text-xl font-black text-white drop-shadow-lg">
-              {balance}
+              {formatCoinBalance(balance)}
             </div>
           </button>
 
