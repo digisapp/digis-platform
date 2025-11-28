@@ -122,7 +122,6 @@ export default function StreamViewerPage() {
   const [showControls, setShowControls] = useState(true);
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [showMobileChat, setShowMobileChat] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   // Animations
@@ -504,14 +503,14 @@ export default function StreamViewerPage() {
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
 
-      {/* Main Layout */}
+      {/* Main Layout - Mobile: video + chat stacked, Desktop: video + sidebar */}
       <div className="flex flex-col lg:flex-row h-screen">
         {/* Video Section */}
-        <div className={`flex-1 flex flex-col ${showChat && !isMobile ? 'lg:mr-[400px]' : ''}`}>
+        <div className={`${isMobile ? 'h-[45vh]' : 'flex-1'} flex flex-col ${showChat && !isMobile ? 'lg:mr-[400px]' : ''}`}>
           {/* Video Player Container */}
           <div
             ref={videoContainerRef}
-            className="relative flex-1 bg-black"
+            className="relative flex-1 bg-black flex items-center justify-center"
             onMouseMove={() => setShowControls(true)}
             onMouseLeave={() => setShowControls(false)}
             onClick={() => isMobile && setShowControls(!showControls)}
@@ -523,7 +522,7 @@ export default function StreamViewerPage() {
                 audio={true}
                 token={token}
                 serverUrl={serverUrl}
-                className="h-full w-full"
+                className="h-full w-full flex items-center justify-center"
                 options={{ adaptiveStream: true, dynacast: true }}
               >
                 <BroadcasterVideo />
@@ -778,21 +777,64 @@ export default function StreamViewerPage() {
               </div>
             </div>
 
-            {/* Mobile Chat Toggle */}
-            {isMobile && (
-              <button
-                onClick={() => setShowMobileChat(true)}
-                className={`absolute bottom-20 right-4 p-3 bg-black/60 backdrop-blur-sm rounded-full transition-all duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <MessageCircle className="w-6 h-6" />
-                {messages.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-digis-pink rounded-full text-xs font-bold flex items-center justify-center">
-                    {messages.length > 99 ? '99+' : messages.length}
-                  </span>
-                )}
-              </button>
-            )}
           </div>
+
+          {/* Mobile: Inline Chat & Actions Below Video */}
+          {isMobile && (
+            <div className="flex-1 flex flex-col bg-black/95 border-t border-white/10">
+              {/* Mobile Action Bar */}
+              <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/60">
+                {/* Stream Info */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <button onClick={() => router.push(`/${stream.creator?.username}`)} className="flex-shrink-0">
+                    {stream.creator?.avatarUrl ? (
+                      <img src={stream.creator.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold ring-2 ring-red-500">
+                        {stream.creator?.displayName?.[0] || '?'}
+                      </div>
+                    )}
+                  </button>
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm truncate">{stream.creator?.displayName || stream.creator?.username}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-red-400 font-bold">● LIVE</span>
+                      <span className="text-xs text-gray-400">{viewerCount} watching</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowGiftPanel(true)}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-digis-pink to-digis-purple rounded-full text-xs font-bold"
+                  >
+                    <Gift className="w-3.5 h-3.5" />
+                    Gift
+                  </button>
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+                      isFollowing ? 'bg-white/20' : 'bg-digis-cyan'
+                    }`}
+                  >
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Chat - Always Visible */}
+              <div className="flex-1 overflow-hidden">
+                <StreamChat
+                  streamId={streamId}
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Below Video - Desktop Only */}
           {!isMobile && (
@@ -863,30 +905,6 @@ export default function StreamViewerPage() {
           </div>
         )}
 
-        {/* Mobile Chat Overlay */}
-        {isMobile && showMobileChat && (
-          <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
-            {/* Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-digis-cyan" />
-                <span className="font-bold">Live Chat</span>
-              </div>
-              <button onClick={() => setShowMobileChat(false)} className="p-2 bg-white/10 rounded-full">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Chat */}
-            <div className="flex-1 overflow-hidden">
-              <StreamChat
-                streamId={streamId}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Gift Panel */}
         {showGiftPanel && (
