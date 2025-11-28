@@ -19,6 +19,7 @@ import {
   Settings,
   Ticket
 } from 'lucide-react';
+import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
 export function Navigation() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export function Navigation() {
   const [followerCount, setFollowerCount] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCoinsMenu, setShowCoinsMenu] = useState(false);
+  const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
 
   // Derive userRole from AuthContext
   const userRole = authUser?.role || 'fan';
@@ -257,7 +259,7 @@ export function Navigation() {
                 <span className="text-sm font-semibold text-white">
                   {userRole === 'creator'
                     ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
-                    : 'Following & Followers'
+                    : 'Following'
                   }
                 </span>
               </button>
@@ -622,26 +624,53 @@ export function Navigation() {
             </div>
           </button>
 
-          {/* Coins Dropdown Menu */}
+          {/* Coins Dropdown Menu - Matching Profile Menu Style */}
           {showCoinsMenu && (
             <>
               <div
-                className="fixed inset-0 z-40"
+                className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
                 onClick={() => setShowCoinsMenu(false)}
               />
-              <div className="absolute left-full top-0 ml-2 z-50 backdrop-blur-xl bg-black/90 rounded-xl border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)] overflow-hidden min-w-[160px]">
-                <button
-                  onClick={() => {
-                    setShowCoinsMenu(false);
-                    router.push('/wallet');
-                  }}
-                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                    <Coins className="w-4 h-4 text-white" />
+              <div className="fixed md:left-24 md:top-[200px] bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-64 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+                {/* Animated gradient border effect */}
+                <div className="absolute inset-0 rounded-2xl md:rounded-xl overflow-hidden pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
+                </div>
+
+                {/* Header */}
+                <div className="p-5 md:p-4 border-b border-cyan-500/20 bg-transparent relative">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+                      <Coins className="w-6 h-6 md:w-5 md:h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-lg md:text-base">Your Balance</h3>
+                      <p className="text-2xl md:text-xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                        {balance} <span className="text-sm font-medium text-gray-400">coins</span>
+                      </p>
+                    </div>
                   </div>
-                  <span className="font-bold text-white">Buy Coins</span>
-                </button>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-2 relative">
+                  <button
+                    onClick={() => {
+                      setShowCoinsMenu(false);
+                      setShowBuyCoinsModal(true);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <div className="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                      <Coins className="w-5 h-5 md:w-4 md:h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-base md:text-sm text-white font-semibold">Buy Coins</span>
+                      <p className="text-xs text-gray-400">Add coins to your wallet</p>
+                    </div>
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -686,6 +715,16 @@ export function Navigation() {
 
       {/* Spacer for mobile bottom nav - Dynamic height for iPhone */}
       <div className="md:hidden" style={{ height: 'calc(60px + env(safe-area-inset-bottom))' }} />
+
+      {/* Buy Coins Modal */}
+      <BuyCoinsModal
+        isOpen={showBuyCoinsModal}
+        onClose={() => setShowBuyCoinsModal(false)}
+        onSuccess={() => {
+          setShowBuyCoinsModal(false);
+          fetchBalance();
+        }}
+      />
     </>
   );
 }
