@@ -1,5 +1,5 @@
 import { db } from '../src/db';
-import { virtualGifts } from '../src/db/schema';
+import { virtualGifts, streamGifts } from '../src/db/schema';
 
 // Gift tiers (1 coin = $0.10)
 const gifts = [
@@ -153,15 +153,17 @@ async function seedGifts() {
   console.log('🎁 Seeding virtual gifts...');
 
   try {
-    // Check if gifts already exist
-    const existingGifts = await db.select().from(virtualGifts);
+    // First, delete stream_gifts records that reference old gifts
+    console.log('🗑️ Clearing stream_gifts history...');
+    await db.delete(streamGifts);
+    console.log('✅ Stream gifts history cleared.');
 
-    if (existingGifts.length > 0) {
-      console.log('✅ Gifts already seeded. Skipping.');
-      return;
-    }
+    // Now delete old gifts
+    console.log('🗑️ Deleting old gifts...');
+    await db.delete(virtualGifts);
+    console.log('✅ Old gifts deleted.');
 
-    // Insert gifts
+    // Insert new gifts
     await db.insert(virtualGifts).values(gifts);
 
     console.log('✅ Successfully seeded', gifts.length, 'virtual gifts!');
