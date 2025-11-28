@@ -49,7 +49,7 @@ const gifts = [
   },
   {
     name: 'Gold Bar',
-    emoji: '🥇',
+    emoji: '💰',
     coinCost: 150,
     animationType: 'fireworks',
     rarity: 'rare' as const,
