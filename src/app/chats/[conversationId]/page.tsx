@@ -434,7 +434,7 @@ export default function ChatPage() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-4 py-6 max-w-4xl">
+          <div className="container mx-auto px-4 py-6 max-w-2xl">
             <div className="space-y-4">
               {messages.length === 0 ? (
                 <div className="text-center py-12">
@@ -461,7 +461,7 @@ export default function ChatPage() {
 
         {/* Message Input */}
         <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0">
-          <div className="container mx-auto px-4 py-4 max-w-4xl">
+          <div className="container mx-auto px-4 py-4 max-w-2xl">
             <form onSubmit={sendMessage} className="flex gap-2">
               {/* Attachment Button */}
               <button
