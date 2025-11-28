@@ -273,17 +273,14 @@ export class CallService {
       throw new Error('Unauthorized');
     }
 
-    if (call.status !== 'active') {
+    if (call.status !== 'active' && call.status !== 'accepted') {
       throw new Error('Call is not active');
     }
 
-    if (!call.startedAt) {
-      throw new Error('Call start time not recorded');
-    }
-
-    // Calculate duration
+    // Calculate duration - use startedAt or acceptedAt as fallback
     const endTime = new Date();
-    const durationSeconds = Math.floor((endTime.getTime() - call.startedAt.getTime()) / 1000);
+    const startTime = call.startedAt || call.acceptedAt || new Date();
+    const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
     const durationMinutes = Math.ceil(durationSeconds / 60);
 
     // Calculate actual charge

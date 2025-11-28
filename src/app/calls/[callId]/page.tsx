@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant } from '@livekit/components-react';
+import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
-import { ConnectionState } from 'livekit-client';
-import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2 } from 'lucide-react';
+import { ConnectionState, Track } from 'livekit-client';
+import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap } from 'lucide-react';
 
 interface CallToken {
   token: string;
@@ -244,14 +244,17 @@ export default function VideoCallPage() {
     ? Math.ceil(duration / 60) * callData.ratePerMinute
     : 0;
 
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+
   // End call
   const handleEndCall = async () => {
     if (isEnding) return;
+    setShowEndConfirm(true);
+  };
 
-    const confirmed = window.confirm('Are you sure you want to end this call?');
-    if (!confirmed) return;
-
+  const confirmEndCall = async () => {
     setIsEnding(true);
+    setShowEndConfirm(false);
 
     try {
       const res = await fetch(`/api/calls/${callId}/end`, {
@@ -266,21 +269,39 @@ export default function VideoCallPage() {
       const result = await res.json();
       console.log('Call ended:', result);
 
-      // Redirect to calls page
-      router.push('/calls');
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err: any) {
       console.error('Error ending call:', err);
-      alert('Failed to end call properly. Please try again.');
       setIsEnding(false);
+      // Show error but still try to redirect
+      setTimeout(() => router.push('/dashboard'), 2000);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-digis-cyan animate-spin mx-auto mb-4" />
-          <p className="text-white">Connecting to call...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute w-96 h-96 bottom-10 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
+
+        <div className="text-center relative z-10">
+          <div className="relative inline-block mb-6">
+            <div className="absolute -inset-4 bg-cyan-500/30 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,211,238,0.5)]">
+              <Video className="w-10 h-10 text-white animate-pulse" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2">Connecting...</h2>
+          <p className="text-gray-400">Setting up your video call</p>
+          <div className="mt-6 flex justify-center gap-1">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
+          </div>
         </div>
       </div>
     );
@@ -288,19 +309,25 @@ export default function VideoCallPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-4">
-            <PhoneOff className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Call Error</h2>
-            <p className="text-gray-400">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 -top-10 -left-10 bg-red-500/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="text-center max-w-md mx-auto px-4 relative z-10">
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-red-500/10 via-gray-900/60 to-black/40 rounded-3xl p-8 border-2 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+            <div className="w-16 h-16 mx-auto mb-6 bg-red-500/20 rounded-2xl flex items-center justify-center">
+              <PhoneOff className="w-8 h-8 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-3">Call Error</h2>
+            <p className="text-gray-400 mb-6">{error}</p>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-lg"
+            >
+              Back to Dashboard
+            </button>
           </div>
-          <button
-            onClick={() => router.push('/calls')}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
-          >
-            Back to Calls
-          </button>
         </div>
       </div>
     );
@@ -313,7 +340,68 @@ export default function VideoCallPage() {
   const isVoiceCall = callData.callType === 'voice';
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-[500px] h-[500px] top-1/2 right-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      {/* End Call Confirmation Modal */}
+      {showEndConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-red-500/40 shadow-[0_0_60px_rgba(239,68,68,0.3)] animate-in zoom-in-95 duration-200">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 animate-pulse" />
+            </div>
+
+            <div className="relative text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-red-500/20 rounded-2xl flex items-center justify-center border border-red-500/40">
+                <PhoneOff className="w-10 h-10 text-red-400" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-white mb-3">End Call?</h3>
+              <p className="text-gray-400 mb-2">This will disconnect your video call.</p>
+
+              {hasStarted && (
+                <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400">Duration</span>
+                    <span className="font-mono font-bold text-cyan-400">{formatDuration(duration)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-2">
+                    <span className="text-gray-400">Estimated Cost</span>
+                    <span className="font-bold text-yellow-400">{estimatedCost} coins</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEndConfirm(false)}
+                  className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all border border-white/20"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmEndCall}
+                  disabled={isEnding}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
+                >
+                  {isEnding ? (
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                  ) : (
+                    'End Call'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <LiveKitRoom
         token={callToken.token}
         serverUrl={callToken.wsUrl}
@@ -337,65 +425,160 @@ export default function VideoCallPage() {
             <RoomAudioRenderer />
           </>
         ) : (
-          // Video Call UI
-          <>
-            {/* Call Header */}
-            <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+          // Video Call UI - Tron Styled
+          <div className="relative z-10 h-screen flex flex-col">
+            {/* Futuristic Header */}
+            <div className="absolute top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/60 border-b border-cyan-500/30 shadow-[0_4px_30px_rgba(34,211,238,0.2)]">
               <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-lg font-bold text-white">
-                      Video Call
-                    </h1>
-                    <p className="text-sm text-gray-400">
-                      {callData.fan.displayName || callData.fan.username} ↔️ {callData.creator.displayName || callData.creator.username}
-                    </p>
-                  </div>
-
+                  {/* Left - Call Info */}
                   <div className="flex items-center gap-4">
-                    {/* Duration and Cost */}
-                    {hasStarted && (
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-digis-cyan font-mono">
-                          {formatDuration(duration)}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          ~{estimatedCost} coins
-                        </div>
+                    <div className="relative">
+                      <div className="absolute -inset-1 bg-cyan-500/30 rounded-full blur-md animate-pulse"></div>
+                      <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                        <Video className="w-6 h-6 text-white" />
                       </div>
-                    )}
-
-                    {/* End Call Button */}
-                    <button
-                      onClick={handleEndCall}
-                      disabled={isEnding}
-                      className="px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 text-white rounded-lg flex items-center gap-2 transition-colors"
-                    >
-                      {isEnding ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Ending...
-                        </>
-                      ) : (
-                        <>
-                          <PhoneOff className="w-4 h-4" />
-                          End Call
-                        </>
-                      )}
-                    </button>
+                    </div>
+                    <div>
+                      <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                        Video Call
+                      </h1>
+                      <p className="text-sm text-gray-400 flex items-center gap-2">
+                        <span className="text-cyan-400">{callData.fan.displayName || callData.fan.username}</span>
+                        <Zap className="w-3 h-3 text-yellow-400" />
+                        <span className="text-purple-400">{callData.creator.displayName || callData.creator.username}</span>
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Center - Duration & Cost */}
+                  <div className="hidden md:flex items-center gap-6">
+                    {hasStarted && (
+                      <>
+                        <div className="flex items-center gap-3 px-4 py-2 bg-cyan-500/10 rounded-xl border border-cyan-500/30">
+                          <Clock className="w-5 h-5 text-cyan-400" />
+                          <span className="text-2xl font-bold font-mono text-cyan-400">{formatDuration(duration)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 rounded-xl border border-yellow-500/30">
+                          <Coins className="w-5 h-5 text-yellow-400" />
+                          <span className="text-lg font-bold text-yellow-400">~{estimatedCost}</span>
+                          <span className="text-sm text-yellow-400/60">coins</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Right - End Call */}
+                  <button
+                    onClick={handleEndCall}
+                    disabled={isEnding}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-red-500/30 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {isEnding ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span className="hidden sm:inline">Ending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <PhoneOff className="w-5 h-5" />
+                        <span className="hidden sm:inline">End Call</span>
+                      </>
+                    )}
+                  </button>
                 </div>
+
+                {/* Mobile Duration/Cost */}
+                {hasStarted && (
+                  <div className="md:hidden flex items-center justify-center gap-4 mt-3 pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-cyan-400" />
+                      <span className="font-bold font-mono text-cyan-400">{formatDuration(duration)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="font-bold text-yellow-400">~{estimatedCost}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Video Call Area */}
-            <div className="pt-20 h-screen">
-              <VideoConference />
+            {/* Video Call Area - Custom Styled */}
+            <div className="flex-1 pt-24 md:pt-20">
+              <div className="h-full livekit-container">
+                <VideoConference />
+              </div>
               <RoomAudioRenderer />
             </div>
-          </>
+          </div>
         )}
       </LiveKitRoom>
+
+      {/* Custom LiveKit Styles */}
+      <style jsx global>{`
+        .livekit-container .lk-video-conference {
+          --lk-bg: transparent !important;
+          --lk-bg2: rgba(0, 0, 0, 0.4) !important;
+          --lk-control-bg: rgba(0, 0, 0, 0.6) !important;
+          --lk-control-hover-bg: rgba(34, 211, 238, 0.2) !important;
+          --lk-accent-fg: rgb(34, 211, 238) !important;
+          --lk-danger: rgb(239, 68, 68) !important;
+          background: transparent !important;
+        }
+
+        .livekit-container .lk-focus-layout {
+          background: transparent !important;
+        }
+
+        .livekit-container .lk-participant-tile {
+          background: rgba(0, 0, 0, 0.6) !important;
+          border: 2px solid rgba(34, 211, 238, 0.3) !important;
+          border-radius: 1rem !important;
+          box-shadow: 0 0 30px rgba(34, 211, 238, 0.2) !important;
+        }
+
+        .livekit-container .lk-participant-placeholder {
+          background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(168, 85, 247, 0.1)) !important;
+        }
+
+        .livekit-container .lk-control-bar {
+          background: rgba(0, 0, 0, 0.8) !important;
+          backdrop-filter: blur(20px) !important;
+          border-top: 1px solid rgba(34, 211, 238, 0.3) !important;
+          padding: 1rem !important;
+        }
+
+        .livekit-container .lk-button {
+          background: rgba(255, 255, 255, 0.1) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-radius: 0.75rem !important;
+          transition: all 0.2s !important;
+        }
+
+        .livekit-container .lk-button:hover {
+          background: rgba(34, 211, 238, 0.2) !important;
+          border-color: rgba(34, 211, 238, 0.5) !important;
+          transform: scale(1.05) !important;
+        }
+
+        .livekit-container .lk-disconnect-button {
+          background: linear-gradient(135deg, rgb(239, 68, 68), rgb(220, 38, 38)) !important;
+          border: none !important;
+        }
+
+        .livekit-container .lk-disconnect-button:hover {
+          background: linear-gradient(135deg, rgb(220, 38, 38), rgb(185, 28, 28)) !important;
+        }
+
+        .livekit-container .lk-participant-name {
+          background: rgba(0, 0, 0, 0.7) !important;
+          backdrop-filter: blur(10px) !important;
+          border: 1px solid rgba(34, 211, 238, 0.3) !important;
+          border-radius: 0.5rem !important;
+          padding: 0.25rem 0.75rem !important;
+        }
+      `}</style>
     </div>
   );
 }
