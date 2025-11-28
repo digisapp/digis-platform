@@ -134,7 +134,7 @@ export default function StreamsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search shows..."
+            placeholder="Search streams..."
             className="w-full pl-12 pr-12 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-colors shadow-[0_0_20px_rgba(34,211,238,0.2)]"
           />
           {searchQuery && (
@@ -226,7 +226,7 @@ export default function StreamsPage() {
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
                 <Calendar className="w-16 h-16 text-cyan-400" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Streams</h3>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Paid Streams</h3>
             </div>
           </div>
         ) : null}
