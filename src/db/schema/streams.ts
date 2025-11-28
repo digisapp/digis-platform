@@ -37,6 +37,9 @@ export const streams = pgTable('streams', {
   privacy: text('privacy').default('public').notNull(), // public, followers, private
   orientation: text('orientation').default('landscape').notNull(), // landscape, portrait
 
+  // Recording (LiveKit Egress)
+  egressId: text('egress_id'), // LiveKit Egress ID for recording
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({

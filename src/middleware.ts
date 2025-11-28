@@ -51,7 +51,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user is admin by email (quick check without database query)
-    const isAdminEmail = user.email === 'admin@digis.cc' || user.email === 'nathan@digis.cc'
+    // Admin emails configured via ADMIN_EMAILS environment variable (comma-separated)
+    const adminEmails = (process.env.ADMIN_EMAILS || 'admin@digis.cc,nathan@digis.cc').split(',').map(e => e.trim().toLowerCase())
+    const isAdminEmail = user.email ? adminEmails.includes(user.email.toLowerCase()) : false
     console.log('[Middleware] Is admin email:', isAdminEmail)
 
     if (!isAdminEmail) {

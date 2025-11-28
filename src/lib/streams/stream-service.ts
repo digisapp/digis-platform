@@ -20,6 +20,7 @@ import {
   incrementViewerCount as redisIncrementViewerCount,
   decrementViewerCount as redisDecrementViewerCount,
 } from '@/lib/cache';
+import { LiveKitEgressService } from '../services/livekit-egress-service';
 
 /**
  * StreamService uses Drizzle ORM for complex streaming operations.
@@ -61,6 +62,22 @@ export class StreamService {
       })
       .returning();
 
+    // Start recording if stream is going live immediately
+    if (!isScheduled) {
+      try {
+        const egressId = await LiveKitEgressService.startRecording(roomName, stream.id);
+        // Update stream with egress ID
+        await db
+          .update(streams)
+          .set({ egressId })
+          .where(eq(streams.id, stream.id));
+        console.log(`[StreamService] Started recording for stream ${stream.id}, egress: ${egressId}`);
+      } catch (err) {
+        // Recording is optional - don't fail stream creation if egress fails
+        console.warn('[StreamService] Failed to start recording (continuing without):', err);
+      }
+    }
+
     return stream;
   }
 
@@ -84,6 +101,16 @@ export class StreamService {
     const endTime = new Date();
     const startTime = stream.startedAt || new Date();
     const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+
+    // Stop recording if egress was active
+    if (stream.egressId) {
+      try {
+        await LiveKitEgressService.stopRecording(stream.egressId);
+        console.log(`[StreamService] Stopped recording for stream ${streamId}`);
+      } catch (err) {
+        console.warn('[StreamService] Failed to stop recording:', err);
+      }
+    }
 
     const [updatedStream] = await db
       .update(streams)

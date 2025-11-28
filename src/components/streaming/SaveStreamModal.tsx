@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { GlassModal, GlassInput, GlassButton } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Coins } from 'lucide-react';
+
+// Minimum price for VOD saves (prevents free content flooding storage)
+const MIN_VOD_PRICE = 250;
 
 interface SaveStreamModalProps {
   isOpen: boolean;
@@ -23,7 +27,7 @@ export function SaveStreamModal({
 }: SaveStreamModalProps) {
   const [title, setTitle] = useState(streamTitle);
   const [description, setDescription] = useState(streamDescription || '');
-  const [priceCoins, setPriceCoins] = useState('0');
+  const [priceCoins, setPriceCoins] = useState(String(MIN_VOD_PRICE));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -34,8 +38,8 @@ export function SaveStreamModal({
 
     try {
       const finalPrice = parseInt(priceCoins) || 0;
-      if (finalPrice < 0) {
-        throw new Error('Price must be 0 or greater');
+      if (finalPrice < MIN_VOD_PRICE) {
+        throw new Error(`Minimum price is ${MIN_VOD_PRICE} coins`);
       }
 
       const response = await fetch(`/api/streams/${streamId}/save`, {
@@ -93,19 +97,21 @@ export function SaveStreamModal({
 
         {/* Price */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">
+          <label className="block text-sm font-semibold text-white mb-2 flex items-center gap-2">
+            <Coins className="w-4 h-4 text-yellow-400" />
             Price (Coins)
           </label>
           <GlassInput
             type="number"
             value={priceCoins}
             onChange={(e) => setPriceCoins(e.target.value)}
-            placeholder="Enter price in coins (0 for free)..."
-            min="0"
+            placeholder={`Minimum ${MIN_VOD_PRICE} coins...`}
+            min={MIN_VOD_PRICE}
             required
           />
           <p className="text-xs text-gray-400 mt-1">
-            Set the price viewers must pay to watch this replay. Enter 0 for free access.
+            Minimum price: <span className="text-yellow-400 font-semibold">{MIN_VOD_PRICE} coins</span>.
+            Fans will pay this to watch your replay.
           </p>
         </div>
 
