@@ -158,21 +158,32 @@ export default function ProfilePage() {
 
     setContentLoading(true);
     try {
-      // Fetch streams and shows in parallel
-      const [streamsRes, showsRes] = await Promise.all([
-        fetch(`/api/streams/my-streams?userId=${profile.user.id}`),
+      // Fetch saved streams (VODs) and shows in parallel
+      const [vodsRes, showsRes] = await Promise.all([
+        fetch(`/api/vods/my-vods?userId=${profile.user.id}`),
         fetch(`/api/shows/creator?creatorId=${profile.user.id}`)
       ]);
 
-      if (streamsRes.ok) {
-        const streamsData = await streamsRes.json();
-        // Sort by date, most recent first, only show ended streams
-        const streamsList = streamsData.data?.streams || [];
-        const endedStreams = streamsList
-          .filter((s: any) => s.status === 'ended')
-          .sort((a: any, b: any) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
-          .slice(0, 12); // Show last 12 streams
-        setStreams(endedStreams);
+      if (vodsRes.ok) {
+        const vodsData = await vodsRes.json();
+        // VODs are already sorted by createdAt desc from API
+        const vodsList = vodsData.vods || [];
+        // Transform VODs to match streams format for display
+        const savedStreams = vodsList.slice(0, 12).map((vod: any) => ({
+          id: vod.id,
+          title: vod.title,
+          description: vod.description,
+          thumbnailUrl: vod.thumbnailUrl,
+          peakViewers: vod.originalPeakViewers,
+          totalViews: vod.viewCount,
+          endedAt: vod.createdAt,
+          startedAt: vod.createdAt,
+          duration: vod.duration,
+          priceCoins: vod.priceCoins,
+          isPublic: vod.isPublic,
+          isVod: true, // Flag to identify this is a VOD
+        }));
+        setStreams(savedStreams);
       }
 
       if (showsRes.ok) {
@@ -929,13 +940,13 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Streams Tab */}
+                  {/* Streams Tab - Shows saved streams (VODs) */}
                   {activeTab === 'streams' && (
                     <div>
                       {streams.length === 0 ? (
                         <div className="text-center py-12">
                           <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-white mb-2">No past streams yet</h3>
+                          <h3 className="text-lg font-semibold text-white mb-2">No saved streams yet</h3>
                           <p className="text-gray-400 mb-4 px-4">
                             {isFollowing
                               ? "You'll be notified when they go live"
@@ -955,13 +966,28 @@ export default function ProfilePage() {
                           {streams.map((stream: any) => (
                             <button
                               key={stream.id}
-                              onClick={() => router.push(`/stream/${stream.id}`)}
+                              onClick={() => router.push(`/vod/${stream.id}`)}
                               className="group relative aspect-video bg-gray-100 rounded-xl overflow-hidden border-2 border-cyan-200 hover:border-digis-cyan transition-all shadow-fun hover:shadow-2xl hover:scale-105"
                             >
-                              {/* Thumbnail placeholder */}
-                              <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
-                                <Video className="w-12 h-12 text-gray-600 group-hover:scale-110 transition-transform" />
-                              </div>
+                              {/* Thumbnail */}
+                              {stream.thumbnailUrl ? (
+                                <img
+                                  src={stream.thumbnailUrl}
+                                  alt={stream.title}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
+                                  <Video className="w-12 h-12 text-gray-600 group-hover:scale-110 transition-transform" />
+                                </div>
+                              )}
+
+                              {/* PPV Badge */}
+                              {stream.priceCoins > 0 && (
+                                <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg">
+                                  {stream.priceCoins} coins
+                                </div>
+                              )}
 
                               {/* Stream info overlay */}
                               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/90 to-transparent p-3 sm:p-4">
@@ -971,7 +997,7 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-300">
                                   <span className="flex items-center gap-1">
                                     <Users className="w-3 h-3" />
-                                    {stream.peakViewers || 0}
+                                    {stream.totalViews || 0} views
                                   </span>
                                   <span>
                                     {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
@@ -1079,7 +1105,7 @@ export default function ProfilePage() {
                             <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {streams.length}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Past Streams</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Saved Streams</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-xl border-2 border-pink-200 hover:border-pink-400 transition-colors">
                             <div className="text-2xl sm:text-3xl font-bold text-white mb-1">

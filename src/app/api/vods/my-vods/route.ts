@@ -9,23 +9,37 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Get all VODs for the authenticated creator
+ * Get all VODs for a creator
+ * If userId is provided, fetches public VODs for that creator (for profile page)
+ * Otherwise, fetches all VODs for the authenticated creator
  */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId');
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    let creatorId: string;
+
+    if (userId) {
+      // Public view - fetch VODs for specified user (only public ones)
+      creatorId = userId;
+    } else {
+      // Private view - fetch all VODs for authenticated user
+      const supabase = await createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+      creatorId = user.id;
     }
 
     // Get all VODs for this creator
     const creatorVODs = await db.query.vods.findMany({
-      where: eq(vods.creatorId, user.id),
+      where: eq(vods.creatorId, creatorId),
       orderBy: [desc(vods.createdAt)],
     });
 
