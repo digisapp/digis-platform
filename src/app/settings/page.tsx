@@ -10,6 +10,13 @@ import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 import { getCreatorNextTierProgress, getCreatorTierConfig, type CreatorTier } from '@/lib/tiers/creator-tiers';
+import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
+
+// Helper to format coins as USD
+const formatCoinsToUSD = (coins: number): string => {
+  const usd = coins * COIN_TO_USD_RATE;
+  return usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+};
 
 interface UsernameStatus {
   canChange: boolean;
@@ -1116,6 +1123,9 @@ export default function SettingsPage() {
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
+                    <p className="text-xs text-green-400 mt-2 font-medium">
+                      = {formatCoinsToUSD(callSettings.callRatePerMinute)}/min
+                    </p>
                   </div>
 
                   <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
@@ -1134,6 +1144,9 @@ export default function SettingsPage() {
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
+                    <p className="text-xs text-green-400 mt-2 font-medium">
+                      Min earnings: {formatCoinsToUSD(callSettings.callRatePerMinute * callSettings.minimumCallDuration)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1183,6 +1196,9 @@ export default function SettingsPage() {
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">coins/min</span>
                     </div>
+                    <p className="text-xs text-green-400 mt-2 font-medium">
+                      = {formatCoinsToUSD(callSettings.voiceCallRatePerMinute)}/min
+                    </p>
                   </div>
 
                   <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
@@ -1201,6 +1217,9 @@ export default function SettingsPage() {
                       />
                       <span className="text-sm text-gray-400 whitespace-nowrap">minutes</span>
                     </div>
+                    <p className="text-xs text-green-400 mt-2 font-medium">
+                      Min earnings: {formatCoinsToUSD(callSettings.voiceCallRatePerMinute * callSettings.minimumVoiceCallDuration)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1226,6 +1245,9 @@ export default function SettingsPage() {
                     />
                     <span className="text-sm text-gray-400 whitespace-nowrap">coins/message</span>
                   </div>
+                  <p className="text-xs text-green-400 mt-2 font-medium">
+                    = {callSettings.messageRate === 0 ? 'Free' : `${formatCoinsToUSD(callSettings.messageRate)}/message`}
+                  </p>
                 </div>
               </div>
             )}
@@ -1293,6 +1315,9 @@ export default function SettingsPage() {
                         />
                         <span className="text-sm text-gray-400 whitespace-nowrap">coins/month</span>
                       </div>
+                      <p className="text-xs text-green-400 mt-2 font-medium">
+                        = {formatCoinsToUSD(subscriptionSettings.monthlyPrice)}/month
+                      </p>
                     </div>
                   </div>
                 )}
