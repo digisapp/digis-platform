@@ -55,13 +55,22 @@ export const COIN_PACKAGES = [
     description: 'Maximum savings',
   },
   {
-    id: 'whale',
+    id: 'super',
     name: '1,000 Coins',
     coins: 1000,
     price: 14499, // $144.99 - margin 28%
     popular: false,
     savings: '30% Bonus',
     description: 'For super fans',
+  },
+  {
+    id: 'whale',
+    name: '5,000 Coins',
+    coins: 5000,
+    price: 49999, // $499.99 - margin 0% (break-even for Mansion gift)
+    popular: false,
+    savings: '35% Bonus',
+    description: 'Ultimate supporter',
   },
 ];
 
