@@ -149,10 +149,12 @@ export default function StreamDetailPage() {
   }
 
   const scheduledDate = new Date(show.scheduledStart);
+  const isFree = show.ticketPrice === 0;
   const isSoldOut = show.maxTickets !== null && show.ticketsSold >= show.maxTickets;
   const isPast = scheduledDate < new Date();
-  const canPurchase = show.status === 'scheduled' && !isSoldOut && !hasTicket;
-  const canJoin = show.status === 'live' && hasTicket;
+  const canPurchase = show.status === 'scheduled' && !isSoldOut && !hasTicket && !isFree;
+  // Free streams: anyone can join when live. Paid streams: need ticket
+  const canJoin = show.status === 'live' && (isFree || hasTicket);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
@@ -272,41 +274,90 @@ export default function StreamDetailPage() {
               </div>
             </div>
 
-            {/* Right Column - Ticket Info */}
+            {/* Right Column - Access Info */}
             <div className="space-y-4">
-              {/* Ticket Card */}
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-md rounded-2xl border-2 border-purple-500/50 p-6 sticky top-4">
+              {/* Access Card */}
+              <div className={`backdrop-blur-md rounded-2xl border-2 p-6 sticky top-4 ${
+                isFree
+                  ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/50'
+                  : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/50'
+              }`}>
                 <div className="text-center mb-4">
-                  <div className="text-sm text-gray-300 mb-2">Ticket Price</div>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-4xl font-bold text-yellow-400">{show.ticketPrice}</span>
-                    <span className="text-gray-400">coins</span>
-                  </div>
-                </div>
-
-                {/* Tickets Sold */}
-                <div className="mb-4 p-3 bg-black/30 rounded-lg">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-gray-400">Tickets Sold</span>
-                    <span className="text-white font-medium">
-                      {show.ticketsSold}
-                      {show.maxTickets && ` / ${show.maxTickets}`}
-                    </span>
-                  </div>
-                  {show.maxTickets && (
-                    <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-digis-cyan to-digis-pink h-full transition-all"
-                        style={{
-                          width: `${Math.min((show.ticketsSold / show.maxTickets) * 100, 100)}%`,
-                        }}
-                      />
+                  <div className="text-sm text-gray-300 mb-2">{isFree ? 'Access' : 'Ticket Price'}</div>
+                  {isFree ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-4xl font-bold text-green-400">Free</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-4xl font-bold text-yellow-400">{show.ticketPrice}</span>
+                      <span className="text-gray-400">coins</span>
                     </div>
                   )}
                 </div>
 
+                {/* Tickets Sold (only for paid) */}
+                {!isFree && (
+                  <div className="mb-4 p-3 bg-black/30 rounded-lg">
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-gray-400">Tickets Sold</span>
+                      <span className="text-white font-medium">
+                        {show.ticketsSold}
+                        {show.maxTickets && ` / ${show.maxTickets}`}
+                      </span>
+                    </div>
+                    {show.maxTickets && (
+                      <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-digis-cyan to-digis-pink h-full transition-all"
+                          style={{
+                            width: `${Math.min((show.ticketsSold / show.maxTickets) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Action Buttons */}
-                {hasTicket ? (
+                {isFree ? (
+                  // Free stream actions
+                  <div className="space-y-3">
+                    {canJoin ? (
+                      <GlassButton
+                        variant="gradient"
+                        size="lg"
+                        onClick={handleJoinStream}
+                        className="w-full"
+                        shimmer
+                        glow
+                      >
+                        <span className="text-xl mr-2">🎥</span>
+                        Join Stream Now
+                      </GlassButton>
+                    ) : show.status === 'scheduled' ? (
+                      <div className="text-center">
+                        <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 mb-3">
+                          <div className="text-green-300 text-sm font-medium">
+                            Free to join when live!
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          Starts {formatDistanceToNow(scheduledDate, { addSuffix: true })}
+                        </div>
+                      </div>
+                    ) : show.status === 'ended' ? (
+                      <div className="bg-gray-500/20 border border-gray-500 rounded-lg p-4 text-center">
+                        <div className="text-gray-300 font-bold">Stream Ended</div>
+                      </div>
+                    ) : show.status === 'cancelled' ? (
+                      <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 text-center">
+                        <div className="text-red-300 font-bold">Stream Cancelled</div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : hasTicket ? (
+                  // Paid stream - has ticket
                   <div className="space-y-3">
                     <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 text-center">
                       <div className="text-green-300 text-sm font-medium">
@@ -333,6 +384,7 @@ export default function StreamDetailPage() {
                     )}
                   </div>
                 ) : canPurchase ? (
+                  // Paid stream - needs to buy ticket
                   <GlassButton
                     variant="gradient"
                     size="lg"
