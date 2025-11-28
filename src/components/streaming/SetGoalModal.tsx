@@ -80,41 +80,43 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated, existin
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title={existingGoal ? "Edit Stream Goal" : "Set Stream Goal"} size="md">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <GlassInput
-          label="Goal Title"
-          placeholder="e.g., Next Song Request"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+    <GlassModal isOpen={isOpen} onClose={onClose} title={existingGoal ? "Edit Stream Goal" : "Set Stream Goal"} size="sm">
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <div className="space-y-4">
+          <GlassInput
+            label="Goal Title"
+            placeholder="e.g., Next Song Request"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
 
-        <GlassInput
-          label="Target Amount (coins)"
-          type="number"
-          placeholder="e.g., 100"
-          value={targetAmount}
-          onChange={(e) => setTargetAmount(e.target.value)}
-          required
-          min="1"
-        />
+          <GlassInput
+            label="Target Amount (coins)"
+            type="number"
+            placeholder="e.g., 100"
+            value={targetAmount}
+            onChange={(e) => setTargetAmount(e.target.value)}
+            required
+            min="1"
+          />
 
-        <GlassInput
-          label="Reward"
-          placeholder="e.g., I'll sing your requested song!"
-          value={rewardText}
-          onChange={(e) => setRewardText(e.target.value)}
-          required
-        />
+          <GlassInput
+            label="Reward"
+            placeholder="e.g., I'll sing your requested song!"
+            value={rewardText}
+            onChange={(e) => setRewardText(e.target.value)}
+            required
+          />
 
-        {error && (
-          <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+              {error}
+            </div>
+          )}
+        </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
           <GlassButton
             type="button"
             variant="ghost"

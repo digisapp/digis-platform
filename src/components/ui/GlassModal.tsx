@@ -13,12 +13,28 @@ interface GlassModalProps {
 export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: GlassModalProps) {
   useEffect(() => {
     if (isOpen) {
+      // Prevent body scroll and fix position to prevent jump on mobile
+      const scrollY = window.scrollY;
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
     } else {
-      document.body.style.overflow = 'unset';
+      // Restore scroll position
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
     };
   }, [isOpen]);
 
@@ -31,15 +47,15 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 overflow-y-auto">
       {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-md"
+        className="fixed inset-0 bg-black/70 backdrop-blur-md"
         onClick={onClose}
       />
 
-      {/* Modal - Futuristic Glass Dark Theme - centered on VIEWPORT not container */}
-      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl w-full ${sizeClasses[size]} max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto my-auto`}>
+      {/* Modal - Futuristic Glass Dark Theme */}
+      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[85vh] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn`}>
         {/* Animated gradient border effect */}
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" />
@@ -48,10 +64,10 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
         {/* Header */}
         {title && (
           <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative flex-shrink-0">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">{title}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -61,7 +77,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
         )}
 
         {/* Content - scrollable if needed */}
-        <div className="p-6 relative overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 relative overflow-y-auto flex-1">
           {children}
         </div>
       </div>
