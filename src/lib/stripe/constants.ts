@@ -65,9 +65,9 @@ export const COIN_PACKAGES = [
   },
   {
     id: 'whale',
-    name: '5,000 Coins',
-    coins: 5000,
-    price: 68499, // $684.99 - margin 24%
+    name: '4,000 Coins',
+    coins: 4000,
+    price: 54799, // $547.99 - margin 24%
     popular: false,
     savings: '35% Bonus',
     description: 'Ultimate supporter',
