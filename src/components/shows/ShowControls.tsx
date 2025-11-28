@@ -94,7 +94,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
 
       // Show success message
       alert(`Show cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
-      router.push('/creator/streams/paid');
+      router.push('/creator/streams');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel show');
       setShowCancelConfirm(false);

@@ -69,12 +69,11 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
   const router = useRouter();
 
   const handleClick = () => {
-    if (isCreator) {
-      router.push(`/creator/streams/paid/${show.id}`);
-    } else {
-      router.push(`/streams/${show.id}`);
-    }
+    // Both creator and fan go to the same stream detail page
+    router.push(`/streams/${show.id}`);
   };
+
+  const isFree = show.ticketPrice === 0;
 
   const scheduledDate = new Date(show.scheduledStart);
   const isPast = scheduledDate < new Date();
@@ -115,10 +114,19 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
           {show.status === 'live' && '🔴 '}{show.status.toUpperCase()}
         </div>
 
+        {/* Free/Paid Badge */}
+        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold ${
+          isFree
+            ? 'bg-green-500 text-white'
+            : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
+        }`}>
+          {isFree ? 'FREE' : 'PAID'}
+        </div>
+
         {/* Sold Out Badge */}
-        {isSoldOut && show.status === 'scheduled' && (
-          <div className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-yellow-500 text-black">
-            🎫 SOLD OUT
+        {isSoldOut && show.status === 'scheduled' && !isFree && (
+          <div className="absolute top-12 left-3 px-3 py-1 rounded-full text-xs font-bold bg-yellow-500 text-black">
+            SOLD OUT
           </div>
         )}
       </div>
@@ -168,20 +176,28 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
         <div className="flex items-center justify-between pt-3 border-t border-white/10">
           <div className="flex items-center gap-4">
             {/* Ticket Price */}
-            <div className="flex items-center gap-1">
-              <span className="text-yellow-400 font-bold text-lg">{show.ticketPrice}</span>
-              <span className="text-xs text-gray-400">coins</span>
-            </div>
+            {isFree ? (
+              <div className="flex items-center gap-1">
+                <span className="text-green-400 font-bold text-lg">Free</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className="text-yellow-400 font-bold text-lg">{show.ticketPrice}</span>
+                <span className="text-xs text-gray-400">coins</span>
+              </div>
+            )}
 
-            {/* Tickets Sold */}
-            <div className="text-sm text-gray-400">
-              🎫 {show.ticketsSold}
-              {show.maxTickets && `/${show.maxTickets}`}
-            </div>
+            {/* Tickets Sold (only for paid) */}
+            {!isFree && (
+              <div className="text-sm text-gray-400">
+                🎫 {show.ticketsSold}
+                {show.maxTickets && `/${show.maxTickets}`}
+              </div>
+            )}
           </div>
 
-          {/* Revenue (Creator only) */}
-          {isCreator && (
+          {/* Revenue (Creator only, only for paid) */}
+          {isCreator && !isFree && (
             <div className="text-sm">
               <span className="text-green-400 font-bold">{show.totalRevenue}</span>
               <span className="text-gray-400"> coins</span>

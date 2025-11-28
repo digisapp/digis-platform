@@ -155,11 +155,11 @@ export function MobileWalletWidget() {
                   </div>
                 </button>
 
-                {/* Paid Streams */}
+                {/* My Streams */}
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    router.push('/creator/streams/paid');
+                    router.push('/creator/streams');
                   }}
                   className="w-full px-4 py-4 flex items-center gap-3 hover:bg-cyan-500/10 active:bg-cyan-500/20 transition-colors"
                 >
@@ -167,8 +167,8 @@ export function MobileWalletWidget() {
                     <Ticket className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-white drop-shadow">Paid Streams</div>
-                    <div className="text-xs text-white/70">Create exclusive events</div>
+                    <div className="font-bold text-white drop-shadow">My Streams</div>
+                    <div className="text-xs text-white/70">Create free or paid streams</div>
                   </div>
                 </button>
               </>
