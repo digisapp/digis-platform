@@ -479,12 +479,9 @@ export default function ProfilePage() {
   const { user, followCounts } = profile;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8 ${isAuthenticated ? 'md:pl-20' : ''} -mt-4 md:mt-0 pt-4 md:pt-0 relative overflow-hidden`}>
+    <div className={`min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8 ${isAuthenticated ? 'md:pl-20' : ''} relative overflow-hidden`}>
       {/* Mobile Header with Logo and Wallet */}
       <MobileHeader />
-
-      {/* Spacer for fixed mobile header */}
-      <div className="md:hidden h-16" />
 
       {/* Animated Background Mesh - Tron Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -497,7 +494,7 @@ export default function ProfilePage() {
       <ConfettiEffect show={showConfetti} duration={2000} />
 
       {/* Banner with Parallax Effect */}
-      <div className="relative">
+      <div className="relative pt-14 md:pt-0">
         <ParallaxBanner imageUrl={user.bannerUrl} height={user.bannerUrl ? "h-48 sm:h-56 md:h-64" : "h-32 sm:h-40 md:h-48"} />
         {/* Gradient Overlay for better contrast - Tron Theme */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90"></div>
