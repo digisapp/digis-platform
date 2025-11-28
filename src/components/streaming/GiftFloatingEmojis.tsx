@@ -54,16 +54,33 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     };
   }, []);
 
+  // Maximum sound duration (5 seconds)
+  const MAX_SOUND_DURATION = 5000;
+
   // Play sound for a rarity
   const playSound = (rarity: string) => {
     const audio = audioRefs.current.get(rarity);
     if (audio) {
       // Clone the audio to allow overlapping sounds
       const soundClone = audio.cloneNode() as HTMLAudioElement;
-      soundClone.volume = rarity === 'legendary' ? 0.7 : rarity === 'epic' ? 0.6 : 0.5;
+      soundClone.volume = rarity === 'legendary' ? 0.5 : rarity === 'epic' ? 0.4 : 0.3;
+
+      // Play the sound
       soundClone.play().catch(() => {
         // Audio play failed - likely no user interaction yet
       });
+
+      // Force stop after max duration (5 seconds)
+      setTimeout(() => {
+        soundClone.pause();
+        soundClone.currentTime = 0;
+        soundClone.src = '';
+      }, MAX_SOUND_DURATION);
+
+      // Also stop when naturally ended
+      soundClone.onended = () => {
+        soundClone.src = '';
+      };
     }
   };
 
