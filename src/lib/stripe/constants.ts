@@ -7,52 +7,61 @@ export const MIN_PAYOUT_COINS = 1000; // Minimum 1000 coins = $10 USD
 export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimum
 
 // Coin packages available for purchase
-// Pricing competitive with Twitch Bits ($0.014/bit) and TikTok Coins ($0.013/coin)
-// Net margins: 25-40% after Stripe fees
+// Net margins: 28-34% after Stripe fees (~3%)
+// Creator payout: $0.01 per coin (100 coins = $1.00)
 export const COIN_PACKAGES = [
   {
     id: 'starter',
-    name: '100 Coins',
-    coins: 100,
-    price: 179, // $1.79 in cents (~$0.0179/coin)
+    name: '200 Coins',
+    coins: 200,
+    price: 299, // $2.99 - margin 30%
     popular: false,
     description: 'Perfect for trying out',
   },
   {
-    id: 'value',
+    id: 'popular',
     name: '500 Coins',
     coins: 500,
-    price: 849, // $8.49 in cents (~$0.0169/coin)
+    price: 799, // $7.99 - margin 34%
     popular: true,
-    savings: '6% Bonus',
+    savings: '10% Bonus',
     description: 'Most popular choice',
   },
   {
-    id: 'popular',
+    id: 'value',
     name: '1,000 Coins',
     coins: 1000,
-    price: 1599, // $15.99 in cents (~$0.0159/coin)
+    price: 1599, // $15.99 - margin 34%
     popular: false,
-    savings: '11% Bonus',
+    savings: '15% Bonus',
     description: 'Great value',
   },
   {
     id: 'best',
     name: '2,500 Coins',
     coins: 2500,
-    price: 3699, // $36.99 in cents (~$0.0147/coin)
+    price: 3899, // $38.99 - margin 33%
     popular: false,
-    savings: '18% Bonus',
+    savings: '20% Bonus',
     description: 'Best value',
   },
   {
     id: 'ultimate',
     name: '5,000 Coins',
     coins: 5000,
-    price: 6799, // $67.99 in cents (~$0.0135/coin)
+    price: 7499, // $74.99 - margin 30%
     popular: false,
     savings: '25% Bonus',
     description: 'Maximum savings',
+  },
+  {
+    id: 'whale',
+    name: '10,000 Coins',
+    coins: 10000,
+    price: 14499, // $144.99 - margin 28%
+    popular: false,
+    savings: '30% Bonus',
+    description: 'For super fans',
   },
 ];
 
