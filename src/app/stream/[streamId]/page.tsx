@@ -781,9 +781,9 @@ export default function StreamViewerPage() {
 
           {/* Mobile: Inline Chat & Actions Below Video */}
           {isMobile && (
-            <div className="flex-1 flex flex-col bg-black/95 border-t border-white/10">
+            <div className="h-[55vh] flex flex-col bg-black/95 border-t border-white/10 overflow-hidden">
               {/* Mobile Action Bar */}
-              <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/60">
+              <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/60 flex-shrink-0">
                 {/* Stream Info */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <button onClick={() => router.push(`/${stream.creator?.username}`)} className="flex-shrink-0">

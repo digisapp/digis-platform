@@ -172,17 +172,17 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
         <div ref={chatEndRef} />
       </div>
 
-      {/* Message Input */}
+      {/* Message Input - Fixed at bottom, compact on mobile */}
       {onSendMessage && (
-        <div className="p-4 border-t border-white/10 bg-black/40">
-          {/* Quick Emoji Bar */}
+        <div className="p-2 sm:p-4 border-t border-white/10 bg-black/60 flex-shrink-0">
+          {/* Quick Emoji Bar - Hidden on mobile when keyboard likely open */}
           {showEmojis && (
-            <div className="mb-3 flex items-center gap-1 flex-wrap p-2 bg-white/5 rounded-xl">
+            <div className="mb-2 flex items-center gap-1 flex-wrap p-2 bg-white/5 rounded-xl">
               {CHAT_EMOJIS.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => insertEmoji(emoji)}
-                  className="w-10 h-10 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-xl"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-lg sm:text-xl"
                 >
                   {emoji}
                 </button>
@@ -190,38 +190,35 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <form onSubmit={handleSubmit} className="flex items-center gap-1 sm:gap-2">
             {/* Emoji Toggle */}
             <button
               type="button"
               onClick={() => setShowEmojis(!showEmojis)}
-              className={`p-2 rounded-lg transition-colors ${showEmojis ? 'bg-digis-cyan text-black' : 'hover:bg-white/10 text-gray-400'}`}
+              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${showEmojis ? 'bg-digis-cyan text-black' : 'hover:bg-white/10 text-gray-400'}`}
             >
               <Smile className="w-5 h-5" />
             </button>
 
             {/* Input */}
-            <div className="flex-1 relative">
+            <div className="flex-1 min-w-0">
               <input
                 ref={inputRef}
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Send a message..."
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm"
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm"
                 maxLength={500}
                 disabled={isSending}
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600">
-                {newMessage.length}/500
-              </span>
             </div>
 
             {/* Send Button */}
             <button
               type="submit"
               disabled={!newMessage.trim() || isSending}
-              className="p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl text-white font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              className="p-2 sm:p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl text-white font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
             >
               <Send className="w-5 h-5" />
             </button>
