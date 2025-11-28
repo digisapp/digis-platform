@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer } from '@livekit/components-react';
+import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } from '@livekit/components-react';
+import { Track } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
@@ -29,6 +30,56 @@ type StreamWithCreator = Stream & {
   };
   orientation?: 'landscape' | 'portrait';
 };
+
+// Component to display only the broadcaster's video
+function BroadcasterVideo() {
+  const participants = useRemoteParticipants();
+
+  // Find the first participant with a camera track (the broadcaster)
+  const broadcaster = participants.find(p => {
+    const cameraTrack = p.getTrackPublication(Track.Source.Camera);
+    return cameraTrack && cameraTrack.track;
+  });
+
+  if (!broadcaster) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p className="text-white/60">Connecting to stream...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const cameraTrack = broadcaster.getTrackPublication(Track.Source.Camera);
+
+  if (!cameraTrack || !cameraTrack.track) {
+    return (
+      <div className="h-full w-full flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
+            <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <p className="text-white/60">Waiting for broadcaster...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <VideoTrack
+      trackRef={{ participant: broadcaster, source: Track.Source.Camera, publication: cameraTrack }}
+      className="h-full w-full object-contain"
+    />
+  );
+}
 
 export default function StreamViewerPage() {
   const params = useParams() as { streamId: string };
@@ -428,7 +479,7 @@ export default function StreamViewerPage() {
             onMouseLeave={() => setShowControls(false)}
             onClick={() => isMobile && setShowControls(!showControls)}
           >
-            {/* LiveKit Video */}
+            {/* LiveKit Video - Shows only the broadcaster */}
             {token && serverUrl ? (
               <LiveKitRoom
                 video={false}
@@ -438,7 +489,7 @@ export default function StreamViewerPage() {
                 className="h-full w-full"
                 options={{ adaptiveStream: true, dynacast: true }}
               >
-                <VideoConference />
+                <BroadcasterVideo />
                 <RoomAudioRenderer />
               </LiveKitRoom>
             ) : (
