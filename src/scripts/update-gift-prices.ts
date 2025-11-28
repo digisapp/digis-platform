@@ -13,24 +13,24 @@ async function updateGiftPrices() {
     // Common gifts ($1-$10)
     'Fire': 10,
     'Heart': 10,
+    'Peach': 30,
+    'Pizza': 50,
     'Rocket': 50,
-    'Peach': 100,
+    'Rose': 80,
     'Martini': 100,
-    'Pizza': 100,
-    'Rose': 100,
 
-    // Rare gifts ($15-$30)
-    'Gold Bar': 150,
-    'Cake': 200,
+    // Rare gifts ($15-$50)
+    'Cake': 150,
     'Sushi': 200,
     'Steak': 200,
-    'Crown': 250,
     'Champagne': 300,
+    'Gold Bar': 350,
+    'Crown': 500,
 
     // Epic gifts ($50-$100)
     'Designer Bag': 500,
-    'Diamond': 500,
-    'Engagement Ring': 750,
+    'Diamond': 750,
+    'Engagement Ring': 1000,
     'Sports Car': 1000,
 
     // Legendary gifts ($200-$500)
