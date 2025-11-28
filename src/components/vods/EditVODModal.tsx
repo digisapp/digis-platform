@@ -45,10 +45,10 @@ const ACCESS_OPTIONS = [
 
 const PRICING_PRESETS = [
   { label: 'Free for Subscribers', value: 0 },
+  { label: '1 Coin', value: 1 },
+  { label: '5 Coins', value: 5 },
   { label: '10 Coins', value: 10 },
-  { label: '25 Coins', value: 25 },
-  { label: '50 Coins', value: 50 },
-  { label: '100 Coins', value: 100 },
+  { label: '20 Coins', value: 20 },
   { label: 'Custom', value: -1 },
 ];
 

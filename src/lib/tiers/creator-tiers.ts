@@ -16,11 +16,11 @@ export interface CreatorTierConfig {
   emoji: string;
 }
 
-// Tier thresholds based on lifetime tips received
+// Tier thresholds based on lifetime tips received (1 coin = $0.10)
 export const CREATOR_TIER_CONFIGS: CreatorTierConfig[] = [
   {
     tier: 'icon',
-    minCoins: 20_000_000, // 20M coins
+    minCoins: 2_000_000, // $200,000
     color: 'text-rose-400',
     bgColor: 'from-rose-500/20 to-pink-500/20',
     displayName: 'Icon',
@@ -28,7 +28,7 @@ export const CREATOR_TIER_CONFIGS: CreatorTierConfig[] = [
   },
   {
     tier: 'crown',
-    minCoins: 5_000_000, // 5M coins
+    minCoins: 500_000, // $50,000
     color: 'text-amber-400',
     bgColor: 'from-amber-500/20 to-yellow-500/20',
     displayName: 'Crown',
@@ -36,7 +36,7 @@ export const CREATOR_TIER_CONFIGS: CreatorTierConfig[] = [
   },
   {
     tier: 'elite',
-    minCoins: 1_000_000, // 1M coins
+    minCoins: 100_000, // $10,000
     color: 'text-cyan-400',
     bgColor: 'from-cyan-500/20 to-blue-500/20',
     displayName: 'Elite',
@@ -44,7 +44,7 @@ export const CREATOR_TIER_CONFIGS: CreatorTierConfig[] = [
   },
   {
     tier: 'star',
-    minCoins: 100_000, // 100K coins
+    minCoins: 10_000, // $1,000
     color: 'text-purple-400',
     bgColor: 'from-purple-500/20 to-violet-500/20',
     displayName: 'Star',

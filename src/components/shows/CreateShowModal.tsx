@@ -20,7 +20,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    ticketPrice: 50,
+    ticketPrice: 5,
     maxTickets: null as number | null,
     scheduledStart: '',
     durationMinutes: 5,

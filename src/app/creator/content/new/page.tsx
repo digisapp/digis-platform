@@ -441,7 +441,7 @@ export default function CreateContentPage() {
 
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, isFree: false, unlockPrice: formData.unlockPrice || 100 })}
+                onClick={() => setFormData({ ...formData, isFree: false, unlockPrice: formData.unlockPrice || 10 })}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                   !formData.isFree
                     ? 'border-yellow-400 bg-yellow-500/20'

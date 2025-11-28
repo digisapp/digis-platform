@@ -8,60 +8,60 @@ async function updateGiftPrices() {
   console.log('Current gifts:');
   console.table(gifts.map(g => ({ name: g.name, emoji: g.emoji, cost: g.coinCost, rarity: g.rarity })));
 
-  // Update prices to be more substantial
-  // Common: 10-50 coins
-  // Rare: 100-250 coins
-  // Epic: 500-1000 coins
-  // Legendary: 2000-5000 coins
+  // Update prices (1 coin = $0.10)
+  // Common: 1-5 coins ($0.10-$0.50)
+  // Rare: 10-25 coins ($1-$2.50)
+  // Epic: 50-100 coins ($5-$10)
+  // Legendary: 200-500 coins ($20-$50)
 
   const priceUpdates: Record<string, number> = {
-    // Common gifts (10-50)
-    'Heart': 10,
-    'Rose': 25,
-    'Coffee': 15,
-    'Ice Cream': 20,
-    'Pizza': 30,
-    'Thumbs Up': 10,
-    'Star': 25,
-    'Smile': 10,
-    'Clap': 15,
-    'Fire': 20,
+    // Common gifts (1-5 coins)
+    'Heart': 1,
+    'Rose': 2,
+    'Coffee': 2,
+    'Ice Cream': 2,
+    'Pizza': 3,
+    'Thumbs Up': 1,
+    'Star': 2,
+    'Smile': 1,
+    'Clap': 2,
+    'Fire': 2,
 
-    // Rare gifts (100-250)
-    'Diamond': 150,
-    'Crown': 200,
-    'Rocket': 175,
-    'Rainbow': 125,
-    'Unicorn': 250,
-    'Trophy': 200,
-    'Gift Box': 100,
-    'Champagne': 175,
-    'Cake': 125,
-    'Balloon': 100,
+    // Rare gifts (10-25 coins)
+    'Diamond': 15,
+    'Crown': 20,
+    'Rocket': 18,
+    'Rainbow': 12,
+    'Unicorn': 25,
+    'Trophy': 20,
+    'Gift Box': 10,
+    'Champagne': 18,
+    'Cake': 12,
+    'Balloon': 10,
 
-    // Epic gifts (500-1000)
-    'Sports Car': 750,
-    'Yacht': 1000,
-    'Private Jet': 999,
-    'Mansion': 888,
-    'Helicopter': 777,
-    'Castle': 950,
-    'Treasure': 666,
-    'Lightning': 500,
-    'Tornado': 600,
-    'Comet': 700,
+    // Epic gifts (50-100 coins)
+    'Sports Car': 75,
+    'Yacht': 100,
+    'Private Jet': 99,
+    'Mansion': 88,
+    'Helicopter': 77,
+    'Castle': 95,
+    'Treasure': 66,
+    'Lightning': 50,
+    'Tornado': 60,
+    'Comet': 70,
 
-    // Legendary gifts (2000-5000)
-    'Planet': 2500,
-    'Galaxy': 5000,
-    'Universe': 9999,
-    'Dragon': 3000,
-    'Phoenix': 3500,
-    'Lion': 2000,
-    'Whale': 4000,
-    'Supernova': 7500,
-    'Black Hole': 8888,
-    'Infinity': 10000,
+    // Legendary gifts (200-500 coins)
+    'Planet': 250,
+    'Galaxy': 500,
+    'Universe': 999,
+    'Dragon': 300,
+    'Phoenix': 350,
+    'Lion': 200,
+    'Whale': 400,
+    'Supernova': 750,
+    'Black Hole': 888,
+    'Infinity': 1000,
   };
 
   // Update each gift

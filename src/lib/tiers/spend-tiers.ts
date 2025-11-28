@@ -15,39 +15,39 @@ export interface TierConfig {
   emoji: string;
 }
 
-// Tier thresholds based on lifetime spending
+// Tier thresholds based on lifetime spending (1 coin = $0.10)
 export const TIER_CONFIGS: TierConfig[] = [
   {
     tier: 'diamond',
-    minCoins: 1_000_000, // $10,000
+    minCoins: 100_000, // $10,000
     color: 'text-cyan-400',
     displayName: 'Diamond',
     emoji: '👑',
   },
   {
     tier: 'platinum',
-    minCoins: 500_000, // $5,000
+    minCoins: 50_000, // $5,000
     color: 'text-purple-400',
     displayName: 'Platinum',
     emoji: '💎',
   },
   {
     tier: 'gold',
-    minCoins: 100_000, // $1,000
+    minCoins: 10_000, // $1,000
     color: 'text-yellow-400',
     displayName: 'Gold',
     emoji: '🥇',
   },
   {
     tier: 'silver',
-    minCoins: 50_000, // $500
+    minCoins: 5_000, // $500
     color: 'text-gray-300',
     displayName: 'Silver',
     emoji: '🥈',
   },
   {
     tier: 'bronze',
-    minCoins: 5_000, // $50
+    minCoins: 500, // $50
     color: 'text-orange-400',
     displayName: 'Bronze',
     emoji: '🥉',

@@ -19,7 +19,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [caption, setCaption] = useState('');
   const [isLocked, setIsLocked] = useState(false);
-  const [unlockPrice, setUnlockPrice] = useState(250);
+  const [unlockPrice, setUnlockPrice] = useState(25);
   const [sending, setSending] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
