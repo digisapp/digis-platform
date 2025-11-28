@@ -25,6 +25,23 @@ export default function CreateContentPage() {
   });
   const [preview, setPreview] = useState<string | null>(null);
   const [previews, setPreviews] = useState<string[]>([]); // For gallery previews
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+
+  // Extract video duration from file
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(Math.round(video.duration));
+      };
+      video.onerror = () => {
+        resolve(0); // Fallback if we can't read duration
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -56,6 +73,11 @@ export default function CreateContentPage() {
         setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Extract duration for videos
+      if (formData.contentType === 'video') {
+        getVideoDuration(file).then(setVideoDuration);
+      }
     }
   };
 
@@ -122,7 +144,7 @@ export default function CreateContentPage() {
             unlockPrice: formData.isFree ? 0 : formData.unlockPrice,
             thumbnailUrl: publicUrl,
             mediaUrl: publicUrl,
-            durationSeconds: 0, // TODO: Extract actual video duration
+            durationSeconds: videoDuration,
           }),
         });
 

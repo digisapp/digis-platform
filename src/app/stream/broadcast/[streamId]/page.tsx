@@ -411,7 +411,7 @@ export default function BroadcastStudioPage() {
         type: 'topTipper',
         username: data.streamGift.senderUsername || 'Anonymous',
         amount: data.streamGift.totalCoins,
-        avatarUrl: null, // TODO: Get from user data
+        avatarUrl: (data.streamGift as any).senderAvatarUrl || null,
         id: `toptipper-${Date.now()}-${Math.random()}`,
       };
       // Add after a short delay so it doesn't overlap with gift alert

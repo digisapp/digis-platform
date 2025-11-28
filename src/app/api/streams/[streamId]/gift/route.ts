@@ -59,6 +59,7 @@ export async function POST(
     }
 
     const username = dbUser.username || dbUser.displayName || 'Anonymous';
+    const avatarUrl = dbUser.avatarUrl || null;
 
     const result = await StreamService.sendGift(
       streamId,
@@ -69,7 +70,11 @@ export async function POST(
     );
 
     // Broadcast gift animation to all viewers in real-time
-    await RealtimeService.broadcastGift(streamId, result.streamGift, result.gift);
+    // Include sender avatar for top tipper spotlight
+    await RealtimeService.broadcastGift(streamId, {
+      ...result.streamGift,
+      senderAvatarUrl: avatarUrl,
+    }, result.gift);
 
     return NextResponse.json({
       streamGift: result.streamGift,

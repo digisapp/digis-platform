@@ -136,7 +136,7 @@ export class RealtimeService {
    */
   static async broadcastGift(
     streamId: string,
-    streamGift: StreamGift,
+    streamGift: StreamGift & { senderAvatarUrl?: string | null },
     gift: VirtualGift
   ) {
     const supabase = createClient();

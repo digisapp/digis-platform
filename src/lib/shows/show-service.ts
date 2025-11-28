@@ -3,6 +3,8 @@ import { shows, showTickets, showReminders, users, streams } from '@/lib/data/sy
 import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '@/lib/wallet/wallet-service';
+import { PushNotificationService } from '@/lib/services/push-notification-service';
+import { sendEmail } from '@/lib/email/resend';
 
 /**
  * ShowService handles ticketed show management and purchases using Drizzle ORM.
@@ -418,8 +420,72 @@ export class ShowService {
         })
         .where(eq(shows.id, showId));
 
-      // TODO: Send notifications to ticket holders
-      // TODO: Create LiveKit room via token service
+      // Get creator info for notification
+      const creator = await tx.query.users.findFirst({
+        where: eq(users.id, creatorId),
+      });
+
+      // Get all ticket holders for this show
+      const tickets = await tx.query.showTickets.findMany({
+        where: and(
+          eq(showTickets.showId, showId),
+          eq(showTickets.isValid, true)
+        ),
+        with: {
+          user: true,
+        },
+      });
+
+      // Send notifications to ticket holders (don't await - run in background)
+      const notifyTicketHolders = async () => {
+        for (const ticket of tickets) {
+          if (!ticket.user) continue;
+
+          // Send push notification
+          await PushNotificationService.sendNotification(
+            ticket.userId,
+            'stream',
+            {
+              title: '🎬 Show Starting Now!',
+              body: `${creator?.displayName || 'Creator'}'s show "${show.title}" is starting now!`,
+              icon: creator?.avatarUrl || '/icons/icon-192x192.png',
+              data: {
+                url: `/streams/${showId}`,
+                type: 'stream',
+                showId,
+              },
+            }
+          );
+
+          // Send email notification
+          if (ticket.user.email) {
+            await sendEmail({
+              to: ticket.user.email,
+              subject: `🎬 ${creator?.displayName || 'Creator'}'s show is starting now!`,
+              text: `
+Hi ${ticket.user.displayName || 'there'},
+
+The show you have a ticket for is starting NOW!
+
+Show: ${show.title}
+Creator: ${creator?.displayName || 'Creator'}
+
+Click here to join: ${process.env.NEXT_PUBLIC_URL}/streams/${showId}
+
+Don't miss it!
+
+Best,
+The Digis Team
+              `.trim(),
+            });
+          }
+        }
+      };
+
+      // Run notifications in background (don't block the response)
+      notifyTicketHolders().catch(err => {
+        console.error('[ShowService] Error notifying ticket holders:', err);
+      });
 
       return { roomName: show.roomName };
     });

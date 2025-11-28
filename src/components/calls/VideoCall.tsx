@@ -10,7 +10,7 @@ import {
   useTracks,
   useLocalParticipant,
 } from '@livekit/components-react';
-// import '@livekit/components-styles'; // TODO: Fix CSS import issue
+// CSS is imported in the page component (src/app/calls/[callId]/page.tsx)
 import { Track, facingModeFromLocalTrack, LocalVideoTrack } from 'livekit-client';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 import { Mic, MicOff, Video, VideoOff, SwitchCamera, PhoneOff } from 'lucide-react';

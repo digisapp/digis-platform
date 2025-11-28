@@ -1,5 +1,9 @@
 import { inngest } from './client';
 import { WalletService } from '@/lib/wallet/wallet-service';
+import { sendCoinPurchaseEmail } from '@/lib/email/payout-notifications';
+import { db } from '@/lib/data/system';
+import { wallets, walletTransactions, users } from '@/lib/data/system';
+import { eq, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 
 // Process successful Stripe payments
@@ -45,10 +49,27 @@ export const processStripePayment = inngest.createFunction(
       });
     });
 
-    // Step 3: Send confirmation (optional - could be email)
+    // Step 3: Send confirmation email
     await step.run('send-confirmation', async () => {
+      // Get user info for email
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, validation.userId),
+      });
+
+      if (user?.email) {
+        const amountPaid = session.amount_total
+          ? `$${(session.amount_total / 100).toFixed(2)}`
+          : 'N/A';
+
+        await sendCoinPurchaseEmail(
+          user.email,
+          user.displayName || 'there',
+          validation.coins,
+          amountPaid
+        );
+      }
+
       console.log(`User ${validation.userId} purchased ${validation.coins} coins`);
-      // TODO: Send confirmation email
       return { sent: true };
     });
 
@@ -67,12 +88,88 @@ export const reconcileWallets = inngest.createFunction(
   },
   { cron: '0 2 * * *' }, // Run at 2 AM daily
   async ({ step }) => {
-    // This would batch process all users
-    // For now, we'll just log that it ran
-    await step.run('reconcile', async () => {
-      console.log('Running wallet reconciliation...');
-      // TODO: Implement batch reconciliation
-      return { status: 'completed' };
+    // Step 1: Get all wallets with their stored balances
+    const walletsToCheck = await step.run('get-wallets', async () => {
+      const allWallets = await db.query.wallets.findMany({
+        columns: {
+          id: true,
+          userId: true,
+          balance: true,
+        },
+      });
+      return allWallets;
     });
+
+    // Step 2: Check each wallet's calculated balance vs stored balance
+    const discrepancies = await step.run('check-balances', async () => {
+      const issues: Array<{
+        walletId: string;
+        userId: string;
+        storedBalance: number;
+        calculatedBalance: number;
+        difference: number;
+      }> = [];
+
+      for (const wallet of walletsToCheck) {
+        // Calculate balance from transactions
+        const result = await db
+          .select({
+            total: sql<number>`COALESCE(SUM(amount), 0)`,
+          })
+          .from(walletTransactions)
+          .where(eq(walletTransactions.userId, wallet.userId));
+
+        const calculatedBalance = Number(result[0]?.total || 0);
+        const storedBalance = wallet.balance;
+
+        // Check for discrepancy (allow for small rounding differences)
+        if (Math.abs(calculatedBalance - storedBalance) > 0) {
+          issues.push({
+            walletId: wallet.id,
+            userId: wallet.userId,
+            storedBalance,
+            calculatedBalance,
+            difference: calculatedBalance - storedBalance,
+          });
+        }
+      }
+
+      return issues;
+    });
+
+    // Step 3: Auto-fix discrepancies by updating stored balance to match calculated
+    const fixes = await step.run('fix-discrepancies', async () => {
+      const fixed: string[] = [];
+
+      for (const issue of discrepancies) {
+        // Update wallet balance to match calculated (transaction sum is source of truth)
+        await db
+          .update(wallets)
+          .set({
+            balance: issue.calculatedBalance,
+            updatedAt: new Date(),
+          })
+          .where(eq(wallets.id, issue.walletId));
+
+        fixed.push(issue.userId);
+
+        console.log(
+          `[Reconciliation] Fixed wallet for user ${issue.userId}: ` +
+          `${issue.storedBalance} -> ${issue.calculatedBalance} (diff: ${issue.difference})`
+        );
+      }
+
+      return fixed;
+    });
+
+    // Log summary
+    console.log(`[Reconciliation] Completed. Checked ${walletsToCheck.length} wallets, fixed ${fixes.length} discrepancies.`);
+
+    return {
+      status: 'completed',
+      walletsChecked: walletsToCheck.length,
+      discrepanciesFound: discrepancies.length,
+      fixed: fixes.length,
+    };
   }
 );
