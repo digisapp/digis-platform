@@ -101,24 +101,24 @@ export default function FollowersPage() {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-gray-800 truncate text-lg">
+            <h3 className="font-bold text-white truncate text-lg">
               {user.displayName || user.username}
             </h3>
           </div>
-          <p className="text-sm text-gray-600 mb-1">@{user.username}</p>
+          <p className="text-sm text-gray-300 mb-1">@{user.username}</p>
           {user.bio && (
-            <p className="text-sm text-gray-700 mt-2 line-clamp-2">{user.bio}</p>
+            <p className="text-sm text-gray-400 mt-2 line-clamp-2">{user.bio}</p>
           )}
           <div className="flex items-center gap-1 mt-2">
-            <Users className="w-3 h-3 text-gray-500" />
-            <p className="text-xs text-gray-600 font-medium">
+            <Users className="w-3 h-3 text-gray-400" />
+            <p className="text-xs text-gray-300 font-medium">
               {user.followerCount.toLocaleString()} {user.followerCount === 1 ? 'follower' : 'followers'}
             </p>
           </div>
         </div>
 
         {/* Arrow */}
-        <div className="text-gray-400 group-hover:text-digis-cyan group-hover:translate-x-1 transition-all">
+        <div className="text-gray-500 group-hover:text-digis-cyan group-hover:translate-x-1 transition-all">
           <ArrowRight className="w-6 h-6" />
         </div>
       </div>
@@ -158,23 +158,23 @@ export default function FollowersPage() {
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-gray-800 truncate text-lg">
+              <h3 className="font-bold text-white truncate text-lg">
                 {subscriber.displayName || subscriber.username}
               </h3>
               {subscriber.isCreatorVerified && (
                 <BadgeCheck className="w-4 h-4 text-digis-cyan fill-current" />
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-1">@{subscriber.username}</p>
+            <p className="text-sm text-gray-300 mb-1">@{subscriber.username}</p>
             <div className="flex items-center gap-3 mt-2">
               <div className="flex items-center gap-1">
-                <Crown className="w-3 h-3 text-yellow-600" />
-                <p className="text-xs text-yellow-700 font-semibold">
+                <Crown className="w-3 h-3 text-yellow-400" />
+                <p className="text-xs text-yellow-400 font-semibold">
                   {subscriber.subscriptionStatus === 'active' ? 'Active Subscriber' : 'Inactive'}
                 </p>
               </div>
               {daysRemaining > 0 && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-400">
                   {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
                 </p>
               )}
@@ -182,7 +182,7 @@ export default function FollowersPage() {
           </div>
 
           {/* Arrow */}
-          <div className="text-gray-400 group-hover:text-yellow-600 group-hover:translate-x-1 transition-all">
+          <div className="text-gray-500 group-hover:text-yellow-400 group-hover:translate-x-1 transition-all">
             <ArrowRight className="w-6 h-6" />
           </div>
         </div>
@@ -202,38 +202,35 @@ export default function FollowersPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-4xl">
         {/* Tabs */}
-        <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setActiveTab('followers')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
               activeTab === 'followers'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 shadow-lg scale-105'
-                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
+                : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:bg-white/20'
             }`}
           >
-            <Users className="w-5 h-5" />
             Followers ({followers.length})
           </button>
           <button
             onClick={() => setActiveTab('following')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
               activeTab === 'following'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-gray-900 shadow-lg scale-105'
-                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
+                : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:bg-white/20'
             }`}
           >
-            <UserPlus className="w-5 h-5" />
             Following ({following.length})
           </button>
           <button
             onClick={() => setActiveTab('subscribers')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
               activeTab === 'subscribers'
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-gray-900 shadow-lg scale-105'
-                : 'glass text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white shadow-lg scale-105'
+                : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:bg-white/20'
             }`}
           >
-            <Crown className="w-5 h-5" />
             Subscribers ({subscribers.length})
           </button>
         </div>
@@ -253,10 +250,10 @@ export default function FollowersPage() {
             ) : (
               <GlassCard className="text-center py-16">
                 <div className="p-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl w-fit mx-auto mb-6">
-                  <Users className="w-20 h-20 text-blue-600" />
+                  <Users className="w-20 h-20 text-blue-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">No followers yet</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-white mb-3">No followers yet</h3>
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
                   Start creating content and share your profile to grow your community
                 </p>
                 <div className="flex items-center gap-3 justify-center">
@@ -277,10 +274,10 @@ export default function FollowersPage() {
             ) : (
               <GlassCard className="text-center py-16">
                 <div className="p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl w-fit mx-auto mb-6">
-                  <Search className="w-20 h-20 text-purple-600" />
+                  <Search className="w-20 h-20 text-purple-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">Not following anyone yet</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-white mb-3">Not following anyone yet</h3>
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
                   Discover amazing creators and connect with your community
                 </p>
                 <GlassButton
@@ -299,10 +296,10 @@ export default function FollowersPage() {
             ) : (
               <GlassCard className="text-center py-16">
                 <div className="p-6 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-2xl w-fit mx-auto mb-6">
-                  <Crown className="w-20 h-20 text-yellow-600" />
+                  <Crown className="w-20 h-20 text-yellow-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">No subscribers yet</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-white mb-3">No subscribers yet</h3>
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
                   Enable subscriptions and offer exclusive content to start earning recurring revenue
                 </p>
                 <GlassButton

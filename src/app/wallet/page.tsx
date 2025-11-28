@@ -280,40 +280,37 @@ export default function WalletPage() {
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Tabs */}
-        <div className="mb-8 flex gap-3">
+        <div className="mb-8 flex gap-2">
           <button
             onClick={() => setActiveTab('balance')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${
               activeTab === 'balance'
                 ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
                 : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
             }`}
           >
-            <Coins className="w-5 h-5" />
             Balance
           </button>
           {isCreator && (
             <>
               <button
                 onClick={() => setActiveTab('payouts')}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                   activeTab === 'payouts'
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
                     : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
-                <History className="w-5 h-5" />
                 Payouts
               </button>
               <button
                 onClick={() => setActiveTab('banking')}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                   activeTab === 'banking'
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/50 scale-105'
                     : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
-                <Building2 className="w-5 h-5" />
                 Banking
               </button>
             </>

@@ -8,10 +8,12 @@ import {
   RoomAudioRenderer,
   useRoomContext,
   useTracks,
+  useLocalParticipant,
 } from '@livekit/components-react';
 // import '@livekit/components-styles'; // TODO: Fix CSS import issue
-import { Track } from 'livekit-client';
+import { Track, facingModeFromLocalTrack, LocalVideoTrack } from 'livekit-client';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
+import { Mic, MicOff, Video, VideoOff, SwitchCamera, PhoneOff } from 'lucide-react';
 
 interface VideoCallProps {
   callId: string;
@@ -21,6 +23,12 @@ function CallControls({ callId, onEnd }: { callId: string; onEnd: () => void }) 
   const [ending, setEnding] = useState(false);
   const [startTime] = useState(Date.now());
   const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+
+  const room = useRoomContext();
+  const { localParticipant } = useLocalParticipant();
 
   // Update duration every second
   useEffect(() => {
@@ -51,6 +59,37 @@ function CallControls({ callId, onEnd }: { callId: string; onEnd: () => void }) 
     }
   };
 
+  const toggleMute = async () => {
+    if (localParticipant) {
+      await localParticipant.setMicrophoneEnabled(isMuted);
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleCamera = async () => {
+    if (localParticipant) {
+      await localParticipant.setCameraEnabled(isCameraOff);
+      setIsCameraOff(!isCameraOff);
+    }
+  };
+
+  const flipCamera = async () => {
+    if (localParticipant) {
+      const videoTrack = localParticipant.getTrackPublication(Track.Source.Camera)?.track as LocalVideoTrack;
+      if (videoTrack) {
+        const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+        try {
+          await videoTrack.restartTrack({
+            facingMode: newFacingMode,
+          });
+          setFacingMode(newFacingMode);
+        } catch (error) {
+          console.error('Error flipping camera:', error);
+        }
+      }
+    }
+  };
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -58,21 +97,59 @@ function CallControls({ callId, onEnd }: { callId: string; onEnd: () => void }) 
   };
 
   return (
-    <div className="absolute top-4 right-4 z-50 glass p-4 rounded-2xl flex items-center space-x-4">
-      <div className="text-white">
-        <div className="text-sm text-gray-400">Call Duration</div>
-        <div className="text-2xl font-bold">{formatDuration(duration)}</div>
+    <>
+      {/* Top bar - Duration and End Call */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 backdrop-blur-xl bg-black/60 px-6 py-3 rounded-2xl border border-white/20 flex items-center gap-4">
+        <div className="text-white text-center">
+          <div className="text-xs text-gray-400">Duration</div>
+          <div className="text-xl font-bold">{formatDuration(duration)}</div>
+        </div>
       </div>
 
-      <GlassButton
-        variant="pink"
-        size="lg"
-        onClick={handleEndCall}
-        disabled={ending}
-      >
-        {ending ? <LoadingSpinner size="sm" /> : 'End Call'}
-      </GlassButton>
-    </div>
+      {/* Bottom control bar */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 backdrop-blur-xl bg-black/60 px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-3">
+        {/* Mute Button */}
+        <button
+          onClick={toggleMute}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            isMuted
+              ? 'bg-red-500 text-white'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+        </button>
+
+        {/* Camera Toggle Button */}
+        <button
+          onClick={toggleCamera}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+            isCameraOff
+              ? 'bg-red-500 text-white'
+              : 'bg-white/20 text-white hover:bg-white/30'
+          }`}
+        >
+          {isCameraOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+        </button>
+
+        {/* Flip Camera Button */}
+        <button
+          onClick={flipCamera}
+          className="w-14 h-14 rounded-full bg-white/20 text-white hover:bg-white/30 flex items-center justify-center transition-all"
+        >
+          <SwitchCamera className="w-6 h-6" />
+        </button>
+
+        {/* End Call Button */}
+        <button
+          onClick={handleEndCall}
+          disabled={ending}
+          className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all disabled:opacity-50"
+        >
+          {ending ? <LoadingSpinner size="sm" /> : <PhoneOff className="w-6 h-6" />}
+        </button>
+      </div>
+    </>
   );
 }
 
