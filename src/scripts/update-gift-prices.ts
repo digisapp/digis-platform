@@ -25,9 +25,8 @@ async function updateGiftPrices() {
     'Diamond': 50,
     'Crown': 75,
     'Rocket': 100,
-    'Gold Bar': 100,
-
-    // Epic gifts ($25-$50)
+    // Epic gifts ($20-$50)
+    'Gold Bar': 200,
     'Designer Bag': 250,
     'Sports Car': 350,
     'Yacht': 500,

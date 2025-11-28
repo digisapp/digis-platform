@@ -56,10 +56,10 @@ const gifts = [
   },
   {
     name: 'Gold Bar',
-    emoji: '🪙',
-    coinCost: 100,
+    emoji: '🥇',
+    coinCost: 200,
     animationType: 'fireworks',
-    rarity: 'rare' as const,
+    rarity: 'epic' as const,
   },
   // Epic gifts ($25-$50)
   {
