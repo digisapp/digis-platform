@@ -229,6 +229,26 @@ export default function ChatPage() {
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Remove message from local state
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+      } else {
+        throw new Error(data.error || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      throw error;
+    }
+  };
+
   const handleSendTip = async (amount: number, tipMessage: string) => {
     if (!conversation) return;
 
@@ -422,6 +442,7 @@ export default function ChatPage() {
                     isOwnMessage={message.sender.id === currentUserId}
                     currentUserId={currentUserId || ''}
                     onUnlock={handleUnlockMessage}
+                    onDelete={handleDeleteMessage}
                   />
                 ))
               )}

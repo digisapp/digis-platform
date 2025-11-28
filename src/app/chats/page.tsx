@@ -349,7 +349,7 @@ export default function MessagesPage() {
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pr-10">
                         <div className="flex items-center gap-2 mb-1">
                           {conversation.isPinned && (
                             <Pin className="w-4 h-4 text-digis-cyan fill-digis-cyan" />
@@ -366,11 +366,8 @@ export default function MessagesPage() {
                         <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'text-white font-medium' : 'text-gray-400'}`}>
                           {conversation.lastMessageText || 'Start a conversation'}
                         </p>
-                      </div>
-
-                      {/* Time */}
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-xs text-gray-400">
+                        {/* Time - below message */}
+                        <p className="text-xs text-gray-500 mt-1">
                           {formatTime(conversation.lastMessageAt)}
                         </p>
                       </div>
