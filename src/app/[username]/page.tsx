@@ -90,6 +90,13 @@ export default function ProfilePage() {
       checkIfLive();
       fetchGoals();
       fetchCreatorContent();
+
+      // Poll for live status every 10 seconds to update when stream ends
+      const liveCheckInterval = setInterval(() => {
+        checkIfLive();
+      }, 10000);
+
+      return () => clearInterval(liveCheckInterval);
     }
   }, [profile?.user.id]);
 
@@ -185,7 +192,10 @@ export default function ProfilePage() {
     if (!profile?.user.id) return;
 
     try {
-      const response = await fetch('/api/streams/live');
+      // Use cache bust to ensure fresh data
+      const response = await fetch(`/api/streams/live?t=${Date.now()}`, {
+        cache: 'no-store',
+      });
       if (response.ok) {
         const data = await response.json();
         const streamsList = data.data?.streams || [];
@@ -193,6 +203,10 @@ export default function ProfilePage() {
         if (liveStream) {
           setIsLive(true);
           setLiveStreamId(liveStream.id);
+        } else {
+          // Stream ended - reset live state
+          setIsLive(false);
+          setLiveStreamId(null);
         }
       }
     } catch (err) {

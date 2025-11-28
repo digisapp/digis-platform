@@ -29,13 +29,14 @@ export default function LiveStreamsPage() {
 
   useEffect(() => {
     fetchUserRole();
-    fetchLiveStreams();
+    // Force fresh fetch with cache bust to ensure we get latest data
+    fetchLiveStreams(true);
 
     // Refresh every 30 seconds on mobile, 15 seconds on desktop for better performance
     const isMobile = window.innerWidth < 768;
     const refreshInterval = isMobile ? 30000 : 15000;
 
-    const interval = setInterval(fetchLiveStreams, refreshInterval);
+    const interval = setInterval(() => fetchLiveStreams(false), refreshInterval);
     return () => clearInterval(interval);
   }, []);
 
@@ -93,9 +94,18 @@ export default function LiveStreamsPage() {
     }
   };
 
-  const fetchLiveStreams = async () => {
+  const fetchLiveStreams = async (bustCache = false) => {
     try {
-      const response = await fetch('/api/streams/live');
+      // Add cache bust parameter to force fresh data
+      const url = bustCache
+        ? `/api/streams/live?t=${Date.now()}`
+        : '/api/streams/live';
+      const response = await fetch(url, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       const result = await response.json();
 
       if (response.ok && result.data) {
@@ -382,21 +392,6 @@ export default function LiveStreamsPage() {
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Refresh Button */}
-        {streams.length > 0 && (
-          <div className="text-center mt-8">
-            <button
-              onClick={fetchLiveStreams}
-              className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white hover:border-cyan-500/50 transition-all hover:scale-105 flex items-center gap-2 mx-auto"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
           </div>
         )}
       </div>
