@@ -53,6 +53,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -125,6 +126,17 @@ export default function ChatPage() {
     }
 
     setCurrentUserId(user.id);
+
+    // Fetch user role
+    try {
+      const response = await fetch('/api/user/me');
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUserRole(userData.role || 'fan');
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
   };
 
   const fetchConversation = async () => {
@@ -476,7 +488,7 @@ export default function ChatPage() {
               </button>
 
               {/* Voice Message Button */}
-              <VoiceMessageButton onSend={handleSendVoice} />
+              <VoiceMessageButton onSend={handleSendVoice} isCreator={currentUserRole === 'creator'} />
 
               <input
                 type="text"

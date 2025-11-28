@@ -12,7 +12,7 @@ import {
   calls,
   contentPurchases,
 } from '@/lib/data/system';
-import { eq, and, or, desc, sql } from 'drizzle-orm';
+import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
@@ -460,6 +460,27 @@ export class MessageService {
       },
     });
 
+    // Collect all unique user IDs to fetch their creator settings
+    const userIds = new Set<string>();
+    allConversations.forEach(conv => {
+      userIds.add(conv.user1Id);
+      userIds.add(conv.user2Id);
+    });
+
+    // Fetch creator settings for all users in one query
+    const userIdArray = Array.from(userIds);
+    const userSettings = userIdArray.length > 0
+      ? await db.query.creatorSettings.findMany({
+          where: inArray(creatorSettings.userId, userIdArray)
+        })
+      : [];
+
+    // Create a map of userId -> messageRate
+    const messageRateMap = new Map<string, number>();
+    userSettings.forEach(settings => {
+      messageRateMap.set(settings.userId, settings.messageRate);
+    });
+
     // Transform to include "other user" and unread count
     return allConversations.map((conv) => {
       const isUser1 = conv.user1Id === userId;
@@ -470,9 +491,15 @@ export class MessageService {
       const isArchived = isUser1 ? conv.user1Archived : conv.user2Archived;
       const isPinned = isUser1 ? conv.user1Pinned : conv.user2Pinned;
 
+      // Add message charge from creator settings
+      const messageCharge = otherUser ? messageRateMap.get(otherUser.id) || 0 : 0;
+
       return {
         ...conv,
-        otherUser,
+        otherUser: otherUser ? {
+          ...otherUser,
+          messageCharge,
+        } : otherUser,
         unreadCount,
         isArchived,
         isPinned,

@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Mic, X, Send, Lock, Coins } from 'lucide-react';
 
 interface VoiceMessageButtonProps {
   onSend: (audioBlob: Blob, duration: number, unlockPrice?: number) => Promise<void>;
+  isCreator?: boolean; // Only creators can charge for voice messages
 }
 
-export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
+export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -16,8 +18,14 @@ export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
   const [unlockPrice, setUnlockPrice] = useState(250);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recordedDuration, setRecordedDuration] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+  // For portal rendering
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -50,11 +58,22 @@ export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
           return;
         }
 
-        // Store the recorded audio for PPV options
+        // Store the recorded audio
         if (audioBlob.size > 0 && duration > 0) {
-          setRecordedBlob(audioBlob);
-          setRecordedDuration(duration);
-          setShowPPVOptions(true);
+          if (isCreator) {
+            // Creators see PPV options
+            setRecordedBlob(audioBlob);
+            setRecordedDuration(duration);
+            setShowPPVOptions(true);
+          } else {
+            // Fans send directly without PPV option
+            try {
+              await onSend(audioBlob, duration);
+            } catch (error) {
+              console.error('Error sending voice message:', error);
+              alert('Failed to send voice message');
+            }
+          }
         }
       };
 
@@ -139,11 +158,11 @@ export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // PPV Options Modal
-  if (showPPVOptions) {
-    return (
-      <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-        <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl max-w-md w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6 mx-auto">
+  // PPV Options Modal - render via portal to ensure proper centering
+  if (showPPVOptions && mounted) {
+    const modal = (
+      <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+        <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl max-w-md w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
@@ -233,7 +252,7 @@ export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  {isPPV ? `Send (${unlockPrice} coins)` : 'Send'}
+                  Send
                 </>
               )}
             </button>
@@ -241,6 +260,8 @@ export function VoiceMessageButton({ onSend }: VoiceMessageButtonProps) {
         </div>
       </div>
     );
+
+    return createPortal(modal, document.body);
   }
 
   // Recording UI
