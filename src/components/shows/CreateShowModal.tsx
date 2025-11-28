@@ -245,7 +245,6 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   <option value={120}>2 hours</option>
                   <option value={180}>3 hours</option>
                   <option value={360}>6 hours</option>
-                  <option value={1440}>24 hours</option>
                 </select>
               </div>
             </div>
