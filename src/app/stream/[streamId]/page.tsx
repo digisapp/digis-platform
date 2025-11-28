@@ -354,7 +354,7 @@ export default function StreamViewerPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center md:pl-20">
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="text-white/60 mt-4">Joining stream...</p>
@@ -366,7 +366,7 @@ export default function StreamViewerPage() {
   // Access denied state
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 md:pl-20">
         <div className="max-w-md w-full text-center glass rounded-3xl p-8">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-digis-pink/20 to-digis-cyan/20 flex items-center justify-center">
             <span className="text-4xl">🔒</span>
@@ -396,7 +396,7 @@ export default function StreamViewerPage() {
   // Error state
   if (error || !stream) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 md:pl-20">
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
           <h1 className="text-2xl font-bold text-white mb-4">{error || 'Stream not found'}</h1>
@@ -409,7 +409,7 @@ export default function StreamViewerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white md:pl-20">
       {/* Emoji Reactions Overlay */}
       <EmojiReactionBurstSimple reactions={reactions} onComplete={removeReaction} />
 
