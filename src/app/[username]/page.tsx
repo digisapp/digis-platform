@@ -60,9 +60,8 @@ export default function ProfilePage() {
   const [subscriptionTier, setSubscriptionTier] = useState<any>(null);
 
   // Content tabs
-  const [activeTab, setActiveTab] = useState<'photos' | 'video' | 'streams' | 'shows' | 'about'>('photos');
-  const [streams, setStreams] = useState<any[]>([]);
-  const [shows, setShows] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'photos' | 'video' | 'streams' | 'about'>('photos');
+  const [streams, setStreams] = useState<any[]>([]); // Combined streams and shows
   const [isLive, setIsLive] = useState(false);
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
@@ -164,9 +163,10 @@ export default function ProfilePage() {
         fetch(`/api/shows/creator?creatorId=${profile.user.id}`)
       ]);
 
+      const allStreamContent: any[] = [];
+
       if (vodsRes.ok) {
         const vodsData = await vodsRes.json();
-        // VODs are already sorted by createdAt desc from API
         const vodsList = vodsData.vods || [];
         // Transform VODs to match streams format for display
         const savedStreams = vodsList.slice(0, 12).map((vod: any) => ({
@@ -181,20 +181,50 @@ export default function ProfilePage() {
           duration: vod.duration,
           priceCoins: vod.priceCoins,
           isPublic: vod.isPublic,
-          isVod: true, // Flag to identify this is a VOD
+          isVod: true,
+          isTicketed: false,
+          sortDate: new Date(vod.createdAt),
         }));
-        setStreams(savedStreams);
+        allStreamContent.push(...savedStreams);
       }
 
       if (showsRes.ok) {
         const showsData = await showsRes.json();
-        // Only show upcoming and live shows
         const showsList = Array.isArray(showsData.data) ? showsData.data : [];
+        // Only show upcoming and live shows
         const upcomingShows = showsList
           .filter((s: any) => ['scheduled', 'live'].includes(s.status))
-          .sort((a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
-        setShows(upcomingShows);
+          .map((show: any) => ({
+            id: show.id,
+            title: show.title,
+            description: show.description,
+            thumbnailUrl: show.coverImageUrl,
+            ticketPrice: show.ticketPrice,
+            ticketsSold: show.ticketsSold,
+            maxTickets: show.maxTickets,
+            scheduledStart: show.scheduledStart,
+            status: show.status,
+            showType: show.showType,
+            isVod: false,
+            isTicketed: true,
+            sortDate: new Date(show.scheduledStart),
+          }));
+        allStreamContent.push(...upcomingShows);
       }
+
+      // Sort: upcoming ticketed shows first (by date), then past VODs (by date desc)
+      allStreamContent.sort((a, b) => {
+        // Ticketed upcoming shows come first
+        if (a.isTicketed && !b.isTicketed) return -1;
+        if (!a.isTicketed && b.isTicketed) return 1;
+        // Within same type, sort by date
+        if (a.isTicketed && b.isTicketed) {
+          return a.sortDate.getTime() - b.sortDate.getTime(); // Upcoming: earliest first
+        }
+        return b.sortDate.getTime() - a.sortDate.getTime(); // VODs: newest first
+      });
+
+      setStreams(allStreamContent);
     } catch (err) {
       console.error('Error fetching content:', err);
     } finally {
@@ -728,22 +758,7 @@ export default function ProfilePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
               )}
               <Video className="w-4 h-4 relative z-10" />
-              <span className="hidden sm:inline relative z-10">Streams</span>
-              <span className="sm:hidden relative z-10">Live</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('shows')}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
-                activeTab === 'shows'
-                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-yellow-500/50 scale-105'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-yellow-500/50 hover:scale-105'
-              }`}
-            >
-              {activeTab === 'shows' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <Ticket className="w-4 h-4 relative z-10" />
-              <span className="relative z-10">Shows</span>
+              <span className="relative z-10">Streams</span>
             </button>
             <button
               onClick={() => setActiveTab('about')}
@@ -940,13 +955,13 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Streams Tab - Shows saved streams (VODs) */}
+                  {/* Streams Tab - Shows saved streams (VODs) and ticketed shows */}
                   {activeTab === 'streams' && (
                     <div>
                       {streams.length === 0 ? (
                         <div className="text-center py-12">
                           <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-white mb-2">No saved streams yet</h3>
+                          <h3 className="text-lg font-semibold text-white mb-2">No streams yet</h3>
                           <p className="text-gray-400 mb-4 px-4">
                             {isFollowing
                               ? "You'll be notified when they go live"
@@ -966,8 +981,12 @@ export default function ProfilePage() {
                           {streams.map((stream: any) => (
                             <button
                               key={stream.id}
-                              onClick={() => router.push(`/vod/${stream.id}`)}
-                              className="group relative aspect-video bg-gray-100 rounded-xl overflow-hidden border-2 border-cyan-200 hover:border-digis-cyan transition-all shadow-fun hover:shadow-2xl hover:scale-105"
+                              onClick={() => router.push(stream.isTicketed ? `/shows/${stream.id}` : `/vod/${stream.id}`)}
+                              className={`group relative aspect-video rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:scale-105 ${
+                                stream.isTicketed
+                                  ? 'border-2 border-purple-500/50 hover:border-purple-500 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
+                                  : 'border-2 border-cyan-500/30 hover:border-cyan-500 bg-gray-900'
+                              }`}
                             >
                               {/* Thumbnail */}
                               {stream.thumbnailUrl ? (
@@ -977,96 +996,71 @@ export default function ProfilePage() {
                                   className="absolute inset-0 w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
-                                  <Video className="w-12 h-12 text-gray-600 group-hover:scale-110 transition-transform" />
+                                <div className={`absolute inset-0 flex items-center justify-center ${
+                                  stream.isTicketed
+                                    ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'
+                                    : 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20'
+                                }`}>
+                                  {stream.isTicketed ? (
+                                    <Ticket className="w-12 h-12 text-purple-400 group-hover:scale-110 transition-transform" />
+                                  ) : (
+                                    <Video className="w-12 h-12 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                  )}
                                 </div>
                               )}
 
-                              {/* PPV Badge */}
-                              {stream.priceCoins > 0 && (
+                              {/* Ticketed Badge */}
+                              {stream.isTicketed && (
+                                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-lg shadow-lg">
+                                  <Ticket className="w-3.5 h-3.5" />
+                                  <span>Ticketed</span>
+                                </div>
+                              )}
+
+                              {/* LIVE Badge for ticketed shows */}
+                              {stream.isTicketed && stream.status === 'live' && (
+                                <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg animate-pulse">
+                                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                  LIVE
+                                </div>
+                              )}
+
+                              {/* PPV Badge for VODs */}
+                              {!stream.isTicketed && stream.priceCoins > 0 && (
                                 <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg">
                                   {stream.priceCoins} coins
                                 </div>
                               )}
 
                               {/* Stream info overlay */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-900/90 to-transparent p-3 sm:p-4">
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3 sm:p-4">
                                 <h4 className="text-white font-semibold text-sm sm:text-base line-clamp-1 mb-1">
                                   {stream.title}
                                 </h4>
                                 <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-300">
-                                  <span className="flex items-center gap-1">
-                                    <Users className="w-3 h-3" />
-                                    {stream.totalViews || 0} views
-                                  </span>
-                                  <span>
-                                    {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Shows Tab */}
-                  {activeTab === 'shows' && (
-                    <div>
-                      {shows.length === 0 ? (
-                        <div className="text-center py-12">
-                          <Ticket className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-white mb-2">No upcoming shows</h3>
-                          <p className="text-gray-400 px-4">
-                            Check back later for ticketed events and special shows
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 sm:space-y-4">
-                          {shows.map((show: any) => (
-                            <button
-                              key={show.id}
-                              onClick={() => router.push(`/shows/${show.id}`)}
-                              className="w-full flex flex-col sm:flex-row gap-3 sm:gap-4 p-4 bg-white/10 hover:bg-white/20 rounded-xl border-2 border-purple-500/30 hover:border-purple-500 transition-all text-left"
-                            >
-                              {/* Show thumbnail */}
-                              <div className="w-full sm:w-28 sm:h-28 aspect-square sm:aspect-auto flex-shrink-0 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border-2 border-purple-500/30 relative overflow-hidden">
-                                {show.coverImageUrl ? (
-                                  <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
-                                ) : (
-                                  <Ticket className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400" />
-                                )}
-                                {show.status === 'live' && (
-                                  <div className="absolute top-2 left-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded">
-                                    LIVE
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Show details */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-base sm:text-lg font-bold text-white line-clamp-2 mb-1">{show.title}</h3>
-                                {show.description && (
-                                  <p className="text-sm text-gray-300 line-clamp-2 mb-2">{show.description}</p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
-                                  <span className="flex items-center gap-1 text-gray-300">
-                                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                    {new Date(show.scheduledStart).toLocaleString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                    })}
-                                  </span>
-                                  <span className="text-yellow-400 font-bold">
-                                    {show.ticketPrice?.toLocaleString()} coins
-                                  </span>
-                                  {show.ticketsSold !== undefined && show.maxTickets && (
-                                    <span className="text-gray-300">
-                                      {show.ticketsSold}/{show.maxTickets} sold
-                                    </span>
+                                  {stream.isTicketed ? (
+                                    <>
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {new Date(stream.scheduledStart).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                        })}
+                                      </span>
+                                      <span className="text-yellow-400 font-bold">
+                                        {stream.ticketPrice?.toLocaleString()} coins
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="flex items-center gap-1">
+                                        <Users className="w-3 h-3" />
+                                        {stream.totalViews || 0} views
+                                      </span>
+                                      <span>
+                                        {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
+                                      </span>
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -1105,13 +1099,13 @@ export default function ProfilePage() {
                             <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {streams.length}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Saved Streams</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Streams</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-xl border-2 border-pink-200 hover:border-pink-400 transition-colors">
                             <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                              {shows.length}
+                              {content.length}
                             </div>
-                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Upcoming Shows</div>
+                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Media</div>
                           </div>
                           <div className="p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
                             <div className="text-xl sm:text-2xl font-bold text-white mb-1">
