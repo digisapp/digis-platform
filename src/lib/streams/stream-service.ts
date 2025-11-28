@@ -50,6 +50,7 @@ export class StreamService {
         status: isScheduled ? 'scheduled' : 'live',
         scheduledFor: scheduledAt,
         startedAt: isScheduled ? undefined : new Date(),
+        lastHeartbeat: isScheduled ? undefined : new Date(), // Set initial heartbeat
         orientation: orientation || 'landscape',
       })
       .returning();
@@ -353,6 +354,9 @@ export class StreamService {
    * Get all live streams
    */
   static async getLiveStreams() {
+    // First, cleanup any stale streams (no heartbeat for 2+ minutes)
+    await this.cleanupStaleStreams();
+
     return await db.query.streams.findMany({
       where: eq(streams.status, 'live'),
       orderBy: [desc(streams.currentViewers), desc(streams.startedAt)],
@@ -367,6 +371,36 @@ export class StreamService {
         },
       },
     });
+  }
+
+  /**
+   * Cleanup streams that haven't received a heartbeat in 2+ minutes
+   */
+  static async cleanupStaleStreams() {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+
+    try {
+      const staleStreams = await db
+        .update(streams)
+        .set({
+          status: 'ended',
+          endedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(streams.status, 'live'),
+            sql`(${streams.lastHeartbeat} < ${twoMinutesAgo} OR ${streams.lastHeartbeat} IS NULL)`
+          )
+        )
+        .returning({ id: streams.id });
+
+      if (staleStreams.length > 0) {
+        console.log(`[StreamService] Cleaned up ${staleStreams.length} stale streams`);
+      }
+    } catch (error) {
+      console.error('[StreamService] Cleanup error:', error);
+      // Don't throw - cleanup is best effort
+    }
   }
 
   /**

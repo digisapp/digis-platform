@@ -30,6 +30,7 @@ export const streams = pgTable('streams', {
   startedAt: timestamp('started_at'),
   endedAt: timestamp('ended_at'),
   durationSeconds: integer('duration_seconds'),
+  lastHeartbeat: timestamp('last_heartbeat'), // For detecting disconnected broadcasters
 
   // Metadata
   thumbnailUrl: text('thumbnail_url'),

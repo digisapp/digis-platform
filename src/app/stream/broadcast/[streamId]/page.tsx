@@ -71,6 +71,25 @@ export default function BroadcastStudioPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Send heartbeat every 30 seconds to keep stream alive
+  useEffect(() => {
+    if (!stream || stream.status !== 'live') return;
+
+    const sendHeartbeat = async () => {
+      try {
+        await fetch(`/api/streams/${streamId}/heartbeat`, { method: 'POST' });
+      } catch (error) {
+        console.error('Heartbeat failed:', error);
+      }
+    };
+
+    // Send immediately and then every 30 seconds
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 30000);
+
+    return () => clearInterval(interval);
+  }, [stream, streamId]);
+
   // Fetch stream details and token
   useEffect(() => {
     fetchStreamDetails();
