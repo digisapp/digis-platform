@@ -11,66 +11,53 @@ export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimu
 // Creator payout: $0.10 per coin (10 coins = $1.00)
 export const COIN_PACKAGES = [
   {
-    id: 'starter',
+    id: '20',
     name: '20 Coins',
     coins: 20,
     price: 299, // $2.99 - margin 30%
     popular: false,
-    description: 'Perfect for trying out',
   },
   {
-    id: 'popular',
+    id: '50',
     name: '50 Coins',
     coins: 50,
     price: 799, // $7.99 - margin 34%
-    popular: true,
-    savings: '10% Bonus',
-    description: 'Most popular choice',
+    popular: false,
   },
   {
-    id: 'value',
+    id: '100',
     name: '100 Coins',
     coins: 100,
     price: 1599, // $15.99 - margin 34%
     popular: false,
-    savings: '15% Bonus',
-    description: 'Great value',
   },
   {
-    id: 'best',
+    id: '250',
     name: '250 Coins',
     coins: 250,
     price: 3899, // $38.99 - margin 33%
     popular: false,
-    savings: '20% Bonus',
-    description: 'Best value',
   },
   {
-    id: 'ultimate',
+    id: '500',
     name: '500 Coins',
     coins: 500,
     price: 7499, // $74.99 - margin 30%
     popular: false,
-    savings: '25% Bonus',
-    description: 'Maximum savings',
   },
   {
-    id: 'super',
+    id: '1000',
     name: '1,000 Coins',
     coins: 1000,
     price: 14499, // $144.99 - margin 28%
     popular: false,
-    savings: '30% Bonus',
-    description: 'For super fans',
   },
   {
-    id: 'whale',
+    id: '4000',
     name: '4,000 Coins',
     coins: 4000,
     price: 54799, // $547.99 - margin 24%
     popular: false,
-    savings: '35% Bonus',
-    description: 'Ultimate supporter',
   },
 ];
 
