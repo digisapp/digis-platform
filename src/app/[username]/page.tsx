@@ -556,18 +556,38 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Follow Button - Top Right, Compact */}
-              <button
-                onClick={handleFollowToggle}
-                disabled={followLoading}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
-                  isFollowing
-                    ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
-                }`}
-              >
-                {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
-              </button>
+              {/* Follow & Subscribe Buttons - Top Right, Compact */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
+                    isFollowing
+                      ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
+                  }`}
+                >
+                  {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                </button>
+
+                {/* Subscribe Button */}
+                {user.role === 'creator' && subscriptionTier && !isSubscribed && (
+                  <button
+                    onClick={handleSubscribe}
+                    disabled={subscribeLoading}
+                    className="px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-md shadow-purple-500/30"
+                  >
+                    {subscribeLoading ? '...' : 'Subscribe'}
+                  </button>
+                )}
+
+                {/* Subscribed Badge */}
+                {user.role === 'creator' && isSubscribed && (
+                  <div className="px-3 py-1.5 rounded-lg font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
+                    Subscribed
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Bio */}
@@ -579,34 +599,6 @@ export default function ProfilePage() {
 
           {/* Action Buttons Row */}
           <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
-            {/* Subscribe Button - Primary for Creators */}
-            {user.role === 'creator' && subscriptionTier && !isSubscribed && (
-              <button
-                onClick={handleSubscribe}
-                disabled={subscribeLoading}
-                className="group relative overflow-hidden px-4 sm:px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-105 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-500/30 text-sm"
-              >
-                <Star className="w-4 h-4" />
-                <span>{subscribeLoading ? 'Subscribing...' : `Subscribe • ${subscriptionTier.pricePerMonth} coins/mo`}</span>
-              </button>
-            )}
-
-            {/* Subscribed Badge */}
-            {user.role === 'creator' && isSubscribed && (
-              <div className="px-4 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center gap-2 shadow-lg shadow-purple-500/30 text-sm">
-                <Star className="w-4 h-4 fill-white" />
-                <span>Subscribed</span>
-              </div>
-            )}
-
-            {/* Message Button */}
-            <button
-              onClick={handleMessage}
-              className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </button>
-
             {/* Video Call Button */}
             {user.role === 'creator' && profile.callSettings && (
               <RequestCallButton
@@ -642,6 +634,14 @@ export default function ProfilePage() {
                 <Gift className="w-5 h-5" />
               </button>
             )}
+
+            {/* Message Button */}
+            <button
+              onClick={handleMessage}
+              className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </button>
           </div>
           </div>
         </div>
