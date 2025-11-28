@@ -8,32 +8,35 @@ async function updateGiftPrices() {
   console.log('Current gifts:');
   console.table(gifts.map(g => ({ name: g.name, emoji: g.emoji, cost: g.coinCost, rarity: g.rarity })));
 
-  // Simplified gift tiers (1 coin = $0.10)
-  // Common: 10-20 coins ($1-$2)
-  // Rare: 50-100 coins ($5-$10)
-  // Epic: 250-500 coins ($25-$50)
-  // Legendary: 1000 coins ($100)
-
+  // Gift tiers (1 coin = $0.10)
   const priceUpdates: Record<string, number> = {
-    // Common gifts ($1-$2)
+    // Common gifts ($1-$10)
     'Fire': 10,
     'Heart': 10,
-    'Cake': 20,
+    'Rocket': 50,
+    'Peach': 100,
+    'Martini': 100,
+    'Pizza': 100,
+    'Rose': 100,
 
-    // Rare gifts ($5-$15)
-    'Rose': 50,
-    'Diamond': 100,
-    'Crown': 100,
+    // Rare gifts ($15-$30)
     'Gold Bar': 150,
+    'Cake': 200,
+    'Sushi': 200,
+    'Steak': 200,
+    'Crown': 250,
+    'Champagne': 300,
 
-    // Epic gifts ($20-$50)
-    'Rocket': 200,
-    'Designer Bag': 250,
-    'Sports Car': 350,
-    'Yacht': 500,
+    // Epic gifts ($50-$100)
+    'Designer Bag': 500,
+    'Diamond': 500,
+    'Engagement Ring': 750,
+    'Sports Car': 1000,
 
-    // Legendary gifts ($100)
-    'Mansion': 1000,
+    // Legendary gifts ($200-$500)
+    'Yacht': 2000,
+    'Jet': 3500,
+    'Mansion': 5000,
   };
 
   // Update each gift
