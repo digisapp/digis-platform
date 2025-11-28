@@ -641,8 +641,9 @@ export default function StreamViewerPage() {
             </div>
 
             {/* Active Goal Bar - Premium Animated Design */}
+            {/* On mobile: positioned at bottom above controls. On desktop: top below creator info */}
             {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-              <div className="absolute top-20 left-4 right-4 z-30">
+              <div className="absolute bottom-24 md:bottom-auto md:top-20 left-4 right-4 z-30">
                 {goals.filter(g => g.isActive && !g.isCompleted).slice(0, 1).map(goal => {
                   const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
                   const isAlmostComplete = progress >= 80;

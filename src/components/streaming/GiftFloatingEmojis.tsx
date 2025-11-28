@@ -15,14 +15,13 @@ type GiftFloatingEmojisProps = {
   onComplete?: (id: string) => void;
 };
 
-// Sound files for different gift rarities (using existing sound files)
-// Each rarity has a unique sound file with different length/intensity
+// Sound files for different gift rarities - coin/gambling sounds
 const GIFT_SOUNDS: Record<string, string> = {
-  common: '/sounds/gift-small.wav',      // ~0.5s - simple chime
-  rare: '/sounds/gift-medium.wav',        // ~1.0s - coin jingle
-  epic: '/sounds/gift-large.wav',         // ~1.5s - bigger coin cascade
-  legendary: '/sounds/gift-epic.wav',     // ~2.0s - full jackpot celebration
-  tip: '/sounds/big-tip.wav',             // coin jingling for tips
+  common: '/sounds/coin-common.wav',      // Single coin drop
+  rare: '/sounds/coin-rare.wav',          // Coin jingle
+  epic: '/sounds/coin-epic.wav',          // Coin cascade
+  legendary: '/sounds/coin-legendary.wav', // Jackpot celebration
+  tip: '/sounds/coin-tip.wav',            // Coins clinking
 };
 
 // Gift burst counts and sizes by rarity
@@ -57,8 +56,8 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     };
   }, []);
 
-  // Maximum sound duration (5 seconds)
-  const MAX_SOUND_DURATION = 5000;
+  // Maximum sound duration (3 seconds - keeps it snappy)
+  const MAX_SOUND_DURATION = 3000;
 
   // Volume levels by rarity (user wants different intensities)
   const VOLUME_LEVELS: Record<string, number> = {
