@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Image, Video, Lock, Eye, DollarSign } from 'lucide-react';
+import { X, Image, Video, Lock, Eye, Coins } from 'lucide-react';
 
 interface MediaAttachmentModalProps {
   onClose: () => void;
@@ -19,7 +19,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [caption, setCaption] = useState('');
   const [isLocked, setIsLocked] = useState(false);
-  const [unlockPrice, setUnlockPrice] = useState(20);
+  const [unlockPrice, setUnlockPrice] = useState(250);
   const [sending, setSending] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,31 +74,40 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-pastel-gradient rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-purple-200">
+    <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] mx-auto">
+        {/* Animated gradient border effect */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-pulse" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-purple-200">
-          <h3 className="text-2xl font-bold text-gray-800">Send Media</h3>
+        <div className="relative flex items-center justify-between p-6 border-b border-cyan-500/20">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Send Media</h3>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-800 transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="relative p-6 space-y-6">
           {/* File Upload */}
           {!file ? (
             <div className="space-y-4">
               <label className="block">
-                <div className="border-2 border-dashed border-purple-300 rounded-xl p-12 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/40 transition-all">
+                <div className="border-2 border-dashed border-cyan-500/30 rounded-2xl p-12 text-center cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-500/5 transition-all">
                   <div className="flex items-center justify-center gap-4 mb-4">
-                    <Image className="w-12 h-12 text-purple-500" />
-                    <Video className="w-12 h-12 text-pink-500" />
+                    <div className="p-3 rounded-xl bg-cyan-500/20">
+                      <Image className="w-10 h-10 text-cyan-400" />
+                    </div>
+                    <div className="p-3 rounded-xl bg-purple-500/20">
+                      <Video className="w-10 h-10 text-purple-400" />
+                    </div>
                   </div>
-                  <p className="text-gray-700 font-medium mb-2">Click to upload media</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-white font-medium mb-2">Click to upload media</p>
+                  <p className="text-sm text-gray-400">
                     Photos up to 50MB, Videos up to 500MB
                   </p>
                 </div>
@@ -114,7 +123,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
             <>
               {/* Preview */}
               <div className="relative">
-                <div className="relative rounded-xl overflow-hidden bg-black">
+                <div className="relative rounded-2xl overflow-hidden bg-black border border-white/10">
                   {mediaType === 'image' ? (
                     <img
                       src={preview || ''}
@@ -135,7 +144,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                     setPreview(null);
                     setMediaType(null);
                   }}
-                  className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  className="absolute top-4 right-4 p-2 bg-red-500/80 backdrop-blur-sm text-white rounded-lg hover:bg-red-500 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -143,7 +152,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
 
               {/* Caption */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Caption (optional)
                 </label>
                 <textarea
@@ -152,63 +161,65 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                   placeholder="Add a caption..."
                   rows={3}
                   maxLength={500}
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all resize-none"
                 />
-                <p className="text-xs text-gray-600 mt-1">{caption.length}/500</p>
+                <p className="text-xs text-gray-500 mt-1">{caption.length}/500</p>
               </div>
 
               {/* PPV Toggle */}
-              <div className="glass rounded-xl p-4 border-2 border-purple-200">
-                <h4 className="font-semibold text-gray-800 mb-3">Content Access</h4>
+              <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                <h4 className="font-semibold text-white mb-4">Content Access</h4>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <button
                     onClick={() => setIsLocked(false)}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       !isLocked
-                        ? 'border-green-500 bg-green-500/10'
-                        : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                        ? 'border-green-500 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10'
                     }`}
                   >
-                    <Eye className={`w-6 h-6 mx-auto mb-2 ${!isLocked ? 'text-green-500' : 'text-gray-600'}`} />
-                    <div className="text-sm font-semibold text-gray-800">Free</div>
-                    <div className="text-xs text-gray-600">Send immediately</div>
+                    <Eye className={`w-6 h-6 mx-auto mb-2 ${!isLocked ? 'text-green-400' : 'text-gray-400'}`} />
+                    <div className={`text-sm font-semibold ${!isLocked ? 'text-green-400' : 'text-white'}`}>Free</div>
+                    <div className="text-xs text-gray-400">Send immediately</div>
                   </button>
 
                   <button
                     onClick={() => setIsLocked(true)}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       isLocked
-                        ? 'border-purple-500 bg-purple-500/10'
-                        : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                        ? 'border-purple-500 bg-purple-500/10 shadow-[0_0_20px_rgba(168,85,247,0.2)]'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10'
                     }`}
                   >
-                    <Lock className={`w-6 h-6 mx-auto mb-2 ${isLocked ? 'text-purple-500' : 'text-gray-600'}`} />
-                    <div className="text-sm font-semibold text-gray-800">Locked (PPV)</div>
-                    <div className="text-xs text-gray-600">Charge to unlock</div>
+                    <Lock className={`w-6 h-6 mx-auto mb-2 ${isLocked ? 'text-purple-400' : 'text-gray-400'}`} />
+                    <div className={`text-sm font-semibold ${isLocked ? 'text-purple-400' : 'text-white'}`}>Locked (PPV)</div>
+                    <div className="text-xs text-gray-400">Charge to unlock</div>
                   </button>
                 </div>
 
                 {/* Price Input */}
                 {isLocked && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Unlock Price
                     </label>
-                    <div className="flex items-center gap-4">
-                      <DollarSign className="w-6 h-6 text-purple-500" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-xl bg-cyan-500/20">
+                        <Coins className="w-5 h-5 text-cyan-400" />
+                      </div>
                       <input
                         type="number"
                         min="1"
                         max="10000"
                         value={unlockPrice}
                         onChange={(e) => setUnlockPrice(parseInt(e.target.value) || 1)}
-                        className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-800 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
+                        className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-semibold focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
                       />
-                      <span className="text-gray-600 font-medium">coins</span>
+                      <span className="text-gray-300 font-medium">coins</span>
                     </div>
-                    <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                      <p className="text-sm text-purple-700">
+                    <div className="mt-3 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                      <p className="text-sm text-cyan-300">
                         Recipient will pay {unlockPrice} coins to view this {mediaType}
                       </p>
                     </div>
@@ -216,36 +227,18 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                 )}
               </div>
 
-              {/* Info */}
-              {isLocked && (
-                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">💡</span>
-                    <div className="text-sm text-blue-700">
-                      <p className="font-semibold mb-1">How PPV Messages Work</p>
-                      <ul className="space-y-1">
-                        <li>• Message appears blurred with unlock button</li>
-                        <li>• Recipient pays to unlock and view</li>
-                        <li>• You earn 100% of unlock revenue</li>
-                        <li>• Once unlocked, they can view anytime</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Send Button */}
               <div className="flex gap-3">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 bg-white/60 border border-purple-200 text-gray-800 rounded-xl font-semibold hover:bg-white/80 transition-all"
+                  className="flex-1 px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-semibold hover:bg-white/10 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSend}
                   disabled={sending}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {sending ? 'Sending...' : isLocked ? `Send Locked (${unlockPrice} coins)` : 'Send Free'}
                 </button>
