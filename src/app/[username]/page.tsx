@@ -13,6 +13,7 @@ import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { ContentUnlockModal } from '@/components/content/ContentUnlockModal';
 
 interface ProfileData {
   user: {
@@ -74,6 +75,7 @@ export default function ProfilePage() {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [contentToUnlock, setContentToUnlock] = useState<any>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -808,9 +810,16 @@ export default function ProfilePage() {
                               key={item.id}
                               onClick={() => {
                                 console.log('Photo clicked:', item);
-                                if (item.isLocked && !item.isFree) {
-                                  // TODO: Implement unlock/purchase flow
-                                  alert(`This content costs ${item.unlockPrice} coins to unlock. Purchase feature coming soon!`);
+                                if (item.isLocked && !item.isFree && item.unlockPrice > 0) {
+                                  // Show unlock modal
+                                  setContentToUnlock({
+                                    id: item.id,
+                                    title: item.title,
+                                    type: 'photo',
+                                    unlockPrice: item.unlockPrice,
+                                    thumbnail: item.thumbnail,
+                                    creatorName: profile?.user.displayName || profile?.user.username || 'Creator',
+                                  });
                                 } else {
                                   setSelectedPhoto(item);
                                 }
@@ -894,7 +903,17 @@ export default function ProfilePage() {
                             <div
                               key={item.id}
                               onClick={() => {
-                                if (!item.isLocked) {
+                                if (item.isLocked && item.unlockPrice > 0) {
+                                  // Show unlock modal
+                                  setContentToUnlock({
+                                    id: item.id,
+                                    title: item.title,
+                                    type: 'video',
+                                    unlockPrice: item.unlockPrice,
+                                    thumbnail: item.thumbnail,
+                                    creatorName: profile?.user.displayName || profile?.user.username || 'Creator',
+                                  });
+                                } else {
                                   setSelectedVideo(item);
                                 }
                               }}
@@ -1133,6 +1152,19 @@ export default function ProfilePage() {
           onClose={() => setShowTipModal(false)}
           onSend={handleSendTip}
           receiverName={profile.user.displayName || profile.user.username}
+        />
+      )}
+
+      {/* Content Unlock Modal */}
+      {contentToUnlock && (
+        <ContentUnlockModal
+          content={contentToUnlock}
+          onClose={() => setContentToUnlock(null)}
+          onSuccess={() => {
+            setContentToUnlock(null);
+            // Refresh content to show unlocked item
+            fetchContent();
+          }}
         />
       )}
 

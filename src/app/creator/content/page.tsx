@@ -28,6 +28,8 @@ export default function CreatorContentStudioPage() {
   const [loading, setLoading] = useState(true);
   const [selectedContent, setSelectedContent] = useState<CreatorContent | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ title: '', description: '', unlockPrice: 0 });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchContent();
@@ -61,6 +63,45 @@ export default function CreatorContentStudioPage() {
       }
     } catch (error) {
       console.error('Error updating content:', error);
+    }
+  };
+
+  const handleEditContent = (item: CreatorContent) => {
+    setEditForm({
+      title: item.title,
+      description: item.description || '',
+      unlockPrice: item.unlockPrice,
+    });
+    setSelectedContent(item);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedContent) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/content/${selectedContent.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editForm.title,
+          description: editForm.description || null,
+          unlockPrice: editForm.unlockPrice,
+        }),
+      });
+
+      if (response.ok) {
+        setSelectedContent(null);
+        await fetchContent();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to update content');
+      }
+    } catch (error) {
+      console.error('Error updating content:', error);
+      alert('Failed to update content');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -182,7 +223,7 @@ export default function CreatorContentStudioPage() {
                           <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-lg shadow-xl z-10">
                             <button
                               onClick={() => {
-                                setSelectedContent(item);
+                                handleEditContent(item);
                                 setShowMenu(null);
                               }}
                               className="w-full px-4 py-3 text-left text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
@@ -271,29 +312,85 @@ export default function CreatorContentStudioPage() {
           </div>
         )}
 
-        {/* Edit Modal Placeholder */}
+        {/* Edit Modal */}
         {selectedContent && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <GlassCard className="p-8 max-w-2xl w-full">
-              <h2 className="text-2xl font-bold text-white mb-4">Edit Content</h2>
-              <p className="text-gray-400 mb-6">Editing: {selectedContent.title}</p>
-              <div className="flex gap-3">
+            <GlassCard className="p-6 max-w-lg w-full">
+              <h2 className="text-2xl font-bold text-white mb-6">Edit Content</h2>
+
+              {/* Thumbnail Preview */}
+              {selectedContent.thumbnailUrl && (
+                <div className="mb-6 rounded-lg overflow-hidden">
+                  <img
+                    src={selectedContent.thumbnailUrl}
+                    alt={selectedContent.title}
+                    className="w-full h-40 object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan transition-all"
+                    placeholder="Enter title..."
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan transition-all resize-none"
+                    placeholder="Add a description..."
+                  />
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Unlock Price (coins)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.unlockPrice}
+                    onChange={(e) => setEditForm({ ...editForm, unlockPrice: parseInt(e.target.value) || 0 })}
+                    min={0}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan transition-all"
+                    placeholder="0 for free"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Set to 0 for free content</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
                 <GlassButton
                   variant="ghost"
                   onClick={() => setSelectedContent(null)}
                   className="flex-1"
+                  disabled={saving}
                 >
                   Cancel
                 </GlassButton>
                 <GlassButton
                   variant="gradient"
-                  onClick={() => {
-                    alert('Edit functionality coming soon!');
-                    setSelectedContent(null);
-                  }}
+                  onClick={handleSaveEdit}
                   className="flex-1"
+                  disabled={saving || !editForm.title.trim()}
                 >
-                  Save Changes
+                  {saving ? <LoadingSpinner size="sm" /> : 'Save Changes'}
                 </GlassButton>
               </div>
             </GlassCard>

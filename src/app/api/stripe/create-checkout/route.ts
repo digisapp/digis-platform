@@ -41,8 +41,7 @@ export async function POST(request: NextRequest) {
             currency: 'usd',
             product_data: {
               name: coinPackage.name,
-              description: `${coinPackage.coins} Digis Coins for the platform`,
-              images: ['https://your-domain.com/digis-coin.png'], // TODO: Replace with actual image
+              description: `${coinPackage.coins.toLocaleString()} Digis Coins`,
             },
             unit_amount: coinPackage.price,
           },
