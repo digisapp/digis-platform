@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthProvider } from "@/context/AuthContext";
+import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 
 export const metadata: Metadata = {
   title: "Digis - Creator Economy Platform",
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className="antialiased bg-black min-h-screen">
         <AuthProvider>
           <Navigation />
+          <IncomingCallPopup />
           {children}
         </AuthProvider>
       </body>

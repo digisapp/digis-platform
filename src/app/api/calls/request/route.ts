@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
+import { db, users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +16,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { creatorId } = await request.json();
+    const { creatorId, callType = 'video' } = await request.json();
 
     if (!creatorId) {
       return NextResponse.json(
@@ -24,7 +26,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Request the call
-    const call = await CallService.requestCall(user.id, creatorId);
+    const call = await CallService.requestCall(user.id, creatorId, callType);
+
+    // Get fan details for the notification
+    const fan = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+      },
+    });
+
+    // Broadcast real-time notification to creator
+    await supabase.channel(`call_requests:${creatorId}`).send({
+      type: 'broadcast',
+      event: 'new_call',
+      payload: {
+        callId: call.id,
+        fanId: user.id,
+        callType: call.callType,
+        ratePerMinute: call.ratePerMinute,
+        estimatedCoins: call.estimatedCoins,
+        fan,
+      },
+    });
 
     return NextResponse.json({
       call,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Phone, CheckCircle, XCircle, Clock } from 'lucide-react';
 
@@ -18,6 +19,7 @@ interface PendingCall {
 }
 
 export function PendingCalls() {
+  const router = useRouter();
   const [calls, setCalls] = useState<PendingCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -54,9 +56,9 @@ export function PendingCalls() {
       });
 
       if (response.ok) {
-        // Remove from pending list
+        // Remove from pending list and navigate to call
         setCalls(calls.filter((call) => call.id !== callId));
-        alert('Call accepted! Fan has been notified.');
+        router.push(`/calls/${callId}`);
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to accept call');
