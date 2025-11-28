@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ state: 'idle' as const }, { headers: rl.headers });
     }
 
-    // Cache stream data (not user-specific) for 10s
+    // Cache stream data (not user-specific) for 3s - short TTL for real-time status
     const streamData = await withMiniLock<CachedStreamData | null>(
       `status:${username}`,
       async () => {
@@ -48,7 +48,8 @@ export async function GET(req: NextRequest) {
         if (!creator) return null;
 
         const stream = await getCurrentStreamForCreator(creator.id);
-        if (!stream) return null;
+        // If no live/upcoming stream, return null (idle state)
+        if (!stream || stream.status === 'ended') return null;
 
         // Fetch full stream details including title
         const streamDetails = await db.query.streams.findFirst({
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
           creatorId: creator.id,
         };
       },
-      10 // 10 second TTL
+      3 // 3 second TTL for real-time accuracy
     );
 
     if (!streamData) {
