@@ -218,11 +218,6 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                       />
                       <span className="text-gray-300 font-medium">coins</span>
                     </div>
-                    <div className="mt-3 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                      <p className="text-sm text-cyan-300">
-                        Recipient will pay {unlockPrice} coins to view this {mediaType}
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
