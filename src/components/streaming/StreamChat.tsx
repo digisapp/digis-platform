@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { GlassButton } from '@/components/ui/GlassButton';
+import { Send, Smile, Gift } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
 
 type StreamChatProps = {
@@ -13,16 +13,28 @@ type StreamChatProps = {
   onMessageDeleted?: () => void;
 };
 
+// Quick emojis for chat
+const CHAT_EMOJIS = ['❤️', '🔥', '😂', '👏', '🎉', '💯', '😍', '🙌'];
+
 export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [showEmojis, setShowEmojis] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive - instant on mobile for performance
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
-    chatEndRef.current?.scrollIntoView({ behavior: isMobile ? 'auto' : 'smooth' });
+    if (chatContainerRef.current) {
+      const { scrollHeight, scrollTop, clientHeight } = chatContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+      // Only auto-scroll if user is near the bottom
+      if (isNearBottom) {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,6 +54,12 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
     }
   };
 
+  const insertEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    setShowEmojis(false);
+    inputRef.current?.focus();
+  };
+
   const formatTimestamp = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -49,90 +67,104 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
     });
   };
 
-  const getMessageColor = (messageType: string) => {
-    switch (messageType) {
-      case 'system':
-        return 'text-gray-400';
-      case 'gift':
-        return 'text-digis-pink';
-      default:
-        return 'text-white';
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full min-h-[400px] max-h-[calc(100vh-20rem)] lg:max-h-full bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
-      {/* Chat Header */}
-      <div className="px-4 py-3 border-b border-white/10 flex-shrink-0">
-        <h3 className="text-lg font-bold text-white">Live Chat</h3>
-        <p className="text-sm text-gray-400">{messages.length} messages</p>
-      </div>
-
+    <div className="flex flex-col h-full bg-transparent">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin"
+      >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-            No messages yet. Be the first to say hi! 👋
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+              <span className="text-3xl">💬</span>
+            </div>
+            <p className="text-gray-400 font-medium">No messages yet</p>
+            <p className="text-gray-500 text-sm mt-1">Be the first to say hi!</p>
           </div>
         ) : (
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex flex-col gap-1 ${
-                msg.messageType === 'system' ? 'items-center' : ''
-              }`}
+              className={`group relative ${msg.messageType === 'system' ? 'text-center' : ''}`}
             >
               {msg.messageType === 'system' ? (
-                <div className="text-sm text-gray-400 italic">{msg.message}</div>
-              ) : (
-                <>
-                  <div className="flex items-start gap-2 group relative">
-                    {/* Avatar */}
-                    {(msg as any).user?.avatarUrl ? (
-                      <img
-                        src={(msg as any).user.avatarUrl}
-                        alt={msg.username}
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {msg.username[0]?.toUpperCase() || '?'}
-                      </div>
-                    )}
-
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-semibold text-digis-cyan">
-                          {msg.username}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {formatTimestamp(msg.createdAt)}
-                        </span>
-                      </div>
-                      <div className={`text-sm ${getMessageColor(msg.messageType)}`}>
-                        {msg.messageType === 'gift' && msg.giftAmount && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-digis-pink/20 to-digis-cyan/20 rounded-lg border border-digis-pink/30 mr-2">
-                            <span className="text-base">🎁</span>
-                            <span className="font-bold">{msg.giftAmount} coins</span>
-                          </span>
-                        )}
-                        {msg.message}
-                      </div>
+                <div className="py-2 px-4 bg-white/5 rounded-lg inline-block">
+                  <span className="text-sm text-gray-400 italic">{msg.message}</span>
+                </div>
+              ) : msg.messageType === 'gift' ? (
+                // Gift message - special styling
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-xl border border-digis-pink/20">
+                  {/* Avatar */}
+                  {(msg as any).user?.avatarUrl ? (
+                    <img
+                      src={(msg as any).user.avatarUrl}
+                      alt={msg.username}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {msg.username[0]?.toUpperCase() || '?'}
                     </div>
-
-                    {/* Moderation Tools (Creator Only) */}
-                    {isCreator && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ModerationTools
-                          message={msg}
-                          streamId={streamId}
-                          onMessageDeleted={onMessageDeleted}
-                        />
-                      </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-digis-pink">{msg.username}</span>
+                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl">🎁</span>
+                      <span className="text-sm text-white">
+                        Sent <span className="font-bold text-digis-cyan">{msg.giftAmount} coins</span>
+                      </span>
+                    </div>
+                    {msg.message && (
+                      <p className="text-sm text-gray-300 mt-1">{msg.message}</p>
                     )}
                   </div>
-                </>
+                </div>
+              ) : (
+                // Regular message
+                <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
+                  {/* Avatar */}
+                  {(msg as any).user?.avatarUrl ? (
+                    <img
+                      src={(msg as any).user.avatarUrl}
+                      alt={msg.username}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {msg.username[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+
+                  {/* Message Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-semibold text-digis-cyan text-sm">
+                        {msg.username}
+                      </span>
+                      <span className="text-xs text-gray-600">
+                        {formatTimestamp(msg.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-white/90 break-words leading-relaxed">
+                      {msg.message}
+                    </p>
+                  </div>
+
+                  {/* Moderation Tools (Creator Only) */}
+                  {isCreator && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <ModerationTools
+                        message={msg}
+                        streamId={streamId}
+                        onMessageDeleted={onMessageDeleted}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))
@@ -142,31 +174,59 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
 
       {/* Message Input */}
       {onSendMessage && (
-        <form onSubmit={handleSubmit} className="px-4 py-3 border-t border-white/10">
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Send a message..."
-              className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
-              maxLength={500}
-              disabled={isSending}
-            />
-            <GlassButton
-              type="submit"
-              variant="cyan"
-              size="md"
-              disabled={!newMessage.trim() || isSending}
+        <div className="p-4 border-t border-white/10 bg-black/40">
+          {/* Quick Emoji Bar */}
+          {showEmojis && (
+            <div className="mb-3 flex items-center gap-1 flex-wrap p-2 bg-white/5 rounded-xl">
+              {CHAT_EMOJIS.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => insertEmoji(emoji)}
+                  className="w-10 h-10 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-xl"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            {/* Emoji Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowEmojis(!showEmojis)}
+              className={`p-2 rounded-lg transition-colors ${showEmojis ? 'bg-digis-cyan text-black' : 'hover:bg-white/10 text-gray-400'}`}
             >
-              {isSending ? '...' : 'Send'}
-            </GlassButton>
-          </div>
-          <div className="mt-2 text-xs text-gray-500 text-right">
-            {newMessage.length}/500
-          </div>
-        </form>
+              <Smile className="w-5 h-5" />
+            </button>
+
+            {/* Input */}
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Send a message..."
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm"
+                maxLength={500}
+                disabled={isSending}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-600">
+                {newMessage.length}/500
+              </span>
+            </div>
+
+            {/* Send Button */}
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || isSending}
+              className="p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl text-white font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
       )}
     </div>
   );

@@ -211,10 +211,10 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
                 {[5, 10, 25, 50].map((amount) => (
                   <button
                     key={amount}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 font-semibold text-sm hover:scale-105 transition-all shadow-md"
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-digis-cyan to-digis-pink text-white font-semibold text-sm hover:scale-105 transition-all shadow-md shadow-digis-pink/30"
                     onClick={() => handleQuickTip(amount)}
                   >
-                    Tip ${amount}
+                    {amount} coins
                   </button>
                 ))}
               </div>

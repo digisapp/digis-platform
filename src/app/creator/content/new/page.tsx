@@ -224,11 +224,11 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, contentType: 'photo' })}
                 className={`p-6 rounded-xl border-2 transition-all ${
                   formData.contentType === 'photo'
-                    ? 'border-digis-cyan bg-digis-cyan/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                    ? 'border-digis-cyan bg-digis-cyan/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                 }`}
               >
-                <Image className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'photo' ? 'text-digis-cyan' : 'text-gray-600'}`} />
+                <Image className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'photo' ? 'text-digis-cyan' : 'text-gray-400'}`} />
                 <div className="text-sm font-semibold text-white">Photo</div>
               </button>
 
@@ -237,11 +237,11 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, contentType: 'video' })}
                 className={`p-6 rounded-xl border-2 transition-all ${
                   formData.contentType === 'video'
-                    ? 'border-digis-cyan bg-digis-cyan/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                    ? 'border-digis-cyan bg-digis-cyan/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                 }`}
               >
-                <Video className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'video' ? 'text-digis-cyan' : 'text-gray-600'}`} />
+                <Video className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'video' ? 'text-digis-cyan' : 'text-gray-400'}`} />
                 <div className="text-sm font-semibold text-white">Video</div>
               </button>
 
@@ -250,11 +250,11 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, contentType: 'gallery' })}
                 className={`p-6 rounded-xl border-2 transition-all ${
                   formData.contentType === 'gallery'
-                    ? 'border-digis-cyan bg-digis-cyan/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                    ? 'border-digis-cyan bg-digis-cyan/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                 }`}
               >
-                <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-600'}`} />
+                <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-400'}`} />
                 <div className="text-sm font-semibold text-white">Multiple</div>
               </button>
             </div>
@@ -293,7 +293,7 @@ export default function CreateContentPage() {
                   ))}
                 </div>
                 <label className="block">
-                  <div className="border-2 border-dashed border-purple-300 rounded-xl p-6 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/40 transition-all">
+                  <div className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/10 transition-all">
                     <Plus className="w-8 h-8 mx-auto mb-2 text-gray-500" />
                     <p className="text-white font-medium text-sm">Add more images</p>
                   </div>
@@ -345,7 +345,7 @@ export default function CreateContentPage() {
             ) : (
               /* Upload Prompt */
               <label className="block">
-                <div className="border-2 border-dashed border-purple-300 rounded-xl p-12 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/40 transition-all">
+                <div className="border-2 border-dashed border-white/30 rounded-xl p-12 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/10 transition-all">
                   <Upload className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p className="text-white font-medium mb-2">
                     {formData.contentType === 'gallery' ? 'Click to upload multiple images' : 'Click to upload or drag and drop'}
@@ -380,7 +380,7 @@ export default function CreateContentPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Give your content a catchy title"
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                   required
                 />
               </div>
@@ -392,7 +392,7 @@ export default function CreateContentPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what fans will get..."
-                  className="w-full px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                 />
               </div>
             </div>
@@ -408,13 +408,13 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, isFree: true, unlockPrice: 0 })}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                   formData.isFree
-                    ? 'border-green-500 bg-green-500/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                    ? 'border-green-500 bg-green-500/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                 }`}
               >
-                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-500' : 'text-gray-600'}`} />
-                <div className={`text-sm font-semibold ${formData.isFree ? 'text-white' : 'text-gray-900'}`}>Free</div>
-                <div className={`text-xs ${formData.isFree ? 'text-gray-300' : 'text-gray-700'}`}>Everyone can view</div>
+                <Eye className={`w-6 h-6 mx-auto mb-2 ${formData.isFree ? 'text-green-400' : 'text-gray-400'}`} />
+                <div className="text-sm font-semibold text-white">Free</div>
+                <div className="text-xs text-gray-400">Everyone can view</div>
               </button>
 
               <button
@@ -422,13 +422,13 @@ export default function CreateContentPage() {
                 onClick={() => setFormData({ ...formData, isFree: false, unlockPrice: formData.unlockPrice || 100 })}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all ${
                   !formData.isFree
-                    ? 'border-yellow-400 bg-yellow-500/10'
-                    : 'border-purple-200 bg-white/60 hover:bg-white/80'
+                    ? 'border-yellow-400 bg-yellow-500/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                 }`}
               >
-                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-yellow-400' : 'text-gray-600'}`} />
-                <div className={`text-sm font-semibold ${!formData.isFree ? 'text-white' : 'text-gray-900'}`}>Locked</div>
-                <div className={`text-xs ${!formData.isFree ? 'text-gray-300' : 'text-gray-700'}`}>Pay to unlock</div>
+                <Lock className={`w-6 h-6 mx-auto mb-2 ${!formData.isFree ? 'text-yellow-400' : 'text-gray-400'}`} />
+                <div className="text-sm font-semibold text-white">Locked</div>
+                <div className="text-xs text-gray-400">Pay to unlock</div>
               </button>
             </div>
 
@@ -442,7 +442,7 @@ export default function CreateContentPage() {
                     min="1"
                     value={formData.unlockPrice}
                     onChange={(e) => setFormData({ ...formData, unlockPrice: parseInt(e.target.value) || 0 })}
-                    className="flex-1 px-4 py-3 bg-white/60 border border-purple-200 rounded-xl text-gray-900 font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
                   />
                   <span className="text-gray-300">coins</span>
                 </div>
@@ -451,15 +451,7 @@ export default function CreateContentPage() {
           </GlassCard>
 
           {/* Submit */}
-          <div className="flex gap-4">
-            <GlassButton
-              type="button"
-              variant="ghost"
-              onClick={() => router.back()}
-              className="flex-1"
-            >
-              Cancel
-            </GlassButton>
+          <div className="pb-8">
             <GlassButton
               type="submit"
               variant="gradient"
@@ -469,7 +461,8 @@ export default function CreateContentPage() {
                 (formData.contentType === 'gallery' ? formData.files.length === 0 : !formData.file)
               }
               shimmer
-              className="flex-1"
+              className="w-full"
+              size="lg"
             >
               <span className="text-white font-semibold">{uploading ? 'Uploading...' : 'Publish Content'}</span>
             </GlassButton>

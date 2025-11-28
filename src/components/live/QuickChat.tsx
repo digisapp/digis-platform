@@ -134,9 +134,9 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
             return (
               <div key={msg.id} className="flex gap-2">
                 {msg.type === 'tip' ? (
-                  <div className="flex-1 bg-yellow-500/20 rounded px-2 py-1">
+                  <div className="flex-1 bg-digis-pink/20 rounded px-2 py-1">
                     <span className={`font-semibold ${tierColor}`}>{msg.username}</span>
-                    <span className="text-yellow-200"> tipped ${msg.amount}</span>
+                    <span className="text-digis-pink"> tipped {msg.amount} coins</span>
                   </div>
                 ) : (
                   <>
@@ -158,11 +158,11 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder="Send a message..."
-          className="flex-1 px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs placeholder:text-white/40 border border-white/20 focus:outline-none focus:border-white/40"
+          className="flex-1 px-4 py-3 rounded-xl bg-white/10 text-white text-sm placeholder:text-white/40 border border-white/20 focus:outline-none focus:border-digis-cyan transition-colors"
         />
         <button
           onClick={handleSendMessage}
-          className="px-3 py-1.5 rounded-lg bg-digis-cyan text-white text-xs font-semibold hover:bg-digis-cyan/90"
+          className="px-5 py-3 rounded-xl bg-gradient-to-r from-digis-cyan to-digis-pink text-white text-sm font-semibold hover:scale-105 transition-all shadow-md shadow-digis-pink/30"
         >
           Send
         </button>

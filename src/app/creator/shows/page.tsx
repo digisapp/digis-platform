@@ -164,16 +164,16 @@ export default function CreatorShowsPage() {
 
         {/* Shows Grid */}
         {filteredShows.length === 0 ? (
-          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
             <div className="relative">
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
                 <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black text-gray-900 mb-3">
+              <h3 className="text-2xl font-black text-white mb-3">
                 No {statusFilter} streams
               </h3>
-              <p className="text-gray-900 text-lg mb-8 max-w-md mx-auto">
+              <p className="text-gray-300 text-lg mb-8 max-w-md mx-auto">
                 {statusFilter === 'scheduled'
                   ? 'Create your first paid stream and start earning!'
                   : 'Your completed streams will appear here.'}
@@ -208,58 +208,58 @@ export default function CreatorShowsPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mt-8">
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-purple-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
+          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-purple-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 w-fit mb-3">
-                <BarChart3 className="w-5 h-5 text-purple-600" strokeWidth={2.5} />
+                <BarChart3 className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
               </div>
-              <div className="text-3xl font-black text-gray-900 mb-1">{stats.totalShows}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Streams</div>
+              <div className="text-3xl font-black text-white mb-1">{stats.totalShows}</div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Streams</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-cyan-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
+          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 w-fit mb-3">
-                <Calendar className="w-5 h-5 text-cyan-600" strokeWidth={2.5} />
+                <Calendar className="w-5 h-5 text-cyan-400" strokeWidth={2.5} />
               </div>
-              <div className="text-3xl font-black text-cyan-600 mb-1">{stats.scheduled}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Upcoming</div>
+              <div className="text-3xl font-black text-cyan-400 mb-1">{stats.scheduled}</div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Upcoming</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-green-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
+          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 w-fit mb-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600" strokeWidth={2.5} />
+                <CheckCircle2 className="w-5 h-5 text-green-400" strokeWidth={2.5} />
               </div>
-              <div className="text-3xl font-black text-green-600 mb-1">{stats.completed}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Completed</div>
+              <div className="text-3xl font-black text-green-400 mb-1">{stats.completed}</div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Completed</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-pink-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
+          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-pink-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-600/20 w-fit mb-3">
-                <Ticket className="w-5 h-5 text-pink-600" strokeWidth={2.5} />
+                <Ticket className="w-5 h-5 text-pink-400" strokeWidth={2.5} />
               </div>
-              <div className="text-3xl font-black text-pink-600 mb-1">{stats.totalTicketsSold}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Tickets Sold</div>
+              <div className="text-3xl font-black text-pink-400 mb-1">{stats.totalTicketsSold}</div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tickets Sold</div>
             </div>
           </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/40 backdrop-blur-xl border border-white/60 hover:border-yellow-300 transition-all duration-300 hover:shadow-2xl hover:scale-105">
+          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-yellow-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
             <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">
               <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 w-fit mb-3">
-                <DollarSign className="w-5 h-5 text-yellow-600" strokeWidth={2.5} />
+                <DollarSign className="w-5 h-5 text-yellow-400" strokeWidth={2.5} />
               </div>
-              <div className="text-3xl font-black text-yellow-600 mb-1">{stats.totalRevenue}</div>
-              <div className="text-xs font-semibold text-gray-900 uppercase tracking-wide">Total Revenue</div>
+              <div className="text-3xl font-black text-yellow-400 mb-1">{stats.totalRevenue}</div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Revenue</div>
             </div>
           </div>
         </div>
