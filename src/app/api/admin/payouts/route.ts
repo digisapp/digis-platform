@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, payoutRequests, creatorBankingInfo, users } from '@/lib/data/system';
 import { eq, desc } from 'drizzle-orm';
-import { getLastFourDigits } from '@/lib/crypto/encryption';
+import { getLastFourDigits, decrypt } from '@/lib/crypto/encryption';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -51,17 +51,32 @@ export async function GET(request: NextRequest) {
 
     const results = await payoutsQuery;
 
+    // Helper to safely decrypt account number
+    const decryptAccountNumber = (encrypted: string): string => {
+      try {
+        if (encrypted.includes(':')) {
+          return decrypt(encrypted);
+        }
+        return encrypted; // Legacy plain text
+      } catch {
+        return '****DECRYPTION_FAILED****';
+      }
+    };
+
     const payouts = results.map((row) => ({
       id: row.payout.id,
       creatorId: row.payout.creatorId,
       creatorUsername: row.creator?.username || 'Unknown',
       creatorDisplayName: row.creator?.displayName || row.creator?.username || 'Unknown',
+      creatorEmail: row.creator?.email || 'Unknown',
       amount: row.payout.amount,
       status: row.payout.status,
       bankingInfo: row.banking ? {
         accountHolderName: row.banking.accountHolderName,
         bankName: row.banking.bankName,
         accountType: row.banking.accountType,
+        routingNumber: row.banking.routingNumber,
+        accountNumber: decryptAccountNumber(row.banking.accountNumber),
         lastFourDigits: getLastFourDigits(row.banking.accountNumber),
         isVerified: row.banking.isVerified === 1,
       } : null,

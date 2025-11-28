@@ -11,12 +11,15 @@ interface PayoutRequest {
   creatorId: string;
   creatorUsername: string;
   creatorDisplayName: string;
+  creatorEmail: string;
   amount: number;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   bankingInfo: {
     accountHolderName: string;
     bankName: string;
     accountType: string;
+    routingNumber: string;
+    accountNumber: string;
     lastFourDigits: string;
     isVerified: boolean;
   };
@@ -35,6 +38,7 @@ export default function AdminPayoutsPage() {
   const [processing, setProcessing] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [error, setError] = useState('');
+  const [showSensitive, setShowSensitive] = useState(false);
 
   useEffect(() => {
     fetchPayouts();
@@ -315,7 +319,10 @@ export default function AdminPayoutsPage() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white">Payout Details</h2>
                 <button
-                  onClick={() => setSelectedPayout(null)}
+                  onClick={() => {
+                    setSelectedPayout(null);
+                    setShowSensitive(false);
+                  }}
                   className="text-gray-400 hover:text-white"
                 >
                   ✕
@@ -323,16 +330,36 @@ export default function AdminPayoutsPage() {
               </div>
 
               <div className="space-y-4">
+                {/* Payout Amount */}
+                <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-500/30">
+                  <h3 className="text-sm font-bold text-green-400 mb-2">Payout Amount</h3>
+                  <p className="text-3xl font-bold text-white">{formatCoinsAsUSD(selectedPayout.amount)}</p>
+                  <p className="text-sm text-gray-400">{selectedPayout.amount.toLocaleString()} coins</p>
+                </div>
+
                 {/* Creator Info */}
                 <div className="p-4 rounded-xl bg-white/5">
                   <h3 className="text-sm font-bold text-digis-cyan mb-2">Creator</h3>
                   <p className="text-white font-bold">{selectedPayout.creatorDisplayName}</p>
                   <p className="text-sm text-gray-400">@{selectedPayout.creatorUsername}</p>
+                  <p className="text-sm text-gray-400">{selectedPayout.creatorEmail}</p>
                 </div>
 
                 {/* Banking Info */}
                 <div className="p-4 rounded-xl bg-white/5">
-                  <h3 className="text-sm font-bold text-digis-cyan mb-2">Banking Information</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-digis-cyan">Banking Information</h3>
+                    <button
+                      onClick={() => setShowSensitive(!showSensitive)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        showSensitive
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      }`}
+                    >
+                      {showSensitive ? '🔓 Hide Sensitive' : '🔒 Show Full Details'}
+                    </button>
+                  </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Account Holder:</span>
@@ -353,9 +380,17 @@ export default function AdminPayoutsPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-gray-400">Routing Number:</span>
+                      <span className="text-white font-medium font-mono">
+                        {showSensitive ? selectedPayout.bankingInfo.routingNumber : '•••••••••'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-gray-400">Account Number:</span>
-                      <span className="text-white font-medium">
-                        ****{selectedPayout.bankingInfo.lastFourDigits}
+                      <span className="text-white font-medium font-mono">
+                        {showSensitive
+                          ? selectedPayout.bankingInfo.accountNumber
+                          : `••••••${selectedPayout.bankingInfo.lastFourDigits}`}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -365,6 +400,33 @@ export default function AdminPayoutsPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Copy buttons for easy transfer */}
+                  {showSensitive && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <p className="text-xs text-gray-400 mb-2">Quick copy for bank transfer:</p>
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.routingNumber)}
+                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                        >
+                          Copy Routing
+                        </button>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.accountNumber)}
+                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                        >
+                          Copy Account
+                        </button>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.accountHolderName)}
+                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                        >
+                          Copy Name
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Admin Notes */}
