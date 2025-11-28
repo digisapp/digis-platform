@@ -538,7 +538,7 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {user.displayName && (
-                  <p className="text-cyan-300/90 text-sm sm:text-base mb-1">@{user.username}</p>
+                  <p className="text-cyan-300/90 text-sm sm:text-base mb-1">{user.username}</p>
                 )}
 
                 {/* Follower Count */}
