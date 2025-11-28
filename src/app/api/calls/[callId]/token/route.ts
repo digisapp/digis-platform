@@ -79,7 +79,7 @@ export async function GET(
     const participantName = participant.displayName || participant.username || 'User';
 
     // Generate LiveKit token
-    const token = LiveKitService.generateToken(
+    const token = await LiveKitService.generateToken(
       call.roomName,
       participantName,
       user.id

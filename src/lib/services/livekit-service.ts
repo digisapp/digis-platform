@@ -4,7 +4,7 @@ export class LiveKitService {
   /**
    * Generate an access token for a user to join a video call room
    */
-  static generateToken(roomName: string, participantName: string, participantId: string) {
+  static async generateToken(roomName: string, participantName: string, participantId: string): Promise<string> {
     const apiKey = process.env.LIVEKIT_API_KEY;
     const apiSecret = process.env.LIVEKIT_API_SECRET;
 
@@ -26,6 +26,6 @@ export class LiveKitService {
       canPublishData: true,
     });
 
-    return token.toJwt();
+    return await token.toJwt();
   }
 }

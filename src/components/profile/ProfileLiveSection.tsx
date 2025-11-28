@@ -80,7 +80,7 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
   const handleQuickTip = async (amount: number) => {
     if (!status.streamId) return;
 
-    const optimisticId = `tip-${Date.now()}`;
+    const optimisticId = `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     setOptimisticTips((prev) => [...prev, { id: optimisticId, amount }]);
 
     // Track analytics
@@ -89,13 +89,18 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
     try {
       const response = await fetch('/api/tips/quick', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': optimisticId,
+        },
         body: JSON.stringify({ amount, streamId: status.streamId }),
       });
 
       if (!response.ok) {
         // Rollback on failure
         setOptimisticTips((prev) => prev.filter((t) => t.id !== optimisticId));
+        const error = await response.json();
+        console.error('[ProfileLiveSection] Tip failed:', error);
       }
     } catch (error) {
       // Rollback on error

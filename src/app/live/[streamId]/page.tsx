@@ -254,10 +254,15 @@ export default function TheaterModePage() {
       return;
     }
 
+    const idempotencyKey = `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
     try {
       const response = await fetch('/api/tips/quick', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey,
+        },
         body: JSON.stringify({ amount, streamId }),
       });
 

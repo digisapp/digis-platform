@@ -6,6 +6,7 @@ import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, us
 import '@livekit/components-styles/themes/default';
 import { ConnectionState, Track } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 interface CallToken {
   token: string;
@@ -245,6 +246,28 @@ export default function VideoCallPage() {
     : 0;
 
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [callEndedByOther, setCallEndedByOther] = useState(false);
+
+  // Subscribe to call end events
+  useEffect(() => {
+    const supabase = createClient();
+
+    const channel = supabase
+      .channel(`call:${callId}`)
+      .on('broadcast', { event: 'call_ended' }, (payload) => {
+        console.log('Call ended by other party:', payload);
+        setCallEndedByOther(true);
+        // Navigate to dashboard after a short delay
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 2000);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [callId, router]);
 
   // End call
   const handleEndCall = async () => {
@@ -347,6 +370,38 @@ export default function VideoCallPage() {
         <div className="absolute w-[500px] h-[500px] top-1/2 right-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
+
+      {/* Call Ended by Other Party Modal */}
+      {callEndedByOther && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/40 shadow-[0_0_60px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200">
+            <div className="relative text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-cyan-500/20 rounded-2xl flex items-center justify-center border border-cyan-500/40">
+                <PhoneOff className="w-10 h-10 text-cyan-400" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-white mb-3">Call Ended</h3>
+              <p className="text-gray-400 mb-4">The other participant has ended the call.</p>
+
+              {hasStarted && (
+                <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400">Duration</span>
+                    <span className="font-mono font-bold text-cyan-400">{formatDuration(duration)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-2">
+                    <span className="text-gray-400">Estimated Cost</span>
+                    <span className="font-bold text-yellow-400">{estimatedCost} coins</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-sm text-gray-500">Redirecting to dashboard...</p>
+              <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto mt-3" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* End Call Confirmation Modal */}
       {showEndConfirm && (
