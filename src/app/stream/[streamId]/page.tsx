@@ -8,7 +8,6 @@ import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
-import { QuickEmojiReactions } from '@/components/streaming/QuickEmojiReactions';
 import { EmojiReactionBurstSimple } from '@/components/streaming/EmojiReactionBurst';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
@@ -413,18 +412,6 @@ export default function StreamViewerPage() {
     }
   };
 
-  const handleReaction = async (emoji: string) => {
-    try {
-      await fetch(`/api/streams/${streamId}/reaction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emoji }),
-      });
-    } catch (error) {
-      console.error('Error sending reaction:', error);
-    }
-  };
-
   const removeReaction = useCallback((id: string) => {
     setReactions(prev => prev.filter(r => r.id !== id));
   }, []);
@@ -772,11 +759,6 @@ export default function StreamViewerPage() {
                   >
                     {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                   </button>
-                </div>
-
-                {/* Center: Quick Reactions */}
-                <div className="flex-1 flex justify-center">
-                  <QuickEmojiReactions streamId={streamId} onReaction={handleReaction} />
                 </div>
 
                 {/* Right: Gift & Fullscreen */}
