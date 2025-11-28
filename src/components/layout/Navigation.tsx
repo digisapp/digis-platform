@@ -656,6 +656,16 @@ export function Navigation() {
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
                 </div>
 
+                {/* Balance Header */}
+                <div className="px-4 py-3 border-b border-green-500/20 relative">
+                  <div className="text-center">
+                    <div className="text-2xl font-black text-green-400">
+                      {balance.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-0.5">Coins</div>
+                  </div>
+                </div>
+
                 {/* Buy Coins Button */}
                 <div className="p-2 relative">
                   <button

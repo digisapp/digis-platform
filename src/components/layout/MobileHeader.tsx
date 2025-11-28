@@ -140,6 +140,16 @@ export function MobileHeader() {
 
                 {/* Dropdown Content */}
                 <div className="absolute top-full right-0 mt-2 z-50 backdrop-blur-xl bg-black/90 rounded-2xl border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)] overflow-hidden min-w-[160px]">
+                  {/* Balance Header */}
+                  <div className="px-4 py-3 border-b border-green-500/20">
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-green-400">
+                        {balance.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">Coins</div>
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleBuyCoins}
                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
