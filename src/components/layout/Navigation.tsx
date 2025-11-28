@@ -29,6 +29,7 @@ export function Navigation() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showCoinsMenu, setShowCoinsMenu] = useState(false);
 
   // Derive userRole from AuthContext
   const userRole = authUser?.role || 'fan';
@@ -605,17 +606,43 @@ export function Navigation() {
           <div className="w-14 h-14" />
         </button>
 
-        {/* Balance - Clickable */}
-        <button
-          onClick={() => router.push('/wallet')}
-          className="mb-6 flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 rounded-2xl border-2 border-green-500/40 hover:border-green-500/60 transition-all hover:scale-105 group shadow-[0_0_20px_rgba(34,197,94,0.3)]"
-          title="Wallet"
-        >
-          <Coins className="w-7 h-7 text-green-400 group-hover:rotate-12 transition-transform" />
-          <div className="text-xl font-black text-white drop-shadow-lg">
-            {balance}
-          </div>
-        </button>
+        {/* Balance - Clickable with Dropdown */}
+        <div className="relative mb-6">
+          <button
+            onClick={() => setShowCoinsMenu(!showCoinsMenu)}
+            className="flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 rounded-2xl border-2 border-green-500/40 hover:border-green-500/60 transition-all hover:scale-105 group shadow-[0_0_20px_rgba(34,197,94,0.3)]"
+            title="Wallet"
+          >
+            <Coins className="w-7 h-7 text-green-400 group-hover:rotate-12 transition-transform" />
+            <div className="text-xl font-black text-white drop-shadow-lg">
+              {balance}
+            </div>
+          </button>
+
+          {/* Coins Dropdown Menu */}
+          {showCoinsMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowCoinsMenu(false)}
+              />
+              <div className="absolute left-full top-0 ml-2 z-50 backdrop-blur-xl bg-black/90 rounded-xl border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)] overflow-hidden min-w-[160px]">
+                <button
+                  onClick={() => {
+                    setShowCoinsMenu(false);
+                    router.push('/wallet');
+                  }}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <Coins className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-bold text-white">Buy Coins</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-2">
