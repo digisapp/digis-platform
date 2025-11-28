@@ -13,7 +13,7 @@ import { VideoControls } from '@/components/streaming/VideoControls';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
-import { EmojiReactionBurstSimple } from '@/components/streaming/EmojiReactionBurst';
+import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -90,7 +90,7 @@ export default function BroadcastStudioPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
-  const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
+  const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number }>>([]);
   const [isSafari, setIsSafari] = useState(false);
 
   // Detect Safari browser
@@ -220,6 +220,16 @@ export default function BroadcastStudioPage() {
           setTotalEarnings((prev) => prev + event.data.streamGift.totalCoins);
           // Show gift notification
           showGiftNotification(event.data);
+          // Add floating emoji for the gift
+          const giftData = event.data as { gift: VirtualGift; streamGift: StreamGift };
+          if (giftData.gift) {
+            setFloatingGifts(prev => [...prev, {
+              id: `gift-${Date.now()}-${Math.random()}`,
+              emoji: giftData.gift.emoji,
+              rarity: giftData.gift.rarity,
+              timestamp: Date.now()
+            }]);
+          }
           // Update goals progress and leaderboard
           fetchGoals();
           fetchLeaderboard();
@@ -230,9 +240,6 @@ export default function BroadcastStudioPage() {
         case 'viewer_count':
           setViewerCount(event.data.currentViewers);
           setPeakViewers(event.data.peakViewers);
-          break;
-        case 'reaction':
-          setReactions(prev => [...prev, event.data]);
           break;
       }
     };
@@ -522,8 +529,8 @@ export default function BroadcastStudioPage() {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const removeReaction = (id: string) => {
-    setReactions(prev => prev.filter(r => r.id !== id));
+  const removeFloatingGift = (id: string) => {
+    setFloatingGifts(prev => prev.filter(g => g.id !== id));
   };
 
   const handleSendMessage = async (message: string) => {
@@ -623,8 +630,8 @@ export default function BroadcastStudioPage() {
       </div>
 
       <div className="relative z-10">
-      {/* Emoji Reactions Overlay */}
-      <EmojiReactionBurstSimple reactions={reactions} onComplete={removeReaction} />
+      {/* Floating Gift Emojis Overlay */}
+      <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
