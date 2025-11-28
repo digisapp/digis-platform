@@ -162,6 +162,27 @@ export default function StreamViewerPage() {
     };
   }, [stream, isJoined]);
 
+  // Auto-leave stream on browser close/navigation
+  useEffect(() => {
+    if (!isJoined) return;
+
+    const handleBeforeUnload = () => {
+      // Use sendBeacon for reliable delivery during page unload
+      const url = `/api/streams/${streamId}/leave`;
+      const success = navigator.sendBeacon(url);
+      if (!success) {
+        // Fallback to fetch if sendBeacon fails
+        fetch(url, { method: 'POST', keepalive: true }).catch(() => {});
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isJoined, streamId]);
+
   // Setup real-time subscriptions
   useEffect(() => {
     if (!stream) return;

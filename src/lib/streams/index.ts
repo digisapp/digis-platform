@@ -45,26 +45,45 @@ export async function getCurrentStreamForCreator(creatorId: string): Promise<Str
         startedAt: true,
         scheduledFor: true,
         creatorId: true,
+        lastHeartbeat: true,
       },
     });
 
     if (liveStream) {
-      // Map privacy to kind
-      let kind: StreamInfo['kind'] = 'public';
-      if (liveStream.privacy === 'private') {
-        kind = 'private_group';
-      } else if (liveStream.privacy === 'followers') {
-        kind = 'members_only';
-      }
+      // Check if stream is stale (no heartbeat in last 2 minutes)
+      const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+      const lastHeartbeat = liveStream.lastHeartbeat ? new Date(liveStream.lastHeartbeat) : null;
 
-      return {
-        id: liveStream.id,
-        status: liveStream.status as 'live' | 'scheduled' | 'ended',
-        kind,
-        priceCents: null, // Streams don't have direct pricing, only shows do
-        startsAt: liveStream.startedAt?.toISOString() ?? liveStream.scheduledFor?.toISOString() ?? null,
-        creatorId: liveStream.creatorId,
-      };
+      if (!lastHeartbeat || lastHeartbeat < twoMinutesAgo) {
+        // Stream is stale - mark it as ended
+        console.log(`[getCurrentStreamForCreator] Auto-ending stale stream ${liveStream.id} (last heartbeat: ${lastHeartbeat})`);
+        await db.update(streams)
+          .set({
+            status: 'ended',
+            endedAt: new Date(),
+          })
+          .where(eq(streams.id, liveStream.id));
+
+        // Don't return this stream as live - fall through to check for scheduled streams
+      } else {
+        // Stream is active - return it
+        // Map privacy to kind
+        let kind: StreamInfo['kind'] = 'public';
+        if (liveStream.privacy === 'private') {
+          kind = 'private_group';
+        } else if (liveStream.privacy === 'followers') {
+          kind = 'members_only';
+        }
+
+        return {
+          id: liveStream.id,
+          status: liveStream.status as 'live' | 'scheduled' | 'ended',
+          kind,
+          priceCents: null, // Streams don't have direct pricing, only shows do
+          startsAt: liveStream.startedAt?.toISOString() ?? liveStream.scheduledFor?.toISOString() ?? null,
+          creatorId: liveStream.creatorId,
+        };
+      }
     }
 
     // Check for scheduled streams

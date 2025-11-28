@@ -131,36 +131,47 @@ export default function BroadcastStudioPage() {
   useEffect(() => {
     if (!stream || stream.status !== 'live') return;
 
-    let isEnding = false;
+    let hasCleanedUp = false;
 
-    const endStreamCleanup = async () => {
-      // Skip if user manually ended the stream
-      if (hasManuallyEnded || isEnding) return;
-      isEnding = true;
+    const endStreamCleanup = () => {
+      // Skip if user manually ended the stream or already cleaned up
+      if (hasManuallyEnded || hasCleanedUp) return;
+      hasCleanedUp = true;
 
-      try {
-        await fetch(`/api/streams/${streamId}/end`, {
-          method: 'POST',
-          keepalive: true, // Important for beforeunload
-        });
-      } catch (err) {
-        console.error('Failed to auto-end stream:', err);
+      // Use sendBeacon for reliable delivery during page unload
+      // This is more reliable than fetch with keepalive
+      const url = `/api/streams/${streamId}/end`;
+      const success = navigator.sendBeacon(url);
+      if (!success) {
+        // Fallback to fetch if sendBeacon fails
+        fetch(url, { method: 'POST', keepalive: true }).catch(() => {});
       }
     };
 
     // Handle browser close/refresh
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       endStreamCleanup();
-      // Modern browsers ignore custom messages, but we still need to return a value
+      // Show confirmation dialog to warn user
       e.preventDefault();
       return '';
     };
 
+    // Handle visibility change (user switches tabs or minimizes browser)
+    const handleVisibilityChange = () => {
+      // Only end if document is hidden for a while (handled by heartbeat timeout instead)
+      // This is just for logging/debugging
+      if (document.visibilityState === 'hidden') {
+        console.log('[Broadcast] Tab hidden, heartbeat will keep stream alive');
+      }
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Cleanup on component unmount (navigation away)
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       endStreamCleanup();
     };
   }, [stream, streamId, hasManuallyEnded]);
