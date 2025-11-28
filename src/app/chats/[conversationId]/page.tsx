@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
+import { Gift } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
@@ -291,7 +292,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleSendVoice = async (audioBlob: Blob, duration: number) => {
+  const handleSendVoice = async (audioBlob: Blob, duration: number, unlockPrice?: number) => {
     if (!conversation) return;
 
     try {
@@ -300,6 +301,10 @@ export default function ChatPage() {
       formData.append('file', audioBlob, 'voice-message.webm');
       formData.append('recipientId', conversation.otherUser.id);
       formData.append('duration', duration.toString());
+      if (unlockPrice && unlockPrice > 0) {
+        formData.append('isLocked', 'true');
+        formData.append('unlockPrice', unlockPrice.toString());
+      }
 
       const response = await fetch('/api/messages/send-voice', {
         method: 'POST',
@@ -351,13 +356,13 @@ export default function ChatPage() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col">
         {/* Header */}
-        <div className="glass backdrop-blur-xl border-b border-purple-200 sticky top-0 z-10">
+        <div className="backdrop-blur-xl bg-black/60 border-b border-white/10 sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4 max-w-4xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => router.push('/chats')}
-                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -379,10 +384,10 @@ export default function ChatPage() {
                 </div>
 
                 <div>
-                  <h2 className="font-semibold text-gray-800">
+                  <h2 className="font-semibold text-white">
                     {conversation.otherUser.displayName || conversation.otherUser.username}
                   </h2>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-400">
                     {conversation.otherUser.role === 'creator' ? 'Creator' : 'Fan'}
                   </p>
                 </div>
@@ -391,10 +396,9 @@ export default function ChatPage() {
               {/* Tip Button */}
               <button
                 onClick={() => setShowTipModal(true)}
-                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg font-semibold hover:scale-105 transition-transform flex items-center gap-2"
+                className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
               >
-                <span>💰</span>
-                <span>Send Tip</span>
+                <Gift className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -407,8 +411,8 @@ export default function ChatPage() {
               {messages.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">👋</div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Start the conversation!</h3>
-                  <p className="text-gray-600">Send a message to get started</p>
+                  <h3 className="text-xl font-semibold text-white mb-2">Start the conversation!</h3>
+                  <p className="text-gray-400">Send a message to get started</p>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -427,17 +431,17 @@ export default function ChatPage() {
         </div>
 
         {/* Message Input */}
-        <div className="glass backdrop-blur-xl border-t border-purple-200 sticky bottom-0">
+        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0">
           <div className="container mx-auto px-4 py-4 max-w-4xl">
             <form onSubmit={sendMessage} className="flex gap-2">
               {/* Attachment Button */}
               <button
                 type="button"
                 onClick={() => setShowMediaModal(true)}
-                className="p-3 bg-white/60 border border-purple-200 rounded-full hover:bg-white/80 hover:border-digis-cyan transition-all flex items-center justify-center"
+                className="p-3 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 hover:border-cyan-500/50 transition-all flex items-center justify-center"
                 title="Attach media"
               >
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </button>
@@ -450,13 +454,13 @@ export default function ChatPage() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 bg-white/60 border border-purple-200 rounded-full px-6 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {sending ? '...' : 'Send'}
               </button>
