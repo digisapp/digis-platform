@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { db } from '@/lib/data/system';
 import { subscriptions, follows, conversations, messages } from '@/lib/data/system';
 import { eq, and, or, sql } from 'drizzle-orm';
+import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -102,11 +104,36 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid file type. Only images and videos allowed.' }, { status: 400 });
       }
 
-      // TODO: Upload file to storage (Supabase Storage, AWS S3, etc.)
-      // For now, we'll use a placeholder URL
-      mediaUrl = `/api/placeholder-broadcast/${Date.now()}-${file.name}`;
-      mediaTypeValue = fileMediaType;
-      thumbnailUrl = fileMediaType === 'image' ? mediaUrl : null;
+      // Upload file to Supabase Storage
+      try {
+        const fileBuffer = await file.arrayBuffer();
+        const fileExtension = file.name.split('.').pop() || 'bin';
+        const fileName = `${user.id}/${uuidv4()}.${fileExtension}`;
+
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('message-media')
+          .upload(fileName, fileBuffer, {
+            contentType: file.type,
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('Failed to upload broadcast media:', uploadError);
+          return NextResponse.json({ error: 'Failed to upload media file' }, { status: 500 });
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabaseAdmin.storage
+          .from('message-media')
+          .getPublicUrl(fileName);
+
+        mediaUrl = publicUrl;
+        mediaTypeValue = fileMediaType;
+        thumbnailUrl = fileMediaType === 'image' ? publicUrl : null;
+      } catch (uploadErr) {
+        console.error('Error uploading broadcast media:', uploadErr);
+        return NextResponse.json({ error: 'Failed to upload media file' }, { status: 500 });
+      }
 
       messageContent = caption || `Sent a ${fileMediaType}`;
       messageTypeDb = isLocked ? 'locked' : 'media';
@@ -189,7 +216,6 @@ export async function POST(req: NextRequest) {
       recipientCount: successCount.value,
       failedCount: failedCount.value,
       totalAttempts: recipientIds.length,
-      note: messageType === 'media' ? 'File upload to storage not yet implemented. Using placeholder URL.' : undefined,
     });
   } catch (error) {
     console.error('Error sending broadcast:', error);

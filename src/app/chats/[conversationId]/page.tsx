@@ -62,15 +62,31 @@ export default function ChatPage() {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showChargeWarning, setShowChargeWarning] = useState(false);
   const [pendingMessage, setPendingMessage] = useState('');
+  const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
+  const [userBalance, setUserBalance] = useState<number | null>(null);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingSentRef = useRef<number>(0);
+
+  // Fetch user balance for paid messaging
+  const fetchUserBalance = async () => {
+    try {
+      const response = await fetch('/api/wallet/balance');
+      if (response.ok) {
+        const data = await response.json();
+        setUserBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
 
   useEffect(() => {
     checkAuth();
     fetchConversation();
     fetchMessages();
     markAsRead();
+    fetchUserBalance();
 
     // Subscribe to real-time messages
     const supabase = createClient();
@@ -221,13 +237,25 @@ export default function ChatPage() {
     // Check if recipient has message charging enabled
     const messageCharge = conversation.otherUser.messageCharge;
     if (messageCharge && messageCharge > 0) {
-      // Show warning modal instead of sending immediately
-      setPendingMessage(newMessage.trim());
-      setShowChargeWarning(true);
-      return;
+      // If user hasn't acknowledged the charge yet, show warning for first message
+      if (!hasAcknowledgedCharge) {
+        setPendingMessage(newMessage.trim());
+        setShowChargeWarning(true);
+        return;
+      }
+
+      // User has acknowledged - check if they have enough balance
+      if (userBalance !== null && userBalance < messageCharge) {
+        // Insufficient balance - show warning
+        setPendingMessage(newMessage.trim());
+        setShowChargeWarning(true);
+        return;
+      }
+
+      // Has enough balance and already acknowledged - auto-send
     }
 
-    // If no charge, send normally
+    // Send normally (no charge, or already acknowledged with enough balance)
     await actualSendMessage(newMessage.trim());
   };
 
@@ -251,7 +279,22 @@ export default function ChatPage() {
       if (response.ok) {
         setNewMessage('');
         setPendingMessage('');
+        // Mark as acknowledged if this was a paid message
+        if (conversation.otherUser.messageCharge && conversation.otherUser.messageCharge > 0) {
+          setHasAcknowledgedCharge(true);
+        }
+        // Refresh balance after sending paid message
+        fetchUserBalance();
         fetchMessages();
+      } else {
+        const data = await response.json();
+        if (data.error?.includes('Insufficient balance')) {
+          // Show the charge warning modal with insufficient balance
+          setPendingMessage(content);
+          setShowChargeWarning(true);
+        } else {
+          console.error('Error sending message:', data.error);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -613,7 +656,11 @@ export default function ChatPage() {
             setShowChargeWarning(false);
             setPendingMessage('');
           }}
-          onConfirm={() => actualSendMessage(pendingMessage)}
+          onConfirm={async () => {
+            setShowChargeWarning(false);
+            setHasAcknowledgedCharge(true);
+            await actualSendMessage(pendingMessage);
+          }}
         />
       )}
     </>
