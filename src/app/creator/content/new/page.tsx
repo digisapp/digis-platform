@@ -8,6 +8,7 @@ import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Upload, Image, Video, Grid3x3, DollarSign, Lock, Eye, Plus } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 export default function CreateContentPage() {
   const router = useRouter();
@@ -196,7 +197,10 @@ export default function CreateContentPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
+      {/* Mobile Header */}
+      <MobileHeader />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-end">
           <GlassButton

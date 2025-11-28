@@ -33,7 +33,7 @@ export default function StreamsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
-  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('upcoming');
+  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
   const [typeFilter, setTypeFilter] = useState<ShowType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -149,17 +149,6 @@ export default function StreamsPage() {
         <div className="mb-8 flex flex-wrap gap-2">
           {/* Status Filter Pills */}
           <button
-            onClick={() => setFilter('upcoming')}
-            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
-              filter === 'upcoming'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
-            Upcoming
-          </button>
-          <button
             onClick={() => setFilter('live')}
             className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
               filter === 'live'
@@ -169,6 +158,17 @@ export default function StreamsPage() {
           >
             <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? '' : 'text-red-500'}`} strokeWidth={2} />
             Live Now
+          </button>
+          <button
+            onClick={() => setFilter('upcoming')}
+            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+              filter === 'upcoming'
+                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
+            Upcoming
           </button>
 
           {/* Category Filter Pills */}

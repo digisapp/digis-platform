@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Plus, Edit, Trash2, Eye, ShoppingCart, DollarSign, MoreVertical } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface CreatorContent {
   id: string;
@@ -95,7 +96,10 @@ export default function CreatorContentStudioPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-7xl">
+      {/* Mobile Header */}
+      <MobileHeader />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex items-center justify-end">
           <GlassButton
@@ -108,61 +112,6 @@ export default function CreatorContentStudioPage() {
             <Plus className="w-5 h-5" />
             Upload Content
           </GlassButton>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-white/10 p-3 rounded-lg">
-                <DollarSign className="w-6 h-6 text-digis-cyan" />
-              </div>
-              <div>
-                <div className="text-gray-400 text-sm">Total Earnings</div>
-                <div className="text-2xl font-bold text-white">{totalEarnings}</div>
-                <div className="text-xs text-gray-500">coins</div>
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-white/10 p-3 rounded-lg">
-                <ShoppingCart className="w-6 h-6 text-digis-pink" />
-              </div>
-              <div>
-                <div className="text-gray-400 text-sm">Purchases</div>
-                <div className="text-2xl font-bold text-white">{totalPurchases}</div>
-                <div className="text-xs text-gray-500">total</div>
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-white/10 p-3 rounded-lg">
-                <Eye className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <div className="text-gray-400 text-sm">Total Views</div>
-                <div className="text-2xl font-bold text-white">{totalViews}</div>
-                <div className="text-xs text-gray-500">all time</div>
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-white/10 p-3 rounded-lg">
-                <Plus className="w-6 h-6 text-green-400" />
-              </div>
-              <div>
-                <div className="text-gray-400 text-sm">Content Items</div>
-                <div className="text-2xl font-bold text-white">{content.length}</div>
-                <div className="text-xs text-gray-500">published</div>
-              </div>
-            </div>
-          </GlassCard>
         </div>
 
         {/* Content List */}
@@ -293,6 +242,32 @@ export default function CreatorContentStudioPage() {
                 </div>
               </GlassCard>
             ))}
+          </div>
+        )}
+
+        {/* Summary Stats at Bottom */}
+        {content.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <GlassCard className="p-4 text-center">
+              <DollarSign className="w-6 h-6 text-digis-cyan mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{totalEarnings}</div>
+              <div className="text-gray-400 text-sm">Total Earnings</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <ShoppingCart className="w-6 h-6 text-green-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{totalPurchases}</div>
+              <div className="text-gray-400 text-sm">Purchases</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <Eye className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{totalViews}</div>
+              <div className="text-gray-400 text-sm">Total Views</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <div className="text-2xl mb-2">📸</div>
+              <div className="text-2xl font-bold text-white">{content.length}</div>
+              <div className="text-gray-400 text-sm">Content Items</div>
+            </GlassCard>
           </div>
         )}
 
