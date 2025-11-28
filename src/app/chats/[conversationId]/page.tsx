@@ -124,7 +124,9 @@ export default function ChatPage() {
       const data = await response.json();
 
       if (response.ok) {
-        const conv = data.conversations.find((c: any) => c.id === conversationId);
+        // API returns { data: conversations[] } wrapper
+        const conversations = data.data || data.conversations || [];
+        const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
           setConversation(conv);
         }
