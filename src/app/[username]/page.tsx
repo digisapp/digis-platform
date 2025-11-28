@@ -685,9 +685,9 @@ export default function ProfilePage() {
         )}
 
         {/* Content Tabs - Futuristic Design */}
-        <div className="overflow-hidden mb-8">
+        <div className="mb-8">
           {/* Tab Pills - Glassmorphism */}
-          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2 pl-4 pr-1">
+          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pt-2 pb-2 px-1">
             <button
               onClick={() => setActiveTab('photos')}
               className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
