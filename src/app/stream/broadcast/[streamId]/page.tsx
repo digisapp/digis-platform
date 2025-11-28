@@ -61,6 +61,14 @@ export default function BroadcastStudioPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
+  const [isSafari, setIsSafari] = useState(false);
+
+  // Detect Safari browser
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('chromium');
+    setIsSafari(isSafariBrowser);
+  }, []);
 
   // Update timer every second
   useEffect(() => {
@@ -601,10 +609,9 @@ export default function BroadcastStudioPage() {
 
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100]" onClick={() => setShowEndConfirm(false)} />
-          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
-            <div className="backdrop-blur-xl bg-black/80 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full mx-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowEndConfirm(false)} />
+          <div className="relative backdrop-blur-xl bg-black/80 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full">
               <div className="space-y-3">
                 <GlassButton
                   variant="gradient"
@@ -628,15 +635,13 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
           </div>
-        </>
       )}
 
       {/* Stream Summary Modal */}
       {showStreamSummary && streamSummary && (
-        <>
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100]" />
-          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4 overflow-y-auto">
-            <div className="backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 md:p-8 max-w-2xl w-full mx-auto my-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" />
+          <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 md:p-8 max-w-2xl w-full">
               {/* Header */}
               <div className="text-center mb-6">
                 <div className="mb-4">
@@ -738,72 +743,67 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
           </div>
-        </>
       )}
 
-      {/* Top Stats Bar */}
+      {/* Top Stats Bar - Single Row Layout */}
       <div className="backdrop-blur-xl bg-black/80 border-b border-white/20 sticky top-0 z-40">
-        <div className="container mx-auto px-3 py-3">
-          {/* Row 1: LIVE indicator + Stats */}
-          <div className="flex items-center justify-between gap-3 mb-3">
-            {/* Left: LIVE + Timer */}
-            <div className="relative flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-red-500/20 rounded-lg border border-red-500">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-              <span className="text-red-400 font-bold text-sm">LIVE</span>
-              <span className="text-white font-semibold text-sm">{formatDuration()}</span>
-            </div>
+        <div className="container mx-auto px-3 py-2">
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: LIVE Timer + Viewers + Connection + Goal + Coins */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              {/* LIVE + Timer */}
+              <div className="relative flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 rounded-lg border border-red-500">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-red-400 font-bold text-xs">LIVE</span>
+                <span className="text-white font-semibold text-xs">{formatDuration()}</span>
+              </div>
 
-            {/* Right: Stats Row */}
-            <div className="flex items-center gap-2">
+              {/* Viewers */}
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
+
+              {/* Connection Status */}
               <StreamHealthIndicator streamId={streamId} />
-              {/* Coins Display */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/20 rounded-lg border border-yellow-400/30">
-                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+
+              {/* Set Goal Button */}
+              <button
+                onClick={() => {
+                  const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                  if (hasActiveGoal) {
+                    alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
+                    return;
+                  }
+                  setEditingGoal(null);
+                  setShowGoalModal(true);
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg text-white font-semibold text-xs hover:scale-105 transition-transform"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="hidden sm:inline">Goal</span>
+              </button>
+
+              {/* Coins Earned */}
+              <div className="flex items-center gap-1 px-2 py-1.5 bg-yellow-500/20 rounded-lg border border-yellow-400/30">
+                <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                 </svg>
-                <span className="text-yellow-400 font-bold">{totalEarnings.toLocaleString()}</span>
+                <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
               </div>
             </div>
-          </div>
 
-          {/* Row 2: Action Buttons */}
-          <div className="flex gap-3">
-            <GlassButton
-              variant="gradient"
-              size="sm"
-              onClick={() => {
-                const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                if (hasActiveGoal) {
-                  alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
-                  return;
-                }
-                setEditingGoal(null);
-                setShowGoalModal(true);
-              }}
-              shimmer
-              className="text-white font-semibold flex-1 px-4 py-2.5 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-              Set Goal
-            </GlassButton>
-            <GlassButton
-              variant="gradient"
-              size="sm"
+            {/* Right: End Stream Button */}
+            <button
               onClick={() => setShowEndConfirm(true)}
-              shimmer
-              glow
-              className="text-white font-semibold flex-1 px-4 py-2.5 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg text-white font-semibold text-xs hover:scale-105 transition-transform flex-shrink-0"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
               </svg>
-              End Stream
-            </GlassButton>
+              <span className="hidden sm:inline">End</span>
+            </button>
           </div>
         </div>
       </div>
@@ -836,18 +836,26 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        resolution: VideoPresets.h1440,
+                        // Use lower resolution for Safari to avoid connection issues
+                        resolution: isSafari ? VideoPresets.h720 : VideoPresets.h1440,
                         facingMode: 'user',
                       },
                       publishDefaults: {
-                        videoSimulcastLayers: [
-                          VideoPresets.h1440, // 2K (1440p) for premium viewers
-                          VideoPresets.h1080, // 1080p for high-quality
-                          VideoPresets.h720,  // 720p for medium quality
-                          VideoPresets.h360,  // 360p for low bandwidth
-                        ],
+                        videoSimulcastLayers: isSafari
+                          ? [
+                              VideoPresets.h720,  // 720p max for Safari
+                              VideoPresets.h540,  // 540p for medium quality
+                              VideoPresets.h360,  // 360p for low bandwidth
+                            ]
+                          : [
+                              VideoPresets.h1440, // 2K (1440p) for premium viewers
+                              VideoPresets.h1080, // 1080p for high-quality
+                              VideoPresets.h720,  // 720p for medium quality
+                              VideoPresets.h360,  // 360p for low bandwidth
+                            ],
                         videoEncoding: {
-                          maxBitrate: 8_000_000, // 8 Mbps for 2K quality
+                          // Lower bitrate for Safari
+                          maxBitrate: isSafari ? 2_500_000 : 8_000_000,
                           maxFramerate: 30,
                         },
                         dtx: true,
@@ -889,37 +897,34 @@ export default function BroadcastStudioPage() {
               />
             )}
 
-            {/* Top Gifters Leaderboard - Desktop only (in video column) */}
-            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4 max-w-md">
-              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            {/* Top Gifters Leaderboard - Desktop only (compact) */}
+            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3 max-w-xs">
+              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 Top Gifters
               </h3>
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
                 {leaderboard.length > 0 ? (
-                  leaderboard.map((supporter, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold w-8" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
+                  leaderboard.slice(0, 5).map((supporter, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold w-5" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
                           #{index + 1}
                         </span>
-                        <span className="font-semibold text-white">{supporter.username}</span>
+                        <span className="font-medium text-white truncate max-w-[100px]">{supporter.username}</span>
                       </div>
-                      <span className="text-cyan-400 font-bold">{supporter.totalCoins} coins</span>
+                      <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-300">
-                    <div className="mb-3">
-                      <svg className="w-12 h-12 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <p className="text-white font-medium">No gifts yet!</p>
-                    <p className="text-sm mt-1">Be the first to support this stream</p>
+                  <div className="text-center py-4 text-gray-300">
+                    <svg className="w-8 h-8 mx-auto text-yellow-400 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-white text-xs font-medium">No gifts yet</p>
                   </div>
                 )}
               </div>
@@ -941,36 +946,33 @@ export default function BroadcastStudioPage() {
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
-        <div className="lg:hidden mt-4 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
-          <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+        <div className="lg:hidden mt-4 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
+          <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
             Top Gifters
           </h3>
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+          <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
             {leaderboard.length > 0 ? (
-              leaderboard.map((supporter, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold w-8" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
+              leaderboard.slice(0, 5).map((supporter, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold w-5" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
                       #{index + 1}
                     </span>
-                    <span className="font-semibold text-white">{supporter.username}</span>
+                    <span className="font-medium text-white truncate max-w-[120px]">{supporter.username}</span>
                   </div>
-                  <span className="text-cyan-400 font-bold">{supporter.totalCoins} coins</span>
+                  <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-300">
-                <div className="mb-3">
-                  <svg className="w-12 h-12 mx-auto text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <p className="text-white font-medium">No gifts yet!</p>
-                <p className="text-sm mt-1">Be the first to support this stream</p>
+              <div className="text-center py-4 text-gray-300">
+                <svg className="w-8 h-8 mx-auto text-yellow-400 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                </svg>
+                <p className="text-white text-xs font-medium">No gifts yet</p>
               </div>
             )}
           </div>
