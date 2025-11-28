@@ -602,9 +602,9 @@ export default function BroadcastStudioPage() {
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
         <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" onClick={() => setShowEndConfirm(false)} />
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100]" onClick={() => setShowEndConfirm(false)} />
+          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4">
+            <div className="backdrop-blur-xl bg-black/80 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full mx-auto">
               <div className="space-y-3">
                 <GlassButton
                   variant="gradient"
@@ -634,9 +634,9 @@ export default function BroadcastStudioPage() {
       {/* Stream Summary Modal */}
       {showStreamSummary && streamSummary && (
         <>
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50" />
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="backdrop-blur-xl bg-slate-900/95 rounded-3xl border border-white/20 shadow-2xl p-8 max-w-2xl w-full">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100]" />
+          <div className="fixed inset-0 flex items-center justify-center z-[100] p-4 overflow-y-auto">
+            <div className="backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 md:p-8 max-w-2xl w-full mx-auto my-auto">
               {/* Header */}
               <div className="text-center mb-6">
                 <div className="mb-4">
@@ -742,72 +742,68 @@ export default function BroadcastStudioPage() {
       )}
 
       {/* Top Stats Bar */}
-      <div className="backdrop-blur-xl bg-white/10 border-b border-white/20 sticky top-0 z-40">
-        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-6 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-              <div className="relative flex items-center gap-2 px-4 py-2 backdrop-blur-xl bg-white/10 rounded-lg border border-red-500 overflow-hidden">
-                {/* Animated gradient border effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-pink-500 to-red-500 opacity-20 animate-pulse" />
-                <div className="relative flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-                  <span className="text-red-400 font-bold">LIVE</span>
-                  <span className="text-white ml-2 font-semibold">{formatDuration()}</span>
-                </div>
-              </div>
+      <div className="backdrop-blur-xl bg-black/80 border-b border-white/20 sticky top-0 z-40">
+        <div className="container mx-auto px-3 py-3">
+          {/* Row 1: LIVE indicator + Stats */}
+          <div className="flex items-center justify-between gap-3 mb-3">
+            {/* Left: LIVE + Timer */}
+            <div className="relative flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-red-500/20 rounded-lg border border-red-500">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+              <span className="text-red-400 font-bold text-sm">LIVE</span>
+              <span className="text-white font-semibold text-sm">{formatDuration()}</span>
+            </div>
 
+            {/* Right: Stats Row */}
+            <div className="flex items-center gap-2">
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
-
               <StreamHealthIndicator streamId={streamId} />
-
-              {/* Coins Display - Enhanced */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full border-2 border-yellow-400/30">
-                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              {/* Coins Display */}
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/20 rounded-lg border border-yellow-400/30">
+                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                 </svg>
-                <span className="text-yellow-400 font-bold text-lg">{totalEarnings.toLocaleString()}</span>
-                <span className="text-yellow-200 text-sm font-semibold">coins</span>
+                <span className="text-yellow-400 font-bold">{totalEarnings.toLocaleString()}</span>
               </div>
             </div>
+          </div>
 
-            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
-              <GlassButton
-                variant="gradient"
-                size="md"
-                onClick={() => {
-                  // Check if there's already an active goal
-                  const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                  if (hasActiveGoal) {
-                    alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
-                    return;
-                  }
-                  setEditingGoal(null); // Ensure we're creating new, not editing
-                  setShowGoalModal(true);
-                }}
-                shimmer
-                className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                <span className="hidden sm:inline">Set Goal</span>
-              </GlassButton>
-              <GlassButton
-                variant="gradient"
-                size="md"
-                onClick={() => setShowEndConfirm(true)}
-                shimmer
-                glow
-                className="text-white font-semibold flex-1 sm:flex-initial px-3 py-2 flex items-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                </svg>
-                <span className="hidden sm:inline">End Stream</span>
-              </GlassButton>
-            </div>
+          {/* Row 2: Action Buttons */}
+          <div className="flex gap-3">
+            <GlassButton
+              variant="gradient"
+              size="sm"
+              onClick={() => {
+                const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                if (hasActiveGoal) {
+                  alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
+                  return;
+                }
+                setEditingGoal(null);
+                setShowGoalModal(true);
+              }}
+              shimmer
+              className="text-white font-semibold flex-1 px-4 py-2.5 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              Set Goal
+            </GlassButton>
+            <GlassButton
+              variant="gradient"
+              size="sm"
+              onClick={() => setShowEndConfirm(true)}
+              shimmer
+              glow
+              className="text-white font-semibold flex-1 px-4 py-2.5 flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-pink-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+              End Stream
+            </GlassButton>
           </div>
         </div>
       </div>
@@ -932,7 +928,7 @@ export default function BroadcastStudioPage() {
 
           {/* Chat Sidebar */}
           <div className="lg:col-span-1">
-            <div className={`${isPortrait ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24`}>
+            <div className={`${isPortrait ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}
