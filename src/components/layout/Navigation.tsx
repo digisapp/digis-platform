@@ -611,12 +611,18 @@ export function Navigation() {
           <div className="w-14 h-14" />
         </button>
 
-        {/* Balance - Clickable with Dropdown */}
+        {/* Balance - Creators go to wallet, Fans see Buy Coins */}
         <div className="relative mb-6">
           <button
-            onClick={() => setShowCoinsMenu(!showCoinsMenu)}
+            onClick={() => {
+              if (userRole === 'creator') {
+                router.push('/wallet');
+              } else {
+                setShowCoinsMenu(!showCoinsMenu);
+              }
+            }}
             className="flex flex-col items-center justify-center gap-1 px-3 py-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 rounded-2xl border-2 border-green-500/40 hover:border-green-500/60 transition-all hover:scale-105 group shadow-[0_0_20px_rgba(34,197,94,0.3)]"
-            title="Wallet"
+            title={userRole === 'creator' ? 'Wallet' : 'Buy Coins'}
           >
             <Coins className="w-7 h-7 text-green-400 group-hover:rotate-12 transition-transform" />
             <div className="text-xl font-black text-white drop-shadow-lg">
@@ -624,8 +630,8 @@ export function Navigation() {
             </div>
           </button>
 
-          {/* Coins Dropdown Menu - Simple Buy Coins button */}
-          {showCoinsMenu && (
+          {/* Coins Dropdown Menu - Only for fans */}
+          {showCoinsMenu && userRole !== 'creator' && (
             <>
               <div
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
