@@ -1,60 +1,93 @@
 import { db } from '../src/db';
 import { virtualGifts } from '../src/db/schema';
 
+// Simplified gift tiers (1 coin = $0.10)
 const gifts = [
+  // Common gifts ($1-$2)
   {
     name: 'Rose',
     emoji: '🌹',
-    coinCost: 1,
+    coinCost: 10,
     animationType: 'float',
     rarity: 'common' as const,
   },
   {
     name: 'Heart',
     emoji: '❤️',
-    coinCost: 2,
+    coinCost: 10,
     animationType: 'float',
     rarity: 'common' as const,
   },
   {
-    name: 'Star',
-    emoji: '⭐',
-    coinCost: 5,
-    animationType: 'burst',
-    rarity: 'rare' as const,
-  },
-  {
     name: 'Fire',
     emoji: '🔥',
-    coinCost: 10,
+    coinCost: 20,
     animationType: 'burst',
-    rarity: 'rare' as const,
+    rarity: 'common' as const,
   },
+  {
+    name: 'Cake',
+    emoji: '🎂',
+    coinCost: 20,
+    animationType: 'burst',
+    rarity: 'common' as const,
+  },
+  // Rare gifts ($5-$10)
   {
     name: 'Diamond',
     emoji: '💎',
-    coinCost: 20,
-    animationType: 'burst',
-    rarity: 'epic' as const,
-  },
-  {
-    name: 'Rocket',
-    emoji: '🚀',
     coinCost: 50,
-    animationType: 'fireworks',
-    rarity: 'epic' as const,
+    animationType: 'burst',
+    rarity: 'rare' as const,
   },
   {
     name: 'Crown',
     emoji: '👑',
+    coinCost: 75,
+    animationType: 'fireworks',
+    rarity: 'rare' as const,
+  },
+  {
+    name: 'Rocket',
+    emoji: '🚀',
     coinCost: 100,
     animationType: 'fireworks',
-    rarity: 'legendary' as const,
+    rarity: 'rare' as const,
   },
+  {
+    name: 'Gold Bar',
+    emoji: '🪙',
+    coinCost: 100,
+    animationType: 'fireworks',
+    rarity: 'rare' as const,
+  },
+  // Epic gifts ($25-$50)
+  {
+    name: 'Designer Bag',
+    emoji: '👜',
+    coinCost: 250,
+    animationType: 'fireworks',
+    rarity: 'epic' as const,
+  },
+  {
+    name: 'Sports Car',
+    emoji: '🏎️',
+    coinCost: 350,
+    animationType: 'fireworks',
+    rarity: 'epic' as const,
+  },
+  {
+    name: 'Yacht',
+    emoji: '🛥️',
+    coinCost: 500,
+    animationType: 'confetti',
+    rarity: 'epic' as const,
+  },
+  // Legendary gifts ($100)
   {
     name: 'Mansion',
     emoji: '🏰',
-    coinCost: 500,
+    coinCost: 1000,
     animationType: 'confetti',
     rarity: 'legendary' as const,
   },
