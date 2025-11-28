@@ -8,7 +8,7 @@ import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
-import { EmojiReactionBurstSimple } from '@/components/streaming/EmojiReactionBurst';
+import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -125,7 +125,7 @@ export default function StreamViewerPage() {
 
   // Animations
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
-  const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
+  const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number }>>([]);
 
   // Check mobile on mount
   useEffect(() => {
@@ -193,6 +193,16 @@ export default function StreamViewerPage() {
           break;
         case 'gift':
           setGiftAnimations((prev) => [...prev, event.data]);
+          // Add floating emoji for the gift
+          const giftData = event.data as { gift: VirtualGift; streamGift: StreamGift };
+          if (giftData.gift) {
+            setFloatingGifts(prev => [...prev, {
+              id: `gift-${Date.now()}-${Math.random()}`,
+              emoji: giftData.gift.emoji,
+              rarity: giftData.gift.rarity,
+              timestamp: Date.now()
+            }]);
+          }
           fetchLeaderboard();
           fetchGoals();
           break;
@@ -202,9 +212,6 @@ export default function StreamViewerPage() {
           break;
         case 'stream_ended':
           router.push('/live');
-          break;
-        case 'reaction':
-          setReactions(prev => [...prev, event.data]);
           break;
         case 'goal_update':
           // Refresh goals when host creates, updates, or completes a goal
@@ -412,8 +419,8 @@ export default function StreamViewerPage() {
     }
   };
 
-  const removeReaction = useCallback((id: string) => {
-    setReactions(prev => prev.filter(r => r.id !== id));
+  const removeFloatingGift = useCallback((id: string) => {
+    setFloatingGifts(prev => prev.filter(g => g.id !== id));
   }, []);
 
   const removeGiftAnimation = (index: number) => {
@@ -506,7 +513,7 @@ export default function StreamViewerPage() {
   return (
     <div className="min-h-screen bg-black text-white md:pl-20">
       {/* Emoji Reactions Overlay */}
-      <EmojiReactionBurstSimple reactions={reactions} onComplete={removeReaction} />
+      <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
       {/* Gift Animations Overlay */}
       <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
