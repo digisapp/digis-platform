@@ -366,7 +366,7 @@ export class StreamService {
         userId: stream.creatorId,
         amount: totalCoins,
         type: 'stream_tip',
-        description: `Received ${quantity}x ${gift.emoji} ${gift.name} during stream`,
+        description: `Received ${quantity}x ${gift.emoji} ${gift.name} from @${senderUsername}`,
         idempotencyKey: `gift_receive_${streamGift.id}`,
       });
     }
@@ -424,7 +424,7 @@ export class StreamService {
         userId: stream.creatorId,
         amount: amount,
         type: 'stream_tip',
-        description: `Received ${amount} coin tip during stream`,
+        description: `Received ${amount} coin tip from @${senderUsername}`,
         idempotencyKey: `tip_receive_${streamId}_${Date.now()}`,
       });
     }
