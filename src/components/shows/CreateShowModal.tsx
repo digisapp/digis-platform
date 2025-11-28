@@ -23,7 +23,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
     ticketPrice: 50,
     maxTickets: null as number | null,
     scheduledStart: '',
-    durationMinutes: 60,
+    durationMinutes: 5,
     coverImageUrl: '',
   });
 
@@ -234,7 +234,12 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
                   className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
                 >
+                  <option value={5}>5 minutes</option>
+                  <option value={10}>10 minutes</option>
+                  <option value={15}>15 minutes</option>
+                  <option value={20}>20 minutes</option>
                   <option value={30}>30 minutes</option>
+                  <option value={45}>45 minutes</option>
                   <option value={60}>1 hour</option>
                   <option value={90}>1.5 hours</option>
                   <option value={120}>2 hours</option>
