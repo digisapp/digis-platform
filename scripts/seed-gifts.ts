@@ -5,10 +5,10 @@ import { virtualGifts } from '../src/db/schema';
 const gifts = [
   // Common gifts ($1-$2)
   {
-    name: 'Rose',
-    emoji: '🌹',
+    name: 'Fire',
+    emoji: '🔥',
     coinCost: 10,
-    animationType: 'float',
+    animationType: 'burst',
     rarity: 'common' as const,
   },
   {
@@ -19,37 +19,30 @@ const gifts = [
     rarity: 'common' as const,
   },
   {
-    name: 'Fire',
-    emoji: '🔥',
-    coinCost: 20,
-    animationType: 'burst',
-    rarity: 'common' as const,
-  },
-  {
     name: 'Cake',
     emoji: '🎂',
     coinCost: 20,
     animationType: 'burst',
     rarity: 'common' as const,
   },
-  // Rare gifts ($5-$10)
+  // Rare gifts ($5-$15)
+  {
+    name: 'Rose',
+    emoji: '🌹',
+    coinCost: 50,
+    animationType: 'float',
+    rarity: 'rare' as const,
+  },
   {
     name: 'Diamond',
     emoji: '💎',
-    coinCost: 50,
+    coinCost: 100,
     animationType: 'burst',
     rarity: 'rare' as const,
   },
   {
     name: 'Crown',
     emoji: '👑',
-    coinCost: 75,
-    animationType: 'fireworks',
-    rarity: 'rare' as const,
-  },
-  {
-    name: 'Rocket',
-    emoji: '🚀',
     coinCost: 100,
     animationType: 'fireworks',
     rarity: 'rare' as const,
@@ -57,6 +50,13 @@ const gifts = [
   {
     name: 'Gold Bar',
     emoji: '🥇',
+    coinCost: 150,
+    animationType: 'fireworks',
+    rarity: 'rare' as const,
+  },
+  {
+    name: 'Rocket',
+    emoji: '🚀',
     coinCost: 200,
     animationType: 'fireworks',
     rarity: 'epic' as const,

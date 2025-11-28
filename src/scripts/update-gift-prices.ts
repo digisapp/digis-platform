@@ -16,17 +16,18 @@ async function updateGiftPrices() {
 
   const priceUpdates: Record<string, number> = {
     // Common gifts ($1-$2)
-    'Rose': 10,
+    'Fire': 10,
     'Heart': 10,
-    'Fire': 20,
     'Cake': 20,
 
-    // Rare gifts ($5-$10)
-    'Diamond': 50,
-    'Crown': 75,
-    'Rocket': 100,
+    // Rare gifts ($5-$15)
+    'Rose': 50,
+    'Diamond': 100,
+    'Crown': 100,
+    'Gold Bar': 150,
+
     // Epic gifts ($20-$50)
-    'Gold Bar': 200,
+    'Rocket': 200,
     'Designer Bag': 250,
     'Sports Car': 350,
     'Yacht': 500,
