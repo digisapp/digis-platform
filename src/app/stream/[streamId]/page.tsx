@@ -187,6 +187,10 @@ export default function StreamViewerPage() {
         case 'reaction':
           setReactions(prev => [...prev, event.data]);
           break;
+        case 'goal_update':
+          // Refresh goals when host creates, updates, or completes a goal
+          fetchGoals();
+          break;
       }
     };
 
@@ -596,30 +600,147 @@ export default function StreamViewerPage() {
               </div>
             </div>
 
+            {/* Active Goal Bar - Premium Animated Design */}
+            {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
+              <div className="absolute top-20 left-4 right-4 z-30">
+                {goals.filter(g => g.isActive && !g.isCompleted).slice(0, 1).map(goal => {
+                  const progress = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                  const isAlmostComplete = progress >= 80;
+                  const isHalfway = progress >= 50;
+
+                  return (
+                    <div
+                      key={goal.id}
+                      className={`relative overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-xl ${
+                        isAlmostComplete
+                          ? 'border-yellow-400/50 bg-gradient-to-r from-yellow-900/40 via-orange-900/40 to-yellow-900/40'
+                          : 'border-cyan-500/30 bg-gradient-to-r from-black/80 via-cyan-950/40 to-black/80'
+                      }`}
+                    >
+                      {/* Animated background shimmer */}
+                      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div
+                          className={`absolute inset-0 opacity-30 ${
+                            isAlmostComplete ? 'bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent' : 'bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent'
+                          }`}
+                          style={{
+                            animation: 'shimmer 2s infinite',
+                            transform: 'translateX(-100%)',
+                          }}
+                        />
+                      </div>
+
+                      <div className="relative p-4">
+                        {/* Header Row */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            {/* Animated Goal Icon */}
+                            <div className={`relative w-10 h-10 rounded-xl flex items-center justify-center ${
+                              isAlmostComplete
+                                ? 'bg-gradient-to-br from-yellow-500 to-orange-500 shadow-lg shadow-yellow-500/30'
+                                : 'bg-gradient-to-br from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/30'
+                            }`}>
+                              <span className="text-xl">{isAlmostComplete ? '🔥' : '🎯'}</span>
+                              {isAlmostComplete && (
+                                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl blur opacity-50 animate-pulse" />
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="text-white font-bold text-sm md:text-base">{goal.title}</h3>
+                              {goal.rewardText && (
+                                <p className="text-xs text-gray-400 flex items-center gap-1">
+                                  <span>🎁</span> {goal.rewardText}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Progress Numbers */}
+                          <div className="text-right">
+                            <div className={`text-lg md:text-xl font-black ${
+                              isAlmostComplete ? 'text-yellow-400' : 'text-cyan-400'
+                            }`}>
+                              {goal.currentAmount.toLocaleString()}
+                              <span className="text-white/60 text-sm font-medium">/{goal.targetAmount.toLocaleString()}</span>
+                            </div>
+                            <div className={`text-xs font-bold ${
+                              isAlmostComplete ? 'text-yellow-300' : 'text-cyan-300'
+                            }`}>
+                              {progress.toFixed(0)}% Complete
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar Container */}
+                        <div className="relative h-4 bg-black/40 rounded-full overflow-hidden border border-white/10">
+                          {/* Background grid pattern */}
+                          <div className="absolute inset-0 opacity-20"
+                            style={{
+                              backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 11px)'
+                            }}
+                          />
+
+                          {/* Progress Fill */}
+                          <div
+                            className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out ${
+                              isAlmostComplete
+                                ? 'bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-400'
+                                : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-400'
+                            }`}
+                            style={{ width: `${progress}%` }}
+                          >
+                            {/* Shine effect on fill */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
+                            {/* Animated pulse at the end */}
+                            <div
+                              className={`absolute right-0 top-0 bottom-0 w-8 ${
+                                isAlmostComplete
+                                  ? 'bg-gradient-to-r from-transparent to-yellow-300/50'
+                                  : 'bg-gradient-to-r from-transparent to-cyan-300/50'
+                              } animate-pulse`}
+                            />
+                          </div>
+
+                          {/* Milestone markers */}
+                          <div className="absolute inset-0 flex justify-between px-1 items-center pointer-events-none">
+                            {[25, 50, 75].map(milestone => (
+                              <div
+                                key={milestone}
+                                className={`w-0.5 h-2 rounded-full transition-colors ${
+                                  progress >= milestone ? 'bg-white/60' : 'bg-white/20'
+                                }`}
+                                style={{ marginLeft: `${milestone - 1}%` }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Bottom motivational text */}
+                        {isAlmostComplete && (
+                          <div className="mt-2 text-center">
+                            <span className="text-xs text-yellow-300 font-bold animate-pulse">
+                              Almost there! Keep going! 🚀
+                            </span>
+                          </div>
+                        )}
+                        {isHalfway && !isAlmostComplete && (
+                          <div className="mt-2 text-center">
+                            <span className="text-xs text-cyan-300 font-medium">
+                              Halfway there! 💪
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Bottom Controls */}
             <div className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               {/* Stream Title */}
               <h1 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-1">{stream.title}</h1>
-
-              {/* Active Goal (if any) */}
-              {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-                <div className="mb-3">
-                  {goals.filter(g => g.isActive && !g.isCompleted).slice(0, 1).map(goal => (
-                    <div key={goal.id} className="bg-black/60 backdrop-blur-sm rounded-xl p-3">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-white/80">{goal.description}</span>
-                        <span className="text-digis-cyan font-bold">{goal.currentAmount}/{goal.targetAmount}</span>
-                      </div>
-                      <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink transition-all duration-500"
-                          style={{ width: `${Math.min((goal.currentAmount / goal.targetAmount) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {/* Controls Row */}
               <div className="flex items-center justify-between gap-4">

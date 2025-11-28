@@ -3,6 +3,7 @@ import { db } from '@/lib/data/system';
 import { streamGoals, streams } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createClientBrowser } from '@/lib/supabase/client';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -83,6 +84,19 @@ export async function POST(
       isActive: true,
       isCompleted: false,
     }).returning();
+
+    // Broadcast goal update to all viewers
+    try {
+      const channelName = `stream:${streamId}`;
+      await supabase.channel(channelName).send({
+        type: 'broadcast',
+        event: 'goal_update',
+        payload: { goal, action: 'created' },
+      });
+    } catch (broadcastError) {
+      console.error('[GOAL BROADCAST ERROR]', broadcastError);
+      // Don't fail the request if broadcast fails
+    }
 
     return NextResponse.json({ goal }, { status: 201 });
   } catch (error: any) {

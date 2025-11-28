@@ -3,7 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import type { StreamMessage, StreamGift, VirtualGift } from '@/db/schema';
 
 export type StreamEvent = {
-  type: 'chat' | 'gift' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended' | 'reaction';
+  type: 'chat' | 'gift' | 'viewer_joined' | 'viewer_left' | 'viewer_count' | 'stream_ended' | 'reaction' | 'goal_update';
   data: any;
 };
 
@@ -94,6 +94,9 @@ export class RealtimeService {
       })
       .on('broadcast', { event: 'reaction' }, (payload) => {
         onEvent({ type: 'reaction', data: payload.payload });
+      })
+      .on('broadcast', { event: 'goal_update' }, (payload) => {
+        onEvent({ type: 'goal_update', data: payload.payload });
       })
       .subscribe();
 
@@ -250,6 +253,20 @@ export class RealtimeService {
       type: 'broadcast',
       event: 'notification',
       payload: notification,
+    });
+  }
+
+  /**
+   * Broadcast goal update (created, updated, completed)
+   */
+  static async broadcastGoalUpdate(streamId: string, goal: any, action: 'created' | 'updated' | 'completed') {
+    const supabase = createClient();
+    const channelName = `stream:${streamId}`;
+
+    await supabase.channel(channelName).send({
+      type: 'broadcast',
+      event: 'goal_update',
+      payload: { goal, action },
     });
   }
 
