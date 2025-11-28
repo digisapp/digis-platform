@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui';
+import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe } from 'lucide-react';
 
 export default function CreatorApplyPage() {
   const router = useRouter();
@@ -72,7 +71,7 @@ export default function CreatorApplyPage() {
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -81,70 +80,89 @@ export default function CreatorApplyPage() {
   // Show existing application status
   if (existingApplication) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-8 text-center shadow-sm">
-            {existingApplication.status === 'pending' && (
-              <>
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur-2xl opacity-30"></div>
-                  <Clock className="relative w-16 h-16 text-yellow-600 mx-auto" />
-                </div>
-                <h2 className="text-3xl font-bold mb-3 text-gray-900">Application Pending</h2>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Your creator application is currently under review. We'll notify you once it's been reviewed.
-                </p>
-                <div className="text-left mt-6 p-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl">
-                  <p className="text-sm text-gray-600 mb-3">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
-                  <p className="text-sm text-gray-700 mb-2"><strong className="text-gray-900">Display Name:</strong> {existingApplication.displayName}</p>
-                  <p className="text-sm text-gray-700"><strong className="text-gray-900">Content Type:</strong> {existingApplication.contentType}</p>
-                </div>
-              </>
-            )}
-            {existingApplication.status === 'approved' && (
-              <>
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full blur-2xl opacity-30"></div>
-                  <CheckCircle className="relative w-16 h-16 text-green-600 mx-auto" />
-                </div>
-                <h2 className="text-3xl font-bold mb-3 text-gray-900">You're Already a Creator!</h2>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Your application has been approved. You can start creating content now.
-                </p>
-                <button
-                  onClick={() => router.push('/creator/dashboard')}
-                  className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-sm"
-                >
-                  Go to Creator Dashboard →
-                </button>
-              </>
-            )}
-            {existingApplication.status === 'rejected' && (
-              <>
-                <div className="relative inline-block mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-30"></div>
-                  <XCircle className="relative w-16 h-16 text-red-600 mx-auto" />
-                </div>
-                <h2 className="text-3xl font-bold mb-3 text-gray-900">Application Not Approved</h2>
-                <p className="text-gray-600 mb-4 max-w-md mx-auto">
-                  Unfortunately, your previous application was not approved.
-                </p>
-                {existingApplication.rejectionReason && (
-                  <div className="text-left mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
-                    <p className="text-sm text-red-700"><strong>Reason:</strong> {existingApplication.rejectionReason}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
+
+        <div className="max-w-2xl mx-auto relative z-10">
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_50px_rgba(34,211,238,0.2)]">
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
+            </div>
+
+            <div className="relative">
+              {existingApplication.status === 'pending' && (
+                <>
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute -inset-2 bg-yellow-500/30 rounded-full blur-xl animate-pulse"></div>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.4)]">
+                      <Clock className="w-10 h-10 text-white" />
+                    </div>
                   </div>
-                )}
-                <p className="text-sm text-gray-600 mt-6">
-                  You can submit a new application below.
-                </p>
-                <button
-                  onClick={() => setExistingApplication(null)}
-                  className="mt-4 px-6 py-3 bg-gray-200 text-gray-900 rounded-xl hover:bg-gray-300 transition-colors font-semibold"
-                >
-                  Apply Again
-                </button>
-              </>
-            )}
+                  <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Application Pending</h2>
+                  <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                    Your creator application is currently under review. We'll notify you once it's been reviewed.
+                  </p>
+                  <div className="text-left mt-6 p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/30 rounded-2xl">
+                    <p className="text-sm text-gray-400 mb-3">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-300 mb-2"><strong className="text-white">Display Name:</strong> {existingApplication.displayName}</p>
+                    <p className="text-sm text-gray-300"><strong className="text-white">Content Type:</strong> {existingApplication.contentType}</p>
+                  </div>
+                </>
+              )}
+              {existingApplication.status === 'approved' && (
+                <>
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute -inset-2 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+                      <CheckCircle className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                  <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">You're Already a Creator!</h2>
+                  <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                    Your application has been approved. You can start creating content now.
+                  </p>
+                  <button
+                    onClick={() => router.push('/creator/dashboard')}
+                    className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.3)]"
+                  >
+                    Go to Creator Dashboard
+                  </button>
+                </>
+              )}
+              {existingApplication.status === 'rejected' && (
+                <>
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute -inset-2 bg-red-500/30 rounded-full blur-xl animate-pulse"></div>
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                      <XCircle className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                  <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Application Not Approved</h2>
+                  <p className="text-gray-400 mb-4 max-w-md mx-auto">
+                    Unfortunately, your previous application was not approved.
+                  </p>
+                  {existingApplication.rejectionReason && (
+                    <div className="text-left mt-4 p-4 bg-red-500/10 border-2 border-red-500/30 rounded-2xl">
+                      <p className="text-sm text-red-400"><strong className="text-red-300">Reason:</strong> {existingApplication.rejectionReason}</p>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500 mt-6">
+                    You can submit a new application below.
+                  </p>
+                  <button
+                    onClick={() => setExistingApplication(null)}
+                    className="mt-4 px-6 py-3 bg-white/5 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-colors font-semibold"
+                  >
+                    Apply Again
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -154,14 +172,22 @@ export default function CreatorApplyPage() {
   // Show success message
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 flex items-center justify-center">
-        <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 max-w-md p-8 text-center shadow-sm">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 -top-10 -left-10 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute w-96 h-96 bottom-10 right-10 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
+
+        <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-green-500/30 max-w-md p-8 text-center shadow-[0_0_50px_rgba(34,197,94,0.2)] relative z-10">
           <div className="relative inline-block mb-6">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full blur-2xl opacity-30"></div>
-            <CheckCircle className="relative w-16 h-16 text-green-600 mx-auto" />
+            <div className="absolute -inset-2 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
           </div>
-          <h2 className="text-3xl font-bold mb-3 text-gray-900">Application Submitted!</h2>
-          <p className="text-gray-600">
+          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Application Submitted!</h2>
+          <p className="text-gray-400">
             We'll review your application and get back to you soon.
           </p>
         </div>
@@ -171,23 +197,43 @@ export default function CreatorApplyPage() {
 
   // Show application form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      <div className="max-w-2xl mx-auto relative z-10">
+        {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-cyan-600 to-purple-600 bg-clip-text text-transparent">
+          <div className="relative inline-block mb-4">
+            <div className="absolute -inset-2 bg-cyan-500/30 rounded-full blur-xl"></div>
+            <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.4)]">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
             Become a Creator
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-400 text-lg">
             Join our community of creators and start earning
           </p>
         </div>
 
-        <div className="backdrop-blur-xl bg-white/80 rounded-3xl border border-gray-200 p-8 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form Card */}
+        <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(34,211,238,0.2)]">
+          {/* Animated gradient border effect */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6 relative">
             {/* Display Name */}
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-900">
-                Display Name <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Display Name <span className="text-cyan-400">*</span>
               </label>
               <input
                 type="text"
@@ -195,14 +241,14 @@ export default function CreatorApplyPage() {
                 onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                 placeholder="Your creator name"
                 required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
 
             {/* Content Type */}
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-900">
-                Content Type <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Content Type <span className="text-cyan-400">*</span>
               </label>
               <input
                 type="text"
@@ -210,17 +256,18 @@ export default function CreatorApplyPage() {
                 onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
                 placeholder="e.g., Gaming, Music, Art, Education, Fitness"
                 required
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
               />
             </div>
 
             {/* Social Links Section */}
-            <div className="pt-4 border-t-2 border-gray-200">
-              <h3 className="text-lg font-bold mb-4 text-gray-900">Social Links</h3>
+            <div className="pt-6 border-t border-white/10">
+              <h3 className="text-lg font-bold mb-4 text-white">Social Links</h3>
               <div className="space-y-4">
                 {/* Instagram */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
+                    <Instagram className="w-4 h-4 text-pink-400" />
                     Instagram Handle
                   </label>
                   <input
@@ -228,13 +275,14 @@ export default function CreatorApplyPage() {
                     value={formData.instagramHandle}
                     onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value })}
                     placeholder="@username"
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-2 focus:ring-pink-500/20 transition-all"
                   />
                 </div>
 
                 {/* Twitter */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
+                    <Twitter className="w-4 h-4 text-blue-400" />
                     Twitter Handle
                   </label>
                   <input
@@ -242,13 +290,14 @@ export default function CreatorApplyPage() {
                     value={formData.twitterHandle}
                     onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
                     placeholder="@username"
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />
                 </div>
 
                 {/* Website */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-900">
+                  <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-cyan-400" />
                     Website
                   </label>
                   <input
@@ -256,14 +305,14 @@ export default function CreatorApplyPage() {
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     placeholder="https://yourwebsite.com"
-                    className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                   />
                 </div>
               </div>
             </div>
 
             {error && (
-              <div className="p-4 rounded-2xl bg-red-50 border-2 border-red-200 text-red-700 text-sm font-medium">
+              <div className="p-4 rounded-2xl bg-red-500/10 border-2 border-red-500/30 text-red-400 text-sm font-medium">
                 {error}
               </div>
             )}
@@ -271,17 +320,17 @@ export default function CreatorApplyPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-8 py-4 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Submitting...</span>
                 </div>
-              ) : 'Submit Application →'}
+              ) : 'Submit Application'}
             </button>
 
-            <p className="text-xs text-gray-600 text-center">
+            <p className="text-xs text-gray-500 text-center">
               We'll review your application and notify you within 24-48 hours
             </p>
           </form>
