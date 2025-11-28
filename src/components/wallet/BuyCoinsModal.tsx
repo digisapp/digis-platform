@@ -77,7 +77,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title="Buy Digis Coins" size="lg">
+    <GlassModal isOpen={isOpen} onClose={onClose} title="Buy Coins" size="lg">
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
