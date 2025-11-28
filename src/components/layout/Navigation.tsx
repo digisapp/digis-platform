@@ -46,8 +46,8 @@ export function Navigation() {
   const [showCoinsMenu, setShowCoinsMenu] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
 
-  // Derive userRole from AuthContext
-  const userRole = authUser?.role || 'fan';
+  // Derive userRole from AuthContext or profile (profile is more reliable as it's from DB)
+  const userRole = userProfile?.role || authUser?.role || 'fan';
 
   // Fetch profile data when auth user changes
   useEffect(() => {
