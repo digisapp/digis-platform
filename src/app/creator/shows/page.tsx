@@ -9,7 +9,7 @@ import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
 interface Show {
   id: string;
@@ -92,13 +92,17 @@ export default function CreatorShowsPage() {
   });
 
   const categoryOptions = [
-    { value: 'all' as const, label: 'All Categories', icon: '📋' },
-    { value: 'performance' as const, label: 'Performance', icon: '🎭' },
-    { value: 'class' as const, label: 'Class', icon: '🧘' },
-    { value: 'qna' as const, label: 'Q&A', icon: '💬' },
-    { value: 'hangout' as const, label: 'Hangout', icon: '💕' },
+    { value: 'all' as const, label: 'All', icon: '📋' },
+    { value: 'hangout' as const, label: 'Hangout', icon: '💬' },
+    { value: 'fitness' as const, label: 'Fitness', icon: '💪' },
+    { value: 'grwm' as const, label: 'GRWM', icon: '💄' },
+    { value: 'try_on_haul' as const, label: 'Try On Haul', icon: '👗' },
+    { value: 'qna' as const, label: 'Q&A', icon: '❓' },
+    { value: 'classes' as const, label: 'Classes', icon: '📚' },
+    { value: 'tutorial' as const, label: 'Tutorial', icon: '🎓' },
+    { value: 'music' as const, label: 'Music', icon: '🎵' },
+    { value: 'virtual_date' as const, label: 'Virtual Date', icon: '❤️' },
     { value: 'gaming' as const, label: 'Gaming', icon: '🎮' },
-    { value: 'workshop' as const, label: 'Workshop', icon: '🎓' },
     { value: 'other' as const, label: 'Other', icon: '🎪' },
   ];
 

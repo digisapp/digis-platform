@@ -6,13 +6,16 @@ import { relations } from 'drizzle-orm';
 
 // Show types/categories enum
 export const showTypeEnum = pgEnum('show_type', [
-  'performance',    // Concerts, comedy, theater
-  'class',         // Yoga, pilates, fitness, dance
-  'qna',           // Q&A, fan interaction, group chat
   'hangout',       // Casual time, group hangouts
-  'date',          // Virtual dates, 1-on-1 romantic time
+  'fitness',       // Workouts, yoga, pilates
+  'grwm',          // Get ready with me
+  'try_on_haul',   // Fashion, clothing hauls
+  'qna',           // Q&A, fan interaction, group chat
+  'classes',       // Teaching, workshops, courses
+  'tutorial',      // How-to, teaching skills
+  'music',         // Performances, jam sessions
+  'virtual_date',  // Virtual dates, romantic streams
   'gaming',        // Gaming streams, playthroughs
-  'workshop',      // Tutorials, teaching, how-to
   'other',         // Everything else
 ]);
 

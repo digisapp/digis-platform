@@ -7,7 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X } from 'lucide-react';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
 interface Show {
   id: string;
@@ -40,13 +40,15 @@ export default function StreamsPage() {
   const categoryOptions = [
     { value: 'all' as const, label: 'All' },
     { value: 'hangout' as const, label: 'Hangout' },
-    { value: 'class' as const, label: 'Class' },
-    { value: 'date' as const, label: 'Date' },
-    { value: 'performance' as const, label: 'Performance' },
+    { value: 'fitness' as const, label: 'Fitness' },
+    { value: 'grwm' as const, label: 'GRWM' },
+    { value: 'try_on_haul' as const, label: 'Try On Haul' },
     { value: 'qna' as const, label: 'Q&A' },
+    { value: 'classes' as const, label: 'Classes' },
+    { value: 'tutorial' as const, label: 'Tutorial' },
+    { value: 'music' as const, label: 'Music' },
+    { value: 'virtual_date' as const, label: 'Virtual Date' },
     { value: 'gaming' as const, label: 'Gaming' },
-    { value: 'workshop' as const, label: 'Workshop' },
-    { value: 'other' as const, label: 'Other' },
   ];
 
   useEffect(() => {

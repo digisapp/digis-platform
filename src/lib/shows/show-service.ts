@@ -13,7 +13,7 @@ import { WalletService } from '@/lib/wallet/wallet-service';
  *   export const dynamic = 'force-dynamic';
  */
 
-export type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'gaming' | 'workshop' | 'other';
+export type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 export type ShowStatus = 'scheduled' | 'live' | 'ended' | 'cancelled';
 
 interface CreateShowParams {

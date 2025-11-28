@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
-type ShowType = 'performance' | 'class' | 'qna' | 'hangout' | 'date' | 'gaming' | 'workshop' | 'other';
+type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
 interface Show {
   id: string;
@@ -31,24 +31,30 @@ interface ShowCardProps {
 }
 
 const showTypeIcons: Record<ShowType, string> = {
-  performance: '🎭',
-  class: '🧘',
-  qna: '💬',
-  hangout: '💕',
-  date: '❤️',
+  hangout: '💬',
+  fitness: '💪',
+  grwm: '💄',
+  try_on_haul: '👗',
+  qna: '❓',
+  classes: '📚',
+  tutorial: '🎓',
+  music: '🎵',
+  virtual_date: '❤️',
   gaming: '🎮',
-  workshop: '🎓',
   other: '🎪',
 };
 
 const showTypeLabels: Record<ShowType, string> = {
-  performance: 'Performance',
-  class: 'Class',
-  qna: 'Q&A',
   hangout: 'Hangout',
-  date: 'Date',
+  fitness: 'Fitness',
+  grwm: 'GRWM',
+  try_on_haul: 'Try On Haul',
+  qna: 'Q&A',
+  classes: 'Classes',
+  tutorial: 'Tutorial',
+  music: 'Music',
+  virtual_date: 'Virtual Date',
   gaming: 'Gaming',
-  workshop: 'Workshop',
   other: 'Other',
 };
 
