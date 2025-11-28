@@ -33,7 +33,6 @@ export default function SettingsPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
-  const [creatorCardImageUrl, setCreatorCardImageUrl] = useState('');
   const [primaryCategory, setPrimaryCategory] = useState('');
   const [secondaryCategory, setSecondaryCategory] = useState('');
 
@@ -49,10 +48,8 @@ export default function SettingsPage() {
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
   const [bannerPreview, setBannerPreview] = useState<string | undefined>();
-  const [creatorCardPreview, setCreatorCardPreview] = useState<string | undefined>();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadingCreatorCard, setUploadingCreatorCard] = useState(false);
 
   // Username change
   const [newUsername, setNewUsername] = useState('');
@@ -127,7 +124,6 @@ export default function SettingsPage() {
       setPhoneNumber(data.profile?.phoneNumber || '');
       setAvatarUrl(data.avatarUrl || '');
       setBannerUrl(data.bannerUrl || '');
-      setCreatorCardImageUrl(data.creatorCardImageUrl || '');
       setNewUsername(data.username || '');
       setPrimaryCategory(data.primaryCategory || '');
       setSecondaryCategory(data.secondaryCategory || '');
@@ -302,7 +298,6 @@ export default function SettingsPage() {
           phoneNumber,
           avatarUrl,
           bannerUrl,
-          creatorCardImageUrl,
           primaryCategory: primaryCategory || null,
           secondaryCategory: secondaryCategory || null,
         }),
@@ -513,70 +508,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleCreatorCardUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!currentUser || !currentUser.id) {
-      setError('User not found. Please refresh the page and try again.');
-      return;
-    }
-
-    // Validate file
-    const validation = validateImageFile(file, 'creator-card');
-    if (!validation.valid) {
-      setError(validation.error || 'Invalid file');
-      return;
-    }
-
-    setUploadingCreatorCard(true);
-    setError('');
-
-    try {
-      console.log('[Creator Card Upload] Starting upload for user:', currentUser.id);
-
-      // Resize image to 4:5 portrait ratio (800x1000)
-      const resizedFile = await resizeImage(file, 800, 1000);
-      console.log('[Creator Card Upload] Image resized successfully');
-
-      // Upload to Supabase Storage
-      console.log('[Creator Card Upload] Uploading to storage...');
-      const url = await uploadImage(resizedFile, 'creator-card', currentUser.id);
-      console.log('[Creator Card Upload] Upload successful. URL:', url);
-
-      // Update preview immediately
-      setCreatorCardPreview(url);
-
-      // Save to database
-      console.log('[Creator Card Upload] Saving URL to database...');
-      const response = await fetch('/api/user/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ creatorCardImageUrl: url }),
-      });
-
-      console.log('[Creator Card Upload] Database response status:', response.status);
-
-      if (!response.ok) {
-        const data = await response.json();
-        console.error('[Creator Card Upload] Database save failed:', data);
-        throw new Error(data.error || 'Failed to save creator card');
-      }
-
-      const result = await response.json();
-      console.log('[Creator Card Upload] Database save successful:', result);
-
-      setCreatorCardImageUrl(url);
-      setMessage('Creator card updated successfully!');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (err: any) {
-      console.error('[Creator Card Upload] Error occurred:', err);
-      setError(err.message || 'Failed to upload creator card');
-    } finally {
-      setUploadingCreatorCard(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
@@ -707,43 +638,6 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                {/* Creator Card Mini Preview - Clickable - Creators Only */}
-                {currentUser?.role === 'creator' && (
-                  <div className="flex-shrink-0">
-                    <p className="text-xs font-semibold text-gray-400 mb-2 text-center">Creator Card</p>
-                    <label className="relative cursor-pointer group block w-24">
-                      {(creatorCardPreview || creatorCardImageUrl) ? (
-                        <>
-                          <img
-                            src={creatorCardPreview || creatorCardImageUrl}
-                            alt="Creator Card"
-                            className="w-24 aspect-[4/5] object-cover rounded-xl border-2 border-cyan-500/30 group-hover:border-digis-purple transition-all shadow-md"
-                          />
-                          <div className="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Upload className="w-4 h-4 text-white" />
-                          </div>
-                        </>
-                      ) : (
-                        <div className="w-24 aspect-[4/5] rounded-xl border-2 border-dashed border-cyan-500/30 group-hover:border-digis-purple transition-all flex flex-col items-center justify-center backdrop-blur-xl bg-white/5">
-                          <Upload className="w-4 h-4 text-gray-400 group-hover:text-digis-purple transition-colors mb-1" />
-                          <p className="text-[10px] text-gray-500 text-center px-1">Add Card</p>
-                        </div>
-                      )}
-                      {uploadingCreatorCard && (
-                        <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center">
-                          <LoadingSpinner size="sm" />
-                        </div>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCreatorCardUpload}
-                        disabled={uploadingCreatorCard}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                )}
               </div>
             </div>
           </GlassCard>

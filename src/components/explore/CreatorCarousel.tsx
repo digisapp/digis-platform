@@ -11,7 +11,7 @@ interface FeaturedCreator {
   id: string;
   username: string;
   displayName: string | null;
-  creatorCardImageUrl: string | null;
+  avatarUrl: string | null;
   isCreatorVerified: boolean;
   isOnline: boolean;
   isTrending: boolean;
@@ -90,10 +90,10 @@ export function CreatorCarousel({
               >
                 {/* 3:4 Portrait Image */}
                 <div className="relative w-full" style={{ paddingBottom: '133.33%' }}>
-                  {creator.creatorCardImageUrl ? (
+                  {creator.avatarUrl ? (
                     <>
                       <img
-                        src={creator.creatorCardImageUrl}
+                        src={creator.avatarUrl}
                         alt={creator.displayName || creator.username}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         loading={index < 2 ? 'eager' : 'lazy'}

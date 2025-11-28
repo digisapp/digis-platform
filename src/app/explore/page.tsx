@@ -14,7 +14,7 @@ interface FeaturedCreator {
   id: string;
   username: string;
   displayName: string | null;
-  creatorCardImageUrl: string | null;
+  avatarUrl: string | null;
   isCreatorVerified: boolean;
   isOnline: boolean;
   isTrending: boolean;
@@ -27,7 +27,6 @@ interface Creator {
   displayName: string | null;
   avatarUrl: string | null;
   bannerUrl: string | null;
-  creatorCardImageUrl: string | null;
   bio: string | null;
   isCreatorVerified: boolean;
   isTrending: boolean;
@@ -311,9 +310,8 @@ function CreatorCardSkeleton() {
 }
 
 const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
-  // Use creator card image first, fallback to banner, then gradient
-  const cardImageUrl = creator.creatorCardImageUrl || creator.bannerUrl;
-  const avatarUrl = creator.avatarUrl;
+  // Use avatar (profile picture) for the card image
+  const cardImageUrl = creator.avatarUrl;
 
   return (
     <div
