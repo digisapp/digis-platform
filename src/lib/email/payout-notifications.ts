@@ -1,9 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
 import { formatCoinsAsUSD } from '@/lib/stripe/config';
+import { sendEmail } from './resend';
 
 /**
  * Send email notification for payout events
- * Uses Supabase's built-in email functionality
+ * Uses Resend for transactional emails
  */
 
 interface PayoutNotificationData {
@@ -38,7 +38,7 @@ Best regards,
 The Digis Team
   `.trim();
 
-  return await sendEmail(data.creatorEmail, subject, message);
+  return await sendEmail({ to: data.creatorEmail, subject, text: message });
 }
 
 /**
@@ -63,7 +63,7 @@ Best regards,
 The Digis Team
   `.trim();
 
-  return await sendEmail(data.creatorEmail, subject, message);
+  return await sendEmail({ to: data.creatorEmail, subject, text: message });
 }
 
 /**
@@ -88,7 +88,7 @@ Best regards,
 The Digis Team
   `.trim();
 
-  return await sendEmail(data.creatorEmail, subject, message);
+  return await sendEmail({ to: data.creatorEmail, subject, text: message });
 }
 
 /**
@@ -114,7 +114,7 @@ Best regards,
 The Digis Team
   `.trim();
 
-  return await sendEmail(data.creatorEmail, subject, message);
+  return await sendEmail({ to: data.creatorEmail, subject, text: message });
 }
 
 /**
@@ -143,49 +143,5 @@ Best regards,
 The Digis Team
   `.trim();
 
-  return await sendEmail(userEmail, subject, message);
+  return await sendEmail({ to: userEmail, subject, text: message });
 }
-
-/**
- * Helper function to send email using Supabase Auth
- * Note: This is a placeholder - Supabase doesn't have a direct email API
- * In production, integrate with Resend, SendGrid, or similar
- */
-async function sendEmail(to: string, subject: string, message: string) {
-  try {
-    // TODO: Integrate with email service (Resend, SendGrid, etc.)
-    // For now, log the email
-    console.log('📧 Email would be sent:', {
-      to,
-      subject,
-      message: message.substring(0, 100) + '...',
-    });
-
-    // Placeholder return
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    return { success: false, error };
-  }
-}
-
-/**
- * TODO: Integration Guide for Production
- *
- * Option 1: Resend (Recommended - Simple & Modern)
- * npm install resend
- *
- * import { Resend } from 'resend';
- * const resend = new Resend(process.env.RESEND_API_KEY);
- * await resend.emails.send({ from, to, subject, text: message });
- *
- * Option 2: SendGrid
- * npm install @sendgrid/mail
- *
- * import sgMail from '@sendgrid/mail';
- * sgMail.setApiKey(process.env.SENDGRID_API_KEY);
- * await sgMail.send({ to, from, subject, text: message });
- *
- * Option 3: AWS SES
- * npm install @aws-sdk/client-ses
- */
