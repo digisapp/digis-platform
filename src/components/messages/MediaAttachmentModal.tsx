@@ -35,10 +35,11 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
       return;
     }
 
-    // Check file size (50MB for images, 500MB for videos)
-    const maxSize = type === 'image' ? 50 * 1024 * 1024 : 500 * 1024 * 1024;
+    // Check file size (5MB limit for Vercel)
+    const maxSize = 5 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
-      alert(`File is too large. Max size: ${type === 'image' ? '50MB' : '500MB'}`);
+      const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(1);
+      alert(`File too large (${sizeMB}MB). Please choose a file under 5MB.`);
       return;
     }
 
@@ -108,7 +109,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                   </div>
                   <p className="text-white font-medium mb-2">Click to upload media</p>
                   <p className="text-sm text-gray-400">
-                    Photos up to 50MB, Videos up to 500MB
+                    Photos and videos up to 5MB
                   </p>
                 </div>
                 <input

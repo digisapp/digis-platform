@@ -7,9 +7,12 @@ import { eq, or, and } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// File size limits
-const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB for images
-const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB for videos
+// Increase body size limit for large media uploads (500MB for videos)
+export const maxDuration = 60; // 60 seconds timeout for large uploads
+
+// File size limits (Vercel Pro has 5MB body limit)
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
+const MAX_VIDEO_SIZE = 5 * 1024 * 1024; // 5MB for videos
 
 // POST - Send media message (photo/video)
 export async function POST(req: NextRequest) {
@@ -55,8 +58,21 @@ export async function POST(req: NextRequest) {
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const filePath = `${user.id}/${recipientId}/${fileName}`;
 
+    // Log file size for debugging
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    console.log(`[send-media] Uploading ${mediaType}: ${fileSizeMB}MB`);
+
     // Convert File to ArrayBuffer for upload
-    const arrayBuffer = await file.arrayBuffer();
+    let arrayBuffer: ArrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+    } catch (bufferError) {
+      console.error('Error reading file buffer:', bufferError);
+      return NextResponse.json({
+        error: 'Failed to read file. The file may be too large.'
+      }, { status: 400 });
+    }
+
     const fileBuffer = new Uint8Array(arrayBuffer);
 
     const { error: uploadError } = await supabase.storage
@@ -73,6 +89,8 @@ export async function POST(req: NextRequest) {
         error: `Failed to upload file: ${uploadError.message}`
       }, { status: 500 });
     }
+
+    console.log(`[send-media] Upload successful: ${filePath}`);
 
     // Get the public URL for the uploaded file
     const { data: urlData } = supabase.storage

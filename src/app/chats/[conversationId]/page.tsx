@@ -350,6 +350,13 @@ export default function ChatPage() {
         body: formData,
       });
 
+      // Handle non-JSON responses (e.g., timeout errors, body size limits)
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response from server');
+        throw new Error('File too large. Please choose a smaller file (under 5MB).');
+      }
+
       const result = await response.json();
 
       if (!response.ok) {
