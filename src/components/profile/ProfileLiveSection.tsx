@@ -26,7 +26,7 @@ interface ProfileLiveSectionProps {
 
 export default function ProfileLiveSection({ username }: ProfileLiveSectionProps) {
   const [status, setStatus] = useState<Status>({ state: 'idle' });
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(true); // Default to true - live streams should load immediately
   const [optimisticTips, setOptimisticTips] = useState<Array<{ id: string; amount: number }>>([]);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
