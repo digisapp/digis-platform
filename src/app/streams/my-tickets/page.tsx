@@ -247,7 +247,7 @@ export default function MyTicketsPage() {
                           )}
 
                           <h3
-                            onClick={() => router.push(`/shows/${ticket.show.id}`)}
+                            onClick={() => router.push(`/streams/${ticket.show.id}`)}
                             className="text-xl font-bold text-white mb-2 cursor-pointer hover:text-digis-cyan transition-colors"
                           >
                             {ticket.show.title}

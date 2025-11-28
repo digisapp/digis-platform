@@ -1000,7 +1000,7 @@ export default function ProfilePage() {
                           {streams.map((stream: any) => (
                             <button
                               key={stream.id}
-                              onClick={() => router.push(stream.isTicketed ? `/shows/${stream.id}` : `/vod/${stream.id}`)}
+                              onClick={() => router.push(stream.isTicketed ? `/streams/${stream.id}` : `/vod/${stream.id}`)}
                               className={`group relative aspect-video rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:scale-105 ${
                                 stream.isTicketed
                                   ? 'border-2 border-purple-500/50 hover:border-purple-500 bg-gradient-to-br from-purple-900/40 to-pink-900/40'

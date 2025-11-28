@@ -285,9 +285,9 @@ export default function FanDashboard() {
         {upcomingShows.length > 0 && (
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Upcoming Shows</h2>
+              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Upcoming Streams</h2>
               <button
-                onClick={() => router.push('/shows')}
+                onClick={() => router.push('/streams')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
@@ -298,7 +298,7 @@ export default function FanDashboard() {
               {upcomingShows.map((show) => (
                 <div
                   key={show.id}
-                  onClick={() => router.push(`/shows/${show.id}`)}
+                  onClick={() => router.push(`/streams/${show.id}`)}
                   className="group cursor-pointer"
                 >
                   <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 overflow-hidden hover:border-cyan-500/50 hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">

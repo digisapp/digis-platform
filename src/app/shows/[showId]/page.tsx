@@ -139,9 +139,9 @@ export default function ShowDetailPage() {
           <p className="text-gray-400 mb-6">{error}</p>
           <GlassButton
             variant="gradient"
-            onClick={() => router.push('/shows')}
+            onClick={() => router.push('/streams')}
           >
-            Browse Shows
+            Browse Streams
           </GlassButton>
         </div>
       </div>
@@ -159,11 +159,11 @@ export default function ShowDetailPage() {
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
         {/* Back Button */}
         <button
-          onClick={() => router.push('/shows')}
+          onClick={() => router.push('/streams')}
           className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
         >
           <span className="text-xl">←</span>
-          <span>Back to Shows</span>
+          <span>Back to Streams</span>
         </button>
 
         <div className="max-w-4xl mx-auto">

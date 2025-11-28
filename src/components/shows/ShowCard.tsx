@@ -72,7 +72,7 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
     if (isCreator) {
       router.push(`/creator/streams/paid/${show.id}`);
     } else {
-      router.push(`/shows/${show.id}`);
+      router.push(`/streams/${show.id}`);
     }
   };
 
