@@ -67,7 +67,7 @@ export const COIN_PACKAGES = [
     id: 'whale',
     name: '5,000 Coins',
     coins: 5000,
-    price: 49999, // $499.99 - margin 0% (break-even for Mansion gift)
+    price: 68499, // $684.99 - margin 24%
     popular: false,
     savings: '35% Bonus',
     description: 'Ultimate supporter',
