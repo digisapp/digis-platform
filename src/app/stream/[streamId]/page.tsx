@@ -318,14 +318,47 @@ export default function StreamViewerPage() {
   };
 
   const handleSendMessage = async (message: string) => {
-    const response = await fetch(`/api/streams/${streamId}/message`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: message }),
-    });
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || 'Failed to send message');
+    // Optimistic update - add message immediately with temporary ID
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage = {
+      id: tempId,
+      streamId,
+      userId: 'current-user',
+      username: 'You', // Will be replaced by real data from broadcast
+      message: message,
+      messageType: 'chat' as const,
+      giftId: null,
+      giftAmount: null,
+      createdAt: new Date(),
+    };
+
+    // Add optimistically
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    try {
+      const response = await fetch(`/api/streams/${streamId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: message }),
+      });
+
+      if (!response.ok) {
+        // Remove optimistic message on failure
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      // The real message will come through the broadcast and replace/add to the list
+      // Remove the optimistic message since the broadcast will add the real one
+      const responseData = await response.json();
+      if (responseData.message?.id) {
+        setMessages(prev => prev.filter(m => m.id !== tempId));
+      }
+    } catch (error) {
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+      throw error;
     }
   };
 

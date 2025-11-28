@@ -66,23 +66,30 @@ export async function POST(
       messageType: 'chat',
     }).returning();
 
-    // Create message payload for broadcast
+    // Create message payload for broadcast (must match StreamMessage type for realtime handler)
     const messagePayload = {
       id: savedMessage.id,
+      streamId: savedMessage.streamId,
+      userId: savedMessage.userId,
       username: dbUser.username || 'Anonymous',
-      displayName: dbUser.displayName,
-      avatarUrl: dbUser.avatarUrl,
-      spendTier: dbUser.spendTier,
-      content: savedMessage.message,
-      timestamp: savedMessage.createdAt.getTime(),
-      type: 'message',
+      message: savedMessage.message,
+      messageType: savedMessage.messageType,
+      giftId: savedMessage.giftId,
+      giftAmount: savedMessage.giftAmount,
+      createdAt: savedMessage.createdAt,
+      // Extra fields for display
+      user: {
+        avatarUrl: dbUser.avatarUrl,
+        spendTier: dbUser.spendTier,
+      },
     };
 
     // Broadcast to all viewers using server-side Supabase client
-    const channelName = `stream:${streamId}:chat`;
+    // Channel name must match what RealtimeService.subscribeToStream uses
+    const channelName = `stream:${streamId}`;
     await supabase.channel(channelName).send({
       type: 'broadcast',
-      event: 'message',
+      event: 'chat',  // Must match the event name in RealtimeService
       payload: messagePayload,
     });
 
