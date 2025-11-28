@@ -76,11 +76,11 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-              <span className="text-3xl">💬</span>
+            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
+              <span className="text-4xl">💬</span>
             </div>
-            <p className="text-gray-400 font-medium">No messages yet</p>
-            <p className="text-gray-500 text-sm mt-1">Be the first to say hi!</p>
+            <h3 className="text-2xl font-bold mb-2 text-white">No messages yet</h3>
+            <p className="text-gray-400 text-lg">Be the first to say hi!</p>
           </div>
         ) : (
           messages.map((msg) => (

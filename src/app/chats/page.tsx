@@ -312,11 +312,12 @@ export default function MessagesPage() {
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
               {filteredConversations.length === 0 ? (
-                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-                  <Inbox className="w-16 h-16 mx-auto mb-3 text-cyan-400" />
-                  <h3 className="text-lg font-semibold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                  <Inbox className="w-20 h-20 mx-auto mb-4 text-cyan-400" />
+                  <h3 className="text-2xl font-bold mb-2 text-white">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
+                  <p className="text-gray-400 text-lg">Start a conversation with a creator</p>
                 </div>
               ) : (
                 filteredConversations.map((conversation) => (

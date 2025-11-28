@@ -157,10 +157,10 @@ export default function CreatorContentStudioPage() {
 
         {/* Content List */}
         {content.length === 0 ? (
-          <GlassCard className="p-12 text-center">
+          <GlassCard className="p-16 text-center">
             <div className="text-6xl mb-4">📸</div>
-            <h3 className="text-xl font-bold text-white mb-2">No content yet</h3>
-            <p className="text-gray-400 mb-6">Upload your first exclusive content to start earning!</p>
+            <h3 className="text-2xl font-bold text-white mb-2">No content yet</h3>
+            <p className="text-gray-400 text-lg mb-6">Upload your first exclusive content to start earning!</p>
             <GlassButton
               variant="gradient"
               size="lg"

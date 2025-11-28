@@ -134,10 +134,10 @@ export function PendingCalls() {
       </div>
 
       {calls.length === 0 ? (
-        <div className="text-center py-6">
-          <div className="text-3xl mb-2">📞</div>
-          <p className="text-white text-sm mb-1">No pending call requests</p>
-          <p className="text-xs text-gray-300">
+        <div className="text-center py-8">
+          <div className="text-4xl mb-3">📞</div>
+          <h3 className="text-2xl font-bold mb-2 text-white">No pending call requests</h3>
+          <p className="text-gray-400 text-lg">
             When fans request calls, they&apos;ll appear here
           </p>
         </div>
