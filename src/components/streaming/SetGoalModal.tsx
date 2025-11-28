@@ -116,24 +116,13 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated, existin
           )}
         </div>
 
-        <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
-          <GlassButton
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={onClose}
-            className="flex-1 !text-white font-semibold border-white/20 hover:bg-white/10"
-          >
-            Cancel
-          </GlassButton>
+        <div className="mt-6 pt-4 border-t border-white/10">
           <GlassButton
             type="submit"
             variant="gradient"
             size="lg"
             disabled={loading}
-            shimmer
-            glow
-            className="flex-1 !text-white font-semibold"
+            className="w-full !text-white font-semibold"
           >
             {loading ? (existingGoal ? 'Updating...' : 'Creating...') : (existingGoal ? 'Update Goal' : 'Create Goal')}
           </GlassButton>

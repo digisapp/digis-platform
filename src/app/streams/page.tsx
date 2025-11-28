@@ -150,24 +150,24 @@ export default function StreamsPage() {
           {/* Status Filter Pills */}
           <button
             onClick={() => setFilter('live')}
-            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
               filter === 'live'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_20px_rgba(34,211,238,0.4)] border-2 border-cyan-400/50'
+                : 'backdrop-blur-xl bg-white/5 text-gray-300 hover:bg-white/10 border-2 border-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:scale-105'
             }`}
           >
-            <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? '' : 'text-red-500'}`} strokeWidth={2} />
+            <Radio className={`w-4 h-4 ${filter === 'live' ? 'text-white' : 'text-red-500'}`} strokeWidth={2} />
             Live Now
           </button>
           <button
             onClick={() => setFilter('upcoming')}
-            className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
               filter === 'upcoming'
-                ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_20px_rgba(34,211,238,0.4)] border-2 border-cyan-400/50'
+                : 'backdrop-blur-xl bg-white/5 text-gray-300 hover:bg-white/10 border-2 border-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:scale-105'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
+            <Calendar className="w-4 h-4" strokeWidth={2} />
             Upcoming
           </button>
 
@@ -176,10 +176,10 @@ export default function StreamsPage() {
             <button
               key={category.value}
               onClick={() => setTypeFilter(category.value)}
-              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
+              className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 ${
                 typeFilter === category.value
-                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_20px_rgba(34,211,238,0.4)] border-2 border-cyan-400/50'
+                  : 'backdrop-blur-xl bg-white/5 text-gray-300 hover:bg-white/10 border-2 border-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:scale-105'
               }`}
             >
               {category.label}

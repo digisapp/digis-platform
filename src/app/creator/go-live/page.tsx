@@ -17,8 +17,8 @@ const PRIVACY_OPTIONS = [
 
 // Orientation options
 const ORIENTATION_OPTIONS = [
-  { value: 'landscape', label: 'Landscape', icon: '📺', description: 'Best for gaming, desktop viewers' },
-  { value: 'portrait', label: 'Portrait', icon: '📱', description: 'Best for mobile, TikTok-style' },
+  { value: 'landscape', label: 'Landscape', description: 'Best for gaming, desktop viewers' },
+  { value: 'portrait', label: 'Portrait', description: 'Best for mobile, TikTok-style' },
 ];
 
 export default function GoLivePage() {
@@ -307,7 +307,7 @@ export default function GoLivePage() {
   if (!isCreator) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full glass rounded-2xl border-2 border-purple-200 p-8 text-center">
+        <div className="max-w-md w-full backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-8 text-center shadow-[0_0_30px_rgba(168,85,247,0.2)]">
           <div className="text-6xl mb-4">🎥</div>
           <h1 className="text-2xl font-bold text-white mb-4">Creator Access Required</h1>
           <p className="text-gray-300 mb-6">
@@ -337,13 +337,13 @@ export default function GoLivePage() {
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
-            <div className="glass rounded-lg px-4 py-2 border border-purple-200">
+            <div className="backdrop-blur-xl bg-white/5 rounded-lg px-4 py-2 border border-cyan-500/30">
               <span className="text-gray-300">Avg Viewers:</span>
-              <span className="ml-2 font-bold text-digis-cyan">{recentStats.avgViewers}</span>
+              <span className="ml-2 font-bold text-cyan-400">{recentStats.avgViewers}</span>
             </div>
-            <div className="glass rounded-lg px-4 py-2 border border-purple-200">
+            <div className="backdrop-blur-xl bg-white/5 rounded-lg px-4 py-2 border border-purple-500/30">
               <span className="text-gray-300">Total Streams:</span>
-              <span className="ml-2 font-bold text-digis-purple">{recentStats.totalStreams}</span>
+              <span className="ml-2 font-bold text-purple-400">{recentStats.totalStreams}</span>
             </div>
           </div>
         )}
@@ -352,11 +352,11 @@ export default function GoLivePage() {
         <form onSubmit={handleStartStream} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left Column: Form */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-cyan/50 transition-all duration-300">
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 md:p-8 space-y-4 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
               {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-semibold text-white mb-2">
-                  Stream Title *
+                  Title <span className="text-cyan-400">*</span>
                 </label>
                 <input
                   id="title"
@@ -364,11 +364,11 @@ export default function GoLivePage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="What's your stream about?"
-                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300"
+                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
                   maxLength={100}
                   required
                 />
-                <div className="mt-2 text-xs text-gray-400 text-right">
+                <div className="mt-2 text-xs text-gray-500 text-right">
                   {title.length}/100
                 </div>
               </div>
@@ -383,11 +383,11 @@ export default function GoLivePage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Tell viewers what to expect..."
-                  className="w-full px-4 py-3 bg-white/50 border-2 border-purple-200 rounded-xl text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300 resize-none"
+                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300 resize-none"
                   rows={2}
                   maxLength={500}
                 />
-                <div className="mt-2 text-xs text-gray-400 text-right">
+                <div className="mt-2 text-xs text-gray-500 text-right">
                   {description.length}/500
                 </div>
               </div>
@@ -395,7 +395,7 @@ export default function GoLivePage() {
               {/* Privacy Settings */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Privacy *
+                  Privacy <span className="text-cyan-400">*</span>
                 </label>
                 <div className="space-y-2">
                   {PRIVACY_OPTIONS.map((option) => (
@@ -403,8 +403,8 @@ export default function GoLivePage() {
                       key={option.value}
                       className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
                         privacy === option.value
-                          ? 'border-digis-cyan bg-digis-cyan/10 ring-2 ring-digis-cyan/20'
-                          : 'border-purple-200 bg-white/30 hover:border-digis-cyan/50'
+                          ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
                       }`}
                     >
                       <input
@@ -413,11 +413,11 @@ export default function GoLivePage() {
                         value={option.value}
                         checked={privacy === option.value}
                         onChange={(e) => setPrivacy(e.target.value)}
-                        className="w-4 h-4 text-digis-cyan focus:ring-digis-cyan"
+                        className="w-4 h-4 text-cyan-500 focus:ring-cyan-500 bg-white/10 border-white/20"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-white">{option.label}</div>
-                        <div className="text-xs text-gray-300">{option.description}</div>
+                        <div className="text-xs text-gray-400">{option.description}</div>
                       </div>
                     </label>
                   ))}
@@ -427,7 +427,7 @@ export default function GoLivePage() {
               {/* Orientation Toggle */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Stream Orientation
+                  Screen
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {ORIENTATION_OPTIONS.map((option) => (
@@ -437,13 +437,12 @@ export default function GoLivePage() {
                       onClick={() => setOrientation(option.value as 'landscape' | 'portrait')}
                       className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
                         orientation === option.value
-                          ? 'border-digis-cyan bg-digis-cyan/10 ring-2 ring-digis-cyan/20'
-                          : 'border-purple-200 bg-white/30 hover:border-digis-cyan/50'
+                          ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{option.icon}</div>
                       <div className="font-semibold text-white text-sm">{option.label}</div>
-                      <div className="text-xs text-gray-300 mt-1">{option.description}</div>
+                      <div className="text-xs text-gray-400 mt-1">{option.description}</div>
                     </button>
                   ))}
                 </div>
@@ -452,20 +451,20 @@ export default function GoLivePage() {
             </div>
 
             {/* Right Column: Device Preview */}
-            <div className="glass rounded-2xl border-2 border-purple-200 p-6 md:p-8 space-y-4 hover:border-digis-purple/50 transition-all duration-300">
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-6 md:p-8 space-y-4 hover:border-purple-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
               {/* Video Preview */}
               {devicesLoading ? (
                 <VideoPreviewSkeleton />
               ) : previewError ? (
-                <div className="relative aspect-video bg-gradient-to-br from-red-50 to-pink-50 rounded-xl overflow-hidden border-2 border-red-200">
+                <div className="relative aspect-video bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-xl overflow-hidden border-2 border-red-500/30">
                   <div className="absolute inset-0 flex items-center justify-center p-4">
                     <div className="text-center">
                       <div className="text-4xl mb-2">📷</div>
-                      <p className="text-red-600 text-sm font-semibold">{previewError}</p>
+                      <p className="text-red-400 text-sm font-semibold">{previewError}</p>
                       <button
                         type="button"
                         onClick={initializeDevices}
-                        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        className="mt-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
                       >
                         Retry
                       </button>
@@ -473,7 +472,7 @@ export default function GoLivePage() {
                   </div>
                 </div>
               ) : (
-                <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-200 group mx-auto ${
+                <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-500/30 group mx-auto ${
                   orientation === 'portrait'
                     ? 'aspect-[9/16] max-w-[280px]'
                     : 'aspect-video w-full'
@@ -507,7 +506,7 @@ export default function GoLivePage() {
                   <select
                     value={selectedVideoDevice}
                     onChange={(e) => setSelectedVideoDevice(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/50 border-2 border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                     disabled={videoDevices.length === 0}
                   >
                     {videoDevices.map((device) => (
@@ -526,7 +525,7 @@ export default function GoLivePage() {
                   <select
                     value={selectedAudioDevice}
                     onChange={(e) => setSelectedAudioDevice(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/50 border-2 border-purple-200 rounded-lg text-gray-900 focus:outline-none focus:border-digis-cyan focus:ring-2 focus:ring-digis-cyan/20 transition-all duration-300"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                     disabled={audioDevices.length === 0}
                   >
                     {audioDevices.map((device) => (
@@ -542,7 +541,7 @@ export default function GoLivePage() {
                   <label className="block text-sm font-semibold text-white mb-2">
                     Audio Level
                   </label>
-                  <div className="relative w-full h-4 bg-white/50 rounded-full overflow-hidden border-2 border-purple-200">
+                  <div className="relative w-full h-4 bg-white/5 rounded-full overflow-hidden border-2 border-white/10">
                     <div
                       className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-digis-cyan to-digis-pink transition-all duration-100 rounded-full"
                       style={{ width: `${Math.min(audioLevel, 100)}%` }}

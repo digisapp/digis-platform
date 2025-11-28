@@ -57,9 +57,10 @@ export default function BroadcastStudioPage() {
     topSupporters: Array<{ username: string; totalCoins: number }>;
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; totalCoins: number }>>([]);
-  const [isPortrait, setIsPortrait] = useState(false);
+  const [isPortraitDevice, setIsPortraitDevice] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; timestamp: number }>>([]);
   const [isSafari, setIsSafari] = useState(false);
 
@@ -107,12 +108,12 @@ export default function BroadcastStudioPage() {
     fetchLeaderboard();
   }, [streamId]);
 
-  // Check orientation on mount and window resize
+  // Check device orientation on mount and window resize
   useEffect(() => {
     const checkOrientation = () => {
       // Only detect portrait mode on mobile devices (max-width: 768px)
       const isMobile = window.innerWidth <= 768;
-      setIsPortrait(isMobile && window.innerHeight > window.innerWidth);
+      setIsPortraitDevice(isMobile && window.innerHeight > window.innerWidth);
       const isLandscapeOrientation = window.matchMedia('(orientation: landscape)').matches;
       setIsLandscape(isLandscapeOrientation);
     };
@@ -224,6 +225,8 @@ export default function BroadcastStudioPage() {
         setViewerCount(data.stream.currentViewers);
         setPeakViewers(data.stream.peakViewers);
         setTotalEarnings(data.stream.totalGiftsReceived);
+        // Set stream orientation from database
+        setStreamOrientation(data.stream.orientation || 'landscape');
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -757,14 +760,14 @@ export default function BroadcastStudioPage() {
       )}
 
       {/* Top Stats Bar - Single Row Layout */}
-      <div className="backdrop-blur-xl bg-black/80 border-b border-white/20 sticky top-0 z-40">
+      <div className="backdrop-blur-2xl bg-gradient-to-r from-black/80 via-gray-900/80 to-black/80 border-b-2 border-cyan-500/30 sticky top-0 z-40 shadow-[0_4px_30px_rgba(34,211,238,0.15)]">
         <div className="container mx-auto px-3 py-2">
           <div className="flex items-center justify-between gap-2">
             {/* Left: LIVE Timer + Viewers + Connection + Goal + Coins */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {/* LIVE + Timer */}
-              <div className="relative flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 rounded-lg border border-red-500">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <div className="relative flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                 <span className="text-red-400 font-bold text-xs">LIVE</span>
                 <span className="text-white font-semibold text-xs">{formatDuration()}</span>
               </div>
@@ -786,17 +789,17 @@ export default function BroadcastStudioPage() {
                   setEditingGoal(null);
                   setShowGoalModal(true);
                 }}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg text-white font-semibold text-xs hover:scale-105 transition-transform"
+                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-white/5 rounded-xl border-2 border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:scale-105 transition-all duration-300"
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="hidden sm:inline">Goal</span>
               </button>
 
               {/* Coins Earned */}
-              <div className="flex items-center gap-1 px-2 py-1.5 bg-yellow-500/20 rounded-lg border border-yellow-400/30">
-                <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-yellow-500/10 rounded-xl border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                 </svg>
@@ -807,29 +810,29 @@ export default function BroadcastStudioPage() {
             {/* Right: End Stream Button */}
             <button
               onClick={() => setShowEndConfirm(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg text-white font-semibold text-xs hover:scale-105 transition-transform flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/20 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:scale-105 transition-all duration-300 flex-shrink-0"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
               </svg>
-              <span className="hidden sm:inline">End</span>
+              <span className="hidden sm:inline text-red-400">End</span>
             </button>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
-        <div className={`grid grid-cols-1 ${isPortrait ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
+        <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
-          <div className={`${isPortrait ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-4`}>
+          <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
             {/* Stream Title */}
             <h1 className="text-2xl font-bold text-white px-2">{stream.title}</h1>
 
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
-                isPortrait
+                streamOrientation === 'portrait'
                   ? 'aspect-[9/16]'
                   : 'aspect-video'
               }`}
@@ -847,8 +850,10 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        // Use lower resolution for Safari to avoid connection issues
-                        resolution: isSafari ? VideoPresets.h720 : VideoPresets.h1440,
+                        // Use portrait or landscape resolution based on stream setting
+                        resolution: streamOrientation === 'portrait'
+                          ? { width: 1080, height: 1920, frameRate: 30 }
+                          : (isSafari ? VideoPresets.h720 : VideoPresets.h1440),
                         facingMode: 'user',
                       },
                       publishDefaults: {
@@ -944,7 +949,7 @@ export default function BroadcastStudioPage() {
 
           {/* Chat Sidebar */}
           <div className="lg:col-span-1">
-            <div className={`${isPortrait ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
+            <div className={`${isPortraitDevice ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}

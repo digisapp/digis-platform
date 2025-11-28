@@ -406,17 +406,17 @@ export class MessageService {
       );
 
     // Reset unread count for this user
-    const unreadCountField =
-      conversation.user1Id === userId
-        ? 'user1_unread_count'
-        : 'user2_unread_count';
-
-    await db
-      .update(conversations)
-      .set({
-        [unreadCountField]: '0',
-      })
-      .where(eq(conversations.id, conversationId));
+    if (conversation.user1Id === userId) {
+      await db
+        .update(conversations)
+        .set({ user1UnreadCount: 0 })
+        .where(eq(conversations.id, conversationId));
+    } else {
+      await db
+        .update(conversations)
+        .set({ user2UnreadCount: 0 })
+        .where(eq(conversations.id, conversationId));
+    }
   }
 
   /**

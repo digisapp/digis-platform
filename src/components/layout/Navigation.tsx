@@ -237,9 +237,9 @@ export function Navigation() {
                       router.push(`/${userProfile?.username || 'profile'}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-sm md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left"
+                    className="text-sm md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full"
                   >
-                    @{userProfile?.username || 'user'}
+                    digis.cc/{userProfile?.username || 'user'}
                   </button>
                 </div>
               </div>
@@ -624,51 +624,32 @@ export function Navigation() {
             </div>
           </button>
 
-          {/* Coins Dropdown Menu - Matching Profile Menu Style */}
+          {/* Coins Dropdown Menu - Simple Buy Coins button */}
           {showCoinsMenu && (
             <>
               <div
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
                 onClick={() => setShowCoinsMenu(false)}
               />
-              <div className="fixed md:left-24 md:top-[200px] bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-64 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+              <div className="fixed md:left-24 md:top-[200px] bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-52 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
                 {/* Animated gradient border effect */}
                 <div className="absolute inset-0 rounded-2xl md:rounded-xl overflow-hidden pointer-events-none">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
                 </div>
 
-                {/* Header */}
-                <div className="p-5 md:p-4 border-b border-cyan-500/20 bg-transparent relative">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-                      <Coins className="w-6 h-6 md:w-5 md:h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white text-lg md:text-base">Your Balance</h3>
-                      <p className="text-2xl md:text-xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                        {balance} <span className="text-sm font-medium text-gray-400">coins</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Menu Items */}
-                <div className="py-2 relative">
+                {/* Buy Coins Button */}
+                <div className="p-2 relative">
                   <button
                     onClick={() => {
                       setShowCoinsMenu(false);
                       setShowBuyCoinsModal(true);
                     }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
+                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98 rounded-xl"
                   >
-                    <div className="w-10 h-10 md:w-8 md:h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                      <Coins className="w-5 h-5 md:w-4 md:h-4 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                      <Coins className="w-5 h-5 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <span className="text-base md:text-sm text-white font-semibold">Buy Coins</span>
-                      <p className="text-xs text-gray-400">Add coins to your wallet</p>
-                    </div>
+                    <span className="text-base text-white font-semibold">Buy Coins</span>
                   </button>
                 </div>
               </div>

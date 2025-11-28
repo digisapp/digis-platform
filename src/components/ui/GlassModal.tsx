@@ -56,11 +56,6 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
 
       {/* Modal - Futuristic Glass Dark Theme */}
       <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[85vh] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
-        {/* Animated gradient border effect */}
-        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" />
-        </div>
-
         {/* Header */}
         {title && (
           <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative flex-shrink-0">
@@ -93,19 +88,8 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
             transform: scale(1);
           }
         }
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
         .animate-fadeIn {
           animation: fadeIn 0.2s ease-out;
-        }
-        .animate-shimmer {
-          animation: shimmer 3s infinite;
         }
       `}</style>
     </div>
