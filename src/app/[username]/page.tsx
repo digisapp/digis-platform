@@ -1199,11 +1199,11 @@ export default function ProfilePage() {
       {/* Message Confirmation Modal */}
       {showMessageModal && profile && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowMessageModal(false)}
         >
           <div
-            className="relative max-w-md w-full backdrop-blur-xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6"
+            className="relative max-w-md w-full backdrop-blur-xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6 mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}

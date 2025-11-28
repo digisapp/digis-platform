@@ -47,15 +47,15 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 overflow-y-auto">
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 overflow-y-auto">
       {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md"
+        className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md"
         onClick={onClose}
       />
 
       {/* Modal - Futuristic Glass Dark Theme */}
-      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[85vh] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn`}>
+      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[85vh] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
         {/* Animated gradient border effect */}
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" />
