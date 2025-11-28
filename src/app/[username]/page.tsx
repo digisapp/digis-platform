@@ -542,11 +542,9 @@ export default function ProfilePage() {
                 )}
 
                 {/* Follower Count */}
-                <div className="text-sm font-medium flex items-center gap-2 text-gray-400">
-                  <Users className="w-4 h-4" />
-                  <span>
-                    <strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Follower{followCounts.followers !== 1 ? 's' : ''}
-                  </span>
+                <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5 text-gray-400 whitespace-nowrap">
+                  <Users className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span><strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Followers</span>
                 </div>
               </div>
 
@@ -554,14 +552,13 @@ export default function ProfilePage() {
               <button
                 onClick={handleFollowToggle}
                 disabled={followLoading}
-                className={`flex-shrink-0 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 disabled:opacity-50 ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
                   isFollowing
                     ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-lg shadow-cyan-500/30'
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
                 }`}
               >
-                <Users className={`w-4 h-4 ${isFollowing ? 'fill-cyan-400' : ''}`} />
-                <span>{followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}</span>
+                {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
               </button>
             </div>
 
