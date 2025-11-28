@@ -63,6 +63,7 @@ export async function GET(
 
     // Get call settings for creators
     let callSettings = undefined;
+    let messageRate = 0;
     if (user.role === 'creator') {
       try {
         const settings = await CallService.getCreatorSettings(user.id);
@@ -74,6 +75,7 @@ export async function GET(
           minimumVoiceCallDuration: settings.minimumVoiceCallDuration,
           isAvailableForVoiceCalls: settings.isAvailableForVoiceCalls,
         };
+        messageRate = settings.messageRate || 0;
       } catch (error) {
         // If no settings found, don't fail the request
         console.log('No call settings found for creator');
@@ -85,6 +87,7 @@ export async function GET(
       followCounts,
       isFollowing,
       callSettings,
+      messageRate,
     });
   } catch (error: any) {
     console.error('Error fetching profile:', error);

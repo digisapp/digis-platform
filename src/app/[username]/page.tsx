@@ -42,6 +42,7 @@ interface ProfileData {
     minimumVoiceCallDuration: number;
     isAvailableForVoiceCalls: boolean;
   };
+  messageRate?: number;
 }
 
 export default function ProfilePage() {
@@ -67,6 +68,8 @@ export default function ProfilePage() {
   const [contentLoading, setContentLoading] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
   const [content, setContent] = useState<any[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
@@ -370,25 +373,30 @@ export default function ProfilePage() {
         }
       }
 
-      // No existing conversation - check if cold outreach fee applies
-      // If current user is a creator messaging a fan without a relationship, they'll be charged 50 coins
+      // No existing conversation - check if there's a message rate or cold outreach fee
       const currentUser = currentUserData?.user;
       const isCreatorMessagingFan = currentUser?.role === 'creator' && profile.user.role !== 'creator';
+      const messageRate = profile.messageRate || 0;
 
-      if (isCreatorMessagingFan) {
-        // Show confirmation for cold outreach fee
-        const confirmed = confirm(
-          `Message Unlock: 50 coins\n\n` +
-          `You'll be charged 50 coins to send your first message to ${profile.user.displayName || profile.user.username}.\n\n` +
-          `After that, messaging is free!\n\n` +
-          `Note: Free if they've tipped, subscribed, or messaged you first.`
-        );
-
-        if (!confirmed) {
-          return; // User cancelled
-        }
+      // If creator has a message rate or if it's a creator messaging a fan, show confirmation modal
+      if (messageRate > 0 || isCreatorMessagingFan) {
+        setShowMessageModal(true);
+        return;
       }
 
+      // No fees - proceed directly to create conversation
+      await createConversation();
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      alert('Failed to start conversation. Please try again.');
+    }
+  };
+
+  const createConversation = async () => {
+    if (!profile) return;
+
+    setMessageLoading(true);
+    try {
       // Create conversation by sending initial message
       const createResponse = await fetch('/api/messages/send', {
         method: 'POST',
@@ -401,6 +409,7 @@ export default function ProfilePage() {
 
       if (createResponse.ok) {
         const createData = await createResponse.json();
+        setShowMessageModal(false);
         // Navigate to the newly created conversation
         router.push(`/chats/${createData.conversationId}`);
       } else {
@@ -408,8 +417,10 @@ export default function ProfilePage() {
         alert(errorData.error || 'Failed to start conversation');
       }
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      console.error('Error creating conversation:', error);
       alert('Failed to start conversation. Please try again.');
+    } finally {
+      setMessageLoading(false);
     }
   };
 
@@ -1193,6 +1204,101 @@ export default function ProfilePage() {
               {selectedPhoto.views !== undefined && (
                 <p className="text-gray-400 text-sm mt-2">{selectedPhoto.views} views</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Message Confirmation Modal */}
+      {showMessageModal && profile && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowMessageModal(false)}
+        >
+          <div
+            className="relative max-w-md w-full backdrop-blur-xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowMessageModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur opacity-75"></div>
+                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center">
+                  <MessageCircle className="w-8 h-8 text-cyan-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-bold text-white text-center mb-2">
+              Message {profile.user.displayName || profile.user.username}
+            </h3>
+
+            {/* Message Rate Info */}
+            {profile.messageRate && profile.messageRate > 0 ? (
+              <div className="text-center mb-6">
+                <p className="text-gray-400 mb-3">
+                  This creator charges per message
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30">
+                  <span className="text-2xl font-bold text-cyan-400">{profile.messageRate}</span>
+                  <span className="text-gray-300">coins per message</span>
+                </div>
+                <p className="text-gray-500 text-sm mt-3">
+                  You'll be charged each time you send a message
+                </p>
+              </div>
+            ) : (
+              <div className="text-center mb-6">
+                <p className="text-gray-400 mb-3">
+                  Cold outreach fee
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
+                  <span className="text-2xl font-bold text-yellow-400">50</span>
+                  <span className="text-gray-300">coins</span>
+                </div>
+                <p className="text-gray-500 text-sm mt-3">
+                  One-time fee to start a conversation.<br />
+                  Free if they've already engaged with you!
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowMessageModal(false)}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createConversation}
+                disabled={messageLoading}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:scale-105 transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+              >
+                {messageLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    Start Chat
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

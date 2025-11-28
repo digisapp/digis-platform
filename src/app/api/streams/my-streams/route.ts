@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -9,28 +9,36 @@ import { nanoid } from 'nanoid';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const requestId = nanoid(10);
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
 
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    let targetUserId: string;
 
-    if (authError || !user) {
-      return NextResponse.json(
-        failure('Unauthorized', 'auth', requestId),
-        { status: 401, headers: { 'x-request-id': requestId } }
-      );
+    // If userId is provided, use it (public view of another creator's streams)
+    if (userId) {
+      targetUserId = userId;
+      console.log('[MY_STREAMS] Public view', { requestId, targetUserId });
+    } else {
+      // Otherwise, require authentication and use current user
+      const supabase = await createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        return NextResponse.json(
+          failure('Unauthorized', 'auth', requestId),
+          { status: 401, headers: { 'x-request-id': requestId } }
+        );
+      }
+      targetUserId = user.id;
+      console.log('[MY_STREAMS] Own streams', { requestId, targetUserId });
     }
-
-    console.log('[MY_STREAMS]', {
-      requestId,
-      userId: user.id
-    });
 
     try {
       const streams = await withTimeoutAndRetry(
-        () => StreamService.getCreatorStreams(user.id, 50),
+        () => StreamService.getCreatorStreams(targetUserId, 50),
         {
           timeoutMs: 6000,
           retries: 2,
@@ -46,7 +54,7 @@ export async function GET() {
       console.error('[MY_STREAMS]', {
         requestId,
         error: dbError instanceof Error ? dbError.message : 'Unknown error',
-        userId: user.id
+        targetUserId
       });
 
       return NextResponse.json(
@@ -68,7 +76,7 @@ export async function GET() {
     return NextResponse.json(
       degraded(
         { streams: [] },
-        'Failed to fetch your streams - please try again',
+        'Failed to fetch streams - please try again',
         'unknown',
         requestId
       ),
