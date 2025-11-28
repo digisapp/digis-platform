@@ -278,7 +278,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
             className={`px-4 py-3 rounded-2xl ${
               isOwnMessage
                 ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                : 'bg-white/10 border border-white/20 text-white'
+                : 'bg-white/5 text-white'
             }`}
           >
             <p className="break-words">{message.content}</p>

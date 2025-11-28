@@ -96,10 +96,18 @@ export default function ChatPage() {
           fetchMessages();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Chat] Real-time subscription status:', status);
+      });
+
+    // Fallback polling every 5 seconds in case real-time fails
+    const pollInterval = setInterval(() => {
+      fetchMessages();
+    }, 5000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [conversationId]);
 
