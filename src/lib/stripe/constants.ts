@@ -12,7 +12,7 @@ export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimu
 export const COIN_PACKAGES = [
   {
     id: 'starter',
-    name: '100 Digis Coins',
+    name: '100 Coins',
     coins: 100,
     price: 179, // $1.79 in cents (~$0.0179/coin)
     popular: false,
@@ -20,7 +20,7 @@ export const COIN_PACKAGES = [
   },
   {
     id: 'value',
-    name: '500 Digis Coins',
+    name: '500 Coins',
     coins: 500,
     price: 849, // $8.49 in cents (~$0.0169/coin)
     popular: true,
@@ -29,7 +29,7 @@ export const COIN_PACKAGES = [
   },
   {
     id: 'popular',
-    name: '1000 Digis Coins',
+    name: '1,000 Coins',
     coins: 1000,
     price: 1599, // $15.99 in cents (~$0.0159/coin)
     popular: false,
@@ -38,7 +38,7 @@ export const COIN_PACKAGES = [
   },
   {
     id: 'best',
-    name: '2500 Digis Coins',
+    name: '2,500 Coins',
     coins: 2500,
     price: 3699, // $36.99 in cents (~$0.0147/coin)
     popular: false,
@@ -47,7 +47,7 @@ export const COIN_PACKAGES = [
   },
   {
     id: 'ultimate',
-    name: '5000 Digis Coins',
+    name: '5,000 Coins',
     coins: 5000,
     price: 6799, // $67.99 in cents (~$0.0135/coin)
     popular: false,

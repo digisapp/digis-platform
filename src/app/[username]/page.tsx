@@ -458,6 +458,9 @@ export default function ProfilePage() {
       {/* Mobile Header with Logo and Wallet */}
       <MobileHeader />
 
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden h-16" />
+
       {/* Animated Background Mesh - Tron Theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -470,7 +473,7 @@ export default function ProfilePage() {
 
       {/* Banner with Parallax Effect */}
       <div className="relative">
-        <ParallaxBanner imageUrl={user.bannerUrl} height="h-64 sm:h-72 md:h-80" />
+        <ParallaxBanner imageUrl={user.bannerUrl} height={user.bannerUrl ? "h-48 sm:h-56 md:h-64" : "h-32 sm:h-40 md:h-48"} />
         {/* Gradient Overlay for better contrast - Tron Theme */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90"></div>
       </div>
@@ -659,7 +662,7 @@ export default function ProfilePage() {
         )}
 
         {/* Content Tabs - Futuristic Design */}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden mb-8">
           {/* Tab Pills - Glassmorphism */}
           <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pb-2 pl-4 pr-1">
             <button
@@ -976,8 +979,8 @@ export default function ProfilePage() {
                       {shows.length === 0 ? (
                         <div className="text-center py-12">
                           <Ticket className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-gray-800 mb-2">No upcoming shows</h3>
-                          <p className="text-gray-600 px-4">
+                          <h3 className="text-lg font-semibold text-white mb-2">No upcoming shows</h3>
+                          <p className="text-gray-400 px-4">
                             Check back later for ticketed events and special shows
                           </p>
                         </div>
@@ -987,7 +990,7 @@ export default function ProfilePage() {
                             <button
                               key={show.id}
                               onClick={() => router.push(`/shows/${show.id}`)}
-                              className="w-full flex flex-col sm:flex-row gap-3 sm:gap-4 p-4 bg-white/60 hover:bg-white/80 rounded-xl border-2 border-purple-200 hover:border-purple-500 transition-all text-left shadow-fun hover:shadow-lg"
+                              className="w-full flex flex-col sm:flex-row gap-3 sm:gap-4 p-4 bg-white/10 hover:bg-white/20 rounded-xl border-2 border-purple-500/30 hover:border-purple-500 transition-all text-left"
                             >
                               {/* Show thumbnail */}
                               <div className="w-full sm:w-28 sm:h-28 aspect-square sm:aspect-auto flex-shrink-0 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border-2 border-purple-500/30 relative overflow-hidden">
