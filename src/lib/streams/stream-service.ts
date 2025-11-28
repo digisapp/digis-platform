@@ -14,6 +14,12 @@ import {
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '../wallet/wallet-service';
+import {
+  getCachedViewerCount,
+  setCachedViewerCount,
+  incrementViewerCount as redisIncrementViewerCount,
+  decrementViewerCount as redisDecrementViewerCount,
+} from '@/lib/cache';
 
 /**
  * StreamService uses Drizzle ORM for complex streaming operations.
@@ -170,6 +176,7 @@ export class StreamService {
 
   /**
    * Update viewer count (call after join/leave)
+   * Uses Redis for fast viewer count, periodically syncs to DB
    */
   static async updateViewerCount(streamId: string) {
     const viewers = await db.query.streamViewers.findMany({
@@ -186,6 +193,7 @@ export class StreamService {
 
     const peakViewers = Math.max(stream.peakViewers, currentCount);
 
+    // Update database
     await db
       .update(streams)
       .set({
@@ -195,7 +203,45 @@ export class StreamService {
       })
       .where(eq(streams.id, streamId));
 
+    // Also cache in Redis for fast reads
+    await setCachedViewerCount(streamId, currentCount);
+
     return { currentViewers: currentCount, peakViewers };
+  }
+
+  /**
+   * Get viewer count - uses Redis cache for performance
+   */
+  static async getViewerCount(streamId: string): Promise<number> {
+    // Try cache first
+    const cached = await getCachedViewerCount(streamId);
+    if (cached !== null) {
+      return cached;
+    }
+
+    // Cache miss - get from database
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+      columns: { currentViewers: true },
+    });
+
+    const count = stream?.currentViewers ?? 0;
+    await setCachedViewerCount(streamId, count);
+    return count;
+  }
+
+  /**
+   * Increment viewer count atomically via Redis (for real-time updates)
+   */
+  static async incrementViewerCountFast(streamId: string): Promise<number> {
+    return await redisIncrementViewerCount(streamId);
+  }
+
+  /**
+   * Decrement viewer count atomically via Redis (for real-time updates)
+   */
+  static async decrementViewerCountFast(streamId: string): Promise<number> {
+    return await redisDecrementViewerCount(streamId);
   }
 
   /**

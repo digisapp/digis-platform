@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { users, streams, follows } from '@/lib/data/system';
+import { users, streams, follows, subscriptions, showTickets, shows } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 export interface StreamInfo {
@@ -163,10 +163,42 @@ export async function hasAccess({
       return !!followRelation;
     }
 
-    // For private streams, for now allow any logged-in user
-    // TODO: Add proper access control (tickets, subscription, etc.)
+    // For private streams, check for active subscription or ticket
     if (stream.kind === 'private_group' || stream.kind === 'private_1on1') {
-      // This can be enhanced with a tickets system later
+      // Check for active subscription to the creator
+      const activeSubscription = await db.query.subscriptions.findFirst({
+        where: and(
+          eq(subscriptions.userId, userId),
+          eq(subscriptions.creatorId, stream.creatorId),
+          eq(subscriptions.status, 'active')
+        ),
+      });
+
+      if (activeSubscription && activeSubscription.expiresAt > new Date()) {
+        return true;
+      }
+
+      // Check if this stream is linked to a show with a ticket
+      const linkedShow = await db.query.shows.findFirst({
+        where: eq(shows.streamId, stream.id),
+      });
+
+      if (linkedShow) {
+        // Check if user has a valid ticket for this show
+        const ticket = await db.query.showTickets.findFirst({
+          where: and(
+            eq(showTickets.showId, linkedShow.id),
+            eq(showTickets.userId, userId),
+            eq(showTickets.isValid, true)
+          ),
+        });
+
+        if (ticket) {
+          return true;
+        }
+      }
+
+      // No subscription or ticket found
       return false;
     }
 

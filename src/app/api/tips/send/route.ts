@@ -3,23 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { wallets, walletTransactions, users, notifications } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimitFinancial } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, receiverId, message } = await req.json();
-
-    // Validate input
-    if (!amount || !receiverId || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid amount or receiver ID' },
-        { status: 400 }
-      );
-    }
-
-    // Get current user
+    // Get current user first for rate limiting by user ID
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
@@ -27,6 +18,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit financial operations
+    const rateCheck = await rateLimitFinancial(authUser.id, 'tip');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.retryAfter) }
+        }
+      );
+    }
+
+    const { amount, receiverId, message } = await req.json();
+
+    // Validate input
+    if (!amount || !receiverId || amount <= 0) {
+      return NextResponse.json(
+        { error: 'Invalid amount or receiver ID' },
+        { status: 400 }
       );
     }
 

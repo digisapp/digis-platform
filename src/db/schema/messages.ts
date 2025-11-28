@@ -219,6 +219,35 @@ export const messageSettingsRelations = relations(messageSettings, ({ one }) => 
   }),
 }));
 
+// Message Reactions table
+export const messageReactions = pgTable('message_reactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  messageId: uuid('message_id').references(() => messages.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  emoji: text('emoji').notNull(), // '🔥', '❤️', '😂', '👏', '😮', '💀'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  messageIdIdx: index('message_reactions_message_id_idx').on(table.messageId),
+  userIdIdx: index('message_reactions_user_id_idx').on(table.userId),
+  // Unique constraint: one reaction type per user per message
+  uniqueReaction: index('message_reactions_unique_idx').on(table.messageId, table.userId, table.emoji),
+}));
+
+export const messageReactionsRelations = relations(messageReactions, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageReactions.messageId],
+    references: [messages.id],
+  }),
+  user: one(users, {
+    fields: [messageReactions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Valid emoji reactions (same as stream reactions)
+export const VALID_REACTION_EMOJIS = ['🔥', '❤️', '😂', '👏', '😮', '💀'] as const;
+export type ReactionEmoji = typeof VALID_REACTION_EMOJIS[number];
+
 // Type exports
 export type Conversation = typeof conversations.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;
@@ -230,3 +259,5 @@ export type BlockedUser = typeof blockedUsers.$inferSelect;
 export type NewBlockedUser = typeof blockedUsers.$inferInsert;
 export type MessageSettings = typeof messageSettings.$inferSelect;
 export type NewMessageSettings = typeof messageSettings.$inferInsert;
+export type MessageReaction = typeof messageReactions.$inferSelect;
+export type NewMessageReaction = typeof messageReactions.$inferInsert;

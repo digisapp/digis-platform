@@ -1,10 +1,20 @@
-# Supabase Storage Setup for Image Uploads
+# Supabase Storage Setup for Media Uploads
 
-This guide explains how to set up Supabase Storage buckets for avatar and banner uploads.
+This guide explains how to set up Supabase Storage buckets for all media uploads in Digis.
 
 ## 1. Create Storage Buckets
 
 Go to your Supabase dashboard: https://supabase.com/dashboard/project/YOUR_PROJECT_ID/storage/buckets
+
+### Required Buckets:
+
+| Bucket Name | Public | Max Size | Purpose |
+|-------------|--------|----------|---------|
+| `avatars` | Yes | 1MB | User profile pictures |
+| `banners` | Yes | 2MB | Profile cover images, creator cards |
+| `show-covers` | Yes | 5MB | Show/event cover images |
+| `message-media` | Yes | 50MB (images), 500MB (videos) | DM photos and videos |
+| `voice-messages` | Yes | 25MB | Voice messages in DMs |
 
 ### Create Avatars Bucket:
 1. Click "New bucket"
@@ -15,6 +25,24 @@ Go to your Supabase dashboard: https://supabase.com/dashboard/project/YOUR_PROJE
 ### Create Banners Bucket:
 1. Click "New bucket"
 2. Name: `banners`
+3. Public bucket: **Yes** (check the box)
+4. Click "Create bucket"
+
+### Create Message Media Bucket:
+1. Click "New bucket"
+2. Name: `message-media`
+3. Public bucket: **Yes** (check the box)
+4. Click "Create bucket"
+
+### Create Voice Messages Bucket:
+1. Click "New bucket"
+2. Name: `voice-messages`
+3. Public bucket: **Yes** (check the box)
+4. Click "Create bucket"
+
+### Create Show Covers Bucket:
+1. Click "New bucket"
+2. Name: `show-covers`
 3. Public bucket: **Yes** (check the box)
 4. Click "Create bucket"
 
@@ -142,6 +170,96 @@ ON storage.objects FOR DELETE
 TO authenticated
 USING (
   bucket_id = 'banners'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Message Media bucket policies
+CREATE POLICY "Public Access for message-media"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'message-media');
+
+CREATE POLICY "Users can upload message-media"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'message-media'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can update own message-media"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'message-media'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can delete own message-media"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'message-media'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Voice Messages bucket policies
+CREATE POLICY "Public Access for voice-messages"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'voice-messages');
+
+CREATE POLICY "Users can upload voice-messages"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'voice-messages'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can update own voice-messages"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'voice-messages'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can delete own voice-messages"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'voice-messages'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Show Covers bucket policies
+CREATE POLICY "Public Access for show-covers"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'show-covers');
+
+CREATE POLICY "Users can upload show-covers"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'show-covers'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can update own show-covers"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'show-covers'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can delete own show-covers"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'show-covers'
   AND auth.uid()::text = (storage.foldername(name))[1]
 );
 ```

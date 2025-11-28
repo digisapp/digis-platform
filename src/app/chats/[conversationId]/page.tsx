@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -10,6 +10,7 @@ import { Gift } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
+import { TypingIndicator } from '@/components/messages/TypingIndicator';
 
 type Message = {
   id: string;
@@ -61,6 +62,9 @@ export default function ChatPage() {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showChargeWarning, setShowChargeWarning] = useState(false);
   const [pendingMessage, setPendingMessage] = useState('');
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
 
   useEffect(() => {
     checkAuth();
@@ -70,7 +74,7 @@ export default function ChatPage() {
 
     // Subscribe to real-time messages
     const supabase = createClient();
-    const channel = supabase
+    const messageChannel = supabase
       .channel(`chat-${conversationId}`)
       .on(
         'postgres_changes',
@@ -101,16 +105,41 @@ export default function ChatPage() {
         console.log('[Chat] Real-time subscription status:', status);
       });
 
+    // Subscribe to typing indicators
+    const typingChannel = supabase
+      .channel(`typing-${conversationId}`)
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        const { userId, isTyping } = payload.payload;
+        // Only show typing indicator if it's from the other user
+        if (userId !== currentUserId) {
+          setIsOtherUserTyping(isTyping);
+          // Auto-clear typing indicator after 3 seconds
+          if (isTyping) {
+            if (typingTimeoutRef.current) {
+              clearTimeout(typingTimeoutRef.current);
+            }
+            typingTimeoutRef.current = setTimeout(() => {
+              setIsOtherUserTyping(false);
+            }, 3000);
+          }
+        }
+      })
+      .subscribe();
+
     // Fallback polling every 5 seconds in case real-time fails
     const pollInterval = setInterval(() => {
       fetchMessages();
     }, 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messageChannel);
+      supabase.removeChannel(typingChannel);
       clearInterval(pollInterval);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
-  }, [conversationId]);
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -206,6 +235,8 @@ export default function ChatPage() {
     if (!conversation) return;
 
     setSending(true);
+    // Stop typing indicator when sending
+    sendTypingIndicator(false);
 
     try {
       const response = await fetch('/api/messages/send', {
@@ -368,6 +399,38 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Send typing indicator (throttled to once per second)
+  const sendTypingIndicator = useCallback(async (isTyping: boolean) => {
+    const now = Date.now();
+    // Throttle: don't send more than once per second for "typing" events
+    if (isTyping && now - lastTypingSentRef.current < 1000) {
+      return;
+    }
+    lastTypingSentRef.current = now;
+
+    try {
+      await fetch('/api/messages/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId, isTyping }),
+      });
+    } catch (error) {
+      // Silently fail - typing indicators are not critical
+    }
+  }, [conversationId]);
+
+  // Handle input change with typing indicator
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewMessage(value);
+
+    if (value.trim()) {
+      sendTypingIndicator(true);
+    } else {
+      sendTypingIndicator(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
@@ -466,6 +529,11 @@ export default function ChatPage() {
                   />
                 ))
               )}
+              {isOtherUserTyping && conversation && (
+                <TypingIndicator
+                  userName={conversation.otherUser.displayName || conversation.otherUser.username || undefined}
+                />
+              )}
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -493,7 +561,8 @@ export default function ChatPage() {
               <input
                 type="text"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleInputChange}
+                onBlur={() => sendTypingIndicator(false)}
                 placeholder="Type a message..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
                 disabled={sending}

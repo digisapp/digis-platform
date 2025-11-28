@@ -2,13 +2,20 @@ import { db } from '@/lib/data/system';
 import { notifications, follows, subscriptions, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { RealtimeService } from '@/lib/streams/realtime-service';
+import { PushNotificationService, NotificationType } from './push-notification-service';
 
 /**
  * NotificationService handles creating and sending notifications to users
+ *
+ * This service:
+ * 1. Stores notifications in the database
+ * 2. Broadcasts via Supabase Realtime (for in-app notifications)
+ * 3. Sends Web Push notifications (for browser/device notifications)
  */
 export class NotificationService {
   /**
    * Send a notification to a single user
+   * Handles both in-app and push notifications
    */
   static async sendNotification(
     userId: string,
@@ -19,6 +26,7 @@ export class NotificationService {
     imageUrl?: string,
     metadata?: any
   ) {
+    // 1. Store in database
     const [notification] = await db
       .insert(notifications)
       .values({
@@ -32,11 +40,75 @@ export class NotificationService {
       })
       .returning();
 
-    // Broadcast real-time notification via Supabase Realtime
+    // 2. Broadcast real-time notification via Supabase Realtime
     // This will be picked up by the user's notification listener
     await RealtimeService.broadcastNotification(userId, notification);
 
+    // 3. Send Web Push notification (async, non-blocking)
+    this.sendPushNotification(userId, type as NotificationType, {
+      title,
+      body: message,
+      icon: imageUrl || '/icon-192.png',
+      badge: '/badge-72.png',
+      data: {
+        url: actionUrl || '/',
+        type: type as NotificationType,
+        notificationId: notification.id,
+        ...metadata,
+      },
+    }).catch(err => {
+      console.error('[NotificationService] Push notification failed:', err);
+    });
+
     return notification;
+  }
+
+  /**
+   * Send a push notification (internal helper)
+   */
+  private static async sendPushNotification(
+    userId: string,
+    type: NotificationType,
+    payload: {
+      title: string;
+      body: string;
+      icon?: string;
+      badge?: string;
+      image?: string;
+      data?: any;
+      actions?: Array<{ action: string; title: string; icon?: string }>;
+    }
+  ) {
+    // Add type-specific actions
+    const actions = this.getActionsForType(type);
+    if (actions.length > 0) {
+      payload.actions = actions;
+    }
+
+    return PushNotificationService.sendNotification(userId, type, payload);
+  }
+
+  /**
+   * Get notification actions based on type
+   */
+  private static getActionsForType(type: NotificationType): Array<{ action: string; title: string }> {
+    switch (type) {
+      case 'call':
+        return [
+          { action: 'answer', title: 'Answer' },
+          { action: 'dismiss', title: 'Decline' },
+        ];
+      case 'message':
+        return [
+          { action: 'view', title: 'View' },
+        ];
+      case 'stream':
+        return [
+          { action: 'view', title: 'Watch' },
+        ];
+      default:
+        return [];
+    }
   }
 
   /**

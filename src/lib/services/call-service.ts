@@ -1,7 +1,10 @@
 import { db } from '@/lib/data/system';
 import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
-import { eq, and, or, desc } from 'drizzle-orm';
+import { eq, and, or, desc, lt } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+
+// Call timeout settings
+const PENDING_CALL_TIMEOUT_MINUTES = 5; // Calls auto-expire after 5 minutes
 
 export class CallService {
   /**
@@ -409,5 +412,105 @@ export class CallService {
       orderBy: [desc(calls.createdAt)],
       limit,
     });
+  }
+
+  /**
+   * Mark a call as missed (timed out)
+   */
+  static async markCallAsMissed(callId: string) {
+    const call = await db.query.calls.findFirst({
+      where: eq(calls.id, callId),
+    });
+
+    if (!call) {
+      throw new Error('Call not found');
+    }
+
+    if (call.status !== 'pending') {
+      throw new Error('Call is not pending');
+    }
+
+    // Release the hold if exists
+    if (call.holdId) {
+      await db
+        .update(spendHolds)
+        .set({
+          status: 'released',
+          releasedAt: new Date(),
+        })
+        .where(eq(spendHolds.id, call.holdId));
+
+      // Update fan's held balance
+      const fanWallet = await db.query.wallets.findFirst({
+        where: eq(wallets.userId, call.fanId),
+      });
+
+      if (fanWallet) {
+        await db
+          .update(wallets)
+          .set({
+            heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
+          })
+          .where(eq(wallets.userId, call.fanId));
+      }
+    }
+
+    // Update call status to missed
+    const [updated] = await db
+      .update(calls)
+      .set({
+        status: 'missed',
+        updatedAt: new Date(),
+      })
+      .where(eq(calls.id, callId))
+      .returning();
+
+    return updated;
+  }
+
+  /**
+   * Cleanup expired pending calls
+   * Should be called periodically (e.g., every minute via cron or on request)
+   */
+  static async cleanupExpiredCalls(): Promise<number> {
+    const timeoutThreshold = new Date(Date.now() - PENDING_CALL_TIMEOUT_MINUTES * 60 * 1000);
+
+    // Find all pending calls older than the timeout threshold
+    const expiredCalls = await db.query.calls.findMany({
+      where: and(
+        eq(calls.status, 'pending'),
+        lt(calls.requestedAt, timeoutThreshold)
+      ),
+    });
+
+    let cleanedCount = 0;
+
+    for (const call of expiredCalls) {
+      try {
+        await this.markCallAsMissed(call.id);
+        cleanedCount++;
+        console.log(`[CallService] Auto-expired call ${call.id} (requested: ${call.requestedAt})`);
+      } catch (error) {
+        console.error(`[CallService] Failed to expire call ${call.id}:`, error);
+      }
+    }
+
+    return cleanedCount;
+  }
+
+  /**
+   * Check if a specific call has timed out
+   */
+  static async isCallExpired(callId: string): Promise<boolean> {
+    const call = await db.query.calls.findFirst({
+      where: eq(calls.id, callId),
+    });
+
+    if (!call || call.status !== 'pending') {
+      return false;
+    }
+
+    const timeoutThreshold = new Date(Date.now() - PENDING_CALL_TIMEOUT_MINUTES * 60 * 1000);
+    return call.requestedAt < timeoutThreshold;
   }
 }

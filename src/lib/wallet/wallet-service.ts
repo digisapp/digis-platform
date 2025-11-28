@@ -3,6 +3,7 @@ import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/syste
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateTier } from '@/lib/tiers/spend-tiers';
+import { getCachedBalance, setCachedBalance, invalidateBalanceCache } from '@/lib/cache';
 
 /**
  * WalletService handles all financial transactions using Drizzle ORM.
@@ -39,8 +40,16 @@ interface CreateHoldParams {
 export class WalletService {
   /**
    * Get user's wallet balance
+   * Uses Redis cache with 30-second TTL for performance
    */
   static async getBalance(userId: string): Promise<number> {
+    // Try cache first
+    const cachedBalance = await getCachedBalance(userId);
+    if (cachedBalance !== null) {
+      return cachedBalance;
+    }
+
+    // Cache miss - fetch from database
     const wallet = await db.query.wallets.findFirst({
       where: eq(wallets.userId, userId),
     });
@@ -48,14 +57,18 @@ export class WalletService {
     if (!wallet) {
       // Create wallet if it doesn't exist
       await this.createWallet(userId);
+      await setCachedBalance(userId, 0);
       return 0;
     }
 
+    // Cache the balance
+    await setCachedBalance(userId, wallet.balance);
     return wallet.balance;
   }
 
   /**
    * Get available balance (balance - held balance)
+   * Note: This always queries DB since held balance changes frequently
    */
   static async getAvailableBalance(userId: string): Promise<number> {
     const wallet = await db.query.wallets.findFirst({
@@ -155,6 +168,9 @@ export class WalletService {
         })
         .where(eq(wallets.userId, userId));
 
+      // Invalidate balance cache after update
+      await invalidateBalanceCache(userId);
+
       // If this is a spending transaction (negative amount), update lifetime spending and tier
       if (amount < 0) {
         const spentAmount = Math.abs(amount);
@@ -243,8 +259,23 @@ export class WalletService {
   /**
    * Settle a hold (convert held coins to actual charge)
    * Called when a call/stream ends successfully
+   *
+   * IMPORTANT: This uses a single transaction to ensure atomicity.
+   * All operations (transaction creation, hold update, balance update) happen together.
    */
   static async settleHold(holdId: string, actualAmount?: number) {
+    const idempotencyKey = `settle_${holdId}`;
+
+    // Check if already settled (idempotency)
+    const existingTransaction = await db.query.walletTransactions.findFirst({
+      where: eq(walletTransactions.idempotencyKey, idempotencyKey),
+    });
+
+    if (existingTransaction) {
+      console.log('Hold already settled (idempotent):', holdId);
+      return existingTransaction;
+    }
+
     return await db.transaction(async (tx) => {
       const hold = await tx.query.spendHolds.findFirst({
         where: eq(spendHolds.id, holdId),
@@ -259,16 +290,43 @@ export class WalletService {
       }
 
       const amountToSettle = actualAmount || hold.amount;
+      const transactionType = hold.purpose.includes('call') ? 'call_charge' : 'stream_tip';
 
-      // Create the actual transaction
-      await this.createTransaction({
-        userId: hold.userId,
-        amount: -amountToSettle,
-        type: hold.purpose.includes('call') ? 'call_charge' : 'stream_tip',
-        description: `Settled hold for ${hold.purpose}`,
-        metadata: { holdId },
-        idempotencyKey: `settle_${holdId}`,
+      // Get wallet within transaction
+      const wallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, hold.userId),
       });
+
+      if (!wallet) {
+        throw new Error('Wallet not found');
+      }
+
+      // Create the transaction record (within this transaction, not nested)
+      const [transaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId: hold.userId,
+          amount: -amountToSettle,
+          type: transactionType,
+          status: 'completed',
+          description: `Settled hold for ${hold.purpose}`,
+          idempotencyKey,
+          metadata: JSON.stringify({ holdId }),
+        })
+        .returning();
+
+      // Update wallet balance (deduct the settled amount)
+      await tx
+        .update(wallets)
+        .set({
+          balance: sql`${wallets.balance} - ${amountToSettle}`,
+          heldBalance: sql`${wallets.heldBalance} - ${hold.amount}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(wallets.userId, hold.userId));
+
+      // Invalidate balance cache
+      await invalidateBalanceCache(hold.userId);
 
       // Update hold status
       await tx
@@ -279,21 +337,37 @@ export class WalletService {
         })
         .where(eq(spendHolds.id, holdId));
 
-      // Release the held amount
+      // Update lifetime spending and tier
       await tx
-        .update(wallets)
+        .update(users)
         .set({
-          heldBalance: sql`${wallets.heldBalance} - ${hold.amount}`,
+          lifetimeSpending: sql`${users.lifetimeSpending} + ${amountToSettle}`,
           updatedAt: new Date(),
         })
-        .where(eq(wallets.userId, hold.userId));
+        .where(eq(users.id, hold.userId));
 
-      // If actual amount is less than hold, refund the difference
+      // Get updated lifetime spending to recalculate tier
+      const updatedUser = await tx.query.users.findFirst({
+        where: eq(users.id, hold.userId),
+        columns: { lifetimeSpending: true },
+      });
+
+      if (updatedUser) {
+        const newTier = calculateTier(updatedUser.lifetimeSpending);
+        await tx
+          .update(users)
+          .set({ spendTier: newTier })
+          .where(eq(users.id, hold.userId));
+      }
+
+      // If actual amount is less than hold, the difference is automatically returned
+      // (we only deducted amountToSettle from balance, but released full hold.amount from heldBalance)
       if (actualAmount && actualAmount < hold.amount) {
         const refundAmount = hold.amount - actualAmount;
-        // Balance already adjusted by settling, just log it
-        console.log(`Refunded ${refundAmount} coins from hold ${holdId}`);
+        console.log(`Returned ${refundAmount} coins to available balance from hold ${holdId}`);
       }
+
+      return transaction;
     });
   }
 

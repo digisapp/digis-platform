@@ -35,12 +35,14 @@
     "recharts": "^3.3.0",
     "stripe": "^17.5.0",
     "uuid": "^13.0.0",
+    "web-push": "^3.6.7",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.29.1",
     "eslint": "^9",

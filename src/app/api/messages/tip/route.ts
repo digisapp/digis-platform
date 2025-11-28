@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
+import { rateLimitFinancial } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit financial operations
+    const rateCheck = await rateLimitFinancial(user.id, 'tip');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.retryAfter) }
+        }
       );
     }
 

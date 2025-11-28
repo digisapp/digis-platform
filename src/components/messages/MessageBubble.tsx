@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Trash2, Check, CheckCheck, SmilePlus } from 'lucide-react';
+import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 
 type Message = {
   id: string;
@@ -15,6 +16,8 @@ type Message = {
   mediaUrl: string | null;
   mediaType: string | null;
   thumbnailUrl: string | null;
+  isRead?: boolean;
+  readAt?: Date | null;
   sender: {
     id: string;
     displayName: string | null;
@@ -35,6 +38,15 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
   const [unlocking, setUnlocking] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+
+  // Reactions hook
+  const { reactions, fetchReactions, toggleReaction } = useMessageReactions(message.id);
+
+  // Fetch reactions on mount
+  useEffect(() => {
+    fetchReactions();
+  }, [message.id]);
 
   const formatTime = (date: Date) => {
     const d = new Date(date);
@@ -116,6 +128,21 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     );
   };
 
+  // Read receipt indicator for own messages
+  const ReadReceipt = () => {
+    if (!isOwnMessage) return null;
+
+    return (
+      <span className="inline-flex items-center ml-1" title={message.isRead ? 'Read' : 'Sent'}>
+        {message.isRead ? (
+          <CheckCheck className="w-3.5 h-3.5 text-cyan-400" />
+        ) : (
+          <Check className="w-3.5 h-3.5 text-gray-500" />
+        )}
+      </span>
+    );
+  };
+
   // Tip message
   if (message.messageType === 'tip' && message.tipAmount) {
     return (
@@ -133,8 +160,9 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
                 <p className="text-white text-sm">{message.content}</p>
               )}
             </div>
-            <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+            <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               {formatTime(message.createdAt)}
+              <ReadReceipt />
             </p>
           </div>
           {!isOwnMessage && <DeleteButton />}
@@ -183,7 +211,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
                   {unlocking ? 'Unlocking...' : `Unlock for ${message.unlockPrice} coins`}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1 text-left">
+              <p className="text-xs text-gray-500 mt-1 flex items-center justify-start">
                 {formatTime(message.createdAt)}
               </p>
             </div>
@@ -229,8 +257,9 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
 
               <p className="text-white break-words">{message.content}</p>
             </div>
-            <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+            <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               {formatTime(message.createdAt)}
+              <ReadReceipt />
             </p>
           </div>
           {!isOwnMessage && <DeleteButton />}
@@ -239,12 +268,37 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     );
   }
 
+  // Reaction button component
+  const ReactionButton = () => (
+    <button
+      onClick={() => setShowReactionPicker(!showReactionPicker)}
+      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all"
+      title="Add reaction"
+    >
+      <SmilePlus className="w-4 h-4" />
+    </button>
+  );
+
   // Regular text/media message
   return (
     <>
       {showDeleteConfirm && <DeleteConfirmModal />}
       <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-        {isOwnMessage && <DeleteButton />}
+        {isOwnMessage && (
+          <div className="flex items-center gap-1">
+            <DeleteButton />
+            <div className="relative">
+              <ReactionButton />
+              <ReactionPicker
+                isVisible={showReactionPicker}
+                onReact={toggleReaction}
+                onClose={() => setShowReactionPicker(false)}
+                existingReaction={reactions.find(r => r.userReacted)?.emoji}
+                position="left"
+              />
+            </div>
+          </div>
+        )}
         <div className="max-w-[70%]">
           {message.mediaUrl && (
             <div className="mb-2 rounded-lg overflow-hidden">
@@ -283,11 +337,34 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
           >
             <p className="break-words">{message.content}</p>
           </div>
-          <p className={`text-xs text-gray-500 mt-1 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+
+          {/* Reactions display */}
+          <ReactionDisplay
+            reactions={reactions}
+            onReact={toggleReaction}
+            compact
+          />
+
+          <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
             {formatTime(message.createdAt)}
+            <ReadReceipt />
           </p>
         </div>
-        {!isOwnMessage && <DeleteButton />}
+        {!isOwnMessage && (
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <ReactionButton />
+              <ReactionPicker
+                isVisible={showReactionPicker}
+                onReact={toggleReaction}
+                onClose={() => setShowReactionPicker(false)}
+                existingReaction={reactions.find(r => r.userReacted)?.emoji}
+                position="right"
+              />
+            </div>
+            <DeleteButton />
+          </div>
+        )}
       </div>
     </>
   );

@@ -14,6 +14,12 @@ import {
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  getCachedConversations,
+  setCachedConversations,
+  invalidateConversationsCacheForBoth,
+  CachedConversation,
+} from '@/lib/cache';
 
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
 const COLD_OUTREACH_FEE = 50;
@@ -165,6 +171,7 @@ export class MessageService {
 
   /**
    * Send a message
+   * Uses database transaction to ensure atomicity of financial operations
    */
   static async sendMessage(
     conversationId: string,
@@ -173,7 +180,7 @@ export class MessageService {
     mediaUrl?: string,
     mediaType?: string
   ) {
-    // Get conversation to determine receiver
+    // Get conversation to determine receiver (outside transaction for validation)
     const conversation = await db.query.conversations.findFirst({
       where: eq(conversations.id, conversationId),
     });
@@ -198,9 +205,6 @@ export class MessageService {
       throw new Error('User not found');
     }
 
-    let messageCost = 0;
-
-    // COLD OUTREACH FEE: Charge creators 50 coins to message fans without a relationship
     // Check if this is the first message in the conversation (cold outreach)
     const existingMessages = await db.query.messages.findFirst({
       where: eq(messages.conversationId, conversationId),
@@ -208,124 +212,126 @@ export class MessageService {
 
     const isFirstMessage = !existingMessages;
 
-    if (isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
-      // Sender is a creator, receiver is a fan - check if they have a relationship
-      const hasRelationship = await MessageService.hasRelationship(senderId, receiverId);
+    // Use transaction for all financial and message operations
+    return await db.transaction(async (tx) => {
+      let messageCost = 0;
 
-      if (!hasRelationship) {
-        // No relationship - charge cold outreach fee
-        const senderWallet = await db.query.wallets.findFirst({
-          where: eq(wallets.userId, senderId),
-        });
+      if (isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
+        // Sender is a creator, receiver is a fan - check if they have a relationship
+        const hasRelationship = await MessageService.hasRelationship(senderId, receiverId);
 
-        if (!senderWallet || senderWallet.balance < COLD_OUTREACH_FEE) {
-          throw new Error(`Insufficient balance. You need ${COLD_OUTREACH_FEE} coins to message users you don't have a relationship with.`);
+        if (!hasRelationship) {
+          // No relationship - charge cold outreach fee
+          const senderWallet = await tx.query.wallets.findFirst({
+            where: eq(wallets.userId, senderId),
+          });
+
+          if (!senderWallet || senderWallet.balance < COLD_OUTREACH_FEE) {
+            throw new Error(`Insufficient balance. You need ${COLD_OUTREACH_FEE} coins to message users you don't have a relationship with.`);
+          }
+
+          // Charge the cold outreach fee (platform keeps 100%)
+          const transactionId = uuidv4();
+
+          await tx.insert(walletTransactions).values({
+            userId: senderId,
+            amount: -COLD_OUTREACH_FEE,
+            type: 'message_charge',
+            status: 'completed',
+            description: `Message unlock: ${receiver.displayName || receiver.username}`,
+            idempotencyKey: `${transactionId}-cold-outreach`,
+          });
+
+          // Update sender's wallet balance
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} - ${COLD_OUTREACH_FEE}`,
+            })
+            .where(eq(wallets.userId, senderId));
+
+          messageCost = COLD_OUTREACH_FEE; // Track total cost
         }
-
-        // Charge the cold outreach fee (platform keeps 100%)
-        const transactionId = uuidv4();
-
-        await db.insert(walletTransactions).values({
-          userId: senderId,
-          amount: -COLD_OUTREACH_FEE,
-          type: 'message_charge',
-          status: 'completed',
-          description: `Message unlock: ${receiver.displayName || receiver.username}`,
-          idempotencyKey: `${transactionId}-cold-outreach`,
-        });
-
-        // Update sender's wallet balance
-        await db
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} - ${COLD_OUTREACH_FEE}`,
-          })
-          .where(eq(wallets.userId, senderId));
-
-        messageCost = COLD_OUTREACH_FEE; // Track total cost
       }
-    }
 
-    if (receiver && receiver.role === 'creator') {
-      // Get creator settings to check message rate
-      const settings = await db.query.creatorSettings.findFirst({
-        where: eq(creatorSettings.userId, receiverId),
-      });
-
-      if (settings && settings.messageRate > 0) {
-        messageCost = settings.messageRate;
-
-        // Check sender's balance
-        const senderWallet = await db.query.wallets.findFirst({
-          where: eq(wallets.userId, senderId),
+      if (receiver && receiver.role === 'creator') {
+        // Get creator settings to check message rate
+        const settings = await tx.query.creatorSettings.findFirst({
+          where: eq(creatorSettings.userId, receiverId),
         });
 
-        if (!senderWallet || senderWallet.balance < messageCost) {
-          throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
+        if (settings && settings.messageRate > 0) {
+          messageCost = settings.messageRate;
+
+          // Check sender's balance
+          const senderWallet = await tx.query.wallets.findFirst({
+            where: eq(wallets.userId, senderId),
+          });
+
+          if (!senderWallet || senderWallet.balance < messageCost) {
+            throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
+          }
+
+          // Process payment
+          const transactionId = uuidv4();
+
+          // Deduct from sender
+          await tx.insert(walletTransactions).values({
+            userId: senderId,
+            amount: -messageCost,
+            type: 'message_charge',
+            status: 'completed',
+            description: `Message to ${receiver.displayName || receiver.username}`,
+            idempotencyKey: `${transactionId}-debit`,
+          });
+
+          // Credit to receiver (creator)
+          await tx.insert(walletTransactions).values({
+            userId: receiverId,
+            amount: messageCost,
+            type: 'message_earnings',
+            status: 'completed',
+            description: `Message from ${senderWallet ? 'fan' : 'user'}`,
+            idempotencyKey: `${transactionId}-credit`,
+          });
+
+          // Update wallet balances
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} - ${messageCost}`,
+            })
+            .where(eq(wallets.userId, senderId));
+
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} + ${messageCost}`,
+            })
+            .where(eq(wallets.userId, receiverId));
         }
-
-        // Process payment
-        const transactionId = uuidv4();
-
-        // Deduct from sender
-        await db.insert(walletTransactions).values({
-          userId: senderId,
-          amount: -messageCost,
-          type: 'message_charge',
-          status: 'completed',
-          description: `Message to ${receiver.displayName || receiver.username}`,
-          idempotencyKey: `${transactionId}-debit`,
-        });
-
-        // Credit to receiver (creator)
-        await db.insert(walletTransactions).values({
-          userId: receiverId,
-          amount: messageCost,
-          type: 'message_earnings',
-          status: 'completed',
-          description: `Message from ${senderWallet ? 'fan' : 'user'}`,
-          idempotencyKey: `${transactionId}-credit`,
-        });
-
-        // Update wallet balances
-        await db
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} - ${messageCost}`,
-          })
-          .where(eq(wallets.userId, senderId));
-
-        await db
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} + ${messageCost}`,
-          })
-          .where(eq(wallets.userId, receiverId));
       }
-    }
 
-    // Create message
-    const [message] = await db
-      .insert(messages)
-      .values({
-        conversationId,
-        senderId,
-        content,
-        mediaUrl,
-        mediaType,
-      })
-      .returning();
+      // Create message
+      const [message] = await tx
+        .insert(messages)
+        .values({
+          conversationId,
+          senderId,
+          content,
+          mediaUrl,
+          mediaType,
+        })
+        .returning();
 
-    // Update conversation's last message
-    if (conversation) {
-
+      // Update conversation's last message
       // Increment unread count for receiver
       const unreadCountField =
         conversation.user1Id === receiverId
           ? 'user1_unread_count'
           : 'user2_unread_count';
 
-      await db
+      await tx
         .update(conversations)
         .set({
           lastMessageText: content.substring(0, 100),
@@ -335,24 +341,27 @@ export class MessageService {
           updatedAt: new Date(),
         })
         .where(eq(conversations.id, conversationId));
-    }
 
-    // Return message with sender info
-    const messageWithSender = await db.query.messages.findFirst({
-      where: eq(messages.id, message.id),
-      with: {
-        sender: {
-          columns: {
-            id: true,
-            displayName: true,
-            username: true,
-            avatarUrl: true,
+      // Return message with sender info
+      const messageWithSender = await tx.query.messages.findFirst({
+        where: eq(messages.id, message.id),
+        with: {
+          sender: {
+            columns: {
+              id: true,
+              displayName: true,
+              username: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return messageWithSender!;
+      // Invalidate conversation list cache for both users
+      await invalidateConversationsCacheForBoth(senderId, receiverId);
+
+      return messageWithSender!;
+    });
   }
 
   /**
@@ -759,9 +768,10 @@ export class MessageService {
 
   /**
    * Unlock a locked message
+   * Uses database transaction to ensure atomicity of financial operations
    */
   static async unlockMessage(userId: string, messageId: string) {
-    // Get the message
+    // Get the message (outside transaction for validation)
     const message = await db.query.messages.findFirst({
       where: eq(messages.id, messageId),
       with: {
@@ -791,70 +801,74 @@ export class MessageService {
       throw new Error('Message has no unlock price');
     }
 
-    // Check if user has enough balance
-    const wallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, userId),
-    });
+    // Use transaction for all financial operations
+    return await db.transaction(async (tx) => {
+      // Check if user has enough balance
+      const wallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, userId),
+      });
 
-    if (!wallet || wallet.balance < message.unlockPrice) {
-      throw new Error('Insufficient balance');
-    }
+      if (!wallet || wallet.balance < message.unlockPrice!) {
+        throw new Error('Insufficient balance');
+      }
 
-    // Create transactions (double-entry)
-    const idempotencyKey = uuidv4();
+      // Create transactions (double-entry)
+      const idempotencyKey = uuidv4();
 
-    // Deduct from buyer
-    const [buyerTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId,
-        amount: -message.unlockPrice,
+      // Deduct from buyer
+      const [buyerTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId,
+          amount: -message.unlockPrice!,
+          type: 'locked_message',
+          status: 'completed',
+          description: `Unlocked message from ${message.sender.displayName || message.sender.username}`,
+          idempotencyKey,
+        })
+        .returning();
+
+      // Credit to creator
+      await tx.insert(walletTransactions).values({
+        userId: message.senderId,
+        amount: message.unlockPrice!,
         type: 'locked_message',
         status: 'completed',
-        description: `Unlocked message from ${message.sender.displayName || message.sender.username}`,
-        idempotencyKey,
-      })
-      .returning();
+        description: `Locked message unlocked by buyer`,
+        relatedTransactionId: buyerTransaction.id,
+      });
 
-    // Credit to creator
-    await db.insert(walletTransactions).values({
-      userId: message.senderId,
-      amount: message.unlockPrice,
-      type: 'locked_message',
-      status: 'completed',
-      description: `Locked message unlocked by buyer`,
-      relatedTransactionId: buyerTransaction.id,
+      // Update wallet balances
+      await tx
+        .update(wallets)
+        .set({
+          balance: sql`${wallets.balance} - ${message.unlockPrice}`,
+        })
+        .where(eq(wallets.userId, userId));
+
+      await tx
+        .update(wallets)
+        .set({
+          balance: sql`${wallets.balance} + ${message.unlockPrice}`,
+        })
+        .where(eq(wallets.userId, message.senderId));
+
+      // Mark message as unlocked
+      await tx
+        .update(messages)
+        .set({
+          unlockedBy: userId,
+          unlockedAt: new Date(),
+        })
+        .where(eq(messages.id, messageId));
+
+      return { success: true, message: 'Message unlocked successfully' };
     });
-
-    // Update wallet balances
-    await db
-      .update(wallets)
-      .set({
-        balance: sql`${wallets.balance} - ${message.unlockPrice}`,
-      })
-      .where(eq(wallets.userId, userId));
-
-    await db
-      .update(wallets)
-      .set({
-        balance: sql`${wallets.balance} + ${message.unlockPrice}`,
-      })
-      .where(eq(wallets.userId, message.senderId));
-
-    // Mark message as unlocked
-    await db
-      .update(messages)
-      .set({
-        unlockedBy: userId,
-        unlockedAt: new Date(),
-      })
-      .where(eq(messages.id, messageId));
-
-    return { success: true, message: 'Message unlocked successfully' };
   }
 
   /**
    * Send a tip in DM
+   * Uses database transaction to ensure atomicity of financial operations
    */
   static async sendTip(
     conversationId: string,
@@ -863,96 +877,99 @@ export class MessageService {
     amount: number,
     tipMessage?: string
   ) {
-    // Check if sender has enough balance
-    const wallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, senderId),
-    });
+    // Use transaction for all financial and message operations
+    return await db.transaction(async (tx) => {
+      // Check if sender has enough balance
+      const wallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, senderId),
+      });
 
-    if (!wallet || wallet.balance < amount) {
-      throw new Error('Insufficient balance');
-    }
+      if (!wallet || wallet.balance < amount) {
+        throw new Error('Insufficient balance');
+      }
 
-    // Create transactions (double-entry)
-    const idempotencyKey = uuidv4();
+      // Create transactions (double-entry)
+      const idempotencyKey = uuidv4();
 
-    // Deduct from sender
-    const [senderTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId: senderId,
-        amount: -amount,
+      // Deduct from sender
+      const [senderTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId: senderId,
+          amount: -amount,
+          type: 'dm_tip',
+          status: 'completed',
+          description: tipMessage || 'Tip sent via DM',
+          idempotencyKey,
+        })
+        .returning();
+
+      // Credit to receiver
+      await tx.insert(walletTransactions).values({
+        userId: receiverId,
+        amount,
         type: 'dm_tip',
         status: 'completed',
-        description: tipMessage || 'Tip sent via DM',
-        idempotencyKey,
-      })
-      .returning();
+        description: tipMessage || 'Tip received via DM',
+        relatedTransactionId: senderTransaction.id,
+      });
 
-    // Credit to receiver
-    await db.insert(walletTransactions).values({
-      userId: receiverId,
-      amount,
-      type: 'dm_tip',
-      status: 'completed',
-      description: tipMessage || 'Tip received via DM',
-      relatedTransactionId: senderTransaction.id,
-    });
+      // Update wallet balances
+      await tx
+        .update(wallets)
+        .set({
+          balance: sql`${wallets.balance} - ${amount}`,
+        })
+        .where(eq(wallets.userId, senderId));
 
-    // Update wallet balances
-    await db
-      .update(wallets)
-      .set({
-        balance: sql`${wallets.balance} - ${amount}`,
-      })
-      .where(eq(wallets.userId, senderId));
+      await tx
+        .update(wallets)
+        .set({
+          balance: sql`${wallets.balance} + ${amount}`,
+        })
+        .where(eq(wallets.userId, receiverId));
 
-    await db
-      .update(wallets)
-      .set({
-        balance: sql`${wallets.balance} + ${amount}`,
-      })
-      .where(eq(wallets.userId, receiverId));
+      // Create tip message
+      const [message] = await tx
+        .insert(messages)
+        .values({
+          conversationId,
+          senderId,
+          content: tipMessage || `Sent ${amount} coins`,
+          messageType: 'tip',
+          tipAmount: amount,
+          tipTransactionId: senderTransaction.id,
+        })
+        .returning();
 
-    // Create tip message
-    const [message] = await db
-      .insert(messages)
-      .values({
-        conversationId,
-        senderId,
-        content: tipMessage || `Sent ${amount} coins`,
-        messageType: 'tip',
-        tipAmount: amount,
-        tipTransactionId: senderTransaction.id,
-      })
-      .returning();
+      // Update conversation's last message
+      await tx
+        .update(conversations)
+        .set({
+          lastMessageText: `💰 Sent ${amount} coins`,
+          lastMessageAt: new Date(),
+          lastMessageSenderId: senderId,
+          updatedAt: new Date(),
+        })
+        .where(eq(conversations.id, conversationId));
 
-    // Update conversation's last message
-    await db
-      .update(conversations)
-      .set({
-        lastMessageText: `💰 Sent ${amount} coins`,
-        lastMessageAt: new Date(),
-        lastMessageSenderId: senderId,
-        updatedAt: new Date(),
-      })
-      .where(eq(conversations.id, conversationId));
-
-    // Return message with sender info
-    const messageWithSender = await db.query.messages.findFirst({
-      where: eq(messages.id, message.id),
-      with: {
-        sender: {
-          columns: {
-            id: true,
-            displayName: true,
-            username: true,
-            avatarUrl: true,
+      // Return message with sender info
+      const messageWithSender = await tx.query.messages.findFirst({
+        where: eq(messages.id, message.id),
+        with: {
+          sender: {
+            columns: {
+              id: true,
+              displayName: true,
+              username: true,
+              avatarUrl: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return messageWithSender!;
+      return messageWithSender!;
+    });
   }
 
   /**

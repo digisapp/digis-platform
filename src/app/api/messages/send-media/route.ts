@@ -7,6 +7,10 @@ import { eq, or, and } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// File size limits
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB for images
+const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB for videos
+
 // POST - Send media message (photo/video)
 export async function POST(req: NextRequest) {
   try {
@@ -37,15 +41,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid file type. Only images and videos allowed.' }, { status: 400 });
     }
 
-    // TODO: Upload file to storage (Supabase Storage, AWS S3, etc.)
-    // For now, we'll use a placeholder URL
-    // In production, this would be:
-    // const { data: uploadData, error: uploadError } = await supabase.storage
-    //   .from('message-media')
-    //   .upload(`${user.id}/${Date.now()}-${file.name}`, file);
+    // Validate file size
+    const maxSize = mediaType === 'image' ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE;
+    if (file.size > maxSize) {
+      const maxSizeMB = maxSize / (1024 * 1024);
+      return NextResponse.json({
+        error: `File too large. Maximum size for ${mediaType}s is ${maxSizeMB}MB.`
+      }, { status: 400 });
+    }
 
-    // PLACEHOLDER: In production, replace with actual storage upload
-    const mediaUrl = `/api/placeholder-media/${file.name}`;
+    // Upload file to Supabase Storage
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || (mediaType === 'image' ? 'jpg' : 'mp4');
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${user.id}/${recipientId}/${fileName}`;
+
+    // Convert File to ArrayBuffer for upload
+    const arrayBuffer = await file.arrayBuffer();
+    const fileBuffer = new Uint8Array(arrayBuffer);
+
+    const { error: uploadError } = await supabase.storage
+      .from('message-media')
+      .upload(filePath, fileBuffer, {
+        contentType: file.type,
+        cacheControl: '31536000', // 1 year cache
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      return NextResponse.json({
+        error: `Failed to upload file: ${uploadError.message}`
+      }, { status: 500 });
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: urlData } = supabase.storage
+      .from('message-media')
+      .getPublicUrl(filePath);
+
+    const mediaUrl = urlData.publicUrl;
+
+    // For locked content, create a blurred thumbnail
+    // For images, we use the same URL (client will blur it)
+    // For videos, we'd ideally generate a thumbnail, but for now use null
     const thumbnailUrl = mediaType === 'image' ? mediaUrl : null;
 
     // Find or create conversation
@@ -109,7 +147,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message,
-      note: 'File upload to storage not yet implemented. Using placeholder URL.',
     });
   } catch (error) {
     console.error('Error sending media:', error);

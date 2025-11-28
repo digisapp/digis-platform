@@ -7,6 +7,9 @@ import { eq, or, and } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// File size limit for voice messages (25MB)
+const MAX_VOICE_SIZE = 25 * 1024 * 1024;
+
 // POST - Send voice message
 export async function POST(req: NextRequest) {
   try {
@@ -32,20 +35,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid file type. Only audio files allowed.' }, { status: 400 });
     }
 
+    // Validate file size
+    if (file.size > MAX_VOICE_SIZE) {
+      return NextResponse.json({
+        error: 'Voice message too large. Maximum size is 25MB.'
+      }, { status: 400 });
+    }
+
     // Validate duration
     if (duration < 1) {
       return NextResponse.json({ error: 'Voice message must be at least 1 second' }, { status: 400 });
     }
 
-    // TODO: Upload file to storage (Supabase Storage, AWS S3, etc.)
-    // For now, we'll use a placeholder URL
-    // In production, this would be:
-    // const { data: uploadData, error: uploadError } = await supabase.storage
-    //   .from('voice-messages')
-    //   .upload(`${user.id}/${Date.now()}-${file.name}`, file);
+    // Upload file to Supabase Storage
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webm`;
+    const filePath = `${user.id}/${recipientId}/${fileName}`;
 
-    // PLACEHOLDER: In production, replace with actual storage upload
-    const mediaUrl = `/api/placeholder-voice/${Date.now()}.webm`;
+    // Convert File to ArrayBuffer for upload
+    const arrayBuffer = await file.arrayBuffer();
+    const fileBuffer = new Uint8Array(arrayBuffer);
+
+    const { error: uploadError } = await supabase.storage
+      .from('voice-messages')
+      .upload(filePath, fileBuffer, {
+        contentType: file.type || 'audio/webm',
+        cacheControl: '31536000', // 1 year cache
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error('Voice storage upload error:', uploadError);
+      return NextResponse.json({
+        error: `Failed to upload voice message: ${uploadError.message}`
+      }, { status: 500 });
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: urlData } = supabase.storage
+      .from('voice-messages')
+      .getPublicUrl(filePath);
+
+    const mediaUrl = urlData.publicUrl;
 
     // Find or create conversation
     let conversation = await db.query.conversations.findFirst({
@@ -108,7 +138,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message,
-      note: 'Voice file upload to storage not yet implemented. Using placeholder URL.',
     });
   } catch (error) {
     console.error('Error sending voice message:', error);

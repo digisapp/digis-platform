@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimitFinancial } from '@/lib/rate-limit';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -20,6 +21,18 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit financial operations
+    const rateCheck = await rateLimitFinancial(user.id, 'gift');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.retryAfter) }
+        }
+      );
     }
 
     const { streamId } = await params;
