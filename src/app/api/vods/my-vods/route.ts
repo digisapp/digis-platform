@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { vods } from '@/lib/data/system';
-import { eq, desc } from 'drizzle-orm';
+import { vods, vodPurchases, subscriptions } from '@/lib/data/system';
+import { eq, desc, and, or, gt } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -19,16 +19,20 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get('userId');
 
     let creatorId: string;
+    let isPublicView = false;
+    let viewerId: string | null = null;
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (userId) {
-      // Public view - fetch VODs for specified user (only public ones)
+      // Public view - fetch VODs for specified user
       creatorId = userId;
+      isPublicView = true;
+      viewerId = user?.id || null;
     } else {
       // Private view - fetch all VODs for authenticated user
-      const supabase = await createClient();
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
+      if (!user) {
         return NextResponse.json(
           { error: 'Authentication required' },
           { status: 401 }
@@ -43,8 +47,50 @@ export async function GET(req: NextRequest) {
       orderBy: [desc(vods.createdAt)],
     });
 
-    // Calculate totals
-    const totals = creatorVODs.reduce(
+    // For public view, filter to accessible VODs only
+    let accessibleVODs = creatorVODs;
+    let purchasedVodIds: Set<string> = new Set();
+    let isSubscribed = false;
+
+    if (isPublicView) {
+      // Check if viewer has active subscription to creator
+      if (viewerId) {
+        const subscription = await db.query.subscriptions.findFirst({
+          where: and(
+            eq(subscriptions.userId, viewerId),
+            eq(subscriptions.creatorId, creatorId),
+            eq(subscriptions.status, 'active')
+          ),
+        });
+        isSubscribed = !!subscription;
+
+        // Get viewer's purchased VODs
+        const purchases = await db.query.vodPurchases.findMany({
+          where: eq(vodPurchases.userId, viewerId),
+        });
+        purchasedVodIds = new Set(purchases.map(p => p.vodId));
+      }
+
+      // Filter VODs based on access
+      accessibleVODs = creatorVODs.filter(vod => {
+        // Public VODs are always visible
+        if (vod.isPublic) return true;
+
+        // User has purchased this VOD
+        if (purchasedVodIds.has(vod.id)) return true;
+
+        // Free for subscribers and user is subscribed
+        if (vod.priceCoins === 0 && vod.subscribersOnly && isSubscribed) return true;
+
+        // PPV VODs (priceCoins > 0) - only show if purchased
+        // Non-public, non-purchased VODs are hidden from public view
+        return false;
+      });
+    }
+
+    // Calculate totals (only for creator's own view, not public)
+    const vodsForTotals = isPublicView ? accessibleVODs : creatorVODs;
+    const totals = vodsForTotals.reduce(
       (acc, vod) => ({
         totalViews: acc.totalViews + vod.viewCount,
         totalPurchases: acc.totalPurchases + vod.purchaseCount,
@@ -54,9 +100,9 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json({
-      vods: creatorVODs,
-      totals,
-      count: creatorVODs.length,
+      vods: accessibleVODs,
+      totals: isPublicView ? undefined : totals, // Don't expose earnings to public
+      count: accessibleVODs.length,
     });
   } catch (error: any) {
     console.error('[My VODs] Error:', error);

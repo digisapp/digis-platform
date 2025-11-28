@@ -357,8 +357,22 @@ export class MessageService {
 
   /**
    * Get messages for a conversation
+   * Requires userId to verify participation
    */
-  static async getMessages(conversationId: string, limit: number = 50, offset: number = 0) {
+  static async getMessages(conversationId: string, userId: string, limit: number = 50, offset: number = 0) {
+    // Verify user is a participant in this conversation
+    const conversation = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
+    }
+
     return await db.query.messages.findMany({
       where: eq(messages.conversationId, conversationId),
       orderBy: [desc(messages.createdAt)],

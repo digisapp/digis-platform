@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/messages/conversations/[conversationId] - Get messages for a conversation
 export async function GET(
   request: NextRequest,
@@ -23,7 +26,7 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const messages = await MessageService.getMessages(conversationId, limit, offset);
+    const messages = await MessageService.getMessages(conversationId, user.id, limit, offset);
 
     return NextResponse.json({ messages });
   } catch (error: any) {

@@ -176,7 +176,7 @@ export function VideoCall({ callId }: VideoCallProps) {
 
       setToken(data.token);
       setRoomName(data.roomName);
-      setServerUrl(data.livekitUrl);
+      setServerUrl(data.wsUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join call');
     } finally {
