@@ -149,7 +149,7 @@ export default function StreamsPage() {
             <button
               key={category.value}
               onClick={() => setTypeFilter(category.value)}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 ${
+              className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
                 typeFilter === category.value
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_15px_rgba(34,211,238,0.4)] scale-105'
                   : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50 hover:scale-105'
