@@ -45,7 +45,17 @@ export default function MySubscriptionsPage() {
       const response = await fetch('/api/subscriptions/my-subscriptions');
       if (response.ok) {
         const data = await response.json();
-        setSubscriptions(data.subscriptions || []);
+        // Transform data to match expected interface
+        const transformed = (data.subscriptions || []).map((sub: any) => ({
+          ...sub,
+          tier: sub.tier ? {
+            ...sub.tier,
+            benefits: sub.tier.benefits
+              ? (typeof sub.tier.benefits === 'string' ? JSON.parse(sub.tier.benefits) : sub.tier.benefits)
+              : [],
+          } : { name: 'Unknown', pricePerMonth: 0, benefits: [] },
+        }));
+        setSubscriptions(transformed);
       }
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
