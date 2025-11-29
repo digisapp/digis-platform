@@ -87,6 +87,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get sender info
+    const sender = await db.query.users.findFirst({
+      where: eq(users.id, authUser.id),
+      columns: {
+        id: true,
+        username: true,
+        displayName: true,
+      },
+    });
+
     // Check sender's wallet balance
     const senderWallet = await db.query.wallets.findFirst({
       where: eq(wallets.userId, authUser.id),
@@ -153,12 +163,13 @@ export async function POST(req: NextRequest) {
       amount: amount,
       type: 'stream_tip',
       status: 'completed',
-      description: `Tip received from stream`,
+      description: `Tip received from @${sender?.username || 'anonymous'} on stream`,
       relatedTransactionId: senderTransaction.id,
       metadata: JSON.stringify({
         streamId: stream.id,
         streamTitle: stream.title,
         senderId: authUser.id,
+        senderUsername: sender?.username,
       }),
     }).returning();
 
@@ -167,11 +178,12 @@ export async function POST(req: NextRequest) {
       userId: creator.id,
       type: 'tip_received',
       title: 'New Tip!',
-      message: `You received ${amount} coins during your stream!`,
+      message: `@${sender?.username || 'Someone'} sent you ${amount} coins during your stream!`,
       metadata: JSON.stringify({
         amount,
         streamId: stream.id,
         senderId: authUser.id,
+        senderUsername: sender?.username,
       }),
     });
 
@@ -183,7 +195,8 @@ export async function POST(req: NextRequest) {
       event: 'tip',
       payload: {
         id: senderTransaction.id,
-        username: authUser.email || 'Anonymous',
+        username: sender?.username || 'Anonymous',
+        displayName: sender?.displayName,
         amount,
         timestamp: Date.now(),
         type: 'tip',
