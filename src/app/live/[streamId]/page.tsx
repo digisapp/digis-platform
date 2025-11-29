@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Heart, Share2, Settings, X, Send, DollarSign,
+  Heart, Share2, Settings, X, Send, Coins,
   Trophy, Target
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -135,9 +135,10 @@ export default function TheaterModePage() {
       }
 
       const data = await response.json();
-      setStream(data);
+      const streamData = data.stream || data; // Handle both { stream } and direct stream object
+      setStream(streamData);
 
-      if (data.status === 'ended') {
+      if (streamData.status === 'ended') {
         setError('This stream has ended');
       }
     } catch (err) {
@@ -503,8 +504,9 @@ export default function TheaterModePage() {
             </div>
 
             {currentUser && (
-              <div className="mt-2 text-xs text-cyan-300 font-medium">
-                Your balance: {userBalance.toLocaleString()} coins
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-cyan-300 font-medium">
+                <Coins className="w-3.5 h-3.5 text-yellow-400" />
+                <span>{userBalance.toLocaleString()} coins</span>
               </div>
             )}
           </div>
