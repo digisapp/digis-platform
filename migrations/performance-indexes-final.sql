@@ -86,7 +86,7 @@ WHERE status = 'active';
 
 -- Renewal batch processing (cron job)
 CREATE INDEX IF NOT EXISTS idx_subs_renewal_due
-ON subscriptions (next_billing_date, status)
+ON subscriptions (next_billing_at, status)
 WHERE status = 'active' AND auto_renew = true;
 
 -- ============================================
