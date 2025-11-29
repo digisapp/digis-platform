@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
-import { Calendar, Ticket, Users, Radio, Sparkles, Dumbbell, User, Theater, Search, X, Unlock } from 'lucide-react';
+import { Calendar, Search, X } from 'lucide-react';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -33,9 +33,7 @@ export default function StreamsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
-  const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
   const [typeFilter, setTypeFilter] = useState<ShowType | 'all'>('all');
-  const [accessFilter, setAccessFilter] = useState<'all' | 'free' | 'paid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const categoryOptions = [
@@ -72,20 +70,12 @@ export default function StreamsPage() {
   };
 
   const filteredShows = shows.filter((show) => {
-    // Status filter
-    let statusMatch = true;
-    if (filter === 'live') statusMatch = show.status === 'live';
-    if (filter === 'upcoming') statusMatch = show.status === 'scheduled';
-    if (filter === 'all') statusMatch = show.status === 'live' || show.status === 'scheduled';
+    // Only show live or scheduled streams
+    const statusMatch = show.status === 'live' || show.status === 'scheduled';
 
     // Type filter
     let typeMatch = true;
     if (typeFilter !== 'all') typeMatch = show.showType === typeFilter;
-
-    // Access filter (free/paid)
-    let accessMatch = true;
-    if (accessFilter === 'free') accessMatch = show.ticketPrice === 0;
-    if (accessFilter === 'paid') accessMatch = show.ticketPrice > 0;
 
     // Search filter
     let searchMatch = true;
@@ -98,7 +88,7 @@ export default function StreamsPage() {
       searchMatch = title.includes(query) || description.includes(query) || creatorName.includes(query);
     }
 
-    return statusMatch && typeMatch && accessMatch && searchMatch;
+    return statusMatch && typeMatch && searchMatch;
   });
 
   const sortedShows = [...filteredShows].sort((a, b) => {
@@ -153,64 +143,8 @@ export default function StreamsPage() {
           )}
         </div>
 
-        {/* Filters */}
-        <div className="mb-8 space-y-3">
-          {/* Status + Access Filter Row */}
-          <div className="flex flex-wrap gap-2">
-            {/* Status Filter Pills */}
-            <button
-              onClick={() => setFilter('live')}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 flex items-center gap-1.5 ${
-                filter === 'live'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_15px_rgba(34,211,238,0.4)] scale-105'
-                  : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50 hover:scale-105'
-              }`}
-            >
-              <Radio className={`w-3.5 h-3.5 ${filter === 'live' ? 'text-white' : 'text-red-500'}`} strokeWidth={2} />
-              Live Now
-            </button>
-            <button
-              onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 flex items-center gap-1.5 ${
-                filter === 'upcoming'
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_15px_rgba(34,211,238,0.4)] scale-105'
-                  : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50 hover:scale-105'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5" strokeWidth={2} />
-              Upcoming
-            </button>
-
-            {/* Separator */}
-            <div className="w-px h-8 bg-white/20 mx-1" />
-
-            {/* Access Filter Pills - toggleable (click again to deselect) */}
-            <button
-              onClick={() => setAccessFilter(accessFilter === 'free' ? 'all' : 'free')}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 flex items-center gap-1 ${
-                accessFilter === 'free'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]'
-                  : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50'
-              }`}
-            >
-              <Unlock className="w-3 h-3" />
-              Free
-            </button>
-            <button
-              onClick={() => setAccessFilter(accessFilter === 'paid' ? 'all' : 'paid')}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 flex items-center gap-1 ${
-                accessFilter === 'paid'
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]'
-                  : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50'
-              }`}
-            >
-              <Ticket className="w-3 h-3" />
-              Paid
-            </button>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap gap-2">
+        {/* Category Filter Pills */}
+        <div className="mb-6 flex flex-wrap gap-2">
           {categoryOptions.map((category) => (
             <button
               key={category.value}
@@ -224,7 +158,6 @@ export default function StreamsPage() {
               {category.label}
             </button>
           ))}
-          </div>
         </div>
 
         {/* Live Streams */}
@@ -246,10 +179,10 @@ export default function StreamsPage() {
         )}
 
         {/* Upcoming Streams */}
-        {upcomingEvents.length > 0 ? (
+        {upcomingEvents.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
-              {filter === 'upcoming' ? 'Upcoming Streams' : 'Scheduled'}
+              Upcoming
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingEvents.map((show) => (
@@ -257,17 +190,21 @@ export default function StreamsPage() {
               ))}
             </div>
           </div>
-        ) : filter === 'upcoming' && liveEvents.length === 0 ? (
+        )}
+
+        {/* Empty State */}
+        {liveEvents.length === 0 && upcomingEvents.length === 0 && (
           <div className="relative overflow-hidden rounded-3xl p-12 text-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
             <div className="relative">
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
                 <Calendar className="w-16 h-16 text-cyan-400" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Upcoming Streams</h3>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Streams Available</h3>
+              <p className="text-gray-400 mt-2">Check back later for live and upcoming streams</p>
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

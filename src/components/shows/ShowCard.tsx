@@ -114,14 +114,13 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
           {show.status === 'live' && '🔴 '}{show.status.toUpperCase()}
         </div>
 
-        {/* Free/Paid Badge */}
-        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold ${
-          isFree
-            ? 'bg-green-500 text-white'
-            : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
-        }`}>
-          {isFree ? 'FREE' : 'PAID'}
-        </div>
+        {/* Price Badge - Only show for paid streams */}
+        {!isFree && (
+          <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 to-yellow-500 text-black flex items-center gap-1 shadow-lg">
+            <span className="text-sm">🪙</span>
+            <span>{show.ticketPrice}</span>
+          </div>
+        )}
 
         {/* Sold Out Badge */}
         {isSoldOut && show.status === 'scheduled' && !isFree && (
