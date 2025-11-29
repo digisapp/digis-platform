@@ -103,11 +103,22 @@ export default function MessagesPage() {
       const response = await fetch('/api/messages/conversations');
       const result = await response.json();
 
+      console.log('[Chats] API response:', {
+        status: response.status,
+        ok: response.ok,
+        hasData: !!result.data,
+        count: result.data?.length || 0,
+        degraded: result.degraded,
+        error: result.error,
+      });
+
       if (response.ok && result.data) {
         setConversations(result.data || []);
         if (result.degraded) {
           console.warn('Conversations data degraded:', result.error);
         }
+      } else if (!response.ok) {
+        console.error('[Chats] API error:', result);
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);
