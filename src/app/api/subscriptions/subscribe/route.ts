@@ -28,11 +28,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Get creator's tier (single tier model)
-    const tiers = await SubscriptionService.getCreatorTiers(creatorId);
-    const tier = tiers[0];
+    let tiers = await SubscriptionService.getCreatorTiers(creatorId);
+    let tier = tiers[0];
 
+    // Auto-create default subscription tier if creator hasn't set one up
+    // Default price of 100 coins/month ensures creators earn from subscriptions
     if (!tier) {
-      return NextResponse.json({ error: 'Creator has not set up subscriptions' }, { status: 404 });
+      tier = await SubscriptionService.upsertSubscriptionTier(creatorId, {
+        name: 'Subscriber',
+        tier: 'basic',
+        description: 'Get exclusive access to subscriber-only content',
+        pricePerMonth: 100, // Default 100 coins/month
+        benefits: ['Exclusive content', 'Subscriber badge', 'Direct messaging'],
+      });
     }
 
     // Subscribe user to creator's tier

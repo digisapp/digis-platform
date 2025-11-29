@@ -16,16 +16,17 @@ export class CallService {
     });
 
     // Create default settings if they don't exist
+    // Default rates ensure creators earn from day one - they can adjust later
     if (!settings) {
       const [newSettings] = await db
         .insert(creatorSettings)
         .values({
           userId,
-          callRatePerMinute: 10, // Default 10 coins/min for video
+          callRatePerMinute: 50, // Default 50 coins/min for video calls
           minimumCallDuration: 5, // Default 5 min minimum
-          voiceCallRatePerMinute: 5, // Default 5 coins/min for voice
+          voiceCallRatePerMinute: 25, // Default 25 coins/min for voice calls
           minimumVoiceCallDuration: 5, // Default 5 min minimum
-          messageRate: 0, // Default free messages
+          messageRate: 5, // Default 5 coins per message
           isAvailableForCalls: true,
           isAvailableForVoiceCalls: true,
         })
