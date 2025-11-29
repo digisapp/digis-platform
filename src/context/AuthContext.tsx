@@ -99,31 +99,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refineUserData = async () => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
         const response = await fetch('/api/user/me', {
-          signal: AbortSignal.timeout(10000), // 10s timeout
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
-          if (data.user) {
+          if (data.user || data.id) {
+            const userData = data.user || data;
             setUser(prev => ({
               ...prev!,
-              role: data.user.role || prev?.role,
-              username: data.user.username || prev?.username,
-              displayName: data.user.displayName || prev?.displayName,
-              isCreatorVerified: data.user.isCreatorVerified ?? prev?.isCreatorVerified,
-              avatarUrl: data.user.avatarUrl || prev?.avatarUrl,
+              role: userData.role || prev?.role,
+              username: userData.username || prev?.username,
+              displayName: userData.displayName || prev?.displayName,
+              isCreatorVerified: userData.isCreatorVerified ?? prev?.isCreatorVerified,
+              avatarUrl: userData.avatarUrl || prev?.avatarUrl,
             }));
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Silently fail - we already have metadata as fallback
-        console.warn('[AuthContext] Background refresh failed:', error);
+        // Only log if not an abort error
+        if (error?.name !== 'AbortError') {
+          console.warn('[AuthContext] Background refresh failed:', error?.message || error);
+        }
       }
     };
 
     // Delay background refinement to not block initial render
-    const timer = setTimeout(refineUserData, 1000);
+    const timer = setTimeout(refineUserData, 2000);
     return () => clearTimeout(timer);
   }, [session?.user?.id]);
 
