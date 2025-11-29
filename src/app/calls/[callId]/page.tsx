@@ -32,6 +32,42 @@ interface CallData {
   };
 }
 
+// Component to detect when remote participant disconnects
+function RemoteParticipantMonitor({
+  onRemoteLeft,
+  hasStarted
+}: {
+  onRemoteLeft: () => void;
+  hasStarted: boolean;
+}) {
+  const remoteParticipants = useRemoteParticipants();
+  const connectionState = useConnectionState();
+  const [hadRemoteParticipant, setHadRemoteParticipant] = useState(false);
+
+  useEffect(() => {
+    // Track if we ever had a remote participant
+    if (remoteParticipants.length > 0) {
+      setHadRemoteParticipant(true);
+    }
+  }, [remoteParticipants.length]);
+
+  useEffect(() => {
+    // If we had a remote participant and now they're gone, and call has started
+    if (hadRemoteParticipant && remoteParticipants.length === 0 && hasStarted && connectionState === ConnectionState.Connected) {
+      console.log('Remote participant left the call');
+      // Small delay to avoid false positives during reconnection
+      const timeout = setTimeout(() => {
+        if (remoteParticipants.length === 0) {
+          onRemoteLeft();
+        }
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [remoteParticipants.length, hadRemoteParticipant, hasStarted, connectionState, onRemoteLeft]);
+
+  return null;
+}
+
 // Voice Call UI Component
 function VoiceCallUI({
   callId,
@@ -269,6 +305,18 @@ export default function VideoCallPage() {
     };
   }, [callId, router]);
 
+  // Handle remote participant disconnection (e.g., computer died, browser closed)
+  const handleRemoteLeft = useCallback(() => {
+    console.log('Remote participant disconnected unexpectedly');
+    setCallEndedByOther(true);
+    // Try to end the call on our side too
+    fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
+    // Navigate to dashboard after delay
+    setTimeout(() => {
+      router.push('/dashboard');
+    }, 2000);
+  }, [callId, router]);
+
   // End call
   const handleEndCall = async () => {
     if (isEnding) return;
@@ -466,6 +514,9 @@ export default function VideoCallPage() {
         video={!isVoiceCall}
         className="h-full"
       >
+        {/* Monitor for remote participant disconnection */}
+        <RemoteParticipantMonitor onRemoteLeft={handleRemoteLeft} hasStarted={hasStarted} />
+
         {isVoiceCall ? (
           // Voice Call UI
           <>
@@ -632,6 +683,40 @@ export default function VideoCallPage() {
           border: 1px solid rgba(34, 211, 238, 0.3) !important;
           border-radius: 0.5rem !important;
           padding: 0.25rem 0.75rem !important;
+        }
+
+        /* Hide the local participant tile in 1:1 calls - show as small PIP instead */
+        .livekit-container .lk-focus-layout .lk-carousel {
+          position: absolute !important;
+          bottom: 1rem !important;
+          right: 1rem !important;
+          width: 180px !important;
+          height: auto !important;
+          z-index: 20 !important;
+        }
+
+        .livekit-container .lk-focus-layout .lk-carousel .lk-participant-tile {
+          width: 180px !important;
+          height: 120px !important;
+          border-radius: 0.75rem !important;
+        }
+
+        /* Make focus view take full space */
+        .livekit-container .lk-focus-layout-wrapper {
+          height: 100% !important;
+        }
+
+        /* Hide placeholder icon when no video */
+        .livekit-container .lk-participant-placeholder svg {
+          opacity: 0.3 !important;
+          width: 48px !important;
+          height: 48px !important;
+        }
+
+        /* Grid layout for when both participants are visible equally */
+        .livekit-container .lk-grid-layout {
+          gap: 0.5rem !important;
+          padding: 0.5rem !important;
         }
       `}</style>
     </div>
