@@ -93,48 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Optional: Refine user data from API in background (non-blocking)
-  useEffect(() => {
-    if (!session?.user || !user) return;
-
-    const refineUserData = async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-
-        const response = await fetch('/api/user/me', {
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user || data.id) {
-            const userData = data.user || data;
-            setUser(prev => ({
-              ...prev!,
-              role: userData.role || prev?.role,
-              username: userData.username || prev?.username,
-              displayName: userData.displayName || prev?.displayName,
-              isCreatorVerified: userData.isCreatorVerified ?? prev?.isCreatorVerified,
-              avatarUrl: userData.avatarUrl || prev?.avatarUrl,
-            }));
-          }
-        }
-      } catch (error: any) {
-        // Silently fail - we already have metadata as fallback
-        // Only log if not an abort error
-        if (error?.name !== 'AbortError') {
-          console.warn('[AuthContext] Background refresh failed:', error?.message || error);
-        }
-      }
-    };
-
-    // Delay background refinement to not block initial render
-    const timer = setTimeout(refineUserData, 2000);
-    return () => clearTimeout(timer);
-  }, [session?.user?.id]);
+  // Note: Background API refresh removed - session metadata is sufficient
+  // The login API syncs DB data to session metadata, so we don't need
+  // to make an extra API call here. This eliminates the timeout errors
+  // and improves performance.
 
   const refresh = async () => {
     setLoading(true);
