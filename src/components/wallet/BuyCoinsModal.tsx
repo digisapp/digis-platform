@@ -77,18 +77,6 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="Buy Coins" size="lg">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-              <Coins className="w-10 h-10 text-white" />
-            </div>
-          </div>
-          <p className="text-gray-300">
-            Purchase Digis Coins to unlock video calls, live streams, and exclusive content
-          </p>
-        </div>
-
         {/* Error Message */}
         {error && (
           <div className="p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-400 text-sm">
@@ -157,7 +145,6 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
         <div className="text-center text-sm text-gray-400 space-y-2">
           <p>🔒 Secure payment processing by Stripe</p>
           <p>✨ Coins are added instantly after purchase</p>
-          <p>💸 No recurring charges • Pay once, use anywhere</p>
         </div>
       </div>
     </GlassModal>
