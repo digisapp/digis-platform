@@ -30,66 +30,69 @@ export class MessageService {
    * Relationship exists if recipient has: tipped, subscribed, messaged first, been on call, or purchased content
    */
   static async hasRelationship(senderId: string, recipientId: string): Promise<boolean> {
-    // Check if they already have a conversation (recipient messaged first)
-    const existingConversation = await db.query.conversations.findFirst({
-      where: or(
-        and(
-          eq(conversations.user1Id, senderId),
-          eq(conversations.user2Id, recipientId)
+    // Run all relationship checks in PARALLEL instead of sequential
+    // This reduces 5 sequential queries to 1 parallel batch (~5x faster)
+    const [
+      existingConversation,
+      hasSubscription,
+      hasCall,
+      hasPurchasedContent
+    ] = await Promise.all([
+      // Check if they already have a conversation
+      db.query.conversations.findFirst({
+        where: or(
+          and(
+            eq(conversations.user1Id, senderId),
+            eq(conversations.user2Id, recipientId)
+          ),
+          and(
+            eq(conversations.user1Id, recipientId),
+            eq(conversations.user2Id, senderId)
+          )
         ),
-        and(
-          eq(conversations.user1Id, recipientId),
-          eq(conversations.user2Id, senderId)
-        )
-      ),
-    });
+        with: {
+          messages: {
+            limit: 1,
+            orderBy: [messages.createdAt],
+            columns: { senderId: true },
+          },
+        },
+      }),
+      // Check if recipient is subscribed to sender
+      db.query.subscriptions.findFirst({
+        where: and(
+          eq(subscriptions.userId, recipientId),
+          eq(subscriptions.creatorId, senderId),
+          eq(subscriptions.status, 'active')
+        ),
+        columns: { id: true },
+      }),
+      // Check if recipient has had a call with sender
+      db.query.calls.findFirst({
+        where: and(
+          eq(calls.fanId, recipientId),
+          eq(calls.creatorId, senderId),
+          eq(calls.status, 'completed')
+        ),
+        columns: { id: true },
+      }),
+      // Check if recipient has purchased sender's content
+      db.query.contentPurchases.findFirst({
+        where: and(
+          eq(contentPurchases.userId, recipientId),
+          sql`${contentPurchases.contentId} IN (SELECT id FROM content_items WHERE creator_id = ${senderId})`
+        ),
+        columns: { id: true },
+      }),
+    ]);
 
-    // If conversation exists, check if recipient sent the first message
-    if (existingConversation) {
-      const firstMessage = await db.query.messages.findFirst({
-        where: eq(messages.conversationId, existingConversation.id),
-        orderBy: [messages.createdAt],
-      });
-
-      if (firstMessage && firstMessage.senderId === recipientId) {
-        return true; // Recipient messaged first, so relationship exists
-      }
+    // Check conversation - if recipient messaged first
+    if (existingConversation?.messages?.[0]?.senderId === recipientId) {
+      return true;
     }
 
-    // Check if recipient is subscribed to sender
-    const hasSubscription = await db.query.subscriptions.findFirst({
-      where: and(
-        eq(subscriptions.userId, recipientId),
-        eq(subscriptions.creatorId, senderId),
-        eq(subscriptions.status, 'active')
-      ),
-    });
-
-    if (hasSubscription) return true;
-
-    // Check if recipient has had a call with sender
-    const hasCall = await db.query.calls.findFirst({
-      where: and(
-        eq(calls.fanId, recipientId),
-        eq(calls.creatorId, senderId),
-        eq(calls.status, 'completed')
-      ),
-    });
-
-    if (hasCall) return true;
-
-    // Check if recipient has purchased sender's content
-    const hasPurchasedContent = await db.query.contentPurchases.findFirst({
-      where: and(
-        eq(contentPurchases.userId, recipientId),
-        sql`${contentPurchases.contentId} IN (SELECT id FROM content_items WHERE creator_id = ${senderId})`
-      ),
-    });
-
-    if (hasPurchasedContent) return true;
-
-    // No relationship found
-    return false;
+    // Any other relationship exists
+    return !!(hasSubscription || hasCall || hasPurchasedContent);
   }
   /**
    * Get or create a conversation between two users

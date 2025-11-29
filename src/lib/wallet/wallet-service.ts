@@ -3,7 +3,7 @@ import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/syste
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateTier } from '@/lib/tiers/spend-tiers';
-import { getCachedBalance, setCachedBalance, invalidateBalanceCache } from '@/lib/cache';
+import { getCachedBalance, setCachedBalance, invalidateBalanceCache, withMiniLock } from '@/lib/cache';
 
 /**
  * WalletService handles all financial transactions using Drizzle ORM.
@@ -40,30 +40,30 @@ interface CreateHoldParams {
 export class WalletService {
   /**
    * Get user's wallet balance
-   * Uses Redis cache with 30-second TTL for performance
+   * Uses Redis cache with TTL and stampede protection for performance at scale
    */
   static async getBalance(userId: string): Promise<number> {
-    // Try cache first
-    const cachedBalance = await getCachedBalance(userId);
-    if (cachedBalance !== null) {
-      return cachedBalance;
-    }
+    // Use withMiniLock to prevent cache stampede (thundering herd)
+    // When cache expires, only ONE request fetches from DB, others wait
+    return withMiniLock<number>(
+      `balance:${userId}`,
+      async () => {
+        // Fetch from database
+        const wallet = await db.query.wallets.findFirst({
+          where: eq(wallets.userId, userId),
+          columns: { balance: true },
+        });
 
-    // Cache miss - fetch from database
-    const wallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, userId),
-    });
+        if (!wallet) {
+          // Create wallet if it doesn't exist
+          await this.createWallet(userId);
+          return 0;
+        }
 
-    if (!wallet) {
-      // Create wallet if it doesn't exist
-      await this.createWallet(userId);
-      await setCachedBalance(userId, 0);
-      return 0;
-    }
-
-    // Cache the balance
-    await setCachedBalance(userId, wallet.balance);
-    return wallet.balance;
+        return wallet.balance;
+      },
+      60 // 60 second TTL
+    );
   }
 
   /**

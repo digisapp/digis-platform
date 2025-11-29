@@ -398,39 +398,59 @@ export class SubscriptionService {
 
       console.log(`[Renewals] Found ${subsToRenew.length} subscriptions to renew`);
 
-      for (const subscription of subsToRenew) {
-        results.processed++;
+      // Process renewals in PARALLEL batches of 10 for better performance
+      // This prevents blocking and handles 1000s of renewals efficiently
+      const BATCH_SIZE = 10;
+      const batches = [];
 
-        try {
-          await this.renewSubscription(subscription.id);
-          results.succeeded++;
-          console.log(`[Renewals] ✓ Renewed subscription ${subscription.id}`);
-        } catch (error) {
-          results.failed++;
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          results.errors.push(`Sub ${subscription.id}: ${errorMsg}`);
-          console.error(`[Renewals] ✗ Failed to renew ${subscription.id}:`, errorMsg);
+      for (let i = 0; i < subsToRenew.length; i += BATCH_SIZE) {
+        batches.push(subsToRenew.slice(i, i + BATCH_SIZE));
+      }
 
-          // Increment failed payment count
-          await db
-            .update(subscriptions)
-            .set({
-              failedPaymentCount: subscription.failedPaymentCount + 1,
-            })
-            .where(eq(subscriptions.id, subscription.id));
+      for (const batch of batches) {
+        const batchResults = await Promise.allSettled(
+          batch.map(async (subscription) => {
+            await this.renewSubscription(subscription.id);
+            return subscription.id;
+          })
+        );
 
-          // If failed 3 times, cancel subscription
-          if (subscription.failedPaymentCount >= 2) {
+        // Process batch results
+        for (let i = 0; i < batchResults.length; i++) {
+          const result = batchResults[i];
+          const subscription = batch[i];
+          results.processed++;
+
+          if (result.status === 'fulfilled') {
+            results.succeeded++;
+            console.log(`[Renewals] ✓ Renewed subscription ${subscription.id}`);
+          } else {
+            results.failed++;
+            const errorMsg = result.reason instanceof Error ? result.reason.message : 'Unknown error';
+            results.errors.push(`Sub ${subscription.id}: ${errorMsg}`);
+            console.error(`[Renewals] ✗ Failed to renew ${subscription.id}:`, errorMsg);
+
+            // Increment failed payment count
             await db
               .update(subscriptions)
               .set({
-                status: 'cancelled',
-                cancelledAt: now,
-                autoRenew: false,
+                failedPaymentCount: subscription.failedPaymentCount + 1,
               })
               .where(eq(subscriptions.id, subscription.id));
 
-            console.log(`[Renewals] ✗ Cancelled subscription ${subscription.id} after 3 failed payments`);
+            // If failed 3 times, cancel subscription
+            if (subscription.failedPaymentCount >= 2) {
+              await db
+                .update(subscriptions)
+                .set({
+                  status: 'cancelled',
+                  cancelledAt: now,
+                  autoRenew: false,
+                })
+                .where(eq(subscriptions.id, subscription.id));
+
+              console.log(`[Renewals] ✗ Cancelled subscription ${subscription.id} after 3 failed payments`);
+            }
           }
         }
       }
