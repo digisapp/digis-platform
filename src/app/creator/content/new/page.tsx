@@ -158,8 +158,7 @@ export default function CreateContentPage() {
           await supabase.storage.from('content').remove([fileName]);
 
           const data = await response.json();
-          const errorMsg = data.details || data.error || 'Failed to create content';
-          showToast(errorMsg, 'error');
+          showToast(data.error || 'Upload failed. Please try again.', 'error');
         }
       } else {
         // For photos/galleries: Use API route (usually under 50MB)
@@ -195,16 +194,14 @@ export default function CreateContentPage() {
       } else {
         // Handle 413 Content Too Large error
         if (response.status === 413) {
-          showToast('File too large. Please use a smaller file or compress it first.', 'error');
+          showToast('File too large. Please use a smaller file.', 'error');
         } else {
           try {
             const data = await response.json();
-            const errorMsg = data.details || data.error || 'Failed to upload content';
-            showToast(errorMsg, 'error');
-            console.error('Upload error:', data);
+            showToast(data.error || 'Upload failed. Please try again.', 'error');
           } catch (e) {
             // Response is not JSON (might be HTML error page)
-            showToast('Upload failed. Please try again with a smaller file.', 'error');
+            showToast('Upload failed. Please try again.', 'error');
           }
         }
       }

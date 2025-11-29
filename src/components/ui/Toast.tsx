@@ -45,23 +45,23 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
       case 'success':
         return {
           gradient: 'from-emerald-500 via-green-500 to-teal-500',
-          bg: 'from-emerald-50/90 via-green-50/90 to-teal-50/90',
-          border: 'border-emerald-400/50',
-          glow: 'shadow-emerald-500/50',
+          bg: 'from-gray-900/95 via-gray-800/95 to-gray-900/95',
+          border: 'border-emerald-500/50',
+          glow: 'shadow-emerald-500/30',
         };
       case 'error':
         return {
           gradient: 'from-rose-500 via-pink-500 to-red-500',
-          bg: 'from-rose-50/90 via-pink-50/90 to-red-50/90',
-          border: 'border-rose-400/50',
-          glow: 'shadow-rose-500/50',
+          bg: 'from-gray-900/95 via-gray-800/95 to-gray-900/95',
+          border: 'border-rose-500/50',
+          glow: 'shadow-rose-500/30',
         };
       default:
         return {
           gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
-          bg: 'from-cyan-50/90 via-blue-50/90 to-indigo-50/90',
-          border: 'border-cyan-400/50',
-          glow: 'shadow-cyan-500/50',
+          bg: 'from-gray-900/95 via-gray-800/95 to-gray-900/95',
+          border: 'border-cyan-500/50',
+          glow: 'shadow-cyan-500/30',
         };
     }
   };
@@ -96,15 +96,15 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
               <div className="absolute -inset-1 bg-emerald-400/30 rounded-full blur-md animate-pulse" />
             )}
           </div>
-          <p className="flex-1 text-sm font-bold text-gray-800 leading-relaxed pt-0.5">{message}</p>
+          <p className="flex-1 text-sm font-bold text-white leading-relaxed pt-0.5">{message}</p>
         </div>
 
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/60 hover:bg-white/90 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
         >
-          <X className="w-4 h-4 text-gray-600" />
+          <X className="w-4 h-4 text-white" />
         </button>
 
         {/* Progress bar */}

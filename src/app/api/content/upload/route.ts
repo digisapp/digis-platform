@@ -165,8 +165,7 @@ export async function POST(request: NextRequest) {
             fileSize: file!.size,
           });
           return NextResponse.json({
-            error: 'Failed to upload file to storage',
-            details: uploadError.message
+            error: 'Upload failed. Please try again or use a smaller file.',
           }, { status: 500 });
         }
 
@@ -182,8 +181,7 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
       console.error('[CONTENT UPLOAD] Upload error:', error);
       return NextResponse.json({
-        error: 'Failed to upload files to storage',
-        details: error.message
+        error: 'Upload failed. Please try again.',
       }, { status: 500 });
     }
 
@@ -216,8 +214,7 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json({
-        error: 'Failed to save content to database',
-        details: dbError.message
+        error: 'Something went wrong. Please try again.',
       }, { status: 500 });
     }
   } catch (error: any) {
@@ -226,8 +223,7 @@ export async function POST(request: NextRequest) {
       stack: error.stack,
     });
     return NextResponse.json({
-      error: 'Failed to upload content',
-      details: error.message
+      error: 'Something went wrong. Please try again.',
     }, { status: 500 });
   }
 }
