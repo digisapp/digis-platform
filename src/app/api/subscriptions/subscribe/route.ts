@@ -53,8 +53,21 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error subscribing:', error);
+    const message = error instanceof Error ? error.message : 'Failed to subscribe';
+
+    // Return user-friendly messages
+    if (message.includes('Already subscribed')) {
+      return NextResponse.json({ error: 'You are already subscribed to this creator.' }, { status: 400 });
+    }
+    if (message.includes('Not enough coins') || message.includes('Insufficient balance')) {
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+    if (message.includes('Wallet not found')) {
+      return NextResponse.json({ error: 'Please try again or contact support.' }, { status: 500 });
+    }
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to subscribe' },
+      { error: 'Something went wrong. Please try again.' },
       { status: 500 }
     );
   }

@@ -89,9 +89,10 @@ export class SubscriptionService {
 
   /**
    * Subscribe to a creator's tier
+   * Uses database transaction to ensure atomicity of all operations
    */
   static async subscribe(userId: string, creatorId: string, tierId: string) {
-    // Check if already subscribed to this creator
+    // Pre-validation checks (outside transaction)
     const existingSubscription = await db.query.subscriptions.findFirst({
       where: and(
         eq(subscriptions.userId, userId),
@@ -104,7 +105,6 @@ export class SubscriptionService {
       throw new Error('Already subscribed to this creator');
     }
 
-    // Get tier info
     const tier = await db.query.subscriptionTiers.findFirst({
       where: eq(subscriptionTiers.id, tierId),
     });
@@ -117,119 +117,123 @@ export class SubscriptionService {
       throw new Error('Tier does not belong to this creator');
     }
 
-    // Get user wallet
-    const userWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, userId),
-    });
+    // Get usernames for transaction descriptions
+    const [creatorUsername, subscriberUsername] = await Promise.all([
+      this.getUsername(creatorId),
+      this.getUsername(userId),
+    ]);
 
-    if (!userWallet) {
-      throw new Error('Wallet not found');
-    }
+    // Use transaction for all financial operations
+    return await db.transaction(async (tx) => {
+      // Get user wallet within transaction
+      const userWallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, userId),
+      });
 
-    // Check if user has enough coins
-    const availableBalance = userWallet.balance - userWallet.heldBalance;
-    if (availableBalance < tier.pricePerMonth) {
-      throw new Error(`Insufficient balance. Need ${tier.pricePerMonth} coins to subscribe.`);
-    }
+      if (!userWallet) {
+        throw new Error('Wallet not found. Please contact support.');
+      }
 
-    // Calculate subscription period (30 days from now)
-    const startDate = new Date();
-    const expiresAt = new Date(startDate);
-    expiresAt.setDate(expiresAt.getDate() + 30);
+      // Check if user has enough coins
+      const availableBalance = userWallet.balance - userWallet.heldBalance;
+      if (availableBalance < tier.pricePerMonth) {
+        throw new Error(`Not enough coins. You need ${tier.pricePerMonth} coins to subscribe.`);
+      }
 
-    // Create wallet transactions (double-entry)
-    const idempotencyKey = `sub_${userId}_${tierId}_${Date.now()}`;
+      // Calculate subscription period (30 days from now)
+      const startDate = new Date();
+      const expiresAt = new Date(startDate);
+      expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Deduct from user
-    const [userTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId,
-        amount: -tier.pricePerMonth,
-        type: 'subscription_payment',
-        status: 'completed',
-        description: `Subscription to @${await this.getUsername(creatorId)} - ${tier.name}`,
-        idempotencyKey,
-        metadata: JSON.stringify({ tierId, creatorId }),
-      })
-      .returning();
+      // Create wallet transactions (double-entry)
+      const idempotencyKey = `sub_${userId}_${tierId}_${Date.now()}`;
 
-    // Credit to creator
-    const [creatorTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId: creatorId,
-        amount: tier.pricePerMonth,
-        type: 'subscription_earnings',
-        status: 'completed',
-        description: `Subscription earnings from @${await this.getUsername(userId)} - ${tier.name}`,
-        relatedTransactionId: userTransaction.id,
-        metadata: JSON.stringify({ tierId, subscriberId: userId }),
-      })
-      .returning();
+      // Deduct from user
+      const [userTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId,
+          amount: -tier.pricePerMonth,
+          type: 'subscription_payment',
+          status: 'completed',
+          description: `Subscription to @${creatorUsername} - ${tier.name}`,
+          idempotencyKey,
+          metadata: JSON.stringify({ tierId, creatorId }),
+        })
+        .returning();
 
-    // Link transactions
-    await db
-      .update(walletTransactions)
-      .set({ relatedTransactionId: creatorTransaction.id })
-      .where(eq(walletTransactions.id, userTransaction.id));
+      // Credit to creator
+      const [creatorTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId: creatorId,
+          amount: tier.pricePerMonth,
+          type: 'subscription_earnings',
+          status: 'completed',
+          description: `Subscription from @${subscriberUsername} - ${tier.name}`,
+          relatedTransactionId: userTransaction.id,
+          metadata: JSON.stringify({ tierId, subscriberId: userId }),
+        })
+        .returning();
 
-    // Update wallet balances
-    await db
-      .update(wallets)
-      .set({ balance: userWallet.balance - tier.pricePerMonth })
-      .where(eq(wallets.userId, userId));
+      // Link transactions
+      await tx
+        .update(walletTransactions)
+        .set({ relatedTransactionId: creatorTransaction.id })
+        .where(eq(walletTransactions.id, userTransaction.id));
 
-    const creatorWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, creatorId),
-    });
-
-    if (creatorWallet) {
-      await db
+      // Update user wallet balance (deduct)
+      await tx
         .update(wallets)
-        .set({ balance: creatorWallet.balance + tier.pricePerMonth })
-        .where(eq(wallets.userId, creatorId));
-    }
+        .set({ balance: sql`${wallets.balance} - ${tier.pricePerMonth}` })
+        .where(eq(wallets.userId, userId));
 
-    // Create subscription
-    const [subscription] = await db
-      .insert(subscriptions)
-      .values({
+      // Update creator wallet balance (credit)
+      await tx
+        .update(wallets)
+        .set({ balance: sql`${wallets.balance} + ${tier.pricePerMonth}` })
+        .where(eq(wallets.userId, creatorId));
+
+      // Create subscription record
+      const [subscription] = await tx
+        .insert(subscriptions)
+        .values({
+          userId,
+          creatorId,
+          tierId,
+          status: 'active',
+          startedAt: startDate,
+          expiresAt,
+          lastPaymentAt: startDate,
+          nextBillingAt: expiresAt,
+          totalPaid: tier.pricePerMonth,
+          autoRenew: true,
+        })
+        .returning();
+
+      // Create payment record
+      await tx.insert(subscriptionPayments).values({
+        subscriptionId: subscription.id,
         userId,
         creatorId,
-        tierId,
-        status: 'active',
-        startedAt: startDate,
-        expiresAt,
-        lastPaymentAt: startDate,
-        nextBillingAt: expiresAt,
-        totalPaid: tier.pricePerMonth,
-        autoRenew: true, // Auto-renew enabled by default
-      })
-      .returning();
+        amount: tier.pricePerMonth,
+        status: 'completed',
+        transactionId: userTransaction.id,
+        billingPeriodStart: startDate,
+        billingPeriodEnd: expiresAt,
+        paidAt: startDate,
+      });
 
-    // Create payment record
-    await db.insert(subscriptionPayments).values({
-      subscriptionId: subscription.id,
-      userId,
-      creatorId,
-      amount: tier.pricePerMonth,
-      status: 'completed',
-      transactionId: userTransaction.id,
-      billingPeriodStart: startDate,
-      billingPeriodEnd: expiresAt,
-      paidAt: startDate,
+      // Increment tier subscriber count
+      await tx
+        .update(subscriptionTiers)
+        .set({
+          subscriberCount: sql`${subscriptionTiers.subscriberCount} + 1`,
+        })
+        .where(eq(subscriptionTiers.id, tierId));
+
+      return subscription;
     });
-
-    // Increment tier subscriber count
-    await db
-      .update(subscriptionTiers)
-      .set({
-        subscriberCount: sql`${subscriptionTiers.subscriberCount} + 1`,
-      })
-      .where(eq(subscriptionTiers.id, tierId));
-
-    return subscription;
   }
 
   /**
