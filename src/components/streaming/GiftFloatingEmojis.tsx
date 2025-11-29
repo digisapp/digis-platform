@@ -8,6 +8,7 @@ type FloatingGift = {
   x: number;
   delay: number;
   scale: number;
+  duration: number;
 };
 
 type GiftFloatingEmojisProps = {
@@ -24,13 +25,13 @@ const GIFT_SOUNDS: Record<string, string> = {
   tip: '/sounds/coin-tip.wav',            // Coins clinking
 };
 
-// Gift burst counts and sizes by rarity
-const RARITY_CONFIG: Record<string, { burstCount: number; baseScale: number; glowColor: string }> = {
-  common: { burstCount: 3, baseScale: 1, glowColor: 'rgba(156, 163, 175, 0.5)' },
-  rare: { burstCount: 5, baseScale: 1.2, glowColor: 'rgba(59, 130, 246, 0.6)' },
-  epic: { burstCount: 8, baseScale: 1.4, glowColor: 'rgba(168, 85, 247, 0.7)' },
-  legendary: { burstCount: 12, baseScale: 1.6, glowColor: 'rgba(234, 179, 8, 0.8)' },
-  tip: { burstCount: 6, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)' },
+// Gift burst counts, sizes, and duration by rarity
+const RARITY_CONFIG: Record<string, { burstCount: number; baseScale: number; glowColor: string; duration: number }> = {
+  common: { burstCount: 3, baseScale: 1, glowColor: 'rgba(156, 163, 175, 0.5)', duration: 4000 },
+  rare: { burstCount: 5, baseScale: 1.2, glowColor: 'rgba(59, 130, 246, 0.6)', duration: 5000 },
+  epic: { burstCount: 8, baseScale: 1.4, glowColor: 'rgba(168, 85, 247, 0.7)', duration: 6000 },
+  legendary: { burstCount: 12, baseScale: 1.6, glowColor: 'rgba(234, 179, 8, 0.8)', duration: 8000 },
+  tip: { burstCount: 6, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)', duration: 4500 },
 };
 
 export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProps) {
@@ -146,19 +147,20 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
           id: `${gift.id}-${i}`,
           emoji: gift.emoji,
           x: 15 + Math.random() * 70,
-          delay: i * 80,
+          delay: i * 100, // Slightly slower stagger for longer animations
           scale: config.baseScale * (0.8 + Math.random() * 0.4),
+          duration: config.duration,
         });
       }
 
       setFloatingEmojis(prev => [...prev, ...newEmojis]);
 
-      // Remove after animation completes
+      // Remove after animation completes (add buffer for delays)
       setTimeout(() => {
         setFloatingEmojis(prev => prev.filter(e => !e.id.startsWith(gift.id)));
         onComplete?.(gift.id);
         processedGifts.current.delete(gift.id);
-      }, 3500);
+      }, config.duration + 1000); // Duration + buffer for staggered start
     });
   }, [gifts, onComplete]);
 
@@ -169,10 +171,14 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
       {floatingEmojis.map((emoji) => (
         <div
           key={emoji.id}
-          className="absolute animate-gift-float"
+          className="absolute"
           style={{
             left: `${emoji.x}%`,
             bottom: '-50px',
+            animationName: 'gift-float',
+            animationDuration: `${emoji.duration}ms`,
+            animationTimingFunction: 'ease-out',
+            animationFillMode: 'forwards',
             animationDelay: `${emoji.delay}ms`,
             fontSize: `${3 * emoji.scale}rem`,
             filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.6))',
@@ -187,24 +193,28 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
             transform: translateY(0) scale(0.3) rotate(-15deg);
             opacity: 0;
           }
-          10% {
+          8% {
             opacity: 1;
             transform: translateY(-5vh) scale(1.3) rotate(10deg);
           }
-          30% {
-            transform: translateY(-25vh) scale(1.1) rotate(-8deg);
+          20% {
+            transform: translateY(-20vh) scale(1.15) rotate(-8deg);
+          }
+          40% {
+            transform: translateY(-40vh) scale(1.1) rotate(5deg);
           }
           60% {
             opacity: 1;
-            transform: translateY(-55vh) scale(1) rotate(5deg);
+            transform: translateY(-60vh) scale(1) rotate(-3deg);
+          }
+          80% {
+            opacity: 0.8;
+            transform: translateY(-80vh) scale(0.9) rotate(2deg);
           }
           100% {
-            transform: translateY(-110vh) scale(0.7) rotate(-10deg);
+            transform: translateY(-110vh) scale(0.7) rotate(-5deg);
             opacity: 0;
           }
-        }
-        .animate-gift-float {
-          animation: gift-float 3s ease-out forwards;
         }
       `}</style>
     </div>
