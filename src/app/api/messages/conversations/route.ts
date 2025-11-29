@@ -35,8 +35,19 @@ export async function GET() {
         }
       );
 
+      // Debug: Log conversation count for troubleshooting
+      console.log('[CONVERSATIONS]', {
+        requestId,
+        userId: user.id,
+        count: conversations.length,
+        hasNullOtherUser: conversations.some(c => !c.otherUser),
+      });
+
+      // Filter out conversations with null otherUser (edge case where user was deleted)
+      const validConversations = conversations.filter(c => c.otherUser !== null && c.otherUser !== undefined);
+
       return NextResponse.json(
-        success(conversations, requestId),
+        success(validConversations, requestId),
         { headers: { 'x-request-id': requestId } }
       );
     } catch (dbError) {

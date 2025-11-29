@@ -162,6 +162,9 @@ export default function MessagesPage() {
 
   const filteredConversations = conversations
     .filter((conv) => {
+      // Don't show conversations without a valid other user
+      if (!conv.otherUser) return false;
+
       // Don't show archived conversations
       if (conv.isArchived) return false;
 
@@ -171,8 +174,8 @@ export default function MessagesPage() {
       // Filter by search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const displayName = (conv.otherUser.displayName || '').toLowerCase();
-        const username = (conv.otherUser.username || '').toLowerCase();
+        const displayName = (conv.otherUser?.displayName || '').toLowerCase();
+        const username = (conv.otherUser?.username || '').toLowerCase();
         const lastMessage = (conv.lastMessageText || '').toLowerCase();
 
         return displayName.includes(query) || username.includes(query) || lastMessage.includes(query);
