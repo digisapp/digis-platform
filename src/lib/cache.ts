@@ -62,7 +62,7 @@ export async function withMiniLock<T>(key: string, fn: () => Promise<T>, ttl = 1
 // WALLET BALANCE CACHING
 // ============================================
 
-const BALANCE_CACHE_TTL = 30; // 30 seconds - balance updates frequently
+const BALANCE_CACHE_TTL = 60; // 60 seconds - reduces DB load at scale
 
 export async function getCachedBalance(userId: string): Promise<number | null> {
   return getCached<number>(`balance:${userId}`);

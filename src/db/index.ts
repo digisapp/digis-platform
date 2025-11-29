@@ -35,14 +35,14 @@ export function getDb(): DbInstance {
 
     // Singleton connection pool optimized for Vercel serverless
     // CRITICAL: prepare: false required for PgBouncer/pooler compatibility
-    // Using minimal connection pool for serverless functions
     global.__dbClient = postgres(connectionString, {
       prepare: false,        // REQUIRED for PgBouncer/transaction pooler
       ssl: 'require',        // Required for Supabase
-      max: 1,               // Use 1 connection for serverless (avoid connection churn)
+      max: 10,              // Allow 10 connections per serverless instance
       idle_timeout: 20,     // Close idle connections after 20s
       connect_timeout: 10,  // 10s connection timeout
       max_lifetime: 60 * 30, // 30 minutes max connection lifetime
+      fetch_types: false,   // Disable type fetching for faster cold starts
     });
     global.__db = drizzle(global.__dbClient, { schema });
 

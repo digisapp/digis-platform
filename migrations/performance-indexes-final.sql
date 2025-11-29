@@ -69,3 +69,54 @@ ON users USING gin(bio gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_users_online_followers
 ON users (is_online DESC, follower_count DESC)
 WHERE role = 'creator';
+
+-- ============================================
+-- SUBSCRIPTION INDEXES (Critical for scaling)
+-- ============================================
+
+-- Creator's active subscribers (most common query)
+CREATE INDEX IF NOT EXISTS idx_subs_creator_active
+ON subscriptions (creator_id, status, expires_at DESC)
+WHERE status = 'active';
+
+-- User's active subscriptions
+CREATE INDEX IF NOT EXISTS idx_subs_user_active
+ON subscriptions (user_id, status, expires_at DESC)
+WHERE status = 'active';
+
+-- Renewal batch processing (cron job)
+CREATE INDEX IF NOT EXISTS idx_subs_renewal_due
+ON subscriptions (next_billing_date, status)
+WHERE status = 'active' AND auto_renew = true;
+
+-- ============================================
+-- WALLET INDEXES (Critical for scaling)
+-- ============================================
+
+-- Idempotency key lookups (prevent duplicate transactions)
+CREATE INDEX IF NOT EXISTS idx_wallet_tx_idempotency
+ON wallet_transactions (idempotency_key)
+WHERE idempotency_key IS NOT NULL;
+
+-- ============================================
+-- MESSAGE INDEXES (Critical for scaling)
+-- ============================================
+
+-- Unread messages per conversation
+CREATE INDEX IF NOT EXISTS idx_messages_unread
+ON messages (conversation_id, is_read, created_at DESC)
+WHERE is_read = false;
+
+-- ============================================
+-- ANALYZE ALL TABLES
+-- ============================================
+ANALYZE users;
+ANALYZE wallets;
+ANALYZE wallet_transactions;
+ANALYZE subscriptions;
+ANALYZE conversations;
+ANALYZE messages;
+ANALYZE streams;
+ANALYZE calls;
+ANALYZE notifications;
+ANALYZE follows;
