@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
 import { Phone, Clock, DollarSign, Video, X } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
 
 interface RequestCallButtonProps {
   creatorId: string;
@@ -31,10 +33,31 @@ export function RequestCallButton({
   const [waiting, setWaiting] = useState(false);
   const [callId, setCallId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(120);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const estimatedCost = ratePerMinute * minimumDuration;
+
+  // Check auth on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, []);
+
+  // Handle button click - check auth first
+  const handleButtonClick = () => {
+    if (isAuthenticated === false) {
+      setShowSignUpModal(true);
+      return;
+    }
+    setShowModal(true);
+  };
 
   // Cleanup polling and countdown on unmount
   useEffect(() => {
@@ -173,7 +196,7 @@ export function RequestCallButton({
     <>
       {iconOnly ? (
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleButtonClick}
           title={buttonTitle}
           className={`w-11 h-11 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all flex items-center justify-center shadow-fun`}
         >
@@ -181,7 +204,7 @@ export function RequestCallButton({
         </button>
       ) : (
         <button
-          onClick={() => setShowModal(true)}
+          onClick={handleButtonClick}
           className={`px-4 py-2.5 rounded-xl font-semibold text-white hover:scale-105 transition-all flex items-center gap-2 shadow-lg text-sm ${
             callType === 'voice'
               ? 'bg-gradient-to-r from-blue-500 to-indigo-500 shadow-blue-500/30'
@@ -314,6 +337,14 @@ export function RequestCallButton({
           </div>
         </div>
       )}
+
+      {/* Sign Up Prompt Modal */}
+      <SignUpPromptModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        action={callType === 'voice' ? 'start a voice call' : 'start a video call'}
+        creatorName={creatorName}
+      />
     </>
   );
 }

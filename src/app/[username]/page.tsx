@@ -14,6 +14,7 @@ import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ContentUnlockModal } from '@/components/content/ContentUnlockModal';
+import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
 
 interface ProfileData {
   user: {
@@ -76,6 +77,8 @@ export default function ProfilePage() {
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contentToUnlock, setContentToUnlock] = useState<any>(null);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [signUpAction, setSignUpAction] = useState<string>('');
 
   useEffect(() => {
     fetchProfile();
@@ -86,6 +89,16 @@ export default function ProfilePage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     setIsAuthenticated(!!user);
+  };
+
+  // Helper to require auth before action
+  const requireAuth = (action: string, callback: () => void) => {
+    if (!isAuthenticated) {
+      setSignUpAction(action);
+      setShowSignUpModal(true);
+      return;
+    }
+    callback();
   };
 
   useEffect(() => {
@@ -303,6 +316,13 @@ export default function ProfilePage() {
   const handleFollowToggle = async () => {
     if (followLoading || !profile) return;
 
+    // Require auth for follow action
+    if (!isAuthenticated) {
+      setSignUpAction('follow this creator');
+      setShowSignUpModal(true);
+      return;
+    }
+
     setFollowLoading(true);
     try {
       const method = isFollowing ? 'DELETE' : 'POST';
@@ -346,6 +366,13 @@ export default function ProfilePage() {
   const handleSubscribe = async () => {
     if (subscribeLoading || !profile?.user.id) return;
 
+    // Require auth for subscribe action
+    if (!isAuthenticated) {
+      setSignUpAction('subscribe to this creator');
+      setShowSignUpModal(true);
+      return;
+    }
+
     setSubscribeLoading(true);
     try {
       const response = await fetch('/api/subscriptions/subscribe', {
@@ -375,15 +402,22 @@ export default function ProfilePage() {
   const handleMessage = async () => {
     if (!profile) return;
 
+    // Require auth for message action
+    if (!isAuthenticated) {
+      setSignUpAction('send messages');
+      setShowSignUpModal(true);
+      return;
+    }
+
     try {
       // Check if user is authenticated
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // User not authenticated, show login prompt
-        alert('Please sign in to send messages');
-        router.push('/');
+        // User not authenticated, show sign up modal
+        setSignUpAction('send messages');
+        setShowSignUpModal(true);
         return;
       }
 
@@ -660,7 +694,14 @@ export default function ProfilePage() {
             {/* Tip Button */}
             {user.role === 'creator' && (
               <button
-                onClick={() => setShowTipModal(true)}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setSignUpAction('send tips');
+                    setShowSignUpModal(true);
+                    return;
+                  }
+                  setShowTipModal(true);
+                }}
                 className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
               >
                 <Gift className="w-5 h-5" />
@@ -1342,6 +1383,14 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Sign Up Prompt Modal */}
+      <SignUpPromptModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        action={signUpAction}
+        creatorName={profile?.user.displayName || profile?.user.username}
+      />
     </div>
   );
 }

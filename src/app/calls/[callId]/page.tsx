@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
 import { ConnectionState, Track } from 'livekit-client';
-import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap } from 'lucide-react';
+import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 interface CallToken {
   token: string;
@@ -20,12 +21,16 @@ interface CallData {
   status: string;
   callType: 'video' | 'voice';
   ratePerMinute: number;
+  fanId: string;
+  creatorId: string;
   fan: {
+    id: string;
     username: string;
     displayName: string;
     avatarUrl?: string;
   };
   creator: {
+    id: string;
     username: string;
     displayName: string;
     avatarUrl?: string;
@@ -196,6 +201,7 @@ function VoiceCallUI({
 export default function VideoCallPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const callId = params.callId as string;
 
   const [callToken, setCallToken] = useState<CallToken | null>(null);
@@ -205,6 +211,13 @@ export default function VideoCallPage() {
   const [duration, setDuration] = useState(0);
   const [isEnding, setIsEnding] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+
+  // Chat and tip state
+  const [showChat, setShowChat] = useState(true);
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; content: string; timestamp: number }>>([]);
+  const [messageInput, setMessageInput] = useState('');
+  const [userBalance, setUserBalance] = useState(0);
+  const [tipSending, setTipSending] = useState(false);
 
   // Fetch call token and data
   useEffect(() => {
@@ -280,6 +293,80 @@ export default function VideoCallPage() {
   const estimatedCost = callData
     ? Math.ceil(duration / 60) * callData.ratePerMinute
     : 0;
+
+  // Fetch user balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const res = await fetch('/api/wallet/balance');
+        if (res.ok) {
+          const data = await res.json();
+          setUserBalance(data.balance || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching balance:', err);
+      }
+    };
+    fetchBalance();
+  }, []);
+
+  // Determine if current user is the fan (can send tips to creator)
+  const isFan = user?.id && callData && user.id === callData.fanId;
+
+  // Send tip to creator
+  const handleSendTip = async (amount: number) => {
+    if (!callData || tipSending) return;
+
+    if (userBalance < amount) {
+      alert(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
+      return;
+    }
+
+    setTipSending(true);
+    try {
+      const response = await fetch('/api/tips/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount,
+          receiverId: callData.creatorId,
+          message: `Tip during video call`,
+        }),
+      });
+
+      if (response.ok) {
+        setUserBalance((prev) => prev - amount);
+        // Add a system message to chat
+        setChatMessages((prev) => [...prev, {
+          id: `tip-${Date.now()}`,
+          sender: 'system',
+          content: `💰 You sent ${amount} coins!`,
+          timestamp: Date.now(),
+        }]);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to send tip');
+      }
+    } catch (err) {
+      console.error('Error sending tip:', err);
+      alert('Failed to send tip');
+    } finally {
+      setTipSending(false);
+    }
+  };
+
+  // Send chat message (local only for now - could be extended with Supabase realtime)
+  const handleSendMessage = () => {
+    if (!messageInput.trim()) return;
+
+    setChatMessages((prev) => [...prev, {
+      id: `msg-${Date.now()}`,
+      sender: user?.id || 'You',
+      content: messageInput,
+      timestamp: Date.now(),
+    }]);
+    setMessageInput('');
+  };
 
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [callEndedByOther, setCallEndedByOther] = useState(false);
@@ -610,12 +697,131 @@ export default function VideoCallPage() {
               </div>
             </div>
 
-            {/* Video Call Area - Custom Styled */}
-            <div className="flex-1 pt-24 md:pt-20">
-              <div className="h-full livekit-container">
-                <VideoConference />
+            {/* Video Call Area with Sidebar */}
+            <div className="flex-1 pt-24 md:pt-20 flex">
+              {/* Main Video Area - Centered */}
+              <div className="flex-1 flex items-center justify-center p-4">
+                <div className="w-full h-full max-w-5xl livekit-container">
+                  <VideoConference />
+                </div>
               </div>
               <RoomAudioRenderer />
+
+              {/* Chat & Tips Sidebar */}
+              {showChat && (
+                <div className="w-80 bg-black/60 backdrop-blur-xl border-l border-cyan-500/30 flex flex-col">
+                  {/* Sidebar Header */}
+                  <div className="p-4 border-b border-cyan-500/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-5 h-5 text-cyan-400" />
+                      <span className="font-bold text-white">Chat & Tips</span>
+                    </div>
+                    <button
+                      onClick={() => setShowChat(false)}
+                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </div>
+
+                  {/* Quick Tip Buttons (for fans only) */}
+                  {isFan && (
+                    <div className="p-4 border-b border-cyan-500/30">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Gift className="w-4 h-4 text-pink-400" />
+                        <span className="text-sm font-semibold text-white">Quick Tips</span>
+                        <span className="text-xs text-gray-400 ml-auto">{userBalance} coins</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        {[5, 10, 25, 50].map((amount) => (
+                          <button
+                            key={amount}
+                            onClick={() => handleSendTip(amount)}
+                            disabled={tipSending || userBalance < amount}
+                            className="py-2 px-1 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 text-pink-300 font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                          >
+                            {amount}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {[100, 250, 500].map((amount) => (
+                          <button
+                            key={amount}
+                            onClick={() => handleSendTip(amount)}
+                            disabled={tipSending || userBalance < amount}
+                            className="py-2 px-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 text-yellow-300 font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                          >
+                            {amount}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {chatMessages.length === 0 ? (
+                      <div className="text-center text-gray-500 text-sm mt-8">
+                        <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>No messages yet</p>
+                        <p className="text-xs mt-1">Chat during your call!</p>
+                      </div>
+                    ) : (
+                      chatMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`p-2 rounded-lg ${
+                            msg.sender === 'system'
+                              ? 'bg-yellow-500/20 border border-yellow-500/30 text-center'
+                              : 'bg-white/5'
+                          }`}
+                        >
+                          {msg.sender !== 'system' && (
+                            <div className="text-xs text-cyan-400 font-semibold mb-1">
+                              {msg.sender === user?.id ? 'You' : 'Other'}
+                            </div>
+                          )}
+                          <p className={`text-sm ${msg.sender === 'system' ? 'text-yellow-300' : 'text-white'}`}>
+                            {msg.content}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="p-4 border-t border-cyan-500/30">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        placeholder="Send a message..."
+                        className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={!messageInput.trim()}
+                        className="p-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Toggle Chat Button (when hidden) */}
+              {!showChat && (
+                <button
+                  onClick={() => setShowChat(true)}
+                  className="fixed right-4 top-1/2 -translate-y-1/2 p-3 bg-cyan-500/20 border border-cyan-500/40 rounded-xl text-cyan-400 hover:bg-cyan-500/30 transition-all"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -717,6 +923,38 @@ export default function VideoCallPage() {
         .livekit-container .lk-grid-layout {
           gap: 0.5rem !important;
           padding: 0.5rem !important;
+        }
+
+        /* Center the video conference */
+        .livekit-container {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        .livekit-container .lk-video-conference {
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        .livekit-container .lk-focus-layout {
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        /* Main participant takes center stage */
+        .livekit-container .lk-focus-layout > .lk-participant-tile {
+          max-width: 100% !important;
+          max-height: 100% !important;
+          width: auto !important;
+          height: auto !important;
+          aspect-ratio: 16/9 !important;
         }
       `}</style>
     </div>
