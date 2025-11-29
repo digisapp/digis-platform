@@ -37,6 +37,11 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingGift[]>([]);
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
   const processedGifts = useRef<Set<string>>(new Set());
+  const lastSoundTime = useRef<number>(0);
+  const currentAudio = useRef<HTMLAudioElement | null>(null);
+
+  // Minimum time between sounds (prevents rapid-fire dinging)
+  const SOUND_COOLDOWN = 2000; // 2 seconds between sounds
 
   // Preload audio files
   useEffect(() => {
@@ -53,6 +58,10 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
         audio.src = '';
       });
       audioRefs.current.clear();
+      if (currentAudio.current) {
+        currentAudio.current.pause();
+        currentAudio.current = null;
+      }
     };
   }, []);
 
@@ -68,8 +77,23 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     tip: 0.4,
   };
 
-  // Play sound for a rarity - creates fresh audio to ensure correct file plays
+  // Play sound for a rarity - with cooldown to prevent rapid-fire sounds
   const playSound = (rarity: string) => {
+    const now = Date.now();
+
+    // Skip if we played a sound too recently (prevents annoying rapid dinging)
+    if (now - lastSoundTime.current < SOUND_COOLDOWN) {
+      return;
+    }
+
+    // Stop any currently playing sound
+    if (currentAudio.current) {
+      currentAudio.current.pause();
+      currentAudio.current.currentTime = 0;
+    }
+
+    lastSoundTime.current = now;
+
     // Use the rarity if it exists in sounds, otherwise fallback to common
     const soundKey = GIFT_SOUNDS[rarity] ? rarity : 'common';
     const soundSrc = GIFT_SOUNDS[soundKey];
@@ -77,23 +101,30 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     // Create fresh audio element each time for correct sound
     const audio = new Audio(soundSrc);
     audio.volume = VOLUME_LEVELS[soundKey] || 0.3;
+    currentAudio.current = audio;
 
     // Play the sound
     audio.play().catch(() => {
       // Audio play failed - likely no user interaction yet
     });
 
-    // Force stop after max duration (5 seconds)
+    // Force stop after max duration
     const timeout = setTimeout(() => {
       audio.pause();
       audio.currentTime = 0;
       audio.src = '';
+      if (currentAudio.current === audio) {
+        currentAudio.current = null;
+      }
     }, MAX_SOUND_DURATION);
 
     // Also stop when naturally ended
     audio.onended = () => {
       clearTimeout(timeout);
       audio.src = '';
+      if (currentAudio.current === audio) {
+        currentAudio.current = null;
+      }
     };
   };
 
