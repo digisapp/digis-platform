@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Phone, PhoneOff, Video, Mic } from 'lucide-react';
+import { getAblyClient } from '@/lib/ably/client';
+import type Ably from 'ably';
 
 interface IncomingCall {
   id: string;
@@ -70,27 +71,61 @@ export function IncomingCallPopup() {
     }
   }, [isCreator, playRingtone, stopRingtone]);
 
-  // Subscribe to real-time call notifications
+  // Subscribe to real-time call notifications via Ably
   useEffect(() => {
     if (!user?.id || !isCreator) return;
 
-    const supabase = createClient();
+    let channel: Ably.RealtimeChannel | null = null;
+    let mounted = true;
 
-    // Subscribe to call_requests channel for this creator
-    const channel = supabase
-      .channel(`call_requests:${user.id}`)
-      .on('broadcast', { event: 'new_call' }, (payload) => {
-        // New call request received
-        fetchPendingCalls();
-      })
-      .on('broadcast', { event: 'call_cancelled' }, (payload) => {
-        // Call was cancelled by fan
-        setIncomingCalls(prev => prev.filter(c => c.id !== payload.payload?.callId));
-        if (incomingCalls.length <= 1) {
-          stopRingtone();
+    const setupChannel = async () => {
+      try {
+        const ably = getAblyClient();
+
+        // Wait for connection
+        if (ably.connection.state !== 'connected') {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
         }
-      })
-      .subscribe();
+
+        if (!mounted) return;
+
+        // Subscribe to user notifications channel for call requests
+        channel = ably.channels.get(`user:${user.id}:notifications`);
+
+        channel.subscribe('call_request', (message) => {
+          // New call request received
+          console.log('[IncomingCallPopup] New call request:', message.data);
+          fetchPendingCalls();
+        });
+
+        channel.subscribe('call_cancelled', (message) => {
+          // Call was cancelled by fan
+          const callId = message.data?.callId;
+          setIncomingCalls(prev => {
+            const updated = prev.filter(c => c.id !== callId);
+            if (updated.length === 0) {
+              stopRingtone();
+            }
+            return updated;
+          });
+        });
+
+      } catch (err) {
+        console.error('[IncomingCallPopup] Ably setup error:', err);
+      }
+    };
+
+    setupChannel();
 
     // Initial fetch
     fetchPendingCalls();
@@ -99,11 +134,15 @@ export function IncomingCallPopup() {
     const interval = setInterval(fetchPendingCalls, 10000);
 
     return () => {
-      channel.unsubscribe();
+      mounted = false;
+      if (channel) {
+        channel.unsubscribe();
+        channel.detach().catch(() => {});
+      }
       clearInterval(interval);
       stopRingtone();
     };
-  }, [user?.id, isCreator, fetchPendingCalls, stopRingtone, incomingCalls.length]);
+  }, [user?.id, isCreator, fetchPendingCalls, stopRingtone]);
 
   // Handle accept
   const handleAccept = async (call: IncomingCall) => {

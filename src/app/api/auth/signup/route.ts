@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateUsername } from '@/lib/utils/username';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -9,6 +10,15 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit signup attempts (3/min per IP)
+    const rl = await rateLimit(request, 'auth:signup');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many signup attempts. Please try again in a minute.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const { email, password, displayName, username } = await request.json();
 
     if (!email || !password) {

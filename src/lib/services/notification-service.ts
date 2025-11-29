@@ -1,7 +1,7 @@
 import { db } from '@/lib/data/system';
 import { notifications, follows, subscriptions, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { PushNotificationService, NotificationType } from './push-notification-service';
 
 /**
@@ -40,9 +40,9 @@ export class NotificationService {
       })
       .returning();
 
-    // 2. Broadcast real-time notification via Supabase Realtime
+    // 2. Broadcast real-time notification via Ably
     // This will be picked up by the user's notification listener
-    await RealtimeService.broadcastNotification(userId, notification);
+    await AblyRealtimeService.broadcastNotification(userId, notification);
 
     // 3. Send Web Push notification (async, non-blocking)
     this.sendPushNotification(userId, type as NotificationType, {

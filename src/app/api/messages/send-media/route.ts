@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { conversations, messages } from '@/lib/data/system';
 import { eq, or, and } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,15 @@ const MAX_VIDEO_SIZE = 5 * 1024 * 1024; // 5MB for videos
 // POST - Send media message (photo/video)
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit media uploads (10/min per IP)
+    const rl = await rateLimit(req, 'upload');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many uploads. Please wait before sending more media.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 

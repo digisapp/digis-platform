@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
 import { getTierColor, type SpendTier } from '@/lib/tiers/spend-tiers';
+import { getAblyClient } from '@/lib/ably/client';
+import type Ably from 'ably';
 
 interface Message {
   id: string;
@@ -33,9 +34,11 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
     }
   }, [messages]);
 
-  // Connect to real-time chat with Supabase
+  // Connect to real-time chat with Ably
   useEffect(() => {
-    const supabase = createClient();
+    let chatChannel: Ably.RealtimeChannel | null = null;
+    let tipsChannel: Ably.RealtimeChannel | null = null;
+    let mounted = true;
 
     // Load recent messages
     const loadRecentMessages = async () => {
@@ -43,41 +46,91 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
         const response = await fetch(`/api/streams/${streamId}/messages?limit=${maxMessages}`);
         if (response.ok) {
           const data = await response.json();
-          setMessages(data.messages || []);
+          if (mounted) {
+            setMessages(data.messages || []);
+          }
         }
       } catch (error) {
         console.error('[QuickChat] Error loading messages:', error);
       }
     };
 
-    loadRecentMessages();
+    const setupChannels = async () => {
+      try {
+        const ably = getAblyClient();
 
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel(`stream:${streamId}:chat`)
-      .on('broadcast', { event: 'message' }, (payload) => {
-        const newMessage = payload.payload as Message;
-        setMessages((prev) => {
-          // Avoid duplicates
-          if (prev.some((m) => m.id === newMessage.id)) {
-            return prev;
+        // Wait for connection
+        if (ably.connection.state !== 'connected') {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
+        }
+
+        if (!mounted) return;
+
+        // Subscribe to chat channel
+        chatChannel = ably.channels.get(`stream:${streamId}:chat`);
+        chatChannel.subscribe('chat', (message) => {
+          const newMessage = message.data as Message;
+          if (mounted) {
+            setMessages((prev) => {
+              // Avoid duplicates
+              if (prev.some((m) => m.id === newMessage.id)) {
+                return prev;
+              }
+              // Keep only the last maxMessages
+              const updated = [...prev, newMessage];
+              return updated.slice(-maxMessages);
+            });
           }
-          // Keep only the last maxMessages
-          const updated = [...prev, newMessage];
-          return updated.slice(-maxMessages);
         });
-      })
-      .on('broadcast', { event: 'tip' }, (payload) => {
-        const tipMessage = payload.payload as Message;
-        setMessages((prev) => {
-          const updated = [...prev, tipMessage];
-          return updated.slice(-maxMessages);
+
+        // Subscribe to tips channel
+        tipsChannel = ably.channels.get(`stream:${streamId}:tips`);
+        tipsChannel.subscribe('tip', (message) => {
+          const tipData = message.data;
+          const tipMessage: Message = {
+            id: `tip-${Date.now()}`,
+            username: tipData.senderUsername,
+            content: '',
+            timestamp: Date.now(),
+            type: 'tip',
+            amount: tipData.amount,
+          };
+          if (mounted) {
+            setMessages((prev) => {
+              const updated = [...prev, tipMessage];
+              return updated.slice(-maxMessages);
+            });
+          }
         });
-      })
-      .subscribe();
+
+      } catch (err) {
+        console.error('[QuickChat] Ably setup error:', err);
+      }
+    };
+
+    loadRecentMessages();
+    setupChannels();
 
     return () => {
-      supabase.removeChannel(channel);
+      mounted = false;
+      if (chatChannel) {
+        chatChannel.unsubscribe();
+        chatChannel.detach().catch(() => {});
+      }
+      if (tipsChannel) {
+        tipsChannel.unsubscribe();
+        tipsChannel.detach().catch(() => {});
+      }
     };
   }, [streamId, maxMessages]);
 

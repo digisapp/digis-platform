@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
@@ -68,8 +68,8 @@ export async function POST(
       amount
     );
 
-    // Broadcast tip to all viewers in real-time
-    await RealtimeService.broadcastTip(streamId, {
+    // Broadcast tip to all viewers using Ably (scales to 50k+)
+    await AblyRealtimeService.broadcastTip(streamId, {
       senderId: user.id,
       senderUsername: username,
       senderAvatarUrl: avatarUrl,

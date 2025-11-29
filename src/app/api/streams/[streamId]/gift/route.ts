@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
@@ -69,9 +69,8 @@ export async function POST(
       quantity
     );
 
-    // Broadcast gift animation to all viewers in real-time
-    // Include sender avatar for top tipper spotlight
-    await RealtimeService.broadcastGift(streamId, {
+    // Broadcast gift animation to all viewers using Ably (scales to 50k+)
+    await AblyRealtimeService.broadcastGift(streamId, {
       ...result.streamGift,
       senderAvatarUrl: avatarUrl,
     }, result.gift);

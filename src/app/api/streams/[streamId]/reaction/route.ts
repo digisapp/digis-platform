@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
@@ -42,8 +42,8 @@ export async function POST(
 
     const username = dbUser?.username || dbUser?.displayName || 'Anonymous';
 
-    // Broadcast reaction to all viewers
-    await RealtimeService.broadcastReaction(streamId, emoji, user.id, username);
+    // Broadcast reaction to all viewers via Ably
+    await AblyRealtimeService.broadcastReaction(streamId, emoji, user.id, username);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

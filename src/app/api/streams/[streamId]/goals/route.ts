@@ -3,7 +3,7 @@ import { db } from '@/lib/data/system';
 import { streamGoals, streams } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createClientBrowser } from '@/lib/supabase/client';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -85,14 +85,9 @@ export async function POST(
       isCompleted: false,
     }).returning();
 
-    // Broadcast goal update to all viewers
+    // Broadcast goal update to all viewers via Ably
     try {
-      const channelName = `stream:${streamId}`;
-      await supabase.channel(channelName).send({
-        type: 'broadcast',
-        event: 'goal_update',
-        payload: { goal, action: 'created' },
-      });
+      await AblyRealtimeService.broadcastGoalUpdate(streamId, goal, 'created');
     } catch (broadcastError) {
       console.error('[GOAL BROADCAST ERROR]', broadcastError);
       // Don't fail the request if broadcast fails

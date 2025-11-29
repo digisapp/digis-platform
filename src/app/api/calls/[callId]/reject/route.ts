@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export async function POST(
   request: NextRequest,
@@ -19,6 +20,12 @@ export async function POST(
     }
 
     const call = await CallService.rejectCall(callId, user.id);
+
+    // Notify the fan that their call was rejected via Ably
+    await AblyRealtimeService.broadcastCallUpdate(callId, 'call_rejected', {
+      callId,
+      creatorId: user.id,
+    });
 
     return NextResponse.json({
       call,

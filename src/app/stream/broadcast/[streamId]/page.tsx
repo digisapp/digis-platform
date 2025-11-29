@@ -14,7 +14,7 @@ import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
-import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
+import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
@@ -315,50 +315,53 @@ export default function BroadcastStudioPage() {
     };
   }, [stream, streamId, hasManuallyEnded]);
 
-  // Setup real-time subscriptions
-  useEffect(() => {
-    if (!stream) return;
-
-    const handleStreamEvent = (event: StreamEvent) => {
-      switch (event.type) {
-        case 'chat':
-          setMessages((prev) => [...prev, event.data]);
-          break;
-        case 'gift':
-          setGiftAnimations((prev) => [...prev, event.data]);
-          setTotalEarnings((prev) => prev + event.data.streamGift.totalCoins);
-          // Show gift notification
-          showGiftNotification(event.data);
-          // Add floating emoji for the gift
-          const giftData = event.data as { gift: VirtualGift; streamGift: StreamGift };
-          if (giftData.gift) {
-            setFloatingGifts(prev => [...prev, {
-              id: `gift-${Date.now()}-${Math.random()}`,
-              emoji: giftData.gift.emoji,
-              rarity: giftData.gift.rarity,
-              timestamp: Date.now()
-            }]);
-          }
-          // Update goals progress and leaderboard
-          fetchGoals();
-          fetchLeaderboard();
-          break;
-        case 'viewer_joined':
-          playSound('join');
-          break;
-        case 'viewer_count':
-          setViewerCount(event.data.currentViewers);
-          setPeakViewers(event.data.peakViewers);
-          break;
+  // Setup real-time subscriptions with Ably
+  const { viewerCount: ablyViewerCount } = useStreamChat({
+    streamId,
+    onMessage: (message) => {
+      setMessages((prev) => [...prev, message as unknown as StreamMessage]);
+    },
+    onGift: (giftEvent) => {
+      const giftData = {
+        gift: giftEvent.gift as unknown as VirtualGift,
+        streamGift: giftEvent.streamGift as unknown as StreamGift
+      };
+      setGiftAnimations((prev) => [...prev, giftData]);
+      setTotalEarnings((prev) => prev + (giftEvent.streamGift.quantity || 1) * (giftEvent.gift.coinCost || 0));
+      // Show gift notification
+      showGiftNotification(giftData);
+      // Add floating emoji for the gift
+      if (giftEvent.gift) {
+        setFloatingGifts(prev => [...prev, {
+          id: `gift-${Date.now()}-${Math.random()}`,
+          emoji: giftEvent.gift.emoji,
+          rarity: giftEvent.gift.rarity,
+          timestamp: Date.now()
+        }]);
       }
-    };
+      // Update goals progress and leaderboard
+      fetchGoals();
+      fetchLeaderboard();
+    },
+    onTip: (tipData) => {
+      setTotalEarnings((prev) => prev + tipData.amount);
+      fetchLeaderboard();
+    },
+    onViewerCount: (data) => {
+      setViewerCount(data.currentViewers);
+      setPeakViewers(data.peakViewers);
+    },
+    onGoalUpdate: () => {
+      fetchGoals();
+    },
+  });
 
-    const channel = RealtimeService.subscribeToStream(streamId, handleStreamEvent);
-
-    return () => {
-      RealtimeService.unsubscribeFromStream(streamId);
-    };
-  }, [stream, streamId]);
+  // Update viewer count from Ably presence
+  useEffect(() => {
+    if (ablyViewerCount > 0) {
+      setViewerCount(ablyViewerCount);
+    }
+  }, [ablyViewerCount]);
 
   const fetchStreamDetails = async () => {
     try {

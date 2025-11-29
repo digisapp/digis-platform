@@ -45,41 +45,39 @@ export async function GET(
       );
     }
 
-    // Get follow counts
-    const followCounts = await FollowService.getFollowCounts(user.id);
+    // Get current user for follow check (don't await, get it for parallel queries)
+    const supabase = await createClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    // Check if current user is following this profile (if authenticated)
-    let isFollowing = false;
-    try {
-      const supabase = await createClient();
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+    // Batch all queries in parallel to reduce N+1 (4 sequential -> 1 parallel batch)
+    const [followCounts, isFollowing, creatorSettings] = await Promise.all([
+      // 1. Get follow counts
+      FollowService.getFollowCounts(user.id),
 
-      if (currentUser && currentUser.id !== user.id) {
-        isFollowing = await FollowService.isFollowing(currentUser.id, user.id);
-      }
-    } catch (error) {
-      // Not authenticated or error checking - just continue
-    }
+      // 2. Check if current user is following (only if authenticated and different user)
+      currentUser && currentUser.id !== user.id
+        ? FollowService.isFollowing(currentUser.id, user.id)
+        : Promise.resolve(false),
 
-    // Get call settings for creators
+      // 3. Get creator settings if applicable
+      user.role === 'creator'
+        ? CallService.getCreatorSettings(user.id).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+
+    // Build call settings from result
     let callSettings = undefined;
     let messageRate = 0;
-    if (user.role === 'creator') {
-      try {
-        const settings = await CallService.getCreatorSettings(user.id);
-        callSettings = {
-          callRatePerMinute: settings.callRatePerMinute,
-          minimumCallDuration: settings.minimumCallDuration,
-          isAvailableForCalls: settings.isAvailableForCalls,
-          voiceCallRatePerMinute: settings.voiceCallRatePerMinute,
-          minimumVoiceCallDuration: settings.minimumVoiceCallDuration,
-          isAvailableForVoiceCalls: settings.isAvailableForVoiceCalls,
-        };
-        messageRate = settings.messageRate || 0;
-      } catch (error) {
-        // If no settings found, don't fail the request
-        console.log('No call settings found for creator');
-      }
+    if (creatorSettings) {
+      callSettings = {
+        callRatePerMinute: creatorSettings.callRatePerMinute,
+        minimumCallDuration: creatorSettings.minimumCallDuration,
+        isAvailableForCalls: creatorSettings.isAvailableForCalls,
+        voiceCallRatePerMinute: creatorSettings.voiceCallRatePerMinute,
+        minimumVoiceCallDuration: creatorSettings.minimumVoiceCallDuration,
+        isAvailableForVoiceCalls: creatorSettings.isAvailableForVoiceCalls,
+      };
+      messageRate = creatorSettings.messageRate || 0;
     }
 
     return NextResponse.json({

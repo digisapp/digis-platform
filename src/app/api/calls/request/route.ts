@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
 import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,18 +40,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Broadcast real-time notification to creator
-    await supabase.channel(`call_requests:${creatorId}`).send({
-      type: 'broadcast',
-      event: 'new_call',
-      payload: {
-        callId: call.id,
-        fanId: user.id,
-        callType: call.callType,
-        ratePerMinute: call.ratePerMinute,
-        estimatedCoins: call.estimatedCoins,
-        fan,
-      },
+    // Broadcast real-time notification to creator via Ably (scales to 50k+)
+    await AblyRealtimeService.broadcastCallRequest(creatorId, {
+      callId: call.id,
+      fanId: user.id,
+      callType: call.callType,
+      ratePerMinute: call.ratePerMinute,
+      estimatedCoins: call.estimatedCoins,
+      fan,
     });
 
     return NextResponse.json({

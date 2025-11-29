@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime for database connections
 export const runtime = 'nodejs';
@@ -7,6 +8,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Rate limit username checks (20/min per IP)
+    const rl = await rateLimit(request, 'auth:check-username');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please slow down.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const username = searchParams.get('username');
 

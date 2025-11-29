@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, contentItems, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,15 @@ export const maxDuration = 300; // 5 minutes for large video uploads
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit uploads (10/min per IP)
+    const rl = await rateLimit(request, 'upload');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many uploads. Please wait before uploading more content.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 

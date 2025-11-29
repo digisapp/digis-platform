@@ -37,19 +37,27 @@ export async function invalidateCachePattern(pattern: string) {
   }
 }
 
-/** avoid thundering herd */
+/**
+ * Avoid thundering herd with distributed lock
+ * Lock timeout increased to 10s for slow DB queries under load
+ */
 export async function withMiniLock<T>(key: string, fn: () => Promise<T>, ttl = 10) {
   const cacheKey = `cache:${key}`;
   const lockKey = `lock:${cacheKey}`;
   const cached = await getCached<T>(cacheKey);
   if (cached) return cached;
 
-  const gotLock = await redis.set(lockKey, '1', { nx: true, px: 2000 });
+  // Lock timeout: 10s to handle slow queries under high load (was 2s)
+  const gotLock = await redis.set(lockKey, '1', { nx: true, px: 10000 });
   if (!gotLock) {
     // brief backoff and retry cache once
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 150));
     const again = await getCached<T>(cacheKey);
     if (again) return again;
+    // If still no cache, wait a bit longer and try once more
+    await new Promise(r => setTimeout(r, 300));
+    const final = await getCached<T>(cacheKey);
+    if (final) return final;
   }
 
   const fresh = await fn();

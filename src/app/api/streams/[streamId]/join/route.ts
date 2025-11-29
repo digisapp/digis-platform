@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
@@ -24,8 +24,17 @@ export async function POST(
 
     const { streamId } = await params;
 
-    // Check access control before allowing join
-    const accessCheck = await StreamService.checkStreamAccess(streamId, user.id);
+    // Parallel fetch: user details + access check (reduces N+1)
+    const [dbUser, accessCheck] = await Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, user.id),
+      }),
+      StreamService.checkStreamAccess(streamId, user.id),
+    ]);
+
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     if (!accessCheck.hasAccess) {
       return NextResponse.json(
@@ -34,30 +43,24 @@ export async function POST(
       );
     }
 
-    // Get user details for username
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
-
-    if (!dbUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     const username = dbUser.username || dbUser.displayName || 'Anonymous';
 
-    const viewer = await StreamService.joinStream(streamId, user.id, username);
+    // Join stream and get updated stream data
+    const [viewer, stream] = await Promise.all([
+      StreamService.joinStream(streamId, user.id, username),
+      StreamService.getStream(streamId),
+    ]);
 
-    // Broadcast viewer joined event
-    await RealtimeService.broadcastViewerJoined(streamId, user.id, username);
-
-    // Get updated viewer count and broadcast
-    const stream = await StreamService.getStream(streamId);
+    // Broadcast events in parallel (non-blocking)
     if (stream) {
-      await RealtimeService.broadcastViewerCount(
-        streamId,
-        stream.currentViewers,
-        stream.peakViewers
-      );
+      Promise.all([
+        AblyRealtimeService.broadcastViewerJoined(streamId, user.id, username),
+        AblyRealtimeService.broadcastViewerCount(
+          streamId,
+          stream.currentViewers || 0,
+          stream.peakViewers || 0
+        ),
+      ]).catch(err => console.error('[stream/join] Broadcast error:', err));
     }
 
     return NextResponse.json({ viewer });

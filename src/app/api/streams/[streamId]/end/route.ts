@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 
 // Force Node.js runtime for Drizzle ORM
@@ -37,8 +37,8 @@ export async function POST(
 
     const updatedStream = await StreamService.endStream(streamId);
 
-    // Broadcast stream ended to all viewers
-    await RealtimeService.broadcastStreamEnded(streamId);
+    // Broadcast stream ended to all viewers via Ably
+    await AblyRealtimeService.broadcastStreamEnded(streamId);
 
     return NextResponse.json({ stream: updatedStream });
   } catch (error: any) {

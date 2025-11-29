@@ -3,12 +3,40 @@ import { redis } from './redis';
 
 // Different rate limiters for different use cases
 const limiters = {
-  // Very strict: auth endpoints
+  // Very strict: auth endpoints (prevent brute force)
   strict: new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 req/min
     analytics: true,
     prefix: 'rl:strict',
+  }),
+  // Auth signup: prevent account creation spam
+  authSignup: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '1 m'), // 3 signups/min per IP
+    analytics: true,
+    prefix: 'rl:auth-signup',
+  }),
+  // Auth login: prevent brute force
+  authLogin: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '1 m'), // 5 login attempts/min
+    analytics: true,
+    prefix: 'rl:auth-login',
+  }),
+  // Username check: prevent enumeration
+  authUsername: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(20, '1 m'), // 20 checks/min
+    analytics: true,
+    prefix: 'rl:auth-username',
+  }),
+  // Upload rate limiting
+  upload: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 uploads/min
+    analytics: true,
+    prefix: 'rl:upload',
   }),
   // Moderate: general API usage
   moderate: new Ratelimit({
@@ -43,7 +71,10 @@ const limiters = {
 // Map buckets to limiters
 const bucketToLimiter: Record<string, keyof typeof limiters> = {
   'auth:otp': 'strict',
-  'auth:login': 'strict',
+  'auth:login': 'authLogin',
+  'auth:signup': 'authSignup',
+  'auth:check-username': 'authUsername',
+  'upload': 'upload',
   'tips:quick': 'strict',
   'streams:status': 'generous',
   'tips': 'financial',

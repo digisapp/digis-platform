@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -10,6 +11,15 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit login attempts (5/min per IP)
+    const rl = await rateLimit(request, 'auth:login');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again in a minute.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const { email, password } = await request.json();
 
     if (!email || !password) {

@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
 import { ConnectionState, Track } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { getAblyClient } from '@/lib/ably/client';
+import type Ably from 'ably';
 
 interface CallToken {
   token: string;
@@ -371,24 +372,70 @@ export default function VideoCallPage() {
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [callEndedByOther, setCallEndedByOther] = useState(false);
 
-  // Subscribe to call end events
+  // Subscribe to call events via Ably
   useEffect(() => {
-    const supabase = createClient();
+    let channel: Ably.RealtimeChannel | null = null;
+    let mounted = true;
 
-    const channel = supabase
-      .channel(`call:${callId}`)
-      .on('broadcast', { event: 'call_ended' }, (payload) => {
-        console.log('Call ended by other party:', payload);
-        setCallEndedByOther(true);
-        // Navigate to dashboard after a short delay
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
-      })
-      .subscribe();
+    const setupChannel = async () => {
+      try {
+        const ably = getAblyClient();
+
+        // Wait for connection
+        if (ably.connection.state !== 'connected') {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
+        }
+
+        if (!mounted) return;
+
+        // Subscribe to call channel
+        channel = ably.channels.get(`call:${callId}`);
+
+        channel.subscribe('call_ended', (message) => {
+          console.log('Call ended by other party:', message.data);
+          setCallEndedByOther(true);
+          // Navigate to dashboard after a short delay
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+        });
+
+        channel.subscribe('call_accepted', (message) => {
+          console.log('Call accepted:', message.data);
+          // Could trigger UI update if needed
+        });
+
+        channel.subscribe('call_rejected', (message) => {
+          console.log('Call rejected:', message.data);
+          setError('Call was declined');
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+        });
+
+      } catch (err) {
+        console.error('[CallPage] Ably setup error:', err);
+      }
+    };
+
+    setupChannel();
 
     return () => {
-      channel.unsubscribe();
+      mounted = false;
+      if (channel) {
+        channel.unsubscribe();
+        channel.detach().catch(() => {});
+      }
     };
   }, [callId, router]);
 

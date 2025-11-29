@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { publishToChannel, CHANNEL_NAMES } from '@/lib/ably/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,18 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Conversation ID required' }, { status: 400 });
     }
 
-    // Broadcast typing status via Supabase Realtime
-    const channel = supabase.channel(`typing-${conversationId}`);
-
-    await channel.send({
-      type: 'broadcast',
-      event: 'typing',
-      payload: {
+    // Broadcast typing status via Ably (scales to 50k+)
+    await publishToChannel(
+      CHANNEL_NAMES.dmConversation(conversationId),
+      'typing',
+      {
         userId: user.id,
         isTyping: isTyping ?? true,
         timestamp: new Date().toISOString(),
-      },
-    });
+      }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

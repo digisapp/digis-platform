@@ -9,7 +9,7 @@ import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
-import { RealtimeService, StreamEvent } from '@/lib/streams/realtime-service';
+import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
@@ -182,62 +182,60 @@ export default function StreamViewerPage() {
     };
   }, [isJoined, streamId]);
 
-  // Setup real-time subscriptions
-  useEffect(() => {
-    if (!stream) return;
-
-    const handleStreamEvent = (event: StreamEvent) => {
-      switch (event.type) {
-        case 'chat':
-          setMessages((prev) => [...prev, event.data]);
-          break;
-        case 'gift':
-          setGiftAnimations((prev) => [...prev, event.data]);
-          // Add floating emoji for the gift
-          const giftData = event.data as { gift: VirtualGift; streamGift: StreamGift };
-          if (giftData.gift) {
-            setFloatingGifts(prev => [...prev, {
-              id: `gift-${Date.now()}-${Math.random()}`,
-              emoji: giftData.gift.emoji,
-              rarity: giftData.gift.rarity,
-              timestamp: Date.now()
-            }]);
-          }
-          fetchLeaderboard();
-          fetchGoals();
-          break;
-        case 'tip':
-          // Add floating coin emoji for tips with dedicated tip sound
-          const tipData = event.data as { amount: number };
-          if (tipData.amount) {
-            setFloatingGifts(prev => [...prev, {
-              id: `tip-${Date.now()}-${Math.random()}`,
-              emoji: '💰',
-              rarity: 'tip', // Uses dedicated coin jingling sound
-              timestamp: Date.now()
-            }]);
-          }
-          fetchLeaderboard();
-          break;
-        case 'viewer_count':
-          setViewerCount(event.data.currentViewers);
-          setPeakViewers(event.data.peakViewers);
-          break;
-        case 'stream_ended':
-          router.push('/live');
-          break;
-        case 'goal_update':
-          // Refresh goals when host creates, updates, or completes a goal
-          fetchGoals();
-          break;
+  // Setup real-time subscriptions with Ably
+  const { viewerCount: ablyViewerCount } = useStreamChat({
+    streamId,
+    onMessage: (message) => {
+      setMessages((prev) => [...prev, message as unknown as StreamMessage]);
+    },
+    onTip: (tipData) => {
+      // Add floating coin emoji for tips with dedicated tip sound
+      if (tipData.amount) {
+        setFloatingGifts(prev => [...prev, {
+          id: `tip-${Date.now()}-${Math.random()}`,
+          emoji: '💰',
+          rarity: 'tip', // Uses dedicated coin jingling sound
+          timestamp: Date.now()
+        }]);
       }
-    };
+      fetchLeaderboard();
+    },
+    onGift: (giftEvent) => {
+      setGiftAnimations((prev) => [...prev, {
+        gift: giftEvent.gift as unknown as VirtualGift,
+        streamGift: giftEvent.streamGift as unknown as StreamGift
+      }]);
+      // Add floating emoji for the gift
+      if (giftEvent.gift) {
+        setFloatingGifts(prev => [...prev, {
+          id: `gift-${Date.now()}-${Math.random()}`,
+          emoji: giftEvent.gift.emoji,
+          rarity: giftEvent.gift.rarity,
+          timestamp: Date.now()
+        }]);
+      }
+      fetchLeaderboard();
+      fetchGoals();
+    },
+    onViewerCount: (data) => {
+      setViewerCount(data.currentViewers);
+      setPeakViewers(data.peakViewers);
+    },
+    onStreamEnded: () => {
+      router.push('/live');
+    },
+    onGoalUpdate: () => {
+      // Refresh goals when host creates, updates, or completes a goal
+      fetchGoals();
+    },
+  });
 
-    RealtimeService.subscribeToStream(streamId, handleStreamEvent);
-    return () => {
-      RealtimeService.unsubscribeFromStream(streamId);
-    };
-  }, [stream, streamId, router]);
+  // Update viewer count from Ably presence
+  useEffect(() => {
+    if (ablyViewerCount > 0) {
+      setViewerCount(ablyViewerCount);
+    }
+  }, [ablyViewerCount]);
 
   // Auto-hide controls
   useEffect(() => {

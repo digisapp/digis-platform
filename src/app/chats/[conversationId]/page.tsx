@@ -11,6 +11,8 @@ import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
+import { getAblyClient } from '@/lib/ably/client';
+import type Ably from 'ably';
 
 type Message = {
   id: string;
@@ -121,26 +123,51 @@ export default function ChatPage() {
         console.log('[Chat] Real-time subscription status:', status);
       });
 
-    // Subscribe to typing indicators
-    const typingChannel = supabase
-      .channel(`typing-${conversationId}`)
-      .on('broadcast', { event: 'typing' }, (payload) => {
-        const { userId, isTyping } = payload.payload;
-        // Only show typing indicator if it's from the other user
-        if (userId !== currentUserId) {
-          setIsOtherUserTyping(isTyping);
-          // Auto-clear typing indicator after 3 seconds
-          if (isTyping) {
-            if (typingTimeoutRef.current) {
-              clearTimeout(typingTimeoutRef.current);
-            }
-            typingTimeoutRef.current = setTimeout(() => {
-              setIsOtherUserTyping(false);
-            }, 3000);
-          }
+    // Subscribe to typing indicators via Ably
+    let typingChannel: Ably.RealtimeChannel | null = null;
+
+    const setupTypingChannel = async () => {
+      try {
+        const ably = getAblyClient();
+
+        // Wait for connection
+        if (ably.connection.state !== 'connected') {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
         }
-      })
-      .subscribe();
+
+        typingChannel = ably.channels.get(`dm:${conversationId}`);
+        typingChannel.subscribe('typing', (message) => {
+          const { userId, isTyping } = message.data;
+          // Only show typing indicator if it's from the other user
+          if (userId !== currentUserId) {
+            setIsOtherUserTyping(isTyping);
+            // Auto-clear typing indicator after 3 seconds
+            if (isTyping) {
+              if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+              }
+              typingTimeoutRef.current = setTimeout(() => {
+                setIsOtherUserTyping(false);
+              }, 3000);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('[Chat] Ably typing channel setup error:', err);
+      }
+    };
+
+    setupTypingChannel();
 
     // Fallback polling every 5 seconds in case real-time fails
     const pollInterval = setInterval(() => {
@@ -149,7 +176,10 @@ export default function ChatPage() {
 
     return () => {
       supabase.removeChannel(messageChannel);
-      supabase.removeChannel(typingChannel);
+      if (typingChannel) {
+        typingChannel.unsubscribe();
+        typingChannel.detach().catch(() => {});
+      }
       clearInterval(pollInterval);
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);

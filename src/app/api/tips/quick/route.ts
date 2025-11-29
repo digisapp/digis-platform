@@ -5,6 +5,7 @@ import { wallets, walletTransactions, streams, users, notifications } from '@/li
 import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { withIdempotency } from '@/lib/idempotency';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -187,20 +188,12 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    // Broadcast tip to stream chat via Supabase Realtime
-    const channelName = `stream:${streamId}:chat`;
-
-    await supabase.channel(channelName).send({
-      type: 'broadcast',
-      event: 'tip',
-      payload: {
-        id: senderTransaction.id,
-        username: sender?.username || 'Anonymous',
-        displayName: sender?.displayName,
-        amount,
-        timestamp: Date.now(),
-        type: 'tip',
-      },
+    // Broadcast tip to stream chat via Ably (scales to 50k+)
+    await AblyRealtimeService.broadcastTip(streamId, {
+      senderId: authUser.id,
+      senderUsername: sender?.username || 'Anonymous',
+      senderAvatarUrl: null,
+      amount,
     });
 
       return NextResponse.json({

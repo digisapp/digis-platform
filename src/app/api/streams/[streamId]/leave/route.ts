@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
-import { RealtimeService } from '@/lib/streams/realtime-service';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
@@ -33,13 +33,13 @@ export async function POST(
 
     await StreamService.leaveStream(streamId, user.id);
 
-    // Broadcast viewer left event
-    await RealtimeService.broadcastViewerLeft(streamId, user.id, username);
+    // Broadcast viewer left event via Ably
+    await AblyRealtimeService.broadcastViewerLeft(streamId, user.id, username);
 
     // Get updated viewer count and broadcast
     const stream = await StreamService.getStream(streamId);
     if (stream) {
-      await RealtimeService.broadcastViewerCount(
+      await AblyRealtimeService.broadcastViewerCount(
         streamId,
         stream.currentViewers,
         stream.peakViewers

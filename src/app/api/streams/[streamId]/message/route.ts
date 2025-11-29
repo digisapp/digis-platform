@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users, streamMessages } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -84,14 +85,8 @@ export async function POST(
       },
     };
 
-    // Broadcast to all viewers using server-side Supabase client
-    // Channel name must match what RealtimeService.subscribeToStream uses
-    const channelName = `stream:${streamId}`;
-    await supabase.channel(channelName).send({
-      type: 'broadcast',
-      event: 'chat',  // Must match the event name in RealtimeService
-      payload: messagePayload,
-    });
+    // Broadcast to all viewers using Ably (scales to 50k+ concurrent users)
+    await AblyRealtimeService.broadcastChatMessage(streamId, messagePayload as any);
 
     return NextResponse.json({ message: messagePayload, success: true });
   } catch (error: any) {

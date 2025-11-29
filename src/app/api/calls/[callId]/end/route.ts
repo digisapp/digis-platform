@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
 import { db, calls } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export async function POST(
   request: NextRequest,
@@ -27,17 +28,13 @@ export async function POST(
 
     const call = await CallService.endCall(callId, user.id);
 
-    // Broadcast call ended event to both participants
+    // Broadcast call ended event to both participants via Ably
     if (callBefore) {
-      await supabase.channel(`call:${callId}`).send({
-        type: 'broadcast',
-        event: 'call_ended',
-        payload: {
-          callId,
-          endedBy: user.id,
-          duration: call.durationSeconds,
-          charged: call.actualCoins,
-        },
+      await AblyRealtimeService.broadcastCallUpdate(callId, 'call_ended', {
+        callId,
+        endedBy: user.id,
+        duration: call.durationSeconds,
+        charged: call.actualCoins,
       });
     }
 
