@@ -259,6 +259,7 @@ export class AdminService {
             followerCount: true,
             followingCount: true,
             createdAt: true,
+            accountStatus: true,
           },
         }),
         { timeoutMs: 8000, retries: 1, tag: 'adminUsers' }

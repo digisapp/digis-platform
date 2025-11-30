@@ -33,19 +33,10 @@ export async function GET(request: NextRequest) {
       offset
     );
 
-    // Transform snake_case to camelCase for frontend
+    // Drizzle already returns camelCase, just ensure accountStatus has a default
     const transformedUsers = users.map((user: any) => ({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      displayName: user.display_name,
-      avatarUrl: user.avatar_url,
-      role: user.role,
-      isCreatorVerified: user.is_creator_verified,
-      followerCount: user.follower_count,
-      followingCount: user.following_count,
-      createdAt: user.created_at,
-      accountStatus: user.account_status || 'active',
+      ...user,
+      accountStatus: user.accountStatus || 'active',
     }));
 
     return NextResponse.json({ users: transformedUsers });

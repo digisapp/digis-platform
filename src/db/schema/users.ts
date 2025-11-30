@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
 export const spendTierEnum = pgEnum('spend_tier', ['none', 'bronze', 'silver', 'gold', 'platinum', 'diamond']);
+export const accountStatusEnum = pgEnum('account_status', ['active', 'suspended', 'banned']);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(), // Supabase auth user ID
@@ -15,6 +16,7 @@ export const users = pgTable('users', {
   bio: text('bio'),
   role: userRoleEnum('role').default('fan').notNull(),
   isAdmin: boolean('is_admin').default(false).notNull(), // Separate admin flag - user can be creator AND admin
+  accountStatus: accountStatusEnum('account_status').default('active').notNull(),
 
   // Creator categories (for content discovery)
   primaryCategory: text('primary_category'), // Main category e.g., "Gaming", "Music"

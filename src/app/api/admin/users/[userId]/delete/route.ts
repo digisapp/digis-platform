@@ -32,16 +32,25 @@ export async function POST(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    console.log('[ADMIN/DELETE] Attempting to delete user:', userId);
+
     // Get current user
-    const { data: currentUser } = await adminClient
+    const { data: currentUser, error: fetchError } = await adminClient
       .from('users')
       .select('username, role')
       .eq('id', userId)
       .single();
 
+    if (fetchError) {
+      console.error('[ADMIN/DELETE] Error fetching user:', fetchError);
+    }
+
     if (!currentUser) {
+      console.log('[ADMIN/DELETE] User not found with ID:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    console.log('[ADMIN/DELETE] Found user:', currentUser.username);
 
     // Prevent deleting yourself
     if (userId === user.id) {
