@@ -12,6 +12,7 @@ import {
   Trophy, Target
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
 
 interface StreamData {
   id: string;
@@ -335,6 +336,33 @@ export default function TheaterModePage() {
     } catch (error) {
       console.error('[TheaterMode] Error sending tip:', error);
       alert('Failed to send tip');
+    }
+  };
+
+  // Send gift
+  const handleSendGift = async (giftId: string, quantity: number) => {
+    if (!currentUser || !stream) {
+      throw new Error('Please sign in to send gifts');
+    }
+
+    const idempotencyKey = `gift-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    const response = await fetch(`/api/streams/${streamId}/gift`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey,
+      },
+      body: JSON.stringify({ giftId, quantity }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setUserBalance(data.newBalance);
+      // Gift sent successfully
+    } else {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to send gift');
     }
   };
 
@@ -800,6 +828,18 @@ export default function TheaterModePage() {
           </div>
         )}
       </div>
+
+      {/* Floating Gift Bar */}
+      {stream && !streamEnded && (
+        <FloatingGiftBar
+          streamId={streamId}
+          creatorId={stream.creator.id}
+          onSendGift={handleSendGift}
+          userBalance={userBalance}
+          isAuthenticated={!!currentUser}
+          onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+        />
+      )}
     </div>
   );
 }
