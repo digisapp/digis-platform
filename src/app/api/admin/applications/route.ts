@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/admin/admin-service';
+import { isAdminUser } from '@/lib/admin/check-admin';
 
 // GET /api/admin/applications - Get all applications
 export async function GET(request: NextRequest) {
@@ -12,9 +13,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const isAdmin = await AdminService.isAdmin(user.id);
-    if (!isAdmin) {
+    // Check if user is admin (email first, then DB)
+    if (!await isAdminUser(user)) {
+      console.log('[ADMIN/APPLICATIONS] Access denied for:', user.email);
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
