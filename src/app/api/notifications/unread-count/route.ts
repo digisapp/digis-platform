@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { notifications } from '@/lib/data/system';
 import { eq, and, count } from 'drizzle-orm';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,24 +18,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const result = await db
-      .select({ count: count() })
-      .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, user.id),
-          eq(notifications.isRead, false)
-        )
-      );
+    const result = await withTimeoutAndRetry(
+      () => db
+        .select({ count: count() })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, user.id),
+            eq(notifications.isRead, false)
+          )
+        ),
+      { timeoutMs: 5000, retries: 1, tag: 'notifUnread' }
+    );
 
     return NextResponse.json({
       count: result[0]?.count || 0
     });
   } catch (error: any) {
     console.error('Error fetching unread count:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch unread count', count: 0 },
-      { status: 500 }
-    );
+    // Return 0 on failure - graceful degradation
+    return NextResponse.json({ count: 0 });
   }
 }

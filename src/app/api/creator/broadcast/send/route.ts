@@ -141,80 +141,105 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid message type' }, { status: 400 });
     }
 
-    // Send message to each recipient
-    const successCount = { value: 0 };
-    const failedCount = { value: 0 };
+    // PERFORMANCE: Batch-fetch all existing conversations with recipients first
+    // This avoids N+1 queries when finding conversations
+    const existingConversations = await db.query.conversations.findMany({
+      where: or(
+        and(
+          eq(conversations.user1Id, user.id),
+          sql`${conversations.user2Id} = ANY(ARRAY[${sql.raw(recipientIds.map(id => `'${id}'`).join(','))}]::uuid[])`
+        ),
+        and(
+          eq(conversations.user2Id, user.id),
+          sql`${conversations.user1Id} = ANY(ARRAY[${sql.raw(recipientIds.map(id => `'${id}'`).join(','))}]::uuid[])`
+        )
+      ),
+    });
 
-    await Promise.all(
-      recipientIds.map(async (recipientId) => {
-        try {
-          // Find or create conversation
-          let conversation = await db.query.conversations.findFirst({
-            where: or(
-              and(
-                eq(conversations.user1Id, user.id),
-                eq(conversations.user2Id, recipientId)
-              ),
-              and(
-                eq(conversations.user1Id, recipientId),
-                eq(conversations.user2Id, user.id)
-              )
+    // Create a map for quick lookup
+    const conversationMap = new Map<string, typeof existingConversations[0]>();
+    existingConversations.forEach(conv => {
+      const recipientId = conv.user1Id === user.id ? conv.user2Id : conv.user1Id;
+      conversationMap.set(recipientId, conv);
+    });
+
+    // Find recipients without existing conversations
+    const recipientsWithoutConv = recipientIds.filter(id => !conversationMap.has(id));
+
+    // Batch-create new conversations for recipients who don't have one
+    if (recipientsWithoutConv.length > 0) {
+      const newConversations = await db
+        .insert(conversations)
+        .values(recipientsWithoutConv.map(recipientId => ({
+          user1Id: user.id,
+          user2Id: recipientId,
+        })))
+        .returning();
+
+      // Add to map
+      newConversations.forEach(conv => {
+        conversationMap.set(conv.user2Id, conv);
+      });
+    }
+
+    // Batch-insert all messages at once
+    const messageValues = recipientIds.map(recipientId => {
+      const conv = conversationMap.get(recipientId)!;
+      return {
+        conversationId: conv.id,
+        senderId: user.id,
+        content: messageContent,
+        messageType: messageTypeDb,
+        mediaUrl,
+        mediaType: mediaTypeValue,
+        thumbnailUrl,
+        isLocked,
+        unlockPrice,
+      };
+    });
+
+    await db.insert(messages).values(messageValues);
+
+    // Batch-update all conversation metadata
+    // Use SQL CASE for conditional unread count increment
+    const now = new Date();
+    let successCount = recipientIds.length;
+    let failedCount = 0;
+
+    try {
+      // Update conversations in parallel batches of 50 for performance
+      const BATCH_SIZE = 50;
+      const conversationUpdates = recipientIds.map(recipientId => {
+        const conv = conversationMap.get(recipientId)!;
+        const isUser1Recipient = conv.user1Id === recipientId;
+        return db
+          .update(conversations)
+          .set({
+            lastMessageText: messageContent,
+            lastMessageAt: now,
+            lastMessageSenderId: user.id,
+            ...(isUser1Recipient
+              ? { user1UnreadCount: conv.user1UnreadCount + 1 }
+              : { user2UnreadCount: conv.user2UnreadCount + 1 }
             ),
-          });
+          })
+          .where(eq(conversations.id, conv.id));
+      });
 
-          if (!conversation) {
-            // Create new conversation
-            const [newConversation] = await db
-              .insert(conversations)
-              .values({
-                user1Id: user.id,
-                user2Id: recipientId,
-              })
-              .returning();
-
-            conversation = newConversation;
-          }
-
-          // Create message
-          await db.insert(messages).values({
-            conversationId: conversation.id,
-            senderId: user.id,
-            content: messageContent,
-            messageType: messageTypeDb,
-            mediaUrl,
-            mediaType: mediaTypeValue,
-            thumbnailUrl,
-            isLocked,
-            unlockPrice,
-          });
-
-          // Update conversation last message
-          await db
-            .update(conversations)
-            .set({
-              lastMessageText: messageContent,
-              lastMessageAt: new Date(),
-              lastMessageSenderId: user.id,
-              // Increment unread count for recipient
-              ...(conversation.user1Id === recipientId
-                ? { user1UnreadCount: conversation.user1UnreadCount + 1 }
-                : { user2UnreadCount: conversation.user2UnreadCount + 1 }
-              ),
-            })
-            .where(eq(conversations.id, conversation.id));
-
-          successCount.value++;
-        } catch (error) {
-          console.error(`Failed to send message to ${recipientId}:`, error);
-          failedCount.value++;
-        }
-      })
-    );
+      // Process in batches
+      for (let i = 0; i < conversationUpdates.length; i += BATCH_SIZE) {
+        const batch = conversationUpdates.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch);
+      }
+    } catch (error) {
+      console.error('Error updating conversations:', error);
+      // Messages were sent, just metadata update failed
+    }
 
     return NextResponse.json({
       success: true,
-      recipientCount: successCount.value,
-      failedCount: failedCount.value,
+      recipientCount: successCount,
+      failedCount: failedCount,
       totalAttempts: recipientIds.length,
     });
   } catch (error) {

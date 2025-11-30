@@ -10,12 +10,27 @@ export class AdminService {
     const user = await withTimeoutAndRetry(
       () => db.query.users.findFirst({
         where: eq(users.id, userId),
-        columns: { role: true },
+        columns: { role: true, email: true },
       }),
       { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
     );
 
-    return user?.role === 'admin';
+    // Also check ADMIN_EMAILS env var as fallback
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const isAdminByEmail = user?.email && adminEmails.includes(user.email.toLowerCase());
+
+    // If user should be admin by email but isn't in DB, auto-promote
+    if (isAdminByEmail && user?.role !== 'admin') {
+      try {
+        await db.update(users).set({ role: 'admin' }).where(eq(users.id, userId));
+        console.log(`[AdminService] Auto-promoted ${user.email} to admin role`);
+        return true;
+      } catch (e) {
+        console.error('[AdminService] Failed to auto-promote:', e);
+      }
+    }
+
+    return user?.role === 'admin' || isAdminByEmail;
   }
 
   // Get all pending creator applications

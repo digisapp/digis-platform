@@ -94,17 +94,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Delete any existing active goals (only allow one active goal at a time)
-    const existingActiveGoals = await db.query.creatorGoals.findMany({
-      where: and(
+    // Use single batch delete instead of fetching then looping
+    await db.delete(creatorGoals).where(
+      and(
         eq(creatorGoals.creatorId, user.id),
         eq(creatorGoals.isActive, true)
-      ),
-    });
-
-    // Delete all existing active goals
-    for (const existingGoal of existingActiveGoals) {
-      await db.delete(creatorGoals).where(eq(creatorGoals.id, existingGoal.id));
-    }
+      )
+    );
 
     // Get current amount based on goal type
     let currentAmount = 0;
