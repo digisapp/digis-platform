@@ -65,8 +65,20 @@ export async function POST(request: NextRequest) {
       // Don't fail login - just use metadata
     }
 
-    // 3) Determine role - PRIORITIZE DB, then auth metadata, NEVER force "fan" on timeout
-    const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
+    // 3) Check if user should be admin based on ADMIN_EMAILS env var
+    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
+
+    // If user is in ADMIN_EMAILS but not admin in DB, promote them
+    if (isAdminEmail && dbUser && dbUser.role !== 'admin') {
+      try {
+        await db.update(users).set({ role: 'admin' }).where(eq(users.id, authUser.id));
+        dbUser.role = 'admin';
+        console.log(`[LOGIN] Promoted ${authUser.email} to admin role`);
+      } catch (e) {
+        console.warn('[LOGIN] Failed to promote admin:', e);
+      }
+    }
 
     // Priority: DB role > metadata role > admin email check > null (let client decide)
     const role = dbUser?.role || metadata.role || (isAdminEmail ? 'admin' : null);
