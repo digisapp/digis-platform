@@ -15,8 +15,10 @@ export class AdminService {
       { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
     );
 
-    // Also check ADMIN_EMAILS env var as fallback
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    // Also check ADMIN_EMAILS env var as fallback (with hardcoded defaults)
+    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
+    const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
     const isAdminByEmail = user?.email && adminEmails.includes(user.email.toLowerCase());
 
     // If user should be admin by email but isn't in DB, auto-promote
