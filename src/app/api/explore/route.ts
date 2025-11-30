@@ -132,8 +132,8 @@ export async function GET(request: NextRequest) {
               .limit(10);
           },
           {
-            timeoutMs: 15000,
-            retries: 2,
+            timeoutMs: 8000,
+            retries: 1,
             tag: 'exploreFeatured'
           }
         ) : Promise.resolve([]),
@@ -237,8 +237,8 @@ export async function GET(request: NextRequest) {
               .offset(offset);
           },
           {
-            timeoutMs: 15000,
-            retries: 2,
+            timeoutMs: 8000,
+            retries: 1,
             tag: 'exploreGrid'
           }
         ),
@@ -258,8 +258,8 @@ export async function GET(request: NextRequest) {
             return ['All', ...cats.map(c => c.name)];
           },
           {
-            timeoutMs: 10000,
-            retries: 2,
+            timeoutMs: 5000,
+            retries: 1,
             tag: 'exploreCategories'
           }
         ),

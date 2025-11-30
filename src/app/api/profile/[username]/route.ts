@@ -5,6 +5,8 @@ import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { nanoid } from 'nanoid';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -15,28 +17,33 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ username: string }> }
 ) {
+  const requestId = nanoid(10);
+
   try {
     const { username } = await params;
 
-    // Get the target user's profile
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username),
-      columns: {
-        id: true,
-        username: true,
-        displayName: true,
-        avatarUrl: true,
-        bannerUrl: true,
-        bio: true,
-        role: true,
-        isCreatorVerified: true,
-        isOnline: true,
-        lastSeenAt: true,
-        followerCount: true,
-        followingCount: true,
-        createdAt: true,
-      },
-    });
+    // Get the target user's profile with timeout and retry
+    const user = await withTimeoutAndRetry(
+      () => db.query.users.findFirst({
+        where: eq(users.username, username),
+        columns: {
+          id: true,
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+          bannerUrl: true,
+          bio: true,
+          role: true,
+          isCreatorVerified: true,
+          isOnline: true,
+          lastSeenAt: true,
+          followerCount: true,
+          followingCount: true,
+          createdAt: true,
+        },
+      }),
+      { timeoutMs: 8000, retries: 2, tag: 'profileFetch' }
+    );
 
     if (!user) {
       return NextResponse.json(
@@ -88,10 +95,25 @@ export async function GET(
       messageRate,
     });
   } catch (error: any) {
-    console.error('Error fetching profile:', error);
+    console.error('[PROFILE]', {
+      requestId,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    // Check if it's a timeout error
+    const isTimeout = error?.message?.includes('timeout');
+
     return NextResponse.json(
-      { error: 'Failed to fetch profile' },
-      { status: 500 }
+      {
+        error: isTimeout
+          ? 'Profile temporarily unavailable - please try again'
+          : 'Failed to fetch profile',
+        requestId,
+      },
+      {
+        status: isTimeout ? 503 : 500,
+        headers: { 'x-request-id': requestId }
+      }
     );
   }
 }
