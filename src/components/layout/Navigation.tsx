@@ -49,29 +49,45 @@ export function Navigation() {
   // Derive userRole from AuthContext or profile (profile is more reliable as it's from DB)
   const userRole = userProfile?.role || authUser?.role || 'fan';
 
-  // Fetch profile data when auth user changes
+  // Fetch all startup data in parallel when auth user changes
   useEffect(() => {
     if (!authUser) return;
 
-    const fetchProfileData = async () => {
+    const fetchStartupData = async () => {
       try {
-        const response = await fetch('/api/user/profile', {
-          cache: 'no-store',
-        });
+        // Fetch profile, balance, and unread count in parallel for faster load
+        const [profileRes, balanceRes, unreadRes] = await Promise.all([
+          fetch('/api/user/profile', { cache: 'no-store' }),
+          fetch('/api/wallet/balance'),
+          fetch('/api/messages/unread-count')
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data?.user) {
-            setUserProfile(data.user);
-            setFollowerCount(data.user.followerCount || 0);
+        // Process profile
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData?.user) {
+            setUserProfile(profileData.user);
+            setFollowerCount(profileData.user.followerCount || 0);
           }
         }
+
+        // Process balance
+        if (balanceRes.ok) {
+          const balanceData = await balanceRes.json();
+          setBalance(balanceData.balance || 0);
+        }
+
+        // Process unread count
+        if (unreadRes.ok) {
+          const unreadData = await unreadRes.json();
+          setUnreadCount(unreadData.count || 0);
+        }
       } catch (error) {
-        console.error('[Navigation] Error fetching profile:', error);
+        console.error('[Navigation] Error fetching startup data:', error);
       }
     };
 
-    fetchProfileData();
+    fetchStartupData();
   }, [authUser?.id]);
 
   // Heartbeat and auth state listener for cache clearing
@@ -103,14 +119,10 @@ export function Navigation() {
     };
   }, []);
 
+  // Subscribe to real-time updates for unread count changes
   useEffect(() => {
     if (!authUser) return;
 
-    // Only fetch balance and unread count if user is authenticated
-    fetchBalance();
-    fetchUnreadCount();
-
-    // Subscribe to real-time updates
     const supabase = createClient();
     const messagesChannel = supabase
       .channel('navigation-unread')

@@ -103,15 +103,18 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile?.user.id && profile.user.role === 'creator') {
-      fetchContent();
-      checkIfLive();
-      fetchGoals();
-      fetchCreatorContent();
+      // Fetch all creator data in parallel for faster load
+      Promise.all([
+        fetchContent(),
+        checkIfLive(),
+        fetchGoals(),
+        fetchCreatorContent()
+      ]);
 
-      // Poll for live status every 10 seconds to update when stream ends
+      // Poll for live status every 30 seconds (less frequent to reduce load)
       const liveCheckInterval = setInterval(() => {
         checkIfLive();
-      }, 10000);
+      }, 30000);
 
       return () => clearInterval(liveCheckInterval);
     }
@@ -129,10 +132,12 @@ export default function ProfilePage() {
       setProfile(data);
       setIsFollowing(data.isFollowing);
 
-      // Check subscription status if creator
+      // Check subscription status if creator (parallel)
       if (data.user.role === 'creator') {
-        checkSubscription(data.user.id);
-        fetchSubscriptionTier(data.user.id);
+        Promise.all([
+          checkSubscription(data.user.id),
+          fetchSubscriptionTier(data.user.id)
+        ]);
       }
     } catch (err: any) {
       setError(err.message);
