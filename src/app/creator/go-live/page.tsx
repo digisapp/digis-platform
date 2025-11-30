@@ -15,17 +15,19 @@ const PRIVACY_OPTIONS = [
   { value: 'subscribers', label: 'Subscribers Only', description: 'Only paid subscribers' },
 ];
 
-// Orientation options
-const ORIENTATION_OPTIONS = [
-  { value: 'landscape', label: 'Landscape', description: 'Best for gaming, desktop viewers' },
-  { value: 'portrait', label: 'Portrait', description: 'Best for mobile, TikTok-style' },
-];
+// Check if device is mobile
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || window.innerWidth < 768;
+};
 
 export default function GoLivePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
+  const [isMobile, setIsMobile] = useState(false);
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
@@ -53,6 +55,12 @@ export default function GoLivePage() {
   const animationFrameRef = useRef<number>();
 
   useEffect(() => {
+    // Auto-detect device type and set orientation
+    const mobile = isMobileDevice();
+    setIsMobile(mobile);
+    // Mobile defaults to portrait, desktop to landscape
+    setOrientation(mobile ? 'portrait' : 'landscape');
+
     checkCreatorStatus();
     initializeDevices();
 
@@ -424,28 +432,49 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Orientation Toggle */}
+              {/* Orientation - Only show toggle on mobile */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Screen
+                  Screen Orientation
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {ORIENTATION_OPTIONS.map((option) => (
+                {isMobile ? (
+                  <div className="grid grid-cols-2 gap-3">
                     <button
-                      key={option.value}
                       type="button"
-                      onClick={() => setOrientation(option.value as 'landscape' | 'portrait')}
+                      onClick={() => setOrientation('portrait')}
                       className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
-                        orientation === option.value
+                        orientation === 'portrait'
                           ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
                           : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
                       }`}
                     >
-                      <div className="font-semibold text-white text-sm">{option.label}</div>
-                      <div className="text-xs text-gray-400 mt-1">{option.description}</div>
+                      <div className="font-semibold text-white text-sm">📱 Portrait</div>
+                      <div className="text-xs text-gray-400 mt-1">TikTok-style vertical</div>
                     </button>
-                  ))}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setOrientation('landscape')}
+                      className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
+                        orientation === 'landscape'
+                          ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
+                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
+                      }`}
+                    >
+                      <div className="font-semibold text-white text-sm">📺 Landscape</div>
+                      <div className="text-xs text-gray-400 mt-1">Horizontal widescreen</div>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">📺</span>
+                      <div>
+                        <div className="font-semibold text-white text-sm">Landscape Mode</div>
+                        <div className="text-xs text-gray-400">Best for desktop streaming</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -492,6 +521,7 @@ export default function GoLivePage() {
                   {/* Orientation badge */}
                   <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
                     {orientation === 'portrait' ? '📱 Portrait' : '📺 Landscape'}
+                    {!isMobile && <span className="text-gray-400 ml-1">(auto)</span>}
                   </div>
                 </div>
               )}
