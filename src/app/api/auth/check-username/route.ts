@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime for database connections
 export const runtime = 'nodejs';
@@ -8,13 +7,19 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Rate limit username checks (20/min per IP)
-    const rl = await rateLimit(request, 'auth:check-username');
-    if (!rl.ok) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please slow down.' },
-        { status: 429, headers: rl.headers }
-      );
+    // Rate limiting is optional - don't fail if Redis is down
+    try {
+      const { rateLimit } = await import('@/lib/rate-limit');
+      const rl = await rateLimit(request, 'auth:check-username');
+      if (!rl.ok) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please slow down.' },
+          { status: 429, headers: rl.headers }
+        );
+      }
+    } catch (rateLimitError) {
+      console.warn('[Username Check] Rate limit check failed, continuing:', rateLimitError);
+      // Continue without rate limiting if Redis fails
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -46,10 +51,19 @@ export async function GET(request: NextRequest) {
     const lowercaseUsername = username.toLowerCase();
     console.log('[Username Check] Querying for:', lowercaseUsername);
 
+    // Verify environment variables are set
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[Username Check] Missing Supabase environment variables');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
     // Use Supabase service role client for reliable server-side queries
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
     );
 
     const { data: existingUser, error: queryError } = await supabase
