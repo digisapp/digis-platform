@@ -274,23 +274,38 @@ export class AdminService {
   // Update user role
   static async updateUserRole(
     userId: string,
-    newRole: 'fan' | 'creator' | 'admin'
+    newRole: 'fan' | 'creator' | 'admin',
+    options?: { verifyCreator?: boolean }
   ) {
+    // Build update object
+    const updateData: any = {
+      role: newRole,
+      updatedAt: new Date(),
+    };
+
+    // If promoting to creator, also verify them
+    if (newRole === 'creator' && options?.verifyCreator !== false) {
+      updateData.isCreatorVerified = true;
+    }
+
     // Update database
     await db.update(users)
-      .set({
-        role: newRole,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(users.id, userId));
 
     // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
     // This ensures role persists across sessions and prevents downgrades
     try {
+      const metadata: any = { role: newRole };
+      if (newRole === 'creator' && options?.verifyCreator !== false) {
+        metadata.is_creator_verified = true;
+      }
+
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
         userId,
         {
-          app_metadata: { role: newRole },
+          app_metadata: metadata,
+          user_metadata: newRole === 'creator' ? { is_creator_verified: true } : undefined,
         }
       );
 

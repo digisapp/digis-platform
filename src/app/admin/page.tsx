@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2 } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Application {
@@ -711,7 +711,18 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col gap-2 min-w-[140px]">
+                      <div className="flex flex-col gap-2 min-w-[160px]">
+                        {/* Make Creator Button (for fans) */}
+                        {user.role === 'fan' && user.accountStatus !== 'banned' && (
+                          <button
+                            onClick={() => handleRoleChange(user.id, 'creator')}
+                            className="px-3 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink hover:opacity-90 rounded-lg text-sm font-medium transition-all flex items-center gap-2 justify-center"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                            Make Creator
+                          </button>
+                        )}
+
                         {/* Role Badge & Changer */}
                         <select
                           value={user.role}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { AdminService } from '@/lib/admin/admin-service';
+import { isAdminUser } from '@/lib/admin/check-admin';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -22,9 +22,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const isAdmin = await AdminService.isAdmin(user.id);
-    if (!isAdmin) {
+    // Check if user is admin (email first, then DB)
+    if (!await isAdminUser(user)) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
