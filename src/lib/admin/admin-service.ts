@@ -5,44 +5,54 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export class AdminService {
-  // Check if user is admin (checks isAdmin flag OR role=admin OR email in ADMIN_EMAILS)
+  // Check if user is admin (checks email first, then isAdmin flag, then role)
   static async isAdmin(userId: string): Promise<boolean> {
-    const user = await withTimeoutAndRetry(
-      () => db.query.users.findFirst({
-        where: eq(users.id, userId),
-        columns: { role: true, email: true, isAdmin: true },
-      }),
-      { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
-    );
-
-    // Check isAdmin flag first (new approach - allows creator + admin)
-    if (user?.isAdmin) {
-      return true;
-    }
-
-    // Legacy: check if role is 'admin'
-    if (user?.role === 'admin') {
-      return true;
-    }
-
-    // Fallback: check ADMIN_EMAILS env var (with hardcoded defaults)
+    // Hardcoded admin emails - ALWAYS grant access to these
     const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
     const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
     const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
-    const isAdminByEmail = user?.email && adminEmails.includes(user.email.toLowerCase());
 
-    // If user should be admin by email but doesn't have isAdmin flag, set it
-    if (isAdminByEmail && !user?.isAdmin) {
-      try {
-        await db.update(users).set({ isAdmin: true }).where(eq(users.id, userId));
-        console.log(`[AdminService] Set isAdmin=true for ${user?.email}`);
-        return true;
-      } catch (e) {
-        console.error('[AdminService] Failed to set isAdmin flag:', e);
-      }
+    let user;
+    try {
+      user = await withTimeoutAndRetry(
+        () => db.query.users.findFirst({
+          where: eq(users.id, userId),
+          columns: { role: true, email: true, isAdmin: true },
+        }),
+        { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
+      );
+    } catch (e) {
+      console.error('[AdminService] DB query failed:', e);
+      // If DB fails, we can't check - deny access
+      return false;
     }
 
-    return !!isAdminByEmail;
+    if (!user) {
+      console.log('[AdminService] User not found:', userId);
+      return false;
+    }
+
+    // PRIMARY CHECK: Is email in admin list? (most reliable)
+    const isAdminByEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+    if (isAdminByEmail) {
+      console.log('[AdminService] Admin access granted by email:', user.email);
+      return true;
+    }
+
+    // SECONDARY: Check isAdmin flag in DB
+    if (user.isAdmin === true) {
+      console.log('[AdminService] Admin access granted by isAdmin flag:', user.email);
+      return true;
+    }
+
+    // LEGACY: Check if role is 'admin'
+    if (user.role === 'admin') {
+      console.log('[AdminService] Admin access granted by role:', user.email);
+      return true;
+    }
+
+    console.log('[AdminService] Admin access DENIED for:', user.email, { isAdmin: user.isAdmin, role: user.role });
+    return false;
   }
 
   // Get all pending creator applications
