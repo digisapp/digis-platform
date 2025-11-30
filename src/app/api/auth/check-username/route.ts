@@ -1,87 +1,144 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
-// Force Node.js runtime for database connections
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const username = searchParams.get('username');
+const MIN_LENGTH = 3;
+const MAX_LENGTH = 20;
 
+// Reserved usernames that nobody can take
+const RESERVED_USERNAMES = new Set([
+  'admin',
+  'support',
+  'digis',
+  'moderator',
+  'owner',
+  'system',
+  'root',
+  'help',
+  'api',
+  'www',
+  'mail',
+  'ftp',
+  'blog',
+  'shop',
+  'store',
+  'app',
+  'mobile',
+  'web',
+  'official',
+  'verified',
+  'staff',
+  'team',
+  'info',
+  'contact',
+  'security',
+  'legal',
+  'terms',
+  'privacy',
+  'about',
+  'home',
+  'dashboard',
+  'settings',
+  'login',
+  'signup',
+  'register',
+  'account',
+  'profile',
+  'user',
+  'users',
+  'creator',
+  'creators',
+  'fan',
+  'fans',
+  'live',
+  'stream',
+  'streams',
+  'broadcast',
+  'explore',
+  'search',
+  'messages',
+  'notifications',
+  'wallet',
+  'earnings',
+  'payouts',
+]);
+
+export async function GET(request: NextRequest) {
   try {
-    if (!username) {
+    const searchParams = request.nextUrl.searchParams;
+    const rawUsername = searchParams.get('username')?.trim();
+
+    if (!rawUsername) {
       return NextResponse.json(
-        { error: 'Username is required', available: false },
+        { available: false, error: 'Username is required' },
         { status: 400 }
       );
     }
 
-    // Validate username format
-    const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/;
-    if (!usernameRegex.test(username)) {
+    const username = rawUsername.toLowerCase();
+
+    // Length validation
+    if (username.length < MIN_LENGTH) {
       return NextResponse.json({
         available: false,
-        error: 'Username must be 3-20 characters, start with a letter, and contain only letters, numbers, and underscores'
+        error: `Username must be at least ${MIN_LENGTH} characters`,
       });
     }
 
-    const lowercaseUsername = username.toLowerCase();
-
-    // Verify environment variables are set
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('[Username Check] Missing env vars:', {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseKey
+    if (username.length > MAX_LENGTH) {
+      return NextResponse.json({
+        available: false,
+        error: `Username must be at most ${MAX_LENGTH} characters`,
       });
-      return NextResponse.json(
-        { error: 'Server configuration error', available: false },
-        { status: 500 }
-      );
     }
 
-    // Use Supabase service role client
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { data: existingUser, error: queryError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('username', lowercaseUsername)
-      .maybeSingle(); // Use maybeSingle instead of single to avoid error when not found
-
-    if (queryError) {
-      console.error('[Username Check] DB error:', queryError);
-      return NextResponse.json(
-        { error: 'Database error', available: false },
-        { status: 500 }
-      );
+    // Must start with a letter
+    if (!/^[a-z]/.test(username)) {
+      return NextResponse.json({
+        available: false,
+        error: 'Username must start with a letter',
+      });
     }
 
-    if (existingUser) {
+    // Only letters, numbers, and underscores
+    if (!/^[a-z][a-z0-9_]*$/.test(username)) {
+      return NextResponse.json({
+        available: false,
+        error: 'Username can only contain letters, numbers, and underscores',
+      });
+    }
+
+    // Check reserved usernames
+    if (RESERVED_USERNAMES.has(username)) {
+      return NextResponse.json({
+        available: false,
+        error: 'This username is reserved',
+      });
+    }
+
+    // Check if username is already taken using Drizzle
+    const existing = await db.query.users.findFirst({
+      where: eq(users.username, username),
+      columns: { id: true },
+    });
+
+    if (existing) {
       return NextResponse.json({
         available: false,
         error: 'Username is already taken',
-        suggestions: [
-          `${username}1`,
-          `${username}_`,
-          `${username}${Math.floor(Math.random() * 99)}`,
-        ],
       });
     }
 
     return NextResponse.json({ available: true });
 
   } catch (error) {
-    console.error('[Username Check] Unexpected error:', error);
+    console.error('[check-username] Error:', error);
     return NextResponse.json(
-      {
-        error: 'Failed to check username',
-        available: false,
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { available: false, error: 'Unable to check username' },
       { status: 500 }
     );
   }
