@@ -12,17 +12,28 @@ type FloatingGift = {
 };
 
 type GiftFloatingEmojisProps = {
-  gifts: Array<{ id: string; emoji: string; rarity: string; timestamp: number }>;
+  gifts: Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>;
   onComplete?: (id: string) => void;
 };
 
-// Sound files for different gift rarities - coin/gambling sounds
-const GIFT_SOUNDS: Record<string, string> = {
-  common: '/sounds/coin-common.wav',      // Single coin drop
-  rare: '/sounds/coin-rare.wav',          // Coin jingle
-  epic: '/sounds/coin-epic.wav',          // Coin cascade
-  legendary: '/sounds/coin-legendary.wav', // Jackpot celebration
-  tip: '/sounds/coin-tip.wav',            // Coins clinking
+// Gift-specific sounds - unique sound for each gift type
+const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
+  'Champagne': '/sounds/gift-champagne.mp3',   // Pop and fizz
+  'Rocket': '/sounds/gift-rocket.mp3',         // Explosion
+  'Sports Car': '/sounds/gift-sports-car.mp3', // Vroom engine
+  'Crown': '/sounds/gift-crown.mp3',           // Royal fanfare
+  'Gold Bar': '/sounds/gift-money.mp3',        // Coins/jackpot
+  'Steak': '/sounds/gift-steak.mp3',           // Sizzle
+  'Cake': '/sounds/gift-cake.mp3',             // Celebration
+};
+
+// Fallback sounds for gifts without specific sounds - based on rarity
+const RARITY_SOUNDS: Record<string, string> = {
+  common: '/sounds/coin-common.wav',
+  rare: '/sounds/coin-rare.wav',
+  epic: '/sounds/coin-epic.wav',
+  legendary: '/sounds/coin-legendary.wav',
+  tip: '/sounds/coin-tip.wav',
 };
 
 // Gift burst counts, sizes, and duration by rarity - more hype for bigger gifts!
@@ -46,11 +57,19 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
 
   // Preload audio files
   useEffect(() => {
-    Object.entries(GIFT_SOUNDS).forEach(([rarity, src]) => {
+    // Preload rarity-based sounds
+    Object.entries(RARITY_SOUNDS).forEach(([rarity, src]) => {
       const audio = new Audio(src);
       audio.preload = 'auto';
       audio.volume = 0.5;
       audioRefs.current.set(rarity, audio);
+    });
+    // Preload gift-specific sounds
+    Object.entries(GIFT_SPECIFIC_SOUNDS).forEach(([giftName, src]) => {
+      const audio = new Audio(src);
+      audio.preload = 'auto';
+      audio.volume = 0.5;
+      audioRefs.current.set(giftName, audio);
     });
 
     return () => {
@@ -84,8 +103,8 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     tip: 0.3,
   };
 
-  // Play sound for a rarity - with cooldown to prevent rapid-fire sounds
-  const playSound = (rarity: string) => {
+  // Play sound for a gift - uses gift-specific sound if available, else falls back to rarity
+  const playSound = (rarity: string, giftName?: string) => {
     const now = Date.now();
 
     // Skip if we played a sound too recently (prevents annoying rapid dinging)
@@ -101,9 +120,17 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
 
     lastSoundTime.current = now;
 
-    // Use the rarity if it exists in sounds, otherwise fallback to common
-    const soundKey = GIFT_SOUNDS[rarity] ? rarity : 'common';
-    const soundSrc = GIFT_SOUNDS[soundKey];
+    // Check for gift-specific sound first, then fall back to rarity
+    let soundSrc: string;
+    let soundKey: string;
+
+    if (giftName && GIFT_SPECIFIC_SOUNDS[giftName]) {
+      soundSrc = GIFT_SPECIFIC_SOUNDS[giftName];
+      soundKey = rarity; // Use rarity for volume/duration settings
+    } else {
+      soundKey = RARITY_SOUNDS[rarity] ? rarity : 'common';
+      soundSrc = RARITY_SOUNDS[soundKey];
+    }
 
     // Create fresh audio element each time for correct sound
     const audio = new Audio(soundSrc);
@@ -145,8 +172,8 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
       const config = RARITY_CONFIG[gift.rarity] || RARITY_CONFIG.common;
       const newEmojis: FloatingGift[] = [];
 
-      // Play sound
-      playSound(gift.rarity);
+      // Play sound - use gift-specific sound if available
+      playSound(gift.rarity, gift.giftName);
 
       // Create burst of floating emojis
       for (let i = 0; i < config.burstCount; i++) {

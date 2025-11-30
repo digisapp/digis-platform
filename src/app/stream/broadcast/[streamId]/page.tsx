@@ -91,7 +91,7 @@ export default function BroadcastStudioPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
-  const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number }>>([]);
+  const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
   const [isSafari, setIsSafari] = useState(false);
 
   // Detect Safari browser
@@ -336,7 +336,8 @@ export default function BroadcastStudioPage() {
           id: `gift-${Date.now()}-${Math.random()}`,
           emoji: giftEvent.gift.emoji,
           rarity: giftEvent.gift.rarity,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          giftName: giftEvent.gift.name  // Include gift name for specific sounds
         }]);
       }
       // Update goals progress and leaderboard
@@ -563,17 +564,10 @@ export default function BroadcastStudioPage() {
   };
 
   const showGiftNotification = (data: { gift: VirtualGift; streamGift: StreamGift }) => {
-    // Add gift alert (sound will be played by GiftAlert component)
-    const giftAlert: Alert = {
-      type: 'gift',
-      gift: data.gift,
-      streamGift: data.streamGift,
-      senderUsername: data.streamGift.senderUsername || 'Anonymous',
-      id: `gift-${Date.now()}-${Math.random()}`,
-    };
-    setAlerts(prev => [...prev, giftAlert]);
+    // Note: Gift feed notifications are handled by GiftAnimationManager (top-right)
+    // AlertManager is only used for topTipper spotlight and goal celebrations
 
-    // Check if this is a big tip (500+ coins) for top tipper spotlight
+    // Check if this is a big gift (500+ coins) for top tipper spotlight
     if (data.streamGift.totalCoins >= 500) {
       const topTipperAlert: Alert = {
         type: 'topTipper',
@@ -582,10 +576,10 @@ export default function BroadcastStudioPage() {
         avatarUrl: (data.streamGift as any).senderAvatarUrl || null,
         id: `toptipper-${Date.now()}-${Math.random()}`,
       };
-      // Add after a short delay so it doesn't overlap with gift alert
+      // Add after a short delay
       setTimeout(() => {
         setAlerts(prev => [...prev, topTipperAlert]);
-      }, 3500);
+      }, 2000);
     }
 
     console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
