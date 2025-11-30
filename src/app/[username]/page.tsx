@@ -910,14 +910,6 @@ export default function ProfilePage() {
                                   <h3 className="text-white font-bold text-sm line-clamp-1 mb-1 drop-shadow-lg">
                                     {item.title}
                                   </h3>
-                                  <div className="flex items-center gap-2 text-xs text-gray-300">
-                                    {item.views !== undefined && (
-                                      <span className="flex items-center gap-1">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
-                                        {item.views} views
-                                      </span>
-                                    )}
-                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1002,11 +994,6 @@ export default function ProfilePage() {
                                 <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
                                   {item.title}
                                 </h3>
-                                <div className="flex items-center gap-2 text-xs text-white/90">
-                                  {item.views !== undefined && (
-                                    <span>{item.views} views</span>
-                                  )}
-                                </div>
                               </div>
                             </div>
                           ))}
@@ -1112,15 +1099,9 @@ export default function ProfilePage() {
                                       </span>
                                     </>
                                   ) : (
-                                    <>
-                                      <span className="flex items-center gap-1">
-                                        <Users className="w-3 h-3" />
-                                        {stream.totalViews || 0} views
-                                      </span>
-                                      <span>
-                                        {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
-                                      </span>
-                                    </>
+                                    <span>
+                                      {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
+                                    </span>
                                   )}
                                 </div>
                               </div>
@@ -1280,9 +1261,6 @@ export default function ProfilePage() {
               <h3 className="text-xl font-bold text-white mb-2">{selectedPhoto.title}</h3>
               {selectedPhoto.description && (
                 <p className="text-gray-300 text-sm">{selectedPhoto.description}</p>
-              )}
-              {selectedPhoto.views !== undefined && (
-                <p className="text-gray-400 text-sm mt-2">{selectedPhoto.views} views</p>
               )}
             </div>
           </div>
