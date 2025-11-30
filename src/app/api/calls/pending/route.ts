@@ -1,11 +1,15 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { CallService } from '@/lib/services/call-service';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { nanoid } from 'nanoid';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const requestId = nanoid(10);
+
   try {
     const supabase = await createClient();
     const {
@@ -22,7 +26,10 @@ export async function GET(request: NextRequest) {
       console.error('[Pending calls] Cleanup error:', err);
     });
 
-    const pendingCalls = await CallService.getPendingRequests(user.id);
+    const pendingCalls = await withTimeoutAndRetry(
+      () => CallService.getPendingRequests(user.id),
+      { timeoutMs: 8000, retries: 1, tag: 'pendingCalls' }
+    );
 
     // Add timeout info to each call
     const callsWithTimeout = pendingCalls.map(call => {
@@ -39,10 +46,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ calls: callsWithTimeout });
   } catch (error: any) {
-    console.error('Error fetching pending calls:', error);
+    console.error('[CALLS/PENDING]', { requestId, error: error?.message });
+    const isTimeout = error?.message?.includes('timeout');
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch pending calls' },
-      { status: 500 }
+      { error: isTimeout ? 'Service temporarily unavailable' : 'Failed to fetch pending calls', calls: [] },
+      { status: isTimeout ? 503 : 500, headers: { 'x-request-id': requestId } }
     );
   }
 }
