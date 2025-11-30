@@ -173,112 +173,88 @@ export default function CreatorContentStudioPage() {
             </GlassButton>
           </GlassCard>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {content.map((item) => (
-              <GlassCard key={item.id} className="p-6">
-                <div className="flex gap-6">
-                  {/* Thumbnail */}
-                  <div className="flex-shrink-0">
-                    <div className="w-32 h-32 rounded-lg overflow-hidden bg-black">
-                      <img
-                        src={item.thumbnailUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+              <GlassCard key={item.id} className="overflow-hidden group relative">
+                {/* Thumbnail */}
+                <div className="aspect-square relative bg-black">
+                  <img
+                    src={item.thumbnailUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+
+                  {/* Type badge */}
+                  <div className="absolute top-2 left-2">
+                    <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-black/60 text-white capitalize backdrop-blur-sm">
+                      {item.contentType === 'video' ? '▶ Video' : item.contentType === 'gallery' ? '⊞ Gallery' : '📷 Photo'}
+                    </span>
                   </div>
 
-                  {/* Content Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="text-xl font-bold text-white">{item.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            item.isPublished
-                              ? 'bg-green-500/20 text-green-300'
-                              : 'bg-gray-500/20 text-gray-300'
-                          }`}>
-                            {item.isPublished ? '✓ Published' : 'Draft'}
-                          </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-gray-300 capitalize">
-                            {item.contentType}
-                          </span>
-                        </div>
-                        {item.description && (
-                          <p className="text-gray-400 text-sm line-clamp-2 mb-3">{item.description}</p>
-                        )}
-                      </div>
+                  {/* Price badge */}
+                  <div className="absolute top-2 right-2">
+                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold backdrop-blur-sm ${
+                      item.isFree
+                        ? 'bg-green-500/80 text-white'
+                        : 'bg-amber-500/80 text-white'
+                    }`}>
+                      {item.isFree ? 'FREE' : `${item.unlockPrice} 🪙`}
+                    </span>
+                  </div>
 
-                      {/* Actions Menu */}
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowMenu(showMenu === item.id ? null : item.id)}
-                          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                          <MoreVertical className="w-5 h-5 text-gray-400" />
-                        </button>
-
-                        {showMenu === item.id && (
-                          <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-white/10 rounded-lg shadow-xl z-10">
-                            <button
-                              onClick={() => {
-                                handleEditContent(item);
-                                setShowMenu(null);
-                              }}
-                              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 flex items-center gap-2 transition-colors"
-                            >
-                              <Edit className="w-4 h-4" />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleTogglePublish(item.id, item.isPublished);
-                                setShowMenu(null);
-                              }}
-                              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors"
-                            >
-                              {item.isPublished ? 'Unpublish' : 'Publish'}
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleDelete(item.id);
-                                setShowMenu(null);
-                              }}
-                              className="w-full px-4 py-3 text-left text-red-400 hover:bg-red-500/10 flex items-center gap-2 transition-colors rounded-b-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                  {/* Status indicator */}
+                  {!item.isPublished && (
+                    <div className="absolute bottom-2 left-2">
+                      <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-500/80 text-white backdrop-blur-sm">
+                        Draft
+                      </span>
                     </div>
+                  )}
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4">
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Price</div>
-                        <div className="text-white font-bold">
-                          {item.isFree ? 'Free' : `${item.unlockPrice} coins`}
-                        </div>
-                      </div>
+                  {/* Hover overlay with actions */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => handleEditContent(item)}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <Edit className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={() => handleTogglePublish(item.id, item.isPublished)}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title={item.isPublished ? 'Unpublish' : 'Publish'}
+                    >
+                      <Eye className={`w-5 h-5 ${item.isPublished ? 'text-green-400' : 'text-gray-400'}`} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-2 bg-red-500/30 hover:bg-red-500/50 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-400" />
+                    </button>
+                  </div>
+                </div>
 
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Earnings</div>
-                        <div className="text-digis-cyan font-bold">{item.totalEarnings}</div>
-                      </div>
+                {/* Content info */}
+                <div className="p-3">
+                  <h3 className="font-semibold text-white text-sm truncate mb-2">{item.title}</h3>
 
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Purchases</div>
-                        <div className="text-white font-bold">{item.purchaseCount}</div>
-                      </div>
-
-                      <div className="bg-white/5 rounded-lg p-3">
-                        <div className="text-gray-400 text-xs mb-1">Views</div>
-                        <div className="text-white font-bold">{item.viewCount}</div>
-                      </div>
-                    </div>
+                  {/* Stats row */}
+                  <div className="flex items-center justify-between text-[11px] text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      {item.viewCount}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ShoppingCart className="w-3 h-3" />
+                      {item.purchaseCount}
+                    </span>
+                    <span className="flex items-center gap-1 text-digis-cyan font-medium">
+                      <DollarSign className="w-3 h-3" />
+                      {item.totalEarnings}
+                    </span>
                   </div>
                 </div>
               </GlassCard>

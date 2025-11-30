@@ -529,7 +529,7 @@ export default function CreatorDashboard() {
               {upcomingEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-start gap-4 bg-white/60 rounded-lg p-4 hover:bg-white/80 transition-colors cursor-pointer border border-purple-100"
+                  className="flex items-start gap-4 bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer border border-white/10"
                   onClick={() => {
                     if (event.type === 'show') {
                       router.push(`/streams/${event.id.replace('show-', '')}`);
@@ -580,9 +580,9 @@ export default function CreatorDashboard() {
                 {recentActivities.slice(0, 8).map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-start gap-3 bg-white/60 rounded-lg p-3 hover:bg-white/80 transition-colors border border-cyan-100"
+                    className="flex items-start gap-3 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors border border-white/10"
                   >
-                    <div className={`p-2 rounded-lg bg-white/80 ${activity.color}`}>
+                    <div className={`p-2 rounded-lg bg-white/10 ${activity.color}`}>
                       {getActivityIcon(activity.icon)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -631,7 +631,7 @@ export default function CreatorDashboard() {
                     onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
                     placeholder="Describe your goal. Tip goals will be displayed on your creator profile."
                     rows={2}
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-600 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                   />
                 </div>
 
@@ -644,13 +644,13 @@ export default function CreatorDashboard() {
                     value={goalFormData.targetAmount}
                     onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
                     placeholder="e.g., 10000"
-                    className="w-full px-3 py-2 bg-white/60 border border-purple-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
                     required
                   />
                 </div>
 
                 {/* Show Top Tippers Toggle */}
-                <div className="flex items-center justify-between py-2 px-3 bg-purple-50/50 rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-lg border border-white/20">
                   <label htmlFor="showTopTippers" className="text-xs font-medium text-gray-300 cursor-pointer">
                     Show Top Supporters
                   </label>
