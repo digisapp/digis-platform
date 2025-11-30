@@ -6,106 +6,82 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const username = searchParams.get('username');
+
   try {
-    // Rate limiting is optional - don't fail if Redis is down
-    try {
-      const { rateLimit } = await import('@/lib/rate-limit');
-      const rl = await rateLimit(request, 'auth:check-username');
-      if (!rl.ok) {
-        return NextResponse.json(
-          { error: 'Too many requests. Please slow down.' },
-          { status: 429, headers: rl.headers }
-        );
-      }
-    } catch (rateLimitError) {
-      console.warn('[Username Check] Rate limit check failed, continuing:', rateLimitError);
-      // Continue without rate limiting if Redis fails
-    }
-
-    const searchParams = request.nextUrl.searchParams;
-    const username = searchParams.get('username');
-
-    console.log('[Username Check] Checking username:', username);
-
     if (!username) {
       return NextResponse.json(
-        { error: 'Username is required' },
+        { error: 'Username is required', available: false },
         { status: 400 }
       );
     }
 
     // Validate username format
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/;
     if (!usernameRegex.test(username)) {
-      console.log('[Username Check] Invalid format:', username);
-      return NextResponse.json(
-        {
-          available: false,
-          error: 'Username must be 3-20 characters (letters, numbers, underscores only)'
-        },
-        { status: 200 }
-      );
+      return NextResponse.json({
+        available: false,
+        error: 'Username must be 3-20 characters, start with a letter, and contain only letters, numbers, and underscores'
+      });
     }
 
-    // Check if username exists using Supabase client
     const lowercaseUsername = username.toLowerCase();
-    console.log('[Username Check] Querying for:', lowercaseUsername);
 
     // Verify environment variables are set
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('[Username Check] Missing Supabase environment variables');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('[Username Check] Missing env vars:', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey
+      });
       return NextResponse.json(
-        { error: 'Server configuration error' },
+        { error: 'Server configuration error', available: false },
         { status: 500 }
       );
     }
 
-    // Use Supabase service role client for reliable server-side queries
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    // Use Supabase service role client
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: existingUser, error: queryError } = await supabase
       .from('users')
-      .select('id, username')
+      .select('id')
       .eq('username', lowercaseUsername)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error when not found
 
-    if (queryError && queryError.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('[Username Check] Database error:', queryError);
-      throw queryError;
-    }
-
-    console.log('[Username Check] Found existing user:', existingUser ? 'YES' : 'NO');
-
-    if (existingUser) {
-      // Generate suggestions
-      const suggestions = [
-        `${username}1`,
-        `${username}_official`,
-        `${username}${Math.floor(Math.random() * 99)}`,
-      ];
-
+    if (queryError) {
+      console.error('[Username Check] DB error:', queryError);
       return NextResponse.json(
-        {
-          available: false,
-          suggestions,
-        },
-        { status: 409 } // 409 Conflict for taken username
+        { error: 'Database error', available: false },
+        { status: 500 }
       );
     }
 
+    if (existingUser) {
+      return NextResponse.json({
+        available: false,
+        error: 'Username is already taken',
+        suggestions: [
+          `${username}1`,
+          `${username}_`,
+          `${username}${Math.floor(Math.random() * 99)}`,
+        ],
+      });
+    }
+
+    return NextResponse.json({ available: true });
+
+  } catch (error) {
+    console.error('[Username Check] Unexpected error:', error);
     return NextResponse.json(
       {
-        available: true,
+        error: 'Failed to check username',
+        available: false,
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error('[Username Check] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to check username availability', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
