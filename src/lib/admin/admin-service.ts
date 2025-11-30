@@ -30,7 +30,7 @@ export class AdminService {
       }
     }
 
-    return user?.role === 'admin' || isAdminByEmail;
+    return user?.role === 'admin' || !!isAdminByEmail;
   }
 
   // Get all pending creator applications
