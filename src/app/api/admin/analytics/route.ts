@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/admin/admin-service';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { nanoid } from 'nanoid';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -9,6 +11,8 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/admin/analytics - Get platform analytics
 export async function GET(request: NextRequest) {
+  const requestId = nanoid(10);
+
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -28,20 +32,58 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get user signups over last 30 days
+    // Calculate date ranges
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    const { data: users } = await adminClient
-      .from('users')
-      .select('created_at, role')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .order('created_at', { ascending: true });
+    // Run ALL queries in parallel for maximum speed
+    const [
+      usersResult,
+      applicationsResult,
+      stats,
+      lastWeekResult,
+      previousWeekResult,
+    ] = await withTimeoutAndRetry(
+      () => Promise.all([
+        // 1. Get user signups over last 30 days
+        adminClient
+          .from('users')
+          .select('created_at, role')
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: true }),
 
-    // Get all applications with their status
-    const { data: applications } = await adminClient
-      .from('creator_applications')
-      .select('status, created_at, content_type');
+        // 2. Get all applications with their status
+        adminClient
+          .from('creator_applications')
+          .select('status, created_at, content_type'),
+
+        // 3. Get total stats
+        AdminService.getStatistics(),
+
+        // 4. Get last week signups count
+        adminClient
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', sevenDaysAgo.toISOString()),
+
+        // 5. Get previous week signups count
+        adminClient
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', fourteenDaysAgo.toISOString())
+          .lt('created_at', sevenDaysAgo.toISOString()),
+      ]),
+      { timeoutMs: 15000, retries: 1, tag: 'adminAnalytics' }
+    );
+
+    const users = usersResult.data;
+    const applications = applicationsResult.data;
+    const lastWeekSignups = lastWeekResult.count || 0;
+    const previousWeekSignups = previousWeekResult.count || 0;
 
     // Process user signups by day
     const signupsByDay: { [key: string]: number } = {};
@@ -81,26 +123,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get total stats
-    const stats = await AdminService.getStatistics();
-
-    // Calculate growth rate (last 7 days vs previous 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-
-    const { count: lastWeekSignups } = await adminClient
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', sevenDaysAgo.toISOString());
-
-    const { count: previousWeekSignups } = await adminClient
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', fourteenDaysAgo.toISOString())
-      .lt('created_at', sevenDaysAgo.toISOString());
-
+    // Calculate growth rate
     const growthRate = previousWeekSignups && previousWeekSignups > 0
       ? ((lastWeekSignups || 0) - previousWeekSignups) / previousWeekSignups * 100
       : 0;
@@ -117,14 +140,15 @@ export async function GET(request: NextRequest) {
       applicationStats,
       contentTypes,
       totalStats: stats,
-      growthRate: Math.round(growthRate * 10) / 10, // Round to 1 decimal
+      growthRate: Math.round(growthRate * 10) / 10,
       lastWeekSignups: lastWeekSignups || 0,
     });
   } catch (error: any) {
-    console.error('Error fetching analytics:', error);
+    console.error('[ADMIN/ANALYTICS]', { requestId, error: error?.message });
+    const isTimeout = error?.message?.includes('timeout');
     return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
+      { error: isTimeout ? 'Analytics temporarily unavailable' : 'Failed to fetch analytics' },
+      { status: isTimeout ? 503 : 500, headers: { 'x-request-id': requestId } }
     );
   }
 }

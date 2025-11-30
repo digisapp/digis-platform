@@ -1,15 +1,19 @@
 import { db } from '@/lib/data/system';
 import { users, creatorApplications } from '@/lib/data/system';
-import { eq, and, or, ilike, desc } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, count, sql } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export class AdminService {
   // Check if user is admin
   static async isAdmin(userId: string): Promise<boolean> {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: { role: true },
-    });
+    const user = await withTimeoutAndRetry(
+      () => db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { role: true },
+      }),
+      { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
+    );
 
     return user?.role === 'admin';
   }
@@ -17,23 +21,26 @@ export class AdminService {
   // Get all pending creator applications
   static async getPendingApplications(limit = 50, offset = 0) {
     try {
-      const applications = await db.query.creatorApplications.findMany({
-        where: eq(creatorApplications.status, 'pending'),
-        orderBy: desc(creatorApplications.createdAt),
-        limit,
-        offset,
-        with: {
-          user: {
-            columns: {
-              id: true,
-              email: true,
-              username: true,
-              avatarUrl: true,
-              createdAt: true,
+      const applications = await withTimeoutAndRetry(
+        () => db.query.creatorApplications.findMany({
+          where: eq(creatorApplications.status, 'pending'),
+          orderBy: desc(creatorApplications.createdAt),
+          limit,
+          offset,
+          with: {
+            user: {
+              columns: {
+                id: true,
+                email: true,
+                username: true,
+                avatarUrl: true,
+                createdAt: true,
+              },
             },
           },
-        },
-      });
+        }),
+        { timeoutMs: 8000, retries: 1, tag: 'pendingApps' }
+      );
 
       return applications;
     } catch (error) {
@@ -49,23 +56,26 @@ export class AdminService {
     offset = 0
   ) {
     try {
-      const applications = await db.query.creatorApplications.findMany({
-        where: status ? eq(creatorApplications.status, status) : undefined,
-        orderBy: desc(creatorApplications.createdAt),
-        limit,
-        offset,
-        with: {
-          user: {
-            columns: {
-              id: true,
-              email: true,
-              username: true,
-              avatarUrl: true,
-              createdAt: true,
+      const applications = await withTimeoutAndRetry(
+        () => db.query.creatorApplications.findMany({
+          where: status ? eq(creatorApplications.status, status) : undefined,
+          orderBy: desc(creatorApplications.createdAt),
+          limit,
+          offset,
+          with: {
+            user: {
+              columns: {
+                id: true,
+                email: true,
+                username: true,
+                avatarUrl: true,
+                createdAt: true,
+              },
             },
           },
-        },
-      });
+        }),
+        { timeoutMs: 8000, retries: 1, tag: 'allApps' }
+      );
 
       return applications;
     } catch (error) {
@@ -179,7 +189,7 @@ export class AdminService {
   ) {
     try {
       // Build where conditions
-      const conditions = [];
+      const conditions: any[] = [];
 
       if (role) {
         conditions.push(eq(users.role, role));
@@ -195,24 +205,27 @@ export class AdminService {
         );
       }
 
-      const usersList = await db.query.users.findMany({
-        where: conditions.length > 0 ? and(...conditions) : undefined,
-        orderBy: desc(users.createdAt),
-        limit,
-        offset,
-        columns: {
-          id: true,
-          email: true,
-          username: true,
-          displayName: true,
-          avatarUrl: true,
-          role: true,
-          isCreatorVerified: true,
-          followerCount: true,
-          followingCount: true,
-          createdAt: true,
-        },
-      });
+      const usersList = await withTimeoutAndRetry(
+        () => db.query.users.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: desc(users.createdAt),
+          limit,
+          offset,
+          columns: {
+            id: true,
+            email: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+            role: true,
+            isCreatorVerified: true,
+            followerCount: true,
+            followingCount: true,
+            createdAt: true,
+          },
+        }),
+        { timeoutMs: 8000, retries: 1, tag: 'adminUsers' }
+      );
 
       return usersList;
     } catch (error) {
@@ -281,28 +294,25 @@ export class AdminService {
     return { success: true, isVerified: newVerificationStatus };
   }
 
-  // Get platform statistics
+  // Get platform statistics - optimized with COUNT queries
   static async getStatistics() {
-    // Get total users count
-    const allUsers = await db.query.users.findMany();
-    const totalUsers = allUsers.length;
-
-    // Get total creators count
-    const allCreators = await db.query.users.findMany({
-      where: eq(users.role, 'creator'),
-    });
-    const totalCreators = allCreators.length;
-
-    // Get pending applications count
-    const pendingApplications = await db.query.creatorApplications.findMany({
-      where: eq(creatorApplications.status, 'pending'),
-    });
-    const pendingApps = pendingApplications.length;
+    // Run all counts in parallel for speed
+    const [totalUsersResult, totalCreatorsResult, pendingAppsResult] = await withTimeoutAndRetry(
+      () => Promise.all([
+        // Count total users
+        db.select({ count: count() }).from(users),
+        // Count creators only
+        db.select({ count: count() }).from(users).where(eq(users.role, 'creator')),
+        // Count pending applications
+        db.select({ count: count() }).from(creatorApplications).where(eq(creatorApplications.status, 'pending')),
+      ]),
+      { timeoutMs: 8000, retries: 1, tag: 'adminStats' }
+    );
 
     return {
-      totalUsers: totalUsers || 0,
-      totalCreators: totalCreators || 0,
-      pendingApplications: pendingApps || 0,
+      totalUsers: totalUsersResult[0]?.count || 0,
+      totalCreators: totalCreatorsResult[0]?.count || 0,
+      pendingApplications: pendingAppsResult[0]?.count || 0,
     };
   }
 }
