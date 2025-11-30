@@ -31,6 +31,19 @@ import { LiveKitEgressService } from '../services/livekit-egress-service';
 
 export class StreamService {
   /**
+   * Check if creator has an active (live) stream
+   */
+  static async getActiveStream(creatorId: string) {
+    const activeStream = await db.query.streams.findFirst({
+      where: and(
+        eq(streams.creatorId, creatorId),
+        eq(streams.status, 'live')
+      ),
+    });
+    return activeStream;
+  }
+
+  /**
    * Create and start a new stream
    */
   static async createStream(
@@ -42,6 +55,14 @@ export class StreamService {
     scheduledAt?: Date,
     orientation?: 'landscape' | 'portrait'
   ) {
+    // Check if creator already has an active stream
+    const existingStream = await this.getActiveStream(creatorId);
+    if (existingStream) {
+      // Return existing stream instead of creating a duplicate
+      console.log(`[StreamService] Creator ${creatorId} already has active stream ${existingStream.id}`);
+      return existingStream;
+    }
+
     const roomName = `stream_${uuidv4()}`;
     const isScheduled = scheduledAt && scheduledAt > new Date();
 

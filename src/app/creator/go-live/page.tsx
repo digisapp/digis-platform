@@ -101,6 +101,18 @@ export default function GoLivePage() {
 
       if (data.user?.role === 'creator') {
         setIsCreator(true);
+
+        // Check if creator already has an active stream
+        const activeResponse = await fetch('/api/streams/active');
+        if (activeResponse.ok) {
+          const activeData = await activeResponse.json();
+          if (activeData.data?.hasActiveStream && activeData.data?.stream) {
+            // Redirect to existing broadcast instead of creating a new one
+            router.push(`/stream/broadcast/${activeData.data.stream.id}`);
+            return;
+          }
+        }
+
         // Fetch recent stream stats
         fetchRecentStats();
       } else {

@@ -46,6 +46,21 @@ export async function POST(req: NextRequest) {
       scheduled: !!scheduledAt,
     });
 
+    // Check for existing active stream first
+    const existingStream = await StreamService.getActiveStream(user.id);
+    if (existingStream) {
+      console.log('[STREAMS/CREATE]', {
+        requestId,
+        streamId: existingStream.id,
+        status: 'existing_stream_returned'
+      });
+
+      return NextResponse.json(
+        success({ ...existingStream, wasExisting: true }, requestId),
+        { status: 200, headers: { 'x-request-id': requestId } }
+      );
+    }
+
     // Create stream with timeout and retry
     try {
       const stream = await withTimeoutAndRetry(
@@ -68,7 +83,7 @@ export async function POST(req: NextRequest) {
       console.log('[STREAMS/CREATE]', {
         requestId,
         streamId: stream.id,
-        status: 'success'
+        status: 'new_stream_created'
       });
 
       // Send notifications to followers/subscribers based on privacy level
