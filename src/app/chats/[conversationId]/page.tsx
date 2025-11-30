@@ -623,6 +623,9 @@ export default function ChatPage() {
         <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0">
           <div className="container mx-auto px-4 py-4 max-w-2xl">
             <form onSubmit={sendMessage} className="flex gap-2">
+              {/* Voice Message Button - placed first (furthest from input to avoid accidental taps) */}
+              <VoiceMessageButton onSend={handleSendVoice} isCreator={currentUserRole === 'creator'} />
+
               {/* Attachment Button */}
               <button
                 type="button"
@@ -634,9 +637,6 @@ export default function ChatPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </button>
-
-              {/* Voice Message Button */}
-              <VoiceMessageButton onSend={handleSendVoice} isCreator={currentUserRole === 'creator'} />
 
               <input
                 type="text"
