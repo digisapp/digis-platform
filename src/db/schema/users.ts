@@ -25,7 +25,7 @@ export const users = pgTable('users', {
   isTrending: boolean('is_trending').default(false),
   isOnline: boolean('is_online').default(false),
   lastSeenAt: timestamp('last_seen_at'),
-  usernameLastChangedAt: timestamp('username_last_changed_at'), // Track username changes (30-day limit)
+  usernameLastChangedAt: timestamp('username_last_changed_at'), // Track username changes (60-day cooldown)
   followerCount: integer('follower_count').default(0).notNull(),
   followingCount: integer('following_count').default(0).notNull(),
 

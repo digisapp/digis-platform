@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
+import { CheckCircle, XCircle, Loader2, AtSign } from 'lucide-react';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -16,11 +17,73 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const [usernameError, setUsernameError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
+
+  // Check username availability with debouncing
+  useEffect(() => {
+    if (!username || username.length < 3) {
+      setUsernameStatus('idle');
+      setUsernameError(username.length > 0 && username.length < 3 ? 'Username must be at least 3 characters' : '');
+      return;
+    }
+
+    // Basic validation
+    if (!/^[a-z][a-z0-9_]*$/.test(username)) {
+      setUsernameStatus('invalid');
+      setUsernameError('Must start with a letter, only letters, numbers, and underscores');
+      return;
+    }
+
+    if (username.length > 20) {
+      setUsernameStatus('invalid');
+      setUsernameError('Username must be 20 characters or less');
+      return;
+    }
+
+    setUsernameStatus('checking');
+    setUsernameError('');
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+        const data = await response.json();
+
+        if (response.ok && data.available) {
+          setUsernameStatus('available');
+          setUsernameError('');
+        } else {
+          setUsernameStatus('taken');
+          setUsernameError(data.error || 'Username is not available');
+        }
+      } catch (err) {
+        console.error('Error checking username:', err);
+        setUsernameStatus('idle');
+        setUsernameError('Could not check availability');
+      }
+    }, 400);
+
+    return () => clearTimeout(timeoutId);
+  }, [username]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail('');
+      setPassword('');
+      setUsername('');
+      setUsernameStatus('idle');
+      setUsernameError('');
+      setError('');
+      setSuccess(false);
+    }
+  }, [isOpen]);
 
   const handleResend = async () => {
     if (!signupEmail) return;
@@ -32,7 +95,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         type: 'signup',
         email: signupEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/welcome/username`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
@@ -40,7 +103,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         throw resendError;
       }
 
-      // Show success feedback (you could add a toast notification here)
       alert('Confirmation email resent! Check your inbox.');
     } catch (err: any) {
       console.error('Resend error:', err);
@@ -53,27 +115,37 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate username
+    if (!username || username.length < 3) {
+      setError('Please choose a username (at least 3 characters)');
+      return;
+    }
+
+    if (usernameStatus !== 'available') {
+      setError('Please choose an available username');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const supabase = createClient();
 
-      console.log('=== SIGNUP STARTED ===');
-      console.log('Email:', email);
-
-      // Sign up with Supabase Auth
+      // Sign up with Supabase Auth, including username in metadata
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/welcome/username`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            username: username.toLowerCase(),
+            display_name: username,
+          },
         },
       });
 
-      console.log('Signup response:', { data, error: signupError });
-
       if (signupError) {
-        console.error('Signup error:', signupError);
         throw signupError;
       }
 
@@ -81,26 +153,44 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         throw new Error('Signup failed - no user returned');
       }
 
-      console.log('User created:', data.user.id);
-      console.log('Session exists:', !!data.session);
+      // Reserve the username in the database
+      const reserveResponse = await fetch('/api/auth/reserve-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: data.user.id,
+          email,
+          username: username.toLowerCase(),
+        }),
+      });
+
+      if (!reserveResponse.ok) {
+        const reserveData = await reserveResponse.json();
+        // If username was taken between check and signup, show error
+        if (reserveData.error?.includes('taken') || reserveData.error?.includes('exists')) {
+          setUsernameStatus('taken');
+          setUsernameError('Username was just taken. Please choose another.');
+          throw new Error('Username was just taken. Please choose another.');
+        }
+        console.warn('Username reservation warning:', reserveData.error);
+      }
 
       // Check if email confirmation is required
       if (data.user && !data.session) {
-        // Email confirmation required - show success popup
-        console.log('=== EMAIL CONFIRMATION REQUIRED ===');
-        setSignupEmail(email); // Save email for resend functionality
+        setSignupEmail(email);
         setSuccess(true);
         setEmail('');
         setPassword('');
+        setUsername('');
         return;
       }
 
-      // User is logged in immediately (no confirmation required)
-      console.log('=== USER LOGGED IN IMMEDIATELY ===');
+      // User is logged in immediately
       setEmail('');
       setPassword('');
+      setUsername('');
       onClose();
-      router.push('/welcome/username');
+      router.push('/dashboard');
 
     } catch (err: any) {
       console.error('Signup error:', err);
@@ -109,6 +199,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       setLoading(false);
     }
   };
+
+  const isFormValid = email && password && password.length >= 6 && usernameStatus === 'available';
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
@@ -143,7 +235,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
               Check Your Email!
             </h3>
             <p className="text-lg text-white font-semibold">
-              We've sent you a confirmation link to get started with Digis
+              We've reserved <span className="text-digis-cyan">@{username || signupEmail.split('@')[0]}</span> for you!
             </p>
             <p className="text-sm text-gray-400 max-w-sm mx-auto">
               Click the link in your email to verify your account and start connecting with your favorite creators!
@@ -181,56 +273,107 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-        <GlassInput
-          type="email"
-          label="Email"
-          placeholder="your@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-
-        <PasswordInput
-          label="Password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="new-password"
-        />
-
-        {error && (
-          <div className="p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-700 text-sm font-semibold">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-        >
-          {loading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Creating account...</span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username Field - First! */}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-300">
+              Username <span className="text-red-400">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <AtSign className="w-5 h-5" />
+              </div>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                placeholder="yourname"
+                className={`w-full pl-10 pr-10 py-3 bg-white/5 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none transition-all ${
+                  usernameStatus === 'idle' || !username
+                    ? 'border-white/10 focus:border-digis-cyan'
+                    : usernameStatus === 'checking'
+                    ? 'border-yellow-500'
+                    : usernameStatus === 'available'
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                }`}
+                maxLength={20}
+              />
+              {/* Status Indicator */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {usernameStatus === 'checking' && (
+                  <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
+                )}
+                {usernameStatus === 'available' && (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                )}
+                {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
+                  <XCircle className="w-5 h-5 text-red-500" />
+                )}
+              </div>
             </div>
-          ) : 'Get Started →'}
-        </button>
+            {/* Username feedback */}
+            {usernameError && (
+              <p className="text-xs text-red-400">{usernameError}</p>
+            )}
+            {usernameStatus === 'available' && (
+              <p className="text-xs text-green-400">✓ digis.cc/{username} is yours!</p>
+            )}
+            {!username && (
+              <p className="text-xs text-gray-500">This will be your profile URL: digis.cc/username</p>
+            )}
+          </div>
 
-        <div className="text-center text-white text-sm md:text-base font-medium">
-          Already have an account?{' '}
+          <GlassInput
+            type="email"
+            label="Email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+
+          <PasswordInput
+            label="Password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+          <p className="text-xs text-gray-500 -mt-2">At least 6 characters</p>
+
+          {error && (
+            <div className="p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-400 text-sm font-semibold">
+              {error}
+            </div>
+          )}
+
           <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
+            type="submit"
+            disabled={loading || !isFormValid}
+            className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
           >
-            Sign in
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Creating account...</span>
+              </div>
+            ) : 'Create Account →'}
           </button>
-        </div>
-      </form>
+
+          <div className="text-center text-white text-sm md:text-base font-medium">
+            Already have an account?{' '}
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
+            >
+              Sign in
+            </button>
+          </div>
+        </form>
       )}
     </GlassModal>
   );

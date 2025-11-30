@@ -7,7 +7,7 @@ import { validateUsername } from '@/lib/utils/username';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
+const USERNAME_CHANGE_COOLDOWN_DAYS = 60; // Industry standard (same as Twitch)
 
 export async function POST(request: NextRequest) {
   try {
