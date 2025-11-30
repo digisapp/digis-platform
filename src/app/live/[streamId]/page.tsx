@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
+import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } from '@livekit/components-react';
+import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
   Heart, Share2, Settings, X, Send, Coins,
@@ -54,6 +56,43 @@ interface Viewer {
   avatarUrl: string | null;
 }
 
+// Component to render the remote video from broadcaster
+function ViewerVideo() {
+  const participants = useRemoteParticipants();
+  const broadcaster = participants[0]; // First participant is the broadcaster
+
+  if (!broadcaster) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-white/60 mt-4">Connecting to stream...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const videoTrack = broadcaster.videoTrackPublications.values().next().value?.track;
+
+  if (!videoTrack) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="text-white/60 mt-4">Waiting for video...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <VideoTrack
+      trackRef={{ participant: broadcaster, publication: broadcaster.videoTrackPublications.values().next().value, source: 'camera' }}
+      className="w-full h-full object-contain"
+    />
+  );
+}
+
 export default function TheaterModePage() {
   const params = useParams();
   const router = useRouter();
@@ -67,7 +106,8 @@ export default function TheaterModePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [serverUrl, setServerUrl] = useState<string | null>(null);
 
   // UI state
   const [showChat, setShowChat] = useState(true);
@@ -108,23 +148,24 @@ export default function TheaterModePage() {
     }
   }, [messages]);
 
-  // Load stream URL
+  // Load LiveKit token for viewing
   useEffect(() => {
-    if (!stream) return;
+    if (!stream || stream.status !== 'live') return;
 
-    const loadStreamUrl = async () => {
+    const loadToken = async () => {
       try {
         const response = await fetch(`/api/streams/${streamId}/token`);
         if (response.ok) {
           const data = await response.json();
-          setStreamUrl(data.streamUrl || `/api/streams/${streamId}/hls`);
+          setToken(data.token);
+          setServerUrl(data.serverUrl);
         }
       } catch (error) {
-        console.error('[TheaterMode] Error loading stream URL:', error);
+        console.error('[TheaterMode] Error loading token:', error);
       }
     };
 
-    loadStreamUrl();
+    loadToken();
   }, [stream, streamId]);
 
   const loadStream = async () => {
@@ -435,22 +476,30 @@ export default function TheaterModePage() {
         <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black">
           {/* Video */}
           <div className="flex-1 relative">
-            <video
-              ref={videoRef}
-              playsInline
-              autoPlay
-              muted={muted}
-              controls={false}
-              preload="metadata"
-              poster={`/api/streams/poster?streamId=${streamId}`}
-              className="w-full h-full object-contain"
-            >
-              {streamUrl && <source src={streamUrl} type="application/x-mpegURL" />}
-              Your browser does not support video playback.
-            </video>
+            {token && serverUrl ? (
+              <LiveKitRoom
+                token={token}
+                serverUrl={serverUrl}
+                className="h-full"
+                options={{
+                  adaptiveStream: true,
+                  dynacast: true,
+                }}
+              >
+                <ViewerVideo />
+                <RoomAudioRenderer muted={muted} />
+              </LiveKitRoom>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-black">
+                <div className="text-center">
+                  <LoadingSpinner size="lg" />
+                  <p className="text-white/60 mt-4">Loading stream...</p>
+                </div>
+              </div>
+            )}
 
             {/* Video Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button

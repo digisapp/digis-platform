@@ -14,22 +14,7 @@ export function GiftAlert({ gift, streamGift, senderUsername, onComplete }: Gift
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Play gift sound based on coin value
-    let soundFile = '/sounds/gift-small.wav'; // Default
-
-    if (gift.coinCost >= 1000) {
-      soundFile = '/sounds/gift-epic.wav';
-    } else if (gift.coinCost >= 500) {
-      soundFile = '/sounds/gift-large.wav';
-    } else if (gift.coinCost >= 100) {
-      soundFile = '/sounds/gift-medium.wav';
-    }
-
-    const audio = new Audio(soundFile);
-    audio.volume = 0.5;
-    audio.play().catch(() => {
-      // Silently fail if audio doesn't play
-    });
+    // Note: Sound is handled by GiftFloatingEmojis to prevent multiple overlapping sounds
 
     // Hide after 3 seconds
     const timer = setTimeout(() => {

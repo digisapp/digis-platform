@@ -13,12 +13,7 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Play spotlight sound
-    const audio = new Audio('/sounds/big-tip.wav');
-    audio.volume = 0.6;
-    audio.play().catch(() => {
-      // Silently fail if audio doesn't play
-    });
+    // Note: Sound is handled by GiftFloatingEmojis to prevent multiple overlapping sounds
 
     // Hide after 4 seconds
     const timer = setTimeout(() => {

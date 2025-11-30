@@ -42,7 +42,7 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
   const currentAudio = useRef<HTMLAudioElement | null>(null);
 
   // Minimum time between sounds (prevents rapid-fire dinging)
-  const SOUND_COOLDOWN = 2000; // 2 seconds between sounds
+  const SOUND_COOLDOWN = 4000; // 4 seconds between sounds
 
   // Preload audio files
   useEffect(() => {
@@ -66,16 +66,16 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     };
   }, []);
 
-  // Maximum sound duration (3 seconds - keeps it snappy)
-  const MAX_SOUND_DURATION = 3000;
+  // Maximum sound duration (2 seconds - keeps it snappy)
+  const MAX_SOUND_DURATION = 2000;
 
-  // Volume levels by rarity (user wants different intensities)
+  // Volume levels by rarity (lower to avoid being annoying)
   const VOLUME_LEVELS: Record<string, number> = {
-    common: 0.25,
-    rare: 0.35,
-    epic: 0.45,
-    legendary: 0.55,
-    tip: 0.4,
+    common: 0.15,
+    rare: 0.2,
+    epic: 0.25,
+    legendary: 0.3,
+    tip: 0.2,
   };
 
   // Play sound for a rarity - with cooldown to prevent rapid-fire sounds

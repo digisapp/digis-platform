@@ -346,6 +346,26 @@ export default function BroadcastStudioPage() {
     onTip: (tipData) => {
       setTotalEarnings((prev) => prev + tipData.amount);
       fetchLeaderboard();
+
+      // Add floating coin emoji for visual feedback
+      setFloatingGifts(prev => [...prev, {
+        id: `tip-${Date.now()}-${Math.random()}`,
+        emoji: '💰',
+        rarity: tipData.amount >= 100 ? 'epic' : tipData.amount >= 50 ? 'rare' : 'common',
+        timestamp: Date.now()
+      }]);
+
+      // Show top tipper spotlight for large tips (100+ coins)
+      if (tipData.amount >= 100) {
+        const tipAlert: Alert = {
+          type: 'topTipper',
+          username: tipData.senderUsername,
+          amount: tipData.amount,
+          avatarUrl: tipData.senderAvatarUrl,
+          id: `tip-spotlight-${Date.now()}-${Math.random()}`,
+        };
+        setAlerts(prev => [...prev, tipAlert]);
+      }
     },
     onViewerCount: (data) => {
       setViewerCount(data.currentViewers);
@@ -568,74 +588,11 @@ export default function BroadcastStudioPage() {
       }, 3500);
     }
 
-    // Note: Sound is now handled by alert components (GiftAlert.tsx plays appropriate sound)
-
     console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
   };
 
-  const playSound = (type: 'join' | 'gift', giftValue?: number) => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const gainNode = audioContext.createGain();
-      gainNode.connect(audioContext.destination);
-
-      if (type === 'gift') {
-        // Enhanced celebratory sound for gifts with chord progression
-        // Volume based on gift value
-        const baseVolume = giftValue && giftValue > 100 ? 0.4 : 0.3;
-
-        // Play a major chord (C-E-G for happy feeling)
-        const frequencies = giftValue && giftValue > 100
-          ? [523.25, 659.25, 783.99, 1046.50] // C5-E5-G5-C6 (bigger gift)
-          : [523.25, 659.25, 783.99]; // C5-E5-G5 (normal gift)
-
-        frequencies.forEach((freq, index) => {
-          const oscillator = audioContext.createOscillator();
-          oscillator.type = 'sine';
-          oscillator.connect(gainNode);
-
-          oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-          gainNode.gain.setValueAtTime(baseVolume / frequencies.length, audioContext.currentTime + index * 0.05);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8 + index * 0.05);
-
-          oscillator.start(audioContext.currentTime + index * 0.05);
-          oscillator.stop(audioContext.currentTime + 0.8 + index * 0.05);
-        });
-
-        // Add a sparkle effect for big gifts
-        if (giftValue && giftValue > 100) {
-          setTimeout(() => {
-            const sparkle = audioContext.createOscillator();
-            sparkle.type = 'sine';
-            const sparkleGain = audioContext.createGain();
-            sparkle.connect(sparkleGain);
-            sparkleGain.connect(audioContext.destination);
-
-            sparkle.frequency.setValueAtTime(2093, audioContext.currentTime); // High C
-            sparkleGain.gain.setValueAtTime(0.2, audioContext.currentTime);
-            sparkleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-            sparkle.start(audioContext.currentTime);
-            sparkle.stop(audioContext.currentTime + 0.3);
-          }, 200);
-        }
-      } else if (type === 'join') {
-        // Subtle, welcoming join sound
-        const oscillator = audioContext.createOscillator();
-        oscillator.type = 'sine';
-        oscillator.connect(gainNode);
-
-        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
-      }
-    } catch (err) {
-      console.log('Audio not supported');
-    }
-  };
+  // Note: All gift sounds are now centralized in GiftFloatingEmojis component
+  // to prevent multiple overlapping sounds when gifts are received
 
   const removeGiftAnimation = (index: number) => {
     setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
@@ -1057,16 +1014,29 @@ export default function BroadcastStudioPage() {
                 onGoalEnded={fetchGoals}
               />
             )}
+          </div>
 
-            {/* Top Gifters Leaderboard - Desktop only (compact) */}
-            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3 max-w-xs">
+          {/* Chat Sidebar + Top Gifters */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className={`${isPortraitDevice ? 'h-[210px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
+              <StreamChat
+                streamId={streamId}
+                messages={messages}
+                isCreator={true}
+                onSendMessage={handleSendMessage}
+                onMessageDeleted={fetchMessages}
+              />
+            </div>
+
+            {/* Top Gifters Leaderboard - Desktop only (below chat) */}
+            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 Top Gifters
               </h3>
-              <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="space-y-1.5 max-h-[150px] overflow-y-auto">
                 {leaderboard.length > 0 ? (
                   leaderboard.slice(0, 5).map((supporter, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
@@ -1080,8 +1050,8 @@ export default function BroadcastStudioPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-4 text-gray-300">
-                    <svg className="w-8 h-8 mx-auto text-yellow-400 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="text-center py-3 text-gray-300">
+                    <svg className="w-6 h-6 mx-auto text-yellow-400 mb-1" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                     </svg>
@@ -1089,19 +1059,6 @@ export default function BroadcastStudioPage() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Chat Sidebar */}
-          <div className="lg:col-span-1">
-            <div className={`${isPortraitDevice ? 'h-[210px]' : 'h-[calc(70vh-8.4rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
-              <StreamChat
-                streamId={streamId}
-                messages={messages}
-                isCreator={true}
-                onSendMessage={handleSendMessage}
-                onMessageDeleted={fetchMessages}
-              />
             </div>
           </div>
         </div>

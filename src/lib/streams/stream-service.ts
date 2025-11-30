@@ -463,7 +463,7 @@ export class StreamService {
   static async getGiftLeaderboard(streamId: string, limit: number = 10) {
     const leaderboard = await db
       .select({
-        senderUsername: streamGifts.senderUsername,
+        username: streamGifts.senderUsername,
         senderId: streamGifts.senderId,
         totalCoins: sql<number>`SUM(${streamGifts.totalCoins})`,
       })
