@@ -57,12 +57,12 @@ export function GiftAlert({ gift, streamGift, senderUsername, onComplete }: Gift
     : 'text-cyan-400';
 
   return (
-    <div className="fixed bottom-24 left-4 z-50 animate-slideInLeft">
+    <div className="fixed bottom-24 right-4 z-50 animate-slideInRight max-w-[calc(100vw-2rem)]">
       {/* Glow effect */}
       <div className={`absolute inset-0 bg-gradient-to-r ${glowColor} rounded-xl blur-xl opacity-50 animate-pulse`} />
 
       {/* Alert Card */}
-      <div className={`relative backdrop-blur-xl bg-slate-900/95 rounded-xl border-2 ${borderColor} shadow-2xl p-4 w-96 animate-bounceIn`}>
+      <div className={`relative backdrop-blur-xl bg-slate-900/95 rounded-xl border-2 ${borderColor} shadow-2xl p-4 w-80 sm:w-96 animate-bounceIn`}>
         <div className="flex items-center gap-4">
           {/* Gift Icon/Emoji */}
           <div className="relative">
@@ -108,9 +108,9 @@ export function GiftAlert({ gift, streamGift, senderUsername, onComplete }: Gift
 
       {/* CSS Animations */}
       <style jsx>{`
-        @keyframes slideInLeft {
+        @keyframes slideInRight {
           from {
-            transform: translateX(-400px);
+            transform: translateX(400px);
             opacity: 0;
           }
           to {
@@ -150,8 +150,8 @@ export function GiftAlert({ gift, streamGift, senderUsername, onComplete }: Gift
             transform: rotate(360deg);
           }
         }
-        .animate-slideInLeft {
-          animation: slideInLeft 0.4s ease-out;
+        .animate-slideInRight {
+          animation: slideInRight 0.4s ease-out;
         }
         .animate-bounceIn {
           animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);

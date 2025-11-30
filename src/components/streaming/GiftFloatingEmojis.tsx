@@ -25,13 +25,13 @@ const GIFT_SOUNDS: Record<string, string> = {
   tip: '/sounds/coin-tip.wav',            // Coins clinking
 };
 
-// Gift burst counts, sizes, and duration by rarity
+// Gift burst counts, sizes, and duration by rarity - more hype for bigger gifts!
 const RARITY_CONFIG: Record<string, { burstCount: number; baseScale: number; glowColor: string; duration: number }> = {
-  common: { burstCount: 3, baseScale: 1, glowColor: 'rgba(156, 163, 175, 0.5)', duration: 4000 },
-  rare: { burstCount: 5, baseScale: 1.2, glowColor: 'rgba(59, 130, 246, 0.6)', duration: 5000 },
-  epic: { burstCount: 8, baseScale: 1.4, glowColor: 'rgba(168, 85, 247, 0.7)', duration: 6000 },
-  legendary: { burstCount: 12, baseScale: 1.6, glowColor: 'rgba(234, 179, 8, 0.8)', duration: 8000 },
-  tip: { burstCount: 6, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)', duration: 4500 },
+  common: { burstCount: 4, baseScale: 1, glowColor: 'rgba(156, 163, 175, 0.5)', duration: 5000 },
+  rare: { burstCount: 8, baseScale: 1.3, glowColor: 'rgba(59, 130, 246, 0.6)', duration: 6000 },
+  epic: { burstCount: 15, baseScale: 1.5, glowColor: 'rgba(168, 85, 247, 0.7)', duration: 8000 },
+  legendary: { burstCount: 25, baseScale: 1.8, glowColor: 'rgba(234, 179, 8, 0.8)', duration: 10000 },
+  tip: { burstCount: 8, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)', duration: 5500 },
 };
 
 export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProps) {
@@ -66,16 +66,22 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     };
   }, []);
 
-  // Maximum sound duration (2 seconds - keeps it snappy)
-  const MAX_SOUND_DURATION = 2000;
+  // Sound duration by rarity (longer for bigger gifts = more hype)
+  const SOUND_DURATION: Record<string, number> = {
+    common: 2000,
+    rare: 3000,
+    epic: 4000,
+    legendary: 6000,
+    tip: 2500,
+  };
 
-  // Volume levels by rarity (lower to avoid being annoying)
+  // Volume levels by rarity (balanced for impact)
   const VOLUME_LEVELS: Record<string, number> = {
-    common: 0.15,
-    rare: 0.2,
-    epic: 0.25,
-    legendary: 0.3,
-    tip: 0.2,
+    common: 0.25,
+    rare: 0.35,
+    epic: 0.45,
+    legendary: 0.55,
+    tip: 0.3,
   };
 
   // Play sound for a rarity - with cooldown to prevent rapid-fire sounds
@@ -109,7 +115,8 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
       // Audio play failed - likely no user interaction yet
     });
 
-    // Force stop after max duration
+    // Force stop after rarity-based duration (longer for bigger gifts)
+    const duration = SOUND_DURATION[soundKey] || 2000;
     const timeout = setTimeout(() => {
       audio.pause();
       audio.currentTime = 0;
@@ -117,7 +124,7 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
       if (currentAudio.current === audio) {
         currentAudio.current = null;
       }
-    }, MAX_SOUND_DURATION);
+    }, duration);
 
     // Also stop when naturally ended
     audio.onended = () => {

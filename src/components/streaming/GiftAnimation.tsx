@@ -54,9 +54,9 @@ function GiftFeedItem({ gift, streamGift, index, onComplete }: GiftFeedItemProps
         flex items-center gap-3 px-4 py-2.5 rounded-xl border backdrop-blur-md
         transition-all duration-300 ease-out
         ${getRarityStyles()}
-        ${state === 'entering' ? 'translate-x-[-100%] opacity-0' : ''}
+        ${state === 'entering' ? 'translate-x-[100%] opacity-0' : ''}
         ${state === 'visible' ? 'translate-x-0 opacity-100' : ''}
-        ${state === 'exiting' ? 'translate-x-[-50%] opacity-0 scale-95' : ''}
+        ${state === 'exiting' ? 'translate-x-[50%] opacity-0 scale-95' : ''}
       `}
     >
       {/* Gift emoji with pulse for legendary */}
@@ -104,7 +104,7 @@ export function GiftAnimationManager({ gifts, onRemove }: GiftAnimationManagerPr
   if (visibleGifts.length === 0) return null;
 
   return (
-    <div className="fixed left-4 bottom-24 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed right-4 top-24 z-50 flex flex-col gap-2 w-72 sm:w-80 pointer-events-none">
       {visibleGifts.map((item, index) => (
         <GiftFeedItem
           key={`${item.streamGift.id}-${index}`}
