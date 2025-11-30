@@ -370,14 +370,14 @@ export default function AdminDashboard() {
 
   if (loading && !stats) {
     return (
-      <div className="min-h-screen bg-digis-dark flex items-center justify-center">
+      <div className="min-h-screen bg-digis-dark flex items-center justify-center md:pl-20">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-digis-dark py-8 px-4">
+    <div className="min-h-screen bg-digis-dark py-8 px-4 md:pl-20">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
