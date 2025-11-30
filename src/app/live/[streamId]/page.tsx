@@ -72,9 +72,9 @@ function ViewerVideo() {
     );
   }
 
-  const videoTrack = broadcaster.videoTrackPublications.values().next().value?.track;
+  const videoPublication = broadcaster.videoTrackPublications.values().next().value;
 
-  if (!videoTrack) {
+  if (!videoPublication || !videoPublication.track) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-black">
         <div className="text-center">
@@ -87,7 +87,7 @@ function ViewerVideo() {
 
   return (
     <VideoTrack
-      trackRef={{ participant: broadcaster, publication: broadcaster.videoTrackPublications.values().next().value, source: 'camera' }}
+      trackRef={{ participant: broadcaster, publication: videoPublication, source: videoPublication.source }}
       className="w-full h-full object-contain"
     />
   );
