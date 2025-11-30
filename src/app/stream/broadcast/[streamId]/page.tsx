@@ -18,7 +18,7 @@ import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -86,7 +86,7 @@ export default function BroadcastStudioPage() {
     totalEarnings: number;
     topSupporters: Array<{ username: string; totalCoins: number }>;
   } | null>(null);
-  const [leaderboard, setLeaderboard] = useState<Array<{ username: string; totalCoins: number }>>([]);
+  const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
   const [isPortraitDevice, setIsPortraitDevice] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
@@ -907,6 +907,16 @@ export default function BroadcastStudioPage() {
                 <Coins className="w-4 h-4 text-yellow-400" />
                 <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
               </div>
+
+              {/* Messages - opens in new tab so stream continues */}
+              <button
+                onClick={() => window.open('/chats', '_blank')}
+                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-cyan-500/10 rounded-xl border-2 border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all"
+                title="Open Messages (new tab)"
+              >
+                <MessageCircle className="w-4 h-4 text-cyan-400" />
+                <span className="hidden sm:inline text-cyan-400 font-bold text-xs">Messages</span>
+              </button>
             </div>
 
             {/* Right: End Stream Button */}
@@ -1036,17 +1046,42 @@ export default function BroadcastStudioPage() {
                 </svg>
                 Top Gifters
               </h3>
-              <div className="space-y-1.5 max-h-[150px] overflow-y-auto">
+              <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
                 {leaderboard.length > 0 ? (
                   leaderboard.slice(0, 5).map((supporter, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold w-5" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
+                    <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group hover:bg-white/10 transition-colors">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-bold w-5 flex-shrink-0" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
                           #{index + 1}
                         </span>
-                        <span className="font-medium text-white truncate max-w-[100px]">{supporter.username}</span>
+                        <a
+                          href={`/${supporter.username}`}
+                          className="font-medium text-white truncate hover:text-cyan-400 transition-colors"
+                          title={supporter.username}
+                        >
+                          {supporter.username}
+                        </a>
                       </div>
-                      <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
+                        {/* Action buttons - show on hover */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => router.push(`/chats?userId=${supporter.senderId}`)}
+                            className="p-1 hover:bg-cyan-500/20 rounded transition-colors"
+                            title="Message"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
+                          </button>
+                          <button
+                            onClick={() => router.push(`/${supporter.username}`)}
+                            className="p-1 hover:bg-pink-500/20 rounded transition-colors"
+                            title="View Profile"
+                          >
+                            <UserPlus className="w-3.5 h-3.5 text-pink-400" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -1075,13 +1110,35 @@ export default function BroadcastStudioPage() {
             {leaderboard.length > 0 ? (
               leaderboard.slice(0, 5).map((supporter, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold w-5" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="font-bold w-5 flex-shrink-0" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
                       #{index + 1}
                     </span>
-                    <span className="font-medium text-white truncate max-w-[120px]">{supporter.username}</span>
+                    <a
+                      href={`/${supporter.username}`}
+                      className="font-medium text-white truncate hover:text-cyan-400 transition-colors"
+                    >
+                      {supporter.username}
+                    </a>
                   </div>
-                  <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
+                    {/* Action buttons - always visible on mobile */}
+                    <button
+                      onClick={() => router.push(`/chats?userId=${supporter.senderId}`)}
+                      className="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 rounded transition-colors"
+                      title="Message"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
+                    </button>
+                    <button
+                      onClick={() => router.push(`/${supporter.username}`)}
+                      className="p-1.5 bg-pink-500/20 hover:bg-pink-500/30 rounded transition-colors"
+                      title="View Profile"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 text-pink-400" />
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
