@@ -257,7 +257,7 @@ export default function UsernameSetupPage() {
           </GlassButton>
 
           <p className="text-xs text-gray-500 text-center">
-            You can't change your username later, so choose wisely!
+            You can change your username every 30 days in Settings
           </p>
         </form>
       </div>

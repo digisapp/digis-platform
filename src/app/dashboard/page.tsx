@@ -73,6 +73,23 @@ export default function FanDashboard() {
       return;
     }
 
+    // Check if user needs to set their username
+    try {
+      const profileRes = await fetch('/api/user/profile');
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const username = profileData.user?.username;
+
+        // Redirect to username setup if they have no username or an auto-generated one
+        if (!username || username.startsWith('user_')) {
+          router.push('/welcome/username');
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error checking username:', err);
+    }
+
     setLoading(false);
   };
 
