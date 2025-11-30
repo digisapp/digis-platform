@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
 interface Application {
   id: string;
@@ -75,6 +76,46 @@ export default function AdminDashboard() {
 
   // Analytics state
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+
+  // Modal state
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'confirm' | 'prompt' | 'danger' | 'success';
+    icon: 'delete' | 'promote' | 'shield' | 'warning' | 'success';
+    confirmText: string;
+    placeholder?: string;
+    requireInput?: string;
+    onConfirm: (inputValue?: string) => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'confirm',
+    icon: 'warning',
+    confirmText: 'Confirm',
+    onConfirm: () => {},
+  });
+
+  // Toast state
+  const [toast, setToast] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success',
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ isOpen: true, message, type });
+  };
+
+  const closeModal = () => {
+    setModal(prev => ({ ...prev, isOpen: false }));
+  };
 
   useEffect(() => {
     checkAdminAccess();
@@ -171,81 +212,110 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (!confirm('Approve this creator application?')) return;
-
-    setProcessingId(id);
-    try {
-      const response = await fetch(`/api/admin/applications/${id}/approve`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        alert('Application approved successfully!');
-        fetchApplications();
-        fetchStats();
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to approve application');
-      }
-    } catch (err) {
-      console.error('Error approving:', err);
-      alert('Failed to approve application');
-    } finally {
-      setProcessingId(null);
-    }
+  const handleApprove = (id: string) => {
+    setModal({
+      isOpen: true,
+      title: 'Approve Creator',
+      message: 'Approve this creator application?\n\nThey will gain access to creator features.',
+      type: 'confirm',
+      icon: 'promote',
+      confirmText: 'Approve',
+      onConfirm: async () => {
+        closeModal();
+        setProcessingId(id);
+        try {
+          const response = await fetch(`/api/admin/applications/${id}/approve`, {
+            method: 'POST',
+          });
+          if (response.ok) {
+            showToast('Application approved successfully!', 'success');
+            fetchApplications();
+            fetchStats();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to approve application', 'error');
+          }
+        } catch (err) {
+          console.error('Error approving:', err);
+          showToast('Failed to approve application', 'error');
+        } finally {
+          setProcessingId(null);
+        }
+      },
+    });
   };
 
-  const handleReject = async (id: string) => {
-    const reason = prompt('Reason for rejection (optional):');
-    if (reason === null) return;
-
-    setProcessingId(id);
-    try {
-      const response = await fetch(`/api/admin/applications/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
-      });
-
-      if (response.ok) {
-        alert('Application rejected');
-        fetchApplications();
-        fetchStats();
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to reject application');
-      }
-    } catch (err) {
-      console.error('Error rejecting:', err);
-      alert('Failed to reject application');
-    } finally {
-      setProcessingId(null);
-    }
+  const handleReject = (id: string) => {
+    setModal({
+      isOpen: true,
+      title: 'Reject Application',
+      message: 'Enter a reason for rejection (optional):',
+      type: 'prompt',
+      icon: 'warning',
+      confirmText: 'Reject',
+      placeholder: 'Rejection reason...',
+      onConfirm: async (reason?: string) => {
+        closeModal();
+        setProcessingId(id);
+        try {
+          const response = await fetch(`/api/admin/applications/${id}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason || '' }),
+          });
+          if (response.ok) {
+            showToast('Application rejected', 'success');
+            fetchApplications();
+            fetchStats();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to reject application', 'error');
+          }
+        } catch (err) {
+          console.error('Error rejecting:', err);
+          showToast('Failed to reject application', 'error');
+        } finally {
+          setProcessingId(null);
+        }
+      },
+    });
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'fan' | 'creator' | 'admin') => {
-    if (!confirm(`Change user role to ${newRole}?`)) return;
-
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/role`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (response.ok) {
-        alert('Role updated successfully');
-        fetchUsers();
-        fetchStats();
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to update role');
-      }
-    } catch (err) {
-      console.error('Error updating role:', err);
-      alert('Failed to update role');
-    }
+  const handleRoleChange = (userId: string, newRole: 'fan' | 'creator' | 'admin') => {
+    const roleIcons: Record<string, 'promote' | 'shield' | 'warning'> = {
+      creator: 'promote',
+      admin: 'shield',
+      fan: 'warning',
+    };
+    setModal({
+      isOpen: true,
+      title: `Change Role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}`,
+      message: `Are you sure you want to change this user's role to ${newRole}?`,
+      type: newRole === 'admin' ? 'danger' : 'confirm',
+      icon: roleIcons[newRole] || 'warning',
+      confirmText: 'Change Role',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/role`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole }),
+          });
+          if (response.ok) {
+            showToast('Role updated successfully', 'success');
+            fetchUsers();
+            fetchStats();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update role', 'error');
+          }
+        } catch (err) {
+          console.error('Error updating role:', err);
+          showToast('Failed to update role', 'error');
+        }
+      },
+    });
   };
 
   const handleToggleVerification = async (userId: string) => {
@@ -253,119 +323,131 @@ export default function AdminDashboard() {
       const response = await fetch(`/api/admin/users/${userId}/verify`, {
         method: 'POST',
       });
-
       if (response.ok) {
-        alert('Verification status updated');
+        showToast('Verification status updated', 'success');
         fetchUsers();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update verification');
+        showToast(data.error || 'Failed to update verification', 'error');
       }
     } catch (err) {
       console.error('Error updating verification:', err);
-      alert('Failed to update verification');
+      showToast('Failed to update verification', 'error');
     }
   };
 
-  const handleChangeUsername = async (userId: string, currentUsername: string) => {
-    const newUsername = prompt(`Enter new username for @${currentUsername}:\n\nNote: As an admin, you can assign reserved names (brands, celebrities, etc.)`, currentUsername);
+  const [pendingUsername, setPendingUsername] = useState<{ userId: string; currentUsername: string } | null>(null);
 
-    if (!newUsername || newUsername === currentUsername) return;
+  const handleChangeUsername = (userId: string, currentUsername: string) => {
+    setPendingUsername({ userId, currentUsername });
+    setModal({
+      isOpen: true,
+      title: 'Change Username',
+      message: `Enter new username for @${currentUsername}\n\nAs an admin, you can assign reserved names (brands, celebrities, etc.)`,
+      type: 'prompt',
+      icon: 'shield',
+      confirmText: 'Change Username',
+      placeholder: currentUsername,
+      onConfirm: async (newUsername?: string) => {
+        closeModal();
+        if (!newUsername || newUsername === currentUsername) return;
 
-    // Confirm if it's a reserved name
-    const confirmMsg = `Change username to @${newUsername}?\n\n` +
-      `This will:\n` +
-      `- Change their profile URL to digis.cc/${newUsername}\n` +
-      `- If this is a reserved name, the user will be auto-verified as a creator`;
-
-    if (!confirm(confirmMsg)) return;
-
-    try {
-      const response = await fetch('/api/admin/set-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          username: newUsername,
-          verifyCreator: true, // Auto-verify if setting reserved name
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        let message = `Username updated to @${newUsername}!`;
-        if (data.data.wasReserved) {
-          message += `\n\nℹ️ This was a reserved name - user has been verified as a creator.`;
+        try {
+          const response = await fetch('/api/admin/set-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              username: newUsername,
+              verifyCreator: true,
+            }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            const wasReserved = data.data?.wasReserved;
+            showToast(
+              wasReserved
+                ? `Username updated to @${newUsername} (reserved name - user verified)`
+                : `Username updated to @${newUsername}`,
+              'success'
+            );
+            fetchUsers();
+          } else {
+            showToast(data.error || 'Failed to update username', 'error');
+          }
+        } catch (err) {
+          console.error('Error updating username:', err);
+          showToast('Failed to update username', 'error');
         }
-        alert(message);
-        fetchUsers();
-      } else {
-        alert(data.error || 'Failed to update username');
-      }
-    } catch (err) {
-      console.error('Error updating username:', err);
-      alert('Failed to update username');
-    }
+        setPendingUsername(null);
+      },
+    });
   };
 
-  const handleSuspendUser = async (userId: string, action: 'suspend' | 'unsuspend') => {
-    const message = action === 'suspend'
-      ? 'Suspend this user account? They will not be able to log in.'
-      : 'Unsuspend this user account? They will be able to log in again.';
-
-    if (!confirm(message)) return;
-
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/suspend`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(data.message);
-        fetchUsers();
-        fetchStats();
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to update account status');
-      }
-    } catch (err) {
-      console.error('Error updating account status:', err);
-      alert('Failed to update account status');
-    }
+  const handleSuspendUser = (userId: string, action: 'suspend' | 'unsuspend') => {
+    const isSuspend = action === 'suspend';
+    setModal({
+      isOpen: true,
+      title: isSuspend ? 'Suspend User' : 'Unsuspend User',
+      message: isSuspend
+        ? 'Suspend this user account?\n\nThey will not be able to log in until unsuspended.'
+        : 'Unsuspend this user account?\n\nThey will be able to log in again.',
+      type: isSuspend ? 'danger' : 'confirm',
+      icon: 'warning',
+      confirmText: isSuspend ? 'Suspend' : 'Unsuspend',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/suspend`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action }),
+          });
+          if (response.ok) {
+            showToast(isSuspend ? 'User suspended' : 'User unsuspended', 'success');
+            fetchUsers();
+            fetchStats();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update account status', 'error');
+          }
+        } catch (err) {
+          console.error('Error updating account status:', err);
+          showToast('Failed to update account status', 'error');
+        }
+      },
+    });
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('⚠️ DELETE THIS ACCOUNT?\n\nThis will permanently ban the user and they will not be able to log in. This action cannot be undone.\n\nType DELETE to confirm.')) {
-      return;
-    }
-
-    const confirmation = prompt('Type DELETE to confirm account deletion:');
-    if (confirmation !== 'DELETE') {
-      alert('Deletion cancelled');
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/delete`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        alert('User account has been banned');
-        fetchUsers();
-        fetchStats();
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to delete account');
-      }
-    } catch (err) {
-      console.error('Error deleting account:', err);
-      alert('Failed to delete account');
-    }
+  const handleDeleteUser = (userId: string) => {
+    setModal({
+      isOpen: true,
+      title: 'Delete Account',
+      message: 'This will permanently ban this user.\n\nThey will not be able to log in and this action cannot be undone.',
+      type: 'danger',
+      icon: 'delete',
+      confirmText: 'Delete Account',
+      requireInput: 'DELETE',
+      onConfirm: async () => {
+        closeModal();
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/delete`, {
+            method: 'POST',
+          });
+          if (response.ok) {
+            showToast('User account has been banned', 'success');
+            fetchUsers();
+            fetchStats();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to delete account', 'error');
+          }
+        } catch (err) {
+          console.error('Error deleting account:', err);
+          showToast('Failed to delete account', 'error');
+        }
+      },
+    });
   };
 
   if (loading && !stats) {
@@ -936,6 +1018,28 @@ export default function AdminDashboard() {
           </>
         )}
       </div>
+
+      {/* Admin Modal */}
+      <AdminModal
+        isOpen={modal.isOpen}
+        onClose={closeModal}
+        onConfirm={modal.onConfirm}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        icon={modal.icon}
+        confirmText={modal.confirmText}
+        placeholder={modal.placeholder}
+        requireInput={modal.requireInput}
+      />
+
+      {/* Toast Notifications */}
+      <AdminToast
+        isOpen={toast.isOpen}
+        onClose={() => setToast(prev => ({ ...prev, isOpen: false }))}
+        message={toast.message}
+        type={toast.type}
+      />
     </div>
   );
 }
