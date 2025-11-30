@@ -10,6 +10,7 @@ interface AuthUser {
   username: string | null;
   displayName: string | null;
   role: 'fan' | 'creator' | 'admin' | null;
+  isAdmin: boolean; // Separate flag - user can be creator AND admin
   isCreatorVerified: boolean;
   avatarUrl: string | null;
 }
@@ -38,12 +39,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authUser = session.user;
     const metadata = authUser.user_metadata || {};
 
-    // Check for admin emails
+    // Check for admin emails (fallback check)
     const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
 
-    // Role priority: metadata role > admin email check > null
-    // The login API syncs DB role to metadata, so metadata should be accurate
-    const role = metadata.role || (isAdminEmail ? 'admin' : null);
+    // Role priority: metadata role > fan (default)
+    // Note: role is separate from isAdmin - a creator can also be an admin
+    const role = metadata.role || 'fan';
+
+    // isAdmin can be set via metadata.isAdmin OR if user is an admin email
+    const isAdmin = metadata.isAdmin || isAdminEmail || role === 'admin';
 
     return {
       id: authUser.id,
@@ -51,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username: metadata.username || authUser.email?.split('@')[0] || null,
       displayName: metadata.display_name || metadata.username || null,
       role,
+      isAdmin,
       isCreatorVerified: !!metadata.isCreatorVerified,
       avatarUrl: metadata.avatar_url || null,
     };
@@ -116,8 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     loading,
-    isCreator: user?.role === 'creator',
-    isAdmin: user?.role === 'admin',
+    isCreator: user?.role === 'creator' || user?.role === 'admin', // Admins can do creator things
+    isAdmin: user?.isAdmin || false, // Use the isAdmin flag, not role
     isFan: user?.role === 'fan' || (!user?.role && !!user),
     refresh,
   };

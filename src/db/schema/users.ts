@@ -14,6 +14,7 @@ export const users = pgTable('users', {
   creatorCardImageUrl: text('creator_card_image_url'), // 16:9 image for creator cards on explore page
   bio: text('bio'),
   role: userRoleEnum('role').default('fan').notNull(),
+  isAdmin: boolean('is_admin').default(false).notNull(), // Separate admin flag - user can be creator AND admin
 
   // Creator categories (for content discovery)
   primaryCategory: text('primary_category'), // Main category e.g., "Gaming", "Music"

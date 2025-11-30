@@ -5,34 +5,44 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export class AdminService {
-  // Check if user is admin
+  // Check if user is admin (checks isAdmin flag OR role=admin OR email in ADMIN_EMAILS)
   static async isAdmin(userId: string): Promise<boolean> {
     const user = await withTimeoutAndRetry(
       () => db.query.users.findFirst({
         where: eq(users.id, userId),
-        columns: { role: true, email: true },
+        columns: { role: true, email: true, isAdmin: true },
       }),
       { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
     );
 
-    // Also check ADMIN_EMAILS env var as fallback (with hardcoded defaults)
+    // Check isAdmin flag first (new approach - allows creator + admin)
+    if (user?.isAdmin) {
+      return true;
+    }
+
+    // Legacy: check if role is 'admin'
+    if (user?.role === 'admin') {
+      return true;
+    }
+
+    // Fallback: check ADMIN_EMAILS env var (with hardcoded defaults)
     const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
     const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
     const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
     const isAdminByEmail = user?.email && adminEmails.includes(user.email.toLowerCase());
 
-    // If user should be admin by email but isn't in DB, auto-promote
-    if (isAdminByEmail && user?.role !== 'admin') {
+    // If user should be admin by email but doesn't have isAdmin flag, set it
+    if (isAdminByEmail && !user?.isAdmin) {
       try {
-        await db.update(users).set({ role: 'admin' }).where(eq(users.id, userId));
-        console.log(`[AdminService] Auto-promoted ${user.email} to admin role`);
+        await db.update(users).set({ isAdmin: true }).where(eq(users.id, userId));
+        console.log(`[AdminService] Set isAdmin=true for ${user?.email}`);
         return true;
       } catch (e) {
-        console.error('[AdminService] Failed to auto-promote:', e);
+        console.error('[AdminService] Failed to set isAdmin flag:', e);
       }
     }
 
-    return user?.role === 'admin' || !!isAdminByEmail;
+    return !!isAdminByEmail;
   }
 
   // Get all pending creator applications

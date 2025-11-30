@@ -66,22 +66,25 @@ export async function POST(request: NextRequest) {
     }
 
     // 3) Check if user should be admin based on ADMIN_EMAILS env var
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
+    const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+    const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
     const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
 
-    // If user is in ADMIN_EMAILS but not admin in DB, promote them
-    if (isAdminEmail && dbUser && dbUser.role !== 'admin') {
+    // If user is in ADMIN_EMAILS but doesn't have isAdmin flag, set it (don't change role!)
+    if (isAdminEmail && dbUser && !dbUser.isAdmin) {
       try {
-        await db.update(users).set({ role: 'admin' }).where(eq(users.id, authUser.id));
-        dbUser.role = 'admin';
-        console.log(`[LOGIN] Promoted ${authUser.email} to admin role`);
+        await db.update(users).set({ isAdmin: true }).where(eq(users.id, authUser.id));
+        dbUser.isAdmin = true;
+        console.log(`[LOGIN] Set isAdmin=true for ${authUser.email}`);
       } catch (e) {
-        console.warn('[LOGIN] Failed to promote admin:', e);
+        console.warn('[LOGIN] Failed to set isAdmin flag:', e);
       }
     }
 
-    // Priority: DB role > metadata role > admin email check > null (let client decide)
-    const role = dbUser?.role || metadata.role || (isAdminEmail ? 'admin' : null);
+    // Priority: DB role > metadata role > fan (default)
+    // Note: role is separate from isAdmin - a creator can also be an admin
+    const role = dbUser?.role || metadata.role || 'fan';
 
     const username = dbUser?.username || metadata.username || authUser.email?.split('@')[0];
 
@@ -91,7 +94,8 @@ export async function POST(request: NextRequest) {
       email: authUser.email,
       username,
       displayName: dbUser?.displayName || metadata.display_name || username,
-      role, // Can be null if we couldn't determine - client will handle
+      role,
+      isAdmin: dbUser?.isAdmin || isAdminEmail || false, // Separate admin flag
       isCreatorVerified: dbUser?.isCreatorVerified ?? !!metadata.isCreatorVerified,
       avatarUrl: dbUser?.avatarUrl || metadata.avatar_url || null,
     };
