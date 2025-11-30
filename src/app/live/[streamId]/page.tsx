@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
@@ -57,9 +57,19 @@ interface Viewer {
 }
 
 // Component to render the remote video from broadcaster
-function ViewerVideo() {
+function ViewerVideo({ onBroadcasterLeft }: { onBroadcasterLeft?: () => void }) {
   const participants = useRemoteParticipants();
   const broadcaster = participants[0]; // First participant is the broadcaster
+  const prevBroadcasterRef = React.useRef(broadcaster);
+
+  // Detect when broadcaster leaves (stream ended)
+  React.useEffect(() => {
+    if (prevBroadcasterRef.current && !broadcaster) {
+      // Broadcaster was there but now gone - stream ended
+      onBroadcasterLeft?.();
+    }
+    prevBroadcasterRef.current = broadcaster;
+  }, [broadcaster, onBroadcasterLeft]);
 
   if (!broadcaster) {
     return (
@@ -108,6 +118,7 @@ export default function TheaterModePage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
+  const [streamEnded, setStreamEnded] = useState(false);
 
   // UI state
   const [showChat, setShowChat] = useState(true);
@@ -167,6 +178,11 @@ export default function TheaterModePage() {
 
     loadToken();
   }, [stream, streamId]);
+
+  // Handle when broadcaster leaves the room (stream ended)
+  const handleBroadcasterLeft = useCallback(() => {
+    setStreamEnded(true);
+  }, []);
 
   const loadStream = async () => {
     try {
@@ -476,7 +492,34 @@ export default function TheaterModePage() {
         <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black">
           {/* Video */}
           <div className="flex-1 relative">
-            {token && serverUrl ? (
+            {streamEnded ? (
+              /* Stream Ended State */
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
+                <div className="text-center p-8">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Stream Has Ended</h2>
+                  <p className="text-gray-400 mb-6">Thanks for watching! The host has ended this stream.</p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={() => router.push(`/${stream?.creator.username}`)}
+                      className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all"
+                    >
+                      View Creator Profile
+                    </button>
+                    <button
+                      onClick={() => router.push('/live')}
+                      className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
+                    >
+                      Browse Live Streams
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : token && serverUrl ? (
               <LiveKitRoom
                 token={token}
                 serverUrl={serverUrl}
@@ -486,7 +529,7 @@ export default function TheaterModePage() {
                   dynacast: true,
                 }}
               >
-                <ViewerVideo />
+                <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
                 <RoomAudioRenderer muted={muted} />
               </LiveKitRoom>
             ) : (
