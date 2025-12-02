@@ -97,8 +97,24 @@ export default function CreatorStreamsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
-        {/* Status Filter Tabs + Create Stream Button */}
-        <div className="mb-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Header with Create Button */}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white">My Streams</h1>
+          <GlassButton
+            variant="gradient"
+            size="sm"
+            onClick={() => setShowCreateModal(true)}
+            shimmer
+            glow
+            className="md:text-base whitespace-nowrap flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
+            Create Stream
+          </GlassButton>
+        </div>
+
+        {/* Status Filter Tabs */}
+        <div className="mb-6 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {(['scheduled', 'ended'] as const).map((tab) => (
             <button
               key={tab}
@@ -112,17 +128,6 @@ export default function CreatorStreamsPage() {
               {tab === 'scheduled' ? 'Upcoming' : 'Completed'}
             </button>
           ))}
-          <GlassButton
-            variant="gradient"
-            size="sm"
-            onClick={() => setShowCreateModal(true)}
-            shimmer
-            glow
-            className="md:text-base whitespace-nowrap flex items-center"
-          >
-            <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-            Create Stream
-          </GlassButton>
         </div>
 
         {/* Streams Grid */}
