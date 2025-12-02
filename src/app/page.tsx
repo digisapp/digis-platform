@@ -90,8 +90,8 @@ export default function Home() {
         }}
       />
 
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      {/* Full-screen Hero Section */}
+      <div className="relative h-screen overflow-hidden">
         {/* Background Video */}
         <div className="absolute inset-0 z-0">
           <video
@@ -103,56 +103,96 @@ export default function Home() {
           >
             <source src="/videos/digis-video-celebs.mp4" type="video/mp4" />
           </video>
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-black/60" />
+          {/* Gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/80" />
         </div>
 
-        {/* Animated background effects on top of video */}
-        <div className="absolute inset-0 overflow-hidden z-[1]">
-          <div className="absolute w-96 h-96 -top-10 -left-10 bg-digis-cyan opacity-20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute w-96 h-96 top-1/3 right-10 bg-digis-pink opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-digis-purple opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        {/* Animated background effects */}
+        <div className="absolute inset-0 overflow-hidden z-[1] pointer-events-none">
+          <div className="absolute w-[500px] h-[500px] -top-20 -left-20 bg-digis-cyan opacity-15 rounded-full blur-[100px] animate-pulse"></div>
+          <div className="absolute w-[400px] h-[400px] top-1/4 -right-20 bg-digis-pink opacity-15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute w-[600px] h-[600px] -bottom-40 left-1/4 bg-digis-purple opacity-10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 pt-6 md:pt-12 pb-24 md:pb-32">
-          {/* Navigation */}
-          <nav className="glass rounded-full px-6 md:px-8 py-4 mb-16 md:mb-24 max-w-4xl mx-auto flex items-center justify-between backdrop-blur-xl border-2 border-white/50 shadow-xl">
+        {/* Navigation - Fixed at top */}
+        <nav className="absolute top-0 left-0 right-0 z-20 px-4 py-4 md:py-6">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center">
               <Image
                 src="/images/digis-logo-white.png"
                 alt="Digis Logo"
-                width={120}
-                height={40}
-                className="h-8 md:h-10 w-auto"
+                width={140}
+                height={46}
+                className="h-10 md:h-12 w-auto drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]"
                 priority
               />
             </div>
             <div className="flex items-center space-x-3 md:space-x-4">
               <button
                 onClick={() => setShowLogin(true)}
-                className="px-4 md:px-6 py-2 md:py-2.5 rounded-full bg-white text-blue-700 font-bold text-sm md:text-base hover:scale-105 transition-all shadow-lg"
+                className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-sm md:text-base hover:bg-white/20 hover:scale-105 transition-all"
               >
                 Sign In
               </button>
               <button
                 onClick={() => setShowSignup(true)}
-                className="bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink px-4 md:px-6 py-2 md:py-2.5 rounded-full text-white font-bold text-sm md:text-base hover:scale-105 hover:shadow-2xl transition-all shadow-lg"
+                className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm md:text-base hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
               >
                 Get Started
               </button>
             </div>
-          </nav>
+          </div>
+        </nav>
 
-          {/* Hero */}
-          <div className="text-center max-w-5xl mx-auto">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-relaxed animate-gradient">
+        {/* Centered Hero Content */}
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight drop-shadow-2xl">
               what's your digis?
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
-              Connect with your favorite Creators via Live Streaming, Video Calls, Live Events and Chats
+            <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+              Connect with your favorite Creators via Live Streaming, Video Calls, and More
             </p>
 
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+              <button
+                onClick={() => setShowSignup(true)}
+                className="group px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
+              >
+                Start Exploring
+                <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+              <button
+                onClick={() => setShowSignup(true)}
+                className="px-10 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+              >
+                Become a Creator
+              </button>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Live Streams
+              </span>
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Video Calls
+              </span>
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Direct Messages
+              </span>
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Exclusive Events
+              </span>
+            </div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2">
+              <div className="w-1.5 h-3 bg-white/60 rounded-full animate-pulse" />
+            </div>
           </div>
         </div>
       </div>
