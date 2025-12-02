@@ -71,11 +71,17 @@ export default function AdminDashboard() {
   // Users state
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | 'admin' | 'all'>('all');
   const [selectedAccountStatus, setSelectedAccountStatus] = useState<'active' | 'suspended' | 'banned' | 'all'>('active');
 
   // Analytics state
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
+
+  // Cache flags to avoid refetching
+  const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
+  const [hasFetchedUsers, setHasFetchedUsers] = useState(false);
+  const [hasFetchedAnalytics, setHasFetchedAnalytics] = useState(false);
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -122,15 +128,38 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch data when tab changes (with caching)
+  useEffect(() => {
+    if (mainTab === 'applications' && !hasFetchedApplications) {
+      fetchApplications();
+    } else if (mainTab === 'users' && !hasFetchedUsers) {
+      fetchUsers();
+    } else if (mainTab === 'analytics' && !hasFetchedAnalytics) {
+      fetchAnalytics();
+    }
+  }, [mainTab]);
+
+  // Refetch applications when status filter changes
   useEffect(() => {
     if (mainTab === 'applications') {
       fetchApplications();
-    } else if (mainTab === 'users') {
-      fetchUsers();
-    } else if (mainTab === 'analytics') {
-      fetchAnalytics();
     }
-  }, [mainTab, selectedStatus, selectedRole, selectedAccountStatus, searchTerm]);
+  }, [selectedStatus]);
+
+  // Refetch users when filters change (with debounced search)
+  useEffect(() => {
+    if (mainTab === 'users' && hasFetchedUsers) {
+      fetchUsers();
+    }
+  }, [selectedRole, selectedAccountStatus, debouncedSearch]);
 
   const checkAdminAccess = async () => {
     try {
@@ -160,13 +189,9 @@ export default function AdminDashboard() {
       setLoading(true);
       const response = await fetch(`/api/admin/applications?status=${selectedStatus}`);
       const data = await response.json();
-      console.log('[Admin] Applications response:', data);
-      console.log('[Admin] Response status:', response.status);
       if (response.ok) {
-        console.log('[Admin] Setting applications:', data.applications);
         setApplications(data.applications || []);
-      } else {
-        console.error('[Admin] Failed to fetch applications:', data);
+        setHasFetchedApplications(true);
       }
     } catch (err) {
       console.error('Error fetching applications:', err);
@@ -181,13 +206,14 @@ export default function AdminDashboard() {
       const params = new URLSearchParams();
       if (selectedRole !== 'all') params.append('role', selectedRole);
       if (selectedAccountStatus !== 'all') params.append('status', selectedAccountStatus);
-      if (searchTerm) params.append('search', searchTerm);
+      if (debouncedSearch) params.append('search', debouncedSearch);
 
       const response = await fetch(`/api/admin/users?${params}`);
       const data = await response.json();
 
       if (response.ok) {
         setUsers(data.users || []);
+        setHasFetchedUsers(true);
       }
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -204,6 +230,7 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         setAnalytics(data);
+        setHasFetchedAnalytics(true);
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);

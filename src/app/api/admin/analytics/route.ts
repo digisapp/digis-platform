@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
           .gte('created_at', fourteenDaysAgo.toISOString())
           .lt('created_at', sevenDaysAgo.toISOString()),
       ]),
-      { timeoutMs: 15000, retries: 1, tag: 'adminAnalytics' }
+      { timeoutMs: 5000, retries: 1, tag: 'adminAnalytics' }
     );
 
     const users = usersResult.data;

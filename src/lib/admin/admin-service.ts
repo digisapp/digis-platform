@@ -76,7 +76,7 @@ export class AdminService {
             },
           },
         }),
-        { timeoutMs: 8000, retries: 1, tag: 'pendingApps' }
+        { timeoutMs: 3000, retries: 1, tag: 'pendingApps' }
       );
 
       return applications;
@@ -111,7 +111,7 @@ export class AdminService {
             },
           },
         }),
-        { timeoutMs: 8000, retries: 1, tag: 'allApps' }
+        { timeoutMs: 3000, retries: 1, tag: 'allApps' }
       );
 
       return applications;
@@ -262,7 +262,7 @@ export class AdminService {
             accountStatus: true,
           },
         }),
-        { timeoutMs: 8000, retries: 1, tag: 'adminUsers' }
+        { timeoutMs: 3000, retries: 1, tag: 'adminUsers' }
       );
 
       return usersList;
@@ -359,7 +359,7 @@ export class AdminService {
         // Count pending applications
         db.select({ count: count() }).from(creatorApplications).where(eq(creatorApplications.status, 'pending')),
       ]),
-      { timeoutMs: 8000, retries: 1, tag: 'adminStats' }
+      { timeoutMs: 3000, retries: 1, tag: 'adminStats' }
     );
 
     return {
