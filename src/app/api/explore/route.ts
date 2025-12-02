@@ -29,17 +29,6 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     const currentUserId = user?.id;
 
-    console.log('[EXPLORE]', {
-      requestId,
-      search,
-      category,
-      filter,
-      featured,
-      limit,
-      offset,
-      currentUserId: currentUserId || 'anonymous'
-    });
-
     try {
       // Pre-fetch category ID if filtering by category (single query, more efficient)
       let categoryId: string | null = null;
@@ -132,7 +121,7 @@ export async function GET(request: NextRequest) {
               .limit(10);
           },
           {
-            timeoutMs: 8000,
+            timeoutMs: 3000,
             retries: 1,
             tag: 'exploreFeatured'
           }
@@ -237,7 +226,7 @@ export async function GET(request: NextRequest) {
               .offset(offset);
           },
           {
-            timeoutMs: 8000,
+            timeoutMs: 3000,
             retries: 1,
             tag: 'exploreGrid'
           }
@@ -258,7 +247,7 @@ export async function GET(request: NextRequest) {
             return ['All', ...cats.map(c => c.name)];
           },
           {
-            timeoutMs: 5000,
+            timeoutMs: 2000,
             retries: 1,
             tag: 'exploreCategories'
           }
