@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
               .limit(10);
           },
           {
-            timeoutMs: 3000,
+            timeoutMs: 5000,
             retries: 1,
             tag: 'exploreFeatured'
           }
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
               .offset(offset);
           },
           {
-            timeoutMs: 3000,
+            timeoutMs: 5000,
             retries: 1,
             tag: 'exploreGrid'
           }
@@ -247,7 +247,7 @@ export async function GET(request: NextRequest) {
             return ['All', ...cats.map(c => c.name)];
           },
           {
-            timeoutMs: 2000,
+            timeoutMs: 3000,
             retries: 1,
             tag: 'exploreCategories'
           }

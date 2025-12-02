@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       () => db.query.users.findFirst({
         where: eq(users.id, user.id),
       }),
-      { timeoutMs: 3000, retries: 1, tag: 'goalsUser' }
+      { timeoutMs: 5000, retries: 1, tag: 'goalsUser' }
     );
 
     if (!dbUser || dbUser.role !== 'creator') {
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
         where: eq(creatorGoals.creatorId, user.id),
         orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
       }),
-      { timeoutMs: 3000, retries: 1, tag: 'goalsQuery' }
+      { timeoutMs: 5000, retries: 1, tag: 'goalsQuery' }
     );
 
     return NextResponse.json({ goals });

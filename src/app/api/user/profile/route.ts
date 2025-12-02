@@ -33,7 +33,7 @@ export async function GET() {
           where: eq(users.id, user.id),
         }),
         {
-          timeoutMs: 3000,
+          timeoutMs: 5000,
           retries: 2,
           tag: 'getUserProfile'
         }
