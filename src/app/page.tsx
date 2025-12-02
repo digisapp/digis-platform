@@ -93,8 +93,23 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden">
+        {/* Background Video */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/digis-video-celebs.mp4" type="video/mp4" />
+          </video>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+
+        {/* Animated background effects on top of video */}
+        <div className="absolute inset-0 overflow-hidden z-[1]">
           <div className="absolute w-96 h-96 -top-10 -left-10 bg-digis-cyan opacity-20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute w-96 h-96 top-1/3 right-10 bg-digis-pink opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
           <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-digis-purple opacity-20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
@@ -135,12 +150,12 @@ export default function Home() {
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-relaxed animate-gradient">
               what's your digis?
             </h1>
-            <p className="text-lg md:text-xl lg:text-2xl text-gray-800 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
+            <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-12 max-w-3xl mx-auto font-semibold leading-relaxed">
               Connect with your favorite Creators via Live Streaming, Video Calls, Live Events and Chats
             </p>
 
             {/* Trust Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-gray-700 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/80 text-sm">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -171,8 +186,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Live Streams</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Connect Live with Creators, Join Class and be part of a community</p>
+                <h3 className="text-2xl font-black text-white mb-3">Live Streams</h3>
+                <p className="text-white/80 font-medium leading-relaxed">Connect Live with Creators, Join Class and be part of a community</p>
               </div>
 
               {/* Video Calls */}
@@ -182,8 +197,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Video Calls</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
+                <h3 className="text-2xl font-black text-white mb-3">Video Calls</h3>
+                <p className="text-white/80 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
               </div>
 
               {/* Chats */}
@@ -193,8 +208,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-black text-gray-900 mb-3">Chats</h3>
-                <p className="text-gray-700 font-medium leading-relaxed">Message your favorite creators directly and get personal responses</p>
+                <h3 className="text-2xl font-black text-white mb-3">Chats</h3>
+                <p className="text-white/80 font-medium leading-relaxed">Message your favorite creators directly and get personal responses</p>
               </div>
             </div>
 

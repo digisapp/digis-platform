@@ -34,8 +34,10 @@ export default function UsernameSetupPage() {
     const response = await fetch('/api/user/profile');
     const data = await response.json();
 
-    if (data.user?.username) {
-      // User already has a username, redirect to dashboard
+    // Only redirect if user has a REAL username (not auto-generated)
+    const username = data.user?.username;
+    if (username && !username.startsWith('user_')) {
+      // User already has a real username, redirect to dashboard
       router.push('/dashboard');
       return;
     }

@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
     }
 
     const username = rawUsername.toLowerCase();
+    console.log('[check-username] Checking:', username);
 
     // Length validation
     if (username.length < MIN_LENGTH) {
@@ -136,7 +137,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ available: true });
 
   } catch (error) {
-    console.error('[check-username] Error:', error);
+    console.error('[check-username] Error while checking username:', error);
     return NextResponse.json(
       { available: false, error: 'Unable to check username' },
       { status: 500 }
