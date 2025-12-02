@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   title: "Digis - Creator Economy Platform",
   description: "Connect with your favorite creators through video calls, live streams, and exclusive content",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/images/digis-logo-white.png",
+    apple: "/images/digis-logo-white.png",
   },
 };
 
