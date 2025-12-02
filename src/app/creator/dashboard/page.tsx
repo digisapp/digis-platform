@@ -94,12 +94,12 @@ export default function CreatorDashboard() {
     checkAuth().then((isAuthorized) => {
       if (isAuthorized) {
         // Fetch all data in parallel for faster loading
+        // Note: fetchRecentActivities and fetchUpcomingEvents share some calls,
+        // so we consolidate them here
         Promise.all([
           fetchBalance(),
           fetchAnalytics(),
-          fetchRecentActivities(),
-          fetchUpcomingEvents(),
-          fetchPendingCounts(),
+          fetchAllDashboardData(), // Consolidated fetch
           fetchGoals(),
         ]);
       }
@@ -177,45 +177,79 @@ export default function CreatorDashboard() {
     }
   };
 
-  const fetchRecentActivities = async () => {
+  // Consolidated fetch to reduce API calls from 12+ to 5
+  const fetchAllDashboardData = async () => {
     try {
-      // Fetch recent activities from multiple sources in parallel
-      const [callsRes, streamsRes, notificationsRes] = await Promise.all([
-        fetch('/api/calls/history?limit=5&status=completed').catch(() => null),
-        fetch('/api/streams/my-streams?limit=5').catch(() => null),
-        fetch('/api/notifications?limit=20').catch(() => null)
+      // Fetch all data sources in parallel (5 calls instead of 12)
+      const [callsRes, streamsRes, notificationsRes, showsRes] = await Promise.all([
+        fetch('/api/calls/history?limit=100').catch(() => null), // Get all calls once
+        fetch('/api/streams/my-streams?limit=10').catch(() => null), // Get streams once
+        fetch('/api/notifications?limit=20').catch(() => null),
+        fetch('/api/shows/creator').catch(() => null),
       ]);
 
       const activities: Activity[] = [];
+      const events: UpcomingEvent[] = [];
+      let pendingCalls = 0;
 
-      // Process calls
+      // Process calls - use for both activities and pending count
       if (callsRes?.ok) {
         try {
           const callsData = await callsRes.json();
           const callsArray = Array.isArray(callsData.data) ? callsData.data : [];
-          callsArray.forEach((call: any) => {
-            activities.push({
-              id: `call-${call.id}`,
-              type: 'call',
-              title: `Call completed with ${call.fanName || 'fan'}`,
-              description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
-              timestamp: call.endedAt || call.createdAt,
-              icon: 'phone',
-              color: 'text-blue-400'
+
+          // Count pending calls
+          pendingCalls = callsArray.filter((c: any) => c.status === 'pending').length;
+          setPendingCallsCount(pendingCalls);
+
+          // Add completed calls to activities
+          callsArray
+            .filter((call: any) => call.status === 'completed')
+            .slice(0, 5)
+            .forEach((call: any) => {
+              activities.push({
+                id: `call-${call.id}`,
+                type: 'call',
+                title: `Call completed with ${call.fanName || 'fan'}`,
+                description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
+                timestamp: call.endedAt || call.createdAt,
+                icon: 'phone',
+                color: 'text-blue-400'
+              });
             });
-          });
+
+          // Add pending scheduled calls to events
+          callsArray
+            .filter((call: any) => call.status === 'pending' && call.scheduledFor)
+            .forEach((call: any) => {
+              events.push({
+                id: `call-${call.id}`,
+                type: 'call',
+                title: `Call with ${call.fanName || 'fan'}`,
+                scheduledFor: call.scheduledFor,
+                details: `${call.duration} minutes - ${call.totalCost} coins`
+              });
+            });
         } catch (e) {
           console.error('Error parsing calls data:', e);
         }
       }
 
-      // Process streams
+      // Process streams - use for activities and last stream date
       if (streamsRes?.ok) {
         try {
           const streamsData = await streamsRes.json();
           const streamsArray = Array.isArray(streamsData.data) ? streamsData.data : [];
+
+          // Set last stream date
+          if (streamsArray.length > 0) {
+            setLastStreamDate(new Date(streamsArray[0].createdAt));
+          }
+
+          // Add ended streams to activities
           streamsArray
             .filter((s: any) => s.status === 'ended')
+            .slice(0, 5)
             .forEach((stream: any) => {
               activities.push({
                 id: `stream-${stream.id}`,
@@ -264,92 +298,37 @@ export default function CreatorDashboard() {
         }
       }
 
-      // Sort by timestamp and take top 15
-      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities(activities.slice(0, 15));
-    } catch (err) {
-      console.error('Error fetching recent activities:', err);
-      setRecentActivities([]);
-    }
-  };
-
-  const fetchUpcomingEvents = async () => {
-    try {
-      // Fetch upcoming shows and booked calls
-      const [showsRes, callsRes] = await Promise.all([
-        fetch('/api/shows/creator').catch(() => null),
-        fetch('/api/calls/history?limit=10&status=pending').catch(() => null)
-      ]);
-
-      const events: UpcomingEvent[] = [];
-
-      // Process upcoming shows
+      // Process shows - add upcoming to events
       if (showsRes?.ok) {
         try {
           const showsData = await showsRes.json();
-          (showsData.data || showsData || [])
-          .filter((show: any) => ['scheduled', 'live'].includes(show.status))
-          .forEach((show: any) => {
-            events.push({
-              id: `show-${show.id}`,
-              type: 'show',
-              title: show.title,
-              scheduledFor: show.scheduledFor,
-              details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold - ${show.ticketPrice} coins each`
+          (showsData.shows || showsData.data || showsData || [])
+            .filter((show: any) => ['scheduled', 'live'].includes(show.status))
+            .forEach((show: any) => {
+              events.push({
+                id: `show-${show.id}`,
+                type: 'show',
+                title: show.title,
+                scheduledFor: show.scheduledStart || show.scheduledFor,
+                details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold - ${show.ticketPrice} coins each`
+              });
             });
-          });
         } catch (e) {
           console.error('Error parsing shows data:', e);
         }
       }
 
-      // Process upcoming calls
-      if (callsRes?.ok) {
-        try {
-          const callsData = await callsRes.json();
-          (callsData.data || [])
-            .filter((call: any) => call.scheduledFor)
-            .forEach((call: any) => {
-              events.push({
-                id: `call-${call.id}`,
-                type: 'call',
-                title: `Call with ${call.fanName || 'fan'}`,
-                scheduledFor: call.scheduledFor,
-                details: `${call.duration} minutes - ${call.totalCost} coins`
-              });
-            });
-        } catch (e) {
-          console.error('Error parsing calls data:', e);
-        }
-      }
+      // Sort activities by timestamp and set
+      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setRecentActivities(activities.slice(0, 15));
 
-      // Sort by scheduled time
+      // Sort events by scheduled time and set
       events.sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
       setUpcomingEvents(events.slice(0, 5));
     } catch (err) {
-      console.error('Error fetching upcoming events:', err);
-    }
-  };
-
-  const fetchPendingCounts = async () => {
-    try {
-      // Fetch pending calls count
-      const callsRes = await fetch('/api/calls/history?limit=100&status=pending');
-      if (callsRes.ok) {
-        const callsData = await callsRes.json();
-        setPendingCallsCount(callsData.data?.length || 0);
-      }
-
-      // Get last stream date
-      const streamsRes = await fetch('/api/streams/my-streams?limit=1');
-      if (streamsRes.ok) {
-        const streamsData = await streamsRes.json();
-        if (streamsData.data && streamsData.data.length > 0) {
-          setLastStreamDate(new Date(streamsData.data[0].createdAt));
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching pending counts:', err);
+      console.error('Error fetching dashboard data:', err);
+      setRecentActivities([]);
+      setUpcomingEvents([]);
     }
   };
 
