@@ -32,7 +32,6 @@ export default function CreatorStreamsPage() {
   const [shows, setShows] = useState<Show[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'scheduled' | 'ended'>('scheduled');
-  const [categoryFilter, setCategoryFilter] = useState<ShowType | 'all'>('all');
 
   useEffect(() => {
     checkAuth();
@@ -85,26 +84,7 @@ export default function CreatorStreamsPage() {
     );
   }
 
-  const filteredShows = shows.filter(show => {
-    const matchesStatus = show.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || show.showType === categoryFilter;
-    return matchesStatus && matchesCategory;
-  });
-
-  const categoryOptions = [
-    { value: 'all' as const, label: 'All' },
-    { value: 'hangout' as const, label: 'Hangout' },
-    { value: 'fitness' as const, label: 'Fitness' },
-    { value: 'grwm' as const, label: 'GRWM' },
-    { value: 'try_on_haul' as const, label: 'Try On Haul' },
-    { value: 'qna' as const, label: 'Q&A' },
-    { value: 'classes' as const, label: 'Classes' },
-    { value: 'tutorial' as const, label: 'Tutorial' },
-    { value: 'music' as const, label: 'Music' },
-    { value: 'virtual_date' as const, label: 'Virtual Date' },
-    { value: 'gaming' as const, label: 'Gaming' },
-    { value: 'other' as const, label: 'Other' },
-  ];
+  const filteredShows = shows.filter(show => show.status === statusFilter);
 
   const stats = {
     totalShows: shows.length,
@@ -143,23 +123,6 @@ export default function CreatorStreamsPage() {
             <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
             Create Stream
           </GlassButton>
-        </div>
-
-        {/* Category Filter Pills */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {categoryOptions.map((category) => (
-            <button
-              key={category.value}
-              onClick={() => setCategoryFilter(category.value)}
-              className={`px-4 py-2 rounded-full font-semibold text-xs transition-all duration-300 whitespace-nowrap ${
-                categoryFilter === category.value
-                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white shadow-[0_0_15px_rgba(34,211,238,0.4)] scale-105'
-                  : 'backdrop-blur-xl bg-white/10 text-gray-300 border border-white/20 hover:border-cyan-500/50 hover:scale-105'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
         </div>
 
         {/* Streams Grid */}
