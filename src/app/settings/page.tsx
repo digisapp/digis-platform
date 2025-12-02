@@ -1012,10 +1012,10 @@ export default function SettingsPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-cyan-500/30">
+            <div className="flex gap-2 mb-6 border-b border-cyan-500/30 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setActiveRateTab('video')}
-                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                className={`px-4 py-2 font-semibold text-sm transition-all relative flex-shrink-0 whitespace-nowrap ${
                   activeRateTab === 'video'
                     ? 'text-digis-cyan'
                     : 'text-gray-400 hover:text-white'
@@ -1031,7 +1031,7 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveRateTab('voice')}
-                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                className={`px-4 py-2 font-semibold text-sm transition-all relative flex-shrink-0 whitespace-nowrap ${
                   activeRateTab === 'voice'
                     ? 'text-blue-500'
                     : 'text-gray-400 hover:text-white'
@@ -1047,7 +1047,7 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveRateTab('messages')}
-                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                className={`px-4 py-2 font-semibold text-sm transition-all relative flex-shrink-0 whitespace-nowrap ${
                   activeRateTab === 'messages'
                     ? 'text-pink-500'
                     : 'text-gray-400 hover:text-white'
@@ -1063,7 +1063,7 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => setActiveRateTab('subscriptions')}
-                className={`px-4 py-2 font-semibold text-sm transition-all relative ${
+                className={`px-4 py-2 font-semibold text-sm transition-all relative flex-shrink-0 whitespace-nowrap ${
                   activeRateTab === 'subscriptions'
                     ? 'text-purple-500'
                     : 'text-gray-400 hover:text-white'
