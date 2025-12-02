@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -96,7 +97,13 @@ export default function CreatorStreamsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8">
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8">
         {/* Header with Create Button */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl md:text-3xl font-bold text-white">My Streams</h1>
