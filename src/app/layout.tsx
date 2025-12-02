@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthProvider } from "@/context/AuthContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Digis - Creator Economy Platform",
@@ -25,6 +26,7 @@ export default function RootLayout({
           <IncomingCallPopup />
           {children}
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
