@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const pendingCalls = await withTimeoutAndRetry(
       () => CallService.getPendingRequests(user.id),
-      { timeoutMs: 8000, retries: 1, tag: 'pendingCalls' }
+      { timeoutMs: 5000, retries: 1, tag: 'pendingCalls' }
     );
 
     // Add timeout info to each call
