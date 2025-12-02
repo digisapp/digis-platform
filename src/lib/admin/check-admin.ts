@@ -2,7 +2,7 @@ import { User } from '@supabase/supabase-js';
 import { AdminService } from './admin-service';
 
 // Hardcoded admin emails - these ALWAYS get admin access
-const ADMIN_EMAILS = ['nathan@digis.cc', 'admin@digis.cc'];
+const ADMIN_EMAILS = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
 
 /**
  * Check if user is admin by email first (from JWT), then by DB

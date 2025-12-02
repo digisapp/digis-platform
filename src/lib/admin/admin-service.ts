@@ -8,7 +8,7 @@ export class AdminService {
   // Check if user is admin (checks email first, then isAdmin flag, then role)
   static async isAdmin(userId: string): Promise<boolean> {
     // Hardcoded admin emails - ALWAYS grant access to these
-    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
+    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
     const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
     const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
 

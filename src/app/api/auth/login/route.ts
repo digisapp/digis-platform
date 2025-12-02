@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3) Check if user should be admin based on ADMIN_EMAILS env var
-    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc'];
+    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
     const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
     const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
     const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
