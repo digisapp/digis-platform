@@ -231,9 +231,13 @@ export default function AdminDashboard() {
       if (response.ok) {
         setAnalytics(data);
         setHasFetchedAnalytics(true);
+      } else {
+        console.error('Analytics API error:', data.error);
+        showToast(data.error || 'Failed to load analytics', 'error');
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
+      showToast('Failed to load analytics', 'error');
     } finally {
       setLoading(false);
     }
@@ -1039,7 +1043,16 @@ export default function AdminDashboard() {
             ) : (
               <GlassCard className="p-12 text-center">
                 <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400">No analytics data available</p>
+                <p className="text-gray-400 mb-4">No analytics data available</p>
+                <button
+                  onClick={() => {
+                    setHasFetchedAnalytics(false);
+                    fetchAnalytics();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  Retry
+                </button>
               </GlassCard>
             )}
           </>
