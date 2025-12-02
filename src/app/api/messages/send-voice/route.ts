@@ -48,13 +48,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload file to Supabase Storage
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webm`;
+    // Use file extension based on actual mime type
+    const ext = file.type.includes('webm') ? 'webm' : file.type.includes('mp4') ? 'm4a' : 'audio';
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
     const filePath = `${user.id}/${recipientId}/${fileName}`;
 
     // Convert File to ArrayBuffer for upload
     const arrayBuffer = await file.arrayBuffer();
     const fileBuffer = new Uint8Array(arrayBuffer);
 
+    console.log('[send-voice] Uploading:', {
+      filePath,
+      fileType: file.type,
+      fileSize: file.size,
+      duration,
+    });
+
+    // Try to upload to voice-messages bucket
     const { error: uploadError } = await supabase.storage
       .from('voice-messages')
       .upload(filePath, fileBuffer, {
@@ -64,7 +74,22 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Voice storage upload error:', uploadError);
+      console.error('[send-voice] Storage upload error:', uploadError);
+
+      // Check if bucket doesn't exist
+      if (uploadError.message.includes('not found') || uploadError.message.includes('does not exist')) {
+        return NextResponse.json({
+          error: 'Voice messages are not configured. Please contact support.'
+        }, { status: 500 });
+      }
+
+      // Check for permission errors
+      if (uploadError.message.includes('permission') || uploadError.message.includes('policy')) {
+        return NextResponse.json({
+          error: 'Unable to save voice message. Storage permissions error.'
+        }, { status: 500 });
+      }
+
       return NextResponse.json({
         error: `Failed to upload voice message: ${uploadError.message}`
       }, { status: 500 });

@@ -47,16 +47,25 @@ export async function POST(request: NextRequest) {
     const authUser = data.user;
     const metadata = authUser.user_metadata || {};
 
-    // 2) Try to fetch DB user, but NEVER downgrade role if it fails
+    // 2) Try to fetch DB user with short timeout (don't block login)
     let dbUser: any = null;
 
     try {
       const dbQueryPromise = db.query.users.findFirst({
         where: eq(users.id, authUser.id),
+        columns: {
+          id: true,
+          username: true,
+          displayName: true,
+          role: true,
+          isAdmin: true,
+          isCreatorVerified: true,
+          avatarUrl: true,
+        },
       });
 
       const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Database query timeout')), 15000)
+        setTimeout(() => reject(new Error('Database query timeout')), 3000)
       );
 
       dbUser = await Promise.race([dbQueryPromise, timeoutPromise]);
@@ -71,15 +80,12 @@ export async function POST(request: NextRequest) {
     const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
     const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
 
-    // If user is in ADMIN_EMAILS but doesn't have isAdmin flag, set it (don't change role!)
+    // If user is in ADMIN_EMAILS but doesn't have isAdmin flag, set it (fire-and-forget)
     if (isAdminEmail && dbUser && !dbUser.isAdmin) {
-      try {
-        await db.update(users).set({ isAdmin: true }).where(eq(users.id, authUser.id));
-        dbUser.isAdmin = true;
-        console.log(`[LOGIN] Set isAdmin=true for ${authUser.email}`);
-      } catch (e) {
-        console.warn('[LOGIN] Failed to set isAdmin flag:', e);
-      }
+      db.update(users).set({ isAdmin: true }).where(eq(users.id, authUser.id))
+        .then(() => console.log(`[LOGIN] Set isAdmin=true for ${authUser.email}`))
+        .catch((e) => console.warn('[LOGIN] Failed to set isAdmin flag:', e));
+      dbUser.isAdmin = true; // Optimistically set for response
     }
 
     // Priority: DB role > metadata role > fan (default)
@@ -100,15 +106,10 @@ export async function POST(request: NextRequest) {
       avatarUrl: dbUser?.avatarUrl || metadata.avatar_url || null,
     };
 
-    // Update user_metadata with role if we found it in DB (for future fast lookups)
+    // Update user_metadata with role if we found it in DB (fire-and-forget for future fast lookups)
     if (dbUser?.role && dbUser.role !== metadata.role) {
-      try {
-        await supabase.auth.updateUser({
-          data: { role: dbUser.role }
-        });
-      } catch (e) {
-        console.warn('[LOGIN] Failed to sync role to metadata', e);
-      }
+      supabase.auth.updateUser({ data: { role: dbUser.role } })
+        .catch((e) => console.warn('[LOGIN] Failed to sync role to metadata', e));
     }
 
     return NextResponse.json({
