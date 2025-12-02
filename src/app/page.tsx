@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
-import { Coins } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -72,7 +71,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-pastel-gradient">
+    <div className="min-h-screen bg-black">
       {/* Auth Modals */}
       <LoginModal
         isOpen={showLogin}
@@ -154,92 +153,10 @@ export default function Home() {
               Connect with your favorite Creators via Live Streaming, Video Calls, Live Events and Chats
             </p>
 
-            {/* Trust Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/80 text-sm">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="font-semibold">Secure Payments</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-                <span className="font-semibold">Instant Access</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                </svg>
-                <span className="font-semibold">24/7 Support</span>
-              </div>
-            </div>
-
-            {/* Features Grid */}
-            <div className="grid md:grid-cols-3 gap-6 mt-24">
-              {/* Live Streaming */}
-              <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-pink hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-pink to-digis-purple mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-black text-white mb-3">Live Streams</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Connect Live with Creators, Join Class and be part of a community</p>
-              </div>
-
-              {/* Video Calls */}
-              <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-cyan hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-cyan to-blue-500 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-black text-white mb-3">Video Calls</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Connect face-to-face with creators in private 1-on-1 video calls</p>
-              </div>
-
-              {/* Chats */}
-              <div className="group glass p-8 rounded-3xl border-2 border-white/20 hover:border-digis-purple hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-xl">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-digis-purple to-digis-pink mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h3 className="text-2xl font-black text-white mb-3">Chats</h3>
-                <p className="text-white/80 font-medium leading-relaxed">Message your favorite creators directly and get personal responses</p>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/20 mt-20 py-8">
-        <div className="container mx-auto px-4 text-center text-white/70">
-          <p>&copy; 2025 Digis. All rights reserved.</p>
-        </div>
-      </footer>
-
-      <style jsx>{`
-        @keyframes breathe {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.7;
-            transform: scale(0.98);
-          }
-        }
-
-        .animate-breathe {
-          animation: breathe 2s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 }
