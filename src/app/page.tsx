@@ -147,7 +147,7 @@ export default function Home() {
         {/* Centered Hero Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-tight drop-shadow-2xl">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 pb-2 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-normal drop-shadow-2xl">
               what's your digis?
             </h1>
             <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
