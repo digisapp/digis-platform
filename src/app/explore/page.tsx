@@ -8,7 +8,7 @@ import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
 import { CategoryPills } from '@/components/explore/CategoryPills';
 import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
 import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, UserPlus, TrendingUp } from 'lucide-react';
+import { Search, UserCircle, UserPlus, UserCheck, TrendingUp } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -423,20 +423,24 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: Cr
           </div>
         )}
 
-        {/* Follow button - top right with glass futuristic style */}
+        {/* Follow button - top right with distinct states */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onFollow(creator.id, creator.isFollowing);
           }}
-          className={`absolute top-2 right-2 p-2 rounded-full backdrop-blur-sm border transition-all z-10 hover:scale-110 active:scale-95 ${
+          className={`absolute top-2 right-2 p-2 rounded-full border-2 transition-all z-10 hover:scale-110 active:scale-95 ${
             creator.isFollowing
-              ? 'bg-digis-cyan/30 border-digis-cyan/50 text-white hover:bg-digis-cyan/40'
-              : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+              ? 'bg-digis-cyan border-digis-cyan text-white shadow-[0_0_12px_rgba(34,211,238,0.6)]'
+              : 'bg-black/50 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50'
           }`}
           title={creator.isFollowing ? 'Unfollow' : 'Follow'}
         >
-          <UserPlus className={`w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${creator.isFollowing ? 'fill-current' : ''}`} />
+          {creator.isFollowing ? (
+            <UserCheck className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+          ) : (
+            <UserPlus className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+          )}
         </button>
 
         {/* Category badge - top left */}
