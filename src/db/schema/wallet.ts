@@ -50,6 +50,8 @@ export const walletTransactions = pgTable('wallet_transactions', {
 }, (table) => ({
   userIdIdx: index('wallet_transactions_user_id_idx').on(table.userId),
   idempotencyIdx: index('wallet_transactions_idempotency_idx').on(table.idempotencyKey),
+  // Compound index for efficient recent activity queries (userId + status, ordered by createdAt)
+  userStatusIdx: index('wallet_transactions_user_status_idx').on(table.userId, table.status, table.createdAt),
 }));
 
 // Spend holds - prevents mid-call failures

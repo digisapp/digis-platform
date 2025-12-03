@@ -57,6 +57,8 @@ export const calls = pgTable('calls', {
   creatorIdIdx: index('calls_creator_id_idx').on(table.creatorId),
   statusIdx: index('calls_status_idx').on(table.status),
   roomNameIdx: index('calls_room_name_idx').on(table.roomName),
+  // Compound index for creator analytics queries (creatorId + status)
+  creatorStatusIdx: index('calls_creator_status_idx').on(table.creatorId, table.status),
 }));
 
 // Creator availability settings
