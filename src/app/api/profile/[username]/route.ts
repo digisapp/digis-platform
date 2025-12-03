@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -23,9 +23,11 @@ export async function GET(
     const { username } = await params;
 
     // Get the target user's profile with timeout and retry
+    // OPTIMIZED: Reduced timeout from 8s to 3s, retries from 2 to 1
+    // Using case-insensitive comparison via lower() to prevent "not found" errors
     const user = await withTimeoutAndRetry(
       () => db.query.users.findFirst({
-        where: eq(users.username, username),
+        where: sql`lower(${users.username}) = lower(${username})`,
         columns: {
           id: true,
           username: true,
@@ -42,7 +44,7 @@ export async function GET(
           createdAt: true,
         },
       }),
-      { timeoutMs: 8000, retries: 2, tag: 'profileFetch' }
+      { timeoutMs: 3000, retries: 1, tag: 'profileFetch' }
     );
 
     if (!user) {
