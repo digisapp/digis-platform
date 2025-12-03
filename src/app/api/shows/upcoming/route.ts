@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
         offset,
         creatorId,
         showType,
-        upcoming: true,
+        upcoming: false, // Get both live and scheduled shows
       }),
-      { timeoutMs: 8000, retries: 1, tag: 'upcomingShows' }
+      { timeoutMs: 5000, retries: 1, tag: 'upcomingShows' }
     );
 
     return NextResponse.json({

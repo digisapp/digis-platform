@@ -289,10 +289,13 @@ export class ShowService {
 
     const conditions = [];
 
-    // Only show published/scheduled shows
+    // Filter by status - either scheduled only, or live + scheduled
     if (upcoming) {
       conditions.push(eq(shows.status, 'scheduled'));
       conditions.push(gte(shows.scheduledStart, new Date()));
+    } else {
+      // Get both live and scheduled shows (not ended or cancelled)
+      conditions.push(sql`${shows.status} IN ('live', 'scheduled')`);
     }
 
     if (creatorId) {
@@ -320,6 +323,7 @@ export class ShowService {
         status: shows.status,
         tags: shows.tags,
         createdAt: shows.createdAt,
+        totalRevenue: shows.totalRevenue,
         creator: {
           id: users.id,
           username: users.username,
@@ -329,8 +333,8 @@ export class ShowService {
       })
       .from(shows)
       .innerJoin(users, eq(shows.creatorId, users.id))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(shows.scheduledStart)
+      .where(and(...conditions))
+      .orderBy(desc(shows.status), shows.scheduledStart) // live first, then by date
       .limit(limit)
       .offset(offset);
 
