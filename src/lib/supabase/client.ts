@@ -1,7 +1,14 @@
 import { createBrowserClient } from '@supabase/ssr'
 
+// Singleton instance to prevent multiple clients and auth state conflicts
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
+
 export function createClient() {
-  return createBrowserClient(
+  if (supabaseClient) {
+    return supabaseClient;
+  }
+
+  supabaseClient = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -44,5 +51,7 @@ export function createClient() {
         },
       },
     }
-  )
+  );
+
+  return supabaseClient;
 }
