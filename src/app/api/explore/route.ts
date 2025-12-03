@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, follows, creatorCategories, creatorCategoryAssignments } from '@/lib/data/system';
+import { users, follows, creatorCategories, creatorCategoryAssignments, streams } from '@/lib/data/system';
 import { eq, ilike, or, desc, sql, and, inArray, gt } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded, failure } from '@/types/api';
@@ -44,6 +44,14 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Get IDs of creators who are currently live streaming
+      const liveCreatorIds = await db
+        .select({ creatorId: streams.creatorId })
+        .from(streams)
+        .where(eq(streams.status, 'live'));
+
+      const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
+
       // Fetch all data in parallel for performance
       const [featuredCreators, allCreators, categories] = await Promise.all([
         // Fetch featured creators for carousel (if requested)
@@ -78,7 +86,14 @@ export async function GET(request: NextRequest) {
             if (filter) {
               switch (filter) {
                 case 'online':
-                  featuredConditions.push(eq(users.isOnline, true));
+                  // Online = isOnline OR currently live streaming
+                  if (liveCreatorIdSet.size > 0) {
+                    featuredConditions.push(
+                      or(eq(users.isOnline, true), inArray(users.id, Array.from(liveCreatorIdSet)))!
+                    );
+                  } else {
+                    featuredConditions.push(eq(users.isOnline, true));
+                  }
                   break;
                 case 'new':
                   const thirtyDaysAgoFeatured = new Date();
@@ -92,8 +107,23 @@ export async function GET(request: NextRequest) {
                   featuredConditions.push(eq(users.isCreatorVerified, true));
                   break;
                 case 'available_for_calls':
+                  // Available for calls = isOnline OR currently live streaming
+                  if (liveCreatorIdSet.size > 0) {
+                    featuredConditions.push(
+                      or(eq(users.isOnline, true), inArray(users.id, Array.from(liveCreatorIdSet)))!
+                    );
+                  } else {
+                    featuredConditions.push(eq(users.isOnline, true));
+                  }
+                  break;
                 case 'live_now':
-                  featuredConditions.push(eq(users.isOnline, true));
+                  // Live Now = only creators with active streams
+                  if (liveCreatorIdSet.size > 0) {
+                    featuredConditions.push(inArray(users.id, Array.from(liveCreatorIdSet)));
+                  } else {
+                    // No one is live, return empty by adding impossible condition
+                    featuredConditions.push(sql`false`);
+                  }
                   break;
               }
             }
@@ -161,7 +191,14 @@ export async function GET(request: NextRequest) {
             if (filter) {
               switch (filter) {
                 case 'online':
-                  baseConditions.push(eq(users.isOnline, true));
+                  // Online = isOnline OR currently live streaming
+                  if (liveCreatorIdSet.size > 0) {
+                    baseConditions.push(
+                      or(eq(users.isOnline, true), inArray(users.id, Array.from(liveCreatorIdSet)))!
+                    );
+                  } else {
+                    baseConditions.push(eq(users.isOnline, true));
+                  }
                   break;
                 case 'new':
                   // Creators created in the last 30 days
@@ -176,12 +213,23 @@ export async function GET(request: NextRequest) {
                   baseConditions.push(eq(users.isCreatorVerified, true));
                   break;
                 case 'available_for_calls':
-                  // This could be enhanced with a dedicated field
-                  baseConditions.push(eq(users.isOnline, true));
+                  // Available for calls = isOnline OR currently live streaming
+                  if (liveCreatorIdSet.size > 0) {
+                    baseConditions.push(
+                      or(eq(users.isOnline, true), inArray(users.id, Array.from(liveCreatorIdSet)))!
+                    );
+                  } else {
+                    baseConditions.push(eq(users.isOnline, true));
+                  }
                   break;
                 case 'live_now':
-                  // Assuming we add isLive field later
-                  baseConditions.push(eq(users.isOnline, true));
+                  // Live Now = only creators with active streams
+                  if (liveCreatorIdSet.size > 0) {
+                    baseConditions.push(inArray(users.id, Array.from(liveCreatorIdSet)));
+                  } else {
+                    // No one is live, return empty by adding impossible condition
+                    baseConditions.push(sql`false`);
+                  }
                   break;
               }
             }
@@ -276,11 +324,15 @@ export async function GET(request: NextRequest) {
         gridCreators = gridCreators.map(creator => ({
           ...creator,
           isFollowing: followingSet.has(creator.id),
+          // Mark as online if they're live streaming (even if isOnline is false)
+          isOnline: creator.isOnline || liveCreatorIdSet.has(creator.id),
         }));
       } else {
         gridCreators = gridCreators.map(creator => ({
           ...creator,
           isFollowing: false,
+          // Mark as online if they're live streaming (even if isOnline is false)
+          isOnline: creator.isOnline || liveCreatorIdSet.has(creator.id),
         }));
       }
 
