@@ -36,7 +36,7 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { giftId, quantity = 1 } = await req.json();
+    const { giftId, quantity = 1, recipientCreatorId, recipientUsername } = await req.json();
 
     if (!giftId) {
       return NextResponse.json({ error: 'Gift ID is required' }, { status: 400 });
@@ -66,13 +66,17 @@ export async function POST(
       user.id,
       username,
       giftId,
-      quantity
+      quantity,
+      recipientCreatorId,
+      recipientUsername
     );
 
     // Broadcast gift animation to all viewers using Ably (scales to 50k+)
     await AblyRealtimeService.broadcastGift(streamId, {
       ...result.streamGift,
       senderAvatarUrl: avatarUrl,
+      recipientCreatorId: result.recipientCreatorId || null,
+      recipientUsername: result.recipientUsername || null,
     }, result.gift);
 
     return NextResponse.json({

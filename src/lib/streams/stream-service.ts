@@ -4,6 +4,7 @@ import {
   streamMessages,
   streamGifts,
   streamViewers,
+  streamFeaturedCreators,
   virtualGifts,
   users,
   wallets,
@@ -317,13 +318,17 @@ export class StreamService {
 
   /**
    * Send a virtual gift
+   * @param recipientCreatorId - Optional: direct the gift to a featured creator instead of stream host
+   * @param recipientUsername - Optional: username of the featured creator
    */
   static async sendGift(
     streamId: string,
     senderId: string,
     senderUsername: string,
     giftId: string,
-    quantity: number = 1
+    quantity: number = 1,
+    recipientCreatorId?: string,
+    recipientUsername?: string
   ) {
     // Get gift details
     const gift = await db.query.virtualGifts.findFirst({
@@ -341,11 +346,13 @@ export class StreamService {
       userId: senderId,
       amount: -totalCoins,
       type: 'stream_tip',
-      description: `Sent ${quantity}x ${gift.emoji} ${gift.name} to stream`,
+      description: recipientCreatorId
+        ? `Sent ${quantity}x ${gift.emoji} ${gift.name} to @${recipientUsername}`
+        : `Sent ${quantity}x ${gift.emoji} ${gift.name} to stream`,
       idempotencyKey: `gift_${uuidv4()}`,
     });
 
-    // Record gift
+    // Record gift with optional recipient
     const [streamGift] = await db
       .insert(streamGifts)
       .values({
@@ -355,6 +362,8 @@ export class StreamService {
         quantity,
         totalCoins,
         senderUsername,
+        recipientCreatorId: recipientCreatorId || null,
+        recipientUsername: recipientUsername || null,
       })
       .returning();
 
@@ -367,42 +376,80 @@ export class StreamService {
       .where(eq(streams.id, streamId));
 
     // Create gift system message
+    const messageText = recipientCreatorId
+      ? `sent ${quantity}x ${gift.emoji} ${gift.name} to @${recipientUsername}`
+      : `sent ${quantity}x ${gift.emoji} ${gift.name}`;
+
     await db.insert(streamMessages).values({
       streamId,
       userId: senderId,
       username: senderUsername,
-      message: `sent ${quantity}x ${gift.emoji} ${gift.name}`,
+      message: messageText,
       messageType: 'gift',
       giftId,
       giftAmount: totalCoins,
     });
 
-    // Get stream creator and credit them
-    const stream = await db.query.streams.findFirst({
-      where: eq(streams.id, streamId),
-    });
+    // Determine who gets the coins
+    let recipientId: string;
 
-    if (stream) {
+    if (recipientCreatorId) {
+      // Direct gift to featured creator
+      recipientId = recipientCreatorId;
+
+      // Update featured creator's tip count
+      await db
+        .update(streamFeaturedCreators)
+        .set({
+          tipsReceived: sql`${streamFeaturedCreators.tipsReceived} + ${totalCoins}`,
+          giftCount: sql`${streamFeaturedCreators.giftCount} + ${quantity}`,
+        })
+        .where(
+          and(
+            eq(streamFeaturedCreators.streamId, streamId),
+            eq(streamFeaturedCreators.creatorId, recipientCreatorId)
+          )
+        );
+
       await WalletService.createTransaction({
-        userId: stream.creatorId,
+        userId: recipientId,
         amount: totalCoins,
         type: 'stream_tip',
-        description: `Received ${quantity}x ${gift.emoji} ${gift.name} from @${senderUsername}`,
+        description: `Received ${quantity}x ${gift.emoji} ${gift.name} from @${senderUsername} during stream`,
         idempotencyKey: `gift_receive_${streamGift.id}`,
       });
+    } else {
+      // Default: credit stream creator
+      const stream = await db.query.streams.findFirst({
+        where: eq(streams.id, streamId),
+      });
+
+      if (stream) {
+        await WalletService.createTransaction({
+          userId: stream.creatorId,
+          amount: totalCoins,
+          type: 'stream_tip',
+          description: `Received ${quantity}x ${gift.emoji} ${gift.name} from @${senderUsername}`,
+          idempotencyKey: `gift_receive_${streamGift.id}`,
+        });
+      }
     }
 
-    return { streamGift, gift };
+    return { streamGift, gift, recipientCreatorId, recipientUsername };
   }
 
   /**
    * Send a coin tip during a stream (without a virtual gift)
+   * @param recipientCreatorId - Optional: direct the tip to a featured creator instead of stream host
+   * @param recipientUsername - Optional: username of the featured creator
    */
   static async sendTip(
     streamId: string,
     senderId: string,
     senderUsername: string,
-    amount: number
+    amount: number,
+    recipientCreatorId?: string,
+    recipientUsername?: string
   ) {
     if (amount < 1) {
       throw new Error('Minimum tip is 1 coin');
@@ -413,7 +460,9 @@ export class StreamService {
       userId: senderId,
       amount: -amount,
       type: 'stream_tip',
-      description: `Tipped ${amount} coins during stream`,
+      description: recipientCreatorId
+        ? `Tipped ${amount} coins to @${recipientUsername}`
+        : `Tipped ${amount} coins during stream`,
       idempotencyKey: `tip_${uuidv4()}`,
     });
 
@@ -425,29 +474,57 @@ export class StreamService {
       })
       .where(eq(streams.id, streamId));
 
-    // Create tip message (use 'gift' type since it involves coins)
+    // Create tip message
+    const messageText = recipientCreatorId
+      ? `tipped ${amount} coins to @${recipientUsername}`
+      : `tipped ${amount} coins`;
+
     await db.insert(streamMessages).values({
       streamId,
       userId: senderId,
       username: senderUsername,
-      message: `tipped ${amount} coins`,
+      message: messageText,
       messageType: 'gift',
       giftAmount: amount,
     });
 
-    // Get stream creator and credit them
-    const stream = await db.query.streams.findFirst({
-      where: eq(streams.id, streamId),
-    });
+    if (recipientCreatorId) {
+      // Direct tip to featured creator
+      // Update featured creator's tip count
+      await db
+        .update(streamFeaturedCreators)
+        .set({
+          tipsReceived: sql`${streamFeaturedCreators.tipsReceived} + ${amount}`,
+        })
+        .where(
+          and(
+            eq(streamFeaturedCreators.streamId, streamId),
+            eq(streamFeaturedCreators.creatorId, recipientCreatorId)
+          )
+        );
 
-    if (stream) {
       await WalletService.createTransaction({
-        userId: stream.creatorId,
+        userId: recipientCreatorId,
         amount: amount,
         type: 'stream_tip',
-        description: `Received ${amount} coin tip from @${senderUsername}`,
+        description: `Received ${amount} coin tip from @${senderUsername} during stream`,
         idempotencyKey: `tip_receive_${streamId}_${Date.now()}`,
       });
+    } else {
+      // Default: credit stream creator
+      const stream = await db.query.streams.findFirst({
+        where: eq(streams.id, streamId),
+      });
+
+      if (stream) {
+        await WalletService.createTransaction({
+          userId: stream.creatorId,
+          amount: amount,
+          type: 'stream_tip',
+          description: `Received ${amount} coin tip from @${senderUsername}`,
+          idempotencyKey: `tip_receive_${streamId}_${Date.now()}`,
+        });
+      }
     }
 
     // Get new balance
@@ -455,7 +532,7 @@ export class StreamService {
       where: eq(wallets.userId, senderId),
     });
 
-    return { newBalance: wallet?.balance || 0 };
+    return { newBalance: wallet?.balance || 0, recipientCreatorId, recipientUsername };
   }
 
   /**

@@ -42,6 +42,8 @@ export class AblyRealtimeService {
       senderUsername: string;
       senderAvatarUrl?: string | null;
       amount: number;
+      recipientCreatorId?: string | null;
+      recipientUsername?: string | null;
     }
   ) {
     await publishToChannel(

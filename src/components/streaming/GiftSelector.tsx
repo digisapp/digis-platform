@@ -2,16 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import type { VirtualGift } from '@/db/schema';
-import { Sparkles, Zap, Crown, Star, Coins } from 'lucide-react';
+import { Sparkles, Zap, Crown, Star, Coins, User } from 'lucide-react';
+
+// Spotlighted creator info
+type SpotlightedCreator = {
+  creatorId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
 
 type GiftSelectorProps = {
   streamId: string;
-  onSendGift: (giftId: string, quantity: number) => Promise<void>;
-  onSendTip?: (amount: number) => Promise<void>;
+  onSendGift: (giftId: string, quantity: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
+  onSendTip?: (amount: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
   userBalance: number;
+  spotlightedCreator?: SpotlightedCreator | null;
+  hostName?: string; // Stream host's display name
 };
 
-export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance }: GiftSelectorProps) {
+export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spotlightedCreator, hostName }: GiftSelectorProps) {
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -19,10 +29,21 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance }: G
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [tipAmount, setTipAmount] = useState<number | null>(null);
   const [customTipAmount, setCustomTipAmount] = useState('');
+  // Track who receives the gift/tip: 'host' or 'spotlighted'
+  const [recipient, setRecipient] = useState<'host' | 'spotlighted'>(spotlightedCreator ? 'spotlighted' : 'host');
 
   useEffect(() => {
     fetchGifts();
   }, []);
+
+  // Update recipient when spotlighted creator changes
+  useEffect(() => {
+    if (spotlightedCreator) {
+      setRecipient('spotlighted');
+    } else {
+      setRecipient('host');
+    }
+  }, [spotlightedCreator?.creatorId]);
 
   const fetchGifts = async () => {
     try {
@@ -95,7 +116,12 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance }: G
 
     setIsSending(true);
     try {
-      await onSendGift(selectedGift.id, quantity);
+      // If recipient is spotlighted creator, pass their info
+      if (recipient === 'spotlighted' && spotlightedCreator) {
+        await onSendGift(selectedGift.id, quantity, spotlightedCreator.creatorId, spotlightedCreator.username);
+      } else {
+        await onSendGift(selectedGift.id, quantity);
+      }
       setSelectedGift(null);
       setQuantity(1);
     } catch (error: any) {
@@ -116,7 +142,12 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance }: G
 
     setIsSending(true);
     try {
-      await onSendTip(amount);
+      // If recipient is spotlighted creator, pass their info
+      if (recipient === 'spotlighted' && spotlightedCreator) {
+        await onSendTip(amount, spotlightedCreator.creatorId, spotlightedCreator.username);
+      } else {
+        await onSendTip(amount);
+      }
       setTipAmount(null);
       setCustomTipAmount('');
     } catch (error: any) {
@@ -139,6 +170,68 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance }: G
 
   return (
     <div className="space-y-4">
+      {/* Recipient Selector - Only show when there's a spotlighted creator */}
+      {spotlightedCreator && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-400 uppercase tracking-wide">Send to:</p>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Spotlighted Creator Option */}
+            <button
+              onClick={() => setRecipient('spotlighted')}
+              className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                recipient === 'spotlighted'
+                  ? 'border-yellow-500 bg-yellow-500/20 shadow-lg shadow-yellow-500/20'
+                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              {spotlightedCreator.avatarUrl ? (
+                <img
+                  src={spotlightedCreator.avatarUrl}
+                  alt={spotlightedCreator.username}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-yellow-500"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500/30 to-orange-500/30 flex items-center justify-center border-2 border-yellow-500">
+                  <User className="w-5 h-5 text-yellow-400" />
+                </div>
+              )}
+              <div className="text-left flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                  <span className="text-xs text-yellow-400 font-bold uppercase">Spotlight</span>
+                </div>
+                <div className="font-semibold text-white text-sm truncate">
+                  {spotlightedCreator.displayName || spotlightedCreator.username}
+                </div>
+              </div>
+            </button>
+
+            {/* Host Option */}
+            <button
+              onClick={() => setRecipient('host')}
+              className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                recipient === 'host'
+                  ? 'border-cyan-500 bg-cyan-500/20 shadow-lg shadow-cyan-500/20'
+                  : 'border-white/10 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 flex items-center justify-center border-2 border-cyan-500">
+                <Crown className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <div className="flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-cyan-400" />
+                  <span className="text-xs text-cyan-400 font-bold uppercase">Host</span>
+                </div>
+                <div className="font-semibold text-white text-sm truncate">
+                  {hostName || 'Stream Host'}
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Category Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {categories.map(cat => (

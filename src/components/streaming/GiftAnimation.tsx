@@ -75,6 +75,9 @@ function GiftFeedItem({ gift, streamGift, index, onComplete }: GiftFeedItemProps
         </div>
         <div className="text-sm text-white/80">
           sent {streamGift.quantity > 1 ? `${streamGift.quantity}x ` : ''}<span className="font-medium">{gift.name}</span>
+          {streamGift.recipientUsername && (
+            <span className="text-yellow-400"> to @{streamGift.recipientUsername}</span>
+          )}
         </div>
       </div>
 

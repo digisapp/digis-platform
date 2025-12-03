@@ -54,6 +54,17 @@ interface GoalUpdate {
   action: 'created' | 'updated' | 'completed';
 }
 
+interface SpotlightChangedEvent {
+  spotlightedCreator: {
+    id: string;
+    creatorId: string;
+    displayName: string | null;
+    username: string;
+    avatarUrl: string | null;
+    tipsReceived: number;
+  } | null;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   onMessage?: (message: ChatMessage) => void;
@@ -63,6 +74,7 @@ interface UseStreamChatOptions {
   onViewerCount?: (count: { currentViewers: number; peakViewers: number }) => void;
   onStreamEnded?: () => void;
   onGoalUpdate?: (update: GoalUpdate) => void;
+  onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -85,6 +97,7 @@ export function useStreamChat({
   onViewerCount,
   onStreamEnded,
   onGoalUpdate,
+  onSpotlightChanged,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -100,6 +113,7 @@ export function useStreamChat({
     onViewerCount,
     onStreamEnded,
     onGoalUpdate,
+    onSpotlightChanged,
   });
 
   useEffect(() => {
@@ -111,8 +125,9 @@ export function useStreamChat({
       onViewerCount,
       onStreamEnded,
       onGoalUpdate,
+      onSpotlightChanged,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged]);
 
   useEffect(() => {
     let mounted = true;
@@ -156,6 +171,9 @@ export function useStreamChat({
         });
         chatChannel.subscribe('goal_update', (message) => {
           callbacksRef.current.onGoalUpdate?.(message.data as GoalUpdate);
+        });
+        chatChannel.subscribe('spotlight-changed', (message) => {
+          callbacksRef.current.onSpotlightChanged?.(message.data as SpotlightChangedEvent);
         });
 
         // Subscribe to tips channel (tips, gifts)

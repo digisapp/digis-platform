@@ -30,6 +30,17 @@ type StreamWithCreator = Stream & {
   orientation?: 'landscape' | 'portrait';
 };
 
+// Featured creator info
+type FeaturedCreator = {
+  id: string;
+  creatorId: string;
+  displayName: string | null;
+  username: string;
+  avatarUrl: string | null;
+  isSpotlighted: boolean;
+  tipsReceived: number;
+};
+
 // Component to display only the broadcaster's video
 function BroadcasterVideo() {
   const participants = useRemoteParticipants();
@@ -112,6 +123,7 @@ export default function StreamViewerPage() {
   const [peakViewers, setPeakViewers] = useState(0);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [goals, setGoals] = useState<StreamGoal[]>([]);
+  const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
 
   // UI state
   const [isMuted, setIsMuted] = useState(true); // Start muted (browser requirement)
@@ -142,6 +154,7 @@ export default function StreamViewerPage() {
     fetchLeaderboard();
     fetchUserBalance();
     fetchGoals();
+    fetchFeaturedCreators();
   }, [streamId]);
 
   // Check follow status when stream loads
@@ -227,6 +240,21 @@ export default function StreamViewerPage() {
     onGoalUpdate: () => {
       // Refresh goals when host creates, updates, or completes a goal
       fetchGoals();
+    },
+    onSpotlightChanged: (event) => {
+      // Update featured creators when spotlight changes
+      if (event.spotlightedCreator) {
+        setFeaturedCreators(prev => prev.map(c => ({
+          ...c,
+          isSpotlighted: c.creatorId === event.spotlightedCreator?.creatorId,
+        })));
+      } else {
+        // Un-spotlight all
+        setFeaturedCreators(prev => prev.map(c => ({
+          ...c,
+          isSpotlighted: false,
+        })));
+      }
     },
   });
 
@@ -323,6 +351,16 @@ export default function StreamViewerPage() {
     }
   };
 
+  const fetchFeaturedCreators = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/featured`);
+      const data = await response.json();
+      if (response.ok) setFeaturedCreators(data.featuredCreators || []);
+    } catch (err) {
+      console.error('Error fetching featured creators:', err);
+    }
+  };
+
   const fetchFollowStatus = async () => {
     if (!stream?.creator?.id) return;
     try {
@@ -403,11 +441,11 @@ export default function StreamViewerPage() {
     }
   };
 
-  const handleSendGift = async (giftId: string, quantity: number) => {
+  const handleSendGift = async (giftId: string, quantity: number, recipientCreatorId?: string, recipientUsername?: string) => {
     const response = await fetch(`/api/streams/${streamId}/gift`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ giftId, quantity }),
+      body: JSON.stringify({ giftId, quantity, recipientCreatorId, recipientUsername }),
     });
     if (!response.ok) {
       const data = await response.json();
@@ -416,11 +454,11 @@ export default function StreamViewerPage() {
     fetchUserBalance();
   };
 
-  const handleSendTip = async (amount: number) => {
+  const handleSendTip = async (amount: number, recipientCreatorId?: string, recipientUsername?: string) => {
     const response = await fetch(`/api/streams/${streamId}/tip`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ amount, recipientCreatorId, recipientUsername }),
     });
     if (!response.ok) {
       const data = await response.json();
@@ -428,6 +466,9 @@ export default function StreamViewerPage() {
     }
     fetchUserBalance();
   };
+
+  // Get the spotlighted creator (if any)
+  const spotlightedCreator = featuredCreators.find(c => c.isSpotlighted) || null;
 
   const handleFollowToggle = async () => {
     if (!stream?.creator?.id || followLoading) return;
@@ -991,15 +1032,17 @@ export default function StreamViewerPage() {
                 {/* Gift Selector Inline */}
                 <GiftSelector
                   streamId={streamId}
-                  onSendGift={async (giftId, qty) => {
-                    await handleSendGift(giftId, qty);
+                  onSendGift={async (giftId, qty, recipientCreatorId, recipientUsername) => {
+                    await handleSendGift(giftId, qty, recipientCreatorId, recipientUsername);
                     setShowGiftPanel(false);
                   }}
-                  onSendTip={async (amount) => {
-                    await handleSendTip(amount);
+                  onSendTip={async (amount, recipientCreatorId, recipientUsername) => {
+                    await handleSendTip(amount, recipientCreatorId, recipientUsername);
                     setShowGiftPanel(false);
                   }}
                   userBalance={userBalance}
+                  spotlightedCreator={spotlightedCreator}
+                  hostName={stream.creator?.displayName || stream.creator?.username || 'Host'}
                 />
               </div>
             </div>
