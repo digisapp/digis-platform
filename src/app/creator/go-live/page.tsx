@@ -6,7 +6,15 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
+import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
 import { createClient } from '@/lib/supabase/client';
+
+interface FeaturedCreator {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
 
 // Privacy options
 const PRIVACY_OPTIONS = [
@@ -34,6 +42,7 @@ export default function GoLivePage() {
   const [isCreator, setIsCreator] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recentStats, setRecentStats] = useState({ avgViewers: 0, totalStreams: 0 });
+  const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
 
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
@@ -292,6 +301,22 @@ export default function GoLivePage() {
       const result = await response.json();
 
       if (response.ok && result.data) {
+        const streamId = result.data.id;
+
+        // Add featured creators to the stream (don't wait, fire and forget)
+        if (featuredCreators.length > 0) {
+          featuredCreators.forEach((creator, index) => {
+            fetch(`/api/streams/${streamId}/featured`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                creatorId: creator.id,
+                lineupOrder: index + 1,
+              }),
+            }).catch(err => console.error('Error adding featured creator:', err));
+          });
+        }
+
         // Show success animation
         setShowSuccess(true);
 
@@ -302,7 +327,7 @@ export default function GoLivePage() {
 
         // Redirect after animation
         setTimeout(() => {
-          router.push(`/stream/broadcast/${result.data.id}`);
+          router.push(`/stream/broadcast/${streamId}`);
         }, 2000);
       } else {
         setError(result.error || 'Failed to start stream');
@@ -488,6 +513,13 @@ export default function GoLivePage() {
                   </div>
                 )}
               </div>
+
+              {/* Featured Creators */}
+              <FeaturedCreatorSelector
+                selectedCreators={featuredCreators}
+                onCreatorsChange={setFeaturedCreators}
+                maxCreators={20}
+              />
 
             </div>
 
