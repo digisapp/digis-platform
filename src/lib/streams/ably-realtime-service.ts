@@ -176,4 +176,16 @@ export class AblyRealtimeService {
       data
     );
   }
+
+  /**
+   * Generic broadcast to stream channel
+   * Used for featured creators, spotlight changes, etc.
+   */
+  static async broadcastToStream(streamId: string, event: string, data: any) {
+    await publishToChannel(
+      CHANNEL_NAMES.streamChat(streamId),
+      event,
+      data
+    );
+  }
 }

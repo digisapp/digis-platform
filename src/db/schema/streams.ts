@@ -96,10 +96,15 @@ export const streamGifts = pgTable('stream_gifts', {
   // For leaderboard
   senderUsername: text('sender_username').notNull(),
 
+  // Directed tip to featured creator (null = tip goes to stream host)
+  recipientCreatorId: uuid('recipient_creator_id').references(() => users.id),
+  recipientUsername: text('recipient_username'), // Cached for display
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   streamIdIdx: index('stream_gifts_stream_id_idx').on(table.streamId, table.createdAt),
   senderIdIdx: index('stream_gifts_sender_id_idx').on(table.senderId),
+  recipientIdIdx: index('stream_gifts_recipient_id_idx').on(table.recipientCreatorId),
 }));
 
 // Stream viewers (active tracking)
@@ -114,6 +119,41 @@ export const streamViewers = pgTable('stream_viewers', {
 }, (table) => ({
   streamIdIdx: index('stream_viewers_stream_id_idx').on(table.streamId, table.lastSeenAt),
   uniqueViewer: index('stream_viewers_unique_idx').on(table.streamId, table.userId),
+}));
+
+// Featured creators in a stream (for collabs, fashion shows, etc.)
+export const streamFeaturedCreators = pgTable('stream_featured_creators', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Display info (cached for performance)
+  displayName: text('display_name'),
+  username: text('username').notNull(),
+  avatarUrl: text('avatar_url'),
+
+  // Lineup order (for fashion shows, etc.)
+  lineupOrder: integer('lineup_order').default(0).notNull(),
+
+  // Spotlight state (is this creator currently highlighted)
+  isSpotlighted: boolean('is_spotlighted').default(false).notNull(),
+  spotlightedAt: timestamp('spotlighted_at'),
+
+  // Stats for this creator in this stream
+  tipsReceived: integer('tips_received').default(0).notNull(), // Total coins received
+  giftCount: integer('gift_count').default(0).notNull(), // Number of gifts
+
+  // Invitation status
+  status: text('status').default('pending').notNull(), // pending, accepted, declined
+  invitedAt: timestamp('invited_at').defaultNow().notNull(),
+  respondedAt: timestamp('responded_at'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_featured_creators_stream_id_idx').on(table.streamId),
+  creatorIdIdx: index('stream_featured_creators_creator_id_idx').on(table.creatorId),
+  uniqueFeatured: index('stream_featured_creators_unique_idx').on(table.streamId, table.creatorId),
 }));
 
 // Stream goals (progress bars for viewers to unlock rewards)
@@ -153,6 +193,7 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   gifts: many(streamGifts),
   viewers: many(streamViewers),
   goals: many(streamGoals),
+  featuredCreators: many(streamFeaturedCreators),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -203,6 +244,17 @@ export const streamGoalsRelations = relations(streamGoals, ({ one }) => ({
   }),
 }));
 
+export const streamFeaturedCreatorsRelations = relations(streamFeaturedCreators, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamFeaturedCreators.streamId],
+    references: [streams.id],
+  }),
+  creator: one(users, {
+    fields: [streamFeaturedCreators.creatorId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
@@ -216,3 +268,5 @@ export type StreamViewer = typeof streamViewers.$inferSelect;
 export type NewStreamViewer = typeof streamViewers.$inferInsert;
 export type StreamGoal = typeof streamGoals.$inferSelect;
 export type NewStreamGoal = typeof streamGoals.$inferInsert;
+export type StreamFeaturedCreator = typeof streamFeaturedCreators.$inferSelect;
+export type NewStreamFeaturedCreator = typeof streamFeaturedCreators.$inferInsert;
