@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { VirtualGift } from '@/db/schema';
 import { Sparkles, Zap, Crown, Star, Coins, User } from 'lucide-react';
 
@@ -31,6 +31,9 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
   const [customTipAmount, setCustomTipAmount] = useState('');
   // Track who receives the gift/tip: 'host' or 'spotlighted'
   const [recipient, setRecipient] = useState<'host' | 'spotlighted'>(spotlightedCreator ? 'spotlighted' : 'host');
+
+  // Ref to scroll to send section when gift is selected
+  const sendSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchGifts();
@@ -330,7 +333,15 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
           return (
             <button
               key={gift.id}
-              onClick={() => canAffordGift && setSelectedGift(gift)}
+              onClick={() => {
+                if (canAffordGift) {
+                  setSelectedGift(gift);
+                  // Auto-scroll to send section after a brief delay for render
+                  setTimeout(() => {
+                    sendSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }, 100);
+                }
+              }}
               disabled={!canAffordGift}
               className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
                 isSelected
@@ -363,7 +374,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
 
       {/* Selected Gift & Quantity */}
       {selectedGift && activeCategory !== 'tip' && (
-        <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-4">
+        <div ref={sendSectionRef} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-4">
           {/* Selected Gift Preview */}
           <div className="flex items-center gap-4">
             <div className="text-4xl">{selectedGift.emoji}</div>
