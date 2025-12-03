@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || 'All';
     const filter = searchParams.get('filter') || ''; // New filter parameter
     const featured = searchParams.get('featured') !== 'false'; // Default true
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Get current user (optional - explore works for logged out users too)
