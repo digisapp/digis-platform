@@ -45,11 +45,9 @@ export async function POST(
 
     const username = dbUser.username || dbUser.displayName || 'Anonymous';
 
-    // Join stream and get updated stream data
-    const [viewer, stream] = await Promise.all([
-      StreamService.joinStream(streamId, user.id, username),
-      StreamService.getStream(streamId),
-    ]);
+    // Join stream first, then get the UPDATED stream data
+    const viewer = await StreamService.joinStream(streamId, user.id, username);
+    const stream = await StreamService.getStream(streamId);
 
     // Broadcast events in parallel (non-blocking)
     if (stream) {
