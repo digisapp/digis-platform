@@ -193,10 +193,8 @@ export default function ExplorePage() {
 
   const handleFollow = useCallback(async (creatorId: string, currentlyFollowing: boolean) => {
     try {
-      const response = await fetch('/api/follows', {
+      const response = await fetch(`/api/creators/${creatorId}/follow`, {
         method: currentlyFollowing ? 'DELETE' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ followingId: creatorId }),
       });
 
       if (response.ok) {
