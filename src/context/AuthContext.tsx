@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 
 interface AuthUser {
   id: string;
@@ -61,55 +61,91 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  // Initial session load - instant from local storage
+  // Initial session load and auth state management
   useEffect(() => {
     const supabase = createClient();
+    let mounted = true;
 
-    // Get session instantly from local storage
+    // 1. Initial fetch from storage
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
 
-        if (session) {
-          setSession(session);
-          setUser(extractUserFromSession(session));
+        if (!mounted) return;
+
+        if (error) {
+          console.error('[AuthContext] getSession error:', error);
+          setLoading(false);
+          return;
+        }
+
+        const currentSession = data.session;
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(extractUserFromSession(currentSession));
         }
       } catch (error) {
         console.error('[AuthContext] Error getting session:', error);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     initAuth();
 
-    // Listen for auth changes
+    // 2. Listen for auth changes - handle events properly
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[AuthContext] Auth state changed:', event);
-        setSession(session);
-        setUser(extractUserFromSession(session));
+      (event, newSession) => {
+        if (!mounted) return;
+
+        console.log('[AuthContext] Auth event:', event);
+
+        // INITIAL_SESSION: sync current state, don't treat as logout
+        if (event === 'INITIAL_SESSION') {
+          setSession(newSession);
+          setUser(extractUserFromSession(newSession));
+          setLoading(false);
+          return;
+        }
+
+        // SIGNED_IN or TOKEN_REFRESHED: update with new session
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(newSession);
+          setUser(extractUserFromSession(newSession));
+          setLoading(false);
+          return;
+        }
+
+        // SIGNED_OUT: clear everything
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        // Any other event: just sync state without clearing
+        if (newSession) {
+          setSession(newSession);
+          setUser(extractUserFromSession(newSession));
+        }
         setLoading(false);
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
-
-  // Note: Background API refresh removed - session metadata is sufficient
-  // The login API syncs DB data to session metadata, so we don't need
-  // to make an extra API call here. This eliminates the timeout errors
-  // and improves performance.
 
   const refresh = async () => {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(extractUserFromSession(session));
+      const { data: { session: newSession } } = await supabase.auth.getSession();
+      setSession(newSession);
+      setUser(extractUserFromSession(newSession));
     } catch (error) {
       console.error('[AuthContext] Error refreshing:', error);
     } finally {

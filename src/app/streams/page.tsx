@@ -56,7 +56,8 @@ export default function StreamsPage() {
 
   const fetchShows = async () => {
     try {
-      const response = await fetch('/api/shows/upcoming');
+      // Limit initial fetch for faster page load
+      const response = await fetch('/api/shows/upcoming?limit=12');
       const data = await response.json();
 
       if (response.ok) {
