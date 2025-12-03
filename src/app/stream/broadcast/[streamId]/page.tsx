@@ -14,6 +14,7 @@ import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
+import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -1032,6 +1033,11 @@ export default function BroadcastStudioPage() {
               />
             </div>
 
+            {/* Featured Creators Panel - Desktop only */}
+            <div className="hidden lg:block">
+              <FeaturedCreatorsPanel streamId={streamId} />
+            </div>
+
             {/* Top Gifters Leaderboard - Desktop only (below chat) */}
             <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
@@ -1090,6 +1096,11 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Featured Creators Panel - Mobile only */}
+        <div className="lg:hidden mt-4">
+          <FeaturedCreatorsPanel streamId={streamId} />
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
