@@ -602,11 +602,11 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Name, Username, Followers */}
+              {/* Name, Username, Followers + Buttons */}
               <div className="flex-1 min-w-0">
                 {/* Name with Verification Badge */}
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-2xl sm:text-3xl font-black text-white truncate bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white truncate bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
                     {user.displayName || user.username}
                   </h1>
                   {user.isCreatorVerified && (
@@ -617,47 +617,47 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {user.displayName && (
-                  <p className="text-cyan-300/90 text-sm sm:text-base mb-1">{user.username}</p>
+                  <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">@{user.username}</p>
                 )}
 
                 {/* Follower Count */}
-                <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5 text-gray-400 whitespace-nowrap">
+                <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5 text-gray-400 mb-3">
                   <Users className="w-3.5 h-3.5 flex-shrink-0" />
                   <span><strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Followers</span>
                 </div>
-              </div>
 
-              {/* Follow & Subscribe Buttons - Top Right, Compact */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  onClick={handleFollowToggle}
-                  disabled={followLoading}
-                  className={`px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
-                    isFollowing
-                      ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
-                      : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
-                  }`}
-                >
-                  {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
-                </button>
-
-                {/* Subscribe Button */}
-                {user.role === 'creator' && subscriptionTier && !isSubscribed && (
+                {/* Follow & Subscribe Buttons - Below name on mobile, inline on desktop */}
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
-                    onClick={handleSubscribe}
-                    disabled={subscribeLoading}
-                    className="px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-md shadow-purple-500/30"
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 disabled:opacity-50 ${
+                      isFollowing
+                        ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
+                    }`}
                   >
-                    {subscribeLoading ? '...' : 'Subscribe'}
+                    {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
                   </button>
-                )}
 
-                {/* Subscribed Badge */}
-                {user.role === 'creator' && isSubscribed && (
-                  <div className="px-3 py-1.5 rounded-lg font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
-                    Subscribed
-                  </div>
-                )}
+                  {/* Subscribe Button */}
+                  {user.role === 'creator' && subscriptionTier && !isSubscribed && (
+                    <button
+                      onClick={handleSubscribe}
+                      disabled={subscribeLoading}
+                      className="px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-md shadow-purple-500/30"
+                    >
+                      {subscribeLoading ? '...' : 'Subscribe'}
+                    </button>
+                  )}
+
+                  {/* Subscribed Badge */}
+                  {user.role === 'creator' && isSubscribed && (
+                    <div className="px-4 py-2 rounded-lg font-semibold text-sm bg-white/10 border border-purple-500/50 text-purple-400">
+                      Subscribed
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
