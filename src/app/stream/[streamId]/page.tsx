@@ -16,7 +16,7 @@ import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users, Heart, Share2,
   MessageCircle, Gift, ChevronDown, ChevronUp, X, Coins, Crown,
-  Zap, Eye, TrendingUp, ExternalLink
+  Zap, Eye, TrendingUp, ExternalLink, Star
 } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
@@ -817,6 +817,57 @@ export default function StreamViewerPage() {
               </div>
             )}
 
+            {/* Spotlight Card - Shows when a creator is spotlighted (Desktop) */}
+            {spotlightedCreator && !isMobile && (
+              <div className="absolute bottom-28 left-4 z-40 animate-in slide-in-from-left duration-500">
+                <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-yellow-500/50 bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-yellow-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(234,179,8,0.3)]">
+                  {/* Animated glow effect */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-400/20 to-orange-400/20 animate-pulse" />
+
+                  {/* Avatar with ring */}
+                  <div className="relative">
+                    {spotlightedCreator.avatarUrl ? (
+                      <img
+                        src={spotlightedCreator.avatarUrl}
+                        alt={spotlightedCreator.username}
+                        className="w-14 h-14 rounded-full object-cover ring-4 ring-yellow-500 shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-4 ring-yellow-500">
+                        <span className="text-2xl font-bold text-white">
+                          {spotlightedCreator.displayName?.[0] || spotlightedCreator.username[0]}
+                        </span>
+                      </div>
+                    )}
+                    {/* Spotlight icon */}
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
+                      <Star className="w-4 h-4 text-black fill-black" />
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">✨ Now Featured</span>
+                    </div>
+                    <h3 className="font-bold text-white text-lg">
+                      {spotlightedCreator.displayName || spotlightedCreator.username}
+                    </h3>
+                    <p className="text-sm text-gray-300">@{spotlightedCreator.username}</p>
+                  </div>
+
+                  {/* Tip Button */}
+                  <button
+                    onClick={() => setShowGiftPanel(true)}
+                    className="relative ml-2 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full font-bold text-black hover:scale-105 transition-transform shadow-lg shadow-yellow-500/30"
+                  >
+                    <Coins className="w-5 h-5" />
+                    <span>Tip</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Bottom Controls */}
             <div className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               {/* Stream Title */}
@@ -919,6 +970,52 @@ export default function StreamViewerPage() {
                         <span className="text-xs text-digis-cyan">{entry.totalCoins}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* Mobile Spotlight Card */}
+                {spotlightedCreator && (
+                  <div className="px-2 pb-2">
+                    <div className="flex items-center gap-2 p-2 rounded-xl border border-yellow-500/50 bg-gradient-to-r from-yellow-500/20 to-orange-500/20">
+                      {/* Avatar */}
+                      <div className="relative flex-shrink-0">
+                        {spotlightedCreator.avatarUrl ? (
+                          <img
+                            src={spotlightedCreator.avatarUrl}
+                            alt={spotlightedCreator.username}
+                            className="w-10 h-10 rounded-full object-cover ring-2 ring-yellow-500"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-2 ring-yellow-500">
+                            <span className="text-sm font-bold text-white">
+                              {spotlightedCreator.displayName?.[0] || spotlightedCreator.username[0]}
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                          <Star className="w-2.5 h-2.5 text-black fill-black" />
+                        </div>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-yellow-400 uppercase">✨ Featured</span>
+                        </div>
+                        <p className="font-bold text-white text-sm truncate">
+                          {spotlightedCreator.displayName || spotlightedCreator.username}
+                        </p>
+                      </div>
+
+                      {/* Tip Button */}
+                      <button
+                        onClick={() => setShowGiftPanel(true)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full font-bold text-xs text-black"
+                      >
+                        <Coins className="w-3.5 h-3.5" />
+                        Tip
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
