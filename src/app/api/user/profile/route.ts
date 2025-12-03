@@ -26,6 +26,7 @@ export async function GET() {
       null;
 
     // Use Drizzle ORM to query users table with timeout and retry
+    // OPTIMIZED: Reduced timeout from 5s to 2s, retries from 2 to 1 for faster failure
     let dbUser;
     try {
       dbUser = await withTimeoutAndRetry(
@@ -33,8 +34,8 @@ export async function GET() {
           where: eq(users.id, user.id),
         }),
         {
-          timeoutMs: 5000,
-          retries: 2,
+          timeoutMs: 2000,
+          retries: 1,
           tag: 'getUserProfile'
         }
       );

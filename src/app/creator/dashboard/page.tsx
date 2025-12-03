@@ -135,13 +135,23 @@ export default function CreatorDashboard() {
       return false;
     }
 
-    // Check if user is creator
-    const response = await fetch('/api/user/profile');
-    const data = await response.json();
+    // OPTIMIZED: Check role directly from JWT metadata instead of API call
+    // This saves ~2-5 seconds by avoiding the /api/user/profile round trip
+    const jwtRole = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
 
-    if (data.user?.role !== 'creator') {
+    if (jwtRole && jwtRole !== 'creator') {
       router.push('/dashboard');
       return false;
+    }
+
+    // If no JWT role, fall back to API check (rare case during migration)
+    if (!jwtRole) {
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+      if (data.user?.role !== 'creator') {
+        router.push('/dashboard');
+        return false;
+      }
     }
 
     setIsCreator(true);

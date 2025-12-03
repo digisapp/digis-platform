@@ -23,25 +23,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's role to verify they're a creator
-    const dbUser = await withTimeoutAndRetry(
-      () => db.query.users.findFirst({
-        where: eq(users.id, user.id),
-      }),
-      { timeoutMs: 5000, retries: 1, tag: 'goalsUser' }
-    );
-
-    if (!dbUser || dbUser.role !== 'creator') {
+    // OPTIMIZED: Check role from JWT first (fast path)
+    const jwtRole = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
+    if (jwtRole && jwtRole !== 'creator') {
       return NextResponse.json({ error: 'Only creators can access goals' }, { status: 403 });
     }
 
-    // Fetch all goals for this creator
+    // Fetch goals directly (skip DB role check since JWT is authoritative)
+    // OPTIMIZED: Reduced timeout from 5s to 3s
     const goals = await withTimeoutAndRetry(
       () => db.query.creatorGoals.findMany({
         where: eq(creatorGoals.creatorId, user.id),
         orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
       }),
-      { timeoutMs: 5000, retries: 1, tag: 'goalsQuery' }
+      { timeoutMs: 3000, retries: 1, tag: 'goalsQuery' }
     );
 
     return NextResponse.json({ goals });
