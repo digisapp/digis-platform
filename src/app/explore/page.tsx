@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, memo, useCallback } from 'react';
+import { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -46,30 +46,85 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Special filter options
   const specialFilters = ['Online', 'New', 'Trending', 'Available for Calls', 'Live Now'];
 
   useEffect(() => {
-    fetchCreators();
+    // Reset pagination when filters change
+    setOffset(0);
+    setHasMore(true);
+    setCreators([]);
+    fetchCreators(0, true);
   }, [selectedCategory, selectedFilter]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
+      // Reset pagination on search change
+      setOffset(0);
+      setHasMore(true);
+      setCreators([]);
       if (searchTerm !== '') {
-        handleSearch();
+        handleSearch(0, true);
       } else {
-        fetchCreators();
+        fetchCreators(0, true);
       }
     }, 500);
 
     return () => clearTimeout(delaySearch);
   }, [searchTerm]);
 
-  const fetchCreators = async () => {
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMore && !loading && !loadingMore && !searching) {
+          loadMoreCreators();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, loading, loadingMore, searching, offset, searchTerm]);
+
+  const loadMoreCreators = async () => {
+    if (loadingMore || !hasMore) return;
+
+    const newOffset = offset + 50;
+    setLoadingMore(true);
+
+    if (searchTerm) {
+      await handleSearch(newOffset, false);
+    } else {
+      await fetchCreators(newOffset, false);
+    }
+  };
+
+  const fetchCreators = async (pageOffset: number = 0, isReset: boolean = false) => {
     try {
       const params = new URLSearchParams({
         category: selectedCategory,
+        offset: pageOffset.toString(),
+        limit: '50',
       });
 
       // Add filter parameter if a special filter is selected
@@ -81,9 +136,16 @@ export default function ExplorePage() {
       const result = await response.json();
 
       if (response.ok && result.data) {
-        setFeaturedCreators(result.data.featuredCreators || []);
-        setCreators(result.data.creators || []);
+        if (isReset) {
+          setFeaturedCreators(result.data.featuredCreators || []);
+          setCreators(result.data.creators || []);
+        } else {
+          // Append to existing creators for infinite scroll
+          setCreators(prev => [...prev, ...(result.data.creators || [])]);
+        }
         setCategories(result.data.categories || ['All']);
+        setHasMore(result.data.pagination?.hasMore ?? false);
+        setOffset(pageOffset);
         if (result.degraded) {
           console.warn('Creators data degraded:', result.error);
         }
@@ -93,28 +155,39 @@ export default function ExplorePage() {
     } finally {
       setLoading(false);
       setSearching(false);
+      setLoadingMore(false);
     }
   };
 
-  const handleSearch = async () => {
-    setSearching(true);
+  const handleSearch = async (pageOffset: number = 0, isReset: boolean = false) => {
+    if (isReset) setSearching(true);
     try {
       const params = new URLSearchParams({
         search: searchTerm,
         category: selectedCategory,
+        offset: pageOffset.toString(),
+        limit: '50',
       });
 
       const response = await fetch(`/api/explore?${params}`);
       const result = await response.json();
 
       if (response.ok && result.data) {
-        setFeaturedCreators(result.data.featuredCreators || []);
-        setCreators(result.data.creators || []);
+        if (isReset) {
+          setFeaturedCreators(result.data.featuredCreators || []);
+          setCreators(result.data.creators || []);
+        } else {
+          // Append to existing creators for infinite scroll
+          setCreators(prev => [...prev, ...(result.data.creators || [])]);
+        }
+        setHasMore(result.data.pagination?.hasMore ?? false);
+        setOffset(pageOffset);
       }
     } catch (error) {
       console.error('Error searching creators:', error);
     } finally {
       setSearching(false);
+      setLoadingMore(false);
     }
   };
 
@@ -269,16 +342,31 @@ export default function ExplorePage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-            {creators.map((creator) => (
-              <CreatorCard
-                key={creator.id}
-                creator={creator}
-                onClick={() => router.push(`/${creator.username}`)}
-                onFollow={handleFollow}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              {creators.map((creator) => (
+                <CreatorCard
+                  key={creator.id}
+                  creator={creator}
+                  onClick={() => router.push(`/${creator.username}`)}
+                  onFollow={handleFollow}
+                />
+              ))}
+            </div>
+
+            {/* Infinite scroll trigger */}
+            <div ref={loadMoreRef} className="w-full py-8 flex justify-center">
+              {loadingMore && (
+                <div className="flex items-center gap-3">
+                  <LoadingSpinner size="sm" />
+                  <span className="text-gray-400 text-sm">Loading more creators...</span>
+                </div>
+              )}
+              {!hasMore && creators.length > 0 && (
+                <p className="text-gray-500 text-sm">You've seen all creators</p>
+              )}
+            </div>
+          </>
         )}
         </div>
       </div>
