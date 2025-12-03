@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
@@ -622,8 +623,23 @@ export default function StreamViewerPage() {
 
             {/* Top Bar - Creator Info & Stats */}
             <div className={`absolute top-0 left-0 right-0 p-4 flex items-start justify-between transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-              {/* Creator Info */}
+              {/* Mobile Logo + Creator Info */}
               <div className="flex items-center gap-3">
+                {/* Digis Logo - Mobile Only */}
+                <button
+                  onClick={() => router.push('/')}
+                  className="lg:hidden flex-shrink-0"
+                >
+                  <Image
+                    src="/logo.png"
+                    alt="Digis"
+                    width={32}
+                    height={32}
+                    className="w-8 h-8"
+                  />
+                </button>
+
+                {/* Creator Avatar */}
                 <button
                   onClick={() => router.push(`/${stream.creator?.username}`)}
                   className="relative group"
