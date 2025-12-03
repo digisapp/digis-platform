@@ -34,7 +34,7 @@ export function FeaturedCreatorSelector({
   // Search for creators
   useEffect(() => {
     const searchCreators = async () => {
-      if (searchQuery.length < 2) {
+      if (searchQuery.length < 1) {
         setSearchResults([]);
         return;
       }
@@ -136,7 +136,7 @@ export function FeaturedCreatorSelector({
 
         {/* Search Results Dropdown */}
         {showDropdown && searchResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-gray-900 border-2 border-cyan-500/30 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute z-50 w-full mt-2 bg-gray-900 border-2 border-cyan-500/30 rounded-xl shadow-xl max-h-64 overflow-y-auto">
             {searchResults.map((creator) => (
               <button
                 key={creator.id}
@@ -168,7 +168,7 @@ export function FeaturedCreatorSelector({
         )}
 
         {/* No Results */}
-        {showDropdown && searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+        {showDropdown && searchQuery.length >= 1 && !isSearching && searchResults.length === 0 && (
           <div className="absolute z-50 w-full mt-2 bg-gray-900 border-2 border-white/10 rounded-xl p-4 text-center">
             <p className="text-gray-400 text-sm">No creators found</p>
           </div>
