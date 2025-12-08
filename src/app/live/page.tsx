@@ -220,18 +220,10 @@ export default function LiveStreamsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Header */}
+        {/* Header - Only show Go Live button for creators */}
         <div className="mb-6">
           {userRole === 'creator' && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-black text-white mb-1 bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">
-                  Live
-                </h1>
-                <p className="text-gray-400 text-sm">
-                  <span className="text-white font-semibold">{liveNow.length}</span> streaming now
-                </p>
-              </div>
+            <div className="flex justify-end mb-4">
               <button
                 onClick={() => router.push('/creator/go-live')}
                 className="group relative overflow-hidden px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 text-white hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/50"
