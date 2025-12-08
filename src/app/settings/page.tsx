@@ -781,8 +781,8 @@ export default function SettingsPage() {
                       <>
                         <div className="mb-2">
                           <div className="flex justify-between text-xs mb-1">
-                            <span className="text-gray-400">{lifetimeTips.toLocaleString()} tips received</span>
-                            <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} tips</span>
+                            <span className="text-gray-400">{lifetimeTips.toLocaleString()} coins received</span>
+                            <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
                           </div>
                           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                             <div
@@ -792,14 +792,14 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <p className="text-xs text-gray-400">
-                          {progress.coinsToNext.toLocaleString()} tips until {progress.nextTier.emoji} {progress.nextTier.displayName}
+                          {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
                         </p>
                       </>
                     )}
 
                     {!progress.nextTier && (
                       <p className="text-xs text-gray-400">
-                        Maximum status achieved! Total tips: {lifetimeTips.toLocaleString()}
+                        Maximum status achieved! Total coins: {lifetimeTips.toLocaleString()}
                       </p>
                     )}
                   </div>
