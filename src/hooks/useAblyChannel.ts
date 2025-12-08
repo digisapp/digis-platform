@@ -138,7 +138,11 @@ export function useAblyChannel({
           ablyChannel.presence.leave().catch(() => {});
         }
         ablyChannel.unsubscribe();
-        ablyChannel.detach().catch(() => {});
+        // Only detach if the channel is actually attached
+        // This prevents "Attach request superseded by subsequent detach request" errors
+        if (ablyChannel.state === 'attached') {
+          ablyChannel.detach().catch(() => {});
+        }
       }
     };
   }, [channelName, trackPresence, presenceData]);

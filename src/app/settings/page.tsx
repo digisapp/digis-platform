@@ -573,7 +573,13 @@ export default function SettingsPage() {
                   {(bannerPreview || bannerUrl) ? (
                     <>
                       <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {/* Persistent upload badge */}
+                      <div className="absolute bottom-2 right-2 p-2 bg-black/60 backdrop-blur-sm rounded-lg flex items-center gap-1.5 text-white/80 group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                        <Upload className="w-4 h-4" />
+                        <span className="text-xs font-medium">Edit</span>
+                      </div>
+                      {/* Full overlay on hover */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <div className="text-center">
                           <Upload className="w-6 h-6 text-white mx-auto mb-1" />
                           <p className="text-xs text-white font-medium">Change Banner</p>
@@ -608,22 +614,33 @@ export default function SettingsPage() {
                   {(avatarPreview || avatarUrl) ? (
                     <>
                       <img src={avatarPreview || avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover" />
+                      {/* Hover overlay */}
                       <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Upload className="w-5 h-5 text-white" />
                       </div>
+                      {/* Persistent camera badge */}
+                      <div className="absolute -bottom-1 -right-1 p-1.5 bg-cyan-500 rounded-full border-2 border-white group-hover:bg-cyan-400 transition-colors">
+                        <Upload className="w-3 h-3 text-white" />
+                      </div>
                     </>
                   ) : (
-                    <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white text-2xl font-bold group-hover:scale-105 transition-transform">
-                      {currentUser?.username?.[0]?.toUpperCase()}
-                    </div>
+                    <>
+                      <div className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white text-2xl font-bold group-hover:scale-105 transition-transform">
+                        {currentUser?.username?.[0]?.toUpperCase()}
+                      </div>
+                      {/* Persistent camera badge for empty avatar */}
+                      <div className="absolute -bottom-1 -right-1 p-1.5 bg-cyan-500 rounded-full border-2 border-white group-hover:bg-cyan-400 transition-colors">
+                        <Upload className="w-3 h-3 text-white" />
+                      </div>
+                    </>
                   )}
                   {uploadingAvatar && (
                     <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center border-4 border-white">
                       <LoadingSpinner size="sm" />
                     </div>
                   )}
-                  {currentUser?.role === 'creator' && (
-                    <div className="absolute -bottom-1 -right-1 p-1 bg-yellow-500 rounded-full border-2 border-white pointer-events-none">
+                  {currentUser?.role === 'creator' && !uploadingAvatar && (
+                    <div className="absolute -bottom-1 left-0 p-1 bg-yellow-500 rounded-full border-2 border-white pointer-events-none">
                       <Crown className="w-3 h-3 text-white" />
                     </div>
                   )}

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe, Camera, Upload } from 'lucide-react';
+import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
 export default function CreatorApplyPage() {
   const router = useRouter();
@@ -12,6 +13,12 @@ export default function CreatorApplyPage() {
   const [existingApplication, setExistingApplication] = useState<any>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Avatar upload states
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -23,7 +30,26 @@ export default function CreatorApplyPage() {
 
   useEffect(() => {
     checkExistingApplication();
+    fetchCurrentUser();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetch('/api/user/me');
+      const data = await response.json();
+      if (response.ok) {
+        setCurrentUser(data);
+        if (data.avatarUrl) {
+          setAvatarUrl(data.avatarUrl);
+        }
+        if (data.displayName) {
+          setFormData(prev => ({ ...prev, displayName: data.displayName }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    }
+  };
 
   const checkExistingApplication = async () => {
     try {
@@ -37,6 +63,51 @@ export default function CreatorApplyPage() {
       console.error('Error checking application:', err);
     } finally {
       setChecking(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
+
+    // Validate file
+    const validation = validateImageFile(file, 'avatar');
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError('');
+
+    try {
+      // Resize image to 512x512
+      const resizedFile = await resizeImage(file, 512, 512);
+
+      // Upload to Supabase Storage
+      const url = await uploadImage(resizedFile, 'avatar', currentUser.id);
+
+      // Update preview
+      setAvatarPreview(url);
+
+      // Save to user's profile immediately
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: url }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save profile picture');
+      }
+
+      setAvatarUrl(url);
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      setError(err.message || 'Failed to upload profile picture');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -230,6 +301,51 @@ export default function CreatorApplyPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 relative">
+            {/* Profile Picture Upload */}
+            <div className="flex flex-col items-center pb-6 border-b border-white/10">
+              <label className="block text-sm font-semibold mb-4 text-white text-center">
+                <Camera className="w-4 h-4 inline mr-1" />
+                Profile Picture
+              </label>
+              <label className="relative cursor-pointer group">
+                {(avatarPreview || avatarUrl) ? (
+                  <>
+                    <img
+                      src={avatarPreview || avatarUrl}
+                      alt="Profile"
+                      className="w-28 h-28 rounded-full border-4 border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.3)] object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="text-center">
+                        <Upload className="w-6 h-6 text-white mx-auto mb-1" />
+                        <span className="text-xs text-white font-medium">Change</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-28 h-28 rounded-full border-4 border-dashed border-cyan-500/50 bg-white/5 flex flex-col items-center justify-center text-gray-400 group-hover:border-cyan-500 group-hover:text-cyan-400 transition-all">
+                    <Camera className="w-8 h-8 mb-1" />
+                    <span className="text-xs font-medium">Add Photo</span>
+                  </div>
+                )}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center border-4 border-cyan-500/50">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                  className="hidden"
+                />
+              </label>
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                This will be your creator profile picture
+              </p>
+            </div>
+
             {/* Display Name */}
             <div>
               <label className="block text-sm font-semibold mb-2 text-white">

@@ -123,13 +123,19 @@ export default function QuickChat({ streamId, compact = false, maxMessages = 10 
 
     return () => {
       mounted = false;
+      // Only detach if the channel is actually attached
+      // This prevents "Attach request superseded by subsequent detach request" errors
       if (chatChannel) {
         chatChannel.unsubscribe();
-        chatChannel.detach().catch(() => {});
+        if (chatChannel.state === 'attached') {
+          chatChannel.detach().catch(() => {});
+        }
       }
       if (tipsChannel) {
         tipsChannel.unsubscribe();
-        tipsChannel.detach().catch(() => {});
+        if (tipsChannel.state === 'attached') {
+          tipsChannel.detach().catch(() => {});
+        }
       }
     };
   }, [streamId, maxMessages]);

@@ -178,7 +178,11 @@ export default function ChatPage() {
       supabase.removeChannel(messageChannel);
       if (typingChannel) {
         typingChannel.unsubscribe();
-        typingChannel.detach().catch(() => {});
+        // Only detach if the channel is actually attached
+        // This prevents "Attach request superseded by subsequent detach request" errors
+        if (typingChannel.state === 'attached') {
+          typingChannel.detach().catch(() => {});
+        }
       }
       clearInterval(pollInterval);
       if (typingTimeoutRef.current) {

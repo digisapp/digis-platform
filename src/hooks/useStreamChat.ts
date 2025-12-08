@@ -227,19 +227,27 @@ export function useStreamChat({
     return () => {
       mounted = false;
 
+      // Helper to safely detach a channel only if it's attached
+      // This prevents "Attach request superseded by subsequent detach request" errors
+      const safeDetach = (channel: Ably.RealtimeChannel | null) => {
+        if (channel && channel.state === 'attached') {
+          channel.detach().catch(() => {});
+        }
+      };
+
       // Cleanup channels
       if (presenceChannel) {
         presenceChannel.presence.leave().catch(() => {});
         presenceChannel.unsubscribe();
-        presenceChannel.detach().catch(() => {});
+        safeDetach(presenceChannel);
       }
       if (chatChannel) {
         chatChannel.unsubscribe();
-        chatChannel.detach().catch(() => {});
+        safeDetach(chatChannel);
       }
       if (tipsChannel) {
         tipsChannel.unsubscribe();
-        tipsChannel.detach().catch(() => {});
+        safeDetach(tipsChannel);
       }
     };
   }, [streamId]);

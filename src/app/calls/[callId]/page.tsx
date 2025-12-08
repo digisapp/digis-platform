@@ -434,7 +434,11 @@ export default function VideoCallPage() {
       mounted = false;
       if (channel) {
         channel.unsubscribe();
-        channel.detach().catch(() => {});
+        // Only detach if the channel is actually attached
+        // This prevents "Attach request superseded by subsequent detach request" errors
+        if (channel.state === 'attached') {
+          channel.detach().catch(() => {});
+        }
       }
     };
   }, [callId, router]);
