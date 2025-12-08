@@ -1,19 +1,47 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Upload, Image, Video, Grid3x3, DollarSign, Lock, Eye, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, Image, Video, Grid3x3, Coins, Lock, Eye, Plus } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 export default function CreateContentPage() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+
+  // Auth check - verify user is a creator
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      // Check role
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+
+      if (data.user?.role !== 'creator') {
+        router.push('/dashboard');
+        return;
+      }
+
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [router]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -214,21 +242,41 @@ export default function CreateContentPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       {/* Mobile Header */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-7xl">
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-3xl">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-end">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/creator/content')}
+              className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-white">Upload Content</h1>
+          </div>
           <GlassButton
             variant="ghost"
-            size="lg"
+            size="md"
             onClick={() => router.push('/creator/content')}
-            className="flex items-center gap-2"
+            className="hidden sm:flex items-center gap-2"
           >
-            <Grid3x3 className="w-5 h-5" />
+            <Grid3x3 className="w-4 h-4" />
             All Content
           </GlassButton>
         </div>
@@ -406,12 +454,12 @@ export default function CreateContentPage() {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Description</label>
-                <input
-                  type="text"
+                <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what fans will get..."
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
                 />
               </div>
             </div>
@@ -455,7 +503,7 @@ export default function CreateContentPage() {
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Unlock Price</label>
                 <div className="flex items-center gap-4">
-                  <DollarSign className="w-6 h-6 text-amber-500" />
+                  <Coins className="w-6 h-6 text-green-400" />
                   <input
                     type="number"
                     min="1"
