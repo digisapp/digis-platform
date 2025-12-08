@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ShowCard } from '@/components/shows/ShowCard';
-import { Calendar, Search, X } from 'lucide-react';
+import { Calendar, Search, X, Ticket, UserPlus } from 'lucide-react';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -179,11 +179,12 @@ export default function StreamsPage() {
           </div>
         )}
 
-        {/* Upcoming Streams */}
+        {/* Tickets Available */}
         {upcomingEvents.length > 0 && (
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
-              Upcoming
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4 flex items-center gap-3">
+              <Ticket className="w-6 h-6 text-yellow-400" />
+              Tickets Available
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {upcomingEvents.map((show) => (
@@ -199,10 +200,16 @@ export default function StreamsPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
             <div className="relative">
               <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
-                <Calendar className="w-16 h-16 text-cyan-400" strokeWidth={2} />
+                <Ticket className="w-16 h-16 text-cyan-400" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Streams Available</h3>
-              <p className="text-gray-400 mt-2">Check back later for live and upcoming streams</p>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">No Paid Streams Right Now</h3>
+              <p className="text-gray-400 mt-3 max-w-md mx-auto">
+                Follow your favorite creators to get notified when they go live with exclusive paid streams
+              </p>
+              <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-500">
+                <UserPlus className="w-4 h-4" />
+                <span>Explore creators and hit Follow to stay updated</span>
+              </div>
             </div>
           </div>
         )}

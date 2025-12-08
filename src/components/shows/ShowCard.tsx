@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
+import { Coins } from 'lucide-react';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -116,8 +117,8 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
 
         {/* Price Badge - Only show for paid streams */}
         {!isFree && (
-          <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-500 to-yellow-500 text-black flex items-center gap-1 shadow-lg">
-            <span className="text-sm">🪙</span>
+          <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-emerald-500 to-green-500 text-white flex items-center gap-1 shadow-lg">
+            <Coins className="w-3.5 h-3.5" />
             <span>{show.ticketPrice}</span>
           </div>
         )}
@@ -180,8 +181,9 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
                 <span className="text-green-400 font-bold text-lg">Free</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-400 font-bold text-lg">{show.ticketPrice}</span>
+              <div className="flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-green-400" />
+                <span className="text-green-400 font-bold text-lg">{show.ticketPrice}</span>
                 <span className="text-xs text-gray-400">coins</span>
               </div>
             )}
