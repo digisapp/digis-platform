@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('[SHOWS/UPCOMING]', { requestId, error: error?.message });
-    const isTimeout = error?.message?.includes('timeout');
+    // Fail soft: return empty data with 200, not 503
     return NextResponse.json(
-      { error: isTimeout ? 'Service temporarily unavailable' : 'Failed to fetch shows', shows: [] },
-      { status: isTimeout ? 503 : 500, headers: { 'x-request-id': requestId } }
+      { success: true, shows: [], count: 0, _error: 'temporarily_unavailable' },
+      { status: 200, headers: { 'x-request-id': requestId } }
     );
   }
 }

@@ -22,9 +22,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching user tickets:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch tickets' },
-      { status: 500 }
-    );
+    // Fail soft: return empty data with 200
+    return NextResponse.json({
+      success: true,
+      tickets: [],
+      _error: 'temporarily_unavailable'
+    });
   }
 }
