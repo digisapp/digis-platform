@@ -200,10 +200,10 @@ export function Navigation() {
       active: isActive('/explore') || pathname?.startsWith('/profile'),
     },
     {
-      label: 'Streams',
-      icon: Ticket,
-      path: '/streams',
-      active: isActive('/streams'),
+      label: 'Live',
+      icon: Flame,
+      path: '/live',
+      active: isActive('/live') || isActive('/streams'),
     },
     {
       label: 'Chats',
@@ -365,18 +365,6 @@ export function Navigation() {
                   >
                     <Video className="w-6 h-6 md:w-5 md:h-5 text-gray-300" />
                     <span className="text-base md:text-sm text-white font-semibold">Live Streams</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      router.push('/streams');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <Ticket className="w-6 h-6 md:w-5 md:h-5 text-gray-300" />
-                    <span className="text-base md:text-sm text-white font-semibold">Paid Streams</span>
                   </button>
 
                   <button

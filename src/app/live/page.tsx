@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
-import { Tv, Search, Radio } from 'lucide-react';
+import { Tv, Search, Radio, Ticket, Coins, Lock, Unlock } from 'lucide-react';
 import type { Stream } from '@/db/schema';
 
+// Free live stream type
 type LiveStream = Stream & {
   creator: {
     id: string;
@@ -15,67 +16,55 @@ type LiveStream = Stream & {
     username: string | null;
     avatarUrl: string | null;
   };
+  isFree: true;
 };
+
+// Paid show type
+interface PaidShow {
+  id: string;
+  title: string;
+  description: string | null;
+  showType: string;
+  ticketPrice: number;
+  maxTickets: number | null;
+  ticketsSold: number;
+  scheduledStart: string;
+  status: 'scheduled' | 'live' | 'ended' | 'cancelled';
+  coverImageUrl: string | null;
+  totalRevenue: number;
+  creator: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  isFree: false;
+}
+
+// Combined type for display
+type CombinedStream = (LiveStream & { type: 'free' }) | (PaidShow & { type: 'paid' });
 
 export default function LiveStreamsPage() {
   const router = useRouter();
-  const [streams, setStreams] = useState<LiveStream[]>([]);
-  const [filteredStreams, setFilteredStreams] = useState<LiveStream[]>([]);
+  const [freeStreams, setFreeStreams] = useState<LiveStream[]>([]);
+  const [paidShows, setPaidShows] = useState<PaidShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'viewers' | 'coins'>('viewers');
+  const [filterType, setFilterType] = useState<'all' | 'free' | 'paid'>('all');
   const [userRole, setUserRole] = useState<'fan' | 'creator'>('fan');
 
   useEffect(() => {
     fetchUserRole();
-    // Force fresh fetch with cache bust to ensure we get latest data
-    fetchLiveStreams(true);
+    fetchAllStreams(true);
 
-    // Refresh every 30 seconds on mobile, 15 seconds on desktop for better performance
+    // Refresh every 30 seconds on mobile, 15 seconds on desktop
     const isMobile = window.innerWidth < 768;
     const refreshInterval = isMobile ? 30000 : 15000;
 
-    const interval = setInterval(() => fetchLiveStreams(false), refreshInterval);
+    const interval = setInterval(() => fetchAllStreams(false), refreshInterval);
     return () => clearInterval(interval);
   }, []);
-
-  // Filter and sort streams - useMemo to prevent recalculation on every render
-  useEffect(() => {
-    // Defer filtering/sorting to not block main thread
-    const timeoutId = setTimeout(() => {
-      let filtered = [...streams];
-
-      // Apply search filter
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        filtered = filtered.filter(
-          (stream) =>
-            stream.title.toLowerCase().includes(query) ||
-            stream.description?.toLowerCase().includes(query) ||
-            stream.creator.displayName?.toLowerCase().includes(query) ||
-            stream.creator.username?.toLowerCase().includes(query)
-        );
-      }
-
-      // Apply sorting
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'viewers':
-            return b.currentViewers - a.currentViewers;
-          case 'coins':
-            return b.totalGiftsReceived - a.totalGiftsReceived;
-          case 'recent':
-          default:
-            return new Date(b.startedAt || 0).getTime() - new Date(a.startedAt || 0).getTime();
-        }
-      });
-
-      setFilteredStreams(filtered);
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
-  }, [streams, searchQuery, sortBy]);
 
   const fetchUserRole = async () => {
     try {
@@ -94,27 +83,28 @@ export default function LiveStreamsPage() {
     }
   };
 
-  const fetchLiveStreams = async (bustCache = false) => {
+  const fetchAllStreams = async (bustCache = false) => {
     try {
-      // Add cache bust parameter to force fresh data
-      const url = bustCache
-        ? `/api/streams/live?t=${Date.now()}`
-        : '/api/streams/live';
-      const response = await fetch(url, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
-      const result = await response.json();
+      // Fetch both free streams and paid shows in parallel
+      const [freeRes, paidRes] = await Promise.all([
+        fetch(bustCache ? `/api/streams/live?t=${Date.now()}` : '/api/streams/live', {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        }),
+        fetch(bustCache ? `/api/shows/upcoming?t=${Date.now()}` : '/api/shows/upcoming', {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' },
+        }),
+      ]);
 
-      if (response.ok && result.data) {
-        setStreams(result.data.streams || []);
-        if (result.degraded) {
-          console.warn('Live streams data degraded:', result.error);
-        }
-      } else {
-        setError(result.error || 'Failed to load streams');
+      if (freeRes.ok) {
+        const freeData = await freeRes.json();
+        setFreeStreams((freeData.data?.streams || []).map((s: any) => ({ ...s, isFree: true })));
+      }
+
+      if (paidRes.ok) {
+        const paidData = await paidRes.json();
+        setPaidShows((paidData.shows || []).map((s: any) => ({ ...s, isFree: false })));
       }
     } catch (err) {
       setError('Failed to load streams');
@@ -123,14 +113,84 @@ export default function LiveStreamsPage() {
     }
   };
 
-  const handleWatchStream = (streamId: string) => {
-    router.push(`/stream/${streamId}`);
+  // Combine and filter streams
+  const getCombinedStreams = (): { liveNow: CombinedStream[], upcoming: PaidShow[] } => {
+    let liveNow: CombinedStream[] = [];
+    let upcoming: PaidShow[] = [];
+
+    // Add free streams (they're always live)
+    freeStreams.forEach(stream => {
+      liveNow.push({ ...stream, type: 'free' as const });
+    });
+
+    // Add paid shows based on status
+    paidShows.forEach(show => {
+      if (show.status === 'live') {
+        liveNow.push({ ...show, type: 'paid' as const });
+      } else if (show.status === 'scheduled') {
+        upcoming.push(show);
+      }
+    });
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      liveNow = liveNow.filter(s =>
+        s.title.toLowerCase().includes(query) ||
+        s.description?.toLowerCase().includes(query) ||
+        s.creator.displayName?.toLowerCase().includes(query) ||
+        s.creator.username?.toLowerCase().includes(query)
+      );
+      upcoming = upcoming.filter(s =>
+        s.title.toLowerCase().includes(query) ||
+        s.description?.toLowerCase().includes(query) ||
+        s.creator.displayName?.toLowerCase().includes(query) ||
+        s.creator.username?.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply type filter
+    if (filterType === 'free') {
+      liveNow = liveNow.filter(s => s.type === 'free');
+      upcoming = [];
+    } else if (filterType === 'paid') {
+      liveNow = liveNow.filter(s => s.type === 'paid');
+    }
+
+    // Sort live streams by viewers (free) or ticket sales (paid)
+    liveNow.sort((a, b) => {
+      if (a.type === 'free' && b.type === 'free') {
+        return b.currentViewers - a.currentViewers;
+      }
+      if (a.type === 'paid' && b.type === 'paid') {
+        return b.ticketsSold - a.ticketsSold;
+      }
+      // Show paid first, then free
+      return a.type === 'paid' ? -1 : 1;
+    });
+
+    // Sort upcoming by start time
+    upcoming.sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
+
+    return { liveNow, upcoming };
   };
 
-  const formatStartTime = (date: Date) => {
+  const { liveNow, upcoming } = getCombinedStreams();
+
+  const formatStartTime = (date: Date | string) => {
     const now = new Date();
     const start = new Date(date);
     const diffMinutes = Math.floor((now.getTime() - start.getTime()) / 60000);
+
+    if (diffMinutes < 0) {
+      // Future time
+      const minUntil = Math.abs(diffMinutes);
+      if (minUntil < 60) return `Starts in ${minUntil}m`;
+      const hours = Math.floor(minUntil / 60);
+      if (hours < 24) return `Starts in ${hours}h`;
+      const days = Math.floor(hours / 24);
+      return `Starts in ${days}d`;
+    }
 
     if (diffMinutes < 1) return 'Just started';
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
@@ -148,69 +208,75 @@ export default function LiveStreamsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
-      {/* Animated Background Mesh - Tron with Red LIVE accent */}
+      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[600px] h-[600px] -top-48 -left-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute w-[500px] h-[500px] top-1/3 -right-48 bg-red-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 relative z-10">
+      {/* Mobile Header */}
+      <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           {userRole === 'creator' && (
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">
-                  Live Streams
+                <h1 className="text-3xl sm:text-4xl font-black text-white mb-1 bg-gradient-to-r from-white via-red-200 to-white bg-clip-text text-transparent">
+                  Live
                 </h1>
                 <p className="text-gray-400 text-sm">
-                  <span className="text-white font-semibold">{filteredStreams.length}</span> of {streams.length} {streams.length === 1 ? 'stream' : 'streams'} live now
+                  <span className="text-white font-semibold">{liveNow.length}</span> streaming now
                 </p>
               </div>
               <button
                 onClick={() => router.push('/creator/go-live')}
-                className="group relative overflow-hidden px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white hover:scale-105 transition-all duration-500 flex items-center gap-2 shadow-lg shadow-red-500/50"
+                className="group relative overflow-hidden px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 text-white hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/50"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12"></div>
-                <Radio className="relative z-10 w-5 h-5" />
-                <span className="relative z-10">Go Live</span>
+                <Radio className="w-5 h-5" />
+                <span>Go Live</span>
               </button>
             </div>
           )}
 
-          {/* Search and Filter Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            {/* Search Input */}
-            <div className="flex-1">
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search streams, creators..."
-                className="w-full px-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
               />
             </div>
-
-            {/* Sort Dropdown */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white focus:outline-none focus:border-cyan-500 transition-all cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-            >
-              <option value="viewers" className="bg-gray-900">Most Viewers</option>
-              <option value="recent" className="bg-gray-900">Recently Started</option>
-              <option value="coins" className="bg-gray-900">Most Coins</option>
-            </select>
           </div>
 
-          {/* Live Indicator - Only show for creators */}
-          {userRole === 'creator' && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-red-500/20 backdrop-blur-md rounded-xl border border-red-500/50 w-fit mb-4">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-              <span className="text-red-400 font-bold text-sm">LIVE NOW</span>
-            </div>
-          )}
+          {/* Filter Tabs */}
+          <div className="flex gap-2">
+            {[
+              { key: 'all', label: 'All', icon: null },
+              { key: 'free', label: 'Free', icon: Unlock },
+              { key: 'paid', label: 'Paid', icon: Lock },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setFilterType(key as any)}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
+                  filterType === key
+                    ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                {Icon && <Icon className="w-4 h-4" />}
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Error State */}
@@ -220,178 +286,219 @@ export default function LiveStreamsPage() {
           </div>
         )}
 
+        {/* Live Now Section */}
+        {liveNow.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                <h2 className="text-xl font-bold text-white">Live Now</h2>
+              </div>
+              <span className="text-sm text-gray-400">({liveNow.length})</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveNow.map((stream) => (
+                <div
+                  key={stream.id}
+                  className="group cursor-pointer"
+                  onClick={() => router.push(stream.type === 'free' ? `/stream/${stream.id}` : `/streams/${stream.id}`)}
+                >
+                  <div className="relative">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
+
+                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-red-500/50">
+                      {/* Thumbnail */}
+                      <div className="aspect-video bg-gradient-to-br from-red-900/40 via-purple-900/40 to-slate-900 relative overflow-hidden">
+                        {stream.type === 'paid' && stream.coverImageUrl ? (
+                          <img src={stream.coverImageUrl} alt={stream.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-6xl opacity-50">{stream.creator.displayName?.[0] || '🎥'}</div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
+
+                        {/* Live Badge */}
+                        <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-lg shadow-lg shadow-red-500/50">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          <span className="text-white text-xs font-bold">LIVE</span>
+                        </div>
+
+                        {/* Price Badge */}
+                        <div className="absolute top-3 right-3">
+                          {stream.type === 'free' ? (
+                            <div className="px-3 py-1.5 bg-green-500 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                              <Unlock className="w-3 h-3" />
+                              FREE
+                            </div>
+                          ) : (
+                            <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg text-black text-xs font-bold flex items-center gap-1">
+                              <Coins className="w-3 h-3" />
+                              {stream.ticketPrice}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Viewer Count */}
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
+                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                          </svg>
+                          {stream.type === 'free' ? stream.currentViewers : stream.ticketsSold}
+                        </div>
+                      </div>
+
+                      {/* Stream Info */}
+                      <div className="p-4">
+                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-red-400 transition-colors">
+                          {stream.title}
+                        </h3>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {stream.creator.avatarUrl ? (
+                              <img
+                                src={stream.creator.avatarUrl}
+                                alt={stream.creator.displayName || ''}
+                                className="w-6 h-6 rounded-full object-cover border border-white/20"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
+                                {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
+                              </div>
+                            )}
+                            <span className="text-sm text-gray-300 truncate max-w-[120px]">
+                              {stream.creator.displayName || stream.creator.username}
+                            </span>
+                          </div>
+
+                          <span className="text-xs text-gray-400">
+                            {stream.type === 'free' && stream.startedAt && formatStartTime(stream.startedAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tickets Available Section */}
+        {upcoming.length > 0 && filterType !== 'free' && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <Ticket className="w-5 h-5 text-yellow-400" />
+              <h2 className="text-xl font-bold text-white">Tickets Available</h2>
+              <span className="text-sm text-gray-400">({upcoming.length})</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {upcoming.map((show) => (
+                <div
+                  key={show.id}
+                  className="group cursor-pointer"
+                  onClick={() => router.push(`/streams/${show.id}`)}
+                >
+                  <div className="relative">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-2xl opacity-0 group-hover:opacity-50 blur transition duration-500"></div>
+
+                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-yellow-500/50">
+                      {/* Thumbnail */}
+                      <div className="aspect-video bg-gradient-to-br from-yellow-900/30 via-purple-900/30 to-slate-900 relative overflow-hidden">
+                        {show.coverImageUrl ? (
+                          <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Ticket className="w-16 h-16 text-yellow-400/50" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
+
+                        {/* Scheduled Badge */}
+                        <div className="absolute top-3 left-3 px-3 py-1.5 bg-purple-500/80 backdrop-blur-sm rounded-lg text-white text-xs font-bold">
+                          {formatStartTime(show.scheduledStart)}
+                        </div>
+
+                        {/* Price Badge */}
+                        <div className="absolute top-3 right-3 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg text-black text-xs font-bold flex items-center gap-1">
+                          <Coins className="w-3 h-3" />
+                          {show.ticketPrice}
+                        </div>
+
+                        {/* Tickets Sold */}
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
+                          <Ticket className="w-3.5 h-3.5" />
+                          {show.ticketsSold}{show.maxTickets && `/${show.maxTickets}`}
+                        </div>
+                      </div>
+
+                      {/* Show Info */}
+                      <div className="p-4">
+                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-yellow-400 transition-colors">
+                          {show.title}
+                        </h3>
+
+                        <div className="flex items-center gap-2">
+                          {show.creator.avatarUrl ? (
+                            <img
+                              src={show.creator.avatarUrl}
+                              alt={show.creator.displayName || ''}
+                              className="w-6 h-6 rounded-full object-cover border border-white/20"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center text-xs font-bold text-white">
+                              {show.creator.displayName?.[0] || show.creator.username?.[0] || '?'}
+                            </div>
+                          )}
+                          <span className="text-sm text-gray-300 truncate">
+                            {show.creator.displayName || show.creator.username}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Empty State */}
-        {filteredStreams.length === 0 && !error && streams.length === 0 && (
-          <div className="text-center py-20">
-            <div className="relative inline-block mb-8">
+        {liveNow.length === 0 && upcoming.length === 0 && (
+          <div className="text-center py-16">
+            <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
-              <Tv className="relative w-32 h-32 text-white mx-auto" strokeWidth={1.5} />
+              <Tv className="relative w-24 h-24 text-white mx-auto" strokeWidth={1.5} />
             </div>
             {userRole === 'creator' ? (
               <>
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  No live streams right now
-                </h2>
-                <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                <h2 className="text-2xl font-bold text-white mb-3">No live streams right now</h2>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   Be the first to go live! Start streaming and connect with your fans.
                 </p>
                 <button
                   onClick={() => router.push('/creator/go-live')}
-                  className="group relative overflow-hidden px-8 py-4 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 text-white hover:scale-105 transition-all shadow-lg shadow-red-500/50"
+                  className="px-8 py-4 rounded-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 text-white hover:scale-105 transition-all shadow-lg shadow-red-500/50 inline-flex items-center gap-2"
                 >
+                  <Radio className="w-5 h-5" />
                   Start Streaming
                 </button>
               </>
             ) : (
               <>
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  No streams available
-                </h2>
-                <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                <h2 className="text-2xl font-bold text-white mb-3">No streams available</h2>
+                <p className="text-gray-400 max-w-md mx-auto">
                   Check back soon for live streams from your favorite creators!
                 </p>
               </>
             )}
-          </div>
-        )}
-
-        {/* No Search Results */}
-        {filteredStreams.length === 0 && streams.length > 0 && (
-          <div className="text-center py-20">
-            <div className="relative inline-block mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-2xl opacity-50"></div>
-              <Search className="relative w-32 h-32 text-white mx-auto" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              No streams found
-            </h2>
-            <p className="text-gray-400 mb-8">
-              Try adjusting your search or filters
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSortBy('viewers');
-              }}
-              className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white hover:border-cyan-500/50 transition-all hover:scale-105"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
-
-        {/* Streams Grid */}
-        {filteredStreams.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStreams.map((stream) => (
-              <div
-                key={stream.id}
-                className="group cursor-pointer"
-                onClick={() => handleWatchStream(stream.id)}
-              >
-                {/* Neon Glow Effect */}
-                <div className="relative">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
-
-                  <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-500 hover:scale-105 hover:border-red-500/50">
-                    {/* Thumbnail/Preview */}
-                    <div className="aspect-video bg-gradient-to-br from-red-900/40 via-purple-900/40 to-slate-900 relative overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-6xl opacity-50">{stream.creator.displayName?.[0] || '🎥'}</div>
-                      </div>
-
-                      {/* Animated gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
-
-                      {/* Live Badge with Neon Glow */}
-                      <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-lg shadow-lg shadow-red-500/50">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        <span className="text-white text-sm font-bold">LIVE</span>
-                      </div>
-
-                      {/* Viewer Count */}
-                      <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/20">
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                        </svg>
-                        <span className="text-white text-sm font-semibold">
-                          {stream.currentViewers}
-                        </span>
-                      </div>
-
-                      {/* Hover Play Icon */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm">
-                        <div className="relative">
-                          <div className="absolute -inset-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur opacity-75"></div>
-                          <div className="relative w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center shadow-xl">
-                            <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Stream Info */}
-                    <div className="p-5">
-                      <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-red-400 transition-colors">
-                        {stream.title}
-                      </h3>
-
-                      {stream.description && (
-                        <p className="text-sm text-gray-400 mb-3 line-clamp-2">
-                          {stream.description}
-                        </p>
-                      )}
-
-                      {/* Creator Info */}
-                      <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                        <div className="flex items-center gap-2">
-                          {stream.creator.avatarUrl ? (
-                            <img
-                              src={stream.creator.avatarUrl}
-                              alt={stream.creator.displayName || stream.creator.username || 'Creator'}
-                              className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white">
-                              {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
-                            </div>
-                          )}
-                          <span className="text-sm font-semibold text-white">
-                            {stream.creator.displayName || stream.creator.username}
-                          </span>
-                        </div>
-
-                        <span className="text-xs text-gray-400">
-                          {stream.startedAt && formatStartTime(stream.startedAt)}
-                        </span>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
-                        <div className="flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                          </svg>
-                          <span>{stream.totalViews} views</span>
-                        </div>
-                        {stream.totalGiftsReceived > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"/>
-                            </svg>
-                            <span className="text-yellow-400">{stream.totalGiftsReceived} coins</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>
