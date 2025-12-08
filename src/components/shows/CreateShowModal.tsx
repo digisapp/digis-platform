@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
-import { Upload, X, Unlock, Lock } from 'lucide-react';
+import { Upload, X, Unlock, Lock, Radio } from 'lucide-react';
 
 interface CreateShowModalProps {
   onClose: () => void;
@@ -12,6 +13,7 @@ interface CreateShowModalProps {
 }
 
 export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -22,8 +24,6 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
     description: '',
     ticketPrice: 5,
     maxTickets: null as number | null,
-    scheduledStart: '',
-    durationMinutes: 5,
     coverImageUrl: '',
   });
 
@@ -84,15 +84,10 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
       if (isPaid && formData.ticketPrice < 1) {
         throw new Error('Ticket price must be at least 1 coin');
       }
-      if (!formData.scheduledStart) {
-        throw new Error('Stream date and time is required');
-      }
 
-      // Check if scheduled time is in the future
-      const scheduledDate = new Date(formData.scheduledStart);
-      if (scheduledDate <= new Date()) {
-        throw new Error('Stream must be scheduled in the future');
-      }
+      // Set scheduled start to now (go live immediately)
+      const now = new Date();
+      const scheduledStart = now.toISOString();
 
       const response = await fetch('/api/shows/create', {
         method: 'POST',
@@ -100,6 +95,8 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
         body: JSON.stringify({
           ...formData,
           ticketPrice: isPaid ? formData.ticketPrice : 0,
+          scheduledStart,
+          durationMinutes: 60, // Default 1 hour, can extend while live
         }),
       });
 
@@ -109,7 +106,9 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
         throw new Error(data.error || 'Failed to create stream');
       }
 
+      // Redirect to the stream page to start broadcasting
       onSuccess();
+      router.push(`/creator/streams/${data.show.id}/live`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create stream');
     } finally {
@@ -117,19 +116,17 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
     }
   };
 
-  // Get minimum datetime (now + 1 hour)
-  const getMinDateTime = () => {
-    const now = new Date();
-    now.setHours(now.getHours() + 1);
-    return now.toISOString().slice(0, 16);
-  };
-
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl border-2 border-digis-cyan shadow-[0_0_30px_rgba(0,255,255,0.3)] max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl border-2 border-digis-cyan shadow-[0_0_30px_rgba(0,255,255,0.3)] max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Create Stream</h2>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-red-500/20">
+                <Radio className="w-6 h-6 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Go Live</h2>
+            </div>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-digis-cyan text-2xl transition-colors"
@@ -138,7 +135,38 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">
+                Stream Title *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="What's your stream about?"
+                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
+                maxLength={100}
+                autoFocus
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-semibold text-white mb-2">
+                Description <span className="text-gray-500">(optional)</span>
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Tell your fans what to expect..."
+                rows={3}
+                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all resize-none"
+                maxLength={500}
+              />
+            </div>
+
             {/* Free/Paid Toggle */}
             <div>
               <label className="block text-sm font-semibold text-white mb-3">
@@ -170,126 +198,32 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   Paid
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
-                {isPaid
-                  ? 'Fans must purchase a ticket to join your stream'
-                  : 'Anyone can join your stream for free'}
-              </p>
             </div>
 
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-semibold text-white mb-2">
-                Stream Title *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Yoga Class with Me"
-                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
-                maxLength={100}
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-white mb-2">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Tell your fans what to expect from this stream..."
-                rows={4}
-                className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all resize-none"
-                maxLength={500}
-              />
-            </div>
-
-            {/* Date & Time + Duration */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            {/* Ticket Price (only shown if Paid) */}
+            {isPaid && (
+              <div className="p-4 rounded-xl bg-digis-pink/10 border border-digis-pink/30">
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Stream Date & Time *
+                  Ticket Price (coins)
                 </label>
                 <input
-                  type="datetime-local"
-                  value={formData.scheduledStart}
-                  onChange={(e) => setFormData({ ...formData, scheduledStart: e.target.value })}
-                  min={getMinDateTime()}
-                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
+                  type="number"
+                  value={formData.ticketPrice}
+                  onChange={(e) => setFormData({ ...formData, ticketPrice: parseInt(e.target.value) || 0 })}
+                  min={1}
+                  max={10000}
+                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-pink/30 rounded-xl text-white focus:outline-none focus:border-digis-pink focus:shadow-[0_0_10px_rgba(255,20,147,0.3)] transition-all"
                 />
-                <p className="text-xs text-gray-400 mt-1">
-                  At least 1 hour from now
+                <p className="text-xs text-gray-400 mt-2">
+                  Fans must purchase a ticket to join your stream
                 </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">
-                  Duration *
-                </label>
-                <select
-                  value={formData.durationMinutes}
-                  onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-cyan/30 rounded-lg text-white focus:outline-none focus:border-digis-cyan focus:shadow-[0_0_10px_rgba(0,255,255,0.3)] transition-all"
-                >
-                  <option value={5}>5 minutes</option>
-                  <option value={10}>10 minutes</option>
-                  <option value={15}>15 minutes</option>
-                  <option value={20}>20 minutes</option>
-                  <option value={30}>30 minutes</option>
-                  <option value={45}>45 minutes</option>
-                  <option value={60}>1 hour</option>
-                  <option value={90}>1.5 hours</option>
-                  <option value={120}>2 hours</option>
-                  <option value={180}>3 hours</option>
-                  <option value={360}>6 hours</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Ticket Price + Max Tickets (only shown if Paid) */}
-            {isPaid && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-digis-pink/10 border border-digis-pink/30">
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Ticket Price (coins) *
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.ticketPrice}
-                    onChange={(e) => setFormData({ ...formData, ticketPrice: parseInt(e.target.value) || 0 })}
-                    min={1}
-                    max={10000}
-                    className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-pink/30 rounded-lg text-white focus:outline-none focus:border-digis-pink focus:shadow-[0_0_10px_rgba(255,20,147,0.3)] transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Maximum Tickets
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.maxTickets || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      maxTickets: e.target.value ? parseInt(e.target.value) : null
-                    })}
-                    placeholder="Unlimited"
-                    min={1}
-                    max={10000}
-                    className="w-full px-4 py-3 bg-black/40 backdrop-blur-sm border-2 border-digis-pink/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-digis-pink focus:shadow-[0_0_10px_rgba(255,20,147,0.3)] transition-all"
-                  />
-                </div>
               </div>
             )}
 
             {/* Cover Image Upload */}
             <div>
               <label className="block text-sm font-semibold text-white mb-2">
-                Cover Image (optional)
+                Cover Image <span className="text-gray-500">(optional)</span>
               </label>
 
               {coverPreview ? (
@@ -297,7 +231,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   <img
                     src={coverPreview}
                     alt="Cover preview"
-                    className="w-full h-48 object-cover rounded-lg border-2 border-digis-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]"
+                    className="w-full h-40 object-cover rounded-xl border-2 border-digis-cyan/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]"
                   />
                   <button
                     type="button"
@@ -308,18 +242,17 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-digis-cyan/30 rounded-lg cursor-pointer bg-black/40 hover:bg-black/60 hover:border-digis-cyan transition-all">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-digis-cyan/30 rounded-xl cursor-pointer bg-black/40 hover:bg-black/60 hover:border-digis-cyan transition-all">
+                  <div className="flex flex-col items-center justify-center py-4">
                     {uploadingCover ? (
                       <>
-                        <LoadingSpinner size="md" />
+                        <LoadingSpinner size="sm" />
                         <p className="mt-2 text-sm text-gray-300">Uploading...</p>
                       </>
                     ) : (
                       <>
-                        <Upload className="w-10 h-10 text-digis-cyan mb-3" />
-                        <p className="text-sm text-white font-semibold">Click to upload cover image</p>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF or WebP (max 5MB)</p>
+                        <Upload className="w-8 h-8 text-digis-cyan mb-2" />
+                        <p className="text-sm text-gray-400">Click to upload</p>
                       </>
                     )}
                   </div>
@@ -335,13 +268,13 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border-2 border-red-500 rounded-lg p-3 text-red-300 text-sm shadow-[0_0_15px_rgba(255,0,0,0.3)]">
+              <div className="bg-red-500/20 border-2 border-red-500 rounded-xl p-3 text-red-300 text-sm shadow-[0_0_15px_rgba(255,0,0,0.3)]">
                 {error}
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-3 pt-2">
               <GlassButton
                 type="button"
                 variant="ghost"
@@ -356,12 +289,19 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 type="submit"
                 variant="gradient"
                 size="lg"
-                className="flex-1"
+                className="flex-1 !bg-gradient-to-r !from-red-500 !to-pink-500"
                 disabled={loading}
                 shimmer
                 glow
               >
-                {loading ? <LoadingSpinner size="sm" /> : <span className="text-white font-bold">Create Stream</span>}
+                {loading ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  <span className="text-white font-bold flex items-center gap-2">
+                    <Radio className="w-4 h-4" />
+                    Go Live
+                  </span>
+                )}
               </GlassButton>
             </div>
           </form>

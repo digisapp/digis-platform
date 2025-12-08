@@ -75,9 +75,10 @@ export class ShowService {
       throw new Error('Ticket price cannot be negative');
     }
 
-    // Validate scheduled time is in the future
-    if (scheduledStart <= new Date()) {
-      throw new Error('Show must be scheduled in the future');
+    // Allow streams to start now or in the future (with 5 min buffer for clock differences)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    if (scheduledStart < fiveMinutesAgo) {
+      throw new Error('Stream start time cannot be more than 5 minutes in the past');
     }
 
     // Generate unique room name for LiveKit

@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
-import { Ticket, Plus, BarChart3, Calendar, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
+import { Radio, BarChart3, CheckCircle2, DollarSign, Ticket, History } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
@@ -32,7 +32,6 @@ export default function CreatorStreamsPage() {
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'scheduled' | 'ended'>('scheduled');
 
   useEffect(() => {
     checkAuth();
@@ -85,12 +84,14 @@ export default function CreatorStreamsPage() {
     );
   }
 
-  const filteredShows = shows.filter(show => show.status === statusFilter);
+  // Separate live, scheduled, and past streams
+  const liveStreams = shows.filter(s => s.status === 'live');
+  const scheduledStreams = shows.filter(s => s.status === 'scheduled');
+  const pastStreams = shows.filter(s => s.status === 'ended' || s.status === 'cancelled');
 
   const stats = {
-    totalShows: shows.length,
-    scheduled: shows.filter(s => s.status === 'scheduled').length,
-    completed: shows.filter(s => s.status === 'ended').length,
+    totalStreams: shows.length,
+    completed: pastStreams.length,
     totalRevenue: shows.reduce((sum, s) => sum + s.totalRevenue, 0),
     totalTicketsSold: shows.reduce((sum, s) => sum + s.ticketsSold, 0),
   };
@@ -104,140 +105,144 @@ export default function CreatorStreamsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8">
-        {/* Header with Create Button */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">My Streams</h1>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Streams</h1>
           <GlassButton
             variant="gradient"
-            size="sm"
+            size="md"
             onClick={() => setShowCreateModal(true)}
             shimmer
             glow
-            className="md:text-base whitespace-nowrap flex items-center"
+            className="!bg-gradient-to-r !from-red-500 !to-pink-500 flex items-center gap-2"
           >
-            <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-            Create Stream
+            <Radio className="w-5 h-5" />
+            Go Live
           </GlassButton>
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="mb-6 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {(['scheduled', 'ended'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setStatusFilter(tab)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all whitespace-nowrap ${
-                statusFilter === tab
-                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg shadow-yellow-500/50 scale-105'
-                  : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-yellow-500/50'
-              }`}
-            >
-              {tab === 'scheduled' ? 'Upcoming' : 'Completed'}
-            </button>
-          ))}
-        </div>
+        {/* Currently Live */}
+        {liveStreams.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <h2 className="text-lg font-bold text-white">Currently Live</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {liveStreams.map((show) => (
+                <ShowCard
+                  key={show.id}
+                  show={show}
+                  isCreator
+                  onUpdate={fetchShows}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* Streams Grid */}
-        {filteredShows.length === 0 ? (
-          <div className="relative overflow-hidden rounded-3xl p-12 text-center bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/5 via-digis-purple/5 to-digis-pink/5" />
-            <div className="relative">
-              <div className="inline-flex p-6 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 mb-6">
-                <Sparkles className="w-16 h-16 text-digis-purple" strokeWidth={2} />
-              </div>
-              <h3 className="text-2xl font-black text-white mb-3">
-                No {statusFilter === 'scheduled' ? 'upcoming' : 'completed'} streams
-              </h3>
-              <p className="text-gray-300 text-lg mb-8 max-w-md mx-auto">
-                {statusFilter === 'scheduled'
-                  ? 'Create your first stream - free or paid!'
-                  : 'Your completed streams will appear here.'}
-              </p>
-              {statusFilter === 'scheduled' && (
+        {/* Upcoming (Tickets on Sale) */}
+        {scheduledStreams.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Ticket className="w-5 h-5 text-yellow-400" />
+              <h2 className="text-lg font-bold text-white">Tickets on Sale</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {scheduledStreams.map((show) => (
+                <ShowCard
+                  key={show.id}
+                  show={show}
+                  isCreator
+                  onUpdate={fetchShows}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past Streams */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="w-5 h-5 text-gray-400" />
+            <h2 className="text-lg font-bold text-white">Past Streams</h2>
+          </div>
+
+          {pastStreams.length === 0 ? (
+            <div className="relative overflow-hidden rounded-2xl p-8 text-center bg-white/5 backdrop-blur-xl border border-white/10">
+              <div className="relative">
+                <Radio className="w-12 h-12 mx-auto mb-4 text-gray-500" />
+                <h3 className="text-lg font-semibold text-white mb-2">No streams yet</h3>
+                <p className="text-gray-400 mb-6">Go live and connect with your fans!</p>
                 <GlassButton
                   variant="gradient"
                   size="md"
                   onClick={() => setShowCreateModal(true)}
-                  shimmer
-                  glow
-                  className="shadow-2xl"
+                  className="!bg-gradient-to-r !from-red-500 !to-pink-500"
                 >
-                  <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-                  Create Stream
+                  <Radio className="w-4 h-4 mr-2" />
+                  Start Your First Stream
                 </GlassButton>
-              )}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredShows.map((show) => (
-              <ShowCard
-                key={show.id}
-                show={show}
-                isCreator
-                onUpdate={fetchShows}
-              />
-            ))}
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pastStreams.map((show) => (
+                <ShowCard
+                  key={show.id}
+                  show={show}
+                  isCreator
+                  onUpdate={fetchShows}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mt-8">
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-purple-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 w-fit mb-3">
-                <BarChart3 className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
+        {shows.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-purple-400/50 transition-all duration-300">
+              <div className="relative">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 w-fit mb-3">
+                  <BarChart3 className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
+                </div>
+                <div className="text-3xl font-black text-white mb-1">{stats.totalStreams}</div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total</div>
               </div>
-              <div className="text-3xl font-black text-white mb-1">{stats.totalShows}</div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Streams</div>
             </div>
-          </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 w-fit mb-3">
-                <Calendar className="w-5 h-5 text-cyan-400" strokeWidth={2.5} />
+            <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-green-400/50 transition-all duration-300">
+              <div className="relative">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 w-fit mb-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-400" strokeWidth={2.5} />
+                </div>
+                <div className="text-3xl font-black text-green-400 mb-1">{stats.completed}</div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Completed</div>
               </div>
-              <div className="text-3xl font-black text-cyan-400 mb-1">{stats.scheduled}</div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Upcoming</div>
             </div>
-          </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-green-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/20 w-fit mb-3">
-                <CheckCircle2 className="w-5 h-5 text-green-400" strokeWidth={2.5} />
+            <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-pink-400/50 transition-all duration-300">
+              <div className="relative">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-600/20 w-fit mb-3">
+                  <Ticket className="w-5 h-5 text-pink-400" strokeWidth={2.5} />
+                </div>
+                <div className="text-3xl font-black text-pink-400 mb-1">{stats.totalTicketsSold}</div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tickets</div>
               </div>
-              <div className="text-3xl font-black text-green-400 mb-1">{stats.completed}</div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Completed</div>
             </div>
-          </div>
 
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-pink-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-600/20 w-fit mb-3">
-                <Ticket className="w-5 h-5 text-pink-400" strokeWidth={2.5} />
+            <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-yellow-400/50 transition-all duration-300">
+              <div className="relative">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 w-fit mb-3">
+                  <DollarSign className="w-5 h-5 text-yellow-400" strokeWidth={2.5} />
+                </div>
+                <div className="text-3xl font-black text-yellow-400 mb-1">{stats.totalRevenue}</div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Revenue</div>
               </div>
-              <div className="text-3xl font-black text-pink-400 mb-1">{stats.totalTicketsSold}</div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tickets Sold</div>
             </div>
           </div>
-
-          <div className="group relative overflow-hidden rounded-2xl p-5 bg-white/10 backdrop-blur-xl border border-white/20 hover:border-yellow-400/50 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 w-fit mb-3">
-                <DollarSign className="w-5 h-5 text-yellow-400" strokeWidth={2.5} />
-              </div>
-              <div className="text-3xl font-black text-yellow-400 mb-1">{stats.totalRevenue}</div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Revenue</div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Create Stream Modal */}
