@@ -71,9 +71,7 @@ export default function MessageRequestsPage() {
 
       if (response.ok && result.data) {
         setRequests(result.data || []);
-        if (result.degraded) {
-          console.warn('Message requests data degraded:', result.error);
-        }
+        // Degraded state is handled gracefully - no need to log warnings
       }
     } catch (error) {
       console.error('Error fetching requests:', error);

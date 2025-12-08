@@ -201,9 +201,8 @@ export default function CreatorDashboard() {
       if (response.ok && result.data) {
         setAnalytics(result.data);
       } else if (result.degraded) {
-        // API returned degraded data (e.g., DB timeout)
-        console.warn('Analytics data degraded:', result.error);
-        setAnalytics(result.data); // Use degraded data anyway
+        // Use degraded data gracefully - no need to log warnings
+        setAnalytics(result.data);
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);

@@ -105,9 +105,7 @@ export default function MessagesPage() {
 
       if (response.ok && result.data) {
         setConversations(result.data || []);
-        if (result.degraded) {
-          console.warn('Conversations data degraded:', result.error);
-        }
+        // Degraded state is handled gracefully - no need to log warnings
       }
     } catch (error) {
       console.error('Error fetching conversations:', error);

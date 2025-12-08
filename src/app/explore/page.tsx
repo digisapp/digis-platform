@@ -146,9 +146,7 @@ export default function ExplorePage() {
         setCategories(result.data.categories || ['All']);
         setHasMore(result.data.pagination?.hasMore ?? false);
         setOffset(pageOffset);
-        if (result.degraded) {
-          console.warn('Creators data degraded:', result.error);
-        }
+        // Degraded state is handled gracefully - no need to log warnings
       }
     } catch (error) {
       console.error('Error fetching creators:', error);
