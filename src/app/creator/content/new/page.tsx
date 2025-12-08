@@ -8,8 +8,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Upload, Image, Video, Grid3x3, Coins, Lock, Eye, Plus } from 'lucide-react';
+import { ArrowLeft, Upload, Grid3x3, Coins, Lock, Eye, Plus, X, Image, Video } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+
+type ContentType = 'photo' | 'video' | 'gallery';
 
 export default function CreateContentPage() {
   const router = useRouter();
@@ -42,17 +44,18 @@ export default function CreateContentPage() {
 
     checkAuth();
   }, [router]);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    contentType: 'photo' as 'photo' | 'video' | 'gallery',
+    contentType: 'photo' as ContentType,
     unlockPrice: 0,
     isFree: true,
     file: null as File | null,
-    files: [] as File[], // For gallery uploads
+    files: [] as File[],
   });
   const [preview, setPreview] = useState<string | null>(null);
-  const [previews, setPreviews] = useState<string[]>([]); // For gallery previews
+  const [previews, setPreviews] = useState<string[]>([]);
   const [videoDuration, setVideoDuration] = useState<number>(0);
 
   // Extract video duration from file
@@ -65,23 +68,49 @@ export default function CreateContentPage() {
         resolve(Math.round(video.duration));
       };
       video.onerror = () => {
-        resolve(0); // Fallback if we can't read duration
+        resolve(0);
       };
       video.src = URL.createObjectURL(file);
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-detect content type and handle files
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // For gallery: handle multiple files
-    if (formData.contentType === 'gallery') {
-      const fileArray = Array.from(files);
-      setFormData({ ...formData, files: fileArray, file: null });
+    const fileArray = Array.from(files);
+    const firstFile = fileArray[0];
+    const isVideo = firstFile.type.startsWith('video/');
 
-      // Create previews for all images
-      const previewPromises = fileArray.map((file) => {
+    if (isVideo) {
+      // Video mode - single video file
+      setFormData({ ...formData, contentType: 'video', file: firstFile, files: [] });
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.readAsDataURL(firstFile);
+
+      // Get duration
+      const duration = await getVideoDuration(firstFile);
+      setVideoDuration(duration);
+      setPreviews([]);
+    } else if (fileArray.length === 1) {
+      // Single image - photo mode
+      setFormData({ ...formData, contentType: 'photo', file: firstFile, files: [] });
+
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.readAsDataURL(firstFile);
+      setPreviews([]);
+    } else {
+      // Multiple images - gallery mode
+      const imageFiles = fileArray.filter(f => f.type.startsWith('image/'));
+      setFormData({ ...formData, contentType: 'gallery', file: null, files: imageFiles });
+
+      // Create previews for all
+      const previewPromises = imageFiles.map((file) => {
         return new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
@@ -89,30 +118,64 @@ export default function CreateContentPage() {
         });
       });
 
-      Promise.all(previewPromises).then(setPreviews);
-    } else {
-      // For photo/video: handle single file
-      const file = files[0];
-      setFormData({ ...formData, file, files: [] });
-
-      // Create single preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-
-      // Extract duration for videos
-      if (formData.contentType === 'video') {
-        getVideoDuration(file).then(setVideoDuration);
-      }
+      const newPreviews = await Promise.all(previewPromises);
+      setPreviews(newPreviews);
+      setPreview(null);
     }
+  };
+
+  // Add more images to gallery
+  const handleAddMoreImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const newFiles = [...formData.files, ...imageFiles];
+    setFormData({ ...formData, files: newFiles, contentType: 'gallery' });
+
+    const previewPromises = imageFiles.map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    const newPreviews = await Promise.all(previewPromises);
+    setPreviews([...previews, ...newPreviews]);
+  };
+
+  // Remove a file from gallery
+  const removeGalleryImage = (index: number) => {
+    const newFiles = formData.files.filter((_, i) => i !== index);
+    const newPreviews = previews.filter((_, i) => i !== index);
+
+    if (newFiles.length === 1) {
+      // Switch to single photo mode
+      setFormData({ ...formData, contentType: 'photo', file: newFiles[0], files: [] });
+      setPreview(newPreviews[0]);
+      setPreviews([]);
+    } else if (newFiles.length === 0) {
+      // Clear everything
+      setFormData({ ...formData, contentType: 'photo', file: null, files: [] });
+      setPreviews([]);
+    } else {
+      setFormData({ ...formData, files: newFiles });
+      setPreviews(newPreviews);
+    }
+  };
+
+  // Clear all files
+  const clearFiles = () => {
+    setFormData({ ...formData, contentType: 'photo', file: null, files: [] });
+    setPreview(null);
+    setPreviews([]);
+    setVideoDuration(0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation: check if we have files
     const hasFiles = formData.contentType === 'gallery'
       ? formData.files.length > 0
       : formData.file !== null;
@@ -122,7 +185,6 @@ export default function CreateContentPage() {
       return;
     }
 
-    // Gallery requires at least 2 images
     if (formData.contentType === 'gallery' && formData.files.length < 2) {
       showToast('Gallery requires at least 2 images', 'error');
       return;
@@ -131,8 +193,8 @@ export default function CreateContentPage() {
     setUploading(true);
 
     try {
-      // For videos: Upload directly to Supabase to bypass 4.5MB Vercel limit
       if (formData.contentType === 'video' && formData.file) {
+        // Video: Upload directly to Supabase to bypass Vercel limit
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -141,7 +203,6 @@ export default function CreateContentPage() {
           return;
         }
 
-        // Upload video directly to Supabase storage
         const ext = formData.file.name.split('.').pop()?.toLowerCase() || 'mp4';
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
@@ -158,10 +219,8 @@ export default function CreateContentPage() {
           return;
         }
 
-        // Get public URL
         const { data: { publicUrl } } = supabase.storage.from('content').getPublicUrl(fileName);
 
-        // Create content item via API (without file, just metadata)
         const response = await fetch('/api/content/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -178,27 +237,21 @@ export default function CreateContentPage() {
 
         if (response.ok) {
           showToast('Video uploaded successfully!', 'success');
-          setTimeout(() => {
-            router.push('/creator/content');
-          }, 1500);
+          setTimeout(() => router.push('/creator/content'), 1500);
         } else {
-          // Clean up uploaded file if database creation fails
           await supabase.storage.from('content').remove([fileName]);
-
           const data = await response.json();
           showToast(data.error || 'Upload failed. Please try again.', 'error');
         }
       } else {
-        // For photos/galleries: Use API route (usually under 50MB)
+        // Photos/galleries: Use API route
         const uploadData = new FormData();
 
-        // For gallery: append all files
         if (formData.contentType === 'gallery') {
-          formData.files.forEach((file, index) => {
+          formData.files.forEach((file) => {
             uploadData.append('files', file);
           });
         } else {
-          // For photo: append single file
           uploadData.append('file', formData.file!);
         }
 
@@ -213,27 +266,20 @@ export default function CreateContentPage() {
           body: uploadData,
         });
 
-      if (response.ok) {
-        showToast('Content uploaded successfully!', 'success');
-        // Redirect after showing toast
-        setTimeout(() => {
-          router.push('/creator/content');
-        }, 1500);
-      } else {
-        // Handle 413 Content Too Large error
-        if (response.status === 413) {
+        if (response.ok) {
+          showToast('Content uploaded successfully!', 'success');
+          setTimeout(() => router.push('/creator/content'), 1500);
+        } else if (response.status === 413) {
           showToast('File too large. Please use a smaller file.', 'error');
         } else {
           try {
             const data = await response.json();
             showToast(data.error || 'Upload failed. Please try again.', 'error');
-          } catch (e) {
-            // Response is not JSON (might be HTML error page)
+          } catch {
             showToast('Upload failed. Please try again.', 'error');
           }
         }
       }
-      } // Close else block for photos/galleries
     } catch (error) {
       console.error('Error uploading content:', error);
       showToast('Failed to upload content', 'error');
@@ -241,6 +287,8 @@ export default function CreateContentPage() {
       setUploading(false);
     }
   };
+
+  const hasContent = formData.file || formData.files.length > 0;
 
   if (loading) {
     return (
@@ -252,10 +300,7 @@ export default function CreateContentPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      {/* Mobile Header */}
       <MobileHeader />
-
-      {/* Spacer for fixed mobile header */}
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-3xl">
@@ -282,153 +327,107 @@ export default function CreateContentPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Content Type */}
-          <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Content Type</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, contentType: 'photo' })}
-                className={`p-6 rounded-xl border-2 transition-all ${
-                  formData.contentType === 'photo'
-                    ? 'border-digis-cyan bg-digis-cyan/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                }`}
-              >
-                <Image className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'photo' ? 'text-digis-cyan' : 'text-gray-400'}`} />
-                <div className="text-sm font-semibold text-white">Photo</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, contentType: 'video' })}
-                className={`p-6 rounded-xl border-2 transition-all ${
-                  formData.contentType === 'video'
-                    ? 'border-digis-cyan bg-digis-cyan/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                }`}
-              >
-                <Video className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'video' ? 'text-digis-cyan' : 'text-gray-400'}`} />
-                <div className="text-sm font-semibold text-white">Video</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, contentType: 'gallery' })}
-                className={`p-6 rounded-xl border-2 transition-all ${
-                  formData.contentType === 'gallery'
-                    ? 'border-digis-cyan bg-digis-cyan/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                }`}
-              >
-                <Grid3x3 className={`w-8 h-8 mx-auto mb-2 ${formData.contentType === 'gallery' ? 'text-digis-cyan' : 'text-gray-400'}`} />
-                <div className="text-sm font-semibold text-white">Multiple</div>
-              </button>
-            </div>
-          </GlassCard>
-
           {/* File Upload */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              {formData.contentType === 'gallery' ? 'Upload Images (Multiple)' : 'Upload File'}
-            </h3>
-
-            {/* Gallery Preview: Multiple Images */}
+            {/* Gallery Preview */}
             {formData.contentType === 'gallery' && previews.length > 0 ? (
               <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Grid3x3 className="w-5 h-5 text-digis-cyan" />
+                    <span className="text-white font-medium">{previews.length} images selected</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearFiles}
+                    className="text-sm text-red-400 hover:text-red-300"
+                  >
+                    Clear all
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                  {previews.map((preview, index) => (
-                    <div key={index} className="relative group">
+                  {previews.map((p, index) => (
+                    <div key={index} className="relative group aspect-square">
                       <img
-                        src={preview}
+                        src={p}
                         alt={`Preview ${index + 1}`}
-                        className="w-full aspect-square rounded-xl object-cover"
+                        className="w-full h-full rounded-xl object-cover"
                       />
                       <button
                         type="button"
-                        onClick={() => {
-                          const newFiles = formData.files.filter((_, i) => i !== index);
-                          const newPreviews = previews.filter((_, i) => i !== index);
-                          setFormData({ ...formData, files: newFiles });
-                          setPreviews(newPreviews);
-                        }}
-                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        onClick={() => removeGalleryImage(index)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                       >
-                        ✕
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
                 </div>
                 <label className="block">
-                  <div className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/10 transition-all">
-                    <Plus className="w-8 h-8 mx-auto mb-2 text-gray-500" />
-                    <p className="text-white font-medium text-sm">Add more images</p>
+                  <div className="border-2 border-dashed border-white/30 rounded-xl p-4 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/5 transition-all">
+                    <Plus className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                    <p className="text-sm text-gray-300">Add more images</p>
                   </div>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (!files) return;
-                      const newFiles = [...formData.files, ...Array.from(files)];
-                      setFormData({ ...formData, files: newFiles });
-
-                      const previewPromises = Array.from(files).map((file) => {
-                        return new Promise<string>((resolve) => {
-                          const reader = new FileReader();
-                          reader.onloadend = () => resolve(reader.result as string);
-                          reader.readAsDataURL(file);
-                        });
-                      });
-
-                      Promise.all(previewPromises).then((newPreviews) => {
-                        setPreviews([...previews, ...newPreviews]);
-                      });
-                    }}
+                    onChange={handleAddMoreImages}
                     className="hidden"
                   />
                 </label>
               </div>
             ) : preview ? (
-              /* Single File Preview */
-              <div className="relative">
-                {formData.contentType === 'video' ? (
-                  <video src={preview} controls className="w-full rounded-xl max-h-96 object-contain bg-black" />
-                ) : (
-                  <img src={preview} alt="Preview" className="w-full rounded-xl max-h-96 object-contain" />
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreview(null);
-                    setFormData({ ...formData, file: null });
-                  }}
-                  className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                >
-                  Remove
-                </button>
+              /* Single File Preview (Photo or Video) */
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    {formData.contentType === 'video' ? (
+                      <Video className="w-5 h-5 text-digis-cyan" />
+                    ) : (
+                      <Image className="w-5 h-5 text-digis-cyan" />
+                    )}
+                    <span className="text-white font-medium">
+                      {formData.contentType === 'video' ? 'Video' : 'Photo'} selected
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearFiles}
+                    className="text-sm text-red-400 hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="relative">
+                  {formData.contentType === 'video' ? (
+                    <video src={preview} controls className="w-full rounded-xl max-h-96 object-contain bg-black" />
+                  ) : (
+                    <img src={preview} alt="Preview" className="w-full rounded-xl max-h-96 object-contain" />
+                  )}
+                </div>
               </div>
             ) : (
               /* Upload Prompt */
-              <label className="block">
-                <div className="border-2 border-dashed border-white/30 rounded-xl p-12 text-center cursor-pointer hover:border-digis-cyan hover:bg-white/10 transition-all">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="text-white font-medium mb-2">
-                    {formData.contentType === 'gallery' ? 'Click to upload multiple images' : 'Click to upload or drag and drop'}
+              <label className="block cursor-pointer">
+                <div className="border-2 border-dashed border-white/30 rounded-xl p-8 text-center hover:border-digis-cyan hover:bg-white/5 transition-all">
+                  <Upload className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                  <p className="text-white font-medium mb-1">
+                    Click to upload photos or videos
                   </p>
-                  <p className="text-sm text-gray-300">
-                    {formData.contentType === 'gallery'
-                      ? 'Select 2 or more images (JPG, PNG up to 50MB each)'
-                      : formData.contentType === 'video'
-                      ? 'MP4, MOV up to 500MB'
-                      : 'JPG, PNG up to 50MB'}
+                  <p className="text-sm text-gray-400 mb-3">
+                    Select multiple images to create a gallery
                   </p>
+                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                    <span>JPG, PNG up to 50MB</span>
+                    <span>•</span>
+                    <span>MP4, MOV up to 500MB</span>
+                  </div>
                 </div>
                 <input
                   type="file"
-                  accept={formData.contentType === 'video' ? 'video/*' : 'image/*'}
-                  multiple={formData.contentType === 'gallery'}
+                  accept="image/*,video/*"
+                  multiple
                   onChange={handleFileChange}
                   className="hidden"
                 />
@@ -522,22 +521,19 @@ export default function CreateContentPage() {
             <GlassButton
               type="submit"
               variant="gradient"
-              disabled={
-                uploading ||
-                !formData.title ||
-                (formData.contentType === 'gallery' ? formData.files.length === 0 : !formData.file)
-              }
+              disabled={uploading || !formData.title || !hasContent}
               shimmer
               className="w-full"
               size="lg"
             >
-              <span className="text-white font-semibold">{uploading ? 'Uploading...' : 'Publish Content'}</span>
+              <span className="text-white font-semibold">
+                {uploading ? 'Uploading...' : 'Publish Content'}
+              </span>
             </GlassButton>
           </div>
         </form>
       </div>
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}
