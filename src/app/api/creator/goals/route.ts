@@ -30,13 +30,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch goals directly (skip DB role check since JWT is authoritative)
-    // OPTIMIZED: Reduced timeout from 5s to 3s
     const goals = await withTimeoutAndRetry(
       () => db.query.creatorGoals.findMany({
         where: eq(creatorGoals.creatorId, user.id),
         orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
       }),
-      { timeoutMs: 3000, retries: 1, tag: 'goalsQuery' }
+      { timeoutMs: 6000, retries: 2, tag: 'goalsQuery' }
     );
 
     return NextResponse.json({ goals });
