@@ -666,50 +666,116 @@ export default function SettingsPage() {
             </div>
           </GlassCard>
 
-          {/* Account Information */}
+          {/* Account Settings */}
           <GlassCard className="p-6">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
               <Shield className="w-5 h-5 text-blue-400" />
-              Account Information
+              Account Settings
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-                <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-pink rounded-lg">
-                  <AtSign className="w-4 h-4 text-white" />
-                </div>
-                <div>
+            <div className="space-y-4">
+              {/* Username - Editable */}
+              <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AtSign className="w-4 h-4 text-digis-purple" />
                   <p className="text-xs text-gray-400">Username</p>
-                  <p className="text-sm font-medium text-white">{currentUser?.username}</p>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-                <div className={`p-2 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-lg`}>
-                  {currentUser?.role === 'creator' ? (
-                    <Crown className="w-4 h-4 text-white" />
-                  ) : (
-                    <User className="w-4 h-4 text-white" />
+                {usernameCooldown && !usernameCooldown.canChange && (
+                  <p className="text-xs text-yellow-300 mb-2 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Can change in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
+                  </p>
+                )}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    disabled={!usernameCooldown?.canChange}
+                    placeholder={currentUser?.username}
+                    className={`w-full px-3 py-2 bg-black/30 border rounded-lg text-white text-sm font-medium placeholder-gray-500 focus:outline-none transition-all ${
+                      !newUsername || newUsername === currentUser?.username
+                        ? 'border-white/10 focus:border-digis-cyan'
+                        : usernameStatus === 'checking'
+                        ? 'border-yellow-400'
+                        : usernameStatus === 'available'
+                        ? 'border-green-500'
+                        : 'border-red-500'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  />
+                  {newUsername && newUsername !== currentUser?.username && (
+                    <div className="absolute right-2 top-2">
+                      {usernameStatus === 'checking' && <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />}
+                      {usernameStatus === 'available' && <CheckCircle className="w-4 h-4 text-green-500" />}
+                      {usernameStatus === 'taken' && <XCircle className="w-4 h-4 text-red-500" />}
+                    </div>
                   )}
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400">Account Type</p>
-                  <p className="text-sm font-medium text-white capitalize">{currentUser?.role}</p>
-                </div>
+                {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
+                  <button
+                    onClick={handleChangeUsername}
+                    disabled={savingUsername}
+                    className="mt-2 px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-purple text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {savingUsername ? 'Saving...' : 'Update Username'}
+                  </button>
+                )}
               </div>
 
-              {currentUser?.createdAt && (
-                <div className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-                  <div className="p-2 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-lg">
-                    <Calendar className="w-4 h-4 text-white" />
+              {/* Email - Editable */}
+              <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Mail className="w-4 h-4 text-digis-cyan" />
+                  <p className="text-xs text-gray-400">Email Address</p>
+                </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-digis-cyan transition-all"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  {currentUser?.email && email === currentUser.email && (
+                    <span className="absolute right-2 top-2 text-xs text-green-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+                {email !== currentUser?.email && (
+                  <p className="text-xs text-yellow-400 mt-1">Changing email requires verification</p>
+                )}
+              </div>
+
+              {/* Account Type & Member Since - Read Only */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+                  <div className={`p-1.5 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-md`}>
+                    {currentUser?.role === 'creator' ? (
+                      <Crown className="w-3 h-3 text-white" />
+                    ) : (
+                      <User className="w-3 h-3 text-white" />
+                    )}
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Member Since</p>
-                    <p className="text-sm font-medium text-white">
-                      {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </p>
+                    <p className="text-xs text-gray-400">Type</p>
+                    <p className="text-sm font-medium text-white capitalize">{currentUser?.role}</p>
                   </div>
                 </div>
-              )}
+
+                {currentUser?.createdAt && (
+                  <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+                    <div className="p-1.5 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-md">
+                      <Calendar className="w-3 h-3 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Joined</p>
+                      <p className="text-sm font-medium text-white">
+                        {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Spend Tier Progress - Fans Only */}
               {currentUser?.role === 'fan' && (() => {
@@ -808,71 +874,6 @@ export default function SettingsPage() {
             </div>
           </GlassCard>
         </div>
-
-        {/* Section Divider */}
-        <div className="border-t border-cyan-500/30/50 my-8" />
-
-        {/* Username Section */}
-        <GlassCard className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AtSign className="w-5 h-5 text-digis-purple" />
-            <h2 className="text-xl font-semibold text-white">Username</h2>
-          </div>
-
-          {usernameCooldown && !usernameCooldown.canChange && (
-            <p className="text-xs text-yellow-300 mb-3 flex items-center gap-2">
-              <AlertCircle className="w-3 h-3" />
-              You can change your username again in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
-            </p>
-          )}
-
-          <form onSubmit={handleChangeUsername} className="space-y-3">
-            <div className="relative">
-              <input
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                disabled={!usernameCooldown?.canChange}
-                placeholder={currentUser?.username}
-                className={`w-full px-4 py-3 backdrop-blur-xl bg-white/5 border-2 rounded-lg text-white font-medium placeholder-gray-500 focus:outline-none transition-all ${
-                  !newUsername || newUsername === currentUser?.username
-                    ? 'border-cyan-500/30 focus:border-digis-cyan'
-                    : usernameStatus === 'checking'
-                    ? 'border-yellow-400'
-                    : usernameStatus === 'available'
-                    ? 'border-green-500 focus:border-green-500'
-                    : 'border-red-500 focus:border-red-500'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              />
-
-              {/* Status Indicator */}
-              {newUsername && newUsername !== currentUser?.username && (
-                <div className="absolute right-3 top-3.5">
-                  {usernameStatus === 'checking' && (
-                    <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
-                  )}
-                  {usernameStatus === 'available' && (
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                  )}
-                  {usernameStatus === 'taken' && (
-                    <XCircle className="w-5 h-5 text-red-500" />
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Only show button when username is different and available */}
-            {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
-              <GlassButton
-                type="submit"
-                variant="gradient"
-                disabled={savingUsername}
-              >
-                {savingUsername ? <LoadingSpinner size="sm" /> : 'Update'}
-              </GlassButton>
-            )}
-          </form>
-        </GlassCard>
 
         {/* Section Divider */}
         <div className="border-t border-cyan-500/30/50 my-8" />
@@ -979,33 +980,6 @@ export default function SettingsPage() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
-
-            <div>
-              <label className="block text-sm font-medium mb-2 text-gray-300">
-                <Mail className="w-4 h-4 inline mr-1" />
-                Email Address
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                {currentUser?.email && email === currentUser.email && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-400 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Verified
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-gray-400 mt-1">
-                Changing your email will require verification
-              </p>
-            </div>
 
             <GlassButton
               type="submit"
