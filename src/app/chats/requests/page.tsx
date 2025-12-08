@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
+import { ArrowLeft, Inbox, Check, X, Coins } from 'lucide-react';
 
 type MessageRequest = {
   id: string;
@@ -135,29 +137,42 @@ export default function MessageRequestsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
+      {/* Animated background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      {/* Mobile Header with Logo */}
+      <MobileHeader />
+
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 py-6 md:py-10 max-w-4xl relative z-10">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-2">
             <button
               onClick={() => router.push('/chats')}
-              className="text-gray-600 hover:text-gray-800 transition-colors"
+              className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Message Requests 📬</h1>
-              <p className="text-gray-600">Pending message requests from fans</p>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                Message Requests
+              </h1>
+              <p className="text-gray-400 text-sm">Pending requests from fans</p>
             </div>
           </div>
         </div>
@@ -165,13 +180,13 @@ export default function MessageRequestsPage() {
         {/* Requests List */}
         <div className="space-y-4">
           {requests.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">✅</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No pending requests</h3>
-              <p className="text-gray-600 mb-6">You're all caught up!</p>
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+              <Inbox className="w-20 h-20 mx-auto mb-4 text-cyan-400" />
+              <h3 className="text-2xl font-bold mb-2 text-white">No pending requests</h3>
+              <p className="text-gray-400 text-lg mb-6">You're all caught up!</p>
               <button
                 onClick={() => router.push('/chats')}
-                className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
+                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg"
               >
                 Back to Chats
               </button>
@@ -180,11 +195,11 @@ export default function MessageRequestsPage() {
             requests.map((request) => (
               <div
                 key={request.id}
-                className="glass rounded-xl border border-purple-200 p-6 hover:border-digis-cyan hover:bg-white/80 transition-all"
+                className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-5 hover:border-cyan-500/50 transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]"
               >
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl font-bold flex-shrink-0">
                     {request.fromUser.avatarUrl ? (
                       <img
                         src={request.fromUser.avatarUrl}
@@ -200,21 +215,22 @@ export default function MessageRequestsPage() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-gray-800">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-white">
                         {request.fromUser.displayName || request.fromUser.username}
                       </h3>
                       {request.isPaid && (
-                        <span className="text-xs bg-green-500/20 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                          💰 Paid {request.paidAmount} tokens
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                          <Coins className="w-3 h-3" />
+                          {request.paidAmount} coins
                         </span>
                       )}
-                      <span className="text-xs text-gray-600 ml-auto">
+                      <span className="text-xs text-gray-500 ml-auto">
                         {formatTime(request.createdAt)}
                       </span>
                     </div>
 
-                    <p className="text-gray-700 mb-4 whitespace-pre-wrap">
+                    <p className="text-gray-300 mb-4 whitespace-pre-wrap text-sm md:text-base">
                       {request.initialMessage}
                     </p>
 
@@ -223,16 +239,30 @@ export default function MessageRequestsPage() {
                       <button
                         onClick={() => handleAccept(request.id)}
                         disabled={processing === request.id}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg"
                       >
-                        {processing === request.id ? 'Accepting...' : 'Accept & Reply'}
+                        {processing === request.id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span>Accept</span>
+                          </>
+                        )}
                       </button>
                       <button
                         onClick={() => handleDecline(request.id)}
                         disabled={processing === request.id}
-                        className="flex-1 px-4 py-2 bg-white/60 border border-purple-200 text-gray-800 rounded-lg font-semibold hover:bg-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 px-4 py-2.5 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 hover:border-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        {processing === request.id ? 'Declining...' : 'Decline'}
+                        {processing === request.id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <X className="w-4 h-4" />
+                            <span>Decline</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -244,14 +274,14 @@ export default function MessageRequestsPage() {
 
         {/* Info Card */}
         {requests.length > 0 && (
-          <div className="mt-6 bg-digis-cyan/10 border border-digis-cyan/30 rounded-xl p-4">
+          <div className="mt-6 backdrop-blur-xl bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <span className="text-2xl">💡</span>
               <div>
-                <h4 className="font-semibold text-gray-800 mb-1">About Message Requests</h4>
-                <p className="text-sm text-gray-700">
+                <h4 className="font-semibold text-white mb-1">About Message Requests</h4>
+                <p className="text-sm text-gray-300">
                   Accepting a request creates a conversation with this fan. Declining removes the request.
-                  Paid requests show the token amount the fan paid to reach you.
+                  Paid requests show the coin amount the fan paid to reach you.
                 </p>
               </div>
             </div>

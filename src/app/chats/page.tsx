@@ -297,17 +297,22 @@ export default function MessagesPage() {
                     <Users className="w-3.5 h-3.5" strokeWidth={2} />
                     <span className="hidden sm:inline">Mass</span>
                   </button>
-                  {pendingRequests > 0 && (
-                    <button
-                      onClick={() => router.push('/chats/requests')}
-                      className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
-                    >
-                      <span className="hidden sm:inline">Requests</span>
+                  <button
+                    onClick={() => router.push('/chats/requests')}
+                    className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105 ${
+                      pendingRequests > 0
+                        ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
+                        : 'bg-white/5 text-gray-300 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white/10'
+                    }`}
+                  >
+                    <Inbox className="w-3.5 h-3.5" strokeWidth={2} />
+                    <span className="hidden sm:inline">Requests</span>
+                    {pendingRequests > 0 && (
                       <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                         {pendingRequests}
                       </span>
-                    </button>
-                  )}
+                    )}
+                  </button>
                 </>
               )}
             </div>

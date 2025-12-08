@@ -556,28 +556,34 @@ export default function ChatPage() {
                   </svg>
                 </button>
 
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
-                  {conversation.otherUser.avatarUrl ? (
-                    <img
-                      src={conversation.otherUser.avatarUrl}
-                      alt={conversation.otherUser.displayName || 'User'}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white">
-                      {(conversation.otherUser.displayName || conversation.otherUser.username || 'U')[0].toUpperCase()}
-                    </span>
-                  )}
-                </div>
+                {/* Tappable profile link */}
+                <button
+                  onClick={() => router.push(`/@${conversation.otherUser.username}`)}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                >
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
+                    {conversation.otherUser.avatarUrl ? (
+                      <img
+                        src={conversation.otherUser.avatarUrl}
+                        alt={conversation.otherUser.displayName || 'User'}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white">
+                        {(conversation.otherUser.displayName || conversation.otherUser.username || 'U')[0].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
 
-                <div>
-                  <h2 className="font-semibold text-white">
-                    {conversation.otherUser.displayName || conversation.otherUser.username}
-                  </h2>
-                  <p className="text-sm text-gray-400">
-                    {conversation.otherUser.role === 'creator' ? 'Creator' : 'Fan'}
-                  </p>
-                </div>
+                  <div className="text-left">
+                    <h2 className="font-semibold text-white">
+                      {conversation.otherUser.displayName || conversation.otherUser.username}
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {conversation.otherUser.role === 'creator' ? 'Creator' : 'Fan'}
+                    </p>
+                  </div>
+                </button>
               </div>
 
               {/* Tip Button */}
