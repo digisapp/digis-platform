@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
   Home,
   Search,
-  Tv,
+  CircleDot,
   MessageCircle,
   Wallet,
   Video,
@@ -207,7 +207,7 @@ export function Navigation() {
     },
     {
       label: 'Live',
-      icon: Tv,
+      icon: CircleDot,
       path: '/live',
       active: isActive('/live') || isActive('/streams'),
     },
