@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Phone, Video, Clock, User, DollarSign, X, Check, AlertCircle } from 'lucide-react';
+import { Phone, Video, Clock, X, Check, AlertCircle } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface CallRequest {

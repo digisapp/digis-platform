@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CallRequestQueue } from '@/components/calls/CallRequestQueue';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Phone, Clock, Coins } from 'lucide-react';
+import { Phone, Clock, Coins, ArrowLeft } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { createClient } from '@/lib/supabase/client';
 
 interface CallStats {
   totalCalls: number;
@@ -20,10 +21,37 @@ export default function CreatorCallsPage() {
   const router = useRouter();
   const [stats, setStats] = useState<CallStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authChecking, setAuthChecking] = useState(true);
+
+  // Auth check - verify user is a creator
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      // Check role from JWT metadata
+      const role = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
+      if (role !== 'creator') {
+        router.push('/dashboard');
+        return;
+      }
+
+      setAuthChecking(false);
+    };
+
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
-    fetchCallStats();
-  }, []);
+    if (!authChecking) {
+      fetchCallStats();
+    }
+  }, [authChecking]);
 
   const fetchCallStats = async () => {
     try {
@@ -39,8 +67,17 @@ export default function CreatorCallsPage() {
     }
   };
 
+  // Show loading while checking auth
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
       {/* Tron-style animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-96 h-96 -top-10 -left-10 bg-yellow-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -55,6 +92,17 @@ export default function CreatorCallsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
+        {/* Page Header */}
+        <div className="mb-6 flex items-center gap-3">
+          <button
+            onClick={() => router.push('/creator/dashboard')}
+            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-white">Call Management</h1>
+        </div>
+
         {/* Pending Requests - Top of page */}
         <div className="mb-8">
           <CallRequestQueue autoRefresh refreshInterval={5000} />
@@ -98,14 +146,14 @@ export default function CreatorCallsPage() {
             </div>
 
             {/* Total Earnings in Digis Coins */}
-            <div className="backdrop-blur-xl bg-black/40 border-2 border-yellow-400/50 rounded-xl p-6 hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(250,204,21,0.3)] transition-all">
+            <div className="backdrop-blur-xl bg-black/40 border-2 border-green-400/50 rounded-xl p-6 hover:border-green-400 hover:shadow-[0_0_30px_rgba(74,222,128,0.3)] transition-all">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
                   <Coins className="w-5 h-5 text-gray-900" />
                 </div>
                 <span className="text-gray-300 text-sm font-medium">Total Earnings</span>
               </div>
-              <p className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+              <p className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
                 {stats.totalEarnings.toLocaleString()} Coins
               </p>
             </div>
