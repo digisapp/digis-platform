@@ -37,27 +37,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session?.user) return null;
 
     const authUser = session.user;
-    const metadata = authUser.user_metadata || {};
+    const appMeta = (authUser.app_metadata || {}) as Record<string, any>;
+    const userMeta = (authUser.user_metadata || {}) as Record<string, any>;
 
     // Check for admin emails (fallback check)
     const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
 
-    // Role priority: metadata role > fan (default)
-    // Note: role is separate from isAdmin - a creator can also be an admin
-    const role = metadata.role || 'fan';
+    // Role priority: app_metadata (server-set, authoritative) > user_metadata > 'fan'
+    const role = appMeta.role || userMeta.role || 'fan';
 
     // isAdmin can be set via metadata.isAdmin OR if user is an admin email
-    const isAdmin = metadata.isAdmin || isAdminEmail || role === 'admin';
+    const isAdmin = appMeta.isAdmin || userMeta.isAdmin || isAdminEmail || role === 'admin';
 
     return {
       id: authUser.id,
       email: authUser.email,
-      username: metadata.username || authUser.email?.split('@')[0] || null,
-      displayName: metadata.display_name || metadata.username || null,
+      username: userMeta.username || authUser.email?.split('@')[0] || null,
+      displayName: userMeta.display_name || userMeta.username || null,
       role,
       isAdmin,
-      isCreatorVerified: !!metadata.isCreatorVerified,
-      avatarUrl: metadata.avatar_url || null,
+      isCreatorVerified: !!userMeta.is_creator_verified || !!userMeta.isCreatorVerified,
+      avatarUrl: userMeta.avatar_url || appMeta.avatar_url || null,
     };
   };
 

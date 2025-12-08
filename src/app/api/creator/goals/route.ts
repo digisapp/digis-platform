@@ -41,10 +41,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ goals });
   } catch (error: any) {
     console.error('[CREATOR GOALS GET]', { requestId, error: error?.message });
-    const isTimeout = error?.message?.includes('timeout');
+    // Fail soft: return empty data with 200, not 503
+    // This allows the dashboard to load even if goals are temporarily unavailable
     return NextResponse.json(
-      { error: isTimeout ? 'Service temporarily unavailable' : 'Failed to fetch goals', goals: [] },
-      { status: isTimeout ? 503 : 500, headers: { 'x-request-id': requestId } }
+      { goals: [], _error: 'temporarily_unavailable' },
+      { status: 200, headers: { 'x-request-id': requestId } }
     );
   }
 }

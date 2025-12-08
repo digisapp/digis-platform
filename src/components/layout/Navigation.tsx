@@ -38,7 +38,7 @@ const formatCoinBalance = (coins: number): string => {
 export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user: authUser, loading: authLoading, isCreator, isAdmin } = useAuth();
+  const { user: authUser, session, loading: authLoading, isCreator, isAdmin } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,8 +47,14 @@ export function Navigation() {
   const [showCoinsMenu, setShowCoinsMenu] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
 
-  // Derive userRole from AuthContext or profile (profile is more reliable as it's from DB)
-  const userRole = userProfile?.role || authUser?.role || 'fan';
+  // Derive userRole from AuthContext (trusts JWT first) - don't rely solely on profile
+  const userRole = isAdmin ? 'admin' : isCreator ? 'creator' : 'fan';
+
+  // Use auth metadata as fallbacks when profile API is slow/failing
+  const sessionMeta = session?.user?.user_metadata as Record<string, any> | undefined;
+  const avatarUrl = userProfile?.avatarUrl || sessionMeta?.avatar_url || authUser?.avatarUrl || null;
+  const displayName = userProfile?.displayName || sessionMeta?.display_name || authUser?.displayName || authUser?.username || 'User';
+  const username = userProfile?.username || sessionMeta?.username || authUser?.username || 'user';
 
   // Fetch all startup data in parallel when auth user changes
   useEffect(() => {
@@ -238,15 +244,15 @@ export function Navigation() {
                 <div className="relative flex-shrink-0">
                   <div className="w-16 h-16 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
                     <div className="w-full h-full rounded-full bg-white p-[2px]">
-                      {userProfile?.avatarUrl ? (
+                      {avatarUrl ? (
                         <img
-                          src={userProfile.avatarUrl}
+                          src={avatarUrl}
                           alt="Your avatar"
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xl md:text-lg">
-                          {authUser?.email?.[0]?.toUpperCase() || 'U'}
+                          {displayName?.[0]?.toUpperCase() || 'U'}
                         </div>
                       )}
                     </div>
@@ -256,16 +262,16 @@ export function Navigation() {
                 {/* Name and Username */}
                 <div className="flex-1 min-w-0 pt-1">
                   <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-xl mb-2 truncate">
-                    {userProfile?.displayName || userProfile?.username || 'User'}
+                    {displayName}
                   </h3>
                   <button
                     onClick={() => {
-                      router.push(`/${userProfile?.username || 'profile'}`);
+                      router.push(`/${username}`);
                       setShowProfileMenu(false);
                     }}
                     className="text-sm md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full"
                   >
-                    digis.cc/{userProfile?.username || 'user'}
+                    digis.cc/{username}
                   </button>
                 </div>
               </div>
@@ -512,15 +518,15 @@ export function Navigation() {
                 isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''
               }`}>
                 <div className="rounded-full bg-gray-900 p-[2px]">
-                  {userProfile?.avatarUrl ? (
+                  {avatarUrl ? (
                     <img
-                      src={userProfile.avatarUrl}
+                      src={avatarUrl}
                       alt="Your avatar"
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
-                      {authUser?.email?.[0]?.toUpperCase() || 'U'}
+                      {displayName?.[0]?.toUpperCase() || 'U'}
                     </div>
                   )}
                 </div>
@@ -626,15 +632,15 @@ export function Navigation() {
           {/* Gradient border ring */}
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] group-hover:p-[4px] transition-all shadow-[0_0_20px_rgba(34,211,238,0.5)]">
             <div className="w-full h-full rounded-full bg-gray-900 p-[2px]">
-              {userProfile?.avatarUrl ? (
+              {avatarUrl ? (
                 <img
-                  src={userProfile.avatarUrl}
+                  src={avatarUrl}
                   alt="Your avatar"
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold text-white">
-                  {authUser?.email?.[0]?.toUpperCase() || 'U'}
+                  {displayName?.[0]?.toUpperCase() || 'U'}
                 </div>
               )}
             </div>
