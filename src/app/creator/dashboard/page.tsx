@@ -6,11 +6,13 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Toast } from '@/components/ui/Toast';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
-import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Target, Plus, CheckCircle, Circle, Sparkles, X, Settings, DollarSign } from 'lucide-react';
+import {
+  Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
+  Plus, CheckCircle, Circle, Sparkles, X, Settings, DollarSign, Upload,
+  TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -52,12 +54,24 @@ interface Analytics {
 
 interface Activity {
   id: string;
-  type: 'gift' | 'follow' | 'call' | 'stream' | 'tip' | 'notification';
+  type: 'gift' | 'follow' | 'call' | 'stream' | 'tip' | 'notification' | 'subscribe';
   title: string;
   description: string;
   timestamp: string;
-  icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins';
+  icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins' | 'heart';
   color: string;
+  amount?: number;
+}
+
+interface ContentItem {
+  id: string;
+  type: 'video' | 'photo' | 'gallery';
+  title: string;
+  thumbnailUrl: string | null;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
 }
 
 interface UpcomingEvent {
@@ -72,22 +86,15 @@ export default function CreatorDashboard() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [balance, setBalance] = useState(0);
   const [isCreator, setIsCreator] = useState(false);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
+  const [monthlyEarnings, setMonthlyEarnings] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [subscriberCount, setSubscriberCount] = useState(0);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
-  const [lastStreamDate, setLastStreamDate] = useState<Date | null>(null);
-  const [goals, setGoals] = useState<any[]>([]);
-  const [goalFormData, setGoalFormData] = useState({
-    description: '',
-    targetAmount: 1000,
-    showTopTippers: true,
-  });
-  const [submittingGoal, setSubmittingGoal] = useState(false);
-  const [deletingGoal, setDeletingGoal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Onboarding state
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -95,18 +102,13 @@ export default function CreatorDashboard() {
   const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
 
   useEffect(() => {
-    // Check auth first, then fetch data in parallel
     checkAuth().then((isAuthorized) => {
       if (isAuthorized) {
-        // Fetch all data in parallel for faster loading
-        // Note: fetchRecentActivities and fetchUpcomingEvents share some calls,
-        // so we consolidate them here
         Promise.all([
-          fetchBalance(),
           fetchAnalytics(),
-          fetchAllDashboardData(), // Consolidated fetch
-          fetchGoals(),
-          fetchUserProfile(), // For onboarding checklist
+          fetchAllDashboardData(),
+          fetchUserProfile(),
+          fetchRecentContent(),
         ]);
       }
     });
@@ -115,15 +117,14 @@ export default function CreatorDashboard() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Only trigger if not in an input field
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       switch(e.key.toLowerCase()) {
         case 'l':
           router.push('/creator/go-live');
           break;
-        case 's':
-          router.push('/creator/streams');
+        case 'u':
+          router.push('/creator/content/new');
           break;
       }
     };
@@ -141,8 +142,6 @@ export default function CreatorDashboard() {
       return false;
     }
 
-    // OPTIMIZED: Check role directly from JWT metadata instead of API call
-    // This saves ~2-5 seconds by avoiding the /api/user/profile round trip
     const jwtRole = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
 
     if (jwtRole && jwtRole !== 'creator') {
@@ -150,7 +149,6 @@ export default function CreatorDashboard() {
       return false;
     }
 
-    // If no JWT role, fall back to API check (rare case during migration)
     if (!jwtRole) {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
@@ -165,25 +163,14 @@ export default function CreatorDashboard() {
     return true;
   };
 
-  const fetchBalance = async () => {
-    try {
-      const response = await fetch('/api/wallet/balance');
-      const data = await response.json();
-      if (response.ok) {
-        setBalance(data.balance);
-      }
-    } catch (err) {
-      console.error('Error fetching balance:', err);
-    }
-  };
-
   const fetchUserProfile = async () => {
     try {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
       if (response.ok && data.user) {
         setUserProfile(data.user);
-        // Check if user has dismissed onboarding before (stored in localStorage)
+        setFollowerCount(data.user.followerCount || 0);
+        setSubscriberCount(data.user.subscriberCount || 0);
         const dismissed = localStorage.getItem('creator_onboarding_dismissed');
         if (dismissed === 'true') {
           setDismissedOnboarding(true);
@@ -200,8 +187,10 @@ export default function CreatorDashboard() {
       const result = await response.json();
       if (response.ok && result.data) {
         setAnalytics(result.data);
+        // Calculate monthly earnings (coins converted to USD at $0.01 per coin)
+        const totalCoins = (result.data.overview?.totalGiftCoins || 0) + (result.data.overview?.totalCallEarnings || 0);
+        setMonthlyEarnings(totalCoins);
       } else if (result.degraded) {
-        // Use degraded data gracefully - no need to log warnings
         setAnalytics(result.data);
       }
     } catch (err) {
@@ -209,14 +198,33 @@ export default function CreatorDashboard() {
     }
   };
 
-  // Consolidated fetch to reduce API calls from 12+ to 5
+  const fetchRecentContent = async () => {
+    try {
+      const response = await fetch('/api/content/my-content?limit=6');
+      if (response.ok) {
+        const data = await response.json();
+        const contentArray = data.content || data.data || [];
+        setRecentContent(contentArray.slice(0, 6).map((item: any) => ({
+          id: item.id,
+          type: item.contentType || item.type || 'photo',
+          title: item.title || item.caption || 'Untitled',
+          thumbnailUrl: item.thumbnailUrl || item.mediaUrl || null,
+          viewCount: item.viewCount || 0,
+          likeCount: item.likeCount || 0,
+          commentCount: item.commentCount || 0,
+          createdAt: item.createdAt,
+        })));
+      }
+    } catch (err) {
+      console.error('Error fetching content:', err);
+    }
+  };
+
   const fetchAllDashboardData = async () => {
     try {
-      // Fetch all data sources in parallel (5 calls instead of 12)
-      const [callsRes, streamsRes, notificationsRes, showsRes] = await Promise.all([
-        fetch('/api/calls/history?limit=100').catch(() => null), // Get all calls once
-        fetch('/api/streams/my-streams?limit=10').catch(() => null), // Get streams once
-        fetch('/api/notifications?limit=20').catch(() => null),
+      const [callsRes, notificationsRes, showsRes] = await Promise.all([
+        fetch('/api/calls/history?limit=50').catch(() => null),
+        fetch('/api/notifications?limit=30').catch(() => null),
         fetch('/api/shows/creator').catch(() => null),
       ]);
 
@@ -224,105 +232,51 @@ export default function CreatorDashboard() {
       const events: UpcomingEvent[] = [];
       let pendingCalls = 0;
 
-      // Process calls - use for both activities and pending count
+      // Process calls
       if (callsRes?.ok) {
         try {
           const callsData = await callsRes.json();
           const callsArray = Array.isArray(callsData.data) ? callsData.data : [];
-
-          // Count pending calls
           pendingCalls = callsArray.filter((c: any) => c.status === 'pending').length;
           setPendingCallsCount(pendingCalls);
-
-          // Add completed calls to activities
-          callsArray
-            .filter((call: any) => call.status === 'completed')
-            .slice(0, 5)
-            .forEach((call: any) => {
-              activities.push({
-                id: `call-${call.id}`,
-                type: 'call',
-                title: `Call completed with ${call.fanName || 'fan'}`,
-                description: `${Math.round(call.duration / 60)} minutes - ${call.totalCost} coins earned`,
-                timestamp: call.endedAt || call.createdAt,
-                icon: 'phone',
-                color: 'text-blue-400'
-              });
-            });
-
-          // Add pending scheduled calls to events
-          callsArray
-            .filter((call: any) => call.status === 'pending' && call.scheduledFor)
-            .forEach((call: any) => {
-              events.push({
-                id: `call-${call.id}`,
-                type: 'call',
-                title: `Call with ${call.fanName || 'fan'}`,
-                scheduledFor: call.scheduledFor,
-                details: `${call.duration} minutes - ${call.totalCost} coins`
-              });
-            });
         } catch (e) {
           console.error('Error parsing calls data:', e);
         }
       }
 
-      // Process streams - use for activities and last stream date
-      if (streamsRes?.ok) {
-        try {
-          const streamsData = await streamsRes.json();
-          const streamsArray = Array.isArray(streamsData.data) ? streamsData.data : [];
-
-          // Set last stream date
-          if (streamsArray.length > 0) {
-            setLastStreamDate(new Date(streamsArray[0].createdAt));
-          }
-
-          // Add ended streams to activities
-          streamsArray
-            .filter((s: any) => s.status === 'ended')
-            .slice(0, 5)
-            .forEach((stream: any) => {
-              activities.push({
-                id: `stream-${stream.id}`,
-                type: 'stream',
-                title: 'Stream ended',
-                description: `${stream.title} - ${stream.viewerCount || 0} viewers`,
-                timestamp: stream.endedAt || stream.createdAt,
-                icon: 'video',
-                color: 'text-red-400'
-              });
-            });
-        } catch (e) {
-          console.error('Error parsing streams data:', e);
-        }
-      }
-
-      // Process notifications
+      // Process notifications - focus on tips, follows, subscriptions
       if (notificationsRes?.ok) {
         try {
           const notificationsData = await notificationsRes.json();
           const notificationsArray = notificationsData.data?.notifications || [];
           notificationsArray.forEach((notif: any) => {
-            let icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins' = 'coins';
+            let icon: Activity['icon'] = 'coins';
             let color = 'text-gray-400';
+            let type: Activity['type'] = 'notification';
 
             if (notif.type === 'follow' || notif.type === 'followers') {
               icon = 'userplus';
               color = 'text-pink-400';
+              type = 'follow';
+            } else if (notif.type === 'subscribe' || notif.type === 'subscription') {
+              icon = 'heart';
+              color = 'text-purple-400';
+              type = 'subscribe';
             } else if (notif.type === 'gift' || notif.type === 'tip' || notif.type === 'stream_tip' || notif.type === 'earnings') {
               icon = 'gift';
               color = 'text-yellow-400';
+              type = 'tip';
             }
 
             activities.push({
               id: `notif-${notif.id}`,
-              type: 'notification',
+              type,
               title: notif.title || 'Notification',
               description: notif.message || '',
               timestamp: notif.createdAt,
               icon,
-              color
+              color,
+              amount: notif.amount,
             });
           });
         } catch (e) {
@@ -342,7 +296,7 @@ export default function CreatorDashboard() {
                 type: 'show',
                 title: show.title,
                 scheduledFor: show.scheduledStart || show.scheduledFor,
-                details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold - ${show.ticketPrice} coins each`
+                details: `${show.ticketsSold || 0}/${show.maxTickets || '∞'} tickets sold`
               });
             });
         } catch (e) {
@@ -350,138 +304,45 @@ export default function CreatorDashboard() {
         }
       }
 
-      // Sort activities by timestamp and set
+      // Sort activities by timestamp
       activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities(activities.slice(0, 15));
+      setRecentActivities(activities.slice(0, 10));
 
-      // Sort events by scheduled time and set
+      // Sort events by scheduled time
       events.sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
-      setUpcomingEvents(events.slice(0, 5));
+      setUpcomingEvents(events.slice(0, 3));
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
-      setRecentActivities([]);
-      setUpcomingEvents([]);
-    }
-  };
-
-  const fetchGoals = async () => {
-    try {
-      const response = await fetch('/api/creator/goals');
-      if (response.ok) {
-        const data = await response.json();
-        setGoals(data.goals || []);
-
-        // Load active goal into form
-        const activeGoal = (data.goals || []).find((g: any) => g.isActive && !g.isCompleted);
-        if (activeGoal) {
-          setGoalFormData({
-            description: activeGoal.description || '',
-            targetAmount: activeGoal.targetAmount,
-            showTopTippers: activeGoal.showTopTippers !== false,
-          });
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching goals:', err);
-    }
-  };
-
-  const handleCreateGoal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmittingGoal(true);
-
-    try {
-      const response = await fetch('/api/creator/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'Tip Goal',
-          description: goalFormData.description,
-          targetAmount: goalFormData.targetAmount,
-          rewardText: 'Thank you for your support!',
-          goalType: 'coins',
-          showTopTippers: goalFormData.showTopTippers,
-        }),
-      });
-
-      if (response.ok) {
-        // Don't reset form - keep values so creator knows what the active goal is
-        // Refresh goals list
-        fetchGoals();
-        showToast('Goal created successfully! 🎯', 'success');
-      } else {
-        const data = await response.json();
-        showToast(data.error || 'Failed to create goal', 'error');
-      }
-    } catch (error) {
-      console.error('Error creating goal:', error);
-      showToast('Failed to create goal', 'error');
-    } finally {
-      setSubmittingGoal(false);
-    }
-  };
-
-  const handleDeleteActiveGoal = () => {
-    // Find active goal
-    const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
-
-    if (!activeGoal) {
-      showToast('No active goal to delete', 'info');
-      return;
-    }
-
-    // Show confirmation modal
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDeleteGoal = async () => {
-    const activeGoal = goals.find(g => g.isActive && !g.isCompleted);
-    if (!activeGoal) return;
-
-    setShowDeleteConfirm(false);
-    setDeletingGoal(true);
-
-    try {
-      const response = await fetch(`/api/creator/goals/${activeGoal.id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        // Clear the form
-        setGoalFormData({
-          description: '',
-          targetAmount: 1000,
-          showTopTippers: true,
-        });
-        // Refresh goals list
-        fetchGoals();
-        showToast('Goal cleared successfully! ✨', 'success');
-      } else {
-        const data = await response.json();
-        showToast(data.error || 'Failed to delete goal', 'error');
-      }
-    } catch (error) {
-      console.error('Error deleting goal:', error);
-      showToast('Failed to delete goal', 'error');
-    } finally {
-      setDeletingGoal(false);
     }
   };
 
   const getActivityIcon = (iconType: string) => {
     switch (iconType) {
       case 'gift':
-        return <Gift className="w-5 h-5" />;
+        return <Gift className="w-4 h-4" />;
       case 'userplus':
-        return <UserPlus className="w-5 h-5" />;
+        return <UserPlus className="w-4 h-4" />;
       case 'phone':
-        return <PhoneCall className="w-5 h-5" />;
+        return <PhoneCall className="w-4 h-4" />;
       case 'video':
-        return <Video className="w-5 h-5" />;
+        return <Video className="w-4 h-4" />;
       case 'coins':
-        return <Coins className="w-5 h-5" />;
+        return <Coins className="w-4 h-4" />;
+      case 'heart':
+        return <Heart className="w-4 h-4" />;
       default:
-        return <Clock className="w-5 h-5" />;
+        return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getContentIcon = (type: string) => {
+    switch (type) {
+      case 'video':
+        return <Play className="w-4 h-4" />;
+      case 'gallery':
+        return <ImageIcon className="w-4 h-4" />;
+      default:
+        return <ImageIcon className="w-4 h-4" />;
     }
   };
 
@@ -493,15 +354,13 @@ export default function CreatorDashboard() {
     );
   }
 
+  const isNewCreator = !dismissedOnboarding && (analytics?.overview?.totalStreams === 0 || !userProfile?.avatarUrl);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      {/* Mobile Header with Logo */}
       <MobileHeader />
-
-      {/* Spacer for fixed mobile header */}
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}
@@ -510,320 +369,303 @@ export default function CreatorDashboard() {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <ConfirmModal
-          title="Clear Goal?"
-          message="Are you sure you want to clear this goal? This will remove it from your profile and cannot be undone."
-          confirmText="Clear Goal"
-          cancelText="Keep Goal"
-          variant="danger"
-          onConfirm={confirmDeleteGoal}
-          onCancel={() => setShowDeleteConfirm(false)}
-        />
-      )}
-
       <div className="container mx-auto">
-        <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10">
+        <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
 
-        {/* Getting Started Checklist for New Creators */}
-        {userProfile && !dismissedOnboarding && (analytics?.overview?.totalStreams === 0 || !userProfile.avatarUrl) && (
-          <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 border-2 border-cyan-500/30 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-            {/* Dismiss button */}
-            <button
-              onClick={() => {
-                setDismissedOnboarding(true);
-                localStorage.setItem('creator_onboarding_dismissed', 'true');
-              }}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          {/* Getting Started Checklist for New Creators */}
+          {userProfile && isNewCreator && (
+            <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 border-2 border-cyan-500/30 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+              <button
+                onClick={() => {
+                  setDismissedOnboarding(true);
+                  localStorage.setItem('creator_onboarding_dismissed', 'true');
+                }}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
-                <Sparkles className="w-6 h-6 text-cyan-400" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
+                  <Sparkles className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Welcome, Creator!</h2>
+                  <p className="text-sm text-gray-400">Complete these steps to get started</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Welcome, Creator!</h2>
-                <p className="text-sm text-gray-400">Complete these steps to get started</p>
-              </div>
-            </div>
 
-            {/* Checklist */}
-            <div className="space-y-3">
-              {/* Profile Picture */}
-              <button
-                onClick={() => router.push('/settings')}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
-                  userProfile.avatarUrl
-                    ? 'bg-green-500/10 border border-green-500/30'
-                    : 'bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10'
-                }`}
-              >
-                {userProfile.avatarUrl ? (
-                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                ) : (
-                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
-                )}
-                <div className="flex-1 text-left">
-                  <p className={`font-semibold ${userProfile.avatarUrl ? 'text-green-400' : 'text-white'}`}>
-                    Add a profile picture
-                  </p>
-                  <p className="text-xs text-gray-400">Help fans recognize you</p>
-                </div>
-                {!userProfile.avatarUrl && (
-                  <Settings className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-
-              {/* Set Call Rates */}
-              <button
-                onClick={() => router.push('/settings')}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
-                  userProfile.perMinuteRate > 0
-                    ? 'bg-green-500/10 border border-green-500/30'
-                    : 'bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10'
-                }`}
-              >
-                {userProfile.perMinuteRate > 0 ? (
-                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                ) : (
-                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
-                )}
-                <div className="flex-1 text-left">
-                  <p className={`font-semibold ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
-                    Set your call rates
-                  </p>
-                  <p className="text-xs text-gray-400">Earn coins from video calls with fans</p>
-                </div>
-                {!userProfile.perMinuteRate && (
-                  <DollarSign className="w-5 h-5 text-gray-400" />
-                )}
-              </button>
-
-              {/* Go Live */}
-              <button
-                onClick={() => router.push('/creator/go-live')}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
-                  analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
-                    ? 'bg-green-500/10 border border-green-500/30'
-                    : 'bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-white/10'
-                }`}
-              >
-                {analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? (
-                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                ) : (
-                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
-                )}
-                <div className="flex-1 text-left">
-                  <p className={`font-semibold ${analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? 'text-green-400' : 'text-white'}`}>
-                    Go live for the first time
-                  </p>
-                  <p className="text-xs text-gray-400">Start streaming and connect with your fans</p>
-                </div>
-                {(!analytics?.overview?.totalStreams || analytics.overview.totalStreams === 0) && (
-                  <Radio className="w-5 h-5 text-red-400" />
-                )}
-              </button>
-            </div>
-
-            {/* Progress indicator */}
-            {(() => {
-              const completed = [
-                !!userProfile.avatarUrl,
-                userProfile.perMinuteRate > 0,
-                analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
-              ].filter(Boolean).length;
-              return (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-gray-400">{completed}/3 completed</span>
-                    {completed === 3 && (
-                      <span className="text-green-400 font-semibold">All done! 🎉</span>
-                    )}
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-500"
-                      style={{ width: `${(completed / 3) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Upcoming Events */}
-        {upcomingEvents.length > 0 && (
-          <div className="mb-8 glass rounded-2xl border border-purple-200 p-6 shadow-fun">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-digis-cyan" />
-                Upcoming Events
-              </h3>
-              <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
-            </div>
-            <div className="space-y-3">
-              {upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-start gap-4 bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer border border-white/10"
-                  onClick={() => {
-                    if (event.type === 'show') {
-                      router.push(`/streams/${event.id.replace('show-', '')}`);
-                    }
-                  }}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button
+                  onClick={() => router.push('/settings')}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    userProfile.avatarUrl
+                      ? 'bg-green-500/10 border border-green-500/30'
+                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
+                  }`}
                 >
-                  <div className={`p-2 rounded-lg ${event.type === 'show' ? 'bg-purple-500/20' : 'bg-blue-500/20'}`}>
-                    {event.type === 'show' ? (
-                      <Ticket className="w-5 h-5 text-purple-400" />
-                    ) : (
-                      <PhoneCall className="w-5 h-5 text-blue-400" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-white mb-1">{event.title}</div>
-                    <div className="text-sm text-gray-400 mb-1">
-                      {new Date(event.scheduledFor).toLocaleDateString()} at {new Date(event.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    {event.details && (
-                      <div className="text-xs text-gray-400">{event.details}</div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <Clock className="w-4 h-4" />
-                    {formatDistanceToNow(new Date(event.scheduledFor), { addSuffix: true })}
-                  </div>
+                  {userProfile.avatarUrl ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-500" />
+                  )}
+                  <span className={`text-sm font-medium ${userProfile.avatarUrl ? 'text-green-400' : 'text-white'}`}>
+                    Add profile picture
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push('/settings')}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    userProfile.perMinuteRate > 0
+                      ? 'bg-green-500/10 border border-green-500/30'
+                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
+                  }`}
+                >
+                  {userProfile.perMinuteRate > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-500" />
+                  )}
+                  <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
+                    Set call rates
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => router.push('/creator/go-live')}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
+                      ? 'bg-green-500/10 border border-green-500/30'
+                      : 'bg-white/5 border border-white/10 hover:border-red-500/50'
+                  }`}
+                >
+                  {analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-500" />
+                  )}
+                  <span className={`text-sm font-medium ${analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? 'text-green-400' : 'text-white'}`}>
+                    Go live
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Earnings Summary */}
+          <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400 mb-1">This Month</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-white">{monthlyEarnings.toLocaleString()}</span>
+                  <span className="text-lg text-gray-400">coins</span>
                 </div>
-              ))}
+                <p className="text-sm text-green-400 mt-1">≈ ${(monthlyEarnings * 0.01).toFixed(2)} USD</p>
+              </div>
+              <div className="hidden md:flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white">{followerCount.toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">Followers</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">Subscribers</p>
+                </div>
+                {pendingCallsCount > 0 && (
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-yellow-400">{pendingCallsCount}</p>
+                    <p className="text-xs text-gray-400">Pending Calls</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile stats */}
+            <div className="flex md:hidden items-center gap-4 mt-4 pt-4 border-t border-white/10">
+              <div className="flex-1 text-center">
+                <p className="text-xl font-bold text-white">{followerCount.toLocaleString()}</p>
+                <p className="text-xs text-gray-400">Followers</p>
+              </div>
+              <div className="flex-1 text-center">
+                <p className="text-xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
+                <p className="text-xs text-gray-400">Subscribers</p>
+              </div>
+              {pendingCallsCount > 0 && (
+                <div className="flex-1 text-center">
+                  <p className="text-xl font-bold text-yellow-400">{pendingCallsCount}</p>
+                  <p className="text-xs text-gray-400">Calls</p>
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        {/* Pending Calls, Recent Activity & Create Goal - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6 mb-8">
-          {/* Left Column: Pending Calls */}
-          <PendingCalls />
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button
+              onClick={() => router.push('/creator/go-live')}
+              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Radio className="w-6 h-6 text-red-400" />
+              <span className="text-lg font-semibold text-white">Go Live</span>
+            </button>
+            <button
+              onClick={() => router.push('/creator/content/new')}
+              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Upload className="w-6 h-6 text-cyan-400" />
+              <span className="text-lg font-semibold text-white">Upload</span>
+            </button>
+          </div>
 
-          {/* Right Column: Activity + Create Goal Form */}
-          <div className="flex flex-col gap-6">
-            {/* Activity */}
-            <div className="glass rounded-2xl border border-cyan-200 p-6 shadow-fun">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-digis-pink" />
-              Activity
-            </h3>
-            {recentActivities.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {recentActivities.slice(0, 8).map((activity) => (
+          {/* Upcoming Events */}
+          {upcomingEvents.length > 0 && (
+            <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-purple-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="w-5 h-5 text-purple-400" />
+                <h3 className="font-semibold text-white">Upcoming</h3>
+              </div>
+              <div className="space-y-2">
+                {upcomingEvents.map((event) => (
                   <div
-                    key={activity.id}
-                    className="flex items-start gap-3 bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors border border-white/10"
+                    key={event.id}
+                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                    onClick={() => {
+                      if (event.type === 'show') {
+                        router.push(`/streams/${event.id.replace('show-', '')}`);
+                      }
+                    }}
                   >
-                    <div className={`p-2 rounded-lg bg-white/10 ${activity.color}`}>
-                      {getActivityIcon(activity.icon)}
+                    <div className="flex items-center gap-3">
+                      <Ticket className="w-4 h-4 text-purple-400" />
+                      <div>
+                        <p className="text-sm font-medium text-white">{event.title}</p>
+                        <p className="text-xs text-gray-400">{event.details}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-white text-sm mb-1">{activity.title}</div>
-                      <div className="text-xs text-gray-400">{activity.description}</div>
-                    </div>
-                    <div className="text-xs text-gray-400 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                    </div>
+                    <p className="text-xs text-gray-400">
+                      {formatDistanceToNow(new Date(event.scheduledFor), { addSuffix: true })}
+                    </p>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                  <Clock className="w-10 h-10 text-gray-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2 text-white">No recent activity</h3>
-                <p className="text-gray-400 text-lg">Your activity will appear here</p>
+            </div>
+          )}
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Recent Activity */}
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-pink-400" />
+                  Recent Activity
+                </h3>
               </div>
-            )}
+
+              {recentActivities.length > 0 ? (
+                <div className="space-y-2">
+                  {recentActivities.slice(0, 8).map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
+                    >
+                      <div className={`p-2 rounded-lg bg-white/10 ${activity.color}`}>
+                        {getActivityIcon(activity.icon)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{activity.title}</p>
+                        <p className="text-xs text-gray-400 truncate">{activity.description}</p>
+                      </div>
+                      <p className="text-xs text-gray-500 whitespace-nowrap">
+                        {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                    <TrendingUp className="w-8 h-8 text-gray-600" />
+                  </div>
+                  <p className="text-gray-400">No activity yet</p>
+                  <p className="text-sm text-gray-500">Tips, follows, and subscriptions will appear here</p>
+                </div>
+              )}
+            </div>
+
+            {/* Content Performance */}
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-cyan-400" />
+                  Your Content
+                </h3>
+                <button
+                  onClick={() => router.push('/creator/content')}
+                  className="text-xs text-cyan-400 hover:text-cyan-300"
+                >
+                  View All
+                </button>
+              </div>
+
+              {recentContent.length > 0 ? (
+                <div className="space-y-2">
+                  {recentContent.map((content) => (
+                    <div
+                      key={content.id}
+                      className="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                      onClick={() => router.push(`/creator/content/${content.id}`)}
+                    >
+                      <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
+                        {content.thumbnailUrl ? (
+                          <img src={content.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          getContentIcon(content.type)
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{content.title}</p>
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Eye className="w-3 h-3" /> {content.viewCount}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Heart className="w-3 h-3" /> {content.likeCount}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="w-3 h-3" /> {content.commentCount}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                    <ImageIcon className="w-8 h-8 text-gray-600" />
+                  </div>
+                  <p className="text-gray-400">No content yet</p>
+                  <button
+                    onClick={() => router.push('/creator/content/new')}
+                    className="mt-2 text-sm text-cyan-400 hover:text-cyan-300"
+                  >
+                    Upload your first post
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-            {/* Create Goal Form */}
-            <div className="glass rounded-2xl border border-amber-200 p-4 shadow-fun">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-bold text-white">Create Goal</h3>
-                {goals.some(g => g.isActive && !g.isCompleted) && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteActiveGoal}
-                    disabled={deletingGoal}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {deletingGoal ? 'Deleting...' : 'Clear Goal'}
-                  </button>
-                )}
-              </div>
-
-              <form onSubmit={handleCreateGoal} className="space-y-3">
-                {/* Goal Description */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Goal Description</label>
-                  <textarea
-                    value={goalFormData.description}
-                    onChange={(e) => setGoalFormData({ ...goalFormData, description: e.target.value })}
-                    placeholder="Describe your goal. Tip goals will be displayed on your creator profile."
-                    rows={2}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
-                  />
-                </div>
-
-                {/* Tip Goal (Coins) */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Tip Goal in Coins *</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={goalFormData.targetAmount}
-                    onChange={(e) => setGoalFormData({ ...goalFormData, targetAmount: parseInt(e.target.value) || 0 })}
-                    placeholder="e.g., 10000"
-                    className="w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
-                    required
-                  />
-                </div>
-
-                {/* Show Top Tippers Toggle */}
-                <div className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-lg border border-white/20">
-                  <label htmlFor="showTopTippers" className="text-xs font-medium text-gray-300 cursor-pointer">
-                    Show Top Supporters
-                  </label>
-                  <button
-                    type="button"
-                    id="showTopTippers"
-                    onClick={() => setGoalFormData({ ...goalFormData, showTopTippers: !goalFormData.showTopTippers })}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      goalFormData.showTopTippers ? 'bg-gradient-to-r from-digis-cyan to-digis-pink' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        goalFormData.showTopTippers ? 'translate-x-5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                {/* Action */}
-                <button
-                  type="submit"
-                  disabled={submittingGoal}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink text-white text-sm rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingGoal ? 'Creating...' : 'Create Goal'}
-                </button>
-              </form>
-            </div>
+          {/* Keyboard shortcuts hint - desktop only */}
+          <div className="hidden md:flex items-center justify-center gap-6 mt-8 text-xs text-gray-500">
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">L</kbd> to Go Live</span>
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">U</kbd> to Upload</span>
+          </div>
         </div>
-        </div>
-      </div>
       </div>
     </div>
   );
