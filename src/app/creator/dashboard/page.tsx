@@ -10,7 +10,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import { PendingCalls } from '@/components/calls/PendingCalls';
-import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Target, Plus } from 'lucide-react';
+import { Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio, Target, Plus, CheckCircle, Circle, Sparkles, X, Settings, DollarSign } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -89,6 +89,11 @@ export default function CreatorDashboard() {
   const [deletingGoal, setDeletingGoal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Onboarding state
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
+
   useEffect(() => {
     // Check auth first, then fetch data in parallel
     checkAuth().then((isAuthorized) => {
@@ -101,6 +106,7 @@ export default function CreatorDashboard() {
           fetchAnalytics(),
           fetchAllDashboardData(), // Consolidated fetch
           fetchGoals(),
+          fetchUserProfile(), // For onboarding checklist
         ]);
       }
     });
@@ -168,6 +174,23 @@ export default function CreatorDashboard() {
       }
     } catch (err) {
       console.error('Error fetching balance:', err);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      const data = await response.json();
+      if (response.ok && data.user) {
+        setUserProfile(data.user);
+        // Check if user has dismissed onboarding before (stored in localStorage)
+        const dismissed = localStorage.getItem('creator_onboarding_dismissed');
+        if (dismissed === 'true') {
+          setDismissedOnboarding(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
     }
   };
 
@@ -503,6 +526,136 @@ export default function CreatorDashboard() {
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10">
+
+        {/* Getting Started Checklist for New Creators */}
+        {userProfile && !dismissedOnboarding && (analytics?.overview?.totalStreams === 0 || !userProfile.avatarUrl) && (
+          <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 border-2 border-cyan-500/30 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+            {/* Dismiss button */}
+            <button
+              onClick={() => {
+                setDismissedOnboarding(true);
+                localStorage.setItem('creator_onboarding_dismissed', 'true');
+              }}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
+                <Sparkles className="w-6 h-6 text-cyan-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Welcome, Creator!</h2>
+                <p className="text-sm text-gray-400">Complete these steps to get started</p>
+              </div>
+            </div>
+
+            {/* Checklist */}
+            <div className="space-y-3">
+              {/* Profile Picture */}
+              <button
+                onClick={() => router.push('/settings')}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
+                  userProfile.avatarUrl
+                    ? 'bg-green-500/10 border border-green-500/30'
+                    : 'bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10'
+                }`}
+              >
+                {userProfile.avatarUrl ? (
+                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                ) : (
+                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                )}
+                <div className="flex-1 text-left">
+                  <p className={`font-semibold ${userProfile.avatarUrl ? 'text-green-400' : 'text-white'}`}>
+                    Add a profile picture
+                  </p>
+                  <p className="text-xs text-gray-400">Help fans recognize you</p>
+                </div>
+                {!userProfile.avatarUrl && (
+                  <Settings className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+
+              {/* Set Call Rates */}
+              <button
+                onClick={() => router.push('/settings')}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
+                  userProfile.perMinuteRate > 0
+                    ? 'bg-green-500/10 border border-green-500/30'
+                    : 'bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10'
+                }`}
+              >
+                {userProfile.perMinuteRate > 0 ? (
+                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                ) : (
+                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                )}
+                <div className="flex-1 text-left">
+                  <p className={`font-semibold ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
+                    Set your call rates
+                  </p>
+                  <p className="text-xs text-gray-400">Earn coins from video calls with fans</p>
+                </div>
+                {!userProfile.perMinuteRate && (
+                  <DollarSign className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
+
+              {/* Go Live */}
+              <button
+                onClick={() => router.push('/creator/go-live')}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
+                  analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
+                    ? 'bg-green-500/10 border border-green-500/30'
+                    : 'bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-white/10'
+                }`}
+              >
+                {analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? (
+                  <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
+                ) : (
+                  <Circle className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                )}
+                <div className="flex-1 text-left">
+                  <p className={`font-semibold ${analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? 'text-green-400' : 'text-white'}`}>
+                    Go live for the first time
+                  </p>
+                  <p className="text-xs text-gray-400">Start streaming and connect with your fans</p>
+                </div>
+                {(!analytics?.overview?.totalStreams || analytics.overview.totalStreams === 0) && (
+                  <Radio className="w-5 h-5 text-red-400" />
+                )}
+              </button>
+            </div>
+
+            {/* Progress indicator */}
+            {(() => {
+              const completed = [
+                !!userProfile.avatarUrl,
+                userProfile.perMinuteRate > 0,
+                analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
+              ].filter(Boolean).length;
+              return (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-400">{completed}/3 completed</span>
+                    {completed === 3 && (
+                      <span className="text-green-400 font-semibold">All done! 🎉</span>
+                    )}
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-500"
+                      style={{ width: `${(completed / 3) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         {/* Upcoming Events */}
         {upcomingEvents.length > 0 && (

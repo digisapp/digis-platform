@@ -17,7 +17,8 @@ import {
   Phone,
   Coins,
   Settings,
-  Ticket
+  Ticket,
+  Radio
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
@@ -423,6 +424,24 @@ export function Navigation() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Floating Go Live Button for Creators on Mobile */}
+      {userRole === 'creator' && !pathname?.startsWith('/creator/go-live') && !pathname?.startsWith('/stream/broadcast') && (
+        <button
+          onClick={() => router.push('/creator/go-live')}
+          className="fixed bottom-24 right-4 z-50 md:hidden group"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-lg opacity-60 group-hover:opacity-100 group-active:opacity-100 animate-pulse" />
+
+          {/* Button */}
+          <div className="relative flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg shadow-red-500/40 group-active:scale-95 transition-transform">
+            <Radio className="w-5 h-5 text-white" />
+            <span className="text-white font-bold text-sm">Go Live</span>
+          </div>
+        </button>
       )}
 
       {/* Mobile Bottom Navigation (iPhone Optimized) - Dark Tron Theme */}

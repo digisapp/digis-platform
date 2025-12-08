@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe, Camera, Upload } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe, Camera, Upload, Bell, Home, ArrowRight } from 'lucide-react';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
 export default function CreatorApplyPage() {
@@ -130,9 +130,13 @@ export default function CreatorApplyPage() {
       }
 
       setSuccess(true);
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 3000);
+      // Store the submitted application data for display
+      setExistingApplication({
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        displayName: formData.displayName,
+        contentType: formData.contentType,
+      });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -240,26 +244,97 @@ export default function CreatorApplyPage() {
     );
   }
 
-  // Show success message
+  // Show success message - comprehensive application submitted page
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 relative overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute w-96 h-96 -top-10 -left-10 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute w-96 h-96 bottom-10 right-10 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute w-96 h-96 top-1/3 right-10 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-green-500/30 max-w-md p-8 text-center shadow-[0_0_50px_rgba(34,197,94,0.2)] relative z-10">
-          <div className="relative inline-block mb-6">
-            <div className="absolute -inset-2 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-              <CheckCircle className="w-10 h-10 text-white" />
+        <div className="max-w-lg mx-auto relative z-10">
+          {/* Success Card */}
+          <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-green-500/30 p-8 text-center shadow-[0_0_50px_rgba(34,197,94,0.2)]">
+            {/* Confetti-like decoration */}
+            <div className="absolute top-4 left-4 text-2xl animate-bounce" style={{animationDelay: '0s'}}>🎉</div>
+            <div className="absolute top-6 right-6 text-2xl animate-bounce" style={{animationDelay: '0.2s'}}>✨</div>
+            <div className="absolute top-12 left-12 text-xl animate-bounce" style={{animationDelay: '0.4s'}}>🌟</div>
+
+            <div className="relative inline-block mb-6">
+              <div className="absolute -inset-3 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+                <CheckCircle className="w-12 h-12 text-white" />
+              </div>
+            </div>
+
+            <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              Application Submitted!
+            </h2>
+            <p className="text-gray-300 text-lg mb-2">
+              You're one step closer to becoming a creator
+            </p>
+            <p className="text-gray-500 text-sm">
+              Submitted just now
+            </p>
+          </div>
+
+          {/* What Happens Next */}
+          <div className="mt-6 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/20 p-6 shadow-[0_0_30px_rgba(34,211,238,0.1)]">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-cyan-400" />
+              What Happens Next?
+            </h3>
+
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-sm">1</div>
+                <div>
+                  <p className="text-white font-medium">We review your application</p>
+                  <p className="text-gray-400 text-sm">Usually within 24-48 hours</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-sm">2</div>
+                <div>
+                  <p className="text-white font-medium">You'll get notified</p>
+                  <p className="text-gray-400 text-sm">Check back here or wait for an email</p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-sm">3</div>
+                <div>
+                  <p className="text-white font-medium">Start creating!</p>
+                  <p className="text-gray-400 text-sm">Go live, post content, earn money</p>
+                </div>
+              </div>
             </div>
           </div>
-          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Application Submitted!</h2>
-          <p className="text-gray-400">
-            We'll review your application and get back to you soon.
+
+          {/* Action Buttons */}
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => router.push('/live')}
+              className="flex-1 px-6 py-4 bg-white/5 border-2 border-white/10 rounded-2xl font-semibold text-white hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"
+            >
+              <Home className="w-5 h-5" />
+              Explore Digis
+            </button>
+            <button
+              onClick={() => setSuccess(false)}
+              className="flex-1 px-6 py-4 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500/30 rounded-2xl font-semibold text-white hover:border-cyan-500/50 transition-all flex items-center justify-center gap-2"
+            >
+              <Bell className="w-5 h-5" />
+              Check Status
+            </button>
+          </div>
+
+          <p className="text-center text-gray-500 text-sm mt-6">
+            Bookmark this page to check your application status anytime
           </p>
         </div>
       </div>
