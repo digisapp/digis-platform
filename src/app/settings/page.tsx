@@ -94,16 +94,13 @@ export default function SettingsPage() {
   const [savingSubscriptionSettings, setSavingSubscriptionSettings] = useState(false);
 
   useEffect(() => {
-    fetchCurrentUser();
-    fetchUsernameCooldown();
+    // Fetch all data in parallel to avoid waterfall
+    Promise.all([
+      fetchCurrentUser(),
+      fetchUsernameCooldown(),
+      fetchCallSettings(), // Fetch optimistically - will be ignored if not creator
+    ]);
   }, []);
-
-  // Fetch call settings after user is loaded
-  useEffect(() => {
-    if (currentUser?.role === 'creator') {
-      fetchCallSettings();
-    }
-  }, [currentUser]);
 
   const fetchCurrentUser = async () => {
     try {

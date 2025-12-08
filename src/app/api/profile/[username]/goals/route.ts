@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorGoals, users } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,31 +18,35 @@ export async function GET(
     const params = await props.params;
     const username = params.username;
 
-    // Find the user by username
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
+    // Find user and goals in one query with timeout
+    const goals = await withTimeoutAndRetry(
+      async () => {
+        // Find user first (case-insensitive)
+        const user = await db.query.users.findFirst({
+          where: sql`lower(${users.username}) = lower(${username})`,
+          columns: { id: true, role: true },
+        });
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+        if (!user || user.role !== 'creator') {
+          return [];
+        }
 
-    if (user.role !== 'creator') {
-      return NextResponse.json({ error: 'User is not a creator' }, { status: 404 });
-    }
-
-    // Fetch only active goals
-    const goals = await db.query.creatorGoals.findMany({
-      where: and(
-        eq(creatorGoals.creatorId, user.id),
-        eq(creatorGoals.isActive, true)
-      ),
-      orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
-    });
+        // Fetch active goals
+        return db.query.creatorGoals.findMany({
+          where: and(
+            eq(creatorGoals.creatorId, user.id),
+            eq(creatorGoals.isActive, true)
+          ),
+          orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
+        });
+      },
+      { timeoutMs: 3000, retries: 1, tag: 'profileGoals' }
+    );
 
     return NextResponse.json({ goals });
   } catch (error: any) {
-    console.error('[PROFILE GOALS GET ERROR]', error);
-    return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
+    console.error('[PROFILE GOALS]', error?.message);
+    // Fail soft - return empty goals
+    return NextResponse.json({ goals: [] });
   }
 }

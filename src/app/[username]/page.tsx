@@ -81,9 +81,32 @@ export default function ProfilePage() {
   const [signUpAction, setSignUpAction] = useState<string>('');
 
   useEffect(() => {
-    fetchProfile();
-    checkAuth();
+    // Start ALL fetches in parallel immediately - don't wait for profile
+    // This reduces waterfall by ~2-3 seconds
+    Promise.all([
+      fetchProfile(),
+      checkAuth(),
+      // Start creator-specific fetches immediately using username
+      // These will just show empty if user isn't a creator
+      fetchGoals(),
+      fetchCreatorContent(),
+      checkIfLive(),
+    ]);
   }, [username]);
+
+  // Fetch VODs/shows after we have the profile (needs user.id)
+  useEffect(() => {
+    if (profile?.user.id && profile.user.role === 'creator') {
+      fetchContent();
+
+      // Poll for live status every 30 seconds
+      const liveCheckInterval = setInterval(() => {
+        checkIfLive();
+      }, 30000);
+
+      return () => clearInterval(liveCheckInterval);
+    }
+  }, [profile?.user.id]);
 
   const checkAuth = async () => {
     const supabase = createClient();
@@ -100,25 +123,6 @@ export default function ProfilePage() {
     }
     callback();
   };
-
-  useEffect(() => {
-    if (profile?.user.id && profile.user.role === 'creator') {
-      // Fetch all creator data in parallel for faster load
-      Promise.all([
-        fetchContent(),
-        checkIfLive(),
-        fetchGoals(),
-        fetchCreatorContent()
-      ]);
-
-      // Poll for live status every 30 seconds (less frequent to reduce load)
-      const liveCheckInterval = setInterval(() => {
-        checkIfLive();
-      }, 30000);
-
-      return () => clearInterval(liveCheckInterval);
-    }
-  }, [profile?.user.id]);
 
   const fetchProfile = async () => {
     try {
@@ -253,8 +257,6 @@ export default function ProfilePage() {
   };
 
   const checkIfLive = async () => {
-    if (!profile?.user.id) return;
-
     try {
       // Use cache bust to ensure fresh data
       const response = await fetch(`/api/streams/live?t=${Date.now()}`, {
@@ -263,12 +265,15 @@ export default function ProfilePage() {
       if (response.ok) {
         const data = await response.json();
         const streamsList = data.data?.streams || [];
-        const liveStream = streamsList.find((s: any) => s.creatorId === profile.user.id);
+        // Match by username (works before profile loads) or by id (works after)
+        const liveStream = streamsList.find((s: any) =>
+          s.creatorUsername?.toLowerCase() === username.toLowerCase() ||
+          (profile?.user.id && s.creatorId === profile.user.id)
+        );
         if (liveStream) {
           setIsLive(true);
           setLiveStreamId(liveStream.id);
         } else {
-          // Stream ended - reset live state
           setIsLive(false);
           setLiveStreamId(null);
         }

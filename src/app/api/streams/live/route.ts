@@ -19,8 +19,8 @@ export async function GET() {
       const liveStreams = await withTimeoutAndRetry(
         () => StreamService.getLiveStreams(),
         {
-          timeoutMs: 6000,
-          retries: 2,
+          timeoutMs: 3000,  // Reduced from 6s
+          retries: 1,       // Reduced from 2
           tag: 'getLiveStreams'
         }
       );

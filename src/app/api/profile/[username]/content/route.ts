@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { contentItems, users } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,32 +18,36 @@ export async function GET(
     const params = await props.params;
     const username = params.username;
 
-    // Find the user by username
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
+    // Find user and content with timeout
+    const content = await withTimeoutAndRetry(
+      async () => {
+        // Find user first (case-insensitive)
+        const user = await db.query.users.findFirst({
+          where: sql`lower(${users.username}) = lower(${username})`,
+          columns: { id: true, role: true },
+        });
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+        if (!user || user.role !== 'creator') {
+          return [];
+        }
 
-    if (user.role !== 'creator') {
-      return NextResponse.json({ error: 'User is not a creator' }, { status: 404 });
-    }
-
-    // Fetch published content
-    const content = await db.query.contentItems.findMany({
-      where: and(
-        eq(contentItems.creatorId, user.id),
-        eq(contentItems.isPublished, true)
-      ),
-      orderBy: [desc(contentItems.createdAt)],
-      limit: 20, // Limit to 20 most recent items
-    });
+        // Fetch published content
+        return db.query.contentItems.findMany({
+          where: and(
+            eq(contentItems.creatorId, user.id),
+            eq(contentItems.isPublished, true)
+          ),
+          orderBy: [desc(contentItems.createdAt)],
+          limit: 20,
+        });
+      },
+      { timeoutMs: 3000, retries: 1, tag: 'profileContent' }
+    );
 
     return NextResponse.json({ content });
   } catch (error: any) {
-    console.error('[PROFILE CONTENT GET ERROR]', error);
-    return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 });
+    console.error('[PROFILE CONTENT]', error?.message);
+    // Fail soft - return empty content
+    return NextResponse.json({ content: [] });
   }
 }
