@@ -648,10 +648,10 @@ export default function ProfilePage() {
                   <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">@{user.username}</p>
                 )}
 
-                {/* New Creator Badge - show if joined within last 60 days */}
+                {/* New Creator Badge - show if joined within last 30 days */}
                 {(() => {
                   const daysSinceJoined = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-                  return daysSinceJoined <= 60 ? (
+                  return daysSinceJoined <= 30 ? (
                     <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-amber-400 mb-3">
                       <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
                       <span>New Creator</span>
