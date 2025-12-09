@@ -1023,8 +1023,8 @@ export default function BroadcastStudioPage() {
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
-                streamOrientation === 'portrait' && !isPortraitDevice
-                  ? 'aspect-[9/16]'
+                streamOrientation === 'portrait'
+                  ? 'aspect-[9/16] max-h-[70vh]'
                   : 'aspect-video'
               }`}
               data-lk-video-container
@@ -1042,10 +1042,12 @@ export default function BroadcastStudioPage() {
                       dynacast: true,
                       videoCaptureDefaults: {
                         // Use portrait or landscape resolution based on stream setting
+                        // On mobile, use lower resolution to prevent camera zoom/crop
                         resolution: streamOrientation === 'portrait'
-                          ? { width: 1080, height: 1920, frameRate: 30 }
+                          ? { width: isPortraitDevice ? 720 : 1080, height: isPortraitDevice ? 1280 : 1920, frameRate: 30 }
                           : (isSafari ? VideoPresets.h720 : VideoPresets.h1440),
                         facingMode: 'user',
+                        aspectRatio: streamOrientation === 'portrait' ? 9/16 : 16/9,
                       },
                       publishDefaults: {
                         videoSimulcastLayers: isSafari
