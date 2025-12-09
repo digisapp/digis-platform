@@ -590,7 +590,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Content - Mobile optimized */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Avatar and Header Section - Modern Glass Card */}
         <div className="relative -mt-24 sm:-mt-28 mb-8">
           <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
