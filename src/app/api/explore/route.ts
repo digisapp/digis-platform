@@ -26,18 +26,17 @@ export async function GET(request: NextRequest) {
       .then(r => r.data.user?.id)
       .catch(() => null);
 
-    // Run essential queries in parallel with short timeouts
+    // Run essential queries in parallel - no timeout on main query to ensure data loads
     const [liveCreatorIds, allCreators, categoryNames] = await Promise.all([
-      // 1. Get live creator IDs (fast query)
+      // 1. Get live creator IDs (fast query, can timeout)
       Promise.race([
         db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
-        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+        new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
       ]).catch(() => []),
 
-      // 2. Main creators query - optimized with shorter timeout
-      Promise.race([
-        (async () => {
-          // Simple direct query - no wrapper overhead
+      // 2. Main creators query - NO timeout, this must complete
+      (async () => {
+        try {
           const results = await db
             .select({
               id: users.id,
@@ -79,18 +78,17 @@ export async function GET(request: NextRequest) {
           }
 
           return filtered;
-        })(),
-        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-      ]).catch((err) => {
-        console.error('[EXPLORE] Creators query failed:', err?.message);
-        return [];
-      }),
+        } catch (err: any) {
+          console.error('[EXPLORE] Creators query failed:', err?.message);
+          return [];
+        }
+      })(),
 
-      // 3. Categories (fast query, can fail gracefully)
+      // 3. Categories (can timeout gracefully)
       Promise.race([
         db.select({ name: creatorCategories.name }).from(creatorCategories).orderBy(creatorCategories.name)
           .then(cats => ['All', ...cats.map(c => c.name)]),
-        new Promise<string[]>((resolve) => setTimeout(() => resolve(['All']), 1500))
+        new Promise<string[]>((resolve) => setTimeout(() => resolve(['All']), 2000))
       ]).catch(() => ['All']),
     ]);
 
