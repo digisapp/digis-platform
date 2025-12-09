@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
-  Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle
+  Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
+  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -96,6 +97,8 @@ export default function CreatorDashboard() {
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
 
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [dismissedChecklist, setDismissedChecklist] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     checkAuth().then(async (isAuthorized) => {
@@ -173,9 +176,27 @@ export default function CreatorDashboard() {
         setUserProfile(data.user);
         setFollowerCount(data.user.followerCount || 0);
         setSubscriberCount(data.user.subscriberCount || 0);
+        // Check if checklist was dismissed
+        const dismissed = localStorage.getItem('creator_checklist_dismissed');
+        if (dismissed === 'true') {
+          setDismissedChecklist(true);
+        }
       }
     } catch (err) {
       console.error('Error fetching user profile:', err);
+    }
+  };
+
+  const copyProfileLink = async () => {
+    if (!userProfile?.username) return;
+    const link = `https://digis.cc/${userProfile.username}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      showToast('Link copied! Share it on Instagram', 'success');
+      setTimeout(() => setCopiedLink(false), 3000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -376,6 +397,92 @@ export default function CreatorDashboard() {
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
+
+          {/* Getting Started Checklist */}
+          {userProfile && !dismissedChecklist && (
+            <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 border-2 border-cyan-500/30 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+              <button
+                onClick={() => {
+                  setDismissedChecklist(true);
+                  localStorage.setItem('creator_checklist_dismissed', 'true');
+                }}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
+                  <Sparkles className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Get Ready to Earn</h2>
+                  <p className="text-sm text-gray-400">Complete your profile and start promoting</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Upload Profile Picture */}
+                <button
+                  onClick={() => router.push('/settings')}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    userProfile.avatarUrl
+                      ? 'bg-green-500/10 border border-green-500/30'
+                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
+                  }`}
+                >
+                  {userProfile.avatarUrl ? (
+                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm font-medium ${userProfile.avatarUrl ? 'text-green-400' : 'text-white'}`}>
+                    Upload profile picture
+                  </span>
+                </button>
+
+                {/* Set Call Rates */}
+                <button
+                  onClick={() => router.push('/settings')}
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
+                    userProfile.perMinuteRate > 0
+                      ? 'bg-green-500/10 border border-green-500/30'
+                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
+                  }`}
+                >
+                  {userProfile.perMinuteRate > 0 ? (
+                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  ) : (
+                    <Circle className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                  )}
+                  <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
+                    Set call rates
+                  </span>
+                </button>
+
+                {/* Share Link on Instagram */}
+                <button
+                  onClick={copyProfileLink}
+                  className="flex items-center gap-3 p-4 rounded-xl transition-all bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/30 hover:border-pink-500/50"
+                >
+                  <Instagram className="w-5 h-5 text-pink-400 flex-shrink-0" />
+                  <div className="text-left min-w-0">
+                    <span className="text-sm font-medium text-white block">Share on Instagram</span>
+                    <span className="text-xs text-gray-400 truncate block">digis.cc/{userProfile.username}</span>
+                  </div>
+                  {copiedLink ? (
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 ml-auto" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-gray-400 flex-shrink-0 ml-auto" />
+                  )}
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-3 text-center">
+                Post your link on Instagram Story to let fans know they can video call you!
+              </p>
+            </div>
+          )}
 
           {/* Earnings Summary */}
           <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
