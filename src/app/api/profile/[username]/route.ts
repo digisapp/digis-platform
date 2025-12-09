@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
-import { eq, sql } from 'drizzle-orm';
+import { users, creatorGoals, contentItems } from '@/lib/data/system';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -58,8 +58,8 @@ export async function GET(
     const supabase = await createClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    // Batch all queries in parallel to reduce N+1 (4 sequential -> 1 parallel batch)
-    const [followCounts, isFollowing, creatorSettings] = await Promise.all([
+    // Batch all queries in parallel to reduce N+1 (6 sequential -> 1 parallel batch)
+    const [followCounts, isFollowing, creatorSettings, goals, content] = await Promise.all([
       // 1. Get follow counts
       FollowService.getFollowCounts(user.id),
 
@@ -72,6 +72,29 @@ export async function GET(
       user.role === 'creator'
         ? CallService.getCreatorSettings(user.id).catch(() => null)
         : Promise.resolve(null),
+
+      // 4. Get goals if creator (non-blocking)
+      user.role === 'creator'
+        ? db.query.creatorGoals.findMany({
+            where: and(
+              eq(creatorGoals.creatorId, user.id),
+              eq(creatorGoals.isActive, true)
+            ),
+            orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
+          }).catch(() => [])
+        : Promise.resolve([]),
+
+      // 5. Get content preview if creator (non-blocking)
+      user.role === 'creator'
+        ? db.query.contentItems.findMany({
+            where: and(
+              eq(contentItems.creatorId, user.id),
+              eq(contentItems.isPublished, true)
+            ),
+            orderBy: [desc(contentItems.createdAt)],
+            limit: 20,
+          }).catch(() => [])
+        : Promise.resolve([]),
     ]);
 
     // Build call settings from result
@@ -95,6 +118,8 @@ export async function GET(
       isFollowing,
       callSettings,
       messageRate,
+      goals,
+      content,
     });
   } catch (error: any) {
     console.error('[PROFILE]', {

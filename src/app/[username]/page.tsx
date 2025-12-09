@@ -82,15 +82,11 @@ export default function ProfilePage() {
   const [signUpAction, setSignUpAction] = useState<string>('');
 
   useEffect(() => {
-    // Start ALL fetches in parallel immediately - don't wait for profile
-    // This reduces waterfall by ~2-3 seconds
+    // Fetch profile (includes goals & content) and auth in parallel
+    // Profile API now returns goals and content to reduce API calls
     Promise.all([
       fetchProfile(),
       checkAuth(),
-      // Start creator-specific fetches immediately using username
-      // These will just show empty if user isn't a creator
-      fetchGoals(),
-      fetchCreatorContent(),
       checkIfLive(),
     ]);
   }, [username]);
@@ -138,7 +134,29 @@ export default function ProfilePage() {
       setProfile(data);
       setIsFollowing(data.isFollowing);
 
-      // Check subscription status if creator (parallel)
+      // Set goals and content from profile response (now included in API)
+      if (data.goals) setGoals(data.goals);
+      if (data.content) {
+        // Transform content to bento grid format
+        const bentaContent = data.content.map((item: any) => ({
+          id: item.id,
+          type: item.contentType === 'video' ? 'video' : 'photo',
+          title: item.title,
+          thumbnail: item.thumbnailUrl,
+          url: item.mediaUrl,
+          description: item.description,
+          likes: 0,
+          views: item.viewCount,
+          isLocked: !item.isFree,
+          unlockPrice: item.unlockPrice,
+          isFree: item.isFree,
+          timestamp: new Date(item.createdAt).toLocaleDateString(),
+          featured: false,
+        }));
+        setContent(bentaContent);
+      }
+
+      // Check subscription status if creator (parallel, non-blocking)
       if (data.user.role === 'creator') {
         Promise.all([
           checkSubscription(data.user.id),
