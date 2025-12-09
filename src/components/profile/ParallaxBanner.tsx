@@ -48,7 +48,7 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-8
           <img
             src={imageUrl}
             alt="Profile banner"
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-cover object-center"
           />
         </div>
       ) : (
