@@ -75,7 +75,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
       <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] mx-auto">
         {/* Animated gradient border effect */}
         <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">

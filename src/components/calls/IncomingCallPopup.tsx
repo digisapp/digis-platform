@@ -32,9 +32,9 @@ export function IncomingCallPopup() {
   // Play ringtone
   const playRingtone = useCallback(() => {
     if (typeof window !== 'undefined' && !audio) {
-      const ringtone = new Audio('/sounds/ringtone.mp3');
+      const ringtone = new Audio('/sounds/ringtone-magic.mp3');
       ringtone.loop = true;
-      ringtone.volume = 0.5;
+      ringtone.volume = 0.7;
       ringtone.play().catch(() => {});
       setAudio(ringtone);
     }
@@ -206,7 +206,7 @@ export function IncomingCallPopup() {
   const currentCall = incomingCalls[0];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       {/* Animated background rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="absolute w-64 h-64 rounded-full border-2 border-green-500/30 animate-ping" style={{ animationDuration: '2s' }} />

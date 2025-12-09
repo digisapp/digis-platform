@@ -74,7 +74,7 @@ export function ContentUnlockModal({ content, onClose, onSuccess }: ContentUnloc
   const hasEnoughCoins = balance >= content.unlockPrice;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
       <div className="bg-gradient-to-b from-gray-900 to-black rounded-2xl border-2 border-cyan-500/50 max-w-md w-full shadow-[0_0_50px_rgba(34,211,238,0.2)]">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">

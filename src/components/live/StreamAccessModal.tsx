@@ -92,7 +92,7 @@ export function StreamAccessModal({
 
   if (purchaseComplete) {
     return (
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
         <div className="bg-white rounded-2xl max-w-md w-full p-8">
           <div className="text-center">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -112,7 +112,7 @@ export function StreamAccessModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
       <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
         <div className="p-8">
           <div className="flex items-center justify-between mb-6">

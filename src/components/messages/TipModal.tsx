@@ -62,7 +62,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
       <div className="bg-gradient-to-b from-gray-900 to-black border border-white/20 rounded-2xl p-6 max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

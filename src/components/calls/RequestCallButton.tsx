@@ -216,9 +216,9 @@ export function RequestCallButton({
         </button>
       )}
 
-      {/* Request Modal - Tron Theme */}
+      {/* Request Modal - Tron Theme - z-[100] to be above navigation */}
       {showModal && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200 mx-auto">
             {/* Animated gradient border effect */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
