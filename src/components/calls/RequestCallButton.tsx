@@ -187,7 +187,7 @@ export function RequestCallButton({
         className="px-4 py-2.5 rounded-xl font-semibold bg-gray-600/50 text-gray-400 flex items-center gap-2 cursor-not-allowed text-sm"
       >
         <Icon className="w-4 h-4" />
-        <span>{callType === 'voice' ? 'Voice' : 'Video'} Unavailable</span>
+        <span>{callType === 'voice' ? 'Call' : 'Video'} Unavailable</span>
       </button>
     );
   }
@@ -212,7 +212,7 @@ export function RequestCallButton({
           }`}
         >
           <Icon className="w-4 h-4" />
-          <span>{callType === 'voice' ? 'Voice Call' : 'Video Call'}</span>
+          <span>{callType === 'voice' ? 'Call' : 'Video Call'}</span>
         </button>
       )}
 

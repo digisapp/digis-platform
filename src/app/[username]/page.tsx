@@ -729,6 +729,15 @@ export default function ProfilePage() {
               />
             )}
 
+            {/* Chat Button */}
+            <button
+              onClick={handleMessage}
+              className="group min-h-[44px] px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Chat</span>
+            </button>
+
             {/* Tip Button */}
             {user.role === 'creator' && (
               <button
@@ -749,14 +758,6 @@ export default function ProfilePage() {
                 <Gift className="w-5 h-5" />
               </button>
             )}
-
-            {/* Message Button */}
-            <button
-              onClick={handleMessage}
-              className="group min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </button>
           </div>
           </div>
         </div>
