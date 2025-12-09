@@ -7,7 +7,7 @@ interface ParallaxBannerProps {
   height?: string;
 }
 
-export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-64' }: ParallaxBannerProps) {
+export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-80' }: ParallaxBannerProps) {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-64' }: Pa
           <img
             src={imageUrl}
             alt="Profile banner"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-top"
           />
         </div>
       ) : (
