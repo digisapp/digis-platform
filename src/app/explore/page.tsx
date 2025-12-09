@@ -85,7 +85,7 @@ export default function ExplorePage() {
   const loadMoreCreators = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    await fetchCreators(offset + 20, false);
+    await fetchCreators(offset + 50, false);
   };
 
   const fetchCreators = async (pageOffset: number = 0, isReset: boolean = false) => {
@@ -96,7 +96,7 @@ export default function ExplorePage() {
     try {
       const params = new URLSearchParams({
         offset: pageOffset.toString(),
-        limit: '20',
+        limit: '50',
       });
 
       if (searchTerm) params.set('search', searchTerm);

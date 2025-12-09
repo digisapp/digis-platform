@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search')?.trim() || '';
     const filter = searchParams.get('filter') || '';
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Start auth check but don't block on it
@@ -53,6 +53,13 @@ export async function GET(request: NextRequest) {
             // Add online filter in SQL
             if (filter === 'online') {
               conditions.push(eq(users.isOnline, true));
+            }
+
+            // Add new creator filter - joined within last 30 days
+            if (filter === 'new') {
+              const thirtyDaysAgo = new Date();
+              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+              conditions.push(sql`${users.createdAt} >= ${thirtyDaysAgo.toISOString()}`);
             }
 
             // Use subquery for accurate follower count, but order by cached column for speed
