@@ -41,14 +41,14 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-64' }: Pa
         <div
           className="absolute inset-0 w-full h-full"
           style={{
-            transform: `translateY(${scrollY * 0.5}px)`,
+            transform: `translateY(${scrollY * 0.3}px)`,
             transition: 'transform 0.1s ease-out',
           }}
         >
           <img
             src={imageUrl}
             alt="Profile banner"
-            className="w-full h-full object-cover scale-110"
+            className="w-full h-full object-cover object-center"
           />
         </div>
       ) : (
