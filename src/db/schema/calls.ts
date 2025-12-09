@@ -67,11 +67,11 @@ export const creatorSettings = pgTable('creator_settings', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
 
   // Video Call Rates
-  callRatePerMinute: integer('call_rate_per_minute').default(50).notNull(), // Default 50 coins/min
+  callRatePerMinute: integer('call_rate_per_minute').default(30).notNull(), // Default 30 coins/min
   minimumCallDuration: integer('minimum_call_duration').default(5).notNull(), // Min 5 minutes
 
   // Voice Call Rates
-  voiceCallRatePerMinute: integer('voice_call_rate_per_minute').default(25).notNull(), // Default 25 coins/min
+  voiceCallRatePerMinute: integer('voice_call_rate_per_minute').default(10).notNull(), // Default 10 coins/min
   minimumVoiceCallDuration: integer('minimum_voice_call_duration').default(5).notNull(), // Min 5 minutes
 
   // Message Rates

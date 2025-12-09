@@ -22,9 +22,9 @@ export class CallService {
         .insert(creatorSettings)
         .values({
           userId,
-          callRatePerMinute: 50, // Default 50 coins/min for video calls
+          callRatePerMinute: 30, // Default 30 coins/min for video calls
           minimumCallDuration: 5, // Default 5 min minimum
-          voiceCallRatePerMinute: 25, // Default 25 coins/min for voice calls
+          voiceCallRatePerMinute: 10, // Default 10 coins/min for voice calls
           minimumVoiceCallDuration: 5, // Default 5 min minimum
           messageRate: 50, // Default 50 coins per message
           isAvailableForCalls: true,
