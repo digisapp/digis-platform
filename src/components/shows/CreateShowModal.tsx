@@ -125,7 +125,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
               <div className="p-2 rounded-xl bg-red-500/20">
                 <Radio className="w-6 h-6 text-red-500" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Go Live</h2>
+              <h2 className="text-2xl font-bold text-white">Start Stream</h2>
             </div>
             <button
               onClick={onClose}
@@ -299,7 +299,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                 ) : (
                   <span className="text-white font-bold flex items-center gap-2">
                     <Radio className="w-4 h-4" />
-                    Go Live
+                    Start Stream
                   </span>
                 )}
               </GlassButton>

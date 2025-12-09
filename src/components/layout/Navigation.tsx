@@ -364,7 +364,7 @@ export function Navigation() {
                     style={{ minHeight: '56px' }}
                   >
                     <Video className="w-6 h-6 md:w-5 md:h-5 text-gray-300" />
-                    <span className="text-base md:text-sm text-white font-semibold">Live Streams</span>
+                    <span className="text-base md:text-sm text-white font-semibold">Streams</span>
                   </button>
 
                   <button
