@@ -168,3 +168,21 @@ export async function invalidateConversationsCacheForBoth(user1Id: string, user2
     invalidateConversationsCache(user2Id),
   ]);
 }
+
+// ============================================
+// CREATOR LIFETIME EARNINGS CACHING
+// ============================================
+
+const LIFETIME_EARNINGS_CACHE_TTL = 300; // 5 minutes - doesn't need to be real-time
+
+export async function getCachedLifetimeEarnings(userId: string): Promise<number | null> {
+  return getCached<number>(`lifetime_earnings:${userId}`);
+}
+
+export async function setCachedLifetimeEarnings(userId: string, amount: number) {
+  await setCached(`lifetime_earnings:${userId}`, amount, LIFETIME_EARNINGS_CACHE_TTL);
+}
+
+export async function invalidateLifetimeEarningsCache(userId: string) {
+  await invalidateCache(`lifetime_earnings:${userId}`);
+}

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, walletTransactions } from '@/lib/data/system';
 import { eq, and, inArray, sql } from 'drizzle-orm';
+import { getCachedLifetimeEarnings, setCachedLifetimeEarnings } from '@/lib/cache';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -114,25 +115,33 @@ export async function GET() {
       role: user.role,
     });
 
-    // 4) For creators, calculate lifetime coins received (all earnings)
+    // 4) For creators, calculate lifetime coins received (all earnings) - with Redis cache
     let lifetimeTipsReceived = 0;
     if (user.role === 'creator') {
       try {
-        // Sum all earnings transactions (all positive completed transactions excluding purchases/refunds)
-        const earningsTypes = ['call_earnings', 'message_earnings', 'stream_tip', 'dm_tip', 'subscription_earnings', 'gift'];
-        const result = await withTimeout(
-          db.select({ total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int` })
-            .from(walletTransactions)
-            .where(
-              and(
-                eq(walletTransactions.userId, user.id),
-                eq(walletTransactions.status, 'completed'),
-                inArray(walletTransactions.type, earningsTypes as any)
-              )
-            ),
-          2000
-        );
-        lifetimeTipsReceived = result?.[0]?.total || 0;
+        // Check cache first (5 min TTL)
+        const cached = await getCachedLifetimeEarnings(user.id);
+        if (cached !== null) {
+          lifetimeTipsReceived = cached;
+        } else {
+          // Sum all earnings transactions (all positive completed transactions excluding purchases/refunds)
+          const earningsTypes = ['call_earnings', 'message_earnings', 'stream_tip', 'dm_tip', 'subscription_earnings', 'gift'];
+          const result = await withTimeout(
+            db.select({ total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int` })
+              .from(walletTransactions)
+              .where(
+                and(
+                  eq(walletTransactions.userId, user.id),
+                  eq(walletTransactions.status, 'completed'),
+                  inArray(walletTransactions.type, earningsTypes as any)
+                )
+              ),
+            2000
+          );
+          lifetimeTipsReceived = result?.[0]?.total || 0;
+          // Cache the result
+          await setCachedLifetimeEarnings(user.id, lifetimeTipsReceived);
+        }
       } catch (err) {
         console.warn('[USER_ME] Failed to calculate lifetime coins received:', err);
       }
