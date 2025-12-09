@@ -1218,7 +1218,6 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <div className="p-4 backdrop-blur-xl bg-white/5 rounded-xl">
                   <label className="block text-sm font-semibold text-white mb-2">
-                    <MessageSquare className="w-4 h-4 inline mr-1" />
                     Cost Per Message
                   </label>
                   <p className="text-xs text-gray-400 mb-3">Set to 0 for free messages</p>
