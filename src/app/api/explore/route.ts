@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, follows, creatorCategories, streams } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql, and, inArray, gt } from 'drizzle-orm';
+import { users, creatorCategories, streams } from '@/lib/data/system';
+import { eq, ilike, or, desc, sql, and, gt } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -10,7 +10,6 @@ import { createClient } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// GET /api/explore - Browse creators with featured carousel and grid
 export async function GET(request: NextRequest) {
   const requestId = nanoid(10);
 
@@ -19,31 +18,30 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || 'All';
     const filter = searchParams.get('filter') || '';
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50); // Cap at 50
+    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Get current user ID (don't await - run in parallel)
-    const authPromise = createClient().then(s => s.auth.getUser()).then(r => r.data.user?.id).catch(() => null);
-
-    // Run ALL queries in parallel - no waterfall
+    // Run queries in parallel
     const [currentUserId, liveCreatorIds, allCreators, categoryNames] = await Promise.all([
-      // 1. Auth (already started above)
-      authPromise,
+      // 1. Auth
+      createClient()
+        .then(s => s.auth.getUser())
+        .then(r => r.data.user?.id)
+        .catch(() => null),
 
-      // 2. Get live streaming creator IDs (fast query)
+      // 2. Get live creator IDs
       withTimeoutAndRetry(
         () => db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
         { timeoutMs: 2000, retries: 0, tag: 'exploreLive' }
       ).catch(() => []),
 
-      // 3. Main creators query
+      // 3. Main creators query (no live filter here - applied after)
       withTimeoutAndRetry(
         async () => {
-          const baseConditions: any[] = [eq(users.role, 'creator')];
+          const conditions: any[] = [eq(users.role, 'creator')];
 
-          // Apply search filter
           if (search) {
-            baseConditions.push(
+            conditions.push(
               or(
                 ilike(users.username, `%${search}%`),
                 ilike(users.displayName, `%${search}%`)
@@ -51,9 +49,8 @@ export async function GET(request: NextRequest) {
             );
           }
 
-          // Apply category filter
           if (category && category !== 'All') {
-            baseConditions.push(
+            conditions.push(
               or(
                 eq(users.primaryCategory, category),
                 eq(users.secondaryCategory, category)
@@ -61,22 +58,16 @@ export async function GET(request: NextRequest) {
             );
           }
 
-          // Apply special filters
-          if (filter) {
+          // Apply non-live filters
+          if (filter && filter !== 'live') {
             switch (filter) {
               case 'online':
-                baseConditions.push(eq(users.isOnline, true));
+                conditions.push(eq(users.isOnline, true));
                 break;
               case 'new':
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                baseConditions.push(gt(users.createdAt, thirtyDaysAgo));
-                break;
-              case 'trending':
-                baseConditions.push(eq(users.isTrending, true));
-                break;
-              case 'verified':
-                baseConditions.push(eq(users.isCreatorVerified, true));
+                conditions.push(gt(users.createdAt, thirtyDaysAgo));
                 break;
             }
           }
@@ -97,15 +88,15 @@ export async function GET(request: NextRequest) {
               primaryCategory: users.primaryCategory,
             })
             .from(users)
-            .where(and(...baseConditions))
+            .where(and(...conditions))
             .orderBy(desc(users.isOnline), desc(users.followerCount))
-            .limit(limit + 1)
-            .offset(offset);
+            .limit(filter === 'live' ? 100 : limit + 1) // Get more if live filter (will filter after)
+            .offset(filter === 'live' ? 0 : offset);
         },
         { timeoutMs: 3000, retries: 1, tag: 'exploreGrid' }
       ).catch(() => []),
 
-      // 4. Categories (simple query)
+      // 4. Categories
       withTimeoutAndRetry(
         async () => {
           const cats = await db
@@ -120,38 +111,29 @@ export async function GET(request: NextRequest) {
 
     const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
 
-    // Check if there are more results
-    const hasMore = allCreators.length > limit;
-    let gridCreators = hasMore ? allCreators.slice(0, limit) : allCreators;
-
-    // Exclude current user and mark online status
-    gridCreators = gridCreators
+    // Transform creators with live/online status
+    let creators = allCreators
       .filter(c => c.id !== currentUserId)
       .map(creator => ({
         ...creator,
-        isFollowing: false, // Skip follow check for speed - can load async on client
+        isFollowing: false,
         isOnline: creator.isOnline || liveCreatorIdSet.has(creator.id),
+        isLive: liveCreatorIdSet.has(creator.id),
       }));
 
-    // Featured = first 10 online creators (already in the list, no extra query)
-    const featuredCreators = gridCreators
-      .filter(c => c.isOnline || c.isTrending || c.isCreatorVerified)
-      .slice(0, 10)
-      .map(c => ({
-        id: c.id,
-        username: c.username,
-        displayName: c.displayName,
-        avatarUrl: c.creatorCardImageUrl || c.avatarUrl,
-        isCreatorVerified: c.isCreatorVerified,
-        isOnline: c.isOnline,
-        isTrending: c.isTrending,
-        followerCount: c.followerCount,
-      }));
+    // Apply live filter after we know who's live
+    if (filter === 'live') {
+      creators = creators.filter(c => c.isLive);
+    }
+
+    // Pagination
+    const hasMore = filter === 'live' ? false : creators.length > limit;
+    const paginatedCreators = hasMore ? creators.slice(0, limit) : creators;
 
     return NextResponse.json(
       success({
-        featuredCreators,
-        creators: gridCreators,
+        featuredCreators: [], // No longer used
+        creators: paginatedCreators,
         categories: categoryNames,
         pagination: { limit, offset, hasMore },
       }, requestId),
@@ -160,7 +142,6 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('[EXPLORE]', { requestId, error: error?.message });
 
-    // Fail soft - return empty data
     return NextResponse.json(
       degraded(
         {

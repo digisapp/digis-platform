@@ -2,24 +2,10 @@
 
 import { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CreatorCarousel } from '@/components/explore/CreatorCarousel';
-import { CategoryPills } from '@/components/explore/CategoryPills';
-import { AnimatedGradientBorder } from '@/components/animations/AnimatedGradientBorder';
-import { NeonLoader, NeonSkeleton } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, UserPlus, UserCheck, TrendingUp } from 'lucide-react';
-
-interface FeaturedCreator {
-  id: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  isCreatorVerified: boolean;
-  isOnline: boolean;
-  isTrending: boolean;
-  followerCount: number;
-}
+import { NeonLoader } from '@/components/ui/NeonLoader';
+import { Search, UserCircle, UserPlus, UserCheck, Radio, Users } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -27,22 +13,30 @@ interface Creator {
   displayName: string | null;
   avatarUrl: string | null;
   bannerUrl: string | null;
+  creatorCardImageUrl?: string | null;
   bio: string | null;
   isCreatorVerified: boolean;
   isTrending: boolean;
   followerCount: number;
   isOnline: boolean;
   isFollowing: boolean;
+  isLive?: boolean;
   primaryCategory?: string | null;
 }
 
+// Simple filters - removed complexity
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'live', label: 'Live', icon: '🔴' },
+  { key: 'online', label: 'Online' },
+  { key: 'new', label: 'New' },
+];
+
 export default function ExplorePage() {
   const router = useRouter();
-  const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
-  const [categories, setCategories] = useState<string[]>(['All']);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedFilter, setSelectedFilter] = useState<string>('');
+  const [liveCreators, setLiveCreators] = useState<Creator[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
@@ -52,138 +46,84 @@ export default function ExplorePage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Special filter options
-  const specialFilters = ['Online', 'New', 'Trending', 'Available for Calls', 'Live Now'];
-
   useEffect(() => {
-    // Reset pagination when filters change
     setOffset(0);
     setHasMore(true);
     setCreators([]);
     fetchCreators(0, true);
-  }, [selectedCategory, selectedFilter]);
+  }, [selectedFilter]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
-      // Reset pagination on search change
       setOffset(0);
       setHasMore(true);
       setCreators([]);
-      if (searchTerm !== '') {
-        handleSearch(0, true);
-      } else {
-        fetchCreators(0, true);
-      }
-    }, 500);
+      fetchCreators(0, true);
+    }, 400);
 
     return () => clearTimeout(delaySearch);
   }, [searchTerm]);
 
-  // Intersection Observer for infinite scroll
+  // Infinite scroll observer
   useEffect(() => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
+    if (observerRef.current) observerRef.current.disconnect();
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting && hasMore && !loading && !loadingMore && !searching) {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && !searching) {
           loadMoreCreators();
         }
       },
       { threshold: 0.1, rootMargin: '100px' }
     );
 
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
+    if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
 
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [hasMore, loading, loadingMore, searching, offset, searchTerm]);
+    return () => observerRef.current?.disconnect();
+  }, [hasMore, loading, loadingMore, searching, offset]);
 
   const loadMoreCreators = async () => {
     if (loadingMore || !hasMore) return;
-
-    const newOffset = offset + 50;
     setLoadingMore(true);
-
-    if (searchTerm) {
-      await handleSearch(newOffset, false);
-    } else {
-      await fetchCreators(newOffset, false);
-    }
+    await fetchCreators(offset + 20, false);
   };
 
   const fetchCreators = async (pageOffset: number = 0, isReset: boolean = false) => {
     try {
       const params = new URLSearchParams({
-        category: selectedCategory,
         offset: pageOffset.toString(),
-        limit: '50',
+        limit: '20',
       });
 
-      // Add filter parameter if a special filter is selected
-      if (selectedFilter) {
-        params.set('filter', selectedFilter.toLowerCase().replace(/\s+/g, '_'));
+      if (searchTerm) params.set('search', searchTerm);
+      if (selectedFilter && selectedFilter !== 'all') {
+        params.set('filter', selectedFilter);
       }
 
       const response = await fetch(`/api/explore?${params}`);
       const result = await response.json();
 
       if (response.ok && result.data) {
+        const allCreators = result.data.creators || [];
+
         if (isReset) {
-          setFeaturedCreators(result.data.featuredCreators || []);
-          setCreators(result.data.creators || []);
+          // Separate live creators for the top section
+          const live = allCreators.filter((c: Creator) => c.isLive);
+          const notLive = selectedFilter === 'live' ? [] : allCreators;
+
+          setLiveCreators(live);
+          setCreators(notLive);
         } else {
-          // Append to existing creators for infinite scroll
-          setCreators(prev => [...prev, ...(result.data.creators || [])]);
+          setCreators(prev => [...prev, ...allCreators]);
         }
-        setCategories(result.data.categories || ['All']);
+
         setHasMore(result.data.pagination?.hasMore ?? false);
         setOffset(pageOffset);
-        // Degraded state is handled gracefully - no need to log warnings
       }
     } catch (error) {
       console.error('Error fetching creators:', error);
     } finally {
       setLoading(false);
-      setSearching(false);
-      setLoadingMore(false);
-    }
-  };
-
-  const handleSearch = async (pageOffset: number = 0, isReset: boolean = false) => {
-    if (isReset) setSearching(true);
-    try {
-      const params = new URLSearchParams({
-        search: searchTerm,
-        category: selectedCategory,
-        offset: pageOffset.toString(),
-        limit: '50',
-      });
-
-      const response = await fetch(`/api/explore?${params}`);
-      const result = await response.json();
-
-      if (response.ok && result.data) {
-        if (isReset) {
-          setFeaturedCreators(result.data.featuredCreators || []);
-          setCreators(result.data.creators || []);
-        } else {
-          // Append to existing creators for infinite scroll
-          setCreators(prev => [...prev, ...(result.data.creators || [])]);
-        }
-        setHasMore(result.data.pagination?.hasMore ?? false);
-        setOffset(pageOffset);
-      }
-    } catch (error) {
-      console.error('Error searching creators:', error);
-    } finally {
       setSearching(false);
       setLoadingMore(false);
     }
@@ -196,17 +136,14 @@ export default function ExplorePage() {
       });
 
       if (response.ok) {
-        // Update the local state
-        setCreators(prevCreators =>
-          prevCreators.map(creator =>
-            creator.id === creatorId
-              ? { ...creator, isFollowing: !currentlyFollowing }
-              : creator
-          )
-        );
+        const updateCreator = (c: Creator) =>
+          c.id === creatorId ? { ...c, isFollowing: !currentlyFollowing } : c;
+
+        setCreators(prev => prev.map(updateCreator));
+        setLiveCreators(prev => prev.map(updateCreator));
       }
     } catch (error) {
-      console.error('Error following/unfollowing creator:', error);
+      console.error('Error following creator:', error);
     }
   }, []);
 
@@ -222,258 +159,267 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 relative overflow-hidden">
-      {/* Animated background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-96 h-96 -top-10 -left-10 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-96 h-96 top-1/3 right-10 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute w-96 h-96 bottom-10 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-      </div>
-
-      {/* Mobile Header with Logo */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <MobileHeader />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Spacer for fixed mobile header */}
+      <div className="max-w-7xl mx-auto">
         <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-8">
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-400 z-10" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search creators..."
-              className="w-full pl-12 pr-12 py-3.5 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
-            />
-            {searching && (
-              <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                <LoadingSpinner size="sm" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Filter Pills */}
-        {!searchTerm && (
-          <div className="mb-5">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1">
-              {/* All Categories button - show first */}
-              {categories.map((category) => {
-                const isSelected = category === selectedCategory && !selectedFilter;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setSelectedFilter('');
-                    }}
-                    className={`
-                      flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
-                      ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                          : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
-                      }
-                    `}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
-
-              {/* Special Filters */}
-              {specialFilters.map((filter) => {
-                const isSelected = filter === selectedFilter;
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedFilter('');
-                      } else {
-                        setSelectedFilter(filter);
-                        setSelectedCategory('All');
-                      }
-                    }}
-                    className={`
-                      flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
-                      ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                          : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
-                      }
-                    `}
-                  >
-                    {filter}
-                  </button>
-                );
-              })}
-            </div>
-            <style jsx>{`
-              .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-          </div>
-        )}
-
-        {/* Featured Carousel */}
-        {!searchTerm && featuredCreators.length > 0 && (
-          <div className="mb-6">
-            <CreatorCarousel creators={featuredCreators} autoPlay={true} interval={5000} />
-          </div>
-        )}
-
-        {/* Creators Grid */}
-        {creators.length === 0 ? (
-          <div className="p-16 text-center backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20">
-            <Search className="w-20 h-20 text-gray-400 mx-auto mb-5" />
-            <h3 className="text-2xl font-bold mb-2 text-white">No creators found</h3>
-            <p className="text-gray-400 text-lg">
-              {searchTerm ? 'Try a different search term' : 'Check back soon for new creators!'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-              {creators.map((creator) => (
-                <CreatorCard
-                  key={creator.id}
-                  creator={creator}
-                  onClick={() => router.push(`/${creator.username}`)}
-                  onFollow={handleFollow}
-                />
-              ))}
-            </div>
-
-            {/* Infinite scroll trigger */}
-            <div ref={loadMoreRef} className="w-full py-8 flex justify-center">
-              {loadingMore && (
-                <div className="flex items-center gap-3">
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSearching(true);
+                }}
+                placeholder="Search creators..."
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+              />
+              {searching && (
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   <LoadingSpinner size="sm" />
-                  <span className="text-gray-400 text-sm">Loading more creators...</span>
                 </div>
               )}
-              {!hasMore && creators.length > 0 && (
-                <p className="text-gray-500 text-sm">You've seen all creators</p>
-              )}
             </div>
-          </>
-        )}
+          </div>
+
+          {/* Simple Filters */}
+          <div className="flex gap-2 mb-6">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setSelectedFilter(filter.key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  selectedFilter === filter.key
+                    ? 'bg-white text-black'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                {filter.icon && <span className="mr-1">{filter.icon}</span>}
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Live Now Section - Only show if there are live creators */}
+          {liveCreators.length > 0 && selectedFilter !== 'live' && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative">
+                  <Radio className="w-5 h-5 text-red-500" />
+                  <div className="absolute inset-0 w-5 h-5 text-red-500 animate-ping opacity-50">
+                    <Radio className="w-5 h-5" />
+                  </div>
+                </div>
+                <h2 className="text-lg font-bold text-white">Live Now</h2>
+                <span className="text-sm text-gray-400">({liveCreators.length})</span>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {liveCreators.map((creator) => (
+                  <LiveCreatorCard
+                    key={creator.id}
+                    creator={creator}
+                    onClick={() => router.push(`/${creator.username}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Main Creators Grid */}
+          {creators.length === 0 && liveCreators.length === 0 ? (
+            <div className="py-16 text-center">
+              <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No creators found</h3>
+              <p className="text-gray-400">
+                {searchTerm ? 'Try a different search' : 'Check back soon!'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Section header for non-live creators */}
+              {liveCreators.length > 0 && selectedFilter !== 'live' && creators.length > 0 && (
+                <h2 className="text-lg font-bold text-white mb-4">Discover Creators</h2>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                {(selectedFilter === 'live' ? liveCreators : creators).map((creator) => (
+                  <CreatorCard
+                    key={creator.id}
+                    creator={creator}
+                    onClick={() => router.push(`/${creator.username}`)}
+                    onFollow={handleFollow}
+                  />
+                ))}
+              </div>
+
+              {/* Load more trigger */}
+              <div ref={loadMoreRef} className="py-8 flex justify-center">
+                {loadingMore && (
+                  <div className="flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    <span className="text-gray-400 text-sm">Loading more...</span>
+                  </div>
+                )}
+                {!hasMore && creators.length > 0 && (
+                  <p className="text-gray-500 text-sm">You've seen all creators</p>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+// Live Creator Card - Larger, more prominent
+function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
+  const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
+
+  return (
+    <div
+      onClick={onClick}
+      className="relative rounded-2xl overflow-hidden cursor-pointer group border-2 border-red-500/50 hover:border-red-500 transition-all"
+    >
+      {/* Live badge */}
+      <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2 py-1 bg-red-500 rounded-full">
+        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+        <span className="text-xs font-bold text-white">LIVE</span>
+      </div>
+
+      {/* Image */}
+      <div className="relative" style={{ paddingBottom: '100%' }}>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={creator.username}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
+            <UserCircle className="w-16 h-16 text-gray-400" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+      </div>
+
+      {/* Info overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
+        <p className="text-sm text-gray-300">@{creator.username}</p>
+      </div>
+    </div>
+  );
+}
+
+// Regular Creator Card - Enhanced with bio and follower count
 interface CreatorCardProps {
   creator: Creator;
   onClick: () => void;
   onFollow: (creatorId: string, currentlyFollowing: boolean) => void;
 }
 
-// Loading skeleton component
-function CreatorCardSkeleton() {
-  return (
-    <GlassCard className="overflow-hidden">
-      {/* 16:9 Image Skeleton */}
-      <div className="relative w-full" style={{ paddingBottom: '177.78%' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse" />
-      </div>
-
-      {/* Name Skeleton */}
-      <div className="p-3">
-        <div className="h-5 bg-gray-300 animate-pulse rounded w-3/4 mx-auto" />
-      </div>
-    </GlassCard>
-  );
-}
-
 const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
-  // Use avatar (profile picture) for the card image
-  const cardImageUrl = creator.avatarUrl;
+  const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
+
+  // Truncate bio to ~50 chars
+  const shortBio = creator.bio
+    ? creator.bio.length > 50
+      ? creator.bio.substring(0, 50) + '...'
+      : creator.bio
+    : null;
+
+  // Format follower count
+  const formatFollowers = (count: number) => {
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
+  };
 
   return (
     <div
-      className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border border-white/20 hover:border-cyan-500/50"
+      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all"
       onClick={onClick}
     >
-      {/* 4:5 Creator Card Image (Portrait - Instagram post style) with overlaid name */}
-      <div className="relative w-full overflow-hidden rounded-2xl" style={{ paddingBottom: '125%' }}>
-        {cardImageUrl ? (
-          <>
-            <img
-              src={cardImageUrl}
-              alt={`${creator.displayName || creator.username}`}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              loading="lazy"
-            />
-            {/* Gradient overlay for better text contrast - stronger at bottom */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
-          </>
+      {/* Image section */}
+      <div className="relative" style={{ paddingBottom: '100%' }}>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={creator.username}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 flex items-center justify-center">
-            <UserCircle className="w-16 h-16 md:w-20 md:h-20 text-gray-400" />
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center">
+            <UserCircle className="w-12 h-12 text-gray-500" />
           </div>
         )}
 
-        {/* Follow button - top right with distinct states */}
+        {/* Status badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {creator.isLive && (
+            <span className="px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              LIVE
+            </span>
+          )}
+          {creator.isOnline && !creator.isLive && (
+            <span className="px-2 py-0.5 bg-green-500/80 rounded-full text-xs font-medium text-white">
+              Online
+            </span>
+          )}
+        </div>
+
+        {/* Follow button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onFollow(creator.id, creator.isFollowing);
           }}
-          className={`absolute top-2 right-2 p-2 rounded-full border-2 transition-all z-10 hover:scale-110 active:scale-95 ${
+          className={`absolute top-2 right-2 p-2 rounded-full transition-all ${
             creator.isFollowing
-              ? 'bg-digis-cyan border-digis-cyan text-white shadow-[0_0_12px_rgba(34,211,238,0.6)]'
-              : 'bg-black/50 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 hover:border-white/50'
+              ? 'bg-cyan-500 text-white'
+              : 'bg-black/50 backdrop-blur-sm text-white hover:bg-black/70'
           }`}
-          title={creator.isFollowing ? 'Unfollow' : 'Follow'}
         >
           {creator.isFollowing ? (
-            <UserCheck className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <UserCheck className="w-4 h-4" />
           ) : (
-            <UserPlus className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <UserPlus className="w-4 h-4" />
           )}
         </button>
 
-        {/* Category badge - top left */}
-        {creator.primaryCategory && (
-          <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-xs font-semibold text-white border border-white/20">
-            {creator.primaryCategory}
-          </div>
-        )}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      </div>
 
-        {/* Creator Name - Overlaid at bottom with minimal opacity to show image */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-white/20 group-hover:bg-white/20 transition-all duration-300">
-          <div className="relative z-10">
-            {/* Username with indicators */}
-            <div className="flex items-center justify-center gap-1.5">
-              {creator.isOnline && (
-                <div className="relative flex-shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-green-500 ring-2 ring-white" />
-                  <div className="absolute inset-0 w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                </div>
-              )}
-              <h3 className="text-sm md:text-base font-bold text-white truncate max-w-[140px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" style={{ letterSpacing: '-0.015em' }}>
-                {creator.username}
-              </h3>
-              {creator.isTrending && (
-                <div className="relative">
-                  <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-                  <div className="absolute -inset-1 bg-amber-400/20 rounded-full blur-sm animate-pulse" />
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Info section */}
+      <div className="p-3">
+        {/* Username */}
+        <p className="font-semibold text-white truncate">
+          {creator.displayName || creator.username}
+        </p>
 
-          {/* Accent line on hover */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Follower count */}
+        <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+          <Users className="w-3 h-3" />
+          <span>{formatFollowers(creator.followerCount)} followers</span>
         </div>
+
+        {/* Bio snippet */}
+        {shortBio && (
+          <p className="text-xs text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
+            {shortBio}
+          </p>
+        )}
       </div>
     </div>
   );
