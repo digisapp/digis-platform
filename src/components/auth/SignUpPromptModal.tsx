@@ -62,14 +62,9 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 mb-4 shadow-[0_0_30px_rgba(34,211,238,0.5)]">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-white to-cyan-400 bg-clip-text text-transparent mb-2">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-white to-cyan-400 bg-clip-text text-transparent">
             Create Account to continue
           </h2>
-          <p className="text-gray-400">
-            {action && creatorName
-              ? `Sign up to ${action} with ${creatorName}`
-              : 'Create a free account to unlock all features'}
-          </p>
         </div>
 
         {/* Features */}

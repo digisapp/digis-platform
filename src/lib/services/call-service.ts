@@ -26,7 +26,7 @@ export class CallService {
           minimumCallDuration: 5, // Default 5 min minimum
           voiceCallRatePerMinute: 25, // Default 25 coins/min for voice calls
           minimumVoiceCallDuration: 5, // Default 5 min minimum
-          messageRate: 25, // Default 25 coins per message
+          messageRate: 50, // Default 50 coins per message
           isAvailableForCalls: true,
           isAvailableForVoiceCalls: true,
         })

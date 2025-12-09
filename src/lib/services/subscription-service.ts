@@ -71,15 +71,36 @@ export class SubscriptionService {
 
   /**
    * Get all active tiers for a creator
+   * Auto-creates a default tier (50 coins/month) if none exist
    */
   static async getCreatorTiers(creatorId: string) {
-    const tiers = await db.query.subscriptionTiers.findMany({
+    let tiers = await db.query.subscriptionTiers.findMany({
       where: and(
         eq(subscriptionTiers.creatorId, creatorId),
         eq(subscriptionTiers.isActive, true)
       ),
       orderBy: [subscriptionTiers.displayOrder, subscriptionTiers.pricePerMonth],
     });
+
+    // Auto-create default tier if creator has no tiers
+    // This ensures new creators have subscriptions enabled from day one
+    if (tiers.length === 0) {
+      const [defaultTier] = await db
+        .insert(subscriptionTiers)
+        .values({
+          creatorId,
+          name: 'Subscriber',
+          tier: 'basic',
+          description: 'Support me with a monthly subscription',
+          pricePerMonth: 50, // Default 50 coins/month
+          benefits: JSON.stringify(['Exclusive content access', 'Subscriber badge']),
+          isActive: true,
+          displayOrder: 0,
+        })
+        .returning();
+
+      tiers = [defaultTier];
+    }
 
     return tiers.map(tier => ({
       ...tier,
