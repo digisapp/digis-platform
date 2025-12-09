@@ -457,28 +457,10 @@ export default function LiveStreamsPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
               <Tv className="relative w-24 h-24 text-white mx-auto" strokeWidth={1.5} />
             </div>
-            {userRole === 'creator' ? (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-3">No live streams right now</h2>
-                <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                  Be the first to go live! Start streaming and connect with your fans.
-                </p>
-                <button
-                  onClick={() => router.push('/creator/go-stream')}
-                  className="px-8 py-4 rounded-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 text-white hover:scale-105 transition-all shadow-lg shadow-red-500/50 inline-flex items-center gap-2"
-                >
-                  <Radio className="w-5 h-5" />
-                  Start Streaming
-                </button>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-bold text-white mb-3">No streams available</h2>
-                <p className="text-gray-400 max-w-md mx-auto">
-                  Check back soon for live streams from your favorite creators!
-                </p>
-              </>
-            )}
+            <h2 className="text-2xl font-bold text-white mb-3">Waiting for streams</h2>
+            <p className="text-gray-400 max-w-md mx-auto">
+              Check back soon for live streams from your favorite creators!
+            </p>
           </div>
         )}
       </div>

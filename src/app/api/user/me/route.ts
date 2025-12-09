@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { users, walletTransactions } from '@/lib/data/system';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -114,8 +114,32 @@ export async function GET() {
       role: user.role,
     });
 
-    // 4) Normal success path: return DB user
-    const response = NextResponse.json(user);
+    // 4) For creators, calculate lifetime coins received (all earnings)
+    let lifetimeTipsReceived = 0;
+    if (user.role === 'creator') {
+      try {
+        // Sum all earnings transactions (all positive completed transactions excluding purchases/refunds)
+        const earningsTypes = ['call_earnings', 'message_earnings', 'stream_tip', 'dm_tip', 'subscription_earnings', 'gift'];
+        const result = await withTimeout(
+          db.select({ total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int` })
+            .from(walletTransactions)
+            .where(
+              and(
+                eq(walletTransactions.userId, user.id),
+                eq(walletTransactions.status, 'completed'),
+                inArray(walletTransactions.type, earningsTypes as any)
+              )
+            ),
+          2000
+        );
+        lifetimeTipsReceived = result?.[0]?.total || 0;
+      } catch (err) {
+        console.warn('[USER_ME] Failed to calculate lifetime coins received:', err);
+      }
+    }
+
+    // 5) Normal success path: return DB user with lifetime tips
+    const response = NextResponse.json({ ...user, lifetimeTipsReceived });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');

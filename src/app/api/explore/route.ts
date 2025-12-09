@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorCategories, streams } from '@/lib/data/system';
+import { users, creatorCategories, streams, follows } from '@/lib/data/system';
 import { eq, ilike, or, desc, sql, and } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -55,6 +55,11 @@ export async function GET(request: NextRequest) {
           }
 
           // Minimal select - only fields the UI actually uses
+          // Use subquery for accurate follower count from follows table
+          const followerCountSubquery = sql<number>`(
+            SELECT COUNT(*)::int FROM follows WHERE follows.following_id = ${users.id}
+          )`.as('actual_follower_count');
+
           const results = await db
             .select({
               id: users.id,
@@ -63,12 +68,12 @@ export async function GET(request: NextRequest) {
               avatarUrl: users.avatarUrl,
               creatorCardImageUrl: users.creatorCardImageUrl,
               isCreatorVerified: users.isCreatorVerified,
-              followerCount: users.followerCount,
+              followerCount: followerCountSubquery,
               isOnline: users.isOnline,
             })
             .from(users)
             .where(and(...conditions))
-            .orderBy(desc(users.isOnline), desc(users.followerCount))
+            .orderBy(desc(users.isOnline), desc(followerCountSubquery))
             .limit(limit + 1)
             .offset(offset);
 

@@ -120,7 +120,7 @@ export default function GoLivePage() {
           const activeData = await activeRes.json();
           if (activeData.data?.hasActiveStream && activeData.data?.stream) {
             // Redirect to existing broadcast instead of creating a new one
-            router.push(`/stream/broadcast/${activeData.data.stream.id}`);
+            router.push(`/stream/live/${activeData.data.stream.id}`);
             return;
           }
         }
@@ -335,7 +335,7 @@ export default function GoLivePage() {
 
         // Redirect after animation
         setTimeout(() => {
-          router.push(`/stream/broadcast/${streamId}`);
+          router.push(`/stream/live/${streamId}`);
         }, 2000);
       } else {
         setError(result.error || 'Failed to start stream');

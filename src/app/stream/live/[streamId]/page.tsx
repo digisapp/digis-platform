@@ -69,6 +69,7 @@ export default function BroadcastStudioPage() {
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [isLeaveAttempt, setIsLeaveAttempt] = useState(false); // true = accidental navigation, false = intentional end
   const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
@@ -116,6 +117,7 @@ export default function BroadcastStudioPage() {
       e.preventDefault();
       // Push state back to prevent navigation
       window.history.pushState(null, '', window.location.href);
+      setIsLeaveAttempt(true);
       setShowEndConfirm(true);
     };
 
@@ -131,12 +133,14 @@ export default function BroadcastStudioPage() {
       // Cmd/Ctrl + Left Arrow (go back) or Cmd/Ctrl + Right Arrow (go forward)
       if ((e.metaKey || e.ctrlKey) && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
+        setIsLeaveAttempt(true);
         setShowEndConfirm(true);
         return;
       }
       // Alt + Left Arrow (go back in some browsers)
       if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
+        setIsLeaveAttempt(true);
         setShowEndConfirm(true);
         return;
       }
@@ -768,26 +772,68 @@ export default function BroadcastStudioPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowEndConfirm(false)} />
           <div className="relative backdrop-blur-xl bg-black/80 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full">
+              {/* Warning Icon */}
+              <div className="flex justify-center mb-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isLeaveAttempt ? 'bg-yellow-500/20' : 'bg-red-500/20'}`}>
+                  {isLeaveAttempt ? (
+                    <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+
+              {/* Title and Description */}
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {isLeaveAttempt ? 'Wait! You\'re Still Live' : 'End Your Stream?'}
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  {isLeaveAttempt
+                    ? 'If you leave now, your stream will end and your viewers will be disconnected.'
+                    : 'Are you sure you want to end your stream? This will disconnect all viewers.'}
+                </p>
+              </div>
+
               <div className="space-y-3">
+                {isLeaveAttempt && (
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    onClick={() => setShowEndConfirm(false)}
+                    shimmer
+                    glow
+                    className="w-full text-white font-semibold"
+                  >
+                    Stay on Stream
+                  </GlassButton>
+                )}
                 <GlassButton
-                  variant="gradient"
+                  variant={isLeaveAttempt ? 'ghost' : 'gradient'}
                   size="lg"
                   onClick={handleEndStream}
                   disabled={isEnding}
-                  shimmer
-                  glow
-                  className="w-full text-white font-semibold bg-gradient-to-r from-red-600 to-pink-600"
+                  shimmer={!isLeaveAttempt}
+                  glow={!isLeaveAttempt}
+                  className={`w-full font-semibold ${isLeaveAttempt ? '!text-red-400 !bg-red-500/10 !border-red-500/50 hover:!bg-red-500/20' : 'text-white bg-gradient-to-r from-red-600 to-pink-600'}`}
                 >
-                  {isEnding ? 'Ending...' : 'End Stream'}
+                  {isEnding ? 'Ending...' : (isLeaveAttempt ? 'End Stream Anyway' : 'End Stream')}
                 </GlassButton>
-                <GlassButton
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => setShowEndConfirm(false)}
-                  className="w-full font-semibold !text-white !bg-white/10 !border-white/40 hover:!bg-white/20"
-                >
-                  Cancel
-                </GlassButton>
+                {!isLeaveAttempt && (
+                  <GlassButton
+                    variant="ghost"
+                    size="lg"
+                    onClick={() => setShowEndConfirm(false)}
+                    className="w-full font-semibold !text-white !bg-white/10 !border-white/40 hover:!bg-white/20"
+                  >
+                    Cancel
+                  </GlassButton>
+                )}
               </div>
             </div>
           </div>
@@ -970,7 +1016,10 @@ export default function BroadcastStudioPage() {
 
               {/* End Stream Button */}
               <button
-                onClick={() => setShowEndConfirm(true)}
+                onClick={() => {
+                  setIsLeaveAttempt(false);
+                  setShowEndConfirm(true);
+                }}
                 className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/20 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:scale-105 transition-all duration-300 flex-shrink-0"
               >
                 <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1169,16 +1218,16 @@ export default function BroadcastStudioPage() {
                         {/* Action buttons - show on hover */}
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
-                            onClick={() => router.push(`/chats?userId=${supporter.senderId}`)}
+                            onClick={() => window.open(`/chats?userId=${supporter.senderId}`, '_blank')}
                             className="p-1 hover:bg-cyan-500/20 rounded transition-colors"
-                            title="Message"
+                            title="Message (opens in new tab)"
                           >
                             <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
                           </button>
                           <button
-                            onClick={() => router.push(`/${supporter.username}`)}
+                            onClick={() => window.open(`/${supporter.username}`, '_blank')}
                             className="p-1 hover:bg-pink-500/20 rounded transition-colors"
-                            title="View Profile"
+                            title="View Profile (opens in new tab)"
                           >
                             <UserPlus className="w-3.5 h-3.5 text-pink-400" />
                           </button>
@@ -1230,18 +1279,18 @@ export default function BroadcastStudioPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
-                    {/* Action buttons - always visible on mobile */}
+                    {/* Action buttons - always visible on mobile, open in new tab to avoid leaving stream */}
                     <button
-                      onClick={() => router.push(`/chats?userId=${supporter.senderId}`)}
+                      onClick={() => window.open(`/chats?userId=${supporter.senderId}`, '_blank')}
                       className="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 rounded transition-colors"
-                      title="Message"
+                      title="Message (opens in new tab)"
                     >
                       <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
                     </button>
                     <button
-                      onClick={() => router.push(`/${supporter.username}`)}
+                      onClick={() => window.open(`/${supporter.username}`, '_blank')}
                       className="p-1.5 bg-pink-500/20 hover:bg-pink-500/30 rounded transition-colors"
-                      title="View Profile"
+                      title="View Profile (opens in new tab)"
                     >
                       <UserPlus className="w-3.5 h-3.5 text-pink-400" />
                     </button>

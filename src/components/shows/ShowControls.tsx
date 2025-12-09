@@ -39,7 +39,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
 
       // Redirect to broadcast page
       if (data.roomName) {
-        router.push(`/stream/broadcast/${data.roomName}`);
+        router.push(`/stream/live/${data.roomName}`);
       } else {
         onUpdate();
       }
@@ -138,7 +138,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
         <GlassButton
           variant="gradient"
           size="lg"
-          onClick={() => router.push(`/stream/broadcast/${show.roomName}`)}
+          onClick={() => router.push(`/stream/live/${show.roomName}`)}
           className="whitespace-nowrap"
           shimmer
           glow

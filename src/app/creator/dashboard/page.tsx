@@ -565,7 +565,7 @@ export default function CreatorDashboard() {
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Radio className="w-6 h-6 text-red-400" />
-              <span className="text-lg font-semibold text-white">Go Live</span>
+              <span className="text-lg font-semibold text-white">Go Stream</span>
             </button>
             <button
               onClick={() => router.push('/creator/content/new')}
@@ -719,7 +719,7 @@ export default function CreatorDashboard() {
 
           {/* Keyboard shortcuts hint - desktop only */}
           <div className="hidden md:flex items-center justify-center gap-6 mt-8 text-xs text-gray-500">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">L</kbd> to Go Live</span>
+            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">L</kbd> to Go Stream</span>
             <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">U</kbd> to Upload</span>
           </div>
         </div>
