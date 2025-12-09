@@ -100,6 +100,7 @@ export function Navigation() {
     router.prefetch('/explore');
     router.prefetch('/live');
     router.prefetch('/chats');
+    router.prefetch('/settings');
   }, [authUser?.id, router]);
 
   // Heartbeat and auth state listener for cache clearing

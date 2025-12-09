@@ -8,6 +8,13 @@ import { eq } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Helper for timeout
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T | null> =>
+  Promise.race([
+    promise,
+    new Promise<null>(resolve => setTimeout(() => resolve(null), ms))
+  ]);
+
 /**
  * Build fallback user from Supabase auth metadata
  * This ensures we NEVER return 500 for a valid logged-in session
@@ -57,28 +64,32 @@ export async function GET() {
       );
     }
 
-    console.log('[USER_ME] Fetching user from DB:', authUser.id);
-
-    // 2) Try to fetch user from database with Drizzle
+    // 2) Try to fetch user from database with timeout (3s max)
     let user = null;
 
     try {
-      user = await db.query.users.findFirst({
-        where: eq(users.id, authUser.id),
-        with: {
-          profile: true,
-        },
-      });
+      user = await withTimeout(
+        db.query.users.findFirst({
+          where: eq(users.id, authUser.id),
+          with: {
+            profile: true,
+          },
+        }),
+        3000
+      );
     } catch (relationError) {
       // If profile relation fails, try without it
-      console.warn('[USER_ME] Profile relation failed, retrying without profile:', relationError);
+      console.warn('[USER_ME] Profile relation failed, retrying without profile');
 
       try {
-        user = await db.query.users.findFirst({
-          where: eq(users.id, authUser.id),
-        });
+        user = await withTimeout(
+          db.query.users.findFirst({
+            where: eq(users.id, authUser.id),
+          }),
+          2000
+        );
       } catch (dbError) {
-        console.error('[USER_ME] Database query failed completely:', dbError);
+        console.error('[USER_ME] Database query failed');
         // Fall through to fallback below
       }
     }
