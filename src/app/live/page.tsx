@@ -464,7 +464,7 @@ export default function LiveStreamsPage() {
                   Be the first to go live! Start streaming and connect with your fans.
                 </p>
                 <button
-                  onClick={() => router.push('/creator/go-live')}
+                  onClick={() => router.push('/creator/go-stream')}
                   className="px-8 py-4 rounded-2xl font-bold bg-gradient-to-r from-red-600 to-pink-600 text-white hover:scale-105 transition-all shadow-lg shadow-red-500/50 inline-flex items-center gap-2"
                 >
                   <Radio className="w-5 h-5" />

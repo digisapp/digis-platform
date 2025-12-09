@@ -123,7 +123,7 @@ export default function CreatorDashboard() {
 
       switch(e.key.toLowerCase()) {
         case 'l':
-          router.push('/creator/go-live');
+          router.push('/creator/go-stream');
           break;
         case 'u':
           router.push('/creator/content/new');
@@ -561,7 +561,7 @@ export default function CreatorDashboard() {
           {/* Quick Actions */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <button
-              onClick={() => router.push('/creator/go-live')}
+              onClick={() => router.push('/creator/go-stream')}
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Radio className="w-6 h-6 text-red-400" />

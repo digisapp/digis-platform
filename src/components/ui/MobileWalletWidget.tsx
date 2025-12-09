@@ -125,7 +125,7 @@ export function MobileWalletWidget() {
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    router.push('/creator/go-live');
+                    router.push('/creator/go-stream');
                   }}
                   className="w-full px-4 py-4 flex items-center gap-3 hover:bg-cyan-500/10 active:bg-cyan-500/20 transition-colors border-b border-cyan-500/20"
                 >

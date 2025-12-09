@@ -105,7 +105,7 @@ export function Navigation() {
     router.prefetch('/live');
     router.prefetch('/chats');
     router.prefetch('/settings');
-    router.prefetch('/creator/go-live');
+    router.prefetch('/creator/go-stream');
   }, [authUser?.id, router]);
 
   // Heartbeat and auth state listener for cache clearing
@@ -316,7 +316,7 @@ export function Navigation() {
                 <>
                   <button
                     onClick={() => {
-                      router.push('/creator/go-live');
+                      router.push('/creator/go-stream');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
