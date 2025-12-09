@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { WalletService } from '@/lib/wallet/wallet-service';
+import { db } from '@/lib/data/system';
+import { wallets } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
@@ -14,25 +18,36 @@ export async function GET() {
       );
     }
 
+    // Single DB query with timeout
     let balance = 0;
-    let availableBalance = 0;
+    let heldBalance = 0;
 
     try {
-      balance = await WalletService.getBalance(user.id);
-      availableBalance = await WalletService.getAvailableBalance(user.id);
+      const wallet = await Promise.race([
+        db.query.wallets.findFirst({
+          where: eq(wallets.userId, user.id),
+          columns: { balance: true, heldBalance: true },
+        }),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error('Wallet query timeout')), 3000)
+        ),
+      ]);
+
+      if (wallet) {
+        balance = wallet.balance || 0;
+        heldBalance = wallet.heldBalance || 0;
+      }
     } catch (dbError) {
       console.error('Database error - returning zero balance:', dbError);
-      // Return zero balance if database fails - better than crashing
     }
 
     return NextResponse.json({
       balance,
-      availableBalance,
-      heldBalance: balance - availableBalance,
+      availableBalance: balance - heldBalance,
+      heldBalance,
     });
   } catch (error) {
     console.error('Error fetching wallet balance:', error);
-    // Return zero balance instead of error to prevent navigation crash
     return NextResponse.json({
       balance: 0,
       availableBalance: 0,

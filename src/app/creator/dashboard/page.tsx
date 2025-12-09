@@ -101,13 +101,12 @@ export default function CreatorDashboard() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    checkAuth().then(async (isAuthorized) => {
+    checkAuth().then((isAuthorized) => {
       if (isAuthorized) {
-        // Fetch wallet balance first (most important for initial display)
-        await fetchWalletBalance();
         setLoading(false);
-        // Then fetch the rest in parallel
+        // Fetch all data in parallel - don't block page load
         Promise.all([
+          fetchWalletBalance(),
           fetchAnalytics(),
           fetchAllDashboardData(),
           fetchUserProfile(),
@@ -216,13 +215,22 @@ export default function CreatorDashboard() {
 
   const fetchWalletBalance = async () => {
     try {
-      const response = await fetch('/api/wallet/balance');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+      const response = await fetch('/api/wallet/balance', {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
       const result = await response.json();
       if (response.ok) {
         setMonthlyEarnings(result.balance || 0);
       }
-    } catch (err) {
-      console.error('Error fetching wallet:', err);
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('Error fetching wallet:', err);
+      }
     }
   };
 
