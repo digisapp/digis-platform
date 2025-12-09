@@ -121,9 +121,10 @@ export async function GET(request: NextRequest) {
       creators = creators.filter(c => c.isLive);
     }
 
-    // Pagination
-    const hasMore = filter === 'live' ? false : creators.length > limit;
-    const paginatedCreators = hasMore ? creators.slice(0, limit) : creators;
+    // Pagination - check if we got more than limit from DB (before JS filtering removed some)
+    // allCreators had limit+1 fetched, so if we got that many, there's likely more
+    const hasMore = filter === 'live' ? false : allCreators.length > limit;
+    const paginatedCreators = creators.length > limit ? creators.slice(0, limit) : creators;
 
     return NextResponse.json(
       success({
