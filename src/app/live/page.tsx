@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { Tv, Search, Radio, Ticket, Coins, Lock, Unlock } from 'lucide-react';
 import type { Stream } from '@/db/schema';
 
@@ -46,16 +46,18 @@ type CombinedStream = (LiveStream & { type: 'free' }) | (PaidShow & { type: 'pai
 
 export default function LiveStreamsPage() {
   const router = useRouter();
+  const { isCreator } = useAuth();
   const [freeStreams, setFreeStreams] = useState<LiveStream[]>([]);
   const [paidShows, setPaidShows] = useState<PaidShow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'free' | 'paid'>('all');
-  const [userRole, setUserRole] = useState<'fan' | 'creator'>('fan');
+
+  // Use AuthContext instead of separate API call
+  const userRole = isCreator ? 'creator' : 'fan';
 
   useEffect(() => {
-    fetchUserRole();
     fetchAllStreams(true);
 
     // Refresh every 30 seconds on mobile, 15 seconds on desktop
@@ -66,48 +68,40 @@ export default function LiveStreamsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchUserRole = async () => {
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const response = await fetch('/api/user/profile');
-        const data = await response.json();
-        if (data.user?.role) {
-          setUserRole(data.user.role);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching user role:', err);
-    }
-  };
-
   const fetchAllStreams = async (bustCache = false) => {
+    // Create abort controller with 5s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
-      // Fetch both free streams and paid shows in parallel
+      // Fetch both free streams and paid shows in parallel with timeout
       const [freeRes, paidRes] = await Promise.all([
         fetch(bustCache ? `/api/streams/live?t=${Date.now()}` : '/api/streams/live', {
           cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' },
-        }),
+          signal: controller.signal,
+        }).catch(() => null),
         fetch(bustCache ? `/api/shows/upcoming?t=${Date.now()}` : '/api/shows/upcoming', {
           cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' },
-        }),
+          signal: controller.signal,
+        }).catch(() => null),
       ]);
 
-      if (freeRes.ok) {
+      clearTimeout(timeoutId);
+
+      if (freeRes?.ok) {
         const freeData = await freeRes.json();
         setFreeStreams((freeData.data?.streams || []).map((s: any) => ({ ...s, isFree: true })));
       }
 
-      if (paidRes.ok) {
+      if (paidRes?.ok) {
         const paidData = await paidRes.json();
         setPaidShows((paidData.shows || []).map((s: any) => ({ ...s, isFree: false })));
       }
-    } catch (err) {
-      setError('Failed to load streams');
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name !== 'AbortError') {
+        setError('Failed to load streams');
+      }
     } finally {
       setLoading(false);
     }
