@@ -803,61 +803,49 @@ export default function ProfilePage() {
         {/* Content Tabs - Futuristic Design */}
         <div className="mb-8">
           {/* Tab Pills - Glassmorphism */}
-          <div className="mb-6 flex flex-wrap gap-3 overflow-x-auto pt-2 pb-2 px-1">
+          <div className="mb-6 flex flex-wrap gap-2 overflow-x-auto pt-2 pb-2 px-1">
             <button
               onClick={() => setActiveTab('photos')}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`group relative px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-300 flex items-center gap-1.5 ${
                 activeTab === 'photos'
-                  ? 'bg-gradient-to-r from-digis-cyan to-blue-500 text-white shadow-lg shadow-cyan-500/50 scale-105'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-digis-cyan/50 hover:scale-105'
+                  ? 'bg-gradient-to-r from-digis-cyan to-blue-500 text-white shadow-md shadow-cyan-500/40'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-digis-cyan/50'
               }`}
             >
-              {activeTab === 'photos' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <Image className="w-4 h-4 relative z-10" />
+              <Image className="w-3.5 h-3.5 relative z-10" />
               <span className="relative z-10">Photos</span>
             </button>
             <button
               onClick={() => setActiveTab('video')}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`group relative px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-300 flex items-center gap-1.5 ${
                 activeTab === 'video'
-                  ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg shadow-pink-500/50 scale-105'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-pink-500/50 hover:scale-105'
+                  ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-md shadow-pink-500/40'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-pink-500/50'
               }`}
             >
-              {activeTab === 'video' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <Film className="w-4 h-4 relative z-10" />
+              <Film className="w-3.5 h-3.5 relative z-10" />
               <span className="relative z-10">Video</span>
             </button>
             <button
               onClick={() => setActiveTab('streams')}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`group relative px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-300 flex items-center gap-1.5 ${
                 activeTab === 'streams'
-                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg shadow-red-500/50 scale-105'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-red-500/50 hover:scale-105'
+                  ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md shadow-red-500/40'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-red-500/50'
               }`}
             >
-              {activeTab === 'streams' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <Video className="w-4 h-4 relative z-10" />
+              <Video className="w-3.5 h-3.5 relative z-10" />
               <span className="relative z-10">Streams</span>
             </button>
             <button
               onClick={() => setActiveTab('about')}
-              className={`group relative px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`group relative px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-300 flex items-center gap-1.5 ${
                 activeTab === 'about'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50 scale-105'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50 hover:scale-105'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-500/40'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:border-purple-500/50'
               }`}
             >
-              {activeTab === 'about' && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              )}
-              <UserCircle className="w-4 h-4 relative z-10" />
+              <UserCircle className="w-3.5 h-3.5 relative z-10" />
               <span className="relative z-10">About</span>
             </button>
           </div>
