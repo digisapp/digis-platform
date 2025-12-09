@@ -151,7 +151,7 @@ export default function Home() {
               what's your digis?
             </h1>
             <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-              Connect with your favorite Creators via Live Streaming, Video Calls, and More
+              Connect with your favorite Creators via Streams, Video Calls, and Chats
             </p>
 
             {/* CTA Buttons */}

@@ -132,19 +132,31 @@ export class FollowService {
     return following.map(f => f.following);
   }
 
-  // Get follow counts for a user
+  // Get follow counts for a user (calculated from actual follows table for accuracy)
   static async getFollowCounts(userId: string) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: {
-        followerCount: true,
-        followingCount: true,
-      },
-    });
+    // Count actual follows from the follows table instead of relying on cached counts
+    const [followerResult, followingResult] = await Promise.all([
+      db.select({ count: sql<number>`count(*)::int` })
+        .from(follows)
+        .where(eq(follows.followingId, userId)),
+      db.select({ count: sql<number>`count(*)::int` })
+        .from(follows)
+        .where(eq(follows.followerId, userId)),
+    ]);
+
+    const followers = followerResult[0]?.count || 0;
+    const following = followingResult[0]?.count || 0;
+
+    // Optionally sync the cached counts if they're out of sync
+    // This helps keep the users table in sync for other queries
+    db.update(users)
+      .set({ followerCount: followers, followingCount: following })
+      .where(eq(users.id, userId))
+      .catch(() => {}); // Fire and forget - don't block the response
 
     return {
-      followers: user?.followerCount || 0,
-      following: user?.followingCount || 0,
+      followers,
+      following,
     };
   }
 
