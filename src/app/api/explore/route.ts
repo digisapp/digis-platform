@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorCategories, streams } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql, and, gt } from 'drizzle-orm';
+import { eq, ilike, or, desc, sql, and } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { createClient } from '@/lib/supabase/server';
@@ -14,77 +14,72 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const category = searchParams.get('category') || 'All';
+    const search = searchParams.get('search')?.trim() || '';
     const filter = searchParams.get('filter') || '';
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Start auth check but don't await it - we don't need it for the main query
+    // Start auth check but don't block on it
     const authPromise = createClient()
       .then(s => s.auth.getUser())
       .then(r => r.data.user?.id)
       .catch(() => null);
 
-    // Run essential queries in parallel - no timeout on main query to ensure data loads
+    // Run queries in parallel
     const [liveCreatorIds, allCreators, categoryNames] = await Promise.all([
-      // 1. Get live creator IDs (fast query, can timeout)
+      // 1. Live creator IDs - can fail gracefully
       Promise.race([
         db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
         new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
       ]).catch(() => []),
 
-      // 2. Main creators query - NO timeout, this must complete
+      // 2. Main creators query - SIMPLIFIED: filter in SQL, minimal fields
       (async () => {
         try {
+          // Build WHERE conditions
+          const conditions = [eq(users.role, 'creator')];
+
+          // Add search filter in SQL (not JS)
+          if (search) {
+            conditions.push(
+              or(
+                ilike(users.username, `%${search}%`),
+                ilike(users.displayName, `%${search}%`)
+              )!
+            );
+          }
+
+          // Add online filter in SQL
+          if (filter === 'online') {
+            conditions.push(eq(users.isOnline, true));
+          }
+
+          // Minimal select - only fields the UI actually uses
           const results = await db
             .select({
               id: users.id,
               username: users.username,
               displayName: users.displayName,
               avatarUrl: users.avatarUrl,
-              bannerUrl: users.bannerUrl,
               creatorCardImageUrl: users.creatorCardImageUrl,
-              bio: users.bio,
               isCreatorVerified: users.isCreatorVerified,
-              isTrending: users.isTrending,
               followerCount: users.followerCount,
               isOnline: users.isOnline,
-              primaryCategory: users.primaryCategory,
             })
             .from(users)
-            .where(eq(users.role, 'creator'))
+            .where(and(...conditions))
             .orderBy(desc(users.isOnline), desc(users.followerCount))
             .limit(limit + 1)
             .offset(offset);
 
-          // Apply client-side filters if needed
-          let filtered = results;
-
-          if (search) {
-            const searchLower = search.toLowerCase();
-            filtered = filtered.filter(c =>
-              c.username?.toLowerCase().includes(searchLower) ||
-              c.displayName?.toLowerCase().includes(searchLower)
-            );
-          }
-
-          if (category && category !== 'All') {
-            filtered = filtered.filter(c => c.primaryCategory === category);
-          }
-
-          if (filter === 'online') {
-            filtered = filtered.filter(c => c.isOnline);
-          }
-
-          return filtered;
+          return results;
         } catch (err: any) {
           console.error('[EXPLORE] Creators query failed:', err?.message);
           return [];
         }
       })(),
 
-      // 3. Categories (can timeout gracefully)
+      // 3. Categories - can fail gracefully
       Promise.race([
         db.select({ name: creatorCategories.name }).from(creatorCategories).orderBy(creatorCategories.name)
           .then(cats => ['All', ...cats.map(c => c.name)]),
@@ -92,7 +87,7 @@ export async function GET(request: NextRequest) {
       ]).catch(() => ['All']),
     ]);
 
-    // Get current user ID (don't block on this)
+    // Get current user ID (500ms max wait)
     const currentUserId = await Promise.race([
       authPromise,
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 500))

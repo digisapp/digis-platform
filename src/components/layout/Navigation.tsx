@@ -95,7 +95,12 @@ export function Navigation() {
     };
 
     fetchStartupData();
-  }, [authUser?.id]);
+
+    // Prefetch common pages so they load instantly when tapped
+    router.prefetch('/explore');
+    router.prefetch('/live');
+    router.prefetch('/chats');
+  }, [authUser?.id, router]);
 
   // Heartbeat and auth state listener for cache clearing
   useEffect(() => {
