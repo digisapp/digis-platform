@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, memo, useCallback, useRef } from 'react';
+import { useEffect, useState, memo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { NeonLoader } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, UserPlus, UserCheck, Radio, Users } from 'lucide-react';
+import { Search, UserCircle, Radio, Users } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -129,24 +129,6 @@ export default function ExplorePage() {
     }
   };
 
-  const handleFollow = useCallback(async (creatorId: string, currentlyFollowing: boolean) => {
-    try {
-      const response = await fetch(`/api/creators/${creatorId}/follow`, {
-        method: currentlyFollowing ? 'DELETE' : 'POST',
-      });
-
-      if (response.ok) {
-        const updateCreator = (c: Creator) =>
-          c.id === creatorId ? { ...c, isFollowing: !currentlyFollowing } : c;
-
-        setCreators(prev => prev.map(updateCreator));
-        setLiveCreators(prev => prev.map(updateCreator));
-      }
-    } catch (error) {
-      console.error('Error following creator:', error);
-    }
-  }, []);
-
   if (loading) {
     return (
       <NeonLoader
@@ -254,7 +236,6 @@ export default function ExplorePage() {
                     key={creator.id}
                     creator={creator}
                     onClick={() => router.push(`/${creator.username}`)}
-                    onFollow={handleFollow}
                   />
                 ))}
               </div>
@@ -319,22 +300,14 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
   );
 }
 
-// Regular Creator Card - Enhanced with bio and follower count
+// Regular Creator Card - Clean minimal design
 interface CreatorCardProps {
   creator: Creator;
   onClick: () => void;
-  onFollow: (creatorId: string, currentlyFollowing: boolean) => void;
 }
 
-const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: CreatorCardProps) {
+const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardProps) {
   const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
-
-  // Truncate bio to ~50 chars
-  const shortBio = creator.bio
-    ? creator.bio.length > 50
-      ? creator.bio.substring(0, 50) + '...'
-      : creator.bio
-    : null;
 
   // Format follower count
   const formatFollowers = (count: number) => {
@@ -378,48 +351,29 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick, onFollow }: Cr
           )}
         </div>
 
-        {/* Follow button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onFollow(creator.id, creator.isFollowing);
-          }}
-          className={`absolute top-2 right-2 p-2 rounded-full transition-all ${
-            creator.isFollowing
-              ? 'bg-cyan-500 text-white'
-              : 'bg-black/50 backdrop-blur-sm text-white hover:bg-black/70'
-          }`}
-        >
-          {creator.isFollowing ? (
-            <UserCheck className="w-4 h-4" />
-          ) : (
-            <UserPlus className="w-4 h-4" />
-          )}
-        </button>
-
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
       </div>
 
       {/* Info section */}
       <div className="p-3">
-        {/* Username */}
-        <p className="font-semibold text-white truncate">
-          {creator.displayName || creator.username}
-        </p>
+        {/* Username with verified badge */}
+        <div className="flex items-center gap-1">
+          <p className="font-semibold text-white truncate">
+            {creator.displayName || creator.username}
+          </p>
+          {creator.isCreatorVerified && (
+            <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
+        </div>
 
         {/* Follower count */}
         <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
           <Users className="w-3 h-3" />
           <span>{formatFollowers(creator.followerCount)} followers</span>
         </div>
-
-        {/* Bio snippet */}
-        {shortBio && (
-          <p className="text-xs text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">
-            {shortBio}
-          </p>
-        )}
       </div>
     </div>
   );
