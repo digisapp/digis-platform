@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { GlassButton } from '@/components/ui/GlassButton';
+import { X } from 'lucide-react';
 
 interface TipModalProps {
   onClose: () => void;
@@ -67,38 +67,35 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
   if (!mounted) return null;
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-      <div className="bg-gradient-to-b from-gray-900 to-black border border-white/20 rounded-2xl p-6 max-w-md w-full">
+    <div
+      className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-sm bg-black/95 rounded-2xl p-5 border border-yellow-500/50 shadow-[0_0_40px_rgba(234,179,8,0.3),inset_0_0_30px_rgba(234,179,8,0.05)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Animated glow */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-yellow-500/10 blur-xl -z-10" />
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 p-1.5 hover:bg-yellow-500/20 rounded-full transition-colors"
+        >
+          <X className="w-5 h-5 text-yellow-400" />
+        </button>
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">Send Tip 💰</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Receiver */}
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm mb-2">Sending to</p>
-          <p className="text-white font-semibold text-lg">{receiverName}</p>
-        </div>
-
-        {/* Balance */}
-        <div className="bg-white/5 rounded-lg p-3 mb-6">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-sm">Your Balance</span>
-            <span className="text-yellow-400 font-bold">{balance} coins</span>
-          </div>
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
+            Send Tip
+          </h2>
+          <p className="text-gray-400 text-sm mt-1">to {receiverName}</p>
         </div>
 
         {/* Preset Amounts */}
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm mb-3">Choose amount</p>
+        <div className="mb-4">
           <div className="grid grid-cols-3 gap-2">
             {PRESET_AMOUNTS.map((preset) => (
               <button
@@ -107,10 +104,10 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
                   setAmount(preset);
                   setCustomAmount('');
                 }}
-                className={`py-3 rounded-lg font-semibold transition-all ${
+                className={`py-2.5 rounded-xl font-semibold text-sm transition-all ${
                   amount === preset && !customAmount
-                    ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.4)]'
+                    : 'bg-white/5 text-white border border-white/10 hover:border-yellow-500/50'
                 }`}
               >
                 {preset}
@@ -120,57 +117,51 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
         </div>
 
         {/* Custom Amount */}
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm mb-2">Or enter custom amount</p>
+        <div className="mb-4">
           <input
             type="number"
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
-            placeholder="Enter amount..."
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+            placeholder="Custom amount..."
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 transition-colors"
             min="1"
           />
         </div>
 
         {/* Optional Message */}
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm mb-2">Add a message (optional)</p>
+        <div className="mb-4">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Say something nice..."
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
-            rows={3}
+            placeholder="Add a message (optional)"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 transition-colors resize-none"
+            rows={2}
             maxLength={200}
           />
-          <p className="text-xs text-gray-500 mt-1 text-right">{message.length}/200</p>
         </div>
 
         {/* Error */}
         {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+          <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs text-center">
             {error}
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-white/10 rounded-lg font-semibold hover:bg-white/20 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl font-semibold text-sm text-gray-300 hover:bg-white/10 transition-all"
           >
             Cancel
           </button>
-          <GlassButton
-            variant="gradient"
-            size="lg"
+          <button
             onClick={handleSend}
             disabled={sending || (!customAmount && !amount) || (!!customAmount && parseInt(customAmount) < 1)}
-            className="flex-1"
-            shimmer
+            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl font-semibold text-sm text-black hover:scale-[1.02] transition-all shadow-[0_0_20px_rgba(234,179,8,0.3)] disabled:opacity-50 disabled:hover:scale-100"
           >
             {sending ? 'Sending...' : `Send ${customAmount || amount} coins`}
-          </GlassButton>
+          </button>
         </div>
       </div>
     </div>
