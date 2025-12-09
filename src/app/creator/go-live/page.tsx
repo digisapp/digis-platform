@@ -564,7 +564,7 @@ export default function GoLivePage() {
                     autoPlay
                     playsInline
                     muted
-                    className={`w-full h-full transition-transform duration-300 ${
+                    className={`w-full h-full transition-transform duration-300 -scale-x-100 ${
                       orientation === 'portrait' ? 'object-cover' : 'object-contain'
                     }`}
                   />
