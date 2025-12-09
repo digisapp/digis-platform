@@ -102,14 +102,17 @@ export default function CreatorDashboard() {
   const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
 
   useEffect(() => {
-    checkAuth().then((isAuthorized) => {
+    checkAuth().then(async (isAuthorized) => {
       if (isAuthorized) {
+        // Fetch wallet balance first (most important for initial display)
+        await fetchWalletBalance();
+        setLoading(false);
+        // Then fetch the rest in parallel
         Promise.all([
           fetchAnalytics(),
           fetchAllDashboardData(),
           fetchUserProfile(),
           fetchRecentContent(),
-          fetchWalletBalance(),
         ]);
       }
     });
@@ -139,6 +142,7 @@ export default function CreatorDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
+      setLoading(false);
       router.push('/');
       return false;
     }
@@ -146,6 +150,7 @@ export default function CreatorDashboard() {
     const jwtRole = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
 
     if (jwtRole && jwtRole !== 'creator') {
+      setLoading(false);
       router.push('/dashboard');
       return false;
     }
@@ -154,13 +159,13 @@ export default function CreatorDashboard() {
       const response = await fetch('/api/user/profile');
       const data = await response.json();
       if (data.user?.role !== 'creator') {
+        setLoading(false);
         router.push('/dashboard');
         return false;
       }
     }
 
     setIsCreator(true);
-    setLoading(false);
     return true;
   };
 
