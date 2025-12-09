@@ -33,56 +33,61 @@ export async function GET(request: NextRequest) {
         new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
       ]).catch(() => []),
 
-      // 2. Main creators query - SIMPLIFIED: filter in SQL, minimal fields
-      (async () => {
-        try {
-          // Build WHERE conditions
-          const conditions = [eq(users.role, 'creator')];
+      // 2. Main creators query - with timeout
+      Promise.race([
+        (async () => {
+          try {
+            // Build WHERE conditions
+            const conditions = [eq(users.role, 'creator')];
 
-          // Add search filter in SQL (not JS)
-          if (search) {
-            conditions.push(
-              or(
-                ilike(users.username, `%${search}%`),
-                ilike(users.displayName, `%${search}%`)
-              )!
-            );
+            // Add search filter in SQL (not JS)
+            if (search) {
+              conditions.push(
+                or(
+                  ilike(users.username, `%${search}%`),
+                  ilike(users.displayName, `%${search}%`)
+                )!
+              );
+            }
+
+            // Add online filter in SQL
+            if (filter === 'online') {
+              conditions.push(eq(users.isOnline, true));
+            }
+
+            // Use subquery for accurate follower count, but order by cached column for speed
+            const followerCountSubquery = sql<number>`(
+              SELECT COUNT(*)::int FROM follows WHERE follows.following_id = ${users.id}
+            )`.as('actual_follower_count');
+
+            const results = await db
+              .select({
+                id: users.id,
+                username: users.username,
+                displayName: users.displayName,
+                avatarUrl: users.avatarUrl,
+                creatorCardImageUrl: users.creatorCardImageUrl,
+                isCreatorVerified: users.isCreatorVerified,
+                followerCount: followerCountSubquery,
+                isOnline: users.isOnline,
+              })
+              .from(users)
+              .where(and(...conditions))
+              .orderBy(desc(users.isOnline), desc(users.followerCount)) // Use cached column for ORDER BY (faster)
+              .limit(limit + 1)
+              .offset(offset);
+
+            return results;
+          } catch (err: any) {
+            console.error('[EXPLORE] Creators query failed:', err?.message);
+            return [];
           }
-
-          // Add online filter in SQL
-          if (filter === 'online') {
-            conditions.push(eq(users.isOnline, true));
-          }
-
-          // Minimal select - only fields the UI actually uses
-          // Use subquery for accurate follower count from follows table
-          const followerCountSubquery = sql<number>`(
-            SELECT COUNT(*)::int FROM follows WHERE follows.following_id = ${users.id}
-          )`.as('actual_follower_count');
-
-          const results = await db
-            .select({
-              id: users.id,
-              username: users.username,
-              displayName: users.displayName,
-              avatarUrl: users.avatarUrl,
-              creatorCardImageUrl: users.creatorCardImageUrl,
-              isCreatorVerified: users.isCreatorVerified,
-              followerCount: followerCountSubquery,
-              isOnline: users.isOnline,
-            })
-            .from(users)
-            .where(and(...conditions))
-            .orderBy(desc(users.isOnline), desc(followerCountSubquery))
-            .limit(limit + 1)
-            .offset(offset);
-
-          return results;
-        } catch (err: any) {
-          console.error('[EXPLORE] Creators query failed:', err?.message);
-          return [];
-        }
-      })(),
+        })(),
+        new Promise<any[]>((resolve) => setTimeout(() => {
+          console.warn('[EXPLORE] Query timeout - returning empty');
+          resolve([]);
+        }, 5000))
+      ]).catch(() => []),
 
       // 3. Categories - can fail gracefully
       Promise.race([

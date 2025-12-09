@@ -233,9 +233,11 @@ export default function ExplorePage() {
           ) : creators.length === 0 && liveCreators.length === 0 ? (
             <div className="py-16 text-center">
               <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No creators found</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {searchTerm ? 'No results found' : 'Loading creators...'}
+              </h3>
               <p className="text-gray-400">
-                {searchTerm ? 'Try a different search' : 'Check back soon!'}
+                {searchTerm ? 'Try a different search term' : 'Please wait a moment'}
               </p>
             </div>
           ) : (
