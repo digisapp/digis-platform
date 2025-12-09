@@ -9,6 +9,27 @@ import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Check timeout/ban status via internal fetch
+async function checkModerationStatus(streamId: string, userId: string, baseUrl: string): Promise<{ isBanned: boolean; isTimedOut: boolean }> {
+  try {
+    const [banResponse, timeoutResponse] = await Promise.all([
+      fetch(`${baseUrl}/api/streams/${streamId}/ban?userId=${userId}`),
+      fetch(`${baseUrl}/api/streams/${streamId}/timeout?userId=${userId}`),
+    ]);
+
+    const banData = await banResponse.json();
+    const timeoutData = await timeoutResponse.json();
+
+    return {
+      isBanned: banData.isBanned || false,
+      isTimedOut: timeoutData.isTimedOut || false,
+    };
+  } catch (error) {
+    console.error('[Message] Error checking moderation status:', error);
+    return { isBanned: false, isTimedOut: false };
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ streamId: string }> }
@@ -22,6 +43,18 @@ export async function POST(
     }
 
     const { streamId } = await params;
+
+    // Check if user is banned or timed out
+    const baseUrl = req.nextUrl.origin;
+    const { isBanned, isTimedOut } = await checkModerationStatus(streamId, user.id, baseUrl);
+
+    if (isBanned) {
+      return NextResponse.json({ error: 'You have been banned from this stream' }, { status: 403 });
+    }
+
+    if (isTimedOut) {
+      return NextResponse.json({ error: 'You are currently timed out' }, { status: 403 });
+    }
 
     let body;
     try {

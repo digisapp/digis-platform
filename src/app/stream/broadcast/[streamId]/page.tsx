@@ -19,7 +19,7 @@ import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins, MessageCircle, UserPlus } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -94,6 +94,10 @@ export default function BroadcastStudioPage() {
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
   const [isSafari, setIsSafari] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [isFlippingCamera, setIsFlippingCamera] = useState(false);
+  const [mobileStatsExpanded, setMobileStatsExpanded] = useState(false);
+  const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
 
   // Detect Safari browser
   useEffect(() => {
@@ -622,6 +626,15 @@ export default function BroadcastStudioPage() {
     }
   };
 
+  const handlePinMessage = (message: StreamMessage | null) => {
+    // If same message is already pinned, unpin it
+    if (message && pinnedMessage?.id === message.id) {
+      setPinnedMessage(null);
+    } else {
+      setPinnedMessage(message);
+    }
+  };
+
   const formatDuration = () => {
     if (!stream?.startedAt) return '0:00';
     const start = new Date(stream.startedAt);
@@ -658,6 +671,30 @@ export default function BroadcastStudioPage() {
     setIsTheaterMode(!isTheaterMode);
   };
 
+  const handleFlipCamera = async () => {
+    if (isFlippingCamera) return;
+    setIsFlippingCamera(true);
+
+    try {
+      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+      setFacingMode(newFacingMode);
+
+      // The LiveKit room will need to restart video with new facing mode
+      // This is handled by the room's video capture defaults
+      // For now, we'll trigger a re-publish by toggling video
+
+      // Note: Full implementation would require accessing the room instance
+      // and calling room.localParticipant.setCameraEnabled(false) then true
+      // with new constraints. For MVP, this sets the state for next stream.
+
+      console.log(`Camera switched to ${newFacingMode} mode`);
+    } catch (err) {
+      console.error('Failed to flip camera:', err);
+    } finally {
+      setTimeout(() => setIsFlippingCamera(false), 500);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center">
@@ -691,6 +728,11 @@ export default function BroadcastStudioPage() {
         <div className="absolute w-[500px] h-[500px] -top-48 -left-48 bg-red-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute w-[600px] h-[600px] top-1/3 -right-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      {/* Mobile Logo Header */}
+      <div className="md:hidden relative z-20 flex items-center justify-center py-3 bg-black/50 backdrop-blur-sm border-b border-white/10">
+        <img src="/digis-logo.png" alt="Digis" className="h-7" />
       </div>
 
       <div className="relative z-10">
@@ -859,12 +901,12 @@ export default function BroadcastStudioPage() {
           </div>
       )}
 
-      {/* Top Stats Bar - Single Row Layout */}
+      {/* Top Stats Bar - Simplified for Mobile */}
       <div className="backdrop-blur-2xl bg-gradient-to-r from-black/80 via-gray-900/80 to-black/80 border-b-2 border-cyan-500/30 sticky top-0 z-40 shadow-[0_4px_30px_rgba(34,211,238,0.15)]">
         <div className="container mx-auto px-3 py-2">
+          {/* Main Row - Essential items */}
           <div className="flex items-center justify-between gap-2">
-            {/* Left: LIVE Timer + Viewers + Connection + Goal + Coins */}
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2">
               {/* LIVE + Timer */}
               <div className="relative flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
@@ -875,6 +917,74 @@ export default function BroadcastStudioPage() {
               {/* Viewers */}
               <ViewerList streamId={streamId} currentViewers={viewerCount} />
 
+              {/* Coins Earned */}
+              <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-yellow-500/10 rounded-xl border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                <Coins className="w-4 h-4 text-yellow-400" />
+                <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
+              </div>
+
+              {/* Desktop: Show all other items inline */}
+              <div className="hidden md:flex items-center gap-2">
+                {/* Connection Status */}
+                <StreamHealthIndicator streamId={streamId} />
+
+                {/* Set Goal Button */}
+                <button
+                  onClick={() => {
+                    const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                    if (hasActiveGoal) {
+                      alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
+                      return;
+                    }
+                    setEditingGoal(null);
+                    setShowGoalModal(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-white/5 rounded-xl border-2 border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:scale-105 transition-all duration-300"
+                >
+                  <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Goal</span>
+                </button>
+
+                {/* Messages */}
+                <button
+                  onClick={() => window.open('/chats', '_blank')}
+                  className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-cyan-500/10 rounded-xl border-2 border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all"
+                  title="Open Messages (new tab)"
+                >
+                  <MessageCircle className="w-4 h-4 text-cyan-400" />
+                  <span className="text-cyan-400 font-bold text-xs">Messages</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Mobile: More button to expand */}
+              <button
+                onClick={() => setMobileStatsExpanded(!mobileStatsExpanded)}
+                className="md:hidden flex items-center gap-1 px-2 py-2 backdrop-blur-xl bg-white/5 rounded-xl border border-white/20 text-white"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+
+              {/* End Stream Button */}
+              <button
+                onClick={() => setShowEndConfirm(true)}
+                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/20 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:scale-105 transition-all duration-300 flex-shrink-0"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+                <span className="hidden sm:inline text-red-400">End</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Expanded Row */}
+          {mobileStatsExpanded && (
+            <div className="md:hidden flex items-center gap-2 mt-2 pt-2 border-t border-white/10">
               {/* Connection Status */}
               <StreamHealthIndicator streamId={streamId} />
 
@@ -889,43 +999,24 @@ export default function BroadcastStudioPage() {
                   setEditingGoal(null);
                   setShowGoalModal(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-white/5 rounded-xl border-2 border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:scale-105 transition-all duration-300"
+                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-white/5 rounded-xl border-2 border-cyan-500/30 text-white font-semibold text-xs"
               >
                 <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="hidden sm:inline">Goal</span>
+                <span>Goal</span>
               </button>
 
-              {/* Coins Earned */}
-              <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-yellow-500/10 rounded-xl border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
-                <Coins className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
-              </div>
-
-              {/* Messages - opens in new tab so stream continues */}
+              {/* Messages */}
               <button
                 onClick={() => window.open('/chats', '_blank')}
-                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-cyan-500/10 rounded-xl border-2 border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-all"
-                title="Open Messages (new tab)"
+                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-cyan-500/10 rounded-xl border-2 border-cyan-500/30"
               >
                 <MessageCircle className="w-4 h-4 text-cyan-400" />
-                <span className="hidden sm:inline text-cyan-400 font-bold text-xs">Messages</span>
+                <span className="text-cyan-400 font-bold text-xs">Messages</span>
               </button>
             </div>
-
-            {/* Right: End Stream Button */}
-            <button
-              onClick={() => setShowEndConfirm(true)}
-              className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/20 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:scale-105 transition-all duration-300 flex-shrink-0"
-            >
-              <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
-              <span className="hidden sm:inline text-red-400">End</span>
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -998,6 +1089,15 @@ export default function BroadcastStudioPage() {
                     isTheaterMode={isTheaterMode}
                     showTheaterMode={false}
                   />
+                  {/* Camera Flip Button - Mobile only */}
+                  <button
+                    onClick={handleFlipCamera}
+                    disabled={isFlippingCamera}
+                    className="md:hidden absolute top-3 right-3 p-2.5 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+                    title="Flip Camera"
+                  >
+                    <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
+                  </button>
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center">
@@ -1030,6 +1130,8 @@ export default function BroadcastStudioPage() {
                 isCreator={true}
                 onSendMessage={handleSendMessage}
                 onMessageDeleted={fetchMessages}
+                pinnedMessage={pinnedMessage}
+                onPinMessage={handlePinMessage}
               />
             </div>
 

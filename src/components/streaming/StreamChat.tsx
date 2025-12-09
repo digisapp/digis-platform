@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { Send, Smile, Gift } from 'lucide-react';
+import { Send, Smile, Gift, Pin, X } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
 
 type StreamChatProps = {
@@ -11,12 +11,14 @@ type StreamChatProps = {
   onSendMessage?: (message: string) => void;
   isCreator?: boolean;
   onMessageDeleted?: () => void;
+  pinnedMessage?: StreamMessage | null;
+  onPinMessage?: (message: StreamMessage | null) => void;
 };
 
 // Quick emojis for chat
 const CHAT_EMOJIS = ['❤️', '🔥', '😂', '👏', '🎉', '💯', '😍', '🙌'];
 
-export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted }: StreamChatProps) {
+export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -69,6 +71,31 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
 
   return (
     <div className="flex flex-col h-full bg-transparent">
+      {/* Pinned Message */}
+      {pinnedMessage && (
+        <div className="px-3 py-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/30">
+          <div className="flex items-start gap-2">
+            <Pin className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-yellow-400">PINNED</span>
+                <span className="text-xs text-gray-400">by {pinnedMessage.username}</span>
+              </div>
+              <p className="text-sm text-white/90 truncate">{pinnedMessage.message}</p>
+            </div>
+            {isCreator && onPinMessage && (
+              <button
+                onClick={() => onPinMessage(null)}
+                className="p-1 hover:bg-white/10 rounded transition-colors"
+                title="Unpin message"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Messages */}
       <div
         ref={chatContainerRef}
@@ -91,6 +118,21 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               {msg.messageType === 'system' ? (
                 <div className="py-2 px-4 bg-white/5 rounded-lg inline-block">
                   <span className="text-sm text-gray-400 italic">{msg.message}</span>
+                </div>
+              ) : (msg as any).messageType === 'shoutout' ? (
+                // Shoutout message - special highlighted styling
+                <div className="py-3 px-4 bg-gradient-to-r from-cyan-500/20 to-digis-pink/20 rounded-xl border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl animate-bounce">📣</span>
+                    <div>
+                      <span className="text-sm text-white font-semibold">{msg.message}</span>
+                      {(msg as any).shoutoutData?.targetUsername && (
+                        <div className="text-xs text-cyan-400 mt-1">
+                          Check out @{(msg as any).shoutoutData.targetUsername}!
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : msg.messageType === 'gift' ? (
                 // Gift message - special styling
@@ -161,6 +203,8 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                         message={msg}
                         streamId={streamId}
                         onMessageDeleted={onMessageDeleted}
+                        onPinMessage={onPinMessage}
+                        isPinned={pinnedMessage?.id === msg.id}
                       />
                     </div>
                   )}
