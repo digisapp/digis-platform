@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
@@ -39,6 +40,10 @@ interface Stats {
   totalUsers: number;
   totalCreators: number;
   pendingApplications: number;
+  pendingPayouts?: number;
+  pendingPayoutAmount?: number;
+  totalRevenue?: number;
+  todaySignups?: number;
 }
 
 interface Analytics {
@@ -51,7 +56,7 @@ interface Analytics {
   lastWeekSignups: number;
 }
 
-type MainTab = 'applications' | 'users' | 'analytics';
+type MainTab = 'applications' | 'users' | 'analytics' | 'payouts';
 
 const COLORS = ['#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -74,6 +79,12 @@ export default function AdminDashboard() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | 'admin' | 'all'>('all');
   const [selectedAccountStatus, setSelectedAccountStatus] = useState<'active' | 'suspended' | 'banned' | 'all'>('active');
+  const [usersPage, setUsersPage] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const USERS_PER_PAGE = 20;
+
+  // Refresh state
+  const [refreshing, setRefreshing] = useState(false);
 
   // Analytics state
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -200,25 +211,44 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number = 0) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
       if (selectedRole !== 'all') params.append('role', selectedRole);
       if (selectedAccountStatus !== 'all') params.append('status', selectedAccountStatus);
       if (debouncedSearch) params.append('search', debouncedSearch);
+      params.append('limit', USERS_PER_PAGE.toString());
+      params.append('offset', (page * USERS_PER_PAGE).toString());
 
       const response = await fetch(`/api/admin/users?${params}`);
       const data = await response.json();
 
       if (response.ok) {
         setUsers(data.users || []);
+        setTotalUsers(data.total || data.users?.length || 0);
+        setUsersPage(page);
         setHasFetchedUsers(true);
       }
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Refresh all data
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        fetchStats(),
+        mainTab === 'applications' && fetchApplications(),
+        mainTab === 'users' && fetchUsers(usersPage),
+        mainTab === 'analytics' && fetchAnalytics(),
+      ]);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -490,69 +520,99 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-digis-dark py-8 px-4 md:pl-20">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-digis-dark pb-24 md:pb-8 md:pl-20">
+      <MobileHeader />
+
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-          <p className="text-gray-400">Manage creator applications, users, and platform analytics</p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-400 text-sm md:text-base">Manage creator applications, users, and platform analytics</p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 self-start"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="text-sm">Refresh</span>
+          </button>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <GlassCard
-              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              className="p-4 cursor-pointer hover:scale-105 transition-transform"
               onClick={() => {
                 setMainTab('users');
                 setSelectedRole('all');
               }}
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-500/20 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-500" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-blue-500/20 rounded-lg">
+                  <Users className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Total Users</p>
-                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                  <p className="text-xs text-gray-400">Total Users</p>
+                  <p className="text-xl font-bold">{stats.totalUsers}</p>
                 </div>
               </div>
             </GlassCard>
 
             <GlassCard
-              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              className="p-4 cursor-pointer hover:scale-105 transition-transform"
               onClick={() => {
                 setMainTab('users');
                 setSelectedRole('creator');
               }}
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-500/20 rounded-lg">
-                  <UserCheck className="w-6 h-6 text-green-500" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-green-500/20 rounded-lg">
+                  <UserCheck className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Total Creators</p>
-                  <p className="text-2xl font-bold">{stats.totalCreators}</p>
+                  <p className="text-xs text-gray-400">Creators</p>
+                  <p className="text-xl font-bold">{stats.totalCreators}</p>
                 </div>
               </div>
             </GlassCard>
 
             <GlassCard
-              className="p-6 cursor-pointer hover:scale-105 transition-transform"
+              className="p-4 cursor-pointer hover:scale-105 transition-transform"
               onClick={() => {
                 setMainTab('applications');
                 setSelectedStatus('pending');
               }}
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-yellow-500/20 rounded-lg">
-                  <Clock className="w-6 h-6 text-yellow-500" />
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-yellow-500/20 rounded-lg">
+                  <Clock className="w-5 h-5 text-yellow-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Pending Applications</p>
-                  <p className="text-2xl font-bold">{stats.pendingApplications}</p>
+                  <p className="text-xs text-gray-400">Pending Apps</p>
+                  <p className="text-xl font-bold">{stats.pendingApplications}</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard
+              className="p-4 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => setMainTab('payouts')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-purple-500/20 rounded-lg">
+                  <CreditCard className="w-5 h-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Pending Payouts</p>
+                  <p className="text-xl font-bold">{stats.pendingPayouts || 0}</p>
                 </div>
               </div>
             </GlassCard>
@@ -560,36 +620,59 @@ export default function AdminDashboard() {
         )}
 
         {/* Main Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-white/10">
+        <div className="flex gap-2 md:gap-4 mb-6 border-b border-white/10 overflow-x-auto pb-px">
           <button
             onClick={() => setMainTab('applications')}
-            className={`px-6 py-3 font-semibold transition-colors relative ${
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
               mainTab === 'applications'
                 ? 'text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Creator Applications
+            Applications
+            {stats?.pendingApplications ? (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                {stats.pendingApplications}
+              </span>
+            ) : null}
             {mainTab === 'applications' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
           <button
             onClick={() => setMainTab('users')}
-            className={`px-6 py-3 font-semibold transition-colors relative ${
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
               mainTab === 'users'
                 ? 'text-white'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            User Management
+            Users
             {mainTab === 'users' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
           <button
+            onClick={() => setMainTab('payouts')}
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
+              mainTab === 'payouts'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Payouts
+            {stats?.pendingPayouts ? (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-full">
+                {stats.pendingPayouts}
+              </span>
+            ) : null}
+            {mainTab === 'payouts' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
+            )}
+          </button>
+          <button
             onClick={() => setMainTab('analytics')}
-            className={`px-6 py-3 font-semibold transition-colors relative ${
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
               mainTab === 'analytics'
                 ? 'text-white'
                 : 'text-gray-400 hover:text-white'
@@ -899,6 +982,31 @@ export default function AdminDashboard() {
                     </div>
                   </GlassCard>
                 ))}
+
+                {/* Pagination */}
+                {totalUsers > USERS_PER_PAGE && (
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <p className="text-sm text-gray-400">
+                      Showing {usersPage * USERS_PER_PAGE + 1} - {Math.min((usersPage + 1) * USERS_PER_PAGE, totalUsers)} of {totalUsers} users
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => fetchUsers(usersPage - 1)}
+                        disabled={usersPage === 0 || loading}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => fetchUsers(usersPage + 1)}
+                        disabled={(usersPage + 1) * USERS_PER_PAGE >= totalUsers || loading}
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -1056,6 +1164,25 @@ export default function AdminDashboard() {
               </GlassCard>
             )}
           </>
+        )}
+
+        {/* Payouts Tab Content - Redirect to payouts page */}
+        {mainTab === 'payouts' && (
+          <div className="space-y-6">
+            <GlassCard className="p-8 text-center">
+              <CreditCard className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Payout Management</h3>
+              <p className="text-gray-400 mb-6">
+                View and process creator payout requests, manage banking details, and track payment history.
+              </p>
+              <button
+                onClick={() => router.push('/admin/payouts')}
+                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl font-semibold transition-all hover:scale-105"
+              >
+                Open Payout Dashboard
+              </button>
+            </GlassCard>
+          </div>
         )}
       </div>
 

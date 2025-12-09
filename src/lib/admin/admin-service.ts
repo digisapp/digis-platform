@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
-import { users, creatorApplications } from '@/lib/data/system';
-import { eq, and, or, ilike, desc, count, sql } from 'drizzle-orm';
+import { users, creatorApplications, payoutRequests } from '@/lib/data/system';
+import { eq, and, or, ilike, desc, count, sql, sum } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
@@ -350,7 +350,7 @@ export class AdminService {
   // Get platform statistics - optimized with COUNT queries
   static async getStatistics() {
     // Run all counts in parallel for speed
-    const [totalUsersResult, totalCreatorsResult, pendingAppsResult] = await withTimeoutAndRetry(
+    const [totalUsersResult, totalCreatorsResult, pendingAppsResult, pendingPayoutsResult] = await withTimeoutAndRetry(
       () => Promise.all([
         // Count total users
         db.select({ count: count() }).from(users),
@@ -358,6 +358,11 @@ export class AdminService {
         db.select({ count: count() }).from(users).where(eq(users.role, 'creator')),
         // Count pending applications
         db.select({ count: count() }).from(creatorApplications).where(eq(creatorApplications.status, 'pending')),
+        // Count pending payouts and total amount
+        db.select({
+          count: count(),
+          totalAmount: sum(payoutRequests.amount),
+        }).from(payoutRequests).where(eq(payoutRequests.status, 'pending')),
       ]),
       { timeoutMs: 3000, retries: 1, tag: 'adminStats' }
     );
@@ -366,6 +371,8 @@ export class AdminService {
       totalUsers: totalUsersResult[0]?.count || 0,
       totalCreators: totalCreatorsResult[0]?.count || 0,
       pendingApplications: pendingAppsResult[0]?.count || 0,
+      pendingPayouts: pendingPayoutsResult[0]?.count || 0,
+      pendingPayoutAmount: Number(pendingPayoutsResult[0]?.totalAmount) || 0,
     };
   }
 }
