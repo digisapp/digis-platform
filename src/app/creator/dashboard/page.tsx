@@ -109,6 +109,7 @@ export default function CreatorDashboard() {
           fetchAllDashboardData(),
           fetchUserProfile(),
           fetchRecentContent(),
+          fetchWalletBalance(),
         ]);
       }
     });
@@ -187,14 +188,23 @@ export default function CreatorDashboard() {
       const result = await response.json();
       if (response.ok && result.data) {
         setAnalytics(result.data);
-        // Calculate monthly earnings (coins converted to USD at $0.01 per coin)
-        const totalCoins = (result.data.overview?.totalGiftCoins || 0) + (result.data.overview?.totalCallEarnings || 0);
-        setMonthlyEarnings(totalCoins);
       } else if (result.degraded) {
         setAnalytics(result.data);
       }
     } catch (err) {
       console.error('Error fetching analytics:', err);
+    }
+  };
+
+  const fetchWalletBalance = async () => {
+    try {
+      const response = await fetch('/api/wallet/balance');
+      const result = await response.json();
+      if (response.ok) {
+        setMonthlyEarnings(result.balance || 0);
+      }
+    } catch (err) {
+      console.error('Error fetching wallet:', err);
     }
   };
 
@@ -457,7 +467,7 @@ export default function CreatorDashboard() {
           <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">This Month</p>
+                <p className="text-sm text-gray-400 mb-1">Balance</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-bold text-white">{monthlyEarnings.toLocaleString()}</span>
                   <span className="text-lg text-gray-400">coins</span>
