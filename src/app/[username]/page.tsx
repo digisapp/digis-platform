@@ -664,10 +664,10 @@ export default function ProfilePage() {
                   <button
                     onClick={handleFollowToggle}
                     disabled={followLoading}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 disabled:opacity-50 ${
+                    className={`px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
                       isFollowing
                         ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
-                        : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-md shadow-cyan-500/30'
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-sm shadow-cyan-500/30'
                     }`}
                   >
                     {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
@@ -678,7 +678,7 @@ export default function ProfilePage() {
                     <button
                       onClick={handleSubscribe}
                       disabled={subscribeLoading}
-                      className="px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-md shadow-purple-500/30"
+                      className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
                     >
                       {subscribeLoading ? '...' : 'Subscribe'}
                     </button>
@@ -686,7 +686,7 @@ export default function ProfilePage() {
 
                   {/* Subscribed Badge */}
                   {user.role === 'creator' && isSubscribed && (
-                    <div className="px-4 py-2 rounded-lg font-semibold text-sm bg-white/10 border border-purple-500/50 text-purple-400">
+                    <div className="px-3 py-1 rounded-full font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
                       Subscribed
                     </div>
                   )}
@@ -732,7 +732,7 @@ export default function ProfilePage() {
             {/* Chat Button */}
             <button
               onClick={handleMessage}
-              className="group min-h-[44px] px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
+              className="group px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
             >
               <MessageCircle className="w-4 h-4" />
               <span>Chat</span>
@@ -753,9 +753,9 @@ export default function ProfilePage() {
                   }
                   setShowTipModal(true);
                 }}
-                className="group min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
+                className="group w-10 h-10 rounded-full bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
               >
-                <Gift className="w-5 h-5" />
+                <Gift className="w-4 h-4" />
               </button>
             )}
           </div>

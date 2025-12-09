@@ -176,15 +176,15 @@ export function RequestCallButton({
   if (!isAvailable) {
     if (iconOnly) {
       return (
-        <button disabled title={`${callType === 'voice' ? 'Voice' : 'Video'} Calls Unavailable`} className="w-11 h-11 rounded-xl font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
-          <Icon className="w-5 h-5" />
+        <button disabled title={`${callType === 'voice' ? 'Voice' : 'Video'} Calls Unavailable`} className="w-10 h-10 rounded-full font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
+          <Icon className="w-4 h-4" />
         </button>
       );
     }
     return (
       <button
         disabled
-        className="px-4 py-2.5 rounded-xl font-semibold bg-gray-600/50 text-gray-400 flex items-center gap-2 cursor-not-allowed text-sm"
+        className="px-4 py-2 rounded-full font-semibold bg-gray-600/50 text-gray-400 flex items-center gap-2 cursor-not-allowed text-sm"
       >
         <Icon className="w-4 h-4" />
         <span>{callType === 'voice' ? 'Call' : 'Video'} Unavailable</span>
@@ -198,14 +198,14 @@ export function RequestCallButton({
         <button
           onClick={handleButtonClick}
           title={buttonTitle}
-          className={`w-11 h-11 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all flex items-center justify-center shadow-fun`}
+          className={`w-10 h-10 rounded-full font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all flex items-center justify-center shadow-lg`}
         >
-          <Icon className="w-5 h-5" />
+          <Icon className="w-4 h-4" />
         </button>
       ) : (
         <button
           onClick={handleButtonClick}
-          className={`px-4 py-2.5 rounded-xl font-semibold text-white hover:scale-105 transition-all flex items-center gap-2 shadow-lg text-sm ${
+          className={`px-4 py-2 rounded-full font-semibold text-white hover:scale-105 transition-all flex items-center gap-2 shadow-lg text-sm ${
             callType === 'voice'
               ? 'bg-gradient-to-r from-blue-500 to-indigo-500 shadow-blue-500/30'
               : 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30'
