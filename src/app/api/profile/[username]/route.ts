@@ -23,7 +23,6 @@ export async function GET(
     const { username } = await params;
 
     // Get the target user's profile with timeout and retry
-    // OPTIMIZED: Reduced timeout from 8s to 3s, retries from 2 to 1
     // Using case-insensitive comparison via lower() to prevent "not found" errors
     const user = await withTimeoutAndRetry(
       () => db.query.users.findFirst({
@@ -44,7 +43,7 @@ export async function GET(
           createdAt: true,
         },
       }),
-      { timeoutMs: 3000, retries: 1, tag: 'profileFetch' }
+      { timeoutMs: 5000, retries: 1, tag: 'profileFetch' }
     );
 
     if (!user) {
@@ -58,42 +57,58 @@ export async function GET(
     const supabase = await createClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    // Batch all queries in parallel to reduce N+1 (6 sequential -> 1 parallel batch)
-    const [followCounts, isFollowing, creatorSettings, goals, content] = await Promise.all([
-      // 1. Get follow counts
-      FollowService.getFollowCounts(user.id),
+    // Helper for timeout with fallback
+    const withTimeout = <T>(promise: Promise<T>, fallback: T, ms = 2000): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>(resolve => setTimeout(() => resolve(fallback), ms))
+      ]);
 
-      // 2. Check if current user is following (only if authenticated and different user)
+    // Batch all queries in parallel with timeouts - non-essential queries fail gracefully
+    const [followCounts, isFollowing, creatorSettings, goals, content] = await Promise.all([
+      // 1. Get follow counts (essential - use cached fallback)
+      withTimeout(
+        FollowService.getFollowCounts(user.id),
+        { followers: user.followerCount || 0, following: user.followingCount || 0 }
+      ),
+
+      // 2. Check if current user is following
       currentUser && currentUser.id !== user.id
-        ? FollowService.isFollowing(currentUser.id, user.id)
+        ? withTimeout(FollowService.isFollowing(currentUser.id, user.id), false)
         : Promise.resolve(false),
 
       // 3. Get creator settings if applicable
       user.role === 'creator'
-        ? CallService.getCreatorSettings(user.id).catch(() => null)
+        ? withTimeout(CallService.getCreatorSettings(user.id).catch(() => null), null)
         : Promise.resolve(null),
 
-      // 4. Get goals if creator (non-blocking)
+      // 4. Get goals if creator (non-essential)
       user.role === 'creator'
-        ? db.query.creatorGoals.findMany({
-            where: and(
-              eq(creatorGoals.creatorId, user.id),
-              eq(creatorGoals.isActive, true)
-            ),
-            orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
-          }).catch(() => [])
+        ? withTimeout(
+            db.query.creatorGoals.findMany({
+              where: and(
+                eq(creatorGoals.creatorId, user.id),
+                eq(creatorGoals.isActive, true)
+              ),
+              orderBy: [desc(creatorGoals.displayOrder), desc(creatorGoals.createdAt)],
+            }).catch(() => []),
+            []
+          )
         : Promise.resolve([]),
 
-      // 5. Get content preview if creator (non-blocking)
+      // 5. Get content preview if creator (non-essential)
       user.role === 'creator'
-        ? db.query.contentItems.findMany({
-            where: and(
-              eq(contentItems.creatorId, user.id),
-              eq(contentItems.isPublished, true)
-            ),
-            orderBy: [desc(contentItems.createdAt)],
-            limit: 20,
-          }).catch(() => [])
+        ? withTimeout(
+            db.query.contentItems.findMany({
+              where: and(
+                eq(contentItems.creatorId, user.id),
+                eq(contentItems.isPublished, true)
+              ),
+              orderBy: [desc(contentItems.createdAt)],
+              limit: 20,
+            }).catch(() => []),
+            []
+          )
         : Promise.resolve([]),
     ]);
 
