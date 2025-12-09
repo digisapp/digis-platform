@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { NeonLoader } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, Radio, Users } from 'lucide-react';
+import { Search, UserCircle, Radio } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -326,13 +326,6 @@ interface CreatorCardProps {
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardProps) {
   const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
 
-  // Format follower count
-  const formatFollowers = (count: number) => {
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-    return count.toString();
-  };
-
   return (
     <div
       className="rounded-2xl overflow-hidden cursor-pointer group bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all"
@@ -384,12 +377,6 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           )}
-        </div>
-
-        {/* Follower count */}
-        <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
-          <Users className="w-3 h-3" />
-          <span>{formatFollowers(creator.followerCount)} followers</span>
         </div>
       </div>
     </div>
