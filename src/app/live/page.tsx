@@ -220,20 +220,8 @@ export default function LiveStreamsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Header - Only show Go Live button for creators */}
+        {/* Header */}
         <div className="mb-6">
-          {userRole === 'creator' && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={() => router.push('/creator/go-live')}
-                className="group relative overflow-hidden px-6 py-3 rounded-2xl font-bold bg-gradient-to-r from-red-600 via-pink-600 to-red-600 text-white hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-lg shadow-red-500/50"
-              >
-                <Radio className="w-5 h-5" />
-                <span>Go Live</span>
-              </button>
-            </div>
-          )}
-
           {/* Search Bar */}
           <div className="mb-4">
             <div className="relative">
