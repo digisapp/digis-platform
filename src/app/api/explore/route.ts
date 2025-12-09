@@ -35,44 +35,13 @@ export async function GET(request: NextRequest) {
         { timeoutMs: 2000, retries: 0, tag: 'exploreLive' }
       ).catch(() => []),
 
-      // 3. Main creators query (no live filter here - applied after)
+      // 3. Main creators query
       withTimeoutAndRetry(
         async () => {
-          const conditions: any[] = [eq(users.role, 'creator')];
+          console.log('[EXPLORE] Starting creators query...');
 
-          if (search) {
-            conditions.push(
-              or(
-                ilike(users.username, `%${search}%`),
-                ilike(users.displayName, `%${search}%`)
-              )
-            );
-          }
-
-          if (category && category !== 'All') {
-            conditions.push(
-              or(
-                eq(users.primaryCategory, category),
-                eq(users.secondaryCategory, category)
-              )
-            );
-          }
-
-          // Apply non-live filters
-          if (filter && filter !== 'live') {
-            switch (filter) {
-              case 'online':
-                conditions.push(eq(users.isOnline, true));
-                break;
-              case 'new':
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                conditions.push(gt(users.createdAt, thirtyDaysAgo));
-                break;
-            }
-          }
-
-          return db
+          // Build query based on filters
+          let query = db
             .select({
               id: users.id,
               username: users.username,
@@ -88,14 +57,42 @@ export async function GET(request: NextRequest) {
               primaryCategory: users.primaryCategory,
             })
             .from(users)
-            .where(and(...conditions))
+            .where(eq(users.role, 'creator'))
             .orderBy(desc(users.isOnline), desc(users.followerCount))
-            .limit(filter === 'live' ? 100 : limit + 1) // Get more if live filter (will filter after)
-            .offset(filter === 'live' ? 0 : offset);
+            .limit(limit + 1)
+            .offset(offset);
+
+          const results = await query;
+          console.log('[EXPLORE] Query returned', results.length, 'creators');
+
+          // Apply client-side filters if needed
+          let filtered = results;
+
+          if (search) {
+            const searchLower = search.toLowerCase();
+            filtered = filtered.filter(c =>
+              c.username?.toLowerCase().includes(searchLower) ||
+              c.displayName?.toLowerCase().includes(searchLower)
+            );
+          }
+
+          if (category && category !== 'All') {
+            filtered = filtered.filter(c => c.primaryCategory === category);
+          }
+
+          if (filter === 'online') {
+            filtered = filtered.filter(c => c.isOnline);
+          } else if (filter === 'new') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            // Note: createdAt not in select, so skip this filter for now
+          }
+
+          return filtered;
         },
-        { timeoutMs: 3000, retries: 1, tag: 'exploreGrid' }
+        { timeoutMs: 8000, retries: 2, tag: 'exploreGrid' }
       ).catch((err) => {
-        console.error('[EXPLORE] Creators query failed:', err?.message);
+        console.error('[EXPLORE] Creators query failed:', err?.message, err?.stack);
         return [];
       }),
 
