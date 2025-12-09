@@ -736,7 +736,7 @@ export default function ProfilePage() {
                   }
                   setShowTipModal(true);
                 }}
-                className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
+                className="group min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
               >
                 <Gift className="w-5 h-5" />
               </button>
@@ -745,7 +745,7 @@ export default function ProfilePage() {
             {/* Message Button */}
             <button
               onClick={handleMessage}
-              className="group p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
+              className="group min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center justify-center text-white"
             >
               <MessageCircle className="w-5 h-5" />
             </button>

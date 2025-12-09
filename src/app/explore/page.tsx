@@ -89,6 +89,10 @@ export default function ExplorePage() {
   };
 
   const fetchCreators = async (pageOffset: number = 0, isReset: boolean = false) => {
+    // Create abort controller with 8s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
       const params = new URLSearchParams({
         offset: pageOffset.toString(),
@@ -100,7 +104,8 @@ export default function ExplorePage() {
         params.set('filter', selectedFilter);
       }
 
-      const response = await fetch(`/api/explore?${params}`);
+      const response = await fetch(`/api/explore?${params}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       const result = await response.json();
 
       if (response.ok && result.data) {
@@ -120,8 +125,11 @@ export default function ExplorePage() {
         setHasMore(result.data.pagination?.hasMore ?? false);
         setOffset(pageOffset);
       }
-    } catch (error) {
-      console.error('Error fetching creators:', error);
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching creators:', error);
+      }
     } finally {
       setLoading(false);
       setSearching(false);

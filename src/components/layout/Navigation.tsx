@@ -61,13 +61,19 @@ export function Navigation() {
     if (!authUser) return;
 
     const fetchStartupData = async () => {
+      // Create abort controller with 5s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       try {
-        // Fetch profile, balance, and unread count in parallel for faster load
+        // Fetch profile, balance, and unread count in parallel with timeout
         const [profileRes, balanceRes, unreadRes] = await Promise.all([
-          fetch('/api/user/profile', { cache: 'no-store' }),
-          fetch('/api/wallet/balance'),
-          fetch('/api/messages/unread-count')
+          fetch('/api/user/profile', { cache: 'no-store', signal: controller.signal }),
+          fetch('/api/wallet/balance', { signal: controller.signal }),
+          fetch('/api/messages/unread-count', { signal: controller.signal })
         ]);
+
+        clearTimeout(timeoutId);
 
         // Process profile
         if (profileRes.ok) {
@@ -76,16 +82,12 @@ export function Navigation() {
             setUserProfile(profileData.user);
             setFollowerCount(profileData.user.followerCount ?? 0);
           }
-        } else {
-          console.error('[Navigation] Profile fetch failed:', profileRes.status);
         }
 
         // Process balance
         if (balanceRes.ok) {
           const balanceData = await balanceRes.json();
           setBalance(balanceData.balance ?? 0);
-        } else {
-          console.error('[Navigation] Balance fetch failed:', balanceRes.status);
         }
 
         // Process unread count
@@ -93,8 +95,11 @@ export function Navigation() {
           const unreadData = await unreadRes.json();
           setUnreadCount(unreadData.count || 0);
         }
-      } catch (error) {
-        console.error('[Navigation] Error fetching startup data:', error);
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        if (error.name !== 'AbortError') {
+          console.error('[Navigation] Error fetching startup data:', error);
+        }
       }
     };
 
@@ -105,6 +110,7 @@ export function Navigation() {
     router.prefetch('/live');
     router.prefetch('/chats');
     router.prefetch('/settings');
+    router.prefetch('/wallet');
     router.prefetch('/creator/go-stream');
   }, [authUser?.id, router]);
 
