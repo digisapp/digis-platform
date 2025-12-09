@@ -104,7 +104,7 @@ export default function CreatorStreamsPage() {
       {/* Spacer for fixed mobile header */}
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
-      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8">
+      <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-white">Streams</h1>

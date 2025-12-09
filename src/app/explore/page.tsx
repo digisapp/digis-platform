@@ -206,7 +206,7 @@ export default function ExplorePage() {
                     <Radio className="w-5 h-5" />
                   </div>
                 </div>
-                <h2 className="text-lg font-bold text-white">Live Now</h2>
+                <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white">Live Now</h2>
                 <span className="text-sm text-gray-400">({liveCreators.length})</span>
               </div>
 

@@ -219,7 +219,7 @@ export default function LiveStreamsPage() {
       <MobileHeader />
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
-      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
+      <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}
         <div className="mb-6">
           {/* Search Bar */}
@@ -275,7 +275,7 @@ export default function LiveStreamsPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                 </span>
-                <h2 className="text-xl font-bold text-white">Live Now</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-white">Live Now</h2>
               </div>
               <span className="text-sm text-gray-400">({liveNow.length})</span>
             </div>

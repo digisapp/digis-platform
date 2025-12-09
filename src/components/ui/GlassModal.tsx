@@ -47,7 +47,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bottom-0 z-[100] flex items-start sm:items-center justify-center p-4 pt-16 sm:pt-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
       <div
         className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md"
