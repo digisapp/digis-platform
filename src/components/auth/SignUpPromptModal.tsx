@@ -35,32 +35,35 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md transition-opacity duration-200 ${
         isClosing ? 'opacity-0' : 'opacity-100'
       }`}
       onClick={handleClose}
     >
       <div
-        className={`relative w-full max-w-md bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-8 border border-white/10 shadow-2xl shadow-purple-500/20 transition-transform duration-200 ${
+        className={`relative w-full max-w-md bg-black/95 rounded-3xl p-8 border-2 border-cyan-500/50 shadow-[0_0_50px_rgba(34,211,238,0.3),inset_0_0_30px_rgba(34,211,238,0.1)] transition-transform duration-200 ${
           isClosing ? 'scale-95' : 'scale-100'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Animated border glow */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 blur-xl -z-10" />
+
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors"
+          className="absolute top-4 right-4 p-2 hover:bg-cyan-500/20 rounded-full transition-colors border border-transparent hover:border-cyan-500/50"
         >
-          <X className="w-5 h-5 text-gray-400" />
+          <X className="w-5 h-5 text-cyan-400" />
         </button>
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-4 shadow-lg shadow-purple-500/30">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 mb-4 shadow-[0_0_30px_rgba(34,211,238,0.5)]">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Join Digis to Continue
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-white to-cyan-400 bg-clip-text text-transparent mb-2">
+            Create Account to continue
           </h2>
           <p className="text-gray-400">
             {action && creatorName
@@ -71,8 +74,8 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
 
         {/* Features */}
         <div className="space-y-3 mb-8">
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-red-500/30 hover:border-red-500/50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.3)]">
               <Radio className="w-5 h-5 text-red-400" />
             </div>
             <div>
@@ -80,8 +83,8 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
               <p className="text-sm text-gray-400">Watch live and recorded streams</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-cyan-500/30 hover:border-cyan-500/50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
               <Video className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
@@ -89,8 +92,8 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
               <p className="text-sm text-gray-400">Connect 1-on-1 with creators</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-pink-500/30 hover:border-pink-500/50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.3)]">
               <Gift className="w-5 h-5 text-pink-400" />
             </div>
             <div>
@@ -98,8 +101,8 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
               <p className="text-sm text-gray-400">Support your favorite creators</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-            <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-purple-500/30 hover:border-purple-500/50 transition-colors">
+            <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)]">
               <MessageCircle className="w-5 h-5 text-purple-400" />
             </div>
             <div>
@@ -113,13 +116,13 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
         <div className="space-y-3">
           <button
             onClick={handleSignUp}
-            className="w-full py-4 px-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl text-white font-bold text-lg transition-all hover:scale-[1.02] shadow-lg shadow-purple-500/30"
+            className="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 rounded-xl text-white font-bold text-lg transition-all hover:scale-[1.02] shadow-[0_0_30px_rgba(34,211,238,0.4)]"
           >
             Create Free Account
           </button>
           <button
             onClick={handleSignIn}
-            className="w-full py-3 px-6 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white font-semibold transition-all"
+            className="w-full py-3 px-6 bg-transparent hover:bg-cyan-500/10 border-2 border-cyan-500/50 hover:border-cyan-500 rounded-xl text-cyan-400 font-semibold transition-all"
           >
             Sign In
           </button>
