@@ -492,6 +492,24 @@ export default function CreatorDashboard() {
             </div>
           )}
 
+          {/* Quick Actions - Above Balance */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button
+              onClick={() => router.push('/creator/go-stream')}
+              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Radio className="w-6 h-6 text-red-400" />
+              <span className="text-lg font-semibold text-white">Go Stream</span>
+            </button>
+            <button
+              onClick={() => router.push('/creator/content/new')}
+              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Upload className="w-6 h-6 text-cyan-400" />
+              <span className="text-lg font-semibold text-white">Upload</span>
+            </button>
+          </div>
+
           {/* Earnings Summary */}
           <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
             <div className="flex items-center justify-between">
@@ -556,24 +574,6 @@ export default function CreatorDashboard() {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <button
-              onClick={() => router.push('/creator/go-stream')}
-              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Radio className="w-6 h-6 text-red-400" />
-              <span className="text-lg font-semibold text-white">Go Stream</span>
-            </button>
-            <button
-              onClick={() => router.push('/creator/content/new')}
-              className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Upload className="w-6 h-6 text-cyan-400" />
-              <span className="text-lg font-semibold text-white">Upload</span>
-            </button>
           </div>
 
           {/* Upcoming Events */}
