@@ -76,6 +76,7 @@ export default function ProfilePage() {
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [contentToUnlock, setContentToUnlock] = useState<any>(null);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [signUpAction, setSignUpAction] = useState<string>('');
@@ -112,6 +113,7 @@ export default function ProfilePage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     setIsAuthenticated(!!user);
+    setCurrentUserId(user?.id || null);
   };
 
   // Helper to require auth before action
@@ -676,7 +678,7 @@ export default function ProfilePage() {
           {/* Action Buttons Row */}
           <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
             {/* Video Call Button */}
-            {user.role === 'creator' && profile.callSettings && (
+            {user.role === 'creator' && profile.callSettings && currentUserId !== user.id && (
               <RequestCallButton
                 creatorId={user.id}
                 creatorName={user.displayName || user.username}
@@ -689,7 +691,7 @@ export default function ProfilePage() {
             )}
 
             {/* Voice Call Button */}
-            {user.role === 'creator' && profile.callSettings && (
+            {user.role === 'creator' && profile.callSettings && currentUserId !== user.id && (
               <RequestCallButton
                 creatorId={user.id}
                 creatorName={user.displayName || user.username}
@@ -708,6 +710,10 @@ export default function ProfilePage() {
                   if (!isAuthenticated) {
                     setSignUpAction('send tips');
                     setShowSignUpModal(true);
+                    return;
+                  }
+                  if (currentUserId === user.id) {
+                    alert("You can't tip yourself");
                     return;
                   }
                   setShowTipModal(true);
