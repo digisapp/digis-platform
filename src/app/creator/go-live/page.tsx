@@ -104,17 +104,20 @@ export default function GoLivePage() {
         return;
       }
 
-      // Check if user is a creator
-      const response = await fetch('/api/user/profile');
-      const data = await response.json();
+      // Fetch profile and active stream in parallel for faster load
+      const [profileRes, activeRes] = await Promise.all([
+        fetch('/api/user/profile'),
+        fetch('/api/streams/active')
+      ]);
+
+      const data = await profileRes.json();
 
       if (data.user?.role === 'creator') {
         setIsCreator(true);
 
         // Check if creator already has an active stream
-        const activeResponse = await fetch('/api/streams/active');
-        if (activeResponse.ok) {
-          const activeData = await activeResponse.json();
+        if (activeRes.ok) {
+          const activeData = await activeRes.json();
           if (activeData.data?.hasActiveStream && activeData.data?.stream) {
             // Redirect to existing broadcast instead of creating a new one
             router.push(`/stream/broadcast/${activeData.data.stream.id}`);
@@ -381,7 +384,7 @@ export default function GoLivePage() {
       {/* Mobile Logo Header */}
       <div className="md:hidden flex items-center justify-center py-4 border-b border-white/10">
         <img
-          src="/digis-logo.png"
+          src="/images/digis-logo-white.png"
           alt="Digis"
           className="h-8"
         />

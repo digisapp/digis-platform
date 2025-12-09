@@ -105,6 +105,7 @@ export function Navigation() {
     router.prefetch('/live');
     router.prefetch('/chats');
     router.prefetch('/settings');
+    router.prefetch('/creator/go-live');
   }, [authUser?.id, router]);
 
   // Heartbeat and auth state listener for cache clearing
