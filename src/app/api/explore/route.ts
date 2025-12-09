@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
                 isCreatorVerified: users.isCreatorVerified,
                 followerCount: followerCountSubquery,
                 isOnline: users.isOnline,
+                createdAt: users.createdAt,
               })
               .from(users)
               .where(and(...conditions))

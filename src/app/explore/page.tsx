@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { NeonLoader } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, Radio } from 'lucide-react';
+import { Search, UserCircle, Radio, Sparkles } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -22,6 +22,7 @@ interface Creator {
   isFollowing: boolean;
   isLive?: boolean;
   primaryCategory?: string | null;
+  createdAt?: string;
 }
 
 // Simple filters - removed complexity
@@ -378,6 +379,16 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
             </svg>
           )}
         </div>
+        {/* New Creator badge - show if joined within 60 days */}
+        {creator.createdAt && (() => {
+          const daysSinceJoined = Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+          return daysSinceJoined <= 60 ? (
+            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+              <Sparkles className="w-3 h-3" />
+              <span>New Creator</span>
+            </div>
+          ) : null;
+        })()}
       </div>
     </div>
   );

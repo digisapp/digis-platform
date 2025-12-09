@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Users, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -645,11 +645,16 @@ export default function ProfilePage() {
                   <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">@{user.username}</p>
                 )}
 
-                {/* Follower Count */}
-                <div className="text-xs sm:text-sm font-medium flex items-center gap-1.5 text-gray-400 mb-3">
-                  <Users className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span><strong className="text-white">{followCounts.followers.toLocaleString()}</strong> Followers</span>
-                </div>
+                {/* New Creator Badge - show if joined within last 60 days */}
+                {(() => {
+                  const daysSinceJoined = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                  return daysSinceJoined <= 60 ? (
+                    <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-amber-400 mb-3">
+                      <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>New Creator</span>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Follow & Subscribe Buttons - Below name on mobile, inline on desktop */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -1163,13 +1168,7 @@ export default function ProfilePage() {
 
                       <div>
                         <h3 className="text-lg font-semibold text-white mb-4">Stats</h3>
-                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                          <div className="p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-xl border-2 border-purple-200 hover:border-purple-400 transition-colors">
-                            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                              {followCounts.followers.toLocaleString()}
-                            </div>
-                            <div className="text-xs sm:text-sm text-gray-300 font-medium">Followers</div>
-                          </div>
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
                           <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 rounded-xl border-2 border-cyan-200 hover:border-cyan-400 transition-colors">
                             <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                               {streams.length}
