@@ -125,11 +125,6 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
             Sign In
           </button>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          By signing up, you agree to our Terms of Service and Privacy Policy
-        </p>
       </div>
     </div>
   );
