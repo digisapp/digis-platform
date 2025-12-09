@@ -304,8 +304,8 @@ export default function CreateContentPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-3xl">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        {/* Header - desktop only */}
+        <div className="mb-6 hidden md:flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/creator/content')}
@@ -319,7 +319,7 @@ export default function CreateContentPage() {
             variant="ghost"
             size="md"
             onClick={() => router.push('/creator/content')}
-            className="hidden sm:flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             <Grid3x3 className="w-4 h-4" />
             All Content
