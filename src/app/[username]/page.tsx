@@ -1331,30 +1331,17 @@ export default function ProfilePage() {
             {/* Message Rate Info */}
             {profile.messageRate && profile.messageRate > 0 ? (
               <div className="text-center mb-6">
-                <p className="text-gray-400 mb-3">
-                  This creator charges per message
-                </p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30">
                   <span className="text-2xl font-bold text-cyan-400">{profile.messageRate}</span>
                   <span className="text-gray-300">coins per message</span>
                 </div>
-                <p className="text-gray-500 text-sm mt-3">
-                  You'll be charged each time you send a message
-                </p>
               </div>
             ) : (
               <div className="text-center mb-6">
-                <p className="text-gray-400 mb-3">
-                  Cold outreach fee
-                </p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
                   <span className="text-2xl font-bold text-yellow-400">50</span>
-                  <span className="text-gray-300">coins</span>
+                  <span className="text-gray-300">coins to start chat</span>
                 </div>
-                <p className="text-gray-500 text-sm mt-3">
-                  One-time fee to start a conversation.<br />
-                  Free if they've already engaged with you!
-                </p>
               </div>
             )}
 
