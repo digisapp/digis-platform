@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign, CheckCircle, XCircle } from 'lucide-react';
+import { Phone, CheckCircle } from 'lucide-react';
 
 interface CallSettingsData {
   callRatePerMinute: number;
@@ -125,10 +125,7 @@ export function CallSettings() {
         {/* Call Rate */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              <span>Rate per Minute</span>
-            </div>
+            Rate per Minute
           </label>
           <GlassInput
             type="number"
@@ -145,10 +142,7 @@ export function CallSettings() {
         {/* Minimum Duration */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>Minimum Call Duration (minutes)</span>
-            </div>
+            Minimum Call Duration (minutes)
           </label>
           <GlassInput
             type="number"
