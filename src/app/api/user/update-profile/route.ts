@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, bio, avatarUrl, bannerUrl, creatorCardImageUrl, city, state, phoneNumber, primaryCategory, secondaryCategory } = await request.json();
+    const { displayName, bio, avatarUrl, bannerUrl, city, state, phoneNumber, primaryCategory, secondaryCategory } = await request.json();
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     if (bio !== undefined) updateData.bio = bio;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
     if (bannerUrl !== undefined) updateData.bannerUrl = bannerUrl;
-    if (creatorCardImageUrl !== undefined) updateData.creatorCardImageUrl = creatorCardImageUrl;
     if (primaryCategory !== undefined) updateData.primaryCategory = primaryCategory;
     if (secondaryCategory !== undefined) updateData.secondaryCategory = secondaryCategory;
 

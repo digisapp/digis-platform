@@ -66,7 +66,6 @@ export async function GET(request: NextRequest) {
                 username: users.username,
                 displayName: users.displayName,
                 avatarUrl: users.avatarUrl,
-                creatorCardImageUrl: users.creatorCardImageUrl,
                 isCreatorVerified: users.isCreatorVerified,
                 followerCount: followerCountSubquery,
                 isOnline: users.isOnline,

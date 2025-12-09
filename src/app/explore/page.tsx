@@ -13,7 +13,6 @@ interface Creator {
   displayName: string | null;
   avatarUrl: string | null;
   bannerUrl: string | null;
-  creatorCardImageUrl?: string | null;
   bio: string | null;
   isCreatorVerified: boolean;
   isTrending: boolean;
@@ -280,7 +279,7 @@ export default function ExplorePage() {
 
 // Live Creator Card - Larger, more prominent
 function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
+  const imageUrl = creator.avatarUrl;
 
   return (
     <div
@@ -325,7 +324,7 @@ interface CreatorCardProps {
 }
 
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardProps) {
-  const imageUrl = creator.creatorCardImageUrl || creator.avatarUrl;
+  const imageUrl = creator.avatarUrl;
 
   return (
     <div
