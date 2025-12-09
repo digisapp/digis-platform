@@ -467,7 +467,7 @@ export default function CreatorDashboard() {
                 >
                   <Instagram className="w-5 h-5 text-pink-400 flex-shrink-0" />
                   <div className="text-left min-w-0">
-                    <span className="text-sm font-medium text-white block">Share on Instagram</span>
+                    <span className="text-sm font-medium text-white block">Share your link on Instagram</span>
                     <span className="text-xs text-gray-400 truncate block">digis.cc/{userProfile.username}</span>
                   </div>
                   {copiedLink ? (
@@ -479,7 +479,7 @@ export default function CreatorDashboard() {
               </div>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
-                Post your link on Instagram Story to let your Fans know they can watch you Stream and send Virtual Gifts 🎁
+                Let fans know they can watch you Stream and send gifts 🎁
               </p>
             </div>
           )}
