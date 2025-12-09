@@ -74,14 +74,18 @@ export function Navigation() {
           const profileData = await profileRes.json();
           if (profileData?.user) {
             setUserProfile(profileData.user);
-            setFollowerCount(profileData.user.followerCount || 0);
+            setFollowerCount(profileData.user.followerCount ?? 0);
           }
+        } else {
+          console.error('[Navigation] Profile fetch failed:', profileRes.status);
         }
 
         // Process balance
         if (balanceRes.ok) {
           const balanceData = await balanceRes.json();
-          setBalance(balanceData.balance || 0);
+          setBalance(balanceData.balance ?? 0);
+        } else {
+          console.error('[Navigation] Balance fetch failed:', balanceRes.status);
         }
 
         // Process unread count
