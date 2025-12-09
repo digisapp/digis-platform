@@ -386,8 +386,11 @@ export default function GoLivePage() {
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 
-      {/* Mobile Logo Header */}
-      <div className="md:hidden flex items-center justify-center py-4 border-b border-white/10">
+      {/* Mobile Logo Header - extends to top edge with safe area padding */}
+      <div
+        className="md:hidden flex items-end justify-center pb-3 border-b border-white/10 bg-gradient-to-br from-gray-900 via-black to-gray-900"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', minHeight: 'calc(48px + env(safe-area-inset-top, 0px))' }}
+      >
         <img
           src="/images/digis-logo-white.png"
           alt="Digis"
