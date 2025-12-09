@@ -10,8 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
-  Plus, CheckCircle, Circle, Sparkles, X, Settings, DollarSign, Upload,
-  TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle
+  Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -96,10 +95,7 @@ export default function CreatorDashboard() {
   const [subscriberCount, setSubscriberCount] = useState(0);
   const [pendingCallsCount, setPendingCallsCount] = useState(0);
 
-  // Onboarding state
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [dismissedOnboarding, setDismissedOnboarding] = useState(false);
 
   useEffect(() => {
     checkAuth().then(async (isAuthorized) => {
@@ -177,10 +173,6 @@ export default function CreatorDashboard() {
         setUserProfile(data.user);
         setFollowerCount(data.user.followerCount || 0);
         setSubscriberCount(data.user.subscriberCount || 0);
-        const dismissed = localStorage.getItem('creator_onboarding_dismissed');
-        if (dismissed === 'true') {
-          setDismissedOnboarding(true);
-        }
       }
     } catch (err) {
       console.error('Error fetching user profile:', err);
@@ -369,8 +361,6 @@ export default function CreatorDashboard() {
     );
   }
 
-  const isNewCreator = !dismissedOnboarding && (analytics?.overview?.totalStreams === 0 || !userProfile?.avatarUrl);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <MobileHeader />
@@ -386,87 +376,6 @@ export default function CreatorDashboard() {
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
-
-          {/* Getting Started Checklist for New Creators */}
-          {userProfile && isNewCreator && (
-            <div className="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-pink-500/10 border-2 border-cyan-500/30 p-6 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-              <button
-                onClick={() => {
-                  setDismissedOnboarding(true);
-                  localStorage.setItem('creator_onboarding_dismissed', 'true');
-                }}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
-                  <Sparkles className="w-6 h-6 text-cyan-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Welcome, Creator!</h2>
-                  <p className="text-sm text-gray-400">Complete these steps to get started</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <button
-                  onClick={() => router.push('/settings')}
-                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
-                    userProfile.avatarUrl
-                      ? 'bg-green-500/10 border border-green-500/30'
-                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
-                  }`}
-                >
-                  {userProfile.avatarUrl ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-gray-500" />
-                  )}
-                  <span className={`text-sm font-medium ${userProfile.avatarUrl ? 'text-green-400' : 'text-white'}`}>
-                    Add profile picture
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => router.push('/settings')}
-                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
-                    userProfile.perMinuteRate > 0
-                      ? 'bg-green-500/10 border border-green-500/30'
-                      : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
-                  }`}
-                >
-                  {userProfile.perMinuteRate > 0 ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-gray-500" />
-                  )}
-                  <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
-                    Set call rates
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => router.push('/creator/go-live')}
-                  className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
-                    analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0
-                      ? 'bg-green-500/10 border border-green-500/30'
-                      : 'bg-white/5 border border-white/10 hover:border-red-500/50'
-                  }`}
-                >
-                  {analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? (
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-gray-500" />
-                  )}
-                  <span className={`text-sm font-medium ${analytics?.overview?.totalStreams && analytics.overview.totalStreams > 0 ? 'text-green-400' : 'text-white'}`}>
-                    Go live
-                  </span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Earnings Summary */}
           <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
