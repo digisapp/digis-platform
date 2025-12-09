@@ -12,6 +12,13 @@ export const metadata: Metadata = {
     icon: "/images/digis-logo-white.png",
     apple: "/images/digis-logo-white.png",
   },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
 };
 
 export default function RootLayout({

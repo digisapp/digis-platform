@@ -252,9 +252,10 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Send a message..."
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm"
+                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm text-[16px]"
                 maxLength={500}
                 disabled={isSending}
+                enterKeyHint="send"
               />
             </div>
 
