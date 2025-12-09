@@ -1047,7 +1047,6 @@ export default function BroadcastStudioPage() {
                           ? { width: isPortraitDevice ? 720 : 1080, height: isPortraitDevice ? 1280 : 1920, frameRate: 30 }
                           : (isSafari ? VideoPresets.h720 : VideoPresets.h1440),
                         facingMode: 'user',
-                        aspectRatio: streamOrientation === 'portrait' ? 9/16 : 16/9,
                       },
                       publishDefaults: {
                         videoSimulcastLayers: isSafari
