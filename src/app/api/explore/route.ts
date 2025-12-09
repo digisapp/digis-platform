@@ -94,7 +94,10 @@ export async function GET(request: NextRequest) {
             .offset(filter === 'live' ? 0 : offset);
         },
         { timeoutMs: 3000, retries: 1, tag: 'exploreGrid' }
-      ).catch(() => []),
+      ).catch((err) => {
+        console.error('[EXPLORE] Creators query failed:', err?.message);
+        return [];
+      }),
 
       // 4. Categories
       withTimeoutAndRetry(
@@ -106,7 +109,10 @@ export async function GET(request: NextRequest) {
           return ['All', ...cats.map(c => c.name)];
         },
         { timeoutMs: 2000, retries: 0, tag: 'exploreCategories' }
-      ).catch(() => ['All']),
+      ).catch((err) => {
+        console.error('[EXPLORE] Categories query failed:', err?.message);
+        return ['All'];
+      }),
     ]);
 
     const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
