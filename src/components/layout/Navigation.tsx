@@ -23,7 +23,8 @@ import {
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
 // Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
-const formatCoinBalance = (coins: number): string => {
+const formatCoinBalance = (coins: number | null): string => {
+  if (coins === null) return '—';
   if (coins >= 1000000) {
     const millions = coins / 1000000;
     return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
@@ -40,9 +41,9 @@ export function Navigation() {
   const pathname = usePathname();
   const { user: authUser, session, loading: authLoading, isCreator, isAdmin } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState<number | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [followerCount, setFollowerCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState<number | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCoinsMenu, setShowCoinsMenu] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
@@ -296,7 +297,9 @@ export function Navigation() {
                 </svg>
                 <span className="text-sm font-semibold text-white">
                   {userRole === 'creator'
-                    ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
+                    ? followerCount !== null
+                      ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
+                      : '— Followers'
                     : 'Following'
                   }
                 </span>
@@ -661,7 +664,7 @@ export function Navigation() {
                 <div className="px-4 py-3 border-b border-green-500/20 relative">
                   <div className="text-center">
                     <div className="text-2xl font-black text-green-400">
-                      {balance.toLocaleString()}
+                      {balance !== null ? balance.toLocaleString() : '—'}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">Coins</div>
                   </div>
