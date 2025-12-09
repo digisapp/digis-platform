@@ -479,7 +479,7 @@ export default function CreatorDashboard() {
               </div>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
-                Post your link on Instagram Story to let fans know they can watch your Stream and send gifts :)
+                Post your link on Instagram Story to let your Fans know they can watch you Stream and send Virtual Gifts 🎁
               </p>
             </div>
           )}
