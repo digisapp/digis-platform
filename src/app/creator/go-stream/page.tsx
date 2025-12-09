@@ -198,18 +198,23 @@ export default function GoLivePage() {
       }
 
       // Set video dimensions based on orientation
+      // Use lower resolution on mobile for wider field of view (less zoom)
+      // iPhone cameras crop/zoom at high resolutions
       const videoConstraints = orientation === 'portrait'
         ? {
             deviceId: selectedVideoDevice,
-            width: { ideal: 1080 },
-            height: { ideal: 1920 },
+            width: { ideal: isMobile ? 720 : 1080 },
+            height: { ideal: isMobile ? 1280 : 1920 },
             frameRate: { ideal: 30 },
+            // Prevent camera from cropping to achieve resolution
+            resizeMode: 'none' as const,
           }
         : {
             deviceId: selectedVideoDevice,
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: isMobile ? 1280 : 1920 },
+            height: { ideal: isMobile ? 720 : 1080 },
             frameRate: { ideal: 30 },
+            resizeMode: 'none' as const,
           };
 
       const stream = await navigator.mediaDevices.getUserMedia({
