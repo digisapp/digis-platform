@@ -378,7 +378,16 @@ export default function GoLivePage() {
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-32 md:pb-10">
+      {/* Mobile Logo Header */}
+      <div className="md:hidden flex items-center justify-center py-4 border-b border-white/10">
+        <img
+          src="/digis-logo.png"
+          alt="Digis"
+          className="h-8"
+        />
+      </div>
+
+      <div className="container mx-auto px-4 pt-4 md:pt-10 pb-32 md:pb-10">
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
