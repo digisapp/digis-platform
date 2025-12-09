@@ -600,7 +600,10 @@ export default function ProfilePage() {
       {/* Confetti Effect */}
       <ConfettiEffect show={showConfetti} duration={2000} />
 
-      {/* Banner with Parallax Effect - goes under transparent MobileHeader */}
+      {/* Spacer for fixed mobile header */}
+      <div className="md:hidden" style={{ height: 'calc(64px + env(safe-area-inset-top, 0px))' }} />
+
+      {/* Banner with Parallax Effect */}
       <div className="relative">
         <ParallaxBanner imageUrl={user.bannerUrl} height={user.bannerUrl ? "h-56 sm:h-56 md:h-64" : "h-40 sm:h-40 md:h-48"} />
         {/* Gradient Overlay for better contrast - Tron Theme */}
