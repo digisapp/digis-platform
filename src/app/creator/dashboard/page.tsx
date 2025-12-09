@@ -496,38 +496,56 @@ export default function CreatorDashboard() {
                 <p className="text-sm text-green-400 mt-1">≈ ${(monthlyEarnings * 0.01).toFixed(2)} USD</p>
               </div>
               <div className="hidden md:flex items-center gap-6">
-                <div className="text-center">
+                <button
+                  onClick={() => router.push('/creator/followers')}
+                  className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
+                >
                   <p className="text-2xl font-bold text-white">{followerCount.toLocaleString()}</p>
                   <p className="text-xs text-gray-400">Followers</p>
-                </div>
-                <div className="text-center">
+                </button>
+                <button
+                  onClick={() => router.push('/creator/followers?tab=subscribers')}
+                  className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
+                >
                   <p className="text-2xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
                   <p className="text-xs text-gray-400">Subscribers</p>
-                </div>
+                </button>
                 {pendingCallsCount > 0 && (
-                  <div className="text-center">
+                  <button
+                    onClick={() => router.push('/creator/calls')}
+                    className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
+                  >
                     <p className="text-2xl font-bold text-yellow-400">{pendingCallsCount}</p>
                     <p className="text-xs text-gray-400">Pending Calls</p>
-                  </div>
+                  </button>
                 )}
               </div>
             </div>
 
             {/* Mobile stats */}
             <div className="flex md:hidden items-center gap-4 mt-4 pt-4 border-t border-white/10">
-              <div className="flex-1 text-center">
+              <button
+                onClick={() => router.push('/creator/followers')}
+                className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
+              >
                 <p className="text-xl font-bold text-white">{followerCount.toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Followers</p>
-              </div>
-              <div className="flex-1 text-center">
+              </button>
+              <button
+                onClick={() => router.push('/creator/followers?tab=subscribers')}
+                className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
+              >
                 <p className="text-xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Subscribers</p>
-              </div>
+              </button>
               {pendingCallsCount > 0 && (
-                <div className="flex-1 text-center">
+                <button
+                  onClick={() => router.push('/creator/calls')}
+                  className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
+                >
                   <p className="text-xl font-bold text-yellow-400">{pendingCallsCount}</p>
                   <p className="text-xs text-gray-400">Calls</p>
-                </div>
+                </button>
               )}
             </div>
           </div>

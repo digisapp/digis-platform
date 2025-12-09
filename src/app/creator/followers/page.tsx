@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Users, UserPlus, BadgeCheck, ArrowRight, Sparkles, Search, Crown } from 'lucide-react';
 
 type User = {
@@ -26,12 +27,22 @@ type Subscriber = User & {
 
 export default function FollowersPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
   const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'subscribers'>('followers');
   const [followers, setFollowers] = useState<User[]>([]);
   const [following, setFollowing] = useState<User[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Set initial tab from URL parameter
+  useEffect(() => {
+    if (tabParam === 'subscribers' || tabParam === 'following') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   useEffect(() => {
     fetchData();
@@ -200,7 +211,10 @@ export default function FollowersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
-      <div className="container mx-auto px-4 pt-0 md:pt-10 pb-24 md:pb-8 max-w-4xl">
+      <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+
+      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-4xl">
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           <button
