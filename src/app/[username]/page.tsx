@@ -80,6 +80,7 @@ export default function ProfilePage() {
   const [contentToUnlock, setContentToUnlock] = useState<any>(null);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [signUpAction, setSignUpAction] = useState<string>('');
+  const [showSubscribeSuccessModal, setShowSubscribeSuccessModal] = useState(false);
 
   useEffect(() => {
     // Fetch profile (includes goals & content) and auth in parallel
@@ -419,8 +420,8 @@ export default function ProfilePage() {
 
       setIsSubscribed(true);
       setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 2000);
-      alert(data.message || 'Successfully subscribed!');
+      setTimeout(() => setShowConfetti(false), 3000);
+      setShowSubscribeSuccessModal(true);
     } catch (err: any) {
       console.error('Subscribe error:', err);
       alert(err.message);
@@ -680,7 +681,7 @@ export default function ProfilePage() {
                       disabled={subscribeLoading}
                       className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
                     >
-                      {subscribeLoading ? '...' : 'Subscribe'}
+                      {subscribeLoading ? '...' : `Subscribe · ${subscriptionTier.pricePerMonth} coins`}
                     </button>
                   )}
 
@@ -1394,6 +1395,56 @@ export default function ProfilePage() {
         action={signUpAction}
         creatorName={profile?.user.displayName || profile?.user.username}
       />
+
+      {/* Subscribe Success Modal - Tron Theme */}
+      {showSubscribeSuccessModal && profile && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          onClick={() => setShowSubscribeSuccessModal(false)}
+        >
+          <div
+            className="relative w-full max-w-sm bg-black/95 rounded-3xl p-8 border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.4),inset_0_0_40px_rgba(168,85,247,0.1)] animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Animated glow effect */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-xl -z-10 animate-pulse" />
+
+            {/* Sparkle icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute -inset-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-75 animate-pulse" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_0_40px_rgba(168,85,247,0.6)]">
+                  <Star className="w-10 h-10 text-white fill-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="text-center">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                You're In! 🎉
+              </h2>
+              <p className="text-gray-300 mb-2">
+                Welcome to the inner circle of
+              </p>
+              <p className="text-xl font-bold text-white mb-6">
+                {profile.user.displayName || profile.user.username}
+              </p>
+              <p className="text-sm text-gray-400 mb-6">
+                Unlock exclusive content, special perks, and direct access. Let's go! ✨
+              </p>
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowSubscribeSuccessModal(false)}
+              className="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-xl text-white font-bold transition-all hover:scale-[1.02] shadow-[0_0_30px_rgba(168,85,247,0.4)]"
+            >
+              Let's Go!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
