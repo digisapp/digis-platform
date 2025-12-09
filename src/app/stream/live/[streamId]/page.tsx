@@ -1130,7 +1130,7 @@ export default function BroadcastStudioPage() {
 
             {/* Featured Creators Panel - Desktop only */}
             <div className="hidden lg:block">
-              <FeaturedCreatorsPanel streamId={streamId} />
+              <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
             </div>
 
             {/* Top Gifters Leaderboard - Desktop only (below chat) */}
@@ -1195,7 +1195,7 @@ export default function BroadcastStudioPage() {
 
         {/* Featured Creators Panel - Mobile only */}
         <div className="lg:hidden mt-4">
-          <FeaturedCreatorsPanel streamId={streamId} />
+          <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
