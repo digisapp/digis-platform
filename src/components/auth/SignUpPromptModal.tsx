@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Sparkles, Gift, Video, MessageCircle, Radio } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Gift, Video, MessageCircle, Radio } from 'lucide-react';
 
 interface SignUpPromptModalProps {
   isOpen: boolean;
@@ -14,8 +15,13 @@ interface SignUpPromptModalProps {
 export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: SignUpPromptModalProps) {
   const router = useRouter();
   const [isClosing, setIsClosing] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleClose = () => {
     setIsClosing(true);
@@ -33,7 +39,7 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
     router.push('/login');
   };
 
-  return (
+  const modalContent = (
     <div
       className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md transition-opacity duration-200 ${
         isClosing ? 'opacity-0' : 'opacity-100'
@@ -59,9 +65,6 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
 
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 mb-4 shadow-[0_0_30px_rgba(34,211,238,0.5)]">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-white to-cyan-400 bg-clip-text text-transparent">
             Create Account to continue
           </h2>
@@ -130,4 +133,6 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
