@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, UserPlus, GripVertical, Users } from 'lucide-react';
+import { Search, X, UserPlus, GripVertical, Users, Info } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Creator {
@@ -28,6 +28,7 @@ export function FeaturedCreatorSelector({
   const [searchResults, setSearchResults] = useState<Creator[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,14 +102,102 @@ export function FeaturedCreatorSelector({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-semibold text-white">
-          <Users className="w-4 h-4 inline mr-2" />
-          Featured Creators
-        </label>
+        <div className="flex items-center gap-2">
+          <label className="block text-sm font-semibold text-white">
+            <Users className="w-4 h-4 inline mr-2" />
+            Featured Creators
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowInfoModal(true)}
+            className="p-1 text-gray-400 hover:text-cyan-400 transition-colors"
+            title="How it works"
+          >
+            <Info className="w-4 h-4" />
+          </button>
+        </div>
         <span className="text-xs text-gray-400">
           {selectedCreators.length}/{maxCreators}
         </span>
       </div>
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowInfoModal(false)}
+          />
+          <div className="relative bg-gray-900 rounded-2xl border-2 border-cyan-500/30 p-6 max-w-md w-full shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+            <button
+              type="button"
+              onClick={() => setShowInfoModal(false)}
+              className="absolute top-4 right-4 p-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-cyan-400" />
+              Featured Creators
+            </h3>
+
+            <div className="space-y-4 text-sm">
+              <div>
+                <h4 className="font-semibold text-cyan-400 mb-2">How it works:</h4>
+                <ol className="space-y-2 text-gray-300">
+                  <li className="flex gap-2">
+                    <span className="font-bold text-cyan-400">1.</span>
+                    <span><strong>Search</strong> - Type a creator's name/username to find them</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-cyan-400">2.</span>
+                    <span><strong>Select</strong> - Click on creators from search results to add them (up to 20)</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-cyan-400">3.</span>
+                    <span><strong>Reorder</strong> - Use the up/down arrows to set their display order</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-cyan-400">4.</span>
+                    <span><strong>Remove</strong> - Click the X to remove a creator</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-purple-400 mb-2">Use cases:</h4>
+                <ul className="space-y-1 text-gray-300">
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong>Collabs</strong> - Feature who you're streaming with</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong>Fashion shows</strong> - Highlight models/designers</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong>Group events</strong> - Show all participants</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong>Shoutouts</strong> - Promote creators you want to support</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowInfoModal(false)}
+              className="w-full mt-6 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 rounded-xl text-cyan-400 font-semibold transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search Input */}
       <div className="relative" ref={dropdownRef}>
