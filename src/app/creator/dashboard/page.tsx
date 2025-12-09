@@ -236,7 +236,7 @@ export default function CreatorDashboard() {
 
   const fetchRecentContent = async () => {
     try {
-      const response = await fetch('/api/content/my-content?limit=6');
+      const response = await fetch('/api/content/creator?limit=6');
       if (response.ok) {
         const data = await response.json();
         const contentArray = data.content || data.data || [];
