@@ -555,7 +555,9 @@ export default function GoLivePage() {
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-contain transition-transform duration-300"
+                    className={`w-full h-full transition-transform duration-300 ${
+                      orientation === 'portrait' ? 'object-cover' : 'object-contain'
+                    }`}
                   />
                   {/* Live indicator */}
                   <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
