@@ -129,16 +129,16 @@ export default function ExplorePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <NeonLoader
-        size="xl"
-        variant="logo"
-        text="Loading creators..."
-        fullScreen
-      />
-    );
-  }
+  // Skeleton card component for loading state
+  const SkeletonCard = () => (
+    <div className="bg-white/5 rounded-2xl overflow-hidden animate-pulse">
+      <div className="aspect-[3/4] bg-white/10" />
+      <div className="p-3">
+        <div className="h-4 bg-white/10 rounded w-3/4 mb-2" />
+        <div className="h-3 bg-white/10 rounded w-1/2" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
@@ -215,7 +215,14 @@ export default function ExplorePage() {
           )}
 
           {/* Main Creators Grid */}
-          {creators.length === 0 && liveCreators.length === 0 ? (
+          {loading ? (
+            // Show skeleton grid while loading
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              {[...Array(10)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : creators.length === 0 && liveCreators.length === 0 ? (
             <div className="py-16 text-center">
               <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No creators found</h3>

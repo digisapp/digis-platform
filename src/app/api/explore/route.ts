@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorCategories, streams } from '@/lib/data/system';
 import { eq, ilike, or, desc, sql, and, gt } from 'drizzle-orm';
-import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { createClient } from '@/lib/supabase/server';
@@ -21,27 +20,25 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Run queries in parallel
-    const [currentUserId, liveCreatorIds, allCreators, categoryNames] = await Promise.all([
-      // 1. Auth
-      createClient()
-        .then(s => s.auth.getUser())
-        .then(r => r.data.user?.id)
-        .catch(() => null),
+    // Start auth check but don't await it - we don't need it for the main query
+    const authPromise = createClient()
+      .then(s => s.auth.getUser())
+      .then(r => r.data.user?.id)
+      .catch(() => null);
 
-      // 2. Get live creator IDs
-      withTimeoutAndRetry(
-        () => db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
-        { timeoutMs: 2000, retries: 0, tag: 'exploreLive' }
-      ).catch(() => []),
+    // Run essential queries in parallel with short timeouts
+    const [liveCreatorIds, allCreators, categoryNames] = await Promise.all([
+      // 1. Get live creator IDs (fast query)
+      Promise.race([
+        db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500))
+      ]).catch(() => []),
 
-      // 3. Main creators query
-      withTimeoutAndRetry(
-        async () => {
-          console.log('[EXPLORE] Starting creators query...');
-
-          // Build query based on filters
-          let query = db
+      // 2. Main creators query - optimized with shorter timeout
+      Promise.race([
+        (async () => {
+          // Simple direct query - no wrapper overhead
+          const results = await db
             .select({
               id: users.id,
               username: users.username,
@@ -62,9 +59,6 @@ export async function GET(request: NextRequest) {
             .limit(limit + 1)
             .offset(offset);
 
-          const results = await query;
-          console.log('[EXPLORE] Query returned', results.length, 'creators');
-
           // Apply client-side filters if needed
           let filtered = results;
 
@@ -82,34 +76,28 @@ export async function GET(request: NextRequest) {
 
           if (filter === 'online') {
             filtered = filtered.filter(c => c.isOnline);
-          } else if (filter === 'new') {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            // Note: createdAt not in select, so skip this filter for now
           }
 
           return filtered;
-        },
-        { timeoutMs: 8000, retries: 2, tag: 'exploreGrid' }
-      ).catch((err) => {
-        console.error('[EXPLORE] Creators query failed:', err?.message, err?.stack);
+        })(),
+        new Promise<any[]>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]).catch((err) => {
+        console.error('[EXPLORE] Creators query failed:', err?.message);
         return [];
       }),
 
-      // 4. Categories
-      withTimeoutAndRetry(
-        async () => {
-          const cats = await db
-            .select({ name: creatorCategories.name })
-            .from(creatorCategories)
-            .orderBy(creatorCategories.name);
-          return ['All', ...cats.map(c => c.name)];
-        },
-        { timeoutMs: 2000, retries: 0, tag: 'exploreCategories' }
-      ).catch((err) => {
-        console.error('[EXPLORE] Categories query failed:', err?.message);
-        return ['All'];
-      }),
+      // 3. Categories (fast query, can fail gracefully)
+      Promise.race([
+        db.select({ name: creatorCategories.name }).from(creatorCategories).orderBy(creatorCategories.name)
+          .then(cats => ['All', ...cats.map(c => c.name)]),
+        new Promise<string[]>((resolve) => setTimeout(() => resolve(['All']), 1500))
+      ]).catch(() => ['All']),
+    ]);
+
+    // Get current user ID (don't block on this)
+    const currentUserId = await Promise.race([
+      authPromise,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 500))
     ]);
 
     const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
