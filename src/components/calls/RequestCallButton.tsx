@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
 import { Phone, Clock, DollarSign, Video, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -35,10 +36,16 @@ export function RequestCallButton({
   const [timeRemaining, setTimeRemaining] = useState(120);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [mounted, setMounted] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const estimatedCost = ratePerMinute * minimumDuration;
+
+  // Set mounted state for portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check auth on mount
   useEffect(() => {
@@ -216,9 +223,9 @@ export function RequestCallButton({
         </button>
       )}
 
-      {/* Request Modal - Tron Theme - z-[100] to be above navigation */}
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+      {/* Request Modal - Tron Theme - Using Portal to ensure top layer */}
+      {showModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200 mx-auto">
             {/* Animated gradient border effect */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
@@ -335,7 +342,8 @@ export function RequestCallButton({
             )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Sign Up Prompt Modal */}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { GlassButton } from '@/components/ui/GlassButton';
 
 interface TipModalProps {
@@ -18,8 +19,10 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
   const [balance, setBalance] = useState(0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetchBalance();
   }, []);
 
@@ -61,8 +64,10 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+  if (!mounted) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-gradient-to-b from-gray-900 to-black border border-white/20 rounded-2xl p-6 max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -170,4 +175,6 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
