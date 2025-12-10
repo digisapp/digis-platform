@@ -320,20 +320,6 @@ export default function CreatorContentStudioPage() {
                   />
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan transition-all resize-none"
-                    placeholder="Add a description..."
-                  />
-                </div>
-
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
