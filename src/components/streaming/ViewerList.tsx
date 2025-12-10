@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Users } from 'lucide-react';
 
 type Viewer = {
   id: string;
@@ -60,11 +61,11 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20 hover:bg-white/20 transition-all backdrop-blur-sm"
+        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-cyan-500/20 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)] hover:bg-cyan-500/30 transition-all"
         title="View Viewers"
       >
-        <span className="text-white font-bold">{currentViewers}</span>
-        <span className="text-gray-300 text-sm">viewers</span>
+        <Users className="w-4 h-4 text-cyan-400" />
+        <span className="text-cyan-400 font-bold text-sm">{currentViewers}</span>
       </button>
 
       {/* Viewer List Panel */}

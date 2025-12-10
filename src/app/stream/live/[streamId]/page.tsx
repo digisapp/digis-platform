@@ -954,6 +954,11 @@ export default function BroadcastStudioPage() {
 
 
       <div className="container mx-auto px-2 sm:px-4 pt-2 md:pt-4 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
+        {/* Stream Title - Desktop */}
+        <div className="hidden lg:block mb-4">
+          <h1 className="text-xl font-bold text-white truncate">{stream?.title || 'Live Stream'}</h1>
+        </div>
+
         <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
           <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
@@ -1056,9 +1061,7 @@ export default function BroadcastStudioPage() {
                       }}
                       className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
                     >
-                      <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <Coins className="w-4 h-4 text-cyan-400" />
                       <span className="text-sm">GOAL</span>
                     </button>
 
@@ -1126,8 +1129,8 @@ export default function BroadcastStudioPage() {
           </div>
 
           {/* Chat Sidebar + Top Gifters */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className={`${isPortraitDevice ? 'h-[500px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
+          <div className="lg:col-span-1 flex flex-col gap-4">
+            <div className={`${isPortraitDevice ? 'h-[500px]' : 'h-[400px]'} lg:h-[450px] backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}

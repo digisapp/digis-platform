@@ -131,10 +131,10 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           showAnimation ? 'animate-spotlight-enter' : ''
         }`}
       >
-        <div className="flex items-center gap-2 p-2 pr-3 backdrop-blur-xl bg-gradient-to-r from-yellow-500/20 to-amber-500/20 rounded-full border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.4)]">
+        <div className="flex items-center gap-2 p-2 pr-3 backdrop-blur-xl bg-gradient-to-r from-pink-500/20 to-pink-600/20 rounded-full border border-pink-500/50 shadow-[0_0_20px_rgba(236,72,153,0.4)]">
           {/* Star Icon */}
-          <div className="absolute -top-1 -left-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-            <Star className="w-3 h-3 text-black fill-current" />
+          <div className="absolute -top-1 -left-1 w-5 h-5 bg-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+            <Star className="w-3 h-3 text-white fill-current" />
           </div>
 
           {/* Avatar */}
@@ -148,10 +148,10 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
               <img
                 src={spotlightedCreator.avatarUrl}
                 alt={spotlightedCreator.displayName || spotlightedCreator.username}
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-yellow-500 shadow-lg"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-pink-500 shadow-lg"
               />
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-black font-bold border-2 border-yellow-500">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold border-2 border-pink-500">
                 {(spotlightedCreator.displayName || spotlightedCreator.username)[0]?.toUpperCase()}
               </div>
             )}
@@ -159,12 +159,12 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
 
           {/* Info */}
           <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-yellow-400 font-bold uppercase tracking-wider">Featured</span>
+            <span className="text-[10px] text-pink-400 font-bold uppercase tracking-wider">Featured</span>
             <a
               href={`/${spotlightedCreator.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white font-bold text-sm truncate max-w-[100px] sm:max-w-[120px] hover:text-yellow-400 transition-colors"
+              className="text-white font-bold text-sm truncate max-w-[100px] sm:max-w-[120px] hover:text-pink-400 transition-colors"
             >
               {spotlightedCreator.displayName || spotlightedCreator.username}
             </a>
@@ -174,7 +174,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           {!isHost && (
             <button
               onClick={() => setShowTipModal(true)}
-              className="ml-1 p-2 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full text-black hover:scale-110 transition-transform shadow-lg"
+              className="ml-1 p-2 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
               title="Send tip"
             >
               <Gift className="w-4 h-4" />
@@ -190,7 +190,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowTipModal(false)}
           />
-          <div className="relative bg-black/90 backdrop-blur-xl rounded-2xl border border-yellow-500/30 p-5 w-full max-w-sm shadow-2xl">
+          <div className="relative bg-black/90 backdrop-blur-xl rounded-2xl border border-pink-500/30 p-5 w-full max-w-sm shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">Tip Featured Creator</h3>
@@ -203,15 +203,15 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             </div>
 
             {/* Creator Info */}
-            <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/30 mb-4">
+            <div className="flex items-center gap-3 p-3 bg-pink-500/10 rounded-xl border border-pink-500/30 mb-4">
               {spotlightedCreator.avatarUrl ? (
                 <img
                   src={spotlightedCreator.avatarUrl}
                   alt=""
-                  className="w-12 h-12 rounded-full object-cover border-2 border-yellow-500"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-pink-500"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-black font-bold">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold">
                   {(spotlightedCreator.displayName || spotlightedCreator.username)[0]?.toUpperCase()}
                 </div>
               )}
@@ -219,7 +219,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
                 <div className="font-bold text-white">
                   {spotlightedCreator.displayName || spotlightedCreator.username}
                 </div>
-                <div className="text-sm text-yellow-400">@{spotlightedCreator.username}</div>
+                <div className="text-sm text-pink-400">@{spotlightedCreator.username}</div>
               </div>
             </div>
 
@@ -227,7 +227,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             {userBalance !== null && (
               <div className="flex items-center justify-between mb-4 p-2 bg-white/5 rounded-lg">
                 <span className="text-gray-400 text-sm">Your Balance</span>
-                <span className="text-yellow-400 font-bold flex items-center gap-1">
+                <span className="text-pink-400 font-bold flex items-center gap-1">
                   <Coins className="w-4 h-4" />
                   {userBalance.toLocaleString()}
                 </span>
@@ -245,7 +245,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
                   }}
                   className={`py-2 px-1 rounded-lg text-sm font-bold transition-all ${
                     selectedAmount === amount && !customAmount
-                      ? 'bg-yellow-500 text-black'
+                      ? 'bg-pink-500 text-white'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
@@ -257,13 +257,13 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             {/* Custom Amount */}
             <div className="mb-4">
               <div className="relative">
-                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pink-400" />
                 <input
                   type="number"
                   value={customAmount}
                   onChange={(e) => setCustomAmount(e.target.value)}
                   placeholder="Custom amount"
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50"
                   min="1"
                 />
               </div>
@@ -273,7 +273,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             <button
               onClick={handleSendTip}
               disabled={isSending || (!customAmount && !selectedAmount)}
-              className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-500 text-black font-bold rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
             >
               {isSending ? (
                 <LoadingSpinner size="sm" />
@@ -290,7 +290,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
               href={`/${spotlightedCreator.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1 mt-3 text-sm text-gray-400 hover:text-yellow-400 transition-colors"
+              className="flex items-center justify-center gap-1 mt-3 text-sm text-gray-400 hover:text-pink-400 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               View Profile
