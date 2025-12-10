@@ -68,7 +68,11 @@ export async function POST(request: NextRequest) {
       where: eq(users.id, user.id),
     });
 
-    if (currentUser?.username) {
+    // Allow setting username if:
+    // - User has no username, OR
+    // - User has an auto-generated username (starts with user_)
+    const hasRealUsername = currentUser?.username && !currentUser.username.startsWith('user_');
+    if (hasRealUsername) {
       return NextResponse.json(
         failure('Username already set. Contact support to change it.', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
