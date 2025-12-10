@@ -54,7 +54,8 @@ export class StreamService {
     privacy?: string,
     thumbnailUrl?: string,
     scheduledAt?: Date,
-    orientation?: 'landscape' | 'portrait'
+    orientation?: 'landscape' | 'portrait',
+    featuredCreatorCommission?: number
   ) {
     // Check if creator already has an active stream
     const existingStream = await this.getActiveStream(creatorId);
@@ -81,6 +82,7 @@ export class StreamService {
         startedAt: isScheduled ? undefined : new Date(),
         lastHeartbeat: isScheduled ? undefined : new Date(), // Set initial heartbeat
         orientation: orientation || 'landscape',
+        featuredCreatorCommission: featuredCreatorCommission || 0,
       })
       .returning();
 
@@ -489,8 +491,16 @@ export class StreamService {
     });
 
     if (recipientCreatorId) {
-      // Direct tip to featured creator
-      // Update featured creator's tip count
+      // Direct tip to featured creator - split based on host's commission rate
+      const stream = await db.query.streams.findFirst({
+        where: eq(streams.id, streamId),
+      });
+
+      const commissionRate = stream?.featuredCreatorCommission || 0;
+      const hostAmount = Math.floor(amount * (commissionRate / 100));
+      const creatorAmount = amount - hostAmount;
+
+      // Update featured creator's tip count (full amount for display)
       await db
         .update(streamFeaturedCreators)
         .set({
@@ -503,13 +513,29 @@ export class StreamService {
           )
         );
 
-      await WalletService.createTransaction({
-        userId: recipientCreatorId,
-        amount: amount,
-        type: 'stream_tip',
-        description: `Received ${amount} coin tip from @${senderUsername} during stream`,
-        idempotencyKey: `tip_receive_${streamId}_${Date.now()}`,
-      });
+      // Credit featured creator their share
+      if (creatorAmount > 0) {
+        await WalletService.createTransaction({
+          userId: recipientCreatorId,
+          amount: creatorAmount,
+          type: 'stream_tip',
+          description: commissionRate > 0
+            ? `Received ${creatorAmount} coins (${100 - commissionRate}% of ${amount} tip) from @${senderUsername}`
+            : `Received ${amount} coin tip from @${senderUsername} during stream`,
+          idempotencyKey: `tip_receive_${streamId}_${recipientCreatorId}_${Date.now()}`,
+        });
+      }
+
+      // Credit host their commission
+      if (hostAmount > 0 && stream) {
+        await WalletService.createTransaction({
+          userId: stream.creatorId,
+          amount: hostAmount,
+          type: 'stream_tip',
+          description: `Commission: ${hostAmount} coins (${commissionRate}% of ${amount} tip to @${recipientUsername})`,
+          idempotencyKey: `tip_commission_${streamId}_${stream.creatorId}_${Date.now()}`,
+        });
+      }
     } else {
       // Default: credit stream creator
       const stream = await db.query.streams.findFirst({

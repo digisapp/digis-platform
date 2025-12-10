@@ -43,6 +43,7 @@ export default function GoLivePage() {
   const [loading, setLoading] = useState(true);
   const [recentStats, setRecentStats] = useState({ avgViewers: 0, totalStreams: 0 });
   const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
+  const [featuredCreatorCommission, setFeaturedCreatorCommission] = useState(0);
 
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
@@ -346,6 +347,7 @@ export default function GoLivePage() {
           description: description.trim() || undefined,
           privacy,
           orientation,
+          featuredCreatorCommission,
         }),
       });
 
@@ -572,8 +574,38 @@ export default function GoLivePage() {
               <FeaturedCreatorSelector
                 selectedCreators={featuredCreators}
                 onCreatorsChange={setFeaturedCreators}
-                maxCreators={20}
+                maxCreators={30}
               />
+
+              {/* Featured Creator Commission - Only show if featured creators are selected */}
+              {featuredCreators.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    Featured Creator Commission
+                  </label>
+                  <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-300">Your commission on tips to featured creators</span>
+                      <span className="text-lg font-bold text-pink-400">{featuredCreatorCommission}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={featuredCreatorCommission}
+                      onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
+                      className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
+                    />
+                    <div className="flex justify-between mt-2 text-xs text-gray-500">
+                      <span>0% (Creator gets 100%)</span>
+                      <span>100% (You get all)</span>
+                    </div>
+                    <p className="mt-3 text-xs text-gray-400">
+                      When viewers tip a featured creator, you'll receive {featuredCreatorCommission}% and they'll receive {100 - featuredCreatorCommission}%.
+                    </p>
+                  </div>
+                </div>
+              )}
 
             </div>
 

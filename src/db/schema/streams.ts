@@ -37,6 +37,9 @@ export const streams = pgTable('streams', {
   privacy: text('privacy').default('public').notNull(), // public, followers, private
   orientation: text('orientation').default('landscape').notNull(), // landscape, portrait
 
+  // Featured creator commission (0-100, percentage host takes from featured creator tips)
+  featuredCreatorCommission: integer('featured_creator_commission').default(0).notNull(),
+
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 
