@@ -58,10 +58,46 @@ export default function GoLivePage() {
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [previewError, setPreviewError] = useState('');
 
+  // Track actual device orientation (portrait = phone held upright)
+  const [deviceOrientation, setDeviceOrientation] = useState<'portrait' | 'landscape'>('portrait');
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number>();
+
+  // Detect actual device orientation
+  useEffect(() => {
+    const updateDeviceOrientation = () => {
+      if (typeof window !== 'undefined') {
+        // Check screen orientation API first
+        if (screen.orientation) {
+          const isPortrait = screen.orientation.type.includes('portrait');
+          setDeviceOrientation(isPortrait ? 'portrait' : 'landscape');
+        } else {
+          // Fallback to window dimensions
+          setDeviceOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
+        }
+      }
+    };
+
+    updateDeviceOrientation();
+
+    // Listen for orientation changes
+    if (screen.orientation) {
+      screen.orientation.addEventListener('change', updateDeviceOrientation);
+    }
+    window.addEventListener('resize', updateDeviceOrientation);
+    window.addEventListener('orientationchange', updateDeviceOrientation);
+
+    return () => {
+      if (screen.orientation) {
+        screen.orientation.removeEventListener('change', updateDeviceOrientation);
+      }
+      window.removeEventListener('resize', updateDeviceOrientation);
+      window.removeEventListener('orientationchange', updateDeviceOrientation);
+    };
+  }, []);
 
   useEffect(() => {
     // Auto-detect device type and set orientation
@@ -93,6 +129,13 @@ export default function GoLivePage() {
       startMediaStream();
     }
   }, [selectedVideoDevice, selectedAudioDevice, orientation]);
+
+  // On mobile, auto-sync orientation selection with actual device orientation
+  useEffect(() => {
+    if (isMobile) {
+      setOrientation(deviceOrientation);
+    }
+  }, [deviceOrientation, isMobile]);
 
   const checkCreatorStatus = async () => {
     try {
@@ -489,37 +532,31 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Orientation - Only show toggle on mobile */}
+              {/* Orientation - Auto-follows device rotation on mobile */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
                   Screen Orientation
                 </label>
                 {isMobile ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setOrientation('portrait')}
-                      className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
-                        orientation === 'portrait'
-                          ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
-                      }`}
-                    >
-                      <div className="font-semibold text-white text-sm">📱 Portrait</div>
-                      <div className="text-xs text-gray-400 mt-1">TikTok-style vertical</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrientation('landscape')}
-                      className={`p-4 rounded-xl border-2 transition-all duration-300 touch-manipulation ${
-                        orientation === 'landscape'
-                          ? 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
-                      }`}
-                    >
-                      <div className="font-semibold text-white text-sm">📺 Landscape</div>
-                      <div className="text-xs text-gray-400 mt-1">Horizontal widescreen</div>
-                    </button>
+                  <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
+                    <div className="flex items-center gap-3">
+                      <div className={`text-2xl transition-transform duration-300 ${
+                        orientation === 'portrait' ? '' : 'rotate-90'
+                      }`}>
+                        📱
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-white text-sm">
+                          {orientation === 'portrait' ? 'Portrait Mode' : 'Landscape Mode'}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Auto-follows your phone rotation
+                        </div>
+                      </div>
+                      <div className="text-cyan-400 text-xs font-medium">
+                        AUTO
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
@@ -584,7 +621,7 @@ export default function GoLivePage() {
                   {/* Orientation badge */}
                   <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
                     {orientation === 'portrait' ? '📱 Portrait' : '📺 Landscape'}
-                    {!isMobile && <span className="text-gray-400 ml-1">(auto)</span>}
+                    {isMobile && <span className="text-cyan-400 ml-1">(auto)</span>}
                   </div>
                 </div>
               )}
