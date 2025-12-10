@@ -85,7 +85,7 @@ export default function MyTicketsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to join show');
+        throw new Error(data.error || 'Failed to join stream');
       }
 
       // Redirect to viewer page
@@ -93,7 +93,7 @@ export default function MyTicketsPage() {
         router.push(`/stream/${data.roomName}`);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to join show');
+      alert(err instanceof Error ? err.message : 'Failed to join stream');
     }
   };
 
@@ -184,12 +184,12 @@ export default function MyTicketsPage() {
           <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center">
             <div className="text-6xl mb-4">🎫</div>
             <h3 className="text-xl font-bold text-white mb-2">
-              {filter === 'upcoming' ? 'No upcoming shows' : 'No past shows'}
+              {filter === 'upcoming' ? 'No upcoming streams' : 'No past streams'}
             </h3>
             <p className="text-gray-400 mb-6">
               {filter === 'upcoming'
-                ? 'Purchase tickets to exclusive shows and events'
-                : 'Your attended shows will appear here'}
+                ? 'Purchase tickets to exclusive streams and events'
+                : 'Your attended streams will appear here'}
             </p>
             {filter === 'upcoming' && (
               <GlassButton

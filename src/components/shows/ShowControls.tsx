@@ -34,7 +34,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to start show');
+        throw new Error(data.error || 'Failed to start stream');
       }
 
       // Redirect to broadcast page
@@ -44,14 +44,14 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
         onUpdate();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start show');
+      setError(err instanceof Error ? err.message : 'Failed to start stream');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEndShow = async () => {
-    if (!confirm('Are you sure you want to end this show? This cannot be undone.')) {
+    if (!confirm('Are you sure you want to end this stream? This cannot be undone.')) {
       return;
     }
 
@@ -66,12 +66,12 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to end show');
+        throw new Error(data.error || 'Failed to end stream');
       }
 
       onUpdate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to end show');
+      setError(err instanceof Error ? err.message : 'Failed to end stream');
     } finally {
       setLoading(false);
     }
@@ -89,14 +89,14 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to cancel show');
+        throw new Error(data.error || 'Failed to cancel stream');
       }
 
       // Show success message
-      alert(`Show cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
+      alert(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
       router.push('/creator/streams');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel show');
+      setError(err instanceof Error ? err.message : 'Failed to cancel stream');
       setShowCancelConfirm(false);
     } finally {
       setLoading(false);

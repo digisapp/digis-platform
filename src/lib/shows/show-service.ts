@@ -125,21 +125,21 @@ export class ShowService {
       });
 
       if (!show) {
-        throw new Error('Show not found');
+        throw new Error('Stream not found');
       }
 
       // Check if show is still available
       if (show.status === 'cancelled') {
-        throw new Error('This show has been cancelled');
+        throw new Error('This stream has been cancelled');
       }
 
       if (show.status === 'ended') {
-        throw new Error('This show has already ended');
+        throw new Error('This stream has already ended');
       }
 
       // Check if sold out
       if (show.maxTickets && show.ticketsSold >= show.maxTickets) {
-        throw new Error('Show is sold out');
+        throw new Error('Stream is sold out');
       }
 
       // Check if user already has a ticket
@@ -151,7 +151,7 @@ export class ShowService {
       });
 
       if (existingTicket) {
-        throw new Error('You already have a ticket for this show');
+        throw new Error('You already have a ticket for this stream');
       }
 
       // Check user has sufficient balance
@@ -248,7 +248,7 @@ export class ShowService {
     // Check if user has a valid ticket
     const hasValidTicket = await this.hasTicket(userId, showId);
     if (!hasValidTicket) {
-      throw new Error('No valid ticket for this show');
+      throw new Error('No valid ticket for this stream');
     }
 
     // Get show details
@@ -257,12 +257,12 @@ export class ShowService {
     });
 
     if (!show) {
-      throw new Error('Show not found');
+      throw new Error('Stream not found');
     }
 
     // Check if show is live
     if (show.status !== 'live') {
-      throw new Error('Show is not currently live');
+      throw new Error('Stream is not currently live');
     }
 
     // Check-in the attendee
@@ -404,15 +404,15 @@ export class ShowService {
       });
 
       if (!show) {
-        throw new Error('Show not found');
+        throw new Error('Stream not found');
       }
 
       if (show.creatorId !== creatorId) {
-        throw new Error('Unauthorized: Not the show creator');
+        throw new Error('Unauthorized: Not the stream creator');
       }
 
       if (show.status !== 'scheduled') {
-        throw new Error('Show is not in scheduled state');
+        throw new Error('Stream is not in scheduled state');
       }
 
       // Update show status to live
@@ -506,15 +506,15 @@ The Digis Team
       });
 
       if (!show) {
-        throw new Error('Show not found');
+        throw new Error('Stream not found');
       }
 
       if (show.creatorId !== creatorId) {
-        throw new Error('Unauthorized: Not the show creator');
+        throw new Error('Unauthorized: Not the stream creator');
       }
 
       if (show.status !== 'live') {
-        throw new Error('Show is not currently live');
+        throw new Error('Stream is not currently live');
       }
 
       // Update show status to ended
@@ -580,7 +580,7 @@ The Digis Team
     });
 
     if (!show) {
-      throw new Error('Show not found');
+      throw new Error('Stream not found');
     }
 
     if (show.creatorId !== creatorId) {
@@ -618,7 +618,7 @@ The Digis Team
     });
 
     if (!show) {
-      throw new Error('Show not found');
+      throw new Error('Stream not found');
     }
 
     if (show.creatorId !== creatorId) {
@@ -660,7 +660,7 @@ The Digis Team
       });
 
       if (!show) {
-        throw new Error('Show not found');
+        throw new Error('Stream not found');
       }
 
       if (show.creatorId !== creatorId) {
@@ -668,7 +668,7 @@ The Digis Team
       }
 
       if (show.status !== 'scheduled') {
-        throw new Error('Can only cancel scheduled shows');
+        throw new Error('Can only cancel scheduled streams');
       }
 
       // Get all tickets for refunds
@@ -751,7 +751,7 @@ The Digis Team
     });
 
     if (!show) {
-      throw new Error('Show not found');
+      throw new Error('Stream not found');
     }
 
     if (show.creatorId !== creatorId) {
@@ -759,7 +759,7 @@ The Digis Team
     }
 
     if (show.status !== 'scheduled') {
-      throw new Error('Can only edit scheduled shows');
+      throw new Error('Can only edit scheduled streams');
     }
 
     const [updated] = await db

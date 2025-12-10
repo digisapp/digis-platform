@@ -195,7 +195,7 @@ export function TicketPurchaseModal({ show, onClose, onSuccess }: TicketPurchase
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-4">
-            By purchasing, you agree to the show's terms and refund policy
+            By purchasing, you agree to the stream's terms and refund policy
           </p>
         </div>
       </div>

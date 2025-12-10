@@ -178,7 +178,7 @@ export default function FanDashboard() {
             <div className="text-5xl mb-4">👋</div>
             <h2 className="text-2xl font-bold text-white mb-2">Welcome to Digis!</h2>
             <p className="text-gray-300 mb-6 max-w-md mx-auto">
-              Start by following some creators to personalize your feed. We'll show you their live streams, new content, and upcoming shows right here.
+              Start by following some creators to personalize your feed. We'll show you their live streams, new content, and upcoming streams right here.
             </p>
             <button
               onClick={() => router.push('/explore')}
