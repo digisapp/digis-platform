@@ -819,9 +819,9 @@ export function Navigation() {
           </button>
         )}
 
-        {/* Navigation Items */}
+        {/* Navigation Items - Skip "Go Live" on desktop since it has its own button above */}
         <div className="flex-1 flex flex-col gap-2">
-          {navItems.map((item) => {
+          {navItems.filter(item => item.label !== 'Go Live').map((item) => {
             const IconComponent = item.icon;
             return (
               <button
