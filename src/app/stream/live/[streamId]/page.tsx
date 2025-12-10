@@ -23,7 +23,7 @@ import { Coins, MessageCircle, UserPlus, RefreshCw, Users } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
-function LocalCameraPreview() {
+function LocalCameraPreview({ isPortrait = false }: { isPortrait?: boolean }) {
   const { localParticipant } = useLocalParticipant();
 
   const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
@@ -46,7 +46,7 @@ function LocalCameraPreview() {
   return (
     <VideoTrack
       trackRef={{ participant: localParticipant, source: Track.Source.Camera, publication: cameraTrack }}
-      className="h-full w-full object-contain"
+      className={`h-full w-full ${isPortrait ? 'object-cover' : 'object-contain'}`}
     />
   );
 }
@@ -946,24 +946,8 @@ export default function BroadcastStudioPage() {
           </div>
       )}
 
-      {/* Minimal Top Bar - Just End Stream */}
-      <div className="absolute top-[calc(48px+env(safe-area-inset-top))] md:top-0 left-0 right-0 z-40 p-3 flex justify-end">
-        <button
-          onClick={() => {
-            setIsLeaveAttempt(false);
-            setShowEndConfirm(true);
-          }}
-          className="flex items-center gap-1.5 px-4 py-2 backdrop-blur-xl bg-red-500/20 rounded-xl border-2 border-red-500/50 text-white font-semibold text-sm hover:bg-red-500/30 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all duration-300"
-        >
-          <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-          </svg>
-          <span className="text-red-400">End Stream</span>
-        </button>
-      </div>
 
-      <div className="container mx-auto px-2 sm:px-4 pt-16 md:pt-4 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
+      <div className="container mx-auto px-2 sm:px-4 pt-2 md:pt-4 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
         <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
           <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
@@ -1018,7 +1002,7 @@ export default function BroadcastStudioPage() {
                       },
                     }}
                   >
-                    <LocalCameraPreview />
+                    <LocalCameraPreview isPortrait={streamOrientation === 'portrait'} />
                     <RoomAudioRenderer />
                   </LiveKitRoom>
                   {/* Top Left Overlay - LIVE + Timer */}
@@ -1083,6 +1067,23 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
+                  {/* Bottom Center - End Stream Button */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+                    <button
+                      onClick={() => {
+                        setIsLeaveAttempt(false);
+                        setShowEndConfirm(true);
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/30 transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                      </svg>
+                      <span className="text-red-400 text-xs">End Stream</span>
+                    </button>
+                  </div>
+
                   <VideoControls
                     onToggleMute={handleToggleMute}
                     onToggleFullscreen={handleToggleFullscreen}
@@ -1117,7 +1118,7 @@ export default function BroadcastStudioPage() {
 
           {/* Chat Sidebar + Top Gifters */}
           <div className="lg:col-span-1 space-y-4">
-            <div className={`${isPortraitDevice ? 'h-[210px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
+            <div className={`${isPortraitDevice ? 'h-[280px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}
