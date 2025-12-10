@@ -114,12 +114,18 @@ export default function ExplorePage() {
         if (isReset) {
           // Separate live creators for the top section
           const live = allCreators.filter((c: Creator) => c.isLive);
-          const notLive = selectedFilter === 'live' ? [] : allCreators;
+          // Filter out live creators from main grid to avoid duplicates
+          const notLive = selectedFilter === 'live' ? [] : allCreators.filter((c: Creator) => !c.isLive);
 
           setLiveCreators(live);
           setCreators(notLive);
         } else {
-          setCreators(prev => [...prev, ...allCreators]);
+          // Deduplicate when loading more to avoid showing same creator twice
+          setCreators(prev => {
+            const existingIds = new Set(prev.map(c => c.id));
+            const newCreators = allCreators.filter((c: Creator) => !existingIds.has(c.id));
+            return [...prev, ...newCreators];
+          });
         }
 
         setHasMore(result.data.pagination?.hasMore ?? false);
