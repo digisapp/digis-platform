@@ -219,14 +219,33 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  // Same order for all: Home, Explore, Streams, Chats
-  // "Streams" is for watching others, not managing your own
-  const navItems = [
+  // Creators: Home, Calls, Chats (focused on creating and earning)
+  // Fans: Home, Explore, Streams, Chats (full discovery experience)
+  const navItems = userRole === 'creator' ? [
     {
       label: 'Home',
       icon: Home,
-      path: userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard',
-      active: isActive('/dashboard') || isActive('/creator/dashboard') || isActive('/admin'),
+      path: '/creator/dashboard',
+      active: isActive('/creator/dashboard'),
+    },
+    {
+      label: 'Calls',
+      icon: Phone,
+      path: '/creator/calls',
+      active: isActive('/creator/calls'),
+    },
+    {
+      label: 'Chats',
+      icon: MessageCircle,
+      path: '/chats',
+      active: isActive('/chats') || pathname?.startsWith('/chats'),
+    },
+  ] : [
+    {
+      label: 'Home',
+      icon: Home,
+      path: userRole === 'admin' ? '/admin' : '/dashboard',
+      active: isActive('/dashboard') || isActive('/admin'),
     },
     {
       label: 'Explore',
@@ -461,7 +480,7 @@ export function Navigation() {
 
         {/* Navigation content */}
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
-          {/* Home */}
+          {/* First nav item (Home) */}
           <button
             onClick={() => router.push(navItems[0].path)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
@@ -487,7 +506,7 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Explore */}
+          {/* Second nav item (Calls for creators, Explore for fans) */}
           <button
             onClick={() => router.push(navItems[1].path)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
@@ -560,37 +579,39 @@ export function Navigation() {
             </button>
           </div>
 
-          {/* Streams */}
-          <button
-            onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[2].active
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            {(() => {
-              const Icon = navItems[2].icon;
-              return (
-                <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
-                  {navItems[2].active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                  )}
-                </div>
-              );
-            })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[2].label}
-            </span>
-          </button>
+          {/* Third nav item (Streams for fans only - 4 items) */}
+          {navItems.length > 3 && (
+            <button
+              onClick={() => router.push(navItems[2].path)}
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                navItems[2].active
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+              }`}
+              style={{ minHeight: '48px' }}
+            >
+              {(() => {
+                const Icon = navItems[2].icon;
+                return (
+                  <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                    <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                    {navItems[2].active && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                    )}
+                  </div>
+                );
+              })()}
+              <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                {navItems[2].label}
+              </span>
+            </button>
+          )}
 
-          {/* Messages/Chats */}
+          {/* Last nav item (Chats) - index 2 for creators, index 3 for fans */}
           <button
-            onClick={() => router.push(navItems[3].path)}
+            onClick={() => router.push(navItems[navItems.length - 1].path)}
             className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[3].active
+              navItems[navItems.length - 1].active
                 ? 'text-cyan-400'
                 : 'text-gray-300'
             }`}
@@ -598,11 +619,11 @@ export function Navigation() {
           >
             <div className="relative">
               {(() => {
-                const Icon = navItems[3].icon;
+                const Icon = navItems[navItems.length - 1].icon;
                 return (
-                  <div className={`relative transition-transform ${navItems[3].active ? 'scale-110' : ''}`}>
-                    <Icon className="w-6 h-6" strokeWidth={navItems[3].active ? 2.5 : 2} />
-                    {navItems[3].active && (
+                  <div className={`relative transition-transform ${navItems[navItems.length - 1].active ? 'scale-110' : ''}`}>
+                    <Icon className="w-6 h-6" strokeWidth={navItems[navItems.length - 1].active ? 2.5 : 2} />
+                    {navItems[navItems.length - 1].active && (
                       <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
                     )}
                   </div>
@@ -616,8 +637,8 @@ export function Navigation() {
                 </div>
               )}
             </div>
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[3].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[3].label}
+            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[navItems.length - 1].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+              {navItems[navItems.length - 1].label}
             </span>
           </button>
         </div>
