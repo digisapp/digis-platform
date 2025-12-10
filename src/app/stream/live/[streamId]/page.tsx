@@ -1118,7 +1118,7 @@ export default function BroadcastStudioPage() {
 
           {/* Chat Sidebar + Top Gifters */}
           <div className="lg:col-span-1 space-y-4">
-            <div className={`${isPortraitDevice ? 'h-[280px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
+            <div className={`${isPortraitDevice ? 'h-[500px]' : 'h-[calc(60vh-8rem)]'} lg:sticky lg:top-24 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}
                 messages={messages}
