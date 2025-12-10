@@ -17,7 +17,8 @@ import {
   Coins,
   Settings,
   Ticket,
-  Radio
+  Radio,
+  Upload
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
@@ -219,7 +220,7 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  // Creators: Home, Calls, Chats (focused on creating and earning)
+  // Creators: Home, Calls, Upload, Chats (focused on creating and earning)
   // Fans: Home, Explore, Streams, Chats (full discovery experience)
   const navItems = userRole === 'creator' ? [
     {
@@ -233,6 +234,12 @@ export function Navigation() {
       icon: Phone,
       path: '/creator/calls',
       active: isActive('/creator/calls'),
+    },
+    {
+      label: 'Upload',
+      icon: Upload,
+      path: '/creator/content/new',
+      active: isActive('/creator/content/new') || isActive('/creator/content'),
     },
     {
       label: 'Chats',

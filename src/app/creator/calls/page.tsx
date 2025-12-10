@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CallRequestQueue } from '@/components/calls/CallRequestQueue';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Phone, Clock, Coins, ArrowLeft } from 'lucide-react';
+import { Phone, Clock, Coins } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 
@@ -92,16 +92,6 @@ export default function CreatorCallsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Back Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/creator/dashboard')}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        </div>
-
         {/* Pending Requests - Top of page */}
         <div className="mb-8">
           <CallRequestQueue autoRefresh refreshInterval={5000} />
