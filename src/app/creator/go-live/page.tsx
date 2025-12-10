@@ -704,22 +704,13 @@ export default function GoLivePage() {
           )}
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-7xl mx-auto">
-            <GlassButton
-              type="button"
-              variant="ghost"
-              size="lg"
-              onClick={() => router.back()}
-              className="w-full sm:flex-1 hover:scale-105 transition-transform duration-300 text-white font-semibold"
-            >
-              Cancel
-            </GlassButton>
+          <div className="max-w-7xl mx-auto">
             <GlassButton
               type="submit"
               variant="gradient"
               size="lg"
               disabled={!title.trim() || !mediaStream || isCreating}
-              className="w-full sm:flex-1 relative overflow-hidden group"
+              className="w-full relative overflow-hidden group"
               shimmer
               glow
             >
@@ -730,8 +721,7 @@ export default function GoLivePage() {
                 </>
               ) : (
                 <>
-                  <span className="text-xl mr-2">📹</span>
-                  <span className="font-bold text-white">Start Streaming</span>
+                  <span className="font-bold text-white">Start Stream</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}

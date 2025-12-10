@@ -123,7 +123,7 @@ export default function CreatorDashboard() {
 
       switch(e.key.toLowerCase()) {
         case 'l':
-          router.push('/creator/go-stream');
+          router.push('/creator/go-live');
           break;
         case 'u':
           router.push('/creator/content/new');

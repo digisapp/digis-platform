@@ -122,7 +122,7 @@ export function Navigation() {
     router.prefetch('/chats');
     router.prefetch('/settings');
     router.prefetch('/wallet');
-    router.prefetch('/creator/go-stream');
+    router.prefetch('/creator/go-live');
   }, [authUser?.id, router]);
 
   // Heartbeat and auth state listener for cache clearing
@@ -232,8 +232,8 @@ export function Navigation() {
     {
       label: 'Go Live',
       icon: Radio,
-      path: '/creator/go-stream',
-      active: isActive('/creator/go-stream'),
+      path: '/creator/go-live',
+      active: isActive('/creator/go-live'),
     },
     {
       label: 'Upload',
@@ -360,7 +360,7 @@ export function Navigation() {
                 <>
                   <button
                     onClick={() => {
-                      router.push('/creator/go-stream');
+                      router.push('/creator/go-live');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
@@ -787,7 +787,7 @@ export function Navigation() {
               if (isLive && liveStreamId) {
                 router.push(`/stream/live/${liveStreamId}`);
               } else {
-                router.push('/creator/go-stream');
+                router.push('/creator/go-live');
               }
             }}
             className="relative mb-4 group"
