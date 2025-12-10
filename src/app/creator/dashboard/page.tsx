@@ -495,7 +495,7 @@ export default function CreatorDashboard() {
           {/* Quick Actions - Above Balance */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <button
-              onClick={() => router.push('/creator/go-stream')}
+              onClick={() => router.push('/creator/go-live')}
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Radio className="w-6 h-6 text-red-400" />
@@ -678,10 +678,20 @@ export default function CreatorDashboard() {
                     >
                       <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
                         {content.thumbnailUrl ? (
-                          <img src={content.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          getContentIcon(content.type)
-                        )}
+                          <img
+                            src={content.thumbnailUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Hide broken image and show fallback icon
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={content.thumbnailUrl ? 'hidden' : ''}>
+                          {getContentIcon(content.type)}
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{content.title}</p>
