@@ -183,31 +183,12 @@ export function Navigation() {
     };
   }, [authUser]);
 
-  // Subscribe to real-time updates for follower count changes (creators only)
+  // Refresh follower count when profile dropdown is opened (creators only)
   useEffect(() => {
-    if (!authUser || userRole !== 'creator') return;
-
-    const supabase = createClient();
-    const followsChannel = supabase
-      .channel('navigation-followers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'follows',
-          filter: `following_id=eq.${authUser.id}`,
-        },
-        () => {
-          fetchFollowerCount();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(followsChannel);
-    };
-  }, [authUser, userRole]);
+    if (showProfileMenu && userRole === 'creator') {
+      fetchFollowerCount();
+    }
+  }, [showProfileMenu, userRole]);
 
   const fetchBalance = async () => {
     try {
