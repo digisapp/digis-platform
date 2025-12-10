@@ -92,7 +92,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
     setIsSending(true);
 
     try {
-      const response = await fetch(`/api/streams/${streamId}/featured/${spotlightedCreator?.creatorId}/tip`, {
+      const response = await fetch(`/api/streams/${streamId}/featured/${spotlightedCreator?.creatorId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount }),
@@ -174,10 +174,11 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           {!isHost && (
             <button
               onClick={() => setShowTipModal(true)}
-              className="ml-1 p-2 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full text-white hover:scale-110 transition-transform shadow-lg"
-              title="Send tip"
+              className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full text-white hover:scale-105 transition-transform shadow-lg animate-pulse hover:animate-none"
+              title="Send tip to featured creator"
             >
               <Gift className="w-4 h-4" />
+              <span className="text-xs font-bold">TIP</span>
             </button>
           )}
         </div>
