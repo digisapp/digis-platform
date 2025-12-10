@@ -1,12 +1,122 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { streamFeaturedCreators, streams } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { streamFeaturedCreators, streams, users } from '@/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { StreamService } from '@/lib/streams/stream-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * Send a tip to a featured creator
+ */
+export async function POST(
+  request: NextRequest,
+  props: { params: Promise<{ streamId: string; creatorId: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const params = await props.params;
+    const { streamId, creatorId } = params;
+
+    const body = await request.json();
+    const { amount } = body;
+
+    if (!amount || amount < 1) {
+      return NextResponse.json({ error: 'Invalid tip amount' }, { status: 400 });
+    }
+
+    // Verify stream exists
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+    });
+
+    if (!stream) {
+      return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
+    }
+
+    // Verify featured creator exists
+    const featuredCreator = await db.query.streamFeaturedCreators.findFirst({
+      where: and(
+        eq(streamFeaturedCreators.streamId, streamId),
+        eq(streamFeaturedCreators.creatorId, creatorId)
+      ),
+    });
+
+    if (!featuredCreator) {
+      return NextResponse.json({ error: 'Featured creator not found' }, { status: 404 });
+    }
+
+    // Get sender's details
+    const sender = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+    });
+
+    if (!sender) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get receiver details
+    const receiver = await db.query.users.findFirst({
+      where: eq(users.id, creatorId),
+    });
+
+    if (!receiver) {
+      return NextResponse.json({ error: 'Creator not found' }, { status: 404 });
+    }
+
+    // Use StreamService.sendTip which handles balance check and transactions
+    const senderUsername = sender.username || sender.displayName || 'Anonymous';
+    const receiverUsername = receiver.username || 'Unknown';
+
+    const result = await StreamService.sendTip(
+      streamId,
+      user.id,
+      senderUsername,
+      amount,
+      creatorId,
+      receiverUsername
+    );
+
+    // Update featured creator's tip count
+    await db
+      .update(streamFeaturedCreators)
+      .set({
+        tipsReceived: sql`${streamFeaturedCreators.tipsReceived} + ${amount}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(streamFeaturedCreators.id, featuredCreator.id));
+
+    // Broadcast tip to stream
+    try {
+      await AblyRealtimeService.broadcastToStream(streamId, 'featured-creator-tip', {
+        senderUsername: senderUsername,
+        senderAvatarUrl: sender.avatarUrl,
+        receiverUsername: receiverUsername,
+        amount,
+      });
+    } catch (broadcastError) {
+      console.error('[FEATURED TIP BROADCAST ERROR]', broadcastError);
+    }
+
+    return NextResponse.json({
+      success: true,
+      amount,
+      newBalance: result.newBalance,
+    });
+  } catch (error: any) {
+    console.error('[FEATURED CREATOR TIP ERROR]', error);
+    return NextResponse.json({ error: error.message || 'Failed to send tip' }, { status: 500 });
+  }
+}
 
 /**
  * Update a featured creator (spotlight, order, etc.)

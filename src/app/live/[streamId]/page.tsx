@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
+import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 
 interface StreamData {
   id: string;
@@ -548,18 +549,22 @@ export default function TheaterModePage() {
                 </div>
               </div>
             ) : token && serverUrl ? (
-              <LiveKitRoom
-                token={token}
-                serverUrl={serverUrl}
-                className="h-full"
-                options={{
-                  adaptiveStream: true,
-                  dynacast: true,
-                }}
-              >
-                <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
-                <RoomAudioRenderer muted={muted} />
-              </LiveKitRoom>
+              <>
+                <LiveKitRoom
+                  token={token}
+                  serverUrl={serverUrl}
+                  className="h-full"
+                  options={{
+                    adaptiveStream: true,
+                    dynacast: true,
+                  }}
+                >
+                  <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
+                  <RoomAudioRenderer muted={muted} />
+                </LiveKitRoom>
+                {/* Spotlighted Creator Overlay for Viewers */}
+                <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <div className="text-center">

@@ -15,6 +15,7 @@ import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
+import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -1088,6 +1089,9 @@ export default function BroadcastStudioPage() {
                       <span className="text-red-400 text-sm font-semibold">End Stream</span>
                     </button>
                   </div>
+
+                  {/* Spotlighted Creator Overlay */}
+                  <SpotlightedCreatorOverlay streamId={streamId} isHost={true} />
 
                   <VideoControls
                     onToggleMute={handleToggleMute}
