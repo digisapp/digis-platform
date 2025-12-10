@@ -24,8 +24,14 @@ export async function GET(
 
     const { streamId } = await params;
 
-    // Get stream details
-    const stream = await StreamService.getStream(streamId);
+    // Parallel fetch: stream details, access check, user details
+    const [stream, accessCheck, dbUser] = await Promise.all([
+      StreamService.getStream(streamId),
+      StreamService.checkStreamAccess(streamId, user.id),
+      db.query.users.findFirst({
+        where: eq(users.id, user.id),
+      }),
+    ]);
 
     if (!stream) {
       return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
@@ -35,10 +41,13 @@ export async function GET(
       return NextResponse.json({ error: 'Stream is not live' }, { status: 400 });
     }
 
-    // Get user details
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
+    // Check access control (subscribers-only, followers-only, ticketed, etc.)
+    if (!accessCheck.hasAccess) {
+      return NextResponse.json(
+        { error: accessCheck.reason || 'Access denied' },
+        { status: 403 }
+      );
+    }
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
