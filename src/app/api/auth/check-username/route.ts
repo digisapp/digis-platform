@@ -2,70 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { validateUsernameFormat, isReservedUsername } from '@/lib/reserved-usernames';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-const MIN_LENGTH = 3;
-const MAX_LENGTH = 20;
-
-// Reserved usernames that nobody can take
-const RESERVED_USERNAMES = new Set([
-  'admin',
-  'support',
-  'digis',
-  'moderator',
-  'owner',
-  'system',
-  'root',
-  'help',
-  'api',
-  'www',
-  'mail',
-  'ftp',
-  'blog',
-  'shop',
-  'store',
-  'app',
-  'mobile',
-  'web',
-  'official',
-  'verified',
-  'staff',
-  'team',
-  'info',
-  'contact',
-  'security',
-  'legal',
-  'terms',
-  'privacy',
-  'about',
-  'home',
-  'dashboard',
-  'settings',
-  'login',
-  'signup',
-  'register',
-  'account',
-  'profile',
-  'user',
-  'users',
-  'creator',
-  'creators',
-  'fan',
-  'fans',
-  'live',
-  'stream',
-  'streams',
-  'broadcast',
-  'explore',
-  'search',
-  'messages',
-  'notifications',
-  'wallet',
-  'earnings',
-  'payouts',
-]);
 
 export async function GET(request: NextRequest) {
   try {
@@ -80,44 +20,21 @@ export async function GET(request: NextRequest) {
     }
 
     const username = rawUsername.toLowerCase();
-    console.log('[check-username] Checking:', username);
 
-    // Length validation
-    if (username.length < MIN_LENGTH) {
+    // Format validation (length, characters, etc.)
+    const formatCheck = validateUsernameFormat(username);
+    if (!formatCheck.valid) {
       return NextResponse.json({
         available: false,
-        error: `Username must be at least ${MIN_LENGTH} characters`,
+        error: formatCheck.error,
       });
     }
 
-    if (username.length > MAX_LENGTH) {
+    // Check reserved usernames (includes 3-letter names and brand names)
+    if (isReservedUsername(username)) {
       return NextResponse.json({
         available: false,
-        error: `Username must be at most ${MAX_LENGTH} characters`,
-      });
-    }
-
-    // Must start with a letter
-    if (!/^[a-z]/.test(username)) {
-      return NextResponse.json({
-        available: false,
-        error: 'Username must start with a letter',
-      });
-    }
-
-    // Only letters, numbers, and underscores
-    if (!/^[a-z][a-z0-9_]*$/.test(username)) {
-      return NextResponse.json({
-        available: false,
-        error: 'Username can only contain letters, numbers, and underscores',
-      });
-    }
-
-    // Check reserved usernames
-    if (RESERVED_USERNAMES.has(username)) {
-      return NextResponse.json({
-        available: false,
-        error: 'This username is reserved',
+        error: 'This username is reserved for verified creators',
       });
     }
 

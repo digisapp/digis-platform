@@ -130,10 +130,38 @@ export const RESERVED_USERNAMES = new Set([
 ]);
 
 /**
- * Check if a username is reserved
+ * Check if a username is reserved (premium/VIP only)
+ * - All 3-letter usernames are reserved
+ * - Specific brand/celebrity names are reserved
  */
 export function isReservedUsername(username: string): boolean {
-  return RESERVED_USERNAMES.has(username.toLowerCase());
+  const lower = username.toLowerCase();
+
+  // All 3-letter usernames are reserved for VIP creators
+  if (lower.length === 3) {
+    return true;
+  }
+
+  // Check specific reserved names
+  return RESERVED_USERNAMES.has(lower);
+}
+
+/**
+ * Check if username is reserved (for admin display purposes)
+ * Returns the reason why it's reserved
+ */
+export function getReservedReason(username: string): string | null {
+  const lower = username.toLowerCase();
+
+  if (lower.length === 3) {
+    return 'Premium 3-letter username (VIP only)';
+  }
+
+  if (RESERVED_USERNAMES.has(lower)) {
+    return 'Reserved username (VIP only)';
+  }
+
+  return null;
 }
 
 /**
