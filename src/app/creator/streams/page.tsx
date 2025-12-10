@@ -117,7 +117,7 @@ export default function CreatorStreamsPage() {
             className="!bg-gradient-to-r !from-red-500 !to-pink-500 flex items-center gap-2"
           >
             <Radio className="w-5 h-5" />
-            Go Stream
+            Go Live
           </GlassButton>
         </div>
 

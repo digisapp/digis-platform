@@ -341,7 +341,7 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-base md:text-sm text-red-400 font-bold">Go Stream</span>
+                    <span className="text-base md:text-sm text-red-400 font-bold">Go Live</span>
                   </button>
 
                   <button
@@ -736,7 +736,7 @@ export function Navigation() {
           )}
         </div>
 
-        {/* Go Stream Button for Creators */}
+        {/* Go Live Button for Creators */}
         {userRole === 'creator' && (
           <button
             onClick={() => {
@@ -747,7 +747,7 @@ export function Navigation() {
               }
             }}
             className="relative mb-4 group"
-            title={isLive ? 'View Your Stream' : 'Go Stream'}
+            title={isLive ? 'View Your Stream' : 'Go Live'}
           >
             {/* Glow effect */}
             <div className={`absolute -inset-2 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none ${
@@ -768,7 +768,7 @@ export function Navigation() {
               ) : (
                 <>
                   <Radio className="w-6 h-6 text-white" />
-                  <span className="text-[10px] font-bold text-white">Go Stream</span>
+                  <span className="text-[10px] font-bold text-white">Go Live</span>
                 </>
               )}
             </div>

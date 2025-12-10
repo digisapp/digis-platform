@@ -121,7 +121,7 @@ export function MobileWalletWidget() {
             {/* Creator Actions */}
             {userRole === 'creator' && (
               <>
-                {/* Go Stream */}
+                {/* Go Live */}
                 <button
                   onClick={() => {
                     setShowDropdown(false);
@@ -133,7 +133,7 @@ export function MobileWalletWidget() {
                     <Video className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-white drop-shadow">Go Stream</div>
+                    <div className="font-bold text-white drop-shadow">Go Live</div>
                     <div className="text-xs text-white/70">Start streaming now</div>
                   </div>
                 </button>
