@@ -717,11 +717,6 @@ export default function CreatorDashboard() {
             </div>
           </div>
 
-          {/* Keyboard shortcuts hint - desktop only */}
-          <div className="hidden md:flex items-center justify-center gap-6 mt-8 text-xs text-gray-500">
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">L</kbd> to Go Live</span>
-            <span>Press <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400">U</kbd> to Upload</span>
-          </div>
         </div>
       </div>
     </div>
