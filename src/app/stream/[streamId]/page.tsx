@@ -17,7 +17,7 @@ import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users, Heart, Share2,
   MessageCircle, Gift, ChevronDown, ChevronUp, X, Coins, Crown,
-  Zap, Eye, TrendingUp, ExternalLink, Star, Ticket
+  Zap, Eye, TrendingUp, ExternalLink, Star, Ticket, Video, Phone
 } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
@@ -40,6 +40,16 @@ type FeaturedCreator = {
   avatarUrl: string | null;
   isSpotlighted: boolean;
   tipsReceived: number;
+};
+
+// Creator call settings
+type CreatorCallSettings = {
+  callRatePerMinute: number;
+  minimumCallDuration: number;
+  voiceCallRatePerMinute: number;
+  minimumVoiceCallDuration: number;
+  isAvailableForCalls: boolean;
+  isAvailableForVoiceCalls: boolean;
 };
 
 // Component to display only the broadcaster's video
@@ -129,6 +139,12 @@ export default function StreamViewerPage() {
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
 
+  // Call request state
+  const [creatorCallSettings, setCreatorCallSettings] = useState<CreatorCallSettings | null>(null);
+  const [showCallRequestModal, setShowCallRequestModal] = useState(false);
+  const [isRequestingCall, setIsRequestingCall] = useState(false);
+  const [callRequestError, setCallRequestError] = useState<string | null>(null);
+
   // UI state
   const [isMuted, setIsMuted] = useState(true); // Start muted (browser requirement)
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -165,6 +181,7 @@ export default function StreamViewerPage() {
   useEffect(() => {
     if (stream?.creator?.id) {
       fetchFollowStatus();
+      fetchCreatorCallSettings(stream.creator.id);
     }
   }, [stream?.creator?.id]);
 
@@ -371,6 +388,18 @@ export default function StreamViewerPage() {
     }
   };
 
+  const fetchCreatorCallSettings = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/creators/${creatorId}/call-settings`);
+      const data = await response.json();
+      if (response.ok) {
+        setCreatorCallSettings(data.settings);
+      }
+    } catch (err) {
+      console.error('Error fetching creator call settings:', err);
+    }
+  };
+
   const fetchFollowStatus = async () => {
     if (!stream?.creator?.id) return;
     try {
@@ -475,6 +504,38 @@ export default function StreamViewerPage() {
       throw new Error(data.error || 'Failed to send tip');
     }
     fetchUserBalance();
+  };
+
+  const handleRequestCall = async (callType: 'video' | 'voice') => {
+    if (!stream?.creator?.id || isRequestingCall) return;
+
+    setIsRequestingCall(true);
+    setCallRequestError(null);
+
+    try {
+      const response = await fetch('/api/calls/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorId: stream.creator.id,
+          callType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowCallRequestModal(false);
+        // Redirect to the call page
+        router.push(`/calls/${data.call.id}`);
+      } else {
+        setCallRequestError(data.error || 'Failed to request call');
+      }
+    } catch (err) {
+      setCallRequestError('Failed to request call. Please try again.');
+    } finally {
+      setIsRequestingCall(false);
+    }
   };
 
   // Get the spotlighted creator (if any)
@@ -1002,6 +1063,16 @@ export default function StreamViewerPage() {
                     <Gift className="w-4 h-4" />
                     <span className="hidden sm:inline">Send Gift</span>
                   </button>
+                  {/* Call Request Button - Only show if creator is available for calls */}
+                  {creatorCallSettings && (creatorCallSettings.isAvailableForCalls || creatorCallSettings.isAvailableForVoiceCalls) && (
+                    <button
+                      onClick={() => setShowCallRequestModal(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full font-bold text-sm hover:scale-105 transition-transform"
+                    >
+                      <Video className="w-4 h-4" />
+                      <span className="hidden sm:inline">Call</span>
+                    </button>
+                  )}
                   <button
                     onClick={toggleFullscreen}
                     className="p-3 bg-black/60 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
@@ -1050,6 +1121,15 @@ export default function StreamViewerPage() {
                       <Gift className="w-3.5 h-3.5" />
                       Gift
                     </button>
+                    {creatorCallSettings && (creatorCallSettings.isAvailableForCalls || creatorCallSettings.isAvailableForVoiceCalls) && (
+                      <button
+                        onClick={() => setShowCallRequestModal(true)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full text-xs font-bold"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        Call
+                      </button>
+                    )}
                     <button
                       onClick={handleFollowToggle}
                       disabled={followLoading}
@@ -1249,6 +1329,146 @@ export default function StreamViewerPage() {
                   spotlightedCreator={spotlightedCreator}
                   hostName={stream.creator?.displayName || stream.creator?.username || 'Host'}
                 />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Call Request Modal */}
+        {showCallRequestModal && creatorCallSettings && (
+          <>
+            <div className="fixed inset-0 bg-black/60 z-50" onClick={() => setShowCallRequestModal(false)} />
+            <div className="fixed bottom-0 left-0 right-0 z-50 lg:bottom-auto lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-[450px]">
+              <div className="bg-black/95 backdrop-blur-xl rounded-t-3xl lg:rounded-3xl border border-white/20 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold">Request Private Call</h3>
+                    <p className="text-sm text-gray-400">with {stream.creator?.displayName || stream.creator?.username}</p>
+                  </div>
+                  <button onClick={() => setShowCallRequestModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Your Balance */}
+                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl mb-6">
+                  <span className="text-gray-400">Your Balance</span>
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-yellow-400" />
+                    <span className="text-xl font-bold text-yellow-400">{userBalance.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Call Options */}
+                <div className="space-y-3">
+                  {/* Video Call Option */}
+                  {creatorCallSettings.isAvailableForCalls && (
+                    <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                            <Video className="w-6 h-6 text-cyan-400" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white">Video Call</h4>
+                            <p className="text-sm text-gray-400">{creatorCallSettings.minimumCallDuration} min minimum</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-cyan-400">{creatorCallSettings.callRatePerMinute} coins/min</div>
+                          <div className="text-xs text-gray-400">
+                            ~{creatorCallSettings.callRatePerMinute * creatorCallSettings.minimumCallDuration} coins min
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRequestCall('video')}
+                        disabled={isRequestingCall || userBalance < creatorCallSettings.callRatePerMinute * creatorCallSettings.minimumCallDuration}
+                        className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isRequestingCall ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <Video className="w-5 h-5" />
+                            Request Video Call
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Voice Call Option */}
+                  {creatorCallSettings.isAvailableForVoiceCalls && (
+                    <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                            <Phone className="w-6 h-6 text-purple-400" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white">Voice Call</h4>
+                            <p className="text-sm text-gray-400">{creatorCallSettings.minimumVoiceCallDuration} min minimum</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-purple-400">{creatorCallSettings.voiceCallRatePerMinute} coins/min</div>
+                          <div className="text-xs text-gray-400">
+                            ~{creatorCallSettings.voiceCallRatePerMinute * creatorCallSettings.minimumVoiceCallDuration} coins min
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRequestCall('voice')}
+                        disabled={isRequestingCall || userBalance < creatorCallSettings.voiceCallRatePerMinute * creatorCallSettings.minimumVoiceCallDuration}
+                        className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isRequestingCall ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <Phone className="w-5 h-5" />
+                            Request Voice Call
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Not available message */}
+                  {!creatorCallSettings.isAvailableForCalls && !creatorCallSettings.isAvailableForVoiceCalls && (
+                    <div className="p-4 bg-white/5 rounded-xl text-center">
+                      <p className="text-gray-400">This creator is not currently available for calls</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Error Message */}
+                {callRequestError && (
+                  <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl">
+                    <p className="text-red-400 text-sm text-center">{callRequestError}</p>
+                  </div>
+                )}
+
+                {/* Insufficient Balance Warning */}
+                {creatorCallSettings.isAvailableForCalls &&
+                  userBalance < creatorCallSettings.callRatePerMinute * creatorCallSettings.minimumCallDuration && (
+                  <div className="mt-4 p-3 bg-amber-500/20 border border-amber-500/50 rounded-xl">
+                    <p className="text-amber-400 text-sm text-center">
+                      You need at least {creatorCallSettings.callRatePerMinute * creatorCallSettings.minimumCallDuration} coins for a video call
+                    </p>
+                    <button
+                      onClick={() => router.push('/wallet')}
+                      className="w-full mt-2 py-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-lg text-amber-400 font-semibold text-sm transition-colors"
+                    >
+                      Get Coins
+                    </button>
+                  </div>
+                )}
+
+                <p className="mt-4 text-xs text-gray-500 text-center">
+                  The creator will be notified of your request. You'll be charged based on actual call duration.
+                </p>
               </div>
             </div>
           </>
