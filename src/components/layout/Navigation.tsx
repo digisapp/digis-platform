@@ -18,9 +18,11 @@ import {
   Settings,
   Ticket,
   Radio,
-  Upload
+  Upload,
+  Camera
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
+import { useRef } from 'react';
 
 // Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
 const formatCoinBalance = (coins: number | null): string => {
@@ -49,6 +51,8 @@ export function Navigation() {
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Derive userRole from AuthContext (trusts JWT first) - don't rely solely on profile
   const userRole = isAdmin ? 'admin' : isCreator ? 'creator' : 'fan';
@@ -219,6 +223,53 @@ export function Navigation() {
     return pathname === path;
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image must be less than 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.avatarUrl) {
+        // Update local state immediately
+        setUserProfile((prev: any) => ({ ...prev, avatarUrl: data.avatarUrl }));
+      } else {
+        alert(data.error || 'Failed to upload avatar');
+      }
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      alert('Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+      // Reset the input
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
+    }
+  };
+
   // Define arrays before early return
   // Creators: Home, Go Live, Upload, Chats (focused on creating and earning)
   // Fans: Home, Explore, Streams, Chats (full discovery experience)
@@ -294,9 +345,23 @@ export function Navigation() {
 
             {/* Profile Header */}
             <div className="p-6 md:p-5 border-b border-cyan-500/20 bg-transparent relative">
-              {/* Avatar */}
+              {/* Hidden file input for avatar upload */}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+
+              {/* Avatar - Clickable to change */}
               <div className="flex items-start gap-4 mb-5 md:mb-4">
-                <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="relative flex-shrink-0 group"
+                  title="Change profile picture"
+                >
                   <div className="w-16 h-16 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
                     <div className="w-full h-full rounded-full bg-white p-[2px]">
                       {avatarUrl ? (
@@ -312,7 +377,15 @@ export function Navigation() {
                       )}
                     </div>
                   </div>
-                </div>
+                  {/* Camera overlay on hover */}
+                  <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {uploadingAvatar ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Camera className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                </button>
 
                 {/* Name and Username */}
                 <div className="flex-1 min-w-0 pt-1">
