@@ -580,7 +580,7 @@ export default function StreamViewerPage() {
 
   const shareStream = async () => {
     const url = window.location.href;
-    const text = `Watch ${stream?.creator?.displayName || stream?.creator?.username} live on Digis!`;
+    const text = `Watch ${stream?.creator?.username} live on Digis!`;
     if (navigator.share) {
       await navigator.share({ title: stream?.title, text, url });
     } else {
@@ -801,14 +801,14 @@ export default function StreamViewerPage() {
                     <img src={stream.creator.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-red-500 ring-offset-2 ring-offset-black" />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold ring-2 ring-red-500 ring-offset-2 ring-offset-black">
-                      {stream.creator?.displayName?.[0] || stream.creator?.username?.[0] || '?'}
+                      {stream.creator?.username?.[0] || '?'}
                     </div>
                   )}
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-black animate-pulse" />
                 </button>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">{stream.creator?.displayName || stream.creator?.username}</span>
+                    <span className="font-bold text-white">{stream.creator?.username}</span>
                     <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-md animate-pulse">LIVE</span>
                   </div>
                   <button
@@ -1004,7 +1004,7 @@ export default function StreamViewerPage() {
                     ) : (
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-4 ring-yellow-500">
                         <span className="text-2xl font-bold text-white">
-                          {spotlightedCreator.displayName?.[0] || spotlightedCreator.username[0]}
+                          {spotlightedCreator.username[0]}
                         </span>
                       </div>
                     )}
@@ -1020,7 +1020,7 @@ export default function StreamViewerPage() {
                       <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">✨ Now Featured</span>
                     </div>
                     <h3 className="font-bold text-white text-lg">
-                      {spotlightedCreator.displayName || spotlightedCreator.username}
+                      {spotlightedCreator.username}
                     </h3>
                     <p className="text-sm text-gray-300">@{spotlightedCreator.username}</p>
                   </div>
@@ -1099,12 +1099,12 @@ export default function StreamViewerPage() {
                         <img src={stream.creator.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold ring-2 ring-red-500">
-                          {stream.creator?.displayName?.[0] || '?'}
+                          {stream.creator?.username?.[0] || '?'}
                         </div>
                       )}
                     </button>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{stream.creator?.displayName || stream.creator?.username}</p>
+                      <p className="font-bold text-sm truncate">{stream.creator?.username}</p>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-red-400 font-bold">● LIVE</span>
                         <span className="text-xs text-gray-400">{viewerCount} watching</span>
@@ -1176,7 +1176,7 @@ export default function StreamViewerPage() {
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-2 ring-yellow-500">
                             <span className="text-sm font-bold text-white">
-                              {spotlightedCreator.displayName?.[0] || spotlightedCreator.username[0]}
+                              {spotlightedCreator.username[0]}
                             </span>
                           </div>
                         )}
@@ -1191,7 +1191,7 @@ export default function StreamViewerPage() {
                           <span className="text-[10px] font-bold text-yellow-400 uppercase">✨ Featured</span>
                         </div>
                         <p className="font-bold text-white text-sm truncate">
-                          {spotlightedCreator.displayName || spotlightedCreator.username}
+                          {spotlightedCreator.username}
                         </p>
                       </div>
 
@@ -1298,7 +1298,7 @@ export default function StreamViewerPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold">Send a Gift</h3>
-                    <p className="text-sm text-gray-400">Support {stream.creator?.displayName || stream.creator?.username}</p>
+                    <p className="text-sm text-gray-400">Support {stream.creator?.username}</p>
                   </div>
                   <button onClick={() => setShowGiftPanel(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <X className="w-6 h-6" />
@@ -1327,7 +1327,7 @@ export default function StreamViewerPage() {
                   }}
                   userBalance={userBalance}
                   spotlightedCreator={spotlightedCreator}
-                  hostName={stream.creator?.displayName || stream.creator?.username || 'Host'}
+                  hostName={stream.creator?.username || 'Host'}
                 />
               </div>
             </div>
@@ -1343,7 +1343,7 @@ export default function StreamViewerPage() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold">Request Private Call</h3>
-                    <p className="text-sm text-gray-400">with {stream.creator?.displayName || stream.creator?.username}</p>
+                    <p className="text-sm text-gray-400">with {stream.creator?.username}</p>
                   </div>
                   <button onClick={() => setShowCallRequestModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <X className="w-6 h-6" />

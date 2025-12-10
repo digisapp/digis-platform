@@ -406,10 +406,10 @@ export function Navigation() {
                   </div>
                 </button>
 
-                {/* Name and Username */}
+                {/* Username */}
                 <div className="flex-1 min-w-0 pt-1">
                   <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-xl mb-2 truncate">
-                    {displayName}
+                    {username}
                   </h3>
                   <button
                     onClick={() => {

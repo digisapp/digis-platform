@@ -9,7 +9,7 @@ export const creatorApplications = pgTable('creator_applications', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
   displayName: text('display_name').notNull(),
-  bio: text('bio').notNull(),
+  bio: text('bio'), // Optional - creators fill this out after approval in settings
   category: text('category'), // Primary content category (Gaming, Music, etc.) - optional, set in settings after approval
   instagramHandle: text('instagram_handle'),
   tiktokHandle: text('tiktok_handle'),

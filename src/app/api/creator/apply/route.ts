@@ -18,29 +18,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
-      displayName,
-      bio,
       instagramHandle,
       tiktokHandle,
       ageConfirmed,
       termsAccepted,
     } = body;
-
-    // Validate required fields
-    if (!displayName || !bio) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Validate bio length
-    if (bio.length < 50) {
-      return NextResponse.json(
-        { error: 'Bio must be at least 50 characters' },
-        { status: 400 }
-      );
-    }
 
     // Validate age confirmation
     if (!ageConfirmed) {
@@ -96,8 +78,6 @@ export async function POST(request: NextRequest) {
       .from('creator_applications')
       .insert({
         user_id: user.id,
-        display_name: displayName,
-        bio,
         instagram_handle: instagramHandle,
         tiktok_handle: tiktokHandle,
         age_confirmed: ageConfirmed,

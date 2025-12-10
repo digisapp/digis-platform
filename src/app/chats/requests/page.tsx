@@ -201,12 +201,12 @@ export default function MessageRequestsPage() {
                     {request.fromUser.avatarUrl ? (
                       <img
                         src={request.fromUser.avatarUrl}
-                        alt={request.fromUser.displayName || 'User'}
+                        alt={request.fromUser.username || 'User'}
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-white">
-                        {(request.fromUser.displayName || request.fromUser.username || 'U')[0].toUpperCase()}
+                        {(request.fromUser.username || 'U')[0].toUpperCase()}
                       </span>
                     )}
                   </div>
@@ -215,7 +215,7 @@ export default function MessageRequestsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="font-semibold text-white">
-                        {request.fromUser.displayName || request.fromUser.username}
+                        {request.fromUser.username}
                       </h3>
                       {request.isPaid && (
                         <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">

@@ -316,8 +316,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
 
       {/* Info overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
-        <p className="text-sm text-gray-300">@{creator.username}</p>
+        <p className="font-bold text-white truncate">{creator.username}</p>
       </div>
     </div>
   );
@@ -376,7 +375,7 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
         {/* Username with verified badge */}
         <div className="flex items-center gap-1">
           <p className="font-semibold text-white truncate">
-            {creator.displayName || creator.username}
+            {creator.username}
           </p>
           {creator.isCreatorVerified && (
             <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">

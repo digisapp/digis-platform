@@ -565,19 +565,19 @@ export default function ChatPage() {
                     {conversation.otherUser.avatarUrl ? (
                       <img
                         src={conversation.otherUser.avatarUrl}
-                        alt={conversation.otherUser.displayName || 'User'}
+                        alt={conversation.otherUser.username || 'User'}
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-white">
-                        {(conversation.otherUser.displayName || conversation.otherUser.username || 'U')[0].toUpperCase()}
+                        {(conversation.otherUser.username || 'U')[0].toUpperCase()}
                       </span>
                     )}
                   </div>
 
                   <div className="text-left">
                     <h2 className="font-semibold text-white">
-                      {conversation.otherUser.displayName || conversation.otherUser.username}
+                      {conversation.otherUser.username}
                     </h2>
                     <p className="text-sm text-gray-400">
                       {conversation.otherUser.role === 'creator' ? 'Creator' : 'Fan'}
@@ -621,7 +621,7 @@ export default function ChatPage() {
               )}
               {isOtherUserTyping && conversation && (
                 <TypingIndicator
-                  userName={conversation.otherUser.displayName || conversation.otherUser.username || undefined}
+                  userName={conversation.otherUser.username || undefined}
                 />
               )}
               <div ref={messagesEndRef} />
@@ -674,7 +674,7 @@ export default function ChatPage() {
         <TipModal
           onClose={() => setShowTipModal(false)}
           onSend={handleSendTip}
-          receiverName={conversation.otherUser.displayName || conversation.otherUser.username || 'User'}
+          receiverName={conversation.otherUser.username || 'User'}
         />
       )}
 
@@ -689,7 +689,7 @@ export default function ChatPage() {
       {/* Message Charge Warning Modal */}
       {showChargeWarning && conversation && (
         <MessageChargeWarningModal
-          recipientName={conversation.otherUser.displayName || conversation.otherUser.username || 'Creator'}
+          recipientName={conversation.otherUser.username || 'Creator'}
           messageCharge={conversation.otherUser.messageCharge || 0}
           messagePreview={pendingMessage}
           onClose={() => {

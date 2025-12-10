@@ -302,12 +302,12 @@ export default function MessagesPage() {
                           {conversation.otherUser.avatarUrl ? (
                             <img
                               src={conversation.otherUser.avatarUrl}
-                              alt={conversation.otherUser.displayName || 'User'}
+                              alt={conversation.otherUser.username || 'User'}
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
                             <span className="text-white">
-                              {(conversation.otherUser.displayName || conversation.otherUser.username || 'U')[0].toUpperCase()}
+                              {(conversation.otherUser.username || 'U')[0].toUpperCase()}
                             </span>
                           )}
                         </div>
@@ -325,7 +325,7 @@ export default function MessagesPage() {
                             <Pin className="w-4 h-4 text-digis-cyan fill-digis-cyan" />
                           )}
                           <h3 className={`font-semibold truncate ${conversation.unreadCount > 0 ? 'text-white' : 'text-gray-300'}`}>
-                            {conversation.otherUser.displayName || conversation.otherUser.username}
+                            {conversation.otherUser.username}
                           </h3>
                           {conversation.otherUser.role === 'creator' && (
                             <span className="text-xs bg-digis-cyan/20 text-digis-cyan px-2 py-0.5 rounded-full flex-shrink-0">

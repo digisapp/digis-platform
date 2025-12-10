@@ -21,8 +21,6 @@ export default function CreatorApplyPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [formData, setFormData] = useState({
-    displayName: '',
-    bio: '',
     instagramHandle: '',
     tiktokHandle: '',
     ageConfirmed: false,
@@ -42,9 +40,6 @@ export default function CreatorApplyPage() {
         setCurrentUser(data);
         if (data.avatarUrl) {
           setAvatarUrl(data.avatarUrl);
-        }
-        if (data.displayName) {
-          setFormData(prev => ({ ...prev, displayName: data.displayName }));
         }
       }
     } catch (err) {
@@ -135,7 +130,6 @@ export default function CreatorApplyPage() {
       setExistingApplication({
         status: 'pending',
         createdAt: new Date().toISOString(),
-        displayName: formData.displayName,
       });
     } catch (err: any) {
       setError(err.message);
@@ -183,8 +177,7 @@ export default function CreatorApplyPage() {
                     Your creator application is currently under review. We'll notify you once it's been reviewed.
                   </p>
                   <div className="text-left mt-6 p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/30 rounded-2xl">
-                    <p className="text-sm text-gray-400 mb-3">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-300"><strong className="text-white">Display Name:</strong> {existingApplication.displayName}</p>
+                    <p className="text-sm text-gray-400">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
                   </div>
                 </>
               )}
@@ -406,41 +399,6 @@ export default function CreatorApplyPage() {
                   className="hidden"
                 />
               </label>
-            </div>
-
-            {/* Display Name */}
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-white">
-                Display Name <span className="text-cyan-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.displayName}
-                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                placeholder="Your creator name"
-                required
-                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
-              />
-            </div>
-
-            {/* Bio/About */}
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-white">
-                About You <span className="text-cyan-400">*</span>
-              </label>
-              <textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell us about yourself and what content you'll create..."
-                required
-                minLength={50}
-                maxLength={500}
-                rows={4}
-                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.bio.length}/500 characters (minimum 50)
-              </p>
             </div>
 
             {/* Social Links Section */}
