@@ -81,6 +81,7 @@ export default function ProfilePage() {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [signUpAction, setSignUpAction] = useState<string>('');
   const [showSubscribeSuccessModal, setShowSubscribeSuccessModal] = useState(false);
+  const [showSubscribeConfirmModal, setShowSubscribeConfirmModal] = useState(false);
 
   useEffect(() => {
     // Fetch profile (includes goals & content) and auth in parallel
@@ -678,11 +679,17 @@ export default function ProfilePage() {
                   {/* Subscribe Button */}
                   {user.role === 'creator' && subscriptionTier && !isSubscribed && (
                     <button
-                      onClick={handleSubscribe}
-                      disabled={subscribeLoading}
-                      className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          setSignUpAction('subscribe to this creator');
+                          setShowSignUpModal(true);
+                          return;
+                        }
+                        setShowSubscribeConfirmModal(true);
+                      }}
+                      className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
                     >
-                      {subscribeLoading ? '...' : `Subscribe · ${subscriptionTier.pricePerMonth} coins`}
+                      Subscribe
                     </button>
                   )}
 
@@ -1383,6 +1390,97 @@ export default function ProfilePage() {
         action={signUpAction}
         creatorName={profile?.user.displayName || profile?.user.username}
       />
+
+      {/* Subscribe Confirmation Modal */}
+      {showSubscribeConfirmModal && profile && subscriptionTier && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          onClick={() => setShowSubscribeConfirmModal(false)}
+        >
+          <div
+            className="relative w-full max-w-sm bg-black/95 rounded-3xl p-8 border-2 border-purple-500/50 shadow-[0_0_60px_rgba(168,85,247,0.4),inset_0_0_40px_rgba(168,85,247,0.1)] animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowSubscribeConfirmModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute -inset-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-75 animate-pulse" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-[0_0_40px_rgba(168,85,247,0.6)]">
+                  <Star className="w-10 h-10 text-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-white mb-2">
+                Subscribe to {profile.user.displayName || profile.user.username}
+              </h2>
+              <p className="text-gray-400 text-sm mb-6">
+                Get exclusive access to premium content
+              </p>
+            </div>
+
+            {/* Price */}
+            <div className="flex justify-center mb-6">
+              <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                <div className="text-center">
+                  <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    {subscriptionTier.pricePerMonth}
+                  </span>
+                  <span className="text-gray-300 ml-2">coins/month</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Benefits */}
+            {subscriptionTier.benefits && (
+              <div className="mb-6 text-sm text-gray-300 space-y-2">
+                {JSON.parse(subscriptionTier.benefits || '[]').slice(0, 3).map((benefit: string, i: number) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                    <span>{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSubscribeConfirmModal(false)}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowSubscribeConfirmModal(false);
+                  handleSubscribe();
+                }}
+                disabled={subscribeLoading}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 transition-all shadow-lg shadow-purple-500/30 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {subscribeLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+                ) : (
+                  'Subscribe'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Subscribe Success Modal - Tron Theme */}
       {showSubscribeSuccessModal && profile && (
