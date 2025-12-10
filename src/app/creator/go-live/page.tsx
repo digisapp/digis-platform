@@ -596,12 +596,8 @@ export default function GoLivePage() {
                       onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
                       className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
                     />
-                    <div className="flex justify-between mt-2 text-xs text-gray-500">
-                      <span>0% (Creator gets 100%)</span>
-                      <span>100% (You get all)</span>
-                    </div>
-                    <p className="mt-3 text-xs text-gray-400">
-                      When viewers tip a featured creator, you'll receive {featuredCreatorCommission}% and they'll receive {100 - featuredCreatorCommission}%.
+                    <p className="mt-3 text-sm text-gray-300">
+                      When viewers tip a featured creator, you'll receive <span className="text-pink-400 font-bold">{featuredCreatorCommission}%</span> and they'll receive <span className="text-pink-400 font-bold">{100 - featuredCreatorCommission}%</span>.
                     </p>
                   </div>
                 </div>
