@@ -547,11 +547,16 @@ export default function BroadcastStudioPage() {
           ? formatDurationFromSeconds(finalStream.durationSeconds)
           : formatDuration();
 
+        // Use local state values as fallbacks when DB values are 0
+        // This handles cases where presence tracking worked but DB wasn't updated
+        const dbTotalViews = finalStream.totalViews || 0;
+        const dbPeakViewers = finalStream.peakViewers || 0;
+
         setStreamSummary({
           duration,
-          totalViewers: finalStream.totalViews || 0,
-          peakViewers: finalStream.peakViewers || 0,
-          totalEarnings: finalStream.totalGiftsReceived || 0,
+          totalViewers: Math.max(dbTotalViews, peakViewers, viewerCount),
+          peakViewers: Math.max(dbPeakViewers, peakViewers),
+          totalEarnings: finalStream.totalGiftsReceived || totalEarnings,
           topSupporters: leaderboardData.leaderboard?.slice(0, 3) || [],
         });
       }
@@ -1051,7 +1056,7 @@ export default function BroadcastStudioPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
                     >
                       <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="text-sm">GOAL</span>
                     </button>
