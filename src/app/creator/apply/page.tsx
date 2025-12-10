@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Clock, Sparkles, Instagram, Twitter, Globe, Camera, Upload, Bell, Home, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Instagram, Camera, Upload, Bell, Home, Music2 } from 'lucide-react';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 
 export default function CreatorApplyPage() {
@@ -22,10 +22,11 @@ export default function CreatorApplyPage() {
 
   const [formData, setFormData] = useState({
     displayName: '',
+    bio: '',
     instagramHandle: '',
-    twitterHandle: '',
-    website: '',
-    contentType: '',
+    tiktokHandle: '',
+    ageConfirmed: false,
+    termsAccepted: false,
   });
 
   useEffect(() => {
@@ -135,7 +136,6 @@ export default function CreatorApplyPage() {
         status: 'pending',
         createdAt: new Date().toISOString(),
         displayName: formData.displayName,
-        contentType: formData.contentType,
       });
     } catch (err: any) {
       setError(err.message);
@@ -184,8 +184,7 @@ export default function CreatorApplyPage() {
                   </p>
                   <div className="text-left mt-6 p-6 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/30 rounded-2xl">
                     <p className="text-sm text-gray-400 mb-3">Submitted: {new Date(existingApplication.createdAt).toLocaleDateString()}</p>
-                    <p className="text-sm text-gray-300 mb-2"><strong className="text-white">Display Name:</strong> {existingApplication.displayName}</p>
-                    <p className="text-sm text-gray-300"><strong className="text-white">Content Type:</strong> {existingApplication.contentType}</p>
+                    <p className="text-sm text-gray-300"><strong className="text-white">Display Name:</strong> {existingApplication.displayName}</p>
                   </div>
                 </>
               )}
@@ -354,18 +353,9 @@ export default function CreatorApplyPage() {
       <div className="max-w-2xl mx-auto relative z-10">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="relative inline-block mb-4">
-            <div className="absolute -inset-2 bg-cyan-500/30 rounded-full blur-xl"></div>
-            <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.4)]">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
             Become a Creator
           </h1>
-          <p className="text-gray-400 text-lg">
-            Join our community of creators and start earning
-          </p>
         </div>
 
         {/* Form Card */}
@@ -416,9 +406,6 @@ export default function CreatorApplyPage() {
                   className="hidden"
                 />
               </label>
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                This will be your creator profile picture
-              </p>
             </div>
 
             {/* Display Name */}
@@ -436,30 +423,35 @@ export default function CreatorApplyPage() {
               />
             </div>
 
-            {/* Content Type */}
+            {/* Bio/About */}
             <div>
               <label className="block text-sm font-semibold mb-2 text-white">
-                Content Type <span className="text-cyan-400">*</span>
+                About You <span className="text-cyan-400">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.contentType}
-                onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                placeholder="e.g., Gaming, Music, Art, Education, Fitness"
+              <textarea
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                placeholder="Tell us about yourself and what content you'll create..."
                 required
-                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                minLength={50}
+                maxLength={500}
+                rows={4}
+                className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all resize-none"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.bio.length}/500 characters (minimum 50)
+              </p>
             </div>
 
             {/* Social Links Section */}
             <div className="pt-6 border-t border-white/10">
-              <h3 className="text-lg font-bold mb-4 text-white">Social Links</h3>
+              <h3 className="text-lg font-bold mb-4 text-white">Social Links <span className="text-sm font-normal text-gray-400">(optional)</span></h3>
               <div className="space-y-4">
                 {/* Instagram */}
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
                     <Instagram className="w-4 h-4 text-pink-400" />
-                    Instagram Handle
+                    Instagram
                   </label>
                   <input
                     type="text"
@@ -470,36 +462,66 @@ export default function CreatorApplyPage() {
                   />
                 </div>
 
-                {/* Twitter */}
+                {/* TikTok */}
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
-                    <Twitter className="w-4 h-4 text-blue-400" />
-                    Twitter Handle
+                    <Music2 className="w-4 h-4 text-cyan-400" />
+                    TikTok
                   </label>
                   <input
                     type="text"
-                    value={formData.twitterHandle}
-                    onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
+                    value={formData.tiktokHandle}
+                    onChange={(e) => setFormData({ ...formData, tiktokHandle: e.target.value })}
                     placeholder="@username"
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                  />
-                </div>
-
-                {/* Website */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-cyan-400" />
-                    Website
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="https://yourwebsite.com"
                     className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Age Confirmation & Terms */}
+            <div className="pt-6 border-t border-white/10 space-y-4">
+              {/* Age Confirmation */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex-shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={formData.ageConfirmed}
+                    onChange={(e) => setFormData({ ...formData, ageConfirmed: e.target.checked })}
+                    required
+                    className="sr-only peer"
+                  />
+                  <div className="w-5 h-5 border-2 border-white/20 rounded bg-white/5 peer-checked:bg-cyan-500 peer-checked:border-cyan-500 transition-all flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                  I confirm that I am <strong className="text-white">18 years of age or older</strong> <span className="text-cyan-400">*</span>
+                </span>
+              </label>
+
+              {/* Terms Agreement */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex-shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={formData.termsAccepted}
+                    onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                    required
+                    className="sr-only peer"
+                  />
+                  <div className="w-5 h-5 border-2 border-white/20 rounded bg-white/5 peer-checked:bg-cyan-500 peer-checked:border-cyan-500 transition-all flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                  I agree to the <a href="/terms" target="_blank" className="text-cyan-400 hover:underline">Creator Terms of Service</a> and <a href="/privacy" target="_blank" className="text-cyan-400 hover:underline">Privacy Policy</a> <span className="text-cyan-400">*</span>
+                </span>
+              </label>
             </div>
 
             {error && (

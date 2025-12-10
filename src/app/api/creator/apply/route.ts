@@ -21,16 +21,39 @@ export async function POST(request: NextRequest) {
       displayName,
       bio,
       instagramHandle,
-      twitterHandle,
-      website,
-      whyCreator,
-      contentType,
+      tiktokHandle,
+      ageConfirmed,
+      termsAccepted,
     } = body;
 
     // Validate required fields
-    if (!displayName || !bio || !whyCreator || !contentType) {
+    if (!displayName || !bio) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate bio length
+    if (bio.length < 50) {
+      return NextResponse.json(
+        { error: 'Bio must be at least 50 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Validate age confirmation
+    if (!ageConfirmed) {
+      return NextResponse.json(
+        { error: 'You must confirm you are 18 years or older' },
+        { status: 400 }
+      );
+    }
+
+    // Validate terms acceptance
+    if (!termsAccepted) {
+      return NextResponse.json(
+        { error: 'You must agree to the Creator Terms of Service' },
         { status: 400 }
       );
     }
@@ -76,10 +99,9 @@ export async function POST(request: NextRequest) {
         display_name: displayName,
         bio,
         instagram_handle: instagramHandle,
-        twitter_handle: twitterHandle,
-        website,
-        why_creator: whyCreator,
-        content_type: contentType,
+        tiktok_handle: tiktokHandle,
+        age_confirmed: ageConfirmed,
+        terms_accepted: termsAccepted,
         status: 'pending',
       });
 
