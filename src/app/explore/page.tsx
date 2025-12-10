@@ -299,7 +299,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
       </div>
 
       {/* Image */}
-      <div className="relative" style={{ paddingBottom: '100%' }}>
+      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -311,7 +311,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
             <UserCircle className="w-16 h-16 text-gray-400" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent group-hover:scale-105 transition-transform duration-300" />
       </div>
 
       {/* Info overlay */}
@@ -337,7 +337,7 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
       onClick={onClick}
     >
       {/* Image section */}
-      <div className="relative" style={{ paddingBottom: '100%' }}>
+      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -352,7 +352,7 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
         )}
 
         {/* Status badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {creator.isLive && (
             <span className="px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white flex items-center gap-1">
               <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
@@ -366,8 +366,8 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
           )}
         </div>
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {/* Gradient overlay - scales with image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover:scale-105 transition-transform duration-300" />
       </div>
 
       {/* Info section */}
