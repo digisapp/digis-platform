@@ -1006,21 +1006,21 @@ export default function BroadcastStudioPage() {
                     <RoomAudioRenderer />
                   </LiveKitRoom>
                   {/* Top Left Overlay - LIVE + Timer */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+                  <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
                     {/* LIVE Badge + Timer */}
-                    <div className="flex items-center gap-1.5 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                      <span className="text-red-400 font-bold text-xs">LIVE</span>
-                      <span className="text-white font-semibold text-xs">{formatDuration()}</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                      <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                      <span className="text-red-400 font-bold text-sm">LIVE</span>
+                      <span className="text-white font-semibold text-sm">{formatDuration()}</span>
                     </div>
 
                     {/* Viewers - Compact on mobile */}
                     <div className="hidden sm:block">
                       <ViewerList streamId={streamId} currentViewers={viewerCount} />
                     </div>
-                    <div className="sm:hidden flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full">
-                      <Users className="w-3 h-3 text-cyan-400" />
-                      <span className="text-white text-xs font-semibold">{viewerCount}</span>
+                    <div className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full">
+                      <Users className="w-4 h-4 text-cyan-400" />
+                      <span className="text-white text-sm font-semibold">{viewerCount}</span>
                     </div>
 
                     {/* Connection Status - Desktop only */}
@@ -1030,14 +1030,14 @@ export default function BroadcastStudioPage() {
                   </div>
 
                   {/* Top Right Overlay - Coins + Goal + Camera Flip */}
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
-                    {/* Coins Earned - Compact */}
-                    <div className="flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
-                      <Coins className="w-3 h-3 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
+                  <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+                    {/* Coins Earned */}
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                     </div>
 
-                    {/* Set Goal Button - Icon only on mobile */}
+                    {/* Set Goal Button */}
                     <button
                       onClick={() => {
                         const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
@@ -1048,22 +1048,22 @@ export default function BroadcastStudioPage() {
                         setEditingGoal(null);
                         setShowGoalModal(true);
                       }}
-                      className="flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:bg-black/80 transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
                     >
-                      <svg className="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="hidden sm:inline text-xs">Goal</span>
+                      <span className="text-sm">GOAL</span>
                     </button>
 
                     {/* Camera Flip Button - Mobile only */}
                     <button
                       onClick={handleFlipCamera}
                       disabled={isFlippingCamera}
-                      className="md:hidden p-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+                      className="md:hidden p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
                       title="Flip Camera"
                     >
-                      <RefreshCw className={`w-4 h-4 ${isFlippingCamera ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
 
@@ -1130,15 +1130,13 @@ export default function BroadcastStudioPage() {
               />
             </div>
 
-            {/* Featured Creators Panel */}
-            <div className="backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden">
-              <div className="h-[200px] lg:h-auto overflow-y-auto">
-                <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
-              </div>
+            {/* Featured Creators Panel - Desktop only */}
+            <div className="hidden lg:block backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden">
+              <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
             </div>
 
-            {/* Top Gifters Leaderboard */}
-            <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
+            {/* Top Gifters Leaderboard - Desktop only */}
+            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
