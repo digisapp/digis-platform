@@ -1,13 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorCategories, streams, follows } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql, and } from 'drizzle-orm';
+import { users, creatorCategories, streams, contentItems } from '@/lib/data/system';
+import { eq, ilike, or, desc, sql, and, gte } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// Calculate discovery score for ranking creators
+function calculateDiscoveryScore(creator: {
+  isLive: boolean;
+  isOnline: boolean;
+  isCreatorVerified: boolean;
+  followerCount: number;
+  isNewCreator: boolean;
+  recentStreamCount: number;
+  recentContentCount: number;
+}): number {
+  let score = 0;
+
+  // Live status - highest priority (1000 points)
+  if (creator.isLive) score += 1000;
+
+  // Online status (500 points)
+  if (creator.isOnline) score += 500;
+
+  // Verified creators (100 points)
+  if (creator.isCreatorVerified) score += 100;
+
+  // New creator boost - help new creators get discovered (150 points)
+  if (creator.isNewCreator) score += 150;
+
+  // Recent activity - streamed in last 7 days (200 points)
+  if (creator.recentStreamCount > 0) score += 200;
+
+  // Recent content - posted in last 7 days (100 points)
+  if (creator.recentContentCount > 0) score += 100;
+
+  // Follower count - normalized (max 300 points)
+  // Log scale to prevent mega-creators from dominating
+  // 10 followers = ~69 points, 100 = ~138, 1000 = ~207, 10000 = ~276
+  if (creator.followerCount > 0) {
+    score += Math.min(300, Math.log10(creator.followerCount + 1) * 69);
+  }
+
+  return score;
+}
 
 export async function GET(request: NextRequest) {
   const requestId = nanoid(10);
@@ -19,6 +59,12 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
 
+    // Date thresholds
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
     // Start auth check but don't block on it
     const authPromise = createClient()
       .then(s => s.auth.getUser())
@@ -26,7 +72,7 @@ export async function GET(request: NextRequest) {
       .catch(() => null);
 
     // Run queries in parallel
-    const [liveCreatorIds, allCreators, categoryNames] = await Promise.all([
+    const [liveCreatorIds, allCreators, categoryNames, recentStreams, recentContent] = await Promise.all([
       // 1. Live creator IDs - can fail gracefully
       Promise.race([
         db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
@@ -57,16 +103,15 @@ export async function GET(request: NextRequest) {
 
             // Add new creator filter - joined within last 30 days
             if (filter === 'new') {
-              const thirtyDaysAgo = new Date();
-              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
               conditions.push(sql`${users.createdAt} >= ${thirtyDaysAgo.toISOString()}`);
             }
 
-            // Use subquery for accurate follower count, but order by cached column for speed
+            // Use subquery for accurate follower count
             const followerCountSubquery = sql<number>`(
               SELECT COUNT(*)::int FROM follows WHERE follows.following_id = ${users.id}
             )`.as('actual_follower_count');
 
+            // Fetch more than needed since we'll sort in JS
             const results = await db
               .select({
                 id: users.id,
@@ -80,9 +125,7 @@ export async function GET(request: NextRequest) {
               })
               .from(users)
               .where(and(...conditions))
-              .orderBy(desc(users.isOnline), desc(users.followerCount)) // Use cached column for ORDER BY (faster)
-              .limit(limit + 1)
-              .offset(offset);
+              .limit(500); // Fetch more for better scoring, then paginate in JS
 
             return results;
           } catch (err: any) {
@@ -102,6 +145,25 @@ export async function GET(request: NextRequest) {
           .then(cats => ['All', ...cats.map(c => c.name)]),
         new Promise<string[]>((resolve) => setTimeout(() => resolve(['All']), 2000))
       ]).catch(() => ['All']),
+
+      // 4. Recent streams (last 7 days) - for activity scoring
+      Promise.race([
+        db.select({ creatorId: streams.creatorId })
+          .from(streams)
+          .where(gte(streams.startedAt, sevenDaysAgo)),
+        new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
+      ]).catch(() => []),
+
+      // 5. Recent content (last 7 days) - for activity scoring
+      Promise.race([
+        db.select({ creatorId: contentItems.creatorId })
+          .from(contentItems)
+          .where(and(
+            eq(contentItems.isPublished, true),
+            gte(contentItems.createdAt, sevenDaysAgo)
+          )),
+        new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
+      ]).catch(() => []),
     ]);
 
     // Get current user ID (500ms max wait)
@@ -110,27 +172,58 @@ export async function GET(request: NextRequest) {
       new Promise<null>((resolve) => setTimeout(() => resolve(null), 500))
     ]);
 
+    // Build lookup maps for activity
     const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
 
-    // Transform creators with live/online status
+    const recentStreamCounts = new Map<string, number>();
+    recentStreams.forEach(s => {
+      recentStreamCounts.set(s.creatorId, (recentStreamCounts.get(s.creatorId) || 0) + 1);
+    });
+
+    const recentContentCounts = new Map<string, number>();
+    recentContent.forEach(c => {
+      recentContentCounts.set(c.creatorId, (recentContentCounts.get(c.creatorId) || 0) + 1);
+    });
+
+    // Transform creators with discovery score
     let creators = allCreators
       .filter(c => c.id !== currentUserId)
-      .map(creator => ({
-        ...creator,
-        isFollowing: false,
-        isOnline: creator.isOnline || liveCreatorIdSet.has(creator.id),
-        isLive: liveCreatorIdSet.has(creator.id),
-      }));
+      .map(creator => {
+        const isLive = liveCreatorIdSet.has(creator.id);
+        const isNewCreator = creator.createdAt && new Date(creator.createdAt) >= thirtyDaysAgo;
+
+        const creatorData = {
+          ...creator,
+          isFollowing: false,
+          isOnline: creator.isOnline || isLive,
+          isLive,
+        };
+
+        // Calculate discovery score
+        const discoveryScore = calculateDiscoveryScore({
+          isLive,
+          isOnline: creatorData.isOnline,
+          isCreatorVerified: creator.isCreatorVerified || false,
+          followerCount: creator.followerCount || 0,
+          isNewCreator: isNewCreator || false,
+          recentStreamCount: recentStreamCounts.get(creator.id) || 0,
+          recentContentCount: recentContentCounts.get(creator.id) || 0,
+        });
+
+        return { ...creatorData, discoveryScore };
+      });
+
+    // Sort by discovery score (highest first)
+    creators.sort((a, b) => b.discoveryScore - a.discoveryScore);
 
     // Apply live filter after we know who's live
     if (filter === 'live') {
       creators = creators.filter(c => c.isLive);
     }
 
-    // Pagination - check if we got more than limit from DB (before JS filtering removed some)
-    // allCreators had limit+1 fetched, so if we got that many, there's likely more
-    const hasMore = filter === 'live' ? false : allCreators.length > limit;
-    const paginatedCreators = creators.length > limit ? creators.slice(0, limit) : creators;
+    // Pagination in JS since we sorted in JS
+    const hasMore = creators.length > offset + limit;
+    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, ...c }) => c);
 
     return NextResponse.json(
       success({
