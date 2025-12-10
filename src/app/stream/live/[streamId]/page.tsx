@@ -1018,9 +1018,9 @@ export default function BroadcastStudioPage() {
                     <div className="hidden sm:block">
                       <ViewerList streamId={streamId} currentViewers={viewerCount} />
                     </div>
-                    <div className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full">
+                    <div className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-cyan-500/20 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                       <Users className="w-4 h-4 text-cyan-400" />
-                      <span className="text-white text-sm font-semibold">{viewerCount}</span>
+                      <span className="text-cyan-400 text-sm font-bold">{viewerCount}</span>
                     </div>
 
                     {/* Connection Status - Desktop only */}
