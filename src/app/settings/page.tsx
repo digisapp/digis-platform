@@ -676,10 +676,14 @@ export default function SettingsPage() {
                   <AtSign className="w-4 h-4 text-digis-purple" />
                   <p className="text-xs text-gray-400">Username</p>
                 </div>
-                {usernameCooldown && !usernameCooldown.canChange && (
+                {usernameCooldown && !usernameCooldown.canChange ? (
                   <p className="text-xs text-yellow-300 mb-2 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
                     Can change in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
+                  </p>
+                ) : usernameCooldown && (
+                  <p className="text-xs text-gray-400 mb-2">
+                    {usernameCooldown.changesRemaining} of {usernameCooldown.maxChanges} changes left this month
                   </p>
                 )}
                 <div className="relative">
