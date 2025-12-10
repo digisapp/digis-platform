@@ -277,21 +277,37 @@ export class ContentService {
    * Get single content item with access check
    */
   static async getContent(contentId: string, userId?: string) {
-    const content = await db.query.contentItems.findFirst({
-      where: eq(contentItems.id, contentId),
-      with: {
+    const results = await db
+      .select({
+        id: contentItems.id,
+        title: contentItems.title,
+        description: contentItems.description,
+        contentType: contentItems.contentType,
+        unlockPrice: contentItems.unlockPrice,
+        isFree: contentItems.isFree,
+        thumbnailUrl: contentItems.thumbnailUrl,
+        mediaUrl: contentItems.mediaUrl,
+        durationSeconds: contentItems.durationSeconds,
+        viewCount: contentItems.viewCount,
+        purchaseCount: contentItems.purchaseCount,
+        totalEarnings: contentItems.totalEarnings,
+        isPublished: contentItems.isPublished,
+        createdAt: contentItems.createdAt,
+        creatorId: contentItems.creatorId,
         creator: {
-          columns: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatarUrl: true,
-            isCreatorVerified: true,
-          },
+          id: users.id,
+          username: users.username,
+          displayName: users.displayName,
+          avatarUrl: users.avatarUrl,
+          isCreatorVerified: users.isCreatorVerified,
         },
-      },
-    });
+      })
+      .from(contentItems)
+      .innerJoin(users, eq(contentItems.creatorId, users.id))
+      .where(eq(contentItems.id, contentId))
+      .limit(1);
 
+    const content = results[0];
     if (!content) return null;
 
     let hasAccess = false;
