@@ -219,12 +219,39 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  const navItems = [
+  // Creators: Home, Streams, Explore, Chats (Streams is their main action)
+  // Fans: Home, Explore, Streams, Chats (Explore to find creators first)
+  const navItems = userRole === 'creator' ? [
     {
       label: 'Home',
       icon: Home,
-      path: userRole === 'admin' ? '/admin' : userRole === 'creator' ? '/creator/dashboard' : '/dashboard',
-      active: isActive('/dashboard') || isActive('/creator/dashboard') || isActive('/admin'),
+      path: '/creator/dashboard',
+      active: isActive('/creator/dashboard'),
+    },
+    {
+      label: 'Streams',
+      icon: Video,
+      path: '/live',
+      active: isActive('/live') || isActive('/streams'),
+    },
+    {
+      label: 'Explore',
+      icon: Search,
+      path: '/explore',
+      active: isActive('/explore') || pathname?.startsWith('/profile'),
+    },
+    {
+      label: 'Chats',
+      icon: MessageCircle,
+      path: '/chats',
+      active: isActive('/chats') || pathname?.startsWith('/chats'),
+    },
+  ] : [
+    {
+      label: 'Home',
+      icon: Home,
+      path: userRole === 'admin' ? '/admin' : '/dashboard',
+      active: isActive('/dashboard') || isActive('/admin'),
     },
     {
       label: 'Explore',
