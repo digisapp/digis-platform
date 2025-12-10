@@ -70,7 +70,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
   };
 
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {/* Pinned Message */}
       {pinnedMessage && (
         <div className="px-3 py-2 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-b border-yellow-500/30">
@@ -218,15 +218,15 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
 
       {/* Message Input - Fixed at bottom, compact on mobile */}
       {onSendMessage && (
-        <div className="p-2 sm:p-4 border-t border-white/10 bg-black/60 flex-shrink-0">
-          {/* Quick Emoji Bar - Hidden on mobile when keyboard likely open */}
+        <div className="p-2 border-t border-white/10 bg-black/80 flex-shrink-0">
+          {/* Quick Emoji Bar */}
           {showEmojis && (
             <div className="mb-2 flex items-center gap-1 flex-wrap p-2 bg-white/5 rounded-xl">
               {CHAT_EMOJIS.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => insertEmoji(emoji)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-lg sm:text-xl"
+                  className="w-8 h-8 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-lg"
                 >
                   {emoji}
                 </button>
@@ -234,7 +234,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex items-center gap-1 sm:gap-2">
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             {/* Emoji Toggle */}
             <button
               type="button"
@@ -245,25 +245,23 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
             </button>
 
             {/* Input */}
-            <div className="flex-1 min-w-0">
-              <input
-                ref={inputRef}
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Send a message..."
-                className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan focus:ring-1 focus:ring-digis-cyan/50 transition-all text-sm text-[16px]"
-                maxLength={500}
-                disabled={isSending}
-                enterKeyHint="send"
-              />
-            </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Say something..."
+              className="flex-1 min-w-0 px-3 py-2 bg-white/10 border border-white/20 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-all text-[16px]"
+              maxLength={500}
+              disabled={isSending}
+              enterKeyHint="send"
+            />
 
             {/* Send Button */}
             <button
               type="submit"
               disabled={!newMessage.trim() || isSending}
-              className="p-2 sm:p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl text-white font-bold hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
+              className="p-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full text-white hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
             >
               <Send className="w-5 h-5" />
             </button>
