@@ -220,7 +220,7 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  // Creators: Home, Calls, Upload, Chats (focused on creating and earning)
+  // Creators: Home, Go Live, Upload, Chats (focused on creating and earning)
   // Fans: Home, Explore, Streams, Chats (full discovery experience)
   const navItems = userRole === 'creator' ? [
     {
@@ -230,10 +230,10 @@ export function Navigation() {
       active: isActive('/creator/dashboard'),
     },
     {
-      label: 'Calls',
-      icon: Phone,
-      path: '/creator/calls',
-      active: isActive('/creator/calls'),
+      label: 'Go Live',
+      icon: Radio,
+      path: '/creator/go-stream',
+      active: isActive('/creator/go-stream'),
     },
     {
       label: 'Upload',
