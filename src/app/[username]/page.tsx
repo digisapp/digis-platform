@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -82,6 +82,8 @@ export default function ProfilePage() {
   const [signUpAction, setSignUpAction] = useState<string>('');
   const [showSubscribeSuccessModal, setShowSubscribeSuccessModal] = useState(false);
   const [showSubscribeConfirmModal, setShowSubscribeConfirmModal] = useState(false);
+  const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
+  const [insufficientFundsAmount, setInsufficientFundsAmount] = useState(0);
 
   useEffect(() => {
     // Fetch profile (includes goals & content) and auth in parallel
@@ -416,6 +418,12 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if it's an insufficient funds error
+        if (data.error?.includes('Insufficient') || data.error?.includes('need') || data.required) {
+          setInsufficientFundsAmount(data.required || subscriptionTier?.pricePerMonth || 0);
+          setShowInsufficientFundsModal(true);
+          return;
+        }
         throw new Error(data.error || 'Failed to subscribe');
       }
 
@@ -425,7 +433,15 @@ export default function ProfilePage() {
       setShowSubscribeSuccessModal(true);
     } catch (err: any) {
       console.error('Subscribe error:', err);
-      alert(err.message);
+      // Show insufficient funds modal for balance-related errors
+      if (err.message?.includes('Insufficient') || err.message?.includes('need')) {
+        setInsufficientFundsAmount(subscriptionTier?.pricePerMonth || 0);
+        setShowInsufficientFundsModal(true);
+      } else {
+        // For other errors, show a simple themed error (not browser alert)
+        setInsufficientFundsAmount(0);
+        setShowInsufficientFundsModal(true);
+      }
     } finally {
       setSubscribeLoading(false);
     }
@@ -1478,6 +1494,91 @@ export default function ProfilePage() {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insufficient Funds Modal - Tron Theme */}
+      {showInsufficientFundsModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          onClick={() => setShowInsufficientFundsModal(false)}
+        >
+          <div
+            className="relative w-full max-w-sm bg-black/95 rounded-3xl p-8 border-2 border-cyan-500/50 shadow-[0_0_60px_rgba(34,211,238,0.4),inset_0_0_40px_rgba(34,211,238,0.1)] animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Animated glow effect */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-yellow-500/20 to-cyan-500/20 blur-xl -z-10 animate-pulse" />
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowInsufficientFundsModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute -inset-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur-lg opacity-75 animate-pulse" />
+                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 flex items-center justify-center shadow-[0_0_40px_rgba(234,179,8,0.4)]">
+                  <Coins className="w-10 h-10 text-yellow-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Not Enough Coins
+              </h2>
+              <p className="text-gray-400 mb-6">
+                {insufficientFundsAmount > 0
+                  ? `You need ${insufficientFundsAmount} coins to subscribe`
+                  : 'You need more coins to complete this action'
+                }
+              </p>
+            </div>
+
+            {/* Coin display */}
+            <div className="flex justify-center mb-6">
+              <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
+                <div className="flex items-center gap-3">
+                  <Coins className="w-8 h-8 text-yellow-400" />
+                  <span className="text-3xl font-bold text-yellow-400">
+                    {insufficientFundsAmount > 0 ? insufficientFundsAmount : '???'}
+                  </span>
+                  <span className="text-gray-400">needed</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInsufficientFundsModal(false)}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowInsufficientFundsModal(false);
+                  router.push('/wallet');
+                }}
+                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:scale-105 transition-all shadow-lg shadow-yellow-500/30 flex items-center justify-center gap-2"
+              >
+                <Coins className="w-5 h-5" />
+                Buy Coins
+              </button>
+            </div>
+
+            {/* Neon line decoration */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
           </div>
         </div>
       )}
