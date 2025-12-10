@@ -20,7 +20,7 @@ import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -1061,7 +1061,7 @@ export default function BroadcastStudioPage() {
                       }}
                       className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
                     >
-                      <Coins className="w-4 h-4 text-cyan-400" />
+                      <Target className="w-4 h-4 text-cyan-400" />
                       <span className="text-sm">GOAL</span>
                     </button>
 

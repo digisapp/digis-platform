@@ -236,7 +236,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
         </button>
         <div className="flex items-center gap-2">
           {spotlightedCreator && (
-            <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full flex items-center gap-1">
               <Star className="w-3 h-3 fill-current" />
               {spotlightedCreator.username}
             </span>
@@ -326,13 +326,13 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
               key={creator.id}
               className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
                 creator.isSpotlighted
-                  ? 'bg-yellow-500/20 border border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.3)]'
+                  ? 'bg-pink-500/20 border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.3)]'
                   : 'bg-white/5 hover:bg-white/10'
               }`}
             >
               {/* Order Number */}
               <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                creator.isSpotlighted ? 'bg-yellow-500 text-black' : 'bg-purple-500/30 text-purple-300'
+                creator.isSpotlighted ? 'bg-pink-500 text-white' : 'bg-purple-500/30 text-purple-300'
               }`}>
                 {index + 1}
               </div>
@@ -343,12 +343,12 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                   src={creator.avatarUrl}
                   alt={creator.username}
                   className={`w-8 h-8 rounded-full object-cover border-2 ${
-                    creator.isSpotlighted ? 'border-yellow-500' : 'border-purple-500/30'
+                    creator.isSpotlighted ? 'border-pink-500' : 'border-purple-500/30'
                   }`}
                 />
               ) : (
                 <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center border-2 ${
-                  creator.isSpotlighted ? 'border-yellow-500' : 'border-purple-500/30'
+                  creator.isSpotlighted ? 'border-pink-500' : 'border-purple-500/30'
                 }`}>
                   <span className="text-sm">👤</span>
                 </div>
@@ -362,7 +362,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-gray-400">@{creator.username}</span>
                   {creator.tipsReceived > 0 && (
-                    <span className="text-yellow-400 flex items-center gap-0.5">
+                    <span className="text-pink-400 flex items-center gap-0.5">
                       <Coins className="w-3 h-3" />
                       {creator.tipsReceived}
                     </span>
@@ -379,8 +379,8 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                     disabled={spotlighting === creator.creatorId}
                     className={`p-2 rounded-lg transition-all ${
                       creator.isSpotlighted
-                        ? 'bg-yellow-500 text-black hover:bg-yellow-400'
-                        : 'bg-white/10 text-gray-400 hover:bg-yellow-500/20 hover:text-yellow-400'
+                        ? 'bg-pink-500 text-white hover:bg-pink-400'
+                        : 'bg-white/10 text-gray-400 hover:bg-pink-500/20 hover:text-pink-400'
                     }`}
                     title={creator.isSpotlighted ? 'Remove spotlight' : 'Spotlight this creator'}
                   >
