@@ -674,7 +674,7 @@ export default function CreatorDashboard() {
                     <div
                       key={content.id}
                       className="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
-                      onClick={() => router.push(`/creator/content/${content.id}`)}
+                      onClick={() => router.push(`/content/${content.id}`)}
                     >
                       <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
                         {content.thumbnailUrl ? (
