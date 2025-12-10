@@ -636,11 +636,6 @@ export default function SettingsPage() {
                       <LoadingSpinner size="sm" />
                     </div>
                   )}
-                  {currentUser?.role === 'creator' && !uploadingAvatar && (
-                    <div className="absolute -bottom-1 left-0 p-1 bg-yellow-500 rounded-full border-2 border-white pointer-events-none">
-                      <Crown className="w-3 h-3 text-white" />
-                    </div>
-                  )}
                   <input
                     type="file"
                     accept="image/*"
