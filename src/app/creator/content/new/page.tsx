@@ -304,28 +304,6 @@ export default function CreateContentPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-3xl">
-        {/* Header - desktop only */}
-        <div className="mb-6 hidden md:flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push('/creator/content')}
-              className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-2xl font-bold text-white">Upload Content</h1>
-          </div>
-          <GlassButton
-            variant="ghost"
-            size="md"
-            onClick={() => router.push('/creator/content')}
-            className="flex items-center gap-2"
-          >
-            <Grid3x3 className="w-4 h-4" />
-            All Content
-          </GlassButton>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* File Upload */}
           <GlassCard className="p-6">
