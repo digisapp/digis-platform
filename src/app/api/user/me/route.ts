@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, walletTransactions } from '@/lib/data/system';
-import { eq, and, inArray, sql } from 'drizzle-orm';
+import { eq, and, inArray, sql, gt } from 'drizzle-orm';
 import { getCachedLifetimeEarnings, setCachedLifetimeEarnings } from '@/lib/cache';
 
 // Force Node.js runtime
@@ -124,7 +124,7 @@ export async function GET() {
         if (cached !== null) {
           lifetimeTipsReceived = cached;
         } else {
-          // Sum all earnings transactions (all positive completed transactions excluding purchases/refunds)
+          // Sum all earnings transactions (only POSITIVE amounts - excludes when creator sends tips to others)
           const earningsTypes = ['call_earnings', 'message_earnings', 'stream_tip', 'dm_tip', 'subscription_earnings', 'gift'];
           const result = await withTimeout(
             db.select({ total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int` })
@@ -133,7 +133,8 @@ export async function GET() {
                 and(
                   eq(walletTransactions.userId, user.id),
                   eq(walletTransactions.status, 'completed'),
-                  inArray(walletTransactions.type, earningsTypes as any)
+                  inArray(walletTransactions.type, earningsTypes as any),
+                  gt(walletTransactions.amount, 0) // Only positive amounts = earnings received
                 )
               ),
             2000
