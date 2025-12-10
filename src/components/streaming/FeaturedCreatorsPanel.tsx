@@ -144,8 +144,8 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
 
   // Add a new featured creator during stream
   const handleAddCreator = async (creator: SearchResult) => {
-    if (creators.length >= 20) {
-      alert('Maximum 20 featured creators allowed');
+    if (creators.length >= 30) {
+      alert('Maximum 30 featured creators allowed');
       return;
     }
 
@@ -227,7 +227,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
         >
           <Users className="w-4 h-4 text-purple-400" />
           <span className="text-sm font-bold text-white">Featured Creators</span>
-          <span className="text-xs text-gray-400">({creators.length}/20)</span>
+          <span className="text-xs text-gray-400">({creators.length}/30)</span>
           {isExpanded ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -242,7 +242,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
             </span>
           )}
           {/* Add Creator Button - Host only */}
-          {isHost && creators.length < 20 && (
+          {isHost && creators.length < 30 && (
             <button
               onClick={() => setShowSearch(!showSearch)}
               className="p-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors"
