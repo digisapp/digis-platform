@@ -620,7 +620,7 @@ export default function GoLivePage() {
                   </div>
                   {/* Orientation badge */}
                   <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-                    {orientation === 'portrait' ? '📱 Portrait' : '📺 Landscape'}
+                    {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
                     {isMobile && <span className="text-cyan-400 ml-1">(auto)</span>}
                   </div>
                 </div>
