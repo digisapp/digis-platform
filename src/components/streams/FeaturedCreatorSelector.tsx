@@ -152,7 +152,7 @@ export function FeaturedCreatorSelector({
                   </li>
                   <li className="flex gap-2">
                     <span className="font-bold text-cyan-400">2.</span>
-                    <span><strong>Select</strong> - Click on creators from search results to add them (up to 20)</span>
+                    <span><strong>Select</strong> - Click on creators from search results to add them (up to 30)</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="font-bold text-cyan-400">3.</span>
