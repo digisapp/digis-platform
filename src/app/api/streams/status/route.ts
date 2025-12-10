@@ -36,8 +36,37 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const username = searchParams.get('username');
 
+    // If no username provided, check if current user has an active stream
     if (!username) {
-      return NextResponse.json({ state: 'idle' as const }, { headers: rl.headers });
+      try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          return NextResponse.json({ state: 'idle' as const, isLive: false, streamId: null }, { headers: rl.headers });
+        }
+
+        // Check for current user's active stream
+        const activeStream = await db.query.streams.findFirst({
+          where: eq(streams.creatorId, user.id),
+          columns: {
+            id: true,
+            title: true,
+            status: true,
+          },
+          orderBy: (streams, { desc }) => [desc(streams.createdAt)],
+        });
+
+        const isLive = activeStream?.status === 'live';
+        return NextResponse.json({
+          state: isLive ? 'live' : 'idle',
+          isLive,
+          streamId: isLive ? activeStream?.id : null,
+          streamTitle: isLive ? activeStream?.title : null,
+        }, { headers: rl.headers });
+      } catch {
+        return NextResponse.json({ state: 'idle' as const, isLive: false, streamId: null }, { headers: rl.headers });
+      }
     }
 
     // Cache stream data (not user-specific) for 3s - short TTL for real-time status

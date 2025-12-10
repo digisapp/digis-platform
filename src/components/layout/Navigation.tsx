@@ -46,6 +46,8 @@ export function Navigation() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCoinsMenu, setShowCoinsMenu] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
+  const [isLive, setIsLive] = useState(false);
+  const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
 
   // Derive userRole from AuthContext (trusts JWT first) - don't rely solely on profile
   const userRole = isAdmin ? 'admin' : isCreator ? 'creator' : 'fan';
@@ -66,11 +68,12 @@ export function Navigation() {
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        // Fetch profile, balance, and unread count in parallel with timeout
-        const [profileRes, balanceRes, unreadRes] = await Promise.all([
+        // Fetch profile, balance, unread count, and live status in parallel with timeout
+        const [profileRes, balanceRes, unreadRes, liveRes] = await Promise.all([
           fetch('/api/user/profile', { cache: 'no-store', signal: controller.signal }),
           fetch('/api/wallet/balance', { signal: controller.signal }),
-          fetch('/api/messages/unread-count', { signal: controller.signal })
+          fetch('/api/messages/unread-count', { signal: controller.signal }),
+          fetch('/api/streams/status', { signal: controller.signal }).catch(() => null)
         ]);
 
         clearTimeout(timeoutId);
@@ -94,6 +97,13 @@ export function Navigation() {
         if (unreadRes.ok) {
           const unreadData = await unreadRes.json();
           setUnreadCount(unreadData.count || 0);
+        }
+
+        // Process live status (for creators)
+        if (liveRes?.ok) {
+          const liveData = await liveRes.json();
+          setIsLive(liveData.isLive || false);
+          setLiveStreamId(liveData.streamId || null);
         }
       } catch (error: any) {
         clearTimeout(timeoutId);
@@ -380,6 +390,18 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
+                      router.push('/streams/my-tickets');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <Ticket className="w-6 h-6 md:w-5 md:h-5 text-gray-300" />
+                    <span className="text-base md:text-sm text-white font-semibold">My Tickets</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
                       router.push('/content/library');
                       setShowProfileMenu(false);
                     }}
@@ -489,64 +511,133 @@ export function Navigation() {
             </span>
           </button>
 
-          {/* Center Profile Button */}
+          {/* Center Button - Go Stream for creators, Profile for fans */}
           <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mt-4">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="relative touch-manipulation"
-              style={{ minHeight: '56px', minWidth: '56px' }}
-            >
-              {/* Enhanced glow effect */}
-              {(isActive('/settings') || showProfileMenu) && (
-                <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse pointer-events-none" />
-              )}
+            {userRole === 'creator' ? (
+              // Creator: Go Stream / Live indicator button
+              <button
+                onClick={() => {
+                  if (isLive && liveStreamId) {
+                    router.push(`/stream/live/${liveStreamId}`);
+                  } else {
+                    router.push('/creator/go-stream');
+                  }
+                }}
+                className="relative touch-manipulation"
+                style={{ minHeight: '56px', minWidth: '56px' }}
+              >
+                {/* Glow effect */}
+                <div className={`absolute -inset-2 rounded-full blur-lg opacity-60 animate-pulse pointer-events-none ${
+                  isLive ? 'bg-red-500' : 'bg-gradient-to-br from-red-500 via-orange-500 to-red-500'
+                }`} />
 
-              {/* Gradient border ring */}
-              <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all ${
-                isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''
-              }`}>
-                <div className="rounded-full bg-gray-900 p-[2px]">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt="Your avatar"
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
-                      {displayName?.[0]?.toUpperCase() || 'U'}
+                {/* Button */}
+                <div className={`relative w-14 h-14 rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(239,68,68,0.6)] transition-all ${
+                  isLive
+                    ? 'bg-red-500 animate-pulse'
+                    : 'bg-gradient-to-br from-red-500 to-orange-500 hover:scale-105'
+                }`}>
+                  {isLive ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                      <span className="text-[9px] font-black text-white mt-0.5">LIVE</span>
                     </div>
+                  ) : (
+                    <Radio className="w-7 h-7 text-white" />
                   )}
                 </div>
-              </div>
-            </button>
+              </button>
+            ) : (
+              // Fan: Profile button
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="relative touch-manipulation"
+                style={{ minHeight: '56px', minWidth: '56px' }}
+              >
+                {/* Enhanced glow effect */}
+                {(isActive('/settings') || showProfileMenu) && (
+                  <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse pointer-events-none" />
+                )}
+
+                {/* Gradient border ring */}
+                <div className={`relative rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all ${
+                  isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''
+                }`}>
+                  <div className="rounded-full bg-gray-900 p-[2px]">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Your avatar"
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
+                        {displayName?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
 
-          {/* Events */}
-          <button
-            onClick={() => router.push(navItems[2].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[2].active
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            {(() => {
-              const Icon = navItems[2].icon;
-              return (
-                <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
-                  {navItems[2].active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                  )}
-                </div>
-              );
-            })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[2].label}
-            </span>
-          </button>
+          {/* Streams (fans) / Profile (creators) */}
+          {userRole === 'creator' ? (
+            // Creator: Profile button (since center is Go Stream)
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                showProfileMenu ? 'text-cyan-400' : 'text-gray-300'
+              }`}
+              style={{ minHeight: '48px' }}
+            >
+              <div className={`relative transition-transform ${showProfileMenu ? 'scale-110' : ''}`}>
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Profile"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-[10px]">
+                    {displayName?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                )}
+                {showProfileMenu && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                )}
+              </div>
+              <span className={`text-[11px] font-semibold mt-0.5 ${showProfileMenu ? 'text-cyan-400' : 'text-gray-300'}`}>
+                Profile
+              </span>
+            </button>
+          ) : (
+            // Fan: Streams button
+            <button
+              onClick={() => router.push(navItems[2].path)}
+              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                navItems[2].active
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+              }`}
+              style={{ minHeight: '48px' }}
+            >
+              {(() => {
+                const Icon = navItems[2].icon;
+                return (
+                  <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                    <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                    {navItems[2].active && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                    )}
+                  </div>
+                );
+              })()}
+              <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                {navItems[2].label}
+              </span>
+            </button>
+          )}
 
           {/* Messages/Chats */}
           <button
@@ -699,6 +790,45 @@ export function Navigation() {
             </>
           )}
         </div>
+
+        {/* Go Stream Button for Creators */}
+        {userRole === 'creator' && (
+          <button
+            onClick={() => {
+              if (isLive && liveStreamId) {
+                router.push(`/stream/live/${liveStreamId}`);
+              } else {
+                router.push('/creator/go-stream');
+              }
+            }}
+            className="relative mb-4 group"
+            title={isLive ? 'View Your Stream' : 'Go Stream'}
+          >
+            {/* Glow effect */}
+            <div className={`absolute -inset-2 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none ${
+              isLive ? 'bg-red-500 animate-pulse' : 'bg-gradient-to-br from-red-500 via-orange-500 to-red-500'
+            }`} />
+
+            {/* Button */}
+            <div className={`relative flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all ${
+              isLive
+                ? 'bg-red-500 animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.6)]'
+                : 'bg-gradient-to-br from-red-500 to-orange-500 hover:scale-105 shadow-[0_0_25px_rgba(239,68,68,0.5)]'
+            }`}>
+              {isLive ? (
+                <>
+                  <div className="w-4 h-4 bg-white rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-white">LIVE</span>
+                </>
+              ) : (
+                <>
+                  <Radio className="w-6 h-6 text-white" />
+                  <span className="text-[10px] font-bold text-white">Go Stream</span>
+                </>
+              )}
+            </div>
+          </button>
+        )}
 
         {/* Navigation Items */}
         <div className="flex-1 flex flex-col gap-2">
