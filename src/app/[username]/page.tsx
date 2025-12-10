@@ -1462,7 +1462,10 @@ export default function ProfilePage() {
             {/* Benefits */}
             {subscriptionTier.benefits && (
               <div className="mb-6 text-sm text-gray-300 space-y-2">
-                {JSON.parse(subscriptionTier.benefits || '[]').slice(0, 3).map((benefit: string, i: number) => (
+                {(Array.isArray(subscriptionTier.benefits)
+                  ? subscriptionTier.benefits
+                  : JSON.parse(subscriptionTier.benefits || '[]')
+                ).slice(0, 3).map((benefit: string, i: number) => (
                   <div key={i} className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
                     <span>{benefit}</span>
