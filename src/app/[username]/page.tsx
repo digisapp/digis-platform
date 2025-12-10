@@ -522,20 +522,19 @@ export default function ProfilePage() {
 
     setMessageLoading(true);
     try {
-      // Create conversation by sending initial message
-      const createResponse = await fetch('/api/messages/send', {
+      // Create conversation without sending any message - let user type their own first message
+      const createResponse = await fetch('/api/messages/conversations/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipientId: profile.user.id,
-          content: '👋', // Send a friendly wave emoji to start the conversation
         }),
       });
 
       if (createResponse.ok) {
         const createData = await createResponse.json();
         setShowMessageModal(false);
-        // Navigate to the newly created conversation
+        // Navigate to the conversation - user can type their own first message
         router.push(`/chats/${createData.conversationId}`);
       } else {
         const errorData = await createResponse.json();
