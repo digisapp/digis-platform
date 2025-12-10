@@ -296,11 +296,11 @@ export default function CreatorContentStudioPage() {
 
               {/* Thumbnail Preview */}
               {selectedContent.thumbnailUrl && (
-                <div className="mb-6 rounded-lg overflow-hidden">
+                <div className="mb-6 rounded-lg overflow-hidden bg-black flex items-center justify-center">
                   <img
                     src={selectedContent.thumbnailUrl}
                     alt={selectedContent.title}
-                    className="w-full h-40 object-cover"
+                    className="max-w-full max-h-64 object-contain"
                   />
                 </div>
               )}
