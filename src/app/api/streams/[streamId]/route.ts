@@ -37,6 +37,8 @@ export async function GET(
           creatorUsername: stream.creator?.username,
           requiresSubscription: stream.privacy === 'subscribers',
           requiresFollow: stream.privacy === 'followers',
+          requiresTicket: stream.privacy === 'ticketed',
+          ticketPrice: stream.privacy === 'ticketed' ? stream.ticketPrice : undefined,
         },
         { status: 403 }
       );

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission } = await req.json();
+    const { title, description, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice } = await req.json();
 
     if (!title) {
       return NextResponse.json(
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       orientation: orientation || 'landscape',
       scheduled: !!scheduledAt,
       featuredCreatorCommission: featuredCreatorCommission || 0,
+      ticketPrice: privacy === 'ticketed' ? ticketPrice : null,
     });
 
     // Check for existing active stream first
@@ -73,7 +74,8 @@ export async function POST(req: NextRequest) {
           thumbnail_url,
           scheduledAt,
           orientation || 'landscape',
-          featuredCreatorCommission || 0
+          featuredCreatorCommission || 0,
+          privacy === 'ticketed' ? ticketPrice : undefined
         ),
         {
           timeoutMs: 8000,

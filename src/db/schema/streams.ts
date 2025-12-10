@@ -40,6 +40,11 @@ export const streams = pgTable('streams', {
   // Featured creator commission (0-100, percentage host takes from featured creator tips)
   featuredCreatorCommission: integer('featured_creator_commission').default(0).notNull(),
 
+  // Ticketed streams
+  ticketPrice: integer('ticket_price'), // Price in coins (null = not ticketed)
+  ticketsSold: integer('tickets_sold').default(0).notNull(),
+  ticketRevenue: integer('ticket_revenue').default(0).notNull(), // Total coins from ticket sales
+
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 
@@ -186,6 +191,26 @@ export const streamGoals = pgTable('stream_goals', {
   streamIdIdx: index('stream_goals_stream_id_idx').on(table.streamId, table.isActive),
 }));
 
+// Stream tickets (for paid/ticketed streams)
+export const streamTickets = pgTable('stream_tickets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Purchase info
+  pricePaid: integer('price_paid').notNull(), // Coins paid at time of purchase
+  purchasedAt: timestamp('purchased_at').defaultNow().notNull(),
+
+  // Transaction reference
+  transactionId: uuid('transaction_id'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_tickets_stream_id_idx').on(table.streamId),
+  userIdIdx: index('stream_tickets_user_id_idx').on(table.userId),
+  uniqueTicket: index('stream_tickets_unique_idx').on(table.streamId, table.userId),
+}));
+
 // Relations
 export const streamsRelations = relations(streams, ({ one, many }) => ({
   creator: one(users, {
@@ -197,6 +222,7 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   viewers: many(streamViewers),
   goals: many(streamGoals),
   featuredCreators: many(streamFeaturedCreators),
+  tickets: many(streamTickets),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -258,6 +284,17 @@ export const streamFeaturedCreatorsRelations = relations(streamFeaturedCreators,
   }),
 }));
 
+export const streamTicketsRelations = relations(streamTickets, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamTickets.streamId],
+    references: [streams.id],
+  }),
+  user: one(users, {
+    fields: [streamTickets.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
@@ -273,3 +310,5 @@ export type StreamGoal = typeof streamGoals.$inferSelect;
 export type NewStreamGoal = typeof streamGoals.$inferInsert;
 export type StreamFeaturedCreator = typeof streamFeaturedCreators.$inferSelect;
 export type NewStreamFeaturedCreator = typeof streamFeaturedCreators.$inferInsert;
+export type StreamTicket = typeof streamTickets.$inferSelect;
+export type NewStreamTicket = typeof streamTickets.$inferInsert;

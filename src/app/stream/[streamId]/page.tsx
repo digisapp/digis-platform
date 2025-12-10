@@ -17,7 +17,7 @@ import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users, Heart, Share2,
   MessageCircle, Gift, ChevronDown, ChevronUp, X, Coins, Crown,
-  Zap, Eye, TrendingUp, ExternalLink, Star
+  Zap, Eye, TrendingUp, ExternalLink, Star, Ticket
 } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
@@ -112,7 +112,10 @@ export default function StreamViewerPage() {
     creatorUsername?: string;
     requiresSubscription?: boolean;
     requiresFollow?: boolean;
+    requiresTicket?: boolean;
+    ticketPrice?: number;
   } | null>(null);
+  const [isPurchasingTicket, setIsPurchasingTicket] = useState(false);
 
   // User state
   const [userBalance, setUserBalance] = useState(0);
@@ -301,7 +304,13 @@ export default function StreamViewerPage() {
           creatorUsername: data.creatorUsername,
           requiresSubscription: data.requiresSubscription,
           requiresFollow: data.requiresFollow,
+          requiresTicket: data.requiresTicket,
+          ticketPrice: data.ticketPrice,
         });
+        // Fetch balance for ticket purchase
+        if (data.requiresTicket) {
+          fetchUserBalance();
+        }
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -531,16 +540,99 @@ export default function StreamViewerPage() {
     );
   }
 
+  // Handle ticket purchase
+  const handlePurchaseTicket = async () => {
+    if (isPurchasingTicket || !accessDenied?.ticketPrice) return;
+
+    setIsPurchasingTicket(true);
+    try {
+      const response = await fetch(`/api/streams/${streamId}/ticket`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Ticket purchased successfully - reload to get access
+        setAccessDenied(null);
+        setLoading(true);
+        fetchStreamDetails();
+      } else {
+        alert(data.error || 'Failed to purchase ticket');
+      }
+    } catch (err) {
+      alert('Failed to purchase ticket. Please try again.');
+    } finally {
+      setIsPurchasingTicket(false);
+    }
+  };
+
   // Access denied state
   if (accessDenied) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4 md:pl-20">
         <div className="max-w-md w-full text-center glass rounded-3xl p-8">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-digis-pink/20 to-digis-cyan/20 flex items-center justify-center">
-            <span className="text-4xl">🔒</span>
+            <span className="text-4xl">{accessDenied.requiresTicket ? '🎟️' : '🔒'}</span>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-3">Access Required</h1>
-          <p className="text-gray-400 mb-8">{accessDenied.reason}</p>
+          <h1 className="text-2xl font-bold text-white mb-3">
+            {accessDenied.requiresTicket ? 'Ticket Required' : 'Access Required'}
+          </h1>
+          <p className="text-gray-400 mb-6">{accessDenied.reason}</p>
+
+          {/* Ticket Purchase UI */}
+          {accessDenied.requiresTicket && accessDenied.ticketPrice && (
+            <div className="mb-6 p-4 bg-amber-500/10 border-2 border-amber-500/30 rounded-2xl">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Ticket className="w-6 h-6 text-amber-400" />
+                <span className="text-xl font-bold text-amber-400">{accessDenied.ticketPrice} coins</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-400 mb-4">
+                <span>Your balance:</span>
+                <Coins className="w-4 h-4 text-yellow-400" />
+                <span className={userBalance >= accessDenied.ticketPrice ? 'text-green-400' : 'text-red-400'}>
+                  {userBalance.toLocaleString()} coins
+                </span>
+              </div>
+
+              {userBalance >= accessDenied.ticketPrice ? (
+                <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  shimmer
+                  glow
+                  onClick={handlePurchaseTicket}
+                  disabled={isPurchasingTicket}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500"
+                >
+                  {isPurchasingTicket ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    <>
+                      <Ticket className="w-5 h-5 mr-2" />
+                      Buy Ticket
+                    </>
+                  )}
+                </GlassButton>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-red-400">You need {accessDenied.ticketPrice - userBalance} more coins</p>
+                  <GlassButton
+                    variant="gradient"
+                    size="lg"
+                    shimmer
+                    glow
+                    onClick={() => router.push('/wallet')}
+                    className="w-full"
+                  >
+                    <Coins className="w-5 h-5 mr-2" />
+                    Get Coins
+                  </GlassButton>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3">
             {accessDenied.requiresSubscription && (
               <GlassButton variant="gradient" size="lg" shimmer glow onClick={() => router.push(`/${accessDenied.creatorUsername}`)} className="w-full">

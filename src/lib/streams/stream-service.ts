@@ -5,6 +5,7 @@ import {
   streamGifts,
   streamViewers,
   streamFeaturedCreators,
+  streamTickets,
   virtualGifts,
   users,
   wallets,
@@ -55,7 +56,8 @@ export class StreamService {
     thumbnailUrl?: string,
     scheduledAt?: Date,
     orientation?: 'landscape' | 'portrait',
-    featuredCreatorCommission?: number
+    featuredCreatorCommission?: number,
+    ticketPrice?: number
   ) {
     // Check if creator already has an active stream
     const existingStream = await this.getActiveStream(creatorId);
@@ -83,6 +85,7 @@ export class StreamService {
         lastHeartbeat: isScheduled ? undefined : new Date(), // Set initial heartbeat
         orientation: orientation || 'landscape',
         featuredCreatorCommission: featuredCreatorCommission || 0,
+        ticketPrice: ticketPrice || null,
       })
       .returning();
 
@@ -731,6 +734,29 @@ export class StreamService {
 
       if (!activeSubscription) {
         return { hasAccess: false, reason: 'You must be an active subscriber to watch this stream.' };
+      }
+
+      return { hasAccess: true };
+    }
+
+    // Check ticketed access
+    if (stream.privacy === 'ticketed') {
+      if (!userId) {
+        return {
+          hasAccess: false,
+          reason: 'This is a ticketed stream. Please purchase a ticket to watch.'
+        };
+      }
+
+      const ticket = await db.query.streamTickets.findFirst({
+        where: and(
+          eq(streamTickets.streamId, streamId),
+          eq(streamTickets.userId, userId)
+        ),
+      });
+
+      if (!ticket) {
+        return { hasAccess: false, reason: 'You must purchase a ticket to watch this stream.' };
       }
 
       return { hasAccess: true };
