@@ -5,8 +5,15 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
-import { Clock, Users, Eye } from 'lucide-react';
+import { Clock, Users, Eye, Play, Image as ImageIcon, Lock } from 'lucide-react';
 import { getCategoryLabel, getCategoryColor } from '@/lib/constants/categories';
+
+interface Creator {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
 
 interface LiveStream {
   id: string;
@@ -14,24 +21,7 @@ interface LiveStream {
   thumbnailUrl: string | null;
   viewerCount: number;
   status: string;
-  creator: {
-    id: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-  };
-}
-
-interface FeaturedCreator {
-  id: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  bio: string | null;
-  followerCount: number;
-  isLive: boolean;
-  primaryCategory: string | null;
-  secondaryCategory: string | null;
+  creator: Creator;
 }
 
 interface UpcomingShow {
@@ -44,24 +34,46 @@ interface UpcomingShow {
   maxTickets: number | null;
   scheduledStart: string;
   coverImageUrl: string | null;
-  creator: {
-    id: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-  };
+  creator: Creator;
+}
+
+interface ContentItem {
+  id: string;
+  title: string;
+  description: string | null;
+  contentType: string;
+  thumbnailUrl: string | null;
+  price: number;
+  isFree: boolean;
+  createdAt: string;
+  creator: Creator;
+}
+
+interface SuggestedCreator {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  followerCount: number;
+  isLive: boolean;
+  isOnline: boolean;
+  primaryCategory: string | null;
+  isCreatorVerified: boolean;
 }
 
 export default function FanDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
-  const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
-  const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
+  const [isNewUser, setIsNewUser] = useState(false);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [liveFromFollowing, setLiveFromFollowing] = useState<LiveStream[]>([]);
+  const [upcomingFromFollowing, setUpcomingFromFollowing] = useState<UpcomingShow[]>([]);
+  const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
+  const [suggestedCreators, setSuggestedCreators] = useState<SuggestedCreator[]>([]);
 
   useEffect(() => {
     checkAuth();
-    fetchContent();
   }, []);
 
   const checkAuth = async () => {
@@ -90,33 +102,25 @@ export default function FanDashboard() {
       console.error('Error checking username:', err);
     }
 
+    // Fetch personalized feed
+    await fetchFeed();
     setLoading(false);
   };
 
-  const fetchContent = async () => {
+  const fetchFeed = async () => {
     try {
-      // Fetch live streams
-      const streamsRes = await fetch('/api/streams/live');
-      if (streamsRes.ok) {
-        const streamsData = await streamsRes.json();
-        setLiveStreams(streamsData.streams || []);
-      }
-
-      // Fetch featured creators (from explore)
-      const creatorsRes = await fetch('/api/explore?limit=6');
-      if (creatorsRes.ok) {
-        const creatorsData = await creatorsRes.json();
-        setFeaturedCreators(creatorsData.data?.creators || []);
-      }
-
-      // Fetch upcoming shows
-      const showsRes = await fetch('/api/shows/upcoming');
-      if (showsRes.ok) {
-        const showsData = await showsRes.json();
-        setUpcomingShows((showsData.shows || []).slice(0, 6));
+      const res = await fetch('/api/feed');
+      if (res.ok) {
+        const data = await res.json();
+        setIsNewUser(data.isNewUser);
+        setFollowingCount(data.followingCount);
+        setLiveFromFollowing(data.liveFromFollowing || []);
+        setUpcomingFromFollowing(data.upcomingFromFollowing || []);
+        setRecentContent(data.recentContent || []);
+        setSuggestedCreators(data.suggestedCreators || []);
       }
     } catch (err) {
-      console.error('Error fetching content:', err);
+      console.error('Error fetching feed:', err);
     }
   };
 
@@ -130,6 +134,18 @@ export default function FanDashboard() {
     if (days > 0) return `in ${days}d`;
     if (hours > 0) return `in ${hours}h`;
     return 'Soon';
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ago`;
+    if (hours > 0) return `${hours}h ago`;
+    return 'Just now';
   };
 
   if (loading) {
@@ -156,17 +172,34 @@ export default function FanDashboard() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Live Streams Section */}
-        {liveStreams.length > 0 && (
-          <div className="mb-12">
+        {/* New User Welcome / Empty State */}
+        {isNewUser && (
+          <div className="mb-8 backdrop-blur-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_50px_rgba(34,211,238,0.2)]">
+            <div className="text-5xl mb-4">👋</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Digis!</h2>
+            <p className="text-gray-300 mb-6 max-w-md mx-auto">
+              Start by following some creators to personalize your feed. We'll show you their live streams, new content, and upcoming shows right here.
+            </p>
+            <button
+              onClick={() => router.push('/explore')}
+              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+            >
+              Explore Creators
+            </button>
+          </div>
+        )}
+
+        {/* Live Now from Following */}
+        {liveFromFollowing.length > 0 && (
+          <div className="mb-10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="absolute -inset-1 bg-red-500 rounded-full blur opacity-75"></div>
                   <div className="relative w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
                 </div>
-                <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Live Now</h2>
-                <span className="text-sm text-cyan-400 bg-white/5 px-3 py-1 rounded-full border border-cyan-500/30">{liveStreams.length}</span>
+                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Live Now</h2>
+                <span className="text-xs text-gray-400">from creators you follow</span>
               </div>
               <button
                 onClick={() => router.push('/live')}
@@ -177,13 +210,13 @@ export default function FanDashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {liveStreams.slice(0, 8).map((stream) => (
+              {liveFromFollowing.map((stream) => (
                 <div
                   key={stream.id}
                   onClick={() => router.push(`/live/${stream.creator.username}`)}
                   className="group cursor-pointer"
                 >
-                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 mb-3">
+                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 mb-3 border-2 border-red-500/30 hover:border-red-500/60 transition-all">
                     {stream.thumbnailUrl ? (
                       <img
                         src={stream.thumbnailUrl}
@@ -191,8 +224,8 @@ export default function FanDashboard() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                        <span className="text-4xl">🎥</span>
+                      <div className="w-full h-full bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
+                        <Play className="w-12 h-12 text-red-400" />
                       </div>
                     )}
 
@@ -214,16 +247,16 @@ export default function FanDashboard() {
 
                   {/* Stream Info */}
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0 ring-2 ring-red-500">
                       {stream.creator.avatarUrl ? (
-                        <img src={stream.creator.avatarUrl} alt={stream.creator.displayName || stream.creator.username} className="w-full h-full rounded-full object-cover" />
+                        <img src={stream.creator.avatarUrl} alt={stream.creator.username} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        <span className="text-white font-bold text-sm">{(stream.creator.displayName || stream.creator.username)[0].toUpperCase()}</span>
+                        <span className="text-white font-bold text-sm">{stream.creator.username[0].toUpperCase()}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-white font-semibold text-sm line-clamp-1 mb-1">{stream.title}</h3>
-                      <p className="text-gray-400 text-xs line-clamp-1">{stream.creator.displayName || stream.creator.username}</p>
+                      <p className="text-gray-400 text-xs line-clamp-1">{stream.creator.username}</p>
                     </div>
                   </div>
                 </div>
@@ -232,65 +265,71 @@ export default function FanDashboard() {
           </div>
         )}
 
-        {/* Featured Creators Section */}
-        {featuredCreators.length > 0 && (
-          <div className="mb-12">
+        {/* Recent Content from Following */}
+        {recentContent.length > 0 && (
+          <div className="mb-10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Featured Creators</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">New Content</h2>
+                <span className="text-xs text-gray-400">from creators you follow</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {featuredCreators.map((creator) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {recentContent.map((content) => (
                 <div
-                  key={creator.id}
-                  onClick={() => router.push(`/${creator.username}`)}
-                  className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border-2 border-cyan-500/30 hover:border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                  key={content.id}
+                  onClick={() => router.push(`/content/${content.id}`)}
+                  className="group cursor-pointer"
                 >
-                  {/* 4:5 Portrait Card */}
-                  <div className="relative w-full overflow-hidden rounded-2xl" style={{paddingBottom: '125%'}}>
-                    {creator.avatarUrl ? (
-                      <>
-                        <img
-                          src={creator.avatarUrl}
-                          alt={creator.displayName || creator.username}
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
-                      </>
+                  <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-slate-900 mb-2 border border-white/10 hover:border-cyan-500/50 transition-all">
+                    {content.thumbnailUrl ? (
+                      <img
+                        src={content.thumbnailUrl}
+                        alt={content.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                        <Users className="w-16 h-16 text-cyan-400" />
+                      <div className="w-full h-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-500" />
                       </div>
                     )}
 
-                    {/* Live indicator */}
-                    {creator.isLive && (
-                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1.5 z-10">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        LIVE
-                      </div>
-                    )}
-
-                    {/* Category badges */}
-                    <div className={`absolute ${creator.isLive ? 'top-11' : 'top-2'} left-2 flex flex-wrap gap-1.5 z-10`}>
-                      {creator.primaryCategory && (
-                        <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${getCategoryColor(creator.primaryCategory)} text-white text-[10px] font-bold backdrop-blur-sm shadow-lg`}>
-                          {getCategoryLabel(creator.primaryCategory)}
-                        </div>
-                      )}
-                      {creator.secondaryCategory && (
-                        <div className={`px-2 py-0.5 rounded-md bg-gradient-to-r ${getCategoryColor(creator.secondaryCategory)} text-white text-[10px] font-bold backdrop-blur-sm shadow-lg opacity-90`}>
-                          {getCategoryLabel(creator.secondaryCategory)}
+                    {/* Content type badge */}
+                    <div className="absolute top-2 left-2">
+                      {content.contentType === 'video' && (
+                        <div className="bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1">
+                          <Play className="w-3 h-3" />
                         </div>
                       )}
                     </div>
 
-                    {/* Creator info overlay at bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-cyan-500/30 group-hover:bg-white/20 transition-all duration-300">
-                      <h3 className="text-sm font-bold text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                        {creator.displayName || creator.username}
-                      </h3>
+                    {/* Price badge */}
+                    {!content.isFree && (
+                      <div className="absolute top-2 right-2 bg-yellow-500/90 text-gray-900 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        {content.price}
+                      </div>
+                    )}
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                    {/* Creator avatar */}
+                    <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                        {content.creator.avatarUrl ? (
+                          <img src={content.creator.avatarUrl} alt={content.creator.username} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <span className="text-white text-xs font-bold">{content.creator.username[0].toUpperCase()}</span>
+                        )}
+                      </div>
+                      <span className="text-white text-xs font-medium truncate max-w-[80px]">{content.creator.username}</span>
                     </div>
+                  </div>
+
+                  <div className="px-1">
+                    <p className="text-gray-400 text-xs">{formatTimeAgo(content.createdAt)}</p>
                   </div>
                 </div>
               ))}
@@ -298,11 +337,14 @@ export default function FanDashboard() {
           </div>
         )}
 
-        {/* Upcoming Shows Section */}
-        {upcomingShows.length > 0 && (
-          <div className="mb-12">
+        {/* Upcoming Shows from Following */}
+        {upcomingFromFollowing.length > 0 && (
+          <div className="mb-10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Upcoming Streams</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Upcoming Streams</h2>
+                <span className="text-xs text-gray-400">from creators you follow</span>
+              </div>
               <button
                 onClick={() => router.push('/streams')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
@@ -312,20 +354,20 @@ export default function FanDashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingShows.map((show) => (
+              {upcomingFromFollowing.map((show) => (
                 <div
                   key={show.id}
                   onClick={() => router.push(`/streams/${show.id}`)}
                   className="group cursor-pointer"
                 >
-                  <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 overflow-hidden hover:border-cyan-500/50 hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                  <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 overflow-hidden hover:border-cyan-500/50 hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)]">
                     {/* Cover Image */}
                     <div className="relative aspect-video bg-slate-900">
                       {show.coverImageUrl ? (
                         <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
-                          <span className="text-5xl">🎟️</span>
+                          <span className="text-4xl">🎟️</span>
                         </div>
                       )}
 
@@ -344,12 +386,12 @@ export default function FanDashboard() {
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
                           {show.creator.avatarUrl ? (
-                            <img src={show.creator.avatarUrl} alt={show.creator.displayName || show.creator.username} className="w-full h-full rounded-full object-cover" />
+                            <img src={show.creator.avatarUrl} alt={show.creator.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
-                            <span className="text-white text-xs font-bold">{(show.creator.displayName || show.creator.username)[0].toUpperCase()}</span>
+                            <span className="text-white text-xs font-bold">{show.creator.username[0].toUpperCase()}</span>
                           )}
                         </div>
-                        <span className="text-gray-400 text-sm">{show.creator.displayName || show.creator.username}</span>
+                        <span className="text-gray-400 text-sm">{show.creator.username}</span>
                       </div>
 
                       {/* Price & Tickets */}
@@ -367,20 +409,103 @@ export default function FanDashboard() {
           </div>
         )}
 
-        {/* Empty State - Only if nothing to show */}
-        {liveStreams.length === 0 && featuredCreators.length === 0 && upcomingShows.length === 0 && (
+        {/* Suggested Creators */}
+        {suggestedCreators.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">Suggested For You</h2>
+              </div>
+              <button
+                onClick={() => router.push('/explore')}
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
+              >
+                Explore all →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {suggestedCreators.map((creator) => (
+                <div
+                  key={creator.id}
+                  onClick={() => router.push(`/${creator.username}`)}
+                  className="overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.03] group relative rounded-2xl border-2 border-purple-500/30 hover:border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                >
+                  {/* 4:5 Portrait Card */}
+                  <div className="relative w-full overflow-hidden rounded-2xl" style={{paddingBottom: '125%'}}>
+                    {creator.avatarUrl ? (
+                      <>
+                        <img
+                          src={creator.avatarUrl}
+                          alt={creator.username}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                        <Users className="w-16 h-16 text-purple-400" />
+                      </div>
+                    )}
+
+                    {/* Live indicator */}
+                    {creator.isLive && (
+                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold flex items-center gap-1.5 z-10">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        LIVE
+                      </div>
+                    )}
+
+                    {/* Online indicator */}
+                    {creator.isOnline && !creator.isLive && (
+                      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-green-500/80 text-white text-xs font-medium z-10">
+                        Online
+                      </div>
+                    )}
+
+                    {/* Category badge */}
+                    {creator.primaryCategory && (
+                      <div className={`absolute ${creator.isLive || creator.isOnline ? 'top-10' : 'top-2'} left-2 px-2 py-0.5 rounded-md bg-gradient-to-r ${getCategoryColor(creator.primaryCategory)} text-white text-[10px] font-bold backdrop-blur-sm shadow-lg z-10`}>
+                        {getCategoryLabel(creator.primaryCategory)}
+                      </div>
+                    )}
+
+                    {/* Creator info overlay at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 backdrop-blur-sm bg-white/10 border-t border-purple-500/30 group-hover:bg-white/20 transition-all duration-300">
+                      <h3 className="text-sm font-bold text-white truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                        {creator.username}
+                      </h3>
+                      <p className="text-xs text-gray-300">{creator.followerCount.toLocaleString()} followers</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state for returning users with no activity */}
+        {!isNewUser && liveFromFollowing.length === 0 && recentContent.length === 0 && upcomingFromFollowing.length === 0 && (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">Discover Creators</h3>
+            <div className="text-5xl mb-4">📺</div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">No New Activity</h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              No live content right now. Explore and find creators to follow!
+              The creators you follow haven't posted anything new recently. Check back later or discover new creators!
             </p>
-            <button
-              onClick={() => router.push('/explore')}
-              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
-            >
-              Explore Creators
-            </button>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => router.push('/explore')}
+                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+              >
+                Explore Creators
+              </button>
+              <button
+                onClick={() => router.push('/live')}
+                className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
+              >
+                See Who's Live
+              </button>
+            </div>
           </div>
         )}
       </div>
