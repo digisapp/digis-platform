@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
             // Only show creators with profile pictures (better explore experience)
             const conditions = [
               eq(users.role, 'creator'),
-              sql`${users.avatarUrl} IS NOT NULL`,
+              sql`${users.avatarUrl} IS NOT NULL AND ${users.avatarUrl} != ''`,
             ];
 
             // Add search filter in SQL (not JS)
