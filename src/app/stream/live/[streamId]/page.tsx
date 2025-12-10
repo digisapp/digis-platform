@@ -946,80 +946,27 @@ export default function BroadcastStudioPage() {
           </div>
       )}
 
-      {/* Top Stats Bar - Simplified for Mobile */}
-      <div className="backdrop-blur-2xl bg-gradient-to-r from-black/80 via-gray-900/80 to-black/80 border-b-2 border-cyan-500/30 sticky top-0 z-40 shadow-[0_4px_30px_rgba(34,211,238,0.15)]">
-        <div className="container mx-auto px-3 py-2">
-          {/* Main Row - Essential items */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {/* LIVE + Timer */}
-              <div className="relative flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                <span className="text-red-400 font-bold text-xs">LIVE</span>
-                <span className="text-white font-semibold text-xs">{formatDuration()}</span>
-              </div>
-
-              {/* Viewers */}
-              <ViewerList streamId={streamId} currentViewers={viewerCount} />
-
-              {/* Coins Earned */}
-              <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-yellow-500/10 rounded-xl border-2 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
-                <Coins className="w-4 h-4 text-yellow-400" />
-                <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
-              </div>
-
-              {/* Set Goal Button - Always visible */}
-              <button
-                onClick={() => {
-                  const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                  if (hasActiveGoal) {
-                    alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
-                    return;
-                  }
-                  setEditingGoal(null);
-                  setShowGoalModal(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-white/5 rounded-xl border-2 border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] hover:scale-105 transition-all duration-300"
-              >
-                <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="hidden sm:inline">Goal</span>
-              </button>
-
-              {/* Connection Status - Desktop only */}
-              <div className="hidden md:block">
-                <StreamHealthIndicator streamId={streamId} />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* End Stream Button */}
-              <button
-                onClick={() => {
-                  setIsLeaveAttempt(false);
-                  setShowEndConfirm(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/10 rounded-xl border-2 border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/20 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:scale-105 transition-all duration-300 flex-shrink-0"
-              >
-                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                </svg>
-                <span className="text-red-400">End</span>
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Minimal Top Bar - Just End Stream */}
+      <div className="absolute top-[calc(48px+env(safe-area-inset-top))] md:top-0 left-0 right-0 z-40 p-3 flex justify-end">
+        <button
+          onClick={() => {
+            setIsLeaveAttempt(false);
+            setShowEndConfirm(true);
+          }}
+          className="flex items-center gap-1.5 px-4 py-2 backdrop-blur-xl bg-red-500/20 rounded-xl border-2 border-red-500/50 text-white font-semibold text-sm hover:bg-red-500/30 hover:border-red-500/70 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all duration-300"
+        >
+          <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+          </svg>
+          <span className="text-red-400">End Stream</span>
+        </button>
       </div>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
+      <div className="container mx-auto px-2 sm:px-4 pt-16 md:pt-4 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
         <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
           <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
-            {/* Stream Title */}
-            <h1 className="text-2xl font-bold text-white px-2">{stream.title}</h1>
-
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
@@ -1074,6 +1021,62 @@ export default function BroadcastStudioPage() {
                     <LocalCameraPreview />
                     <RoomAudioRenderer />
                   </LiveKitRoom>
+                  {/* Top Left Overlay - LIVE + Timer + Viewers */}
+                  <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
+                    {/* LIVE Badge + Timer */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                      <span className="text-red-400 font-bold text-sm">LIVE</span>
+                      <span className="text-white font-semibold text-sm">{formatDuration()}</span>
+                    </div>
+
+                    {/* Viewers */}
+                    <ViewerList streamId={streamId} currentViewers={viewerCount} />
+
+                    {/* Connection Status */}
+                    <div className="hidden md:block">
+                      <StreamHealthIndicator streamId={streamId} />
+                    </div>
+                  </div>
+
+                  {/* Top Right Overlay - Coins Earned + Goal + Camera Flip */}
+                  <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+                    {/* Coins Earned */}
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                    </div>
+
+                    {/* Set Goal Button */}
+                    <button
+                      onClick={() => {
+                        const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                        if (hasActiveGoal) {
+                          alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
+                          return;
+                        }
+                        setEditingGoal(null);
+                        setShowGoalModal(true);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
+                    >
+                      <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="hidden sm:inline">Goal</span>
+                    </button>
+
+                    {/* Camera Flip Button - Mobile only */}
+                    <button
+                      onClick={handleFlipCamera}
+                      disabled={isFlippingCamera}
+                      className="md:hidden p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+                      title="Flip Camera"
+                    >
+                      <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+
                   <VideoControls
                     onToggleMute={handleToggleMute}
                     onToggleFullscreen={handleToggleFullscreen}
@@ -1083,15 +1086,6 @@ export default function BroadcastStudioPage() {
                     isTheaterMode={isTheaterMode}
                     showTheaterMode={false}
                   />
-                  {/* Camera Flip Button - Mobile only */}
-                  <button
-                    onClick={handleFlipCamera}
-                    disabled={isFlippingCamera}
-                    className="md:hidden absolute top-3 right-3 p-2.5 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
-                    title="Flip Camera"
-                  >
-                    <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
-                  </button>
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center">

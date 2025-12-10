@@ -21,6 +21,9 @@ const formatCoinsToUSD = (coins: number): string => {
 interface UsernameStatus {
   canChange: boolean;
   daysRemaining: number;
+  changesUsed: number;
+  changesRemaining: number;
+  maxChanges: number;
   currentUsername: string;
   lastChangedAt: string | null;
 }
