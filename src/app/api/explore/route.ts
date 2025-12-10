@@ -84,7 +84,11 @@ export async function GET(request: NextRequest) {
         (async () => {
           try {
             // Build WHERE conditions
-            const conditions = [eq(users.role, 'creator')];
+            // Only show creators with profile pictures (better explore experience)
+            const conditions = [
+              eq(users.role, 'creator'),
+              sql`${users.avatarUrl} IS NOT NULL`,
+            ];
 
             // Add search filter in SQL (not JS)
             if (search) {
