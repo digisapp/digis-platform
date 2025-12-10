@@ -74,7 +74,7 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 top-12 w-80 bg-black/95 backdrop-blur-xl rounded-xl border-2 border-white/20 z-50 shadow-2xl">
+          <div className="absolute left-0 top-12 w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-xl border-2 border-white/20 z-50 shadow-2xl max-h-[70vh] overflow-hidden">
             {/* Header */}
             <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
               <div>
@@ -83,14 +83,14 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors p-1"
               >
                 ✕
               </button>
             </div>
 
             {/* Viewer List */}
-            <div className="p-4 space-y-3">
+            <div className="p-3 space-y-2 overflow-y-auto max-h-[calc(70vh-60px)]">
               {loading && viewers.length === 0 ? (
                 <div className="text-center text-gray-500 py-4">
                   Loading viewers...
@@ -104,40 +104,43 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
                   </p>
                 </div>
               ) : (
-                <div className="max-h-[350px] overflow-y-auto space-y-3">
+                <div className="space-y-2">
                   {viewers.map((viewer) => (
-                    <div
+                    <a
                       key={viewer.id}
-                      className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors"
+                      href={`/${viewer.username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg transition-colors"
                     >
                       {/* Avatar */}
                       {viewer.avatarUrl ? (
                         <img
                           src={viewer.avatarUrl}
                           alt={viewer.displayName || viewer.username}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold flex-shrink-0">
                           {(viewer.displayName || viewer.username)[0]?.toUpperCase()}
                         </div>
                       )}
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-white truncate">
+                        <div className="font-semibold text-white truncate text-sm">
                           {viewer.displayName || viewer.username}
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-xs text-gray-400 truncate">
                           @{viewer.username}
                         </div>
                       </div>
 
                       {/* Join Time */}
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 flex-shrink-0">
                         {formatJoinTime(viewer.joinedAt)}
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               )}
