@@ -19,7 +19,7 @@ import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins, MessageCircle, UserPlus, RefreshCw } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -971,7 +971,7 @@ export default function BroadcastStudioPage() {
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
                 streamOrientation === 'portrait'
-                  ? 'aspect-[9/16] max-h-[70vh]'
+                  ? 'aspect-[9/16] max-h-[80vh] sm:max-h-[70vh]'
                   : 'aspect-video'
               }`}
               data-lk-video-container
@@ -1021,33 +1021,39 @@ export default function BroadcastStudioPage() {
                     <LocalCameraPreview />
                     <RoomAudioRenderer />
                   </LiveKitRoom>
-                  {/* Top Left Overlay - LIVE + Timer + Viewers */}
-                  <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
+                  {/* Top Left Overlay - LIVE + Timer */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
                     {/* LIVE Badge + Timer */}
-                    <div className="flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+                    <div className="flex items-center gap-1.5 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                      <span className="text-red-400 font-bold text-sm">LIVE</span>
-                      <span className="text-white font-semibold text-sm">{formatDuration()}</span>
+                      <span className="text-red-400 font-bold text-xs">LIVE</span>
+                      <span className="text-white font-semibold text-xs">{formatDuration()}</span>
                     </div>
 
-                    {/* Viewers */}
-                    <ViewerList streamId={streamId} currentViewers={viewerCount} />
+                    {/* Viewers - Compact on mobile */}
+                    <div className="hidden sm:block">
+                      <ViewerList streamId={streamId} currentViewers={viewerCount} />
+                    </div>
+                    <div className="sm:hidden flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full">
+                      <Users className="w-3 h-3 text-cyan-400" />
+                      <span className="text-white text-xs font-semibold">{viewerCount}</span>
+                    </div>
 
-                    {/* Connection Status */}
+                    {/* Connection Status - Desktop only */}
                     <div className="hidden md:block">
                       <StreamHealthIndicator streamId={streamId} />
                     </div>
                   </div>
 
-                  {/* Top Right Overlay - Coins Earned + Goal + Camera Flip */}
-                  <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-                    {/* Coins Earned */}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
-                      <Coins className="w-4 h-4 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                  {/* Top Right Overlay - Coins + Goal + Camera Flip */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                    {/* Coins Earned - Compact */}
+                    <div className="flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                      <Coins className="w-3 h-3 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
                     </div>
 
-                    {/* Set Goal Button */}
+                    {/* Set Goal Button - Icon only on mobile */}
                     <button
                       onClick={() => {
                         const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
@@ -1058,22 +1064,22 @@ export default function BroadcastStudioPage() {
                         setEditingGoal(null);
                         setShowGoalModal(true);
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
+                      className="flex items-center gap-1 px-2 py-1 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-xs hover:border-cyan-500/60 hover:bg-black/80 transition-all"
                     >
-                      <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="hidden sm:inline">Goal</span>
+                      <span className="hidden sm:inline text-xs">Goal</span>
                     </button>
 
                     {/* Camera Flip Button - Mobile only */}
                     <button
                       onClick={handleFlipCamera}
                       disabled={isFlippingCamera}
-                      className="md:hidden p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+                      className="md:hidden p-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
                       title="Flip Camera"
                     >
-                      <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`w-4 h-4 ${isFlippingCamera ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
 
