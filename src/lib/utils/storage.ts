@@ -54,6 +54,24 @@ export async function uploadImage(
 }
 
 /**
+ * Validate image file type only (no size check - for images that will be resized)
+ * @param file - The file to validate
+ * @returns Validation result
+ */
+export function validateImageType(
+  file: File
+): { valid: boolean; error?: string } {
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    return {
+      valid: false,
+      error: 'Invalid file type. Please use JPG, PNG, GIF, or WebP.',
+    };
+  }
+  return { valid: true };
+}
+
+/**
  * Validate image file before upload
  * @param file - The file to validate
  * @param kind - Type of image (avatar, banner, creator-card, or show-cover)
@@ -64,22 +82,22 @@ export function validateImageFile(
   kind: ImageKind
 ): { valid: boolean; error?: string } {
   // Check file type
-  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-  if (!validTypes.includes(file.type)) {
-    return {
-      valid: false,
-      error: 'Invalid file type. Please use JPG, PNG, GIF, or WebP.',
-    };
+  const typeValidation = validateImageType(file);
+  if (!typeValidation.valid) {
+    return typeValidation;
   }
 
-  // Check file size - avatar 1MB, show-covers 5MB, others 2MB
-  let maxSize: number;
+  // Skip size check for avatars - they get auto-resized to 512x512
   if (kind === 'avatar') {
-    maxSize = 1 * 1024 * 1024; // 1MB
-  } else if (kind === 'show-cover') {
-    maxSize = 5 * 1024 * 1024; // 5MB for show covers (higher quality)
+    return { valid: true };
+  }
+
+  // Check file size - show-covers 10MB, others 5MB (generous limits)
+  let maxSize: number;
+  if (kind === 'show-cover') {
+    maxSize = 10 * 1024 * 1024; // 10MB for show covers
   } else {
-    maxSize = 2 * 1024 * 1024; // 2MB for banner/creator-card
+    maxSize = 5 * 1024 * 1024; // 5MB for banner/creator-card
   }
 
   if (file.size > maxSize) {
