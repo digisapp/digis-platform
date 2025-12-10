@@ -183,6 +183,32 @@ export function Navigation() {
     };
   }, [authUser]);
 
+  // Subscribe to real-time updates for follower count changes (creators only)
+  useEffect(() => {
+    if (!authUser || userRole !== 'creator') return;
+
+    const supabase = createClient();
+    const followsChannel = supabase
+      .channel('navigation-followers')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${authUser.id}`,
+        },
+        () => {
+          fetchFollowerCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(followsChannel);
+    };
+  }, [authUser, userRole]);
+
   const fetchBalance = async () => {
     try {
       const response = await fetch('/api/wallet/balance');
@@ -204,6 +230,18 @@ export function Navigation() {
       }
     } catch (err) {
       // User not logged in
+    }
+  };
+
+  const fetchFollowerCount = async () => {
+    try {
+      const response = await fetch('/api/user/follower-count');
+      const data = await response.json();
+      if (response.ok) {
+        setFollowerCount(data.count);
+      }
+    } catch (err) {
+      // User not logged in or not a creator
     }
   };
 
