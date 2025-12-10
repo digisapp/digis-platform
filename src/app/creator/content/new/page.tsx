@@ -394,7 +394,7 @@ export default function CreateContentPage() {
                     Click to upload photos or videos
                   </p>
                   <p className="text-sm text-gray-400 mb-3">
-                    Select multiple images to create a gallery
+                    Uploads will be displayed on your Profile Page
                   </p>
                   <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
                     <span>JPG, PNG up to 50MB</span>
