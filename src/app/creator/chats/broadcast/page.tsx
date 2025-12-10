@@ -384,7 +384,7 @@ export default function BroadcastMessagePage() {
             <button
               type="submit"
               disabled={sending || (formData.messageType === 'text' && !formData.textMessage.trim()) || (formData.messageType === 'media' && !formData.file)}
-              className="flex-1 px-6 py-4 bg-gradient-to-r from-digis-cyan to-digis-pink text-black rounded-xl font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-4 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
             >
               <Send className="w-5 h-5" />
               {sending ? 'Sending...' : `Send to ${getRecipientCount()} ${formData.targetAudience}`}

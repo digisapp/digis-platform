@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Search, X, Pin, Archive, MoreVertical, Users, Inbox, MessageCircle } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle } from 'lucide-react';
 
 type ConversationWithOtherUser = {
   id: string;
@@ -30,7 +30,6 @@ export default function MessagesPage() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState<string>('fan');
-  const [pendingRequests, setPendingRequests] = useState(0);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,27 +73,9 @@ export default function MessagesPage() {
       const data = await response.json();
       if (data.user?.role) {
         setUserRole(data.user.role);
-
-        // Fetch pending requests if creator
-        if (data.user.role === 'creator') {
-          fetchPendingRequests();
-        }
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
-    }
-  };
-
-  const fetchPendingRequests = async () => {
-    try {
-      const response = await fetch('/api/messages/requests');
-      const data = await response.json();
-
-      if (response.ok) {
-        setPendingRequests(data.requests?.length || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching pending requests:', error);
     }
   };
 
@@ -287,31 +268,13 @@ export default function MessagesPage() {
 
               {/* Creator Actions */}
               {userRole === 'creator' && (
-                <>
-                  <button
-                    onClick={() => router.push('/creator/chats/broadcast')}
-                    className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
-                  >
-                    <Users className="w-3.5 h-3.5" strokeWidth={2} />
-                    <span className="hidden sm:inline">Mass</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/chats/requests')}
-                    className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105 ${
-                      pendingRequests > 0
-                        ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                        : 'bg-white/5 text-gray-300 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white/10'
-                    }`}
-                  >
-                    <Inbox className="w-3.5 h-3.5" strokeWidth={2} />
-                    <span className="hidden sm:inline">Requests</span>
-                    {pendingRequests > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {pendingRequests}
-                      </span>
-                    )}
-                  </button>
-                </>
+                <button
+                  onClick={() => router.push('/creator/chats/broadcast')}
+                  className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
+                >
+                  <Users className="w-3.5 h-3.5" strokeWidth={2} />
+                  Mass
+                </button>
               )}
             </div>
 
