@@ -1130,20 +1130,22 @@ export default function BroadcastStudioPage() {
               />
             </div>
 
-            {/* Featured Creators Panel - Desktop only */}
-            <div className="hidden lg:block">
-              <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+            {/* Featured Creators Panel */}
+            <div className="backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden">
+              <div className="h-[200px] lg:h-auto overflow-y-auto">
+                <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+              </div>
             </div>
 
-            {/* Top Gifters Leaderboard - Desktop only (below chat) */}
-            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
+            {/* Top Gifters Leaderboard */}
+            <div className="backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 Top Gifters
               </h3>
-              <div className="space-y-1.5 max-h-[180px] overflow-y-auto">
+              <div className="space-y-1.5 max-h-[300px] lg:max-h-[180px] overflow-y-auto">
                 {leaderboard.length > 0 ? (
                   leaderboard.slice(0, 5).map((supporter, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group hover:bg-white/10 transition-colors">
