@@ -1068,19 +1068,19 @@ export default function BroadcastStudioPage() {
                   </div>
 
                   {/* Bottom Center - End Stream Button */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+                  <div className="absolute bottom-14 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
                     <button
                       onClick={() => {
                         setIsLeaveAttempt(false);
                         setShowEndConfirm(true);
                       }}
-                      className="flex items-center gap-1.5 px-4 py-2 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold text-xs hover:bg-red-500/30 transition-all"
+                      className="flex items-center gap-2 px-5 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
                     >
-                      <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                       </svg>
-                      <span className="text-red-400 text-xs">End Stream</span>
+                      <span className="text-red-400 text-sm font-semibold">End Stream</span>
                     </button>
                   </div>
 
