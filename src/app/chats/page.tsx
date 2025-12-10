@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox } from 'lucide-react';
 
 type ConversationWithOtherUser = {
   id: string;
