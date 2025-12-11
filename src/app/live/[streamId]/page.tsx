@@ -624,37 +624,9 @@ export default function TheaterModePage() {
               </div>
             )}
 
-            {/* Stream Goals Overlay - floating over video on mobile */}
-            {stream.goals && stream.goals.length > 0 && (
-              <div className="absolute top-4 left-4 right-4 z-30 lg:hidden pointer-events-none">
-                {stream.goals.map((goal) => {
-                  const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
-                  return (
-                    <div
-                      key={goal.id}
-                      className="glass-dark rounded-xl p-3 border border-purple-400/30 backdrop-blur-xl shadow-[0_0_20px_rgba(168,85,247,0.2)]"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <Target className="w-4 h-4 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                        <span className="text-xs font-bold text-white truncate flex-1">{goal.description}</span>
-                        <span className="text-xs text-purple-300 font-semibold">
-                          {goal.currentAmount}/{goal.targetAmount}
-                        </span>
-                      </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden border border-purple-500/20">
-                        <div
-                          className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
 
-            {/* Video Controls Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm z-10">
+            {/* Video Controls Overlay - desktop only (mobile users use phone volume/native controls) */}
+            <div className="hidden lg:block absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button
@@ -916,6 +888,35 @@ export default function TheaterModePage() {
           isAuthenticated={!!currentUser}
           onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
         />
+      )}
+
+      {/* Stream Goals Overlay - FIXED position on mobile so it's always visible */}
+      {stream && stream.goals && stream.goals.length > 0 && !streamEnded && (
+        <div className="fixed top-16 left-2 right-2 z-40 lg:hidden">
+          {stream.goals.map((goal) => {
+            const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+            return (
+              <div
+                key={goal.id}
+                className="bg-black/80 backdrop-blur-xl rounded-xl p-2.5 border border-purple-400/40 shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Target className="w-3.5 h-3.5 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                  <span className="text-xs font-bold text-white truncate flex-1">{goal.description}</span>
+                  <span className="text-xs text-purple-300 font-semibold">
+                    {goal.currentAmount}/{goal.targetAmount}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden border border-purple-500/20">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Floating Gift Emojis Animation */}
