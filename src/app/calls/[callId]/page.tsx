@@ -220,6 +220,21 @@ export default function VideoCallPage() {
   const [userBalance, setUserBalance] = useState(0);
   const [tipSending, setTipSending] = useState(false);
 
+  // Notify other party of connection error
+  const notifyConnectionError = async (errorMessage: string) => {
+    try {
+      const ably = getAblyClient();
+      const channel = ably.channels.get(`call:${callId}`);
+      await channel.publish('connection_error', {
+        userId: user?.id,
+        error: errorMessage,
+        timestamp: Date.now(),
+      });
+    } catch (e) {
+      console.error('[CallPage] Failed to notify connection error:', e);
+    }
+  };
+
   // Fetch call token and data
   useEffect(() => {
     const fetchCallData = async () => {
@@ -228,7 +243,10 @@ export default function VideoCallPage() {
         const tokenRes = await fetch(`/api/calls/${callId}/token`);
         if (!tokenRes.ok) {
           const errorData = await tokenRes.json();
-          throw new Error(errorData.error || 'Failed to get call token');
+          const errorMsg = errorData.error || 'Failed to get call token';
+          // Notify other party about the error
+          await notifyConnectionError(errorMsg);
+          throw new Error(errorMsg);
         }
         const tokenData = await tokenRes.json();
         setCallToken(tokenData);
@@ -236,7 +254,9 @@ export default function VideoCallPage() {
         // Get call details
         const callRes = await fetch(`/api/calls/${callId}`);
         if (!callRes.ok) {
-          throw new Error('Failed to get call details');
+          const errorMsg = 'Failed to get call details';
+          await notifyConnectionError(errorMsg);
+          throw new Error(errorMsg);
         }
         const callDetails = await callRes.json();
         setCallData(callDetails.call);
@@ -371,6 +391,7 @@ export default function VideoCallPage() {
 
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [callEndedByOther, setCallEndedByOther] = useState(false);
+  const [otherPartyError, setOtherPartyError] = useState<string | null>(null);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -421,6 +442,14 @@ export default function VideoCallPage() {
           setTimeout(() => {
             router.push('/dashboard');
           }, 2000);
+        });
+
+        channel.subscribe('connection_error', (message) => {
+          console.log('Other party had connection error:', message.data);
+          // Only show if it's from the other party (not ourselves)
+          if (message.data.userId !== user?.id) {
+            setOtherPartyError(message.data.error || 'Connection failed');
+          }
         });
 
       } catch (err) {
@@ -556,6 +585,43 @@ export default function VideoCallPage() {
         <div className="absolute w-[500px] h-[500px] top-1/2 right-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
+
+      {/* Other Party Connection Error Modal */}
+      {otherPartyError && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-orange-500/40 shadow-[0_0_60px_rgba(249,115,22,0.3)] animate-in zoom-in-95 duration-200">
+            <div className="relative text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-orange-500/20 rounded-2xl flex items-center justify-center border border-orange-500/40">
+                <X className="w-10 h-10 text-orange-400" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-white mb-3">Connection Problem</h3>
+              <p className="text-gray-400 mb-2">The other participant couldn't connect to the call.</p>
+              <p className="text-sm text-orange-300 mb-6 bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
+                {otherPartyError}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setOtherPartyError(null)}
+                  className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all border border-white/20"
+                >
+                  Keep Waiting
+                </button>
+                <button
+                  onClick={() => {
+                    fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
+                    router.push('/dashboard');
+                  }}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold transition-all shadow-lg"
+                >
+                  End Call
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Call Ended by Other Party Modal */}
       {callEndedByOther && (
