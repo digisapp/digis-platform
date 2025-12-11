@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, VideoTrack } from '@livekit/components-react';
 import { VideoPresets, Room, Track } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
-import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
+// GiftAnimationManager removed - gifts now show in chat messages
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
@@ -69,7 +69,7 @@ export default function BroadcastStudioPage() {
   const [peakViewers, setPeakViewers] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [isEnding, setIsEnding] = useState(false);
-  const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
+  // giftAnimations state removed - gifts now show in chat messages
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [isLeaveAttempt, setIsLeaveAttempt] = useState(false); // true = accidental navigation, false = intentional end
@@ -337,17 +337,32 @@ export default function BroadcastStudioPage() {
   const { viewerCount: ablyViewerCount } = useStreamChat({
     streamId,
     onMessage: (message) => {
-      setMessages((prev) => [...prev, message as unknown as StreamMessage]);
+      // Transform the received message to match StreamMessage type
+      // The Ably message may have 'content' or 'message' field depending on source
+      const msgData = message as any;
+      const streamMessage: StreamMessage = {
+        id: msgData.id,
+        streamId: msgData.streamId || streamId,
+        userId: msgData.userId,
+        username: msgData.username,
+        message: msgData.message || msgData.content || '', // Handle both field names
+        messageType: msgData.messageType || 'chat',
+        giftId: msgData.giftId || null,
+        giftAmount: msgData.giftAmount || null,
+        createdAt: msgData.createdAt ? new Date(msgData.createdAt) : new Date(),
+        user: msgData.user, // Pass through user data for avatar display
+      } as StreamMessage;
+
+      setMessages((prev) => {
+        // Check if message already exists (from optimistic add or duplicate broadcast)
+        if (prev.some(m => m.id === streamMessage.id)) {
+          return prev;
+        }
+        return [...prev, streamMessage];
+      });
     },
     onGift: (giftEvent) => {
-      const giftData = {
-        gift: giftEvent.gift as unknown as VirtualGift,
-        streamGift: giftEvent.streamGift as unknown as StreamGift
-      };
-      setGiftAnimations((prev) => [...prev, giftData]);
       setTotalEarnings((prev) => prev + (giftEvent.streamGift.quantity || 1) * (giftEvent.gift.coinCost || 0));
-      // Show gift notification
-      showGiftNotification(giftData);
       // Add floating emoji for the gift
       if (giftEvent.gift) {
         setFloatingGifts(prev => [...prev, {
@@ -489,13 +504,24 @@ export default function BroadcastStudioPage() {
             // This goal was just completed!
             setCompletedGoalIds(prev => new Set(prev).add(goal.id));
 
-            // Add celebration alert
-            const celebrationAlert: Alert = {
-              type: 'goalComplete',
-              goal,
-              id: `goal-${goal.id}-${Date.now()}`,
+            // Play celebration sound
+            const audio = new Audio('/sounds/goal-complete.wav');
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
+
+            // Add goal completion message to chat instead of popup
+            const goalCompleteMessage = {
+              id: `goal-complete-${goal.id}-${Date.now()}`,
+              streamId,
+              userId: 'system',
+              username: '🎯 Goal Complete!',
+              message: `🎉 ${goal.description || 'Stream Goal'} reached! (${goal.targetAmount}/${goal.targetAmount} coins) 🎉`,
+              messageType: 'system' as const,
+              giftId: null,
+              giftAmount: null,
+              createdAt: new Date(),
             };
-            setAlerts(prev => [...prev, celebrationAlert]);
+            setMessages((prev) => [...prev, goalCompleteMessage as StreamMessage]);
           }
         });
 
@@ -599,19 +625,9 @@ export default function BroadcastStudioPage() {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const showGiftNotification = (data: { gift: VirtualGift; streamGift: StreamGift }) => {
-    // Note: Gift feed notifications are handled by GiftAnimationManager
-    // GiftAnimationManager already shows the gift emoji, name, and sender
-    // No need for additional TopTipperSpotlight for gifts - that's for tips only
-    console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
-  };
-
   // Note: All gift sounds are now centralized in GiftFloatingEmojis component
   // to prevent multiple overlapping sounds when gifts are received
-
-  const removeGiftAnimation = (index: number) => {
-    setGiftAnimations((prev) => prev.filter((_, i) => i !== index));
-  };
+  // Gift popup removed - gifts now show in chat messages
 
   const removeFloatingGift = (id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -636,6 +652,18 @@ export default function BroadcastStudioPage() {
       }
 
       console.log('[Broadcast] Message sent successfully:', data);
+
+      // Optimistically add the message to local state so host sees it immediately
+      // The message will also come back via Ably, so we use the returned message ID to avoid duplicates
+      if (data.message) {
+        setMessages((prev) => {
+          // Check if message already exists (from Ably broadcast)
+          if (prev.some(m => m.id === data.message.id)) {
+            return prev;
+          }
+          return [...prev, data.message as StreamMessage];
+        });
+      }
     } catch (err: any) {
       console.error('[Broadcast] Send message failed:', err);
       throw err;
@@ -755,8 +783,7 @@ export default function BroadcastStudioPage() {
       {/* Floating Gift Emojis Overlay */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
-      {/* Gift Animations Overlay */}
-      <GiftAnimationManager gifts={giftAnimations} onRemove={removeGiftAnimation} />
+      {/* Note: GiftAnimationManager removed - gifts now show in chat messages */}
 
       {/* Alert Manager - Handles gift alerts, top tipper spotlight, and goal celebrations */}
       <AlertManager
@@ -1328,7 +1355,7 @@ export default function BroadcastStudioPage() {
 
       {/* Floating Tron Goal Bar - centered over video on all screens */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[220px]">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[280px] lg:max-w-[280px]">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,

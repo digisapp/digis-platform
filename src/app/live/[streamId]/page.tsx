@@ -177,7 +177,29 @@ export default function TheaterModePage() {
   const { viewerCount: realtimeViewerCount } = useStreamChat({
     streamId,
     onMessage: (message) => {
-      setMessages((prev) => [...prev, message as unknown as ChatMessage]);
+      // Transform the received message to match ChatMessage type
+      // The Ably message may have 'message' field instead of 'content'
+      const msgData = message as any;
+      const chatMessage: ChatMessage = {
+        id: msgData.id,
+        userId: msgData.userId,
+        username: msgData.username,
+        displayName: msgData.displayName || msgData.username,
+        avatarUrl: msgData.avatarUrl || msgData.user?.avatarUrl || null,
+        content: msgData.content || msgData.message || '', // Handle both field names
+        timestamp: msgData.timestamp || (msgData.createdAt ? new Date(msgData.createdAt).getTime() : Date.now()),
+        isCreator: msgData.isCreator,
+        isModerator: msgData.isModerator,
+        messageType: msgData.messageType || 'chat',
+      };
+
+      setMessages((prev) => {
+        // Check if message already exists to avoid duplicates
+        if (prev.some(m => m.id === chatMessage.id)) {
+          return prev;
+        }
+        return [...prev, chatMessage];
+      });
     },
     onGift: (giftEvent) => {
       // Add floating emoji for the gift animation
@@ -1056,7 +1078,7 @@ export default function TheaterModePage() {
 
       {/* Tron-style Goal Bar Overlay - centered over video, below header */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[220px]">
+        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[280px] lg:max-w-[280px]">
           <TronGoalBar
             goals={stream.goals
               .filter((g: any) => g.isActive && !g.isCompleted)
