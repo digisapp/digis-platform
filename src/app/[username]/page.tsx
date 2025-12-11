@@ -1051,17 +1051,9 @@ export default function ProfilePage() {
 
                                 {/* Info on hover */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-0 group-hover:backdrop-blur-md transition-all pointer-events-none">
-                                  <div className="flex items-center justify-between">
-                                    <h3 className="text-white font-bold text-sm line-clamp-1 drop-shadow-lg flex-1">
-                                      {item.title}
-                                    </h3>
-                                    {item.likes > 0 && (
-                                      <div className="flex items-center gap-1 text-white/80 text-xs ml-2">
-                                        <Heart className="w-3 h-3 text-red-400 fill-red-400" />
-                                        <span>{item.likes}</span>
-                                      </div>
-                                    )}
-                                  </div>
+                                  <h3 className="text-white font-bold text-sm line-clamp-1 drop-shadow-lg">
+                                    {item.title}
+                                  </h3>
                                 </div>
                               </div>
                             </div>
@@ -1159,17 +1151,9 @@ export default function ProfilePage() {
 
                               {/* Info */}
                               <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                                <div className="flex items-center justify-between">
-                                  <h3 className="text-white font-bold text-sm line-clamp-1 flex-1">
-                                    {item.title}
-                                  </h3>
-                                  {item.likes > 0 && (
-                                    <div className="flex items-center gap-1 text-white/80 text-xs ml-2">
-                                      <Heart className="w-3 h-3 text-red-400 fill-red-400" />
-                                      <span>{item.likes}</span>
-                                    </div>
-                                  )}
-                                </div>
+                                <h3 className="text-white font-bold text-sm line-clamp-1">
+                                  {item.title}
+                                </h3>
                               </div>
                             </div>
                           ))}
