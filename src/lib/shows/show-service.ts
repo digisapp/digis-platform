@@ -243,14 +243,9 @@ export class ShowService {
   /**
    * Verify user can access a live show
    * Returns access token if valid
+   * Creators can always access their own shows without a ticket
    */
   static async verifyAccess(userId: string, showId: string) {
-    // Check if user has a valid ticket
-    const hasValidTicket = await this.hasTicket(userId, showId);
-    if (!hasValidTicket) {
-      throw new Error('No valid ticket for this stream');
-    }
-
     // Get show details
     const show = await db.query.shows.findFirst({
       where: eq(shows.id, showId),
@@ -260,19 +255,31 @@ export class ShowService {
       throw new Error('Stream not found');
     }
 
-    // Check if show is live
-    if (show.status !== 'live') {
-      throw new Error('Stream is not currently live');
-    }
+    // Check if show is live or scheduled (creator can access scheduled shows to start them)
+    const isCreator = show.creatorId === userId;
 
-    // Check-in the attendee
-    await this.checkInAttendee(userId, showId);
+    if (!isCreator) {
+      // Non-creators need a valid ticket
+      const hasValidTicket = await this.hasTicket(userId, showId);
+      if (!hasValidTicket) {
+        throw new Error('No valid ticket for this stream');
+      }
+
+      // Non-creators can only join live shows
+      if (show.status !== 'live') {
+        throw new Error('Stream is not currently live');
+      }
+
+      // Check-in the attendee
+      await this.checkInAttendee(userId, showId);
+    }
 
     // Return room name for LiveKit connection
     return {
       roomName: show.roomName,
       showTitle: show.title,
       status: show.status,
+      isCreator,
     };
   }
 
@@ -394,8 +401,9 @@ export class ShowService {
   }
 
   /**
-   * Start a show (go live)
+   * Start a show (go live) or resume if already live
    * This creates the LiveKit room and updates status
+   * Idempotent: Can be called multiple times safely (for reconnection)
    */
   static async startShow(showId: string, creatorId: string) {
     return await db.transaction(async (tx) => {
@@ -409,6 +417,12 @@ export class ShowService {
 
       if (show.creatorId !== creatorId) {
         throw new Error('Unauthorized: Not the stream creator');
+      }
+
+      // Allow resuming a live show (for reconnection after disconnect)
+      if (show.status === 'live') {
+        console.log(`[ShowService] Creator resuming live show ${showId}`);
+        return { roomName: show.roomName, resumed: true };
       }
 
       if (show.status !== 'scheduled') {

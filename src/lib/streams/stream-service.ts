@@ -13,6 +13,8 @@ import {
   walletTransactions,
   follows,
   subscriptions,
+  shows,
+  showTickets,
 } from '@/lib/data/system';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -154,7 +156,71 @@ export class StreamService {
     // Clear all viewers
     await db.delete(streamViewers).where(eq(streamViewers.streamId, streamId));
 
+    // Cancel any scheduled shows linked to this stream (with refunds)
+    await this.cancelScheduledShowsForStream(streamId);
+
     return updatedStream;
+  }
+
+  /**
+   * Cancel any scheduled shows that were announced from this stream
+   * Issues refunds to all ticket holders
+   */
+  private static async cancelScheduledShowsForStream(streamId: string) {
+    try {
+      // Find any scheduled shows linked to this stream
+      const scheduledShows = await db.query.shows.findMany({
+        where: and(
+          eq(shows.streamId, streamId),
+          eq(shows.status, 'scheduled')
+        ),
+      });
+
+      for (const show of scheduledShows) {
+        console.log(`[StreamService] Cancelling scheduled show ${show.id} linked to ended stream ${streamId}`);
+
+        // Get all tickets for refunds
+        const tickets = await db.query.showTickets.findMany({
+          where: eq(showTickets.showId, show.id),
+        });
+
+        // Issue refunds
+        for (const ticket of tickets) {
+          try {
+            await WalletService.createTransaction({
+              userId: ticket.userId,
+              amount: ticket.coinsPaid,
+              type: 'refund',
+              description: `Refund: "${show.title}" was cancelled (stream ended)`,
+              metadata: { showId: show.id, ticketId: ticket.id, reason: 'stream_ended' },
+              idempotencyKey: `refund_stream_end_${ticket.id}`,
+            });
+
+            // Invalidate ticket
+            await db
+              .update(showTickets)
+              .set({ isValid: false })
+              .where(eq(showTickets.id, ticket.id));
+          } catch (refundError) {
+            console.error(`[StreamService] Failed to refund ticket ${ticket.id}:`, refundError);
+          }
+        }
+
+        // Mark show as cancelled
+        await db
+          .update(shows)
+          .set({
+            status: 'cancelled',
+            updatedAt: new Date(),
+          })
+          .where(eq(shows.id, show.id));
+
+        console.log(`[StreamService] Cancelled show ${show.id}, refunded ${tickets.length} tickets`);
+      }
+    } catch (error) {
+      // Log but don't fail the stream end
+      console.error('[StreamService] Error cancelling scheduled shows:', error);
+    }
   }
 
   /**
