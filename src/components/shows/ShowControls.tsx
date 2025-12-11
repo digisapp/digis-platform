@@ -82,8 +82,8 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/shows/${show.id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/shows/${show.id}/cancel`, {
+        method: 'POST',
       });
 
       const data = await response.json();
@@ -94,7 +94,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
 
       // Show success message
       alert(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
-      router.push('/creator/streams');
+      router.push('/creator/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel stream');
       setShowCancelConfirm(false);
@@ -111,7 +111,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
         </div>
       )}
 
-      {/* Start Show Button */}
+      {/* Start Show Now Button */}
       {show.status === 'scheduled' && (
         <GlassButton
           variant="gradient"
@@ -127,7 +127,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
           ) : (
             <>
               <span className="text-xl mr-2">🎬</span>
-              Start Show
+              Start Now
             </>
           )}
         </GlassButton>
