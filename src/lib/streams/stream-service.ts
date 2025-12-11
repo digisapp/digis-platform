@@ -604,13 +604,32 @@ export class StreamService {
   }
 
   /**
-   * Get current viewers
+   * Get current viewers with user details
    */
   static async getCurrentViewers(streamId: string) {
-    return await db.query.streamViewers.findMany({
+    const viewers = await db.query.streamViewers.findMany({
       where: eq(streamViewers.streamId, streamId),
       orderBy: [desc(streamViewers.joinedAt)],
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+      },
     });
+
+    // Transform to include user details at top level
+    return viewers.map(v => ({
+      id: v.id,
+      username: v.user?.username || v.username,
+      displayName: v.user?.displayName || null,
+      avatarUrl: v.user?.avatarUrl || null,
+      joinedAt: v.joinedAt,
+    }));
   }
 
   /**
