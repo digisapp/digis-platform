@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, payoutRequests, creatorBankingInfo, users } from '@/lib/data/system';
 import { eq, desc } from 'drizzle-orm';
 import { getLastFourDigits, decrypt } from '@/lib/crypto/encryption';
+import { isAdminUser } from '@/lib/admin/check-admin';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -19,12 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    const profileResponse = await fetch(new URL('/api/user/profile', request.url), {
-      headers: { cookie: request.headers.get('cookie') || '' }
-    });
-    const profile = await profileResponse.json();
-
-    if (profile.user?.role !== 'admin') {
+    if (!await isAdminUser(user)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

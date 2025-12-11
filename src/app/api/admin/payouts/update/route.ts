@@ -7,6 +7,7 @@ import {
   sendPayoutCompletedEmail,
   sendPayoutFailedEmail,
 } from '@/lib/email/payout-notifications';
+import { isAdminUser } from '@/lib/admin/check-admin';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -23,12 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is admin
-    const profileResponse = await fetch(new URL('/api/user/profile', request.url), {
-      headers: { cookie: request.headers.get('cookie') || '' }
-    });
-    const profile = await profileResponse.json();
-
-    if (profile.user?.role !== 'admin') {
+    if (!await isAdminUser(user)) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
