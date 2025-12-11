@@ -268,9 +268,17 @@ export default function ChatPage() {
 
     if (!newMessage.trim() || !conversation) return;
 
-    // Check if recipient has message charging enabled
+    // Messaging cost rules:
+    // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
+    // - Fan → Creator: Fan pays the creator's message rate (if set)
+    // - Creator → Creator: Sender pays the receiver's message rate (if set)
+    const isSenderCreator = currentUserRole === 'creator';
+    const isRecipientCreator = conversation.otherUser.role === 'creator';
+    const shouldCheckCharge = isRecipientCreator; // Only check charge when messaging a creator
+
+    // Check if recipient has message charging enabled (only if they're a creator)
     const messageCharge = conversation.otherUser.messageCharge;
-    if (messageCharge && messageCharge > 0) {
+    if (shouldCheckCharge && messageCharge && messageCharge > 0) {
       // If user hasn't acknowledged the charge yet, show warning for first message
       if (!hasAcknowledgedCharge) {
         setPendingMessage(newMessage.trim());
@@ -313,8 +321,9 @@ export default function ChatPage() {
       if (response.ok) {
         setNewMessage('');
         setPendingMessage('');
-        // Mark as acknowledged if this was a paid message
-        if (conversation.otherUser.messageCharge && conversation.otherUser.messageCharge > 0) {
+        // Mark as acknowledged if this was a paid message to a creator
+        const isRecipientCreator = conversation.otherUser.role === 'creator';
+        if (isRecipientCreator && conversation.otherUser.messageCharge && conversation.otherUser.messageCharge > 0) {
           setHasAcknowledgedCharge(true);
         }
         // Refresh balance after sending paid message

@@ -257,7 +257,15 @@ export class MessageService {
         }
       }
 
-      if (receiver && receiver.role === 'creator') {
+      // Messaging cost logic:
+      // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
+      // - Fan → Creator: Fan pays the creator's message rate (if set)
+      // - Creator → Creator: Sender pays the receiver's message rate (if set)
+      //
+      // Only charge when the RECEIVER is a creator (fans can't charge for messages)
+      const receiverIsCreator = receiver.role === 'creator';
+
+      if (receiverIsCreator) {
         // Get creator settings to check message rate
         const settings = await tx.query.creatorSettings.findFirst({
           where: eq(creatorSettings.userId, receiverId),

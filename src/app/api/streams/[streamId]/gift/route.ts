@@ -3,7 +3,7 @@ import { StreamService } from '@/lib/streams/stream-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
+import { users, wallets } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 
@@ -79,9 +79,15 @@ export async function POST(
       recipientUsername: result.recipientUsername || null,
     }, result.gift);
 
+    // Fetch updated balance for the sender
+    const senderWallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, user.id),
+    });
+
     return NextResponse.json({
       streamGift: result.streamGift,
       gift: result.gift,
+      newBalance: senderWallet?.balance || 0,
     });
   } catch (error: any) {
     console.error('Error sending gift:', error);

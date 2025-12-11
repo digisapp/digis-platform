@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import type { StreamGoal } from '@/db/schema';
 
 interface GoalCelebrationProps {
@@ -10,23 +10,46 @@ interface GoalCelebrationProps {
 
 export function GoalCelebration({ goal, onComplete }: GoalCelebrationProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasCalledComplete = useRef(false);
+
+  // Memoize onComplete to avoid re-triggering the effect
+  const handleComplete = useCallback(() => {
+    if (hasCalledComplete.current) return;
+    hasCalledComplete.current = true;
+    onComplete();
+  }, [onComplete]);
 
   useEffect(() => {
-    // Play celebration sound
+    // Play celebration sound once
     const audio = new Audio('/sounds/goal-complete.wav');
     audio.volume = 0.5;
+    audioRef.current = audio;
     audio.play().catch(() => {
       // Silently fail if audio doesn't play
     });
 
-    // Hide after 5 seconds
+    // Auto-dismiss after 5 seconds - this is the hard timeout
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 500); // Allow fade out animation
+      // Stop audio if still playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      // Slight delay for fade animation then call complete
+      setTimeout(handleComplete, 500);
     }, 5000);
 
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    return () => {
+      clearTimeout(timer);
+      // Clean up audio on unmount
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [handleComplete]);
 
   if (!isVisible) return null;
 

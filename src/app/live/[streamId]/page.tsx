@@ -8,8 +8,7 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Heart, Share2, Settings, X, Send, Coins,
-  Trophy, Target
+  Share2, X, Send, Target
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
@@ -127,7 +126,6 @@ export default function TheaterModePage() {
   // UI state
   const [showChat, setShowChat] = useState(true);
   const [showViewerList, setShowViewerList] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -140,7 +138,6 @@ export default function TheaterModePage() {
 
   // User state
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [userBalance, setUserBalance] = useState(0);
 
   // Load stream data
@@ -261,13 +258,6 @@ export default function TheaterModePage() {
         const walletResponse = await fetch('/api/wallet/balance');
         const walletData = await walletResponse.json();
         setUserBalance(walletData.balance || 0);
-
-        // Check if following creator
-        if (stream) {
-          const followResponse = await fetch(`/api/follow/${stream.creator.id}`);
-          const followData = await followResponse.json();
-          setIsFollowing(followData.isFollowing);
-        }
       }
     } catch (error) {
       console.error('[TheaterMode] Error loading user:', error);
@@ -406,23 +396,6 @@ export default function TheaterModePage() {
     }
   };
 
-  // Toggle follow
-  const toggleFollow = async () => {
-    if (!currentUser || !stream) return;
-
-    try {
-      const response = await fetch(`/api/follow/${stream.creator.id}`, {
-        method: isFollowing ? 'DELETE' : 'POST',
-      });
-
-      if (response.ok) {
-        setIsFollowing(!isFollowing);
-      }
-    } catch (error) {
-      console.error('[TheaterMode] Error toggling follow:', error);
-    }
-  };
-
   // Share stream
   const shareStream = async () => {
     const url = window.location.href;
@@ -471,37 +444,37 @@ export default function TheaterModePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 text-white flex flex-col">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
-        <div className="flex items-center gap-4">
+      {/* Header Bar - simplified for mobile */}
+      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
 
-          {/* Creator Info */}
-          <div className="flex items-center gap-3">
+          {/* Creator Info - compact on mobile */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {stream.creator.avatarUrl ? (
               <img
                 src={stream.creator.avatarUrl}
                 alt={stream.creator.displayName || stream.creator.username}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold text-sm flex-shrink-0">
                 {stream.creator.displayName?.[0] || stream.creator.username[0]}
               </div>
             )}
 
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="font-bold text-sm sm:text-base truncate">
                   {stream.creator.displayName || stream.creator.username}
                 </span>
                 {stream.creator.isVerified && (
-                  <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -513,52 +486,29 @@ export default function TheaterModePage() {
           </div>
 
           {/* Live Badge */}
-          <div className="flex items-center gap-2 px-3 py-1 bg-red-600 rounded-lg">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            <span className="text-sm font-bold">LIVE</span>
+          <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-red-600 rounded-lg flex-shrink-0">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
+            <span className="text-xs sm:text-sm font-bold">LIVE</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Follow Button */}
-          {currentUser && currentUser.id !== stream.creator.id && (
-            <button
-              onClick={toggleFollow}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                isFollowing
-                  ? 'bg-white/10 hover:bg-white/20'
-                  : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105'
-              }`}
-            >
-              {isFollowing ? 'Following' : 'Follow'}
-            </button>
-          )}
-
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Share Button */}
           <button
             onClick={shareStream}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
             title="Share"
           >
-            <Share2 className="w-5 h-5" />
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          {/* Toggle Chat Button (visible on all screens) */}
+          {/* Toggle Chat Button - desktop only since chat is always visible below video on mobile */}
           <button
             onClick={() => setShowChat(!showChat)}
-            className={`p-2 rounded-lg transition-colors ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
+            className={`hidden sm:block p-2 rounded-lg transition-colors ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
             title={showChat ? 'Hide Chat' : 'Show Chat'}
           >
             <Users className="w-5 h-5" />
-          </button>
-
-          {/* Settings Button */}
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -579,7 +529,7 @@ export default function TheaterModePage() {
                     </svg>
                   </div>
                   <h2 className="text-2xl font-bold text-white mb-2">Stream Has Ended</h2>
-                  <p className="text-gray-400 mb-6">Thanks for watching! The host has ended this stream.</p>
+                  <p className="text-gray-400 mb-6">Thanks for watching!</p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <button
                       onClick={() => router.push(`/${stream?.creator.username}`)}
@@ -628,6 +578,35 @@ export default function TheaterModePage() {
                   <LoadingSpinner size="lg" />
                   <p className="text-white/60 mt-4">Loading stream...</p>
                 </div>
+              </div>
+            )}
+
+            {/* Stream Goals Overlay - floating over video on mobile */}
+            {stream.goals && stream.goals.length > 0 && (
+              <div className="absolute top-4 left-4 right-4 z-20 lg:hidden">
+                {stream.goals.map((goal) => {
+                  const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+                  return (
+                    <div
+                      key={goal.id}
+                      className="glass-dark rounded-xl p-3 border border-purple-400/30 backdrop-blur-xl shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="w-4 h-4 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                        <span className="text-xs font-bold text-white truncate flex-1">{goal.description}</span>
+                        <span className="text-xs text-purple-300 font-semibold">
+                          {goal.currentAmount}/{goal.targetAmount}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden border border-purple-500/20">
+                        <div
+                          className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -686,9 +665,9 @@ export default function TheaterModePage() {
             </div>
           </div>
 
-          {/* Stream Goals Widget */}
+          {/* Stream Goals Widget - desktop only (mobile uses overlay above) */}
           {stream.goals && stream.goals.length > 0 && (
-            <div className="px-4 py-3 glass-dark border-t border-purple-400/30 backdrop-blur-xl shadow-[0_-2px_20px_rgba(168,85,247,0.15)]">
+            <div className="hidden lg:block px-4 py-3 glass-dark border-t border-purple-400/30 backdrop-blur-xl shadow-[0_-2px_20px_rgba(168,85,247,0.15)]">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
                 <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Stream Goals</span>
@@ -804,8 +783,8 @@ export default function TheaterModePage() {
                   )}
                 </div>
 
-                {/* Message Input */}
-                <div className="p-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
+                {/* Message Input - extra padding on mobile for floating gift bar */}
+                <div className="p-4 pb-20 lg:pb-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
                   {currentUser ? (
                     <div className="flex gap-2">
                       <input
@@ -815,18 +794,18 @@ export default function TheaterModePage() {
                         onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                         placeholder="Send a message..."
                         disabled={sendingMessage}
-                        className="flex-1 px-4 py-2 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all"
+                        className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
                       />
                       <button
                         onClick={sendMessage}
                         disabled={!messageInput.trim() || sendingMessage}
-                        className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
+                        className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
                       >
                         <Send className="w-5 h-5" />
                       </button>
                     </div>
                   ) : (
-                    <div className="text-center text-sm text-white/70">
+                    <div className="text-center text-sm text-white/70 pb-12 lg:pb-0">
                       <button
                         onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
                         className="text-cyan-400 hover:text-cyan-300 font-semibold hover:underline transition-colors"

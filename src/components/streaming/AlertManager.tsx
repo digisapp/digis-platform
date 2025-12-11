@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { GiftAlert } from './GiftAlert';
 import { TopTipperSpotlight } from './TopTipperSpotlight';
 import { GoalCelebration } from './GoalCelebration';
@@ -16,16 +16,36 @@ interface AlertManagerProps {
   onAlertComplete: (id: string) => void;
 }
 
+// Get the coin value of an alert for prioritization
+function getAlertValue(alert: Alert): number {
+  switch (alert.type) {
+    case 'gift':
+      return alert.gift.coinCost * (alert.streamGift.quantity || 1);
+    case 'topTipper':
+      return alert.amount;
+    case 'goalComplete':
+      return 10000; // Goal completions always highest priority
+    default:
+      return 0;
+  }
+}
+
 export function AlertManager({ alerts, onAlertComplete }: AlertManagerProps) {
   const [currentAlert, setCurrentAlert] = useState<Alert | null>(null);
   const [queue, setQueue] = useState<Alert[]>([]);
 
-  // Update queue when new alerts come in
-  useEffect(() => {
-    setQueue(alerts);
+  // Sort alerts by value (highest first) so bigger gifts/tips always show first
+  const sortedAlerts = useMemo(() => {
+    return [...alerts].sort((a, b) => getAlertValue(b) - getAlertValue(a));
   }, [alerts]);
 
+  // Update queue when new alerts come in (sorted by value)
+  useEffect(() => {
+    setQueue(sortedAlerts);
+  }, [sortedAlerts]);
+
   // Show next alert when current one completes
+  // If a higher value alert comes in, it will be first in queue next time
   useEffect(() => {
     if (!currentAlert && queue.length > 0) {
       const next = queue[0];
