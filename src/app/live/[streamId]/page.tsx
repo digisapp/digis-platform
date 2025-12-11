@@ -527,9 +527,9 @@ export default function TheaterModePage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0">
+        <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1">
           {/* Video */}
-          <div className="flex-1 relative min-h-[50vh] lg:min-h-0">
+          <div className="relative aspect-video lg:aspect-auto lg:flex-1">
             {streamEnded ? (
               /* Stream Ended State */
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -614,35 +614,28 @@ export default function TheaterModePage() {
           </div>
 
           {/* Stream Info Bar */}
-          <div className="px-4 py-3 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
-            <h2 className="text-xl font-bold mb-1 bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent">{stream.title}</h2>
+          <div className="px-3 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+            <h2 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent truncate">{stream.title}</h2>
             {stream.description && (
-              <p className="text-sm text-white/80">{stream.description}</p>
+              <p className="text-xs text-white/80 truncate hidden sm:block">{stream.description}</p>
             )}
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="px-4 py-3 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-cyan-200 mr-2 font-semibold">Quick Tip:</span>
+          <div className="px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-cyan-200 mr-1 font-semibold hidden sm:inline">Tip:</span>
               {[5, 10, 25, 50, 100].map((amount) => (
                 <button
                   key={amount}
                   onClick={() => handleTip(amount)}
                   disabled={!currentUser}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-digis-cyan to-digis-pink text-white font-bold text-sm hover:scale-110 transition-all shadow-lg shadow-digis-pink/30 hover:shadow-digis-pink/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-digis-cyan to-digis-pink text-white font-bold text-xs hover:scale-105 transition-all shadow-md shadow-digis-pink/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {amount} coins
+                  {amount}
                 </button>
               ))}
             </div>
-
-            {currentUser && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-cyan-300 font-medium">
-                <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                <span>{userBalance.toLocaleString()} coins</span>
-              </div>
-            )}
           </div>
 
           {/* Stream Goals Widget */}
@@ -679,7 +672,7 @@ export default function TheaterModePage() {
 
         {/* Right Sidebar - Chat & Viewers */}
         {showChat && (
-          <div className="w-full lg:w-96 h-80 lg:h-auto glass-dark border-t lg:border-t-0 lg:border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
+          <div className="w-full lg:w-96 flex-1 lg:flex-initial lg:h-auto glass-dark border-t lg:border-t-0 lg:border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)] min-h-[300px]">
             {/* Sidebar Tabs */}
             <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
               <button
