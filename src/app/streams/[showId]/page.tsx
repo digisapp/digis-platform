@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { TicketPurchaseModal } from '@/components/shows/TicketPurchaseModal';
+import { Pencil, Trash2, Play, X } from 'lucide-react';
 
 interface Show {
   id: string;
@@ -59,6 +60,9 @@ export default function StreamDetailPage() {
   const [error, setError] = useState('');
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (showId) {
@@ -71,6 +75,7 @@ export default function StreamDetailPage() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     setIsAuthenticated(!!user);
+    setCurrentUserId(user?.id || null);
   };
 
   const fetchShow = async () => {
@@ -121,6 +126,54 @@ export default function StreamDetailPage() {
       alert(err instanceof Error ? err.message : 'Failed to join stream');
     }
   };
+
+  const handleStartShow = async () => {
+    setActionLoading(true);
+    try {
+      const response = await fetch(`/api/shows/${showId}/start`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start stream');
+      }
+
+      // Redirect to broadcast page
+      if (data.roomName) {
+        router.push(`/stream/live/${data.roomName}`);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to start stream');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelShow = async () => {
+    setActionLoading(true);
+    try {
+      const response = await fetch(`/api/shows/${showId}/cancel`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel stream');
+      }
+
+      alert(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
+      router.push('/creator/streams');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to cancel stream');
+      setShowCancelConfirm(false);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Check if current user is the creator
+  const isCreator = currentUserId && show?.creator?.id === currentUserId;
 
   if (loading) {
     return (
@@ -319,8 +372,94 @@ export default function StreamDetailPage() {
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                {isFree ? (
+                {/* Creator Controls */}
+                {isCreator && show.status === 'scheduled' && (
+                  <div className="space-y-3 mb-4">
+                    <div className="bg-purple-500/20 border border-purple-500 rounded-lg p-3 text-center">
+                      <div className="text-purple-300 text-sm font-medium mb-2">
+                        You are the host
+                      </div>
+                    </div>
+
+                    {/* Start Now Button */}
+                    <GlassButton
+                      variant="gradient"
+                      size="lg"
+                      onClick={handleStartShow}
+                      disabled={actionLoading}
+                      className="w-full"
+                      shimmer
+                      glow
+                    >
+                      {actionLoading ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        <>
+                          <Play className="w-5 h-5 mr-2" />
+                          Start Stream Now
+                        </>
+                      )}
+                    </GlassButton>
+
+                    {/* Cancel Button */}
+                    {!showCancelConfirm ? (
+                      <button
+                        onClick={() => setShowCancelConfirm(true)}
+                        disabled={actionLoading}
+                        className="w-full py-3 px-4 rounded-xl bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Cancel Stream
+                      </button>
+                    ) : (
+                      <div className="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                        <p className="text-red-200 text-sm mb-3 text-center">
+                          Are you sure? All {show.ticketsSold} ticket(s) will be refunded.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setShowCancelConfirm(false)}
+                            className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-colors"
+                          >
+                            No, Keep It
+                          </button>
+                          <button
+                            onClick={handleCancelShow}
+                            disabled={actionLoading}
+                            className="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm text-white font-bold transition-colors disabled:opacity-50 flex items-center justify-center"
+                          >
+                            {actionLoading ? <LoadingSpinner size="sm" /> : 'Yes, Cancel'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Creator Controls - Live Stream */}
+                {isCreator && show.status === 'live' && (
+                  <div className="space-y-3 mb-4">
+                    <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 text-center animate-pulse">
+                      <div className="text-red-300 text-sm font-medium">
+                        🔴 Your stream is live!
+                      </div>
+                    </div>
+                    <GlassButton
+                      variant="gradient"
+                      size="lg"
+                      onClick={() => router.push(`/stream/live/${show.id}`)}
+                      className="w-full"
+                      shimmer
+                      glow
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Go to Broadcast
+                    </GlassButton>
+                  </div>
+                )}
+
+                {/* Action Buttons - Non-Creator */}
+                {!isCreator && isFree ? (
                   // Free stream actions
                   <div className="space-y-3">
                     {canJoin ? (
@@ -356,7 +495,7 @@ export default function StreamDetailPage() {
                       </div>
                     ) : null}
                   </div>
-                ) : hasTicket ? (
+                ) : !isCreator && hasTicket ? (
                   // Paid stream - has ticket
                   <div className="space-y-3">
                     <div className="bg-green-500/20 border border-green-500 rounded-lg p-3 text-center">
@@ -383,7 +522,7 @@ export default function StreamDetailPage() {
                       </div>
                     )}
                   </div>
-                ) : canPurchase ? (
+                ) : !isCreator && canPurchase ? (
                   // Paid stream - needs to buy ticket
                   <GlassButton
                     variant="gradient"
@@ -396,16 +535,16 @@ export default function StreamDetailPage() {
                     <span className="text-xl mr-2">🎫</span>
                     {isAuthenticated ? 'Buy Ticket' : 'Login to Buy Ticket'}
                   </GlassButton>
-                ) : isSoldOut ? (
+                ) : !isCreator && isSoldOut ? (
                   <div className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 text-center">
                     <div className="text-yellow-300 font-bold mb-1">Sold Out</div>
                     <div className="text-xs text-gray-400">No tickets available</div>
                   </div>
-                ) : show.status === 'ended' ? (
+                ) : !isCreator && show.status === 'ended' ? (
                   <div className="bg-gray-500/20 border border-gray-500 rounded-lg p-4 text-center">
                     <div className="text-gray-300 font-bold">Stream Ended</div>
                   </div>
-                ) : show.status === 'cancelled' ? (
+                ) : !isCreator && show.status === 'cancelled' ? (
                   <div className="bg-red-500/20 border border-red-500 rounded-lg p-4 text-center">
                     <div className="text-red-300 font-bold">Stream Cancelled</div>
                   </div>
