@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
@@ -84,6 +85,12 @@ export default function ProfilePage() {
   const [showSubscribeConfirmModal, setShowSubscribeConfirmModal] = useState(false);
   const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
   const [insufficientFundsAmount, setInsufficientFundsAmount] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted state for portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Fetch profile (includes goals & content) and auth in parallel
@@ -1316,86 +1323,82 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Message Confirmation Modal */}
-      {showMessageModal && profile && (
+      {/* Message Confirmation Modal - Using Portal for proper z-index */}
+      {showMessageModal && profile && mounted && createPortal(
         <div
-          className="fixed top-0 left-0 right-0 bottom-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setShowMessageModal(false)}
         >
           <div
-            className="relative max-w-md w-full backdrop-blur-xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] p-6 mx-auto"
+            className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200 mx-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <button
-              onClick={() => setShowMessageModal(false)}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/10"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Icon */}
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur opacity-75"></div>
-                <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 flex items-center justify-center">
-                  <MessageCircle className="w-8 h-8 text-cyan-400" />
-                </div>
-              </div>
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
             </div>
 
-            {/* Title */}
-            <h3 className="text-xl font-bold text-white text-center mb-2">
-              Message {profile.user.displayName || profile.user.username}
-            </h3>
-
-            {/* Message Rate Info */}
-            {profile.messageRate && profile.messageRate > 0 ? (
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30">
-                  <span className="text-2xl font-bold text-cyan-400">{profile.messageRate}</span>
-                  <span className="text-gray-300">coins per message</span>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
-                  <span className="text-2xl font-bold text-yellow-400">50</span>
-                  <span className="text-gray-300">coins to start chat</span>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="relative">
+              {/* Close button */}
               <button
                 onClick={() => setShowMessageModal(false)}
-                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all"
+                className="absolute top-0 right-0 text-gray-400 hover:text-white transition-colors z-10"
               >
-                Cancel
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={createConversation}
-                disabled={messageLoading}
-                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:scale-105 transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
-              >
-                {messageLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <MessageCircle className="w-4 h-4" />
-                    Start Chat
-                  </>
-                )}
-              </button>
+
+              {/* Icon and Title */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block mb-4">
+                  <div className="absolute -inset-2 bg-cyan-500/30 rounded-full blur-xl"></div>
+                  <div className="relative w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,211,238,0.4)]">
+                    <MessageCircle className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-1">
+                  Start Chat
+                </h3>
+                <p className="text-gray-400 text-sm">with {profile.user.displayName || profile.user.username}</p>
+              </div>
+
+              {/* Cost Info - Tron Style */}
+              <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-xl p-6 mb-6 text-center border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                <p className="text-gray-400 text-sm mb-2 font-medium">Cost per Message</p>
+                <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  {profile.messageRate && profile.messageRate > 0 ? profile.messageRate : 50}
+                </div>
+                <p className="text-gray-400 text-sm mt-1 font-medium">coins</p>
+              </div>
+
+              {/* Action Buttons - Tron Style */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowMessageModal(false)}
+                  className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-all border border-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={createConversation}
+                  disabled={messageLoading}
+                  className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {messageLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Starting...</span>
+                    </div>
+                  ) : (
+                    'Start Chat'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Sign Up Prompt Modal */}
