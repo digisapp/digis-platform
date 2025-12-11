@@ -86,6 +86,8 @@ export default function ProfilePage() {
   const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
   const [insufficientFundsAmount, setInsufficientFundsAmount] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [showTipSuccessModal, setShowTipSuccessModal] = useState(false);
+  const [tipSuccessAmount, setTipSuccessAmount] = useState(0);
 
   // Set mounted state for portal
   useEffect(() => {
@@ -575,8 +577,9 @@ export default function ProfilePage() {
         throw new Error(data.error || 'Failed to send tip');
       }
 
-      // Success! The modal will close automatically
-      alert(`✨ Successfully sent ${amount} coins to ${profile.user.displayName || profile.user.username}!`);
+      // Success! Show Tron-themed success modal
+      setTipSuccessAmount(amount);
+      setShowTipSuccessModal(true);
     } catch (error) {
       throw error; // Re-throw to let the modal handle it
     }
@@ -1231,6 +1234,57 @@ export default function ProfilePage() {
           onSend={handleSendTip}
           receiverName={profile.user.displayName || profile.user.username}
         />
+      )}
+
+      {/* Tip Success Modal - Tron Theme */}
+      {showTipSuccessModal && profile && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowTipSuccessModal(false)}
+        >
+          <div
+            className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-green-500/30 shadow-[0_0_50px_rgba(34,197,94,0.3)] animate-in zoom-in-95 duration-200 mx-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/20 to-green-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
+            </div>
+
+            <div className="relative text-center">
+              {/* Success Icon */}
+              <div className="relative inline-block mb-4">
+                <div className="absolute -inset-3 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.5)]">
+                  <Sparkles className="w-10 h-10 text-white" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent mb-2">
+                Tip Sent!
+              </h3>
+
+              {/* Amount */}
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-4 mb-4 border border-green-500/30">
+                <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                  {tipSuccessAmount}
+                </div>
+                <p className="text-gray-400 text-sm mt-1">coins sent to</p>
+                <p className="text-white font-semibold">{profile.user.displayName || profile.user.username}</p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowTipSuccessModal(false)}
+                className="w-full px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:scale-105 transition-all shadow-lg"
+              >
+                Awesome!
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
 
       {/* Content Unlock Modal */}
