@@ -247,6 +247,23 @@ export default function TheaterModePage() {
     loadCurrentUser();
   }, [streamId]);
 
+  // Join stream when viewer loads (adds to database for viewer list)
+  useEffect(() => {
+    if (!currentUser || !stream || stream.status !== 'live') return;
+
+    const joinStream = async () => {
+      try {
+        await fetch(`/api/streams/${streamId}/join`, {
+          method: 'POST',
+        });
+      } catch (e) {
+        console.error('[Stream] Failed to join stream:', e);
+      }
+    };
+
+    joinStream();
+  }, [currentUser, stream?.status, streamId]);
+
   // Track view
   useEffect(() => {
     if (stream && currentUser) {
@@ -322,6 +339,29 @@ export default function TheaterModePage() {
 
     return () => clearInterval(interval);
   }, [stream, streamId, streamEnded]);
+
+  // Fetch viewers when viewer list is opened
+  useEffect(() => {
+    if (!showViewerList || !streamId) return;
+
+    const fetchViewers = async () => {
+      try {
+        const res = await fetch(`/api/streams/${streamId}/viewers`);
+        if (res.ok) {
+          const data = await res.json();
+          setViewers(data.viewers || []);
+        }
+      } catch (e) {
+        console.error('[Stream] Failed to fetch viewers:', e);
+      }
+    };
+
+    fetchViewers();
+    // Refresh every 10 seconds while open
+    const interval = setInterval(fetchViewers, 10000);
+
+    return () => clearInterval(interval);
+  }, [showViewerList, streamId]);
 
   // Viewer heartbeat - keeps viewer active and updates viewer count
   useEffect(() => {
@@ -769,20 +809,7 @@ export default function TheaterModePage() {
             </div>
           </div>
 
-          {/* Inline Gift Bar - mobile only (replaces quick tips) */}
-          {stream && !streamEnded && (
-            <div className="lg:hidden glass-dark border-t border-cyan-400/20">
-              <FloatingGiftBar
-                streamId={streamId}
-                creatorId={stream.creator.id}
-                onSendGift={handleSendGift}
-                userBalance={userBalance}
-                isAuthenticated={!!currentUser}
-                onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-                inline={true}
-              />
-            </div>
-          )}
+          {/* Mobile Gift Bar is now floating - see bottom of page */}
 
         </div>
 
@@ -1008,24 +1035,31 @@ export default function TheaterModePage() {
         )}
       </div>
 
-      {/* Floating Gift Bar - desktop only (mobile uses inline version above video) */}
+      {/* Floating Gift Bar - shows on all screens, floating position */}
       {stream && !streamEnded && (
-        <div className="hidden lg:block">
-          <FloatingGiftBar
-            streamId={streamId}
-            creatorId={stream.creator.id}
-            onSendGift={handleSendGift}
-            userBalance={userBalance}
-            isAuthenticated={!!currentUser}
-            onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-          />
-        </div>
+        <FloatingGiftBar
+          streamId={streamId}
+          creatorId={stream.creator.id}
+          onSendGift={handleSendGift}
+          userBalance={userBalance}
+          isAuthenticated={!!currentUser}
+          onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+        />
       )}
 
       {/* Tron-style Goal Bar Overlay - hovering over video */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && (
         <div className="fixed top-20 left-3 right-3 z-40 lg:top-24 lg:left-4 lg:right-auto lg:w-80">
-          <TronGoalBar goals={stream.goals} />
+          <TronGoalBar
+            goals={stream.goals
+              .filter((g: any) => g.isActive && !g.isCompleted)
+              .map((g: any) => ({
+                id: g.id,
+                description: g.description || 'Stream Goal',
+                targetAmount: g.targetAmount,
+                currentAmount: g.currentAmount,
+              }))}
+          />
         </div>
       )}
 
@@ -1034,14 +1068,14 @@ export default function TheaterModePage() {
 
       {/* Ticketed Show Announcement Popup */}
       {ticketedAnnouncement && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => setTicketedAnnouncement(null)}
           />
           {/* Modal */}
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-amber-900/90 via-black/95 to-purple-900/90 rounded-2xl border border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)] p-6 animate-slideUp">
+          <div className="relative w-full max-w-sm bg-gradient-to-br from-amber-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-amber-500/60 shadow-[0_0_60px_rgba(245,158,11,0.4)] p-6 animate-slideUp">
             {/* Close button */}
             <button
               onClick={() => setTicketedAnnouncement(null)}

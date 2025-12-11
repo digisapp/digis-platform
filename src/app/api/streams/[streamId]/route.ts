@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/data/system';
+import { streamGoals } from '@/lib/data/system';
+import { eq, and } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -44,7 +47,28 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ stream });
+    // Fetch active goals for the stream (only show active, non-completed goals to viewers)
+    const goals = await db.query.streamGoals.findMany({
+      where: and(
+        eq(streamGoals.streamId, streamId),
+        eq(streamGoals.isActive, true)
+      ),
+    });
+
+    // Return stream with goals
+    return NextResponse.json({
+      stream: {
+        ...stream,
+        goals: goals.map(g => ({
+          id: g.id,
+          description: g.description,
+          targetAmount: g.targetAmount,
+          currentAmount: g.currentAmount,
+          isActive: g.isActive,
+          isCompleted: g.isCompleted,
+        })),
+      }
+    });
   } catch (error: any) {
     console.error('Error fetching stream:', error);
     return NextResponse.json(

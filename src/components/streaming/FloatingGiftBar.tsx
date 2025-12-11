@@ -102,7 +102,7 @@ export function FloatingGiftBar({
       {/* Gift Bar - inline or floating based on prop */}
       <div className={inline
         ? "w-full"
-        : "fixed bottom-32 md:bottom-4 left-1/2 -translate-x-1/2 z-40"
+        : "fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
       }>
         {/* Quick Send Modal */}
         {selectedGift && (

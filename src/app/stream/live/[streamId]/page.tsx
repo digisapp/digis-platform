@@ -1154,19 +1154,7 @@ export default function BroadcastStudioPage() {
               )}
             </div>
 
-            {/* Active Goals */}
-            {goals.length > 0 && (
-              <GoalProgressBar
-                goals={goals}
-                isBroadcaster={true}
-                streamId={streamId}
-                onEdit={(goal) => {
-                  setEditingGoal(goal);
-                  setShowGoalModal(true);
-                }}
-                onGoalEnded={fetchGoals}
-              />
-            )}
+            {/* Active Goals - Now shown as floating Tron bar over video */}
           </div>
 
           {/* Chat Sidebar + Top Gifters */}
@@ -1340,9 +1328,9 @@ export default function BroadcastStudioPage() {
         />
       )}
 
-      {/* Floating Tron Goal Bar - visible over video on mobile */}
-      {goals.length > 0 && (
-        <div className="fixed top-20 left-3 right-3 z-40 lg:hidden">
+      {/* Floating Tron Goal Bar - visible over video on all screens */}
+      {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
+        <div className="fixed top-20 left-3 right-3 z-40 lg:top-24 lg:left-4 lg:right-auto lg:w-80">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
