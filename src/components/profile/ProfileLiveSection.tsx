@@ -109,9 +109,8 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
     }
   };
 
-  const handleTheaterMode = () => {
+  const handleWatchFullScreen = () => {
     if (status.streamId) {
-      router.prefetch(`/live/${status.streamId}`);
       router.push(`/live/${status.streamId}`);
       streamAnalytics.theaterModeClicked(username, status.streamId);
     }
@@ -191,22 +190,24 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
             </div>
           )}
 
-          {/* Control bar */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-500/10 to-pink-500/10 border-t border-white/10">
+          {/* Control bar - clickable to watch full screen */}
+          <button
+            onClick={handleWatchFullScreen}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-600/90 to-pink-600/90 hover:from-red-600 hover:to-pink-600 transition-all cursor-pointer group"
+          >
             <div className="flex items-center gap-3">
-              <span className="px-2 py-1 rounded-md text-xs font-bold bg-red-600 text-white animate-pulse">
+              <span className="px-2 py-1 rounded-md text-xs font-bold bg-white/20 text-white animate-pulse">
                 ● LIVE
               </span>
-              <span className="text-sm text-gray-700 font-medium">{username}</span>
+              <span className="text-sm text-white font-medium">{username}</span>
             </div>
-            <button
-              className="text-sm font-semibold text-digis-cyan hover:text-digis-pink transition-colors underline"
-              onMouseEnter={() => router.prefetch(`/live/${status.streamId}`)}
-              onClick={handleTheaterMode}
-            >
-              Theater Mode →
-            </button>
-          </div>
+            <span className="text-sm font-semibold text-white group-hover:translate-x-1 transition-transform flex items-center gap-1">
+              Watch Full Screen
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </button>
 
           {/* Quick chat and tips (only if user has access) */}
           {status.hasAccess && (
