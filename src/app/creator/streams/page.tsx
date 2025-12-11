@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
-import { CreateShowModal } from '@/components/shows/CreateShowModal';
 import { ShowCard } from '@/components/shows/ShowCard';
 import { Radio, BarChart3, CheckCircle2, DollarSign, Ticket, History } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -31,7 +30,6 @@ export default function CreatorStreamsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [shows, setShows] = useState<Show[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -71,11 +69,6 @@ export default function CreatorStreamsPage() {
     }
   };
 
-  const handleShowCreated = () => {
-    setShowCreateModal(false);
-    fetchShows();
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
@@ -111,7 +104,7 @@ export default function CreatorStreamsPage() {
           <GlassButton
             variant="gradient"
             size="md"
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => router.push('/creator/go-live')}
             shimmer
             glow
             className="!bg-gradient-to-r !from-red-500 !to-pink-500 flex items-center gap-2"
@@ -141,13 +134,16 @@ export default function CreatorStreamsPage() {
           </div>
         )}
 
-        {/* Upcoming (Tickets on Sale) */}
+        {/* Upcoming VIP Streams (announced but not yet started) */}
         {scheduledStreams.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Ticket className="w-5 h-5 text-yellow-400" />
-              <h2 className="text-lg font-bold text-white">Tickets on Sale</h2>
+              <Ticket className="w-5 h-5 text-amber-400" />
+              <h2 className="text-lg font-bold text-white">VIP Streams (Tickets on Sale)</h2>
             </div>
+            <p className="text-sm text-gray-400 mb-4">
+              These are VIP streams you announced during live broadcasts. Fans are buying tickets now!
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {scheduledStreams.map((show) => (
                 <ShowCard
@@ -177,7 +173,7 @@ export default function CreatorStreamsPage() {
                 <GlassButton
                   variant="gradient"
                   size="md"
-                  onClick={() => setShowCreateModal(true)}
+                  onClick={() => router.push('/creator/go-live')}
                   className="!bg-gradient-to-r !from-red-500 !to-pink-500"
                 >
                   <Radio className="w-4 h-4 mr-2" />
@@ -245,13 +241,6 @@ export default function CreatorStreamsPage() {
         )}
       </div>
 
-      {/* Create Stream Modal */}
-      {showCreateModal && (
-        <CreateShowModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={handleShowCreated}
-        />
-      )}
     </div>
   );
 }

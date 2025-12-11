@@ -16,11 +16,12 @@ import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndica
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
+import { AnnounceTicketedStreamModal } from '@/components/streaming/AnnounceTicketedStreamModal';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -82,6 +83,13 @@ export default function BroadcastStudioPage() {
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [showStreamSummary, setShowStreamSummary] = useState(false);
   const [showSaveStreamModal, setShowSaveStreamModal] = useState(false);
+  const [showAnnounceModal, setShowAnnounceModal] = useState(false);
+  const [announcedTicketedStream, setAnnouncedTicketedStream] = useState<{
+    id: string;
+    title: string;
+    ticketPrice: number;
+    startsAt: Date;
+  } | null>(null);
   const [streamSummary, setStreamSummary] = useState<{
     duration: string;
     totalViewers: number;
@@ -1065,6 +1073,17 @@ export default function BroadcastStudioPage() {
                       <span className="text-sm">GOAL</span>
                     </button>
 
+                    {/* Announce VIP Stream Button */}
+                    {!announcedTicketedStream && (
+                      <button
+                        onClick={() => setShowAnnounceModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-amber-500/30 text-white font-semibold text-sm hover:border-amber-500/60 hover:bg-black/80 transition-all"
+                      >
+                        <Ticket className="w-4 h-4 text-amber-400" />
+                        <span className="text-sm hidden sm:inline">VIP</span>
+                      </button>
+                    )}
+
                     {/* Camera Flip Button - Mobile only */}
                     <button
                       onClick={handleFlipCamera}
@@ -1075,6 +1094,21 @@ export default function BroadcastStudioPage() {
                       <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
                     </button>
                   </div>
+
+                  {/* VIP Stream Countdown - Shows when announced */}
+                  {announcedTicketedStream && (
+                    <div className="absolute bottom-20 sm:bottom-14 left-1/2 -translate-x-1/2 z-20">
+                      <div className="flex items-center gap-3 px-4 py-2.5 backdrop-blur-xl bg-amber-500/20 rounded-full border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-pulse">
+                        <Ticket className="w-5 h-5 text-amber-400" />
+                        <div className="text-center">
+                          <div className="text-amber-400 font-bold text-sm">VIP Stream</div>
+                          <div className="text-white text-xs">
+                            {announcedTicketedStream.ticketPrice} coins • Starts at {announcedTicketedStream.startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Bottom Center - End Stream Button */}
                   <div className="absolute bottom-14 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
@@ -1281,6 +1315,20 @@ export default function BroadcastStudioPage() {
             console.log('Stream saved as VOD:', vodId);
             // Optionally show success message or redirect
             alert('Stream saved successfully! You can find it in your VOD library.');
+          }}
+        />
+      )}
+
+      {/* Announce Ticketed Stream Modal */}
+      {showAnnounceModal && (
+        <AnnounceTicketedStreamModal
+          streamId={streamId}
+          currentViewers={viewerCount}
+          onClose={() => setShowAnnounceModal(false)}
+          onSuccess={(ticketedStream) => {
+            setShowAnnounceModal(false);
+            setAnnouncedTicketedStream(ticketedStream);
+            // The announcement is sent to chat via Ably in the API
           }}
         />
       )}

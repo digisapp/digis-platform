@@ -121,7 +121,7 @@ export default function MyTicketsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">My Tickets 🎫</h1>
-          <p className="text-gray-400">View and manage your stream tickets</p>
+          <p className="text-gray-400">Your VIP stream tickets and access history</p>
         </div>
 
         {/* Stats */}
@@ -188,17 +188,17 @@ export default function MyTicketsPage() {
             </h3>
             <p className="text-gray-400 mb-6">
               {filter === 'upcoming'
-                ? 'Purchase tickets to exclusive streams and events'
-                : 'Your attended streams will appear here'}
+                ? 'Join live streams and watch for VIP announcements to get tickets'
+                : 'Your attended VIP streams will appear here'}
             </p>
             {filter === 'upcoming' && (
               <GlassButton
                 variant="gradient"
                 size="md"
-                onClick={() => router.push('/streams')}
+                onClick={() => router.push('/live')}
                 shimmer
               >
-                Browse Streams
+                Watch Live Streams
               </GlassButton>
             )}
           </div>
