@@ -16,12 +16,11 @@ interface FeaturedCreator {
   avatarUrl: string | null;
 }
 
-// Privacy options
+// Privacy options (Ticketed is handled via VIP announcement during live stream)
 const PRIVACY_OPTIONS = [
-  { value: 'public', label: 'Public', description: 'Anyone can watch' },
-  { value: 'followers', label: 'Followers Only', description: 'Only your followers' },
-  { value: 'subscribers', label: 'Subscribers Only', description: 'Only paid subscribers' },
-  { value: 'ticketed', label: 'Ticketed', description: 'Viewers must purchase a ticket' },
+  { value: 'public', label: 'Public' },
+  { value: 'followers', label: 'Followers Only' },
+  { value: 'subscribers', label: 'Subscribers Only' },
 ];
 
 // Check if device is mobile
@@ -45,7 +44,6 @@ export default function GoLivePage() {
   const [recentStats, setRecentStats] = useState({ avgViewers: 0, totalStreams: 0 });
   const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
   const [featuredCreatorCommission, setFeaturedCreatorCommission] = useState(0);
-  const [ticketPrice, setTicketPrice] = useState<number>(100);
 
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
@@ -350,7 +348,6 @@ export default function GoLivePage() {
           privacy,
           orientation,
           featuredCreatorCommission,
-          ticketPrice: privacy === 'ticketed' ? ticketPrice : undefined,
         }),
       });
 
@@ -508,76 +505,25 @@ export default function GoLivePage() {
               {/* Privacy Settings */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Privacy <span className="text-cyan-400">*</span>
+                  Privacy
                 </label>
-                <div className="space-y-2">
+                <div className="flex gap-2">
                   {PRIVACY_OPTIONS.map((option) => (
-                    <label
+                    <button
                       key={option.value}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                      type="button"
+                      onClick={() => setPrivacy(option.value)}
+                      className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                         privacy === option.value
-                          ? option.value === 'ticketed'
-                            ? 'border-amber-500/50 bg-amber-500/10 ring-2 ring-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
-                            : 'border-cyan-500/50 bg-cyan-500/10 ring-2 ring-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]'
-                          : 'border-white/10 bg-white/5 hover:border-cyan-500/30'
+                          ? 'bg-cyan-500 text-black'
+                          : 'bg-white/5 text-gray-300 border border-white/10 hover:border-cyan-500/30'
                       }`}
                     >
-                      <input
-                        type="radio"
-                        name="privacy"
-                        value={option.value}
-                        checked={privacy === option.value}
-                        onChange={(e) => setPrivacy(e.target.value)}
-                        className="w-4 h-4 text-cyan-500 focus:ring-cyan-500 bg-white/10 border-white/20"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-white flex items-center gap-2">
-                          {option.label}
-                          {option.value === 'ticketed' && (
-                            <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Paid</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-400">{option.description}</div>
-                      </div>
-                    </label>
+                      {option.label}
+                    </button>
                   ))}
                 </div>
               </div>
-
-              {/* Ticket Price - Only show if ticketed is selected */}
-              {privacy === 'ticketed' && (
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Ticket Price <span className="text-amber-400">*</span>
-                  </label>
-                  <div className="p-4 rounded-xl border-2 border-amber-500/30 bg-amber-500/5">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="relative">
-                          <input
-                            type="number"
-                            min="10"
-                            max="10000"
-                            value={ticketPrice}
-                            onChange={(e) => setTicketPrice(Math.max(10, Math.min(10000, parseInt(e.target.value) || 10)))}
-                            className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white text-xl font-bold focus:outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/20 transition-all duration-300"
-                          />
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-400 font-bold">
-                            coins
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-sm">
-                      <span className="text-gray-400">Min: 10 coins</span>
-                      <span className="text-gray-400">Max: 10,000 coins</span>
-                    </div>
-                    <p className="mt-3 text-xs text-gray-400">
-                      Viewers must purchase a ticket to access your stream. You'll earn {ticketPrice} coins per viewer.
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* Orientation - Auto-follows device rotation on mobile */}
               <div>
