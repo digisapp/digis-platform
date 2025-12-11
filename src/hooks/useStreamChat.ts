@@ -65,6 +65,14 @@ interface SpotlightChangedEvent {
   } | null;
 }
 
+interface TicketedAnnouncementEvent {
+  ticketedStreamId: string;
+  title: string;
+  ticketPrice: number;
+  startsAt: string;
+  minutesUntilStart: number;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   onMessage?: (message: ChatMessage) => void;
@@ -75,6 +83,7 @@ interface UseStreamChatOptions {
   onStreamEnded?: () => void;
   onGoalUpdate?: (update: GoalUpdate) => void;
   onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
+  onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -98,6 +107,7 @@ export function useStreamChat({
   onStreamEnded,
   onGoalUpdate,
   onSpotlightChanged,
+  onTicketedAnnouncement,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -114,6 +124,7 @@ export function useStreamChat({
     onStreamEnded,
     onGoalUpdate,
     onSpotlightChanged,
+    onTicketedAnnouncement,
   });
 
   useEffect(() => {
@@ -126,14 +137,16 @@ export function useStreamChat({
       onStreamEnded,
       onGoalUpdate,
       onSpotlightChanged,
+      onTicketedAnnouncement,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement]);
 
   useEffect(() => {
     let mounted = true;
     let chatChannel: Ably.RealtimeChannel | null = null;
     let tipsChannel: Ably.RealtimeChannel | null = null;
     let presenceChannel: Ably.RealtimeChannel | null = null;
+    let mainChannel: Ably.RealtimeChannel | null = null;
 
     const setupChannels = async () => {
       try {
@@ -183,6 +196,15 @@ export function useStreamChat({
         });
         tipsChannel.subscribe('gift', (message) => {
           callbacksRef.current.onGift?.(message.data as GiftEvent);
+        });
+
+        // Subscribe to main stream channel (ticketed announcements, stream events)
+        mainChannel = ably.channels.get(`stream:${streamId}`);
+        mainChannel.subscribe('ticketed-announcement', (message) => {
+          callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
+        });
+        mainChannel.subscribe('stream_ended', () => {
+          callbacksRef.current.onStreamEnded?.();
         });
 
         // Subscribe to presence channel (viewer count, stream ended)
@@ -248,6 +270,10 @@ export function useStreamChat({
       if (tipsChannel) {
         tipsChannel.unsubscribe();
         safeDetach(tipsChannel);
+      }
+      if (mainChannel) {
+        mainChannel.unsubscribe();
+        safeDetach(mainChannel);
       }
     };
   }, [streamId]);

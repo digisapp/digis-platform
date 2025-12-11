@@ -7,6 +7,7 @@ import { VideoPresets, Room, Track } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
+import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
 import { VideoControls } from '@/components/streaming/VideoControls';
@@ -1056,22 +1057,28 @@ export default function BroadcastStudioPage() {
                       <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                     </div>
 
-                    {/* Set Goal Button */}
-                    <button
-                      onClick={() => {
-                        const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                        if (hasActiveGoal) {
-                          alert('You already have an active goal. Please edit or end the existing goal before creating a new one.');
-                          return;
-                        }
-                        setEditingGoal(null);
-                        setShowGoalModal(true);
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-cyan-500/30 text-white font-semibold text-sm hover:border-cyan-500/60 hover:bg-black/80 transition-all"
-                    >
-                      <Target className="w-4 h-4 text-cyan-400" />
-                      <span className="text-sm">GOAL</span>
-                    </button>
+                    {/* Set Goal Button - disabled when active goal exists */}
+                    {(() => {
+                      const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                      return (
+                        <button
+                          onClick={() => {
+                            if (hasActiveGoal) return;
+                            setEditingGoal(null);
+                            setShowGoalModal(true);
+                          }}
+                          disabled={hasActiveGoal}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                            hasActiveGoal
+                              ? 'bg-black/40 border-gray-600/30 text-gray-500 cursor-not-allowed opacity-50'
+                              : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
+                          }`}
+                        >
+                          <Target className={`w-4 h-4 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                          <span className="text-sm">GOAL</span>
+                        </button>
+                      );
+                    })()}
 
                     {/* Announce VIP Stream Button */}
                     {!announcedTicketedStream && (
@@ -1331,6 +1338,20 @@ export default function BroadcastStudioPage() {
             // The announcement is sent to chat via Ably in the API
           }}
         />
+      )}
+
+      {/* Floating Tron Goal Bar - visible over video on mobile */}
+      {goals.length > 0 && (
+        <div className="fixed top-20 left-3 right-3 z-40 lg:hidden">
+          <TronGoalBar
+            goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
+              id: g.id,
+              description: g.description || 'Stream Goal',
+              targetAmount: g.targetAmount,
+              currentAmount: g.currentAmount,
+            }))}
+          />
+        </div>
       )}
 
       {/* CSS for animated gradient border */}

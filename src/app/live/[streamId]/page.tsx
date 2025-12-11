@@ -8,13 +8,14 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Target
+  Share2, X, Send, Target, Ticket, Coins
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { BRBOverlay } from '@/components/live/BRBOverlay';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
+import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
 
 interface StreamData {
@@ -52,6 +53,11 @@ interface ChatMessage {
   timestamp: number;
   isCreator?: boolean;
   isModerator?: boolean;
+  messageType?: 'chat' | 'tip' | 'gift';
+  tipAmount?: number;
+  giftEmoji?: string;
+  giftName?: string;
+  giftQuantity?: number;
 }
 
 interface Viewer {
@@ -146,6 +152,15 @@ export default function TheaterModePage() {
   // Floating gift emojis state
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
 
+  // Ticketed show announcement state
+  const [ticketedAnnouncement, setTicketedAnnouncement] = useState<{
+    ticketedStreamId: string;
+    title: string;
+    ticketPrice: number;
+    startsAt: string;
+    minutesUntilStart: number;
+  } | null>(null);
+
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -167,11 +182,38 @@ export default function TheaterModePage() {
           timestamp: Date.now(),
           giftName: giftEvent.gift.name
         }]);
+
+        // Add gift message to chat
+        setMessages(prev => [...prev, {
+          id: `gift-${Date.now()}`,
+          userId: giftEvent.streamGift.senderId,
+          username: giftEvent.streamGift.senderUsername,
+          displayName: null,
+          avatarUrl: giftEvent.streamGift.senderAvatarUrl || null,
+          content: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.name}`,
+          timestamp: Date.now(),
+          messageType: 'gift',
+          giftEmoji: giftEvent.gift.emoji,
+          giftName: giftEvent.gift.name,
+          giftQuantity: giftEvent.streamGift.quantity,
+        }]);
       }
       // Refresh goals when gift received
       loadStream();
     },
-    onTip: () => {
+    onTip: (tipEvent) => {
+      // Add tip message to chat
+      setMessages(prev => [...prev, {
+        id: `tip-${Date.now()}`,
+        userId: tipEvent.senderId,
+        username: tipEvent.senderUsername,
+        displayName: null,
+        avatarUrl: tipEvent.senderAvatarUrl || null,
+        content: `tipped ${tipEvent.amount} coins`,
+        timestamp: Date.now(),
+        messageType: 'tip',
+        tipAmount: tipEvent.amount,
+      }]);
       // Refresh goals when tip received
       loadStream();
     },
@@ -189,6 +231,10 @@ export default function TheaterModePage() {
     },
     onStreamEnded: () => {
       setStreamEnded(true);
+    },
+    onTicketedAnnouncement: (announcement) => {
+      // Show the ticketed stream popup
+      setTicketedAnnouncement(announcement);
     },
   });
 
@@ -738,36 +784,6 @@ export default function TheaterModePage() {
             </div>
           )}
 
-          {/* Stream Goals Widget - desktop only (mobile uses overlay above) */}
-          {stream.goals && stream.goals.length > 0 && (
-            <div className="hidden lg:block px-4 py-3 glass-dark border-t border-purple-400/30 backdrop-blur-xl shadow-[0_-2px_20px_rgba(168,85,247,0.15)]">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                <span className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Stream Goals</span>
-              </div>
-              {stream.goals.map((goal) => (
-                <div key={goal.id} className="mb-3 last:mb-0">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-white/90 font-medium">{goal.description}</span>
-                    <span className="text-purple-300 font-semibold">
-                      {goal.currentAmount} / {goal.targetAmount}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm border border-purple-500/20">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-                      style={{
-                        width: `${Math.min(
-                          (goal.currentAmount / goal.targetAmount) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Right Sidebar - Chat & Viewers */}
@@ -814,6 +830,44 @@ export default function TheaterModePage() {
                     </div>
                   ) : (
                     messages.map((msg) => (
+                      msg.messageType === 'tip' ? (
+                        // Tip message - highlighted
+                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                          <div className="flex items-center gap-2">
+                            {msg.avatarUrl ? (
+                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-xs font-bold">
+                                {msg.username[0].toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-bold text-green-300">@{msg.username}</span>
+                            <Coins className="w-4 h-4 text-green-400" />
+                            <span className="font-bold text-green-400">{msg.tipAmount}</span>
+                          </div>
+                        </div>
+                      ) : msg.messageType === 'gift' ? (
+                        // Gift message - highlighted with emoji
+                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
+                          <div className="flex items-center gap-2">
+                            {msg.avatarUrl ? (
+                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-xs font-bold">
+                                {msg.username[0].toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-bold text-pink-300">@{msg.username}</span>
+                            <span className="text-white/70">sent</span>
+                            {msg.giftQuantity && msg.giftQuantity > 1 && (
+                              <span className="font-bold text-pink-400">{msg.giftQuantity}x</span>
+                            )}
+                            <span className="text-xl">{msg.giftEmoji}</span>
+                            <span className="font-bold text-pink-400">{msg.giftName}</span>
+                          </div>
+                        </div>
+                      ) : (
+                      // Regular chat message
                       <div key={msg.id} className="flex gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
                         {msg.avatarUrl ? (
                           <img
@@ -823,7 +877,7 @@ export default function TheaterModePage() {
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">
-                            {msg.displayName?.[0] || msg.username[0]}
+                            {msg.username[0].toUpperCase()}
                           </div>
                         )}
 
@@ -834,7 +888,7 @@ export default function TheaterModePage() {
                                 msg.isCreator ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-cyan-100'
                               }`}
                             >
-                              {msg.displayName || msg.username}
+                              @{msg.username}
                             </span>
                             {msg.isCreator && (
                               <span className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 text-yellow-300 rounded border border-yellow-400/30 font-semibold">
@@ -852,6 +906,7 @@ export default function TheaterModePage() {
                           </p>
                         </div>
                       </div>
+                      )
                     ))
                   )}
                 </div>
@@ -859,24 +914,41 @@ export default function TheaterModePage() {
                 {/* Message Input - extra padding on mobile for floating gift bar */}
                 <div className="p-4 pb-20 lg:pb-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
                   {currentUser ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                        placeholder="Send a message..."
-                        disabled={sendingMessage}
-                        className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
-                      />
-                      <button
-                        onClick={sendMessage}
-                        disabled={!messageInput.trim() || sendingMessage}
-                        className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
-                    </div>
+                    userBalance > 0 ? (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={messageInput}
+                          onChange={(e) => setMessageInput(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                          placeholder="Send a message..."
+                          disabled={sendingMessage}
+                          className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
+                        />
+                        <button
+                          onClick={sendMessage}
+                          disabled={!messageInput.trim() || sendingMessage}
+                          className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
+                        >
+                          <Send className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center text-sm pb-12 lg:pb-0">
+                        <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                          <p className="text-amber-300 font-medium">
+                            <Coins className="w-4 h-4 inline mr-1" />
+                            Buy coins to chat
+                          </p>
+                          <button
+                            onClick={() => router.push('/wallet')}
+                            className="mt-2 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs transition-colors"
+                          >
+                            Get Coins
+                          </button>
+                        </div>
+                      </div>
+                    )
                   ) : (
                     <div className="text-center text-sm text-white/70 pb-12 lg:pb-0">
                       <button
@@ -950,37 +1022,79 @@ export default function TheaterModePage() {
         </div>
       )}
 
-      {/* Stream Goals Overlay - FIXED position on mobile so it's always visible */}
+      {/* Tron-style Goal Bar Overlay - hovering over video */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && (
-        <div className="fixed top-16 left-2 right-2 z-40 lg:hidden">
-          {stream.goals.map((goal) => {
-            const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
-            return (
-              <div
-                key={goal.id}
-                className="bg-black/80 backdrop-blur-xl rounded-xl p-2.5 border border-purple-400/40 shadow-[0_0_20px_rgba(168,85,247,0.3)]"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Target className="w-3.5 h-3.5 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
-                  <span className="text-xs font-bold text-white truncate flex-1">{goal.description}</span>
-                  <span className="text-xs text-purple-300 font-semibold">
-                    {goal.currentAmount}/{goal.targetAmount}
-                  </span>
-                </div>
-                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden border border-purple-500/20">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+        <div className="fixed top-20 left-3 right-3 z-40 lg:top-24 lg:left-4 lg:right-auto lg:w-80">
+          <TronGoalBar goals={stream.goals} />
         </div>
       )}
 
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
+
+      {/* Ticketed Show Announcement Popup */}
+      {ticketedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setTicketedAnnouncement(null)}
+          />
+          {/* Modal */}
+          <div className="relative w-full max-w-sm bg-gradient-to-br from-amber-900/90 via-black/95 to-purple-900/90 rounded-2xl border border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)] p-6 animate-slideUp">
+            {/* Close button */}
+            <button
+              onClick={() => setTicketedAnnouncement(null)}
+              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* VIP Badge */}
+            <div className="flex justify-center mb-4">
+              <div className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/30">
+                <Ticket className="w-4 h-4" />
+                VIP STREAM
+              </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-bold text-white text-center mb-2">
+              {ticketedAnnouncement.title}
+            </h3>
+
+            {/* Time */}
+            <p className="text-amber-300 text-center text-sm mb-4">
+              Starts in {ticketedAnnouncement.minutesUntilStart} minutes
+            </p>
+
+            {/* Price */}
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Coins className="w-6 h-6 text-green-400" />
+              <span className="text-3xl font-bold text-green-400">
+                {ticketedAnnouncement.ticketPrice}
+              </span>
+              <span className="text-gray-400">coins</span>
+            </div>
+
+            {/* Buy Button */}
+            <button
+              onClick={() => {
+                router.push(`/streams/${ticketedAnnouncement.ticketedStreamId}`);
+              }}
+              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"
+            >
+              <Ticket className="w-5 h-5" />
+              Get Ticket
+            </button>
+
+            {/* Dismiss text */}
+            <p className="text-center text-gray-500 text-xs mt-3">
+              Tap outside to dismiss
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
