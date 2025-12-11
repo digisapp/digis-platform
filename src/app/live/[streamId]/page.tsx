@@ -504,6 +504,15 @@ export default function TheaterModePage() {
             <Share2 className="w-5 h-5" />
           </button>
 
+          {/* Toggle Chat Button (visible on all screens) */}
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className={`p-2 rounded-lg transition-colors ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
+            title={showChat ? 'Hide Chat' : 'Show Chat'}
+          >
+            <Users className="w-5 h-5" />
+          </button>
+
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -516,11 +525,11 @@ export default function TheaterModePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black">
+        <div className="flex-1 flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0">
           {/* Video */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-h-[50vh] lg:min-h-0">
             {streamEnded ? (
               /* Stream Ended State */
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -670,7 +679,7 @@ export default function TheaterModePage() {
 
         {/* Right Sidebar - Chat & Viewers */}
         {showChat && (
-          <div className="w-96 glass-dark border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
+          <div className="w-full lg:w-96 h-80 lg:h-auto glass-dark border-t lg:border-t-0 lg:border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
             {/* Sidebar Tabs */}
             <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
               <button
