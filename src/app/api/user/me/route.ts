@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, walletTransactions } from '@/lib/data/system';
+import { users, walletTransactions, wallets } from '@/lib/data/system';
 import { eq, and, inArray, sql, gt } from 'drizzle-orm';
 import { getCachedLifetimeEarnings, setCachedLifetimeEarnings } from '@/lib/cache';
 
@@ -115,7 +115,21 @@ export async function GET() {
       role: user.role,
     });
 
-    // 4) For creators, calculate lifetime coins received (all earnings) - with Redis cache
+    // 4) Fetch wallet balance
+    let wallet = null;
+    try {
+      wallet = await withTimeout(
+        db.query.wallets.findFirst({
+          where: eq(wallets.userId, user.id),
+          columns: { balance: true, heldBalance: true },
+        }),
+        2000
+      );
+    } catch (err) {
+      console.warn('[USER_ME] Failed to fetch wallet:', err);
+    }
+
+    // 5) For creators, calculate lifetime coins received (all earnings) - with Redis cache
     let lifetimeTipsReceived = 0;
     if (user.role === 'creator') {
       try {
@@ -148,8 +162,8 @@ export async function GET() {
       }
     }
 
-    // 5) Normal success path: return DB user with lifetime tips
-    const response = NextResponse.json({ ...user, lifetimeTipsReceived });
+    // 6) Normal success path: return DB user with wallet and lifetime tips
+    const response = NextResponse.json({ ...user, wallet, lifetimeTipsReceived });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');
     response.headers.set('Expires', '0');
