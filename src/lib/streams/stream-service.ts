@@ -441,27 +441,26 @@ export class StreamService {
       }
     }
 
-    // Update any active stream goals with coin-based progress
-    await this.updateStreamGoalProgress(streamId, totalCoins, giftId, quantity);
+    // Update any active stream goals - all gifts contribute their coin value
+    await this.updateStreamGoalProgress(streamId, totalCoins);
 
     return { streamGift, gift, recipientCreatorId, recipientUsername };
   }
 
   /**
    * Update stream goal progress when tips/gifts are received
+   * All tips and virtual gifts contribute their coin value to active goals
    * @param streamId - The stream ID
-   * @param coinAmount - Amount of coins received
-   * @param giftId - Optional gift ID (for gift-specific goals)
-   * @param giftQuantity - Quantity of gifts sent
+   * @param coinAmount - Amount of coins received (from tip or gift value)
    */
   private static async updateStreamGoalProgress(
     streamId: string,
-    coinAmount: number,
-    giftId?: string,
-    giftQuantity: number = 1
+    coinAmount: number
   ) {
     try {
-      // Get all active goals for this stream
+      if (coinAmount <= 0) return;
+
+      // Get all active, incomplete goals for this stream
       const activeGoals = await db.query.streamGoals.findMany({
         where: and(
           eq(streamGoals.streamId, streamId),
@@ -470,32 +469,20 @@ export class StreamService {
         ),
       });
 
+      // Update all active goals with the coin amount
       for (const goal of activeGoals) {
-        let progressAmount = 0;
+        const newAmount = goal.currentAmount + coinAmount;
+        const isNowCompleted = newAmount >= goal.targetAmount;
 
-        if (goal.goalType === 'coins') {
-          // Any tip/gift contributes coin amount to goal
-          progressAmount = coinAmount;
-        } else if (goal.goalType === 'gifts' && giftId && goal.giftId === giftId) {
-          // Only the specific gift counts
-          progressAmount = giftQuantity;
-        }
-        // 'viewers' type is not affected by tips
-
-        if (progressAmount > 0) {
-          const newAmount = goal.currentAmount + progressAmount;
-          const isNowCompleted = newAmount >= goal.targetAmount;
-
-          await db
-            .update(streamGoals)
-            .set({
-              currentAmount: sql`${streamGoals.currentAmount} + ${progressAmount}`,
-              isCompleted: isNowCompleted,
-              completedAt: isNowCompleted ? new Date() : null,
-              updatedAt: new Date(),
-            })
-            .where(eq(streamGoals.id, goal.id));
-        }
+        await db
+          .update(streamGoals)
+          .set({
+            currentAmount: sql`${streamGoals.currentAmount} + ${coinAmount}`,
+            isCompleted: isNowCompleted,
+            completedAt: isNowCompleted ? new Date() : null,
+            updatedAt: new Date(),
+          })
+          .where(eq(streamGoals.id, goal.id));
       }
     } catch (error) {
       // Log but don't fail the main transaction
