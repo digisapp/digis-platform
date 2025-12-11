@@ -11,6 +11,7 @@ type FloatingGiftBarProps = {
   userBalance: number;
   isAuthenticated: boolean;
   onAuthRequired?: () => void;
+  inline?: boolean; // If true, renders inline instead of floating
 };
 
 export function FloatingGiftBar({
@@ -19,7 +20,8 @@ export function FloatingGiftBar({
   onSendGift,
   userBalance,
   isAuthenticated,
-  onAuthRequired
+  onAuthRequired,
+  inline = false
 }: FloatingGiftBarProps) {
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
@@ -97,8 +99,11 @@ export function FloatingGiftBar({
 
   return (
     <>
-      {/* Floating Gift Bar - higher on mobile to avoid blocking chat input */}
-      <div className="fixed bottom-32 md:bottom-4 left-1/2 -translate-x-1/2 z-40">
+      {/* Gift Bar - inline or floating based on prop */}
+      <div className={inline
+        ? "w-full"
+        : "fixed bottom-32 md:bottom-4 left-1/2 -translate-x-1/2 z-40"
+      }>
         {/* Quick Send Modal */}
         {selectedGift && (
           <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 sm:w-80">
@@ -228,8 +233,11 @@ export function FloatingGiftBar({
           </div>
         )}
 
-        {/* Floating Gift Buttons */}
-        <div className="flex items-center gap-1.5 px-2 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-white/20 shadow-2xl">
+        {/* Gift Buttons */}
+        <div className={inline
+          ? "flex items-center gap-1.5 px-2 py-1.5 bg-black/50 overflow-x-auto scrollbar-hide"
+          : "flex items-center gap-1.5 px-2 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-white/20 shadow-2xl"
+        }>
           {/* Featured Gifts with bobbing animation */}
           {featuredGifts.map((gift, index) => {
             const canAffordGift = gift.coinCost <= userBalance;
@@ -237,14 +245,14 @@ export function FloatingGiftBar({
               <button
                 key={gift.id}
                 onClick={() => handleGiftClick(gift)}
-                className={`relative group transition-all duration-300 hover:scale-125 ${getRarityGlow(gift.rarity)}`}
-                style={{
+                className={`relative group transition-all duration-300 hover:scale-125 flex-shrink-0 ${getRarityGlow(gift.rarity)}`}
+                style={inline ? undefined : {
                   animation: `float ${2 + index * 0.3}s ease-in-out infinite`,
                   animationDelay: `${index * 0.2}s`
                 }}
                 title={`${gift.name} - ${gift.coinCost} coins`}
               >
-                <div className={`text-2xl sm:text-3xl ${!canAffordGift && isAuthenticated ? 'grayscale opacity-50' : ''}`}>
+                <div className={`${inline ? 'text-xl' : 'text-2xl sm:text-3xl'} ${!canAffordGift && isAuthenticated ? 'grayscale opacity-50' : ''}`}>
                   {gift.emoji}
                 </div>
                 {/* Price tooltip on hover */}
@@ -258,15 +266,21 @@ export function FloatingGiftBar({
           {/* More gifts button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all hover:scale-110"
+            className={inline
+              ? "w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all hover:scale-110 flex-shrink-0"
+              : "w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all hover:scale-110"
+            }
           >
-            <ChevronUp className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            <ChevronUp className={`${inline ? 'w-4 h-4' : 'w-5 h-5'} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Balance indicator */}
-          <div className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30">
-            <Coins className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-bold text-green-400">{userBalance.toLocaleString()}</span>
+          <div className={inline
+            ? "flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 flex-shrink-0"
+            : "flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30"
+          }>
+            <Coins className={`${inline ? 'w-3 h-3' : 'w-4 h-4'} text-green-400`} />
+            <span className={`${inline ? 'text-xs' : 'text-sm'} font-bold text-green-400`}>{userBalance.toLocaleString()}</span>
           </div>
         </div>
       </div>

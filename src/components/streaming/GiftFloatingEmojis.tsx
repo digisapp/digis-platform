@@ -19,12 +19,13 @@ type GiftFloatingEmojisProps = {
 // Gift-specific sounds - unique sound for each gift type
 const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
   'Champagne': '/sounds/gift-champagne.mp3',   // Pop and fizz
-  'Rocket': '/sounds/gift-rocket.mp3',         // Explosion
+  'Rocket': '/sounds/gift-rocket.mp3',         // Rocket whoosh
   'Sports Car': '/sounds/gift-sports-car.mp3', // Vroom engine
   'Crown': '/sounds/gift-crown.mp3',           // Royal fanfare
   'Gold Bar': '/sounds/gift-money.mp3',        // Coins/jackpot
   'Steak': '/sounds/gift-steak.mp3',           // Sizzle
   'Cake': '/sounds/gift-cake.mp3',             // Celebration
+  'Sushi': '/sounds/gift-sushi.mp3',           // Tasty mmm sound
 };
 
 // Fallback sounds for gifts without specific sounds - based on rarity

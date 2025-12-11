@@ -663,10 +663,10 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Quick Actions Bar */}
-          <div className="px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+          {/* Quick Actions Bar - desktop only (mobile uses inline gift bar below) */}
+          <div className="hidden lg:block px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-cyan-200 mr-1 font-semibold hidden sm:inline">Tip:</span>
+              <span className="text-xs text-cyan-200 mr-1 font-semibold">Tip:</span>
               {[5, 10, 25, 50, 100].map((amount) => (
                 <button
                   key={amount}
@@ -679,6 +679,21 @@ export default function TheaterModePage() {
               ))}
             </div>
           </div>
+
+          {/* Inline Gift Bar - mobile only (replaces quick tips) */}
+          {stream && !streamEnded && (
+            <div className="lg:hidden glass-dark border-t border-cyan-400/20">
+              <FloatingGiftBar
+                streamId={streamId}
+                creatorId={stream.creator.id}
+                onSendGift={handleSendGift}
+                userBalance={userBalance}
+                isAuthenticated={!!currentUser}
+                onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+                inline={true}
+              />
+            </div>
+          )}
 
           {/* Stream Goals Widget - desktop only (mobile uses overlay above) */}
           {stream.goals && stream.goals.length > 0 && (
@@ -878,16 +893,18 @@ export default function TheaterModePage() {
         )}
       </div>
 
-      {/* Floating Gift Bar */}
+      {/* Floating Gift Bar - desktop only (mobile uses inline version above video) */}
       {stream && !streamEnded && (
-        <FloatingGiftBar
-          streamId={streamId}
-          creatorId={stream.creator.id}
-          onSendGift={handleSendGift}
-          userBalance={userBalance}
-          isAuthenticated={!!currentUser}
-          onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-        />
+        <div className="hidden lg:block">
+          <FloatingGiftBar
+            streamId={streamId}
+            creatorId={stream.creator.id}
+            onSendGift={handleSendGift}
+            userBalance={userBalance}
+            isAuthenticated={!!currentUser}
+            onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+          />
+        </div>
       )}
 
       {/* Stream Goals Overlay - FIXED position on mobile so it's always visible */}
