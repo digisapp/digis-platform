@@ -24,6 +24,7 @@ interface StreamData {
   status: 'live' | 'ended';
   privacy: 'public' | 'private' | 'followers';
   currentViewers: number;
+  peakViewers: number;
   totalViews: number;
   totalGiftsReceived: number;
   creator: {
@@ -151,7 +152,7 @@ export default function TheaterModePage() {
   }, []);
 
   // Real-time stream updates via Ably
-  useStreamChat({
+  const { viewerCount: realtimeViewerCount } = useStreamChat({
     streamId,
     onMessage: (message) => {
       setMessages((prev) => [...prev, message as unknown as ChatMessage]);
@@ -178,10 +179,21 @@ export default function TheaterModePage() {
       // Refresh goals
       loadStream();
     },
+    onViewerCount: (count) => {
+      // Update viewer count from Ably real-time updates
+      setStream(prev => prev ? {
+        ...prev,
+        currentViewers: count.currentViewers,
+        peakViewers: Math.max(prev.peakViewers, count.peakViewers),
+      } : null);
+    },
     onStreamEnded: () => {
       setStreamEnded(true);
     },
   });
+
+  // Use real-time viewer count from Ably if available, otherwise use stream data
+  const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
 
   // Load stream data
   useEffect(() => {
@@ -264,6 +276,37 @@ export default function TheaterModePage() {
 
     return () => clearInterval(interval);
   }, [stream, streamId, streamEnded]);
+
+  // Viewer heartbeat - keeps viewer active and updates viewer count
+  useEffect(() => {
+    if (!stream || stream.status !== 'live' || streamEnded || !currentUser) return;
+
+    const sendViewerHeartbeat = async () => {
+      try {
+        const res = await fetch(`/api/streams/${streamId}/viewer-heartbeat`, {
+          method: 'POST',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Update stream viewer count
+          setStream(prev => prev ? {
+            ...prev,
+            currentViewers: data.currentViewers,
+            peakViewers: data.peakViewers,
+          } : null);
+        }
+      } catch (e) {
+        console.error('[Stream] Viewer heartbeat failed:', e);
+      }
+    };
+
+    // Send heartbeat every 30 seconds (stale threshold is 2 minutes)
+    const interval = setInterval(sendViewerHeartbeat, 30000);
+    // Also send immediately
+    sendViewerHeartbeat();
+
+    return () => clearInterval(interval);
+  }, [stream?.status, streamId, streamEnded, currentUser]);
 
   const loadStream = async () => {
     try {
@@ -523,7 +566,7 @@ export default function TheaterModePage() {
                 )}
               </div>
               <div className="text-xs text-white/60">
-                {stream.currentViewers.toLocaleString()} watching
+                {displayViewerCount.toLocaleString()} watching
               </div>
             </div>
           </div>
@@ -752,7 +795,7 @@ export default function TheaterModePage() {
               >
                 <div className="flex items-center justify-center gap-2">
                   <Users className="w-4 h-4" />
-                  <span>{stream.currentViewers}</span>
+                  <span>{displayViewerCount}</span>
                 </div>
               </button>
             </div>

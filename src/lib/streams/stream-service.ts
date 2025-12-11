@@ -16,7 +16,7 @@ import {
   shows,
   showTickets,
 } from '@/lib/data/system';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, lt } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '../wallet/wallet-service';
 import {
@@ -297,9 +297,19 @@ export class StreamService {
 
   /**
    * Update viewer count (call after join/leave)
-   * Uses Redis for fast viewer count, periodically syncs to DB
+   * Cleans up stale viewers first, then counts active ones
    */
   static async updateViewerCount(streamId: string) {
+    // First, clean up stale viewers (no activity for 2+ minutes)
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+    await db.delete(streamViewers).where(
+      and(
+        eq(streamViewers.streamId, streamId),
+        lt(streamViewers.lastSeenAt, twoMinutesAgo)
+      )
+    );
+
+    // Count remaining active viewers
     const viewers = await db.query.streamViewers.findMany({
       where: eq(streamViewers.streamId, streamId),
     });
@@ -328,6 +338,21 @@ export class StreamService {
     await setCachedViewerCount(streamId, currentCount);
 
     return { currentViewers: currentCount, peakViewers };
+  }
+
+  /**
+   * Update viewer's last seen timestamp (heartbeat)
+   */
+  static async updateViewerHeartbeat(streamId: string, userId: string) {
+    await db
+      .update(streamViewers)
+      .set({ lastSeenAt: new Date() })
+      .where(
+        and(
+          eq(streamViewers.streamId, streamId),
+          eq(streamViewers.userId, userId)
+        )
+      );
   }
 
   /**
