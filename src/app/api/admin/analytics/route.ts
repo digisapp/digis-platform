@@ -42,35 +42,41 @@ export async function GET(request: NextRequest) {
 
     // Run ALL queries in parallel for maximum speed
     const [
-      usersResult,
+      recentUsersResult,
+      allUsersRolesResult,
       applicationsResult,
       stats,
       lastWeekResult,
       previousWeekResult,
     ] = await withTimeoutAndRetry(
       () => Promise.all([
-        // 1. Get user signups over last 30 days
+        // 1. Get user signups over last 30 days (for timeline chart)
         adminClient
           .from('users')
-          .select('created_at, role')
+          .select('created_at')
           .gte('created_at', thirtyDaysAgo.toISOString())
           .order('created_at', { ascending: true }),
 
-        // 2. Get all applications with their status
+        // 2. Get ALL users roles (for distribution pie chart)
+        adminClient
+          .from('users')
+          .select('role'),
+
+        // 3. Get all applications with their status
         adminClient
           .from('creator_applications')
           .select('status, created_at, content_type'),
 
-        // 3. Get total stats
+        // 4. Get total stats
         AdminService.getStatistics(),
 
-        // 4. Get last week signups count
+        // 5. Get last week signups count
         adminClient
           .from('users')
           .select('*', { count: 'exact', head: true })
           .gte('created_at', sevenDaysAgo.toISOString()),
 
-        // 5. Get previous week signups count
+        // 6. Get previous week signups count
         adminClient
           .from('users')
           .select('*', { count: 'exact', head: true })
@@ -80,19 +86,25 @@ export async function GET(request: NextRequest) {
       { timeoutMs: 8000, retries: 2, tag: 'adminAnalytics' }
     );
 
-    const users = usersResult.data;
+    const recentUsers = recentUsersResult.data;
+    const allUsersRoles = allUsersRolesResult.data;
     const applications = applicationsResult.data;
     const lastWeekSignups = lastWeekResult.count || 0;
     const previousWeekSignups = previousWeekResult.count || 0;
 
-    // Process user signups by day
+    // Process user signups by day (last 30 days only)
     const signupsByDay: { [key: string]: number } = {};
-    const roleDistribution = { fan: 0, creator: 0, admin: 0 };
-
-    users?.forEach((user: any) => {
+    recentUsers?.forEach((user: any) => {
       const date = new Date(user.created_at).toISOString().split('T')[0];
       signupsByDay[date] = (signupsByDay[date] || 0) + 1;
-      roleDistribution[user.role as keyof typeof roleDistribution]++;
+    });
+
+    // Process ALL users for role distribution
+    const roleDistribution = { fan: 0, creator: 0, admin: 0 };
+    allUsersRoles?.forEach((user: any) => {
+      if (user.role && roleDistribution.hasOwnProperty(user.role)) {
+        roleDistribution[user.role as keyof typeof roleDistribution]++;
+      }
     });
 
     // Fill in missing days with 0
