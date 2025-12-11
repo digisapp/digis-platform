@@ -161,6 +161,13 @@ export default function TheaterModePage() {
     minutesUntilStart: number;
   } | null>(null);
 
+  // Track dismissed ticketed stream for persistent button
+  const [dismissedTicketedStream, setDismissedTicketedStream] = useState<{
+    ticketedStreamId: string;
+    title: string;
+    ticketPrice: number;
+  } | null>(null);
+
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -1047,9 +1054,9 @@ export default function TheaterModePage() {
         />
       )}
 
-      {/* Tron-style Goal Bar Overlay - hovering over video */}
-      {stream && stream.goals && stream.goals.length > 0 && !streamEnded && (
-        <div className="fixed top-20 left-3 right-3 z-40 lg:top-24 lg:left-4 lg:right-auto lg:w-80">
+      {/* Tron-style Goal Bar Overlay - centered over video, below header */}
+      {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
+        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[220px]">
           <TronGoalBar
             goals={stream.goals
               .filter((g: any) => g.isActive && !g.isCompleted)
@@ -1066,19 +1073,47 @@ export default function TheaterModePage() {
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
+      {/* Persistent VIP Ticket Button - shows after dismissing popup */}
+      {dismissedTicketedStream && !ticketedAnnouncement && (
+        <button
+          onClick={() => router.push(`/streams/${dismissedTicketedStream.ticketedStreamId}`)}
+          className="fixed bottom-20 right-4 z-50 px-4 py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-sm transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-2 animate-bounce"
+        >
+          <Ticket className="w-4 h-4" />
+          <span>VIP Stream</span>
+          <span className="text-amber-800">{dismissedTicketedStream.ticketPrice}</span>
+        </button>
+      )}
+
       {/* Ticketed Show Announcement Popup */}
       {ticketedAnnouncement && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={() => setTicketedAnnouncement(null)}
+            onClick={() => {
+              // Save the ticketed stream info before dismissing
+              setDismissedTicketedStream({
+                ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
+                title: ticketedAnnouncement.title,
+                ticketPrice: ticketedAnnouncement.ticketPrice,
+              });
+              setTicketedAnnouncement(null);
+            }}
           />
           {/* Modal */}
           <div className="relative w-full max-w-sm bg-gradient-to-br from-amber-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-amber-500/60 shadow-[0_0_60px_rgba(245,158,11,0.4)] p-6 animate-slideUp">
             {/* Close button */}
             <button
-              onClick={() => setTicketedAnnouncement(null)}
+              onClick={() => {
+                // Save the ticketed stream info before dismissing
+                setDismissedTicketedStream({
+                  ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
+                  title: ticketedAnnouncement.title,
+                  ticketPrice: ticketedAnnouncement.ticketPrice,
+                });
+                setTicketedAnnouncement(null);
+              }}
               className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
             >
               <X className="w-5 h-5" />

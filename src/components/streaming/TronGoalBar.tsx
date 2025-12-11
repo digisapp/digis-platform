@@ -1,6 +1,6 @@
 'use client';
 
-import { Target } from 'lucide-react';
+import { Target, Pencil } from 'lucide-react';
 
 interface Goal {
   id: string;
@@ -12,13 +12,14 @@ interface Goal {
 interface TronGoalBarProps {
   goals: Goal[];
   className?: string;
+  onEdit?: (goalId: string) => void; // Optional edit callback for host
 }
 
-export function TronGoalBar({ goals, className = '' }: TronGoalBarProps) {
+export function TronGoalBar({ goals, className = '', onEdit }: TronGoalBarProps) {
   if (!goals || goals.length === 0) return null;
 
   return (
-    <div className={`pointer-events-none ${className}`}>
+    <div className={`${onEdit ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}>
       {goals.map((goal) => {
         const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
         const isComplete = percentage >= 100;
@@ -26,7 +27,7 @@ export function TronGoalBar({ goals, className = '' }: TronGoalBarProps) {
         return (
           <div
             key={goal.id}
-            className="relative bg-black/70 backdrop-blur-xl rounded-xl p-3 border border-cyan-500/40 shadow-[0_0_25px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden"
+            className="relative bg-black/70 backdrop-blur-xl rounded-xl p-2.5 border border-cyan-500/40 shadow-[0_0_25px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden"
           >
             {/* Animated scan line effect */}
             <div className="absolute inset-0 overflow-hidden rounded-xl">
@@ -45,20 +46,29 @@ export function TronGoalBar({ goals, className = '' }: TronGoalBarProps) {
             {/* Content */}
             <div className="relative z-10">
               {/* Header */}
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`p-1 rounded ${isComplete ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}>
-                  <Target className={`w-4 h-4 ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`} />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className={`p-0.5 rounded ${isComplete ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}>
+                  <Target className={`w-3.5 h-3.5 ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`} />
                 </div>
-                <span className="text-xs font-bold text-white truncate flex-1 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+                <span className="text-[11px] font-bold text-white truncate flex-1 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                   {goal.description}
                 </span>
-                <span className={`text-xs font-bold ${isComplete ? 'text-green-400' : 'text-cyan-300'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`}>
+                <span className={`text-[11px] font-bold ${isComplete ? 'text-green-400' : 'text-cyan-300'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`}>
                   {goal.currentAmount}/{goal.targetAmount}
                 </span>
+                {/* Edit button - only shown for host */}
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(goal.id)}
+                    className="p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 transition-colors border border-cyan-500/30"
+                  >
+                    <Pencil className="w-3 h-3 text-cyan-400" />
+                  </button>
+                )}
               </div>
 
               {/* Progress bar */}
-              <div className="h-2 bg-gray-800/80 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner">
+              <div className="h-1.5 bg-gray-800/80 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner">
                 <div
                   className={`h-full transition-all duration-700 ease-out relative ${
                     isComplete
@@ -82,8 +92,8 @@ export function TronGoalBar({ goals, className = '' }: TronGoalBarProps) {
 
               {/* Percentage text */}
               {percentage > 0 && (
-                <div className="flex justify-end mt-1">
-                  <span className={`text-[10px] font-bold ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]`}>
+                <div className="flex justify-end mt-0.5">
+                  <span className={`text-[9px] font-bold ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]`}>
                     {Math.round(percentage)}%
                   </span>
                 </div>

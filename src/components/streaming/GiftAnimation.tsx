@@ -149,7 +149,9 @@ export function GiftAnimationManager({ gifts, onRemove }: GiftAnimationManagerPr
   if (visibleGifts.length === 0) return null;
 
   return (
-    <div className="fixed right-4 top-24 z-50 flex flex-col gap-2 w-72 sm:w-80 pointer-events-none">
+    // Position in top-left to avoid blocking chat on right side
+    // Uses pointer-events-none so it doesn't block interaction
+    <div className="fixed left-4 top-32 z-30 flex flex-col gap-2 w-64 sm:w-72 pointer-events-none lg:left-auto lg:right-[420px] lg:top-24">
       {visibleGifts.map((item, index) => {
         const value = getGiftValue(item);
         // Higher value gifts get higher z-index to always be on top

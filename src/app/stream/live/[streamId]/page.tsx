@@ -358,6 +358,20 @@ export default function BroadcastStudioPage() {
           giftName: giftEvent.gift.name  // Include gift name for specific sounds
         }]);
       }
+      // Add gift message to chat so host can see it
+      const giftMessage: StreamMessage = {
+        id: `gift-${Date.now()}`,
+        streamId,
+        senderId: giftEvent.streamGift.senderId,
+        senderUsername: giftEvent.streamGift.senderUsername,
+        senderDisplayName: null,
+        senderAvatarUrl: giftEvent.streamGift.senderAvatarUrl || null,
+        content: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.emoji} ${giftEvent.gift.name}`,
+        createdAt: new Date(),
+        isDeleted: false,
+        messageType: 'gift',
+      } as StreamMessage;
+      setMessages((prev) => [...prev, giftMessage]);
       // Update goals progress and leaderboard
       fetchGoals();
       fetchLeaderboard();
@@ -587,24 +601,9 @@ export default function BroadcastStudioPage() {
   };
 
   const showGiftNotification = (data: { gift: VirtualGift; streamGift: StreamGift }) => {
-    // Note: Gift feed notifications are handled by GiftAnimationManager (top-right)
-    // AlertManager is only used for topTipper spotlight and goal celebrations
-
-    // Check if this is a big gift (500+ coins) for top tipper spotlight
-    if (data.streamGift.totalCoins >= 500) {
-      const topTipperAlert: Alert = {
-        type: 'topTipper',
-        username: data.streamGift.senderUsername || 'Anonymous',
-        amount: data.streamGift.totalCoins,
-        avatarUrl: (data.streamGift as any).senderAvatarUrl || null,
-        id: `toptipper-${Date.now()}-${Math.random()}`,
-      };
-      // Add after a short delay
-      setTimeout(() => {
-        setAlerts(prev => [...prev, topTipperAlert]);
-      }, 2000);
-    }
-
+    // Note: Gift feed notifications are handled by GiftAnimationManager
+    // GiftAnimationManager already shows the gift emoji, name, and sender
+    // No need for additional TopTipperSpotlight for gifts - that's for tips only
     console.log(`${data.streamGift.senderUsername} sent ${data.gift.emoji} ${data.gift.name}!`);
   };
 
@@ -1328,9 +1327,9 @@ export default function BroadcastStudioPage() {
         />
       )}
 
-      {/* Floating Tron Goal Bar - visible over video on all screens */}
+      {/* Floating Tron Goal Bar - centered over video on all screens */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-20 left-3 right-3 z-40 lg:top-24 lg:left-4 lg:right-auto lg:w-80">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[220px]">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
@@ -1338,6 +1337,13 @@ export default function BroadcastStudioPage() {
               targetAmount: g.targetAmount,
               currentAmount: g.currentAmount,
             }))}
+            onEdit={(goalId) => {
+              const goalToEdit = goals.find(g => g.id === goalId);
+              if (goalToEdit) {
+                setEditingGoal(goalToEdit);
+                setShowGoalModal(true);
+              }
+            }}
           />
         </div>
       )}
