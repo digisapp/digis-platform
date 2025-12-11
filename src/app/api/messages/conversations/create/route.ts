@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
+import { db, users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +26,34 @@ export async function POST(req: NextRequest) {
 
     if (recipientId === user.id) {
       return NextResponse.json({ error: 'Cannot create conversation with yourself' }, { status: 400 });
+    }
+
+    // Verify both users exist in database before creating conversation
+    const [currentUserExists, recipientExists] = await Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, user.id),
+        columns: { id: true },
+      }),
+      db.query.users.findFirst({
+        where: eq(users.id, recipientId),
+        columns: { id: true },
+      }),
+    ]);
+
+    if (!currentUserExists) {
+      console.error('Current user not found in database:', user.id);
+      return NextResponse.json(
+        { error: 'Your account is not fully set up. Please complete your profile first.' },
+        { status: 400 }
+      );
+    }
+
+    if (!recipientExists) {
+      console.error('Recipient not found in database:', recipientId);
+      return NextResponse.json(
+        { error: 'Recipient user not found' },
+        { status: 404 }
+      );
     }
 
     // Get or create conversation without sending any message
