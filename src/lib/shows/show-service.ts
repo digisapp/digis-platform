@@ -70,6 +70,21 @@ export class ShowService {
       tags,
     } = params;
 
+    // Auto-cancel any expired shows from this creator first
+    await this.cancelExpiredShows();
+
+    // Check if creator already has an active (scheduled or live) show
+    const existingShow = await db.query.shows.findFirst({
+      where: and(
+        eq(shows.creatorId, creatorId),
+        sql`${shows.status} IN ('scheduled', 'live')`
+      ),
+    });
+
+    if (existingShow) {
+      throw new Error('You already have an active stream scheduled. Please cancel it first or wait for it to complete.');
+    }
+
     // Validate ticket price
     if (ticketPrice < 0) {
       throw new Error('Ticket price cannot be negative');
@@ -285,8 +300,14 @@ export class ShowService {
 
   /**
    * Get upcoming shows (for browse/discovery)
+   * Automatically cancels any expired shows before returning results
    */
   static async getUpcomingShows(params: GetUpcomingShowsParams = {}) {
+    // Auto-cancel any expired shows first (don't await - run in background)
+    this.cancelExpiredShows().catch(err => {
+      console.error('[ShowService] Error auto-cancelling expired shows:', err);
+    });
+
     const {
       limit = 20,
       offset = 0,
@@ -754,6 +775,79 @@ The Digis Team
       .returning();
 
     return reminder;
+  }
+
+  /**
+   * Auto-cancel expired shows that weren't started
+   * Shows are considered expired if they're still 'scheduled' and more than 30 minutes past start time
+   */
+  static async cancelExpiredShows() {
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+    // Find all expired shows
+    const expiredShows = await db
+      .select()
+      .from(shows)
+      .where(
+        and(
+          eq(shows.status, 'scheduled'),
+          lte(shows.scheduledStart, thirtyMinutesAgo)
+        )
+      );
+
+    if (expiredShows.length === 0) {
+      return { cancelledCount: 0 };
+    }
+
+    console.log(`[ShowService] Auto-cancelling ${expiredShows.length} expired shows`);
+
+    let cancelledCount = 0;
+
+    for (const show of expiredShows) {
+      try {
+        await db.transaction(async (tx) => {
+          // Get all tickets for refunds
+          const tickets = await tx.query.showTickets.findMany({
+            where: eq(showTickets.showId, show.id),
+          });
+
+          // Issue refunds
+          for (const ticket of tickets) {
+            await WalletService.createTransaction({
+              userId: ticket.userId,
+              amount: ticket.coinsPaid,
+              type: 'refund',
+              description: `Refund for expired stream "${show.title}"`,
+              metadata: { showId: show.id, ticketId: ticket.id, reason: 'auto_expired' },
+              idempotencyKey: `refund_expired_${ticket.id}`,
+            });
+
+            // Invalidate ticket
+            await tx
+              .update(showTickets)
+              .set({ isValid: false })
+              .where(eq(showTickets.id, ticket.id));
+          }
+
+          // Update show status
+          await tx
+            .update(shows)
+            .set({
+              status: 'cancelled',
+              updatedAt: new Date(),
+            })
+            .where(eq(shows.id, show.id));
+
+          console.log(`[ShowService] Auto-cancelled show "${show.title}" (${show.id}), refunded ${tickets.length} tickets`);
+        });
+
+        cancelledCount++;
+      } catch (err) {
+        console.error(`[ShowService] Failed to auto-cancel show ${show.id}:`, err);
+      }
+    }
+
+    return { cancelledCount };
   }
 
   /**

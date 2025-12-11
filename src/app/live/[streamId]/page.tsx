@@ -14,6 +14,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { BRBOverlay } from '@/components/live/BRBOverlay';
+import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
+import { useStreamChat } from '@/hooks/useStreamChat';
 
 interface StreamData {
   id: string;
@@ -139,6 +141,47 @@ export default function TheaterModePage() {
   // User state
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userBalance, setUserBalance] = useState(0);
+
+  // Floating gift emojis state
+  const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
+
+  // Remove completed floating gift
+  const removeFloatingGift = useCallback((id: string) => {
+    setFloatingGifts(prev => prev.filter(g => g.id !== id));
+  }, []);
+
+  // Real-time stream updates via Ably
+  useStreamChat({
+    streamId,
+    onMessage: (message) => {
+      setMessages((prev) => [...prev, message as unknown as ChatMessage]);
+    },
+    onGift: (giftEvent) => {
+      // Add floating emoji for the gift animation
+      if (giftEvent.gift) {
+        setFloatingGifts(prev => [...prev, {
+          id: `gift-${Date.now()}-${Math.random()}`,
+          emoji: giftEvent.gift.emoji,
+          rarity: giftEvent.gift.rarity,
+          timestamp: Date.now(),
+          giftName: giftEvent.gift.name
+        }]);
+      }
+      // Refresh goals when gift received
+      loadStream();
+    },
+    onTip: () => {
+      // Refresh goals when tip received
+      loadStream();
+    },
+    onGoalUpdate: () => {
+      // Refresh goals
+      loadStream();
+    },
+    onStreamEnded: () => {
+      setStreamEnded(true);
+    },
+  });
 
   // Load stream data
   useEffect(() => {
@@ -583,7 +626,7 @@ export default function TheaterModePage() {
 
             {/* Stream Goals Overlay - floating over video on mobile */}
             {stream.goals && stream.goals.length > 0 && (
-              <div className="absolute top-4 left-4 right-4 z-20 lg:hidden">
+              <div className="absolute top-4 left-4 right-4 z-30 lg:hidden pointer-events-none">
                 {stream.goals.map((goal) => {
                   const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
                   return (
@@ -874,6 +917,9 @@ export default function TheaterModePage() {
           onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
         />
       )}
+
+      {/* Floating Gift Emojis Animation */}
+      <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
     </div>
   );
 }

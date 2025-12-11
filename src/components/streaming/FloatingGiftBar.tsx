@@ -97,8 +97,8 @@ export function FloatingGiftBar({
 
   return (
     <>
-      {/* Floating Gift Bar */}
-      <div className="fixed bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-40">
+      {/* Floating Gift Bar - higher on mobile to avoid blocking chat input */}
+      <div className="fixed bottom-32 md:bottom-4 left-1/2 -translate-x-1/2 z-40">
         {/* Quick Send Modal */}
         {selectedGift && (
           <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 sm:w-80">
