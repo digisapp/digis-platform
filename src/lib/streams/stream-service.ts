@@ -6,6 +6,7 @@ import {
   streamViewers,
   streamFeaturedCreators,
   streamTickets,
+  streamGoals,
   virtualGifts,
   users,
   wallets,
@@ -440,7 +441,66 @@ export class StreamService {
       }
     }
 
+    // Update any active stream goals with coin-based progress
+    await this.updateStreamGoalProgress(streamId, totalCoins, giftId, quantity);
+
     return { streamGift, gift, recipientCreatorId, recipientUsername };
+  }
+
+  /**
+   * Update stream goal progress when tips/gifts are received
+   * @param streamId - The stream ID
+   * @param coinAmount - Amount of coins received
+   * @param giftId - Optional gift ID (for gift-specific goals)
+   * @param giftQuantity - Quantity of gifts sent
+   */
+  private static async updateStreamGoalProgress(
+    streamId: string,
+    coinAmount: number,
+    giftId?: string,
+    giftQuantity: number = 1
+  ) {
+    try {
+      // Get all active goals for this stream
+      const activeGoals = await db.query.streamGoals.findMany({
+        where: and(
+          eq(streamGoals.streamId, streamId),
+          eq(streamGoals.isActive, true),
+          eq(streamGoals.isCompleted, false)
+        ),
+      });
+
+      for (const goal of activeGoals) {
+        let progressAmount = 0;
+
+        if (goal.goalType === 'coins') {
+          // Any tip/gift contributes coin amount to goal
+          progressAmount = coinAmount;
+        } else if (goal.goalType === 'gifts' && giftId && goal.giftId === giftId) {
+          // Only the specific gift counts
+          progressAmount = giftQuantity;
+        }
+        // 'viewers' type is not affected by tips
+
+        if (progressAmount > 0) {
+          const newAmount = goal.currentAmount + progressAmount;
+          const isNowCompleted = newAmount >= goal.targetAmount;
+
+          await db
+            .update(streamGoals)
+            .set({
+              currentAmount: sql`${streamGoals.currentAmount} + ${progressAmount}`,
+              isCompleted: isNowCompleted,
+              completedAt: isNowCompleted ? new Date() : null,
+              updatedAt: new Date(),
+            })
+            .where(eq(streamGoals.id, goal.id));
+        }
+      }
+    } catch (error) {
+      // Log but don't fail the main transaction
+      console.error('[StreamService] Error updating goal progress:', error);
+    }
   }
 
   /**
@@ -555,6 +615,9 @@ export class StreamService {
         });
       }
     }
+
+    // Update any active stream goals with coin-based progress (tips count as coins)
+    await this.updateStreamGoalProgress(streamId, amount);
 
     // Get new balance
     const wallet = await db.query.wallets.findFirst({
