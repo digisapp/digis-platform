@@ -293,8 +293,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
       className="relative rounded-2xl overflow-hidden cursor-pointer group border-2 border-red-500/50 hover:border-red-500 transition-all"
     >
       {/* Live badge */}
-      <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2 py-1 bg-red-500 rounded-full">
-        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+      <div className="absolute top-2 left-2 z-10 px-2.5 py-1 bg-red-500 rounded-full">
         <span className="text-xs font-bold text-white">LIVE</span>
       </div>
 
@@ -354,8 +353,7 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
         {/* Status badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {creator.isLive && (
-            <span className="px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            <span className="px-2.5 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
               LIVE
             </span>
           )}
