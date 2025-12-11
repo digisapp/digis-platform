@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { users, creatorApplications, payoutRequests } from '@/lib/data/system';
+import { users, creatorApplications, payoutRequests, creatorSettings } from '@/lib/data/system';
 import { eq, and, or, ilike, desc, count, sql, sum } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -157,6 +157,20 @@ export class AdminService {
       })
       .where(eq(users.id, application.userId));
 
+    // Create default creator settings with 25 coin message rate
+    await db.insert(creatorSettings)
+      .values({
+        userId: application.userId,
+        messageRate: 25, // Default 25 coins per message
+        callRatePerMinute: 100,
+        minimumCallDuration: 5,
+        isAvailableForCalls: false,
+        voiceCallRatePerMinute: 50,
+        minimumVoiceCallDuration: 5,
+        isAvailableForVoiceCalls: false,
+      })
+      .onConflictDoNothing();
+
     // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
     // This prevents role from switching back to fan during DB issues
     try {
@@ -302,6 +316,22 @@ export class AdminService {
     await db.update(users)
       .set(updateData)
       .where(eq(users.id, userId));
+
+    // If promoting to creator, create default creator settings
+    if (newRole === 'creator') {
+      await db.insert(creatorSettings)
+        .values({
+          userId,
+          messageRate: 25, // Default 25 coins per message
+          callRatePerMinute: 100,
+          minimumCallDuration: 5,
+          isAvailableForCalls: false,
+          voiceCallRatePerMinute: 50,
+          minimumVoiceCallDuration: 5,
+          isAvailableForVoiceCalls: false,
+        })
+        .onConflictDoNothing();
+    }
 
     // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
     // This ensures role persists across sessions and prevents downgrades
