@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +53,26 @@ export async function POST(request: NextRequest) {
     if (user.id === receiverId) {
       return NextResponse.json(
         { error: 'Cannot tip yourself' },
+        { status: 400 }
+      );
+    }
+
+    // Verify receiver is a creator (only creators can receive tips)
+    const receiver = await db.query.users.findFirst({
+      where: eq(users.id, receiverId),
+      columns: { id: true, role: true },
+    });
+
+    if (!receiver) {
+      return NextResponse.json(
+        { error: 'Receiver not found' },
+        { status: 404 }
+      );
+    }
+
+    if (receiver.role !== 'creator') {
+      return NextResponse.json(
+        { error: 'Tips can only be sent to creators' },
         { status: 400 }
       );
     }

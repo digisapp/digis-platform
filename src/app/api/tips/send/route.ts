@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         id: true,
         username: true,
         displayName: true,
+        role: true,
       },
     });
 
@@ -65,6 +66,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Receiver not found' },
         { status: 404 }
+      );
+    }
+
+    // Only creators can receive tips
+    if (receiver.role !== 'creator') {
+      return NextResponse.json(
+        { error: 'Tips can only be sent to creators' },
+        { status: 400 }
       );
     }
 

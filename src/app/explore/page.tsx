@@ -196,7 +196,6 @@ export default function ExplorePage() {
                     : 'bg-white/5 text-gray-300 hover:bg-white/10'
                 }`}
               >
-                {filter.icon && <span className="mr-1">{filter.icon}</span>}
                 {filter.label}
               </button>
             ))}
