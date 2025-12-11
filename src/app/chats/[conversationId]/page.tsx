@@ -586,13 +586,15 @@ export default function ChatPage() {
                 </button>
               </div>
 
-              {/* Tip Button */}
-              <button
-                onClick={() => setShowTipModal(true)}
-                className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
-              >
-                <Gift className="w-5 h-5" />
-              </button>
+              {/* Tip Button - Only show when chatting with a creator */}
+              {conversation.otherUser.role === 'creator' && (
+                <button
+                  onClick={() => setShowTipModal(true)}
+                  className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
+                >
+                  <Gift className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
         </div>
