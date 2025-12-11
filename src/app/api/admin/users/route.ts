@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role') as 'fan' | 'creator' | 'admin' | null;
     const status = searchParams.get('status') as 'active' | 'suspended' | 'banned' | null;
     const search = searchParams.get('search');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const users = await AdminService.getUsers(
+    const { users, total } = await AdminService.getUsers(
       role || undefined,
       search || undefined,
       status || undefined,
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       accountStatus: user.accountStatus || 'active',
     }));
 
-    return NextResponse.json({ users: transformedUsers });
+    return NextResponse.json({ users: transformedUsers, total });
   } catch (error: any) {
     console.error('Error fetching users:', error);
     return NextResponse.json(

@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   const [selectedAccountStatus, setSelectedAccountStatus] = useState<'active' | 'suspended' | 'banned' | 'all'>('active');
   const [usersPage, setUsersPage] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
-  const USERS_PER_PAGE = 20;
+  const USERS_PER_PAGE = 50;
 
   // Refresh state
   const [refreshing, setRefreshing] = useState(false);

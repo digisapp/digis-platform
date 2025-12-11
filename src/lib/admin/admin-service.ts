@@ -221,9 +221,9 @@ export class AdminService {
     role?: 'fan' | 'creator' | 'admin',
     search?: string,
     _status?: 'active' | 'suspended' | 'banned', // Not implemented yet
-    limit = 50,
+    limit = 100,
     offset = 0
-  ) {
+  ): Promise<{ users: any[]; total: number }> {
     try {
       // Build where conditions
       const conditions: any[] = [];
@@ -242,33 +242,42 @@ export class AdminService {
         );
       }
 
-      const usersList = await withTimeoutAndRetry(
-        () => db.query.users.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: desc(users.createdAt),
-          limit,
-          offset,
-          columns: {
-            id: true,
-            email: true,
-            username: true,
-            displayName: true,
-            avatarUrl: true,
-            role: true,
-            isCreatorVerified: true,
-            followerCount: true,
-            followingCount: true,
-            createdAt: true,
-            accountStatus: true,
-          },
-        }),
-        { timeoutMs: 3000, retries: 1, tag: 'adminUsers' }
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // Get users and total count in parallel
+      const [usersList, totalResult] = await withTimeoutAndRetry(
+        () => Promise.all([
+          db.query.users.findMany({
+            where: whereClause,
+            orderBy: desc(users.createdAt),
+            limit,
+            offset,
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+              role: true,
+              isCreatorVerified: true,
+              followerCount: true,
+              followingCount: true,
+              createdAt: true,
+              accountStatus: true,
+            },
+          }),
+          db.select({ count: count() }).from(users).where(whereClause),
+        ]),
+        { timeoutMs: 5000, retries: 1, tag: 'adminUsers' }
       );
 
-      return usersList;
+      return {
+        users: usersList,
+        total: totalResult[0]?.count || 0,
+      };
     } catch (error) {
       console.error('Error fetching users:', error);
-      return [];
+      return { users: [], total: 0 };
     }
   }
 
