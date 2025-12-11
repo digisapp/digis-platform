@@ -689,7 +689,7 @@ export default function SettingsPage() {
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                    disabled={!usernameCooldown?.canChange}
+                    disabled={usernameCooldown?.canChange === false}
                     placeholder={currentUser?.username}
                     className={`w-full px-3 py-2 bg-black/30 border rounded-lg text-white text-sm font-medium placeholder-gray-500 focus:outline-none transition-all ${
                       !newUsername || newUsername === currentUser?.username
