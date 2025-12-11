@@ -24,6 +24,7 @@ export const contentItems = pgTable('content_items', {
 
   // Stats
   viewCount: integer('view_count').default(0).notNull(),
+  likeCount: integer('like_count').default(0).notNull(),
   purchaseCount: integer('purchase_count').default(0).notNull(),
   totalEarnings: integer('total_earnings').default(0).notNull(),
 
@@ -66,9 +67,23 @@ export const contentTags = pgTable('content_tags', {
   tagIdx: index('content_tags_tag_idx').on(table.tag),
 }));
 
+export const contentLikes = pgTable('content_likes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contentId: uuid('content_id').references(() => contentItems.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  contentIdx: index('content_likes_content_idx').on(table.contentId),
+  userIdx: index('content_likes_user_idx').on(table.userId),
+  // Unique constraint: user can only like content once
+  uniqueLike: index('content_likes_unique').on(table.contentId, table.userId),
+}));
+
 export type ContentItem = typeof contentItems.$inferSelect;
 export type NewContentItem = typeof contentItems.$inferInsert;
 export type ContentPurchase = typeof contentPurchases.$inferSelect;
 export type NewContentPurchase = typeof contentPurchases.$inferInsert;
 export type ContentTag = typeof contentTags.$inferSelect;
 export type NewContentTag = typeof contentTags.$inferInsert;
+export type ContentLike = typeof contentLikes.$inferSelect;
+export type NewContentLike = typeof contentLikes.$inferInsert;

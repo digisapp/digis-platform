@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -158,7 +158,8 @@ export default function ProfilePage() {
           thumbnail: item.thumbnailUrl,
           url: item.mediaUrl,
           description: item.description,
-          likes: 0,
+          likes: item.likeCount || 0,
+          isLiked: item.isLiked || false,
           views: item.viewCount,
           isLocked: !item.isFree,
           unlockPrice: item.unlockPrice,
@@ -341,7 +342,8 @@ export default function ProfilePage() {
           thumbnail: item.thumbnailUrl,
           url: item.mediaUrl,
           description: item.description,
-          likes: 0, // TODO: Add likes functionality
+          likes: item.likeCount || 0,
+          isLiked: item.isLiked || false,
           views: item.viewCount,
           isLocked: !item.isFree,
           unlockPrice: item.unlockPrice,
@@ -554,6 +556,67 @@ export default function ProfilePage() {
       alert('Failed to start conversation. Please try again.');
     } finally {
       setMessageLoading(false);
+    }
+  };
+
+  const handleLikeContent = async (contentId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent opening the content modal
+
+    // Require auth for like action
+    if (!isAuthenticated) {
+      setSignUpAction('like content');
+      setShowSignUpModal(true);
+      return;
+    }
+
+    // Optimistic update
+    setContent(prev => prev.map(item => {
+      if (item.id === contentId) {
+        const wasLiked = item.isLiked;
+        return {
+          ...item,
+          isLiked: !wasLiked,
+          likes: wasLiked ? Math.max(0, item.likes - 1) : item.likes + 1,
+        };
+      }
+      return item;
+    }));
+
+    try {
+      const response = await fetch('/api/content/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentId }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setContent(prev => prev.map(item => {
+          if (item.id === contentId) {
+            const wasLiked = item.isLiked;
+            return {
+              ...item,
+              isLiked: !wasLiked,
+              likes: wasLiked ? Math.max(0, item.likes - 1) : item.likes + 1,
+            };
+          }
+          return item;
+        }));
+      }
+    } catch (error) {
+      console.error('Error liking content:', error);
+      // Revert on error
+      setContent(prev => prev.map(item => {
+        if (item.id === contentId) {
+          const wasLiked = item.isLiked;
+          return {
+            ...item,
+            isLiked: !wasLiked,
+            likes: wasLiked ? Math.max(0, item.likes - 1) : item.likes + 1,
+          };
+        }
+        return item;
+      }));
     }
   };
 
@@ -970,11 +1033,35 @@ export default function ProfilePage() {
                                   </div>
                                 )}
 
+                                {/* Like button - top right */}
+                                {!item.isLocked && (
+                                  <button
+                                    onClick={(e) => handleLikeContent(item.id, e)}
+                                    className="absolute top-2 right-2 z-10 p-2 rounded-full bg-black/50 backdrop-blur-md hover:bg-black/70 transition-all group/heart"
+                                  >
+                                    <Heart
+                                      className={`w-5 h-5 transition-all ${
+                                        item.isLiked
+                                          ? 'text-red-500 fill-red-500 scale-110'
+                                          : 'text-white group-hover/heart:text-red-400'
+                                      }`}
+                                    />
+                                  </button>
+                                )}
+
                                 {/* Info on hover */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-0 group-hover:backdrop-blur-md transition-all pointer-events-none">
-                                  <h3 className="text-white font-bold text-sm line-clamp-1 mb-1 drop-shadow-lg">
-                                    {item.title}
-                                  </h3>
+                                  <div className="flex items-center justify-between">
+                                    <h3 className="text-white font-bold text-sm line-clamp-1 drop-shadow-lg flex-1">
+                                      {item.title}
+                                    </h3>
+                                    {item.likes > 0 && (
+                                      <div className="flex items-center gap-1 text-white/80 text-xs ml-2">
+                                        <Heart className="w-3 h-3 text-red-400 fill-red-400" />
+                                        <span>{item.likes}</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1054,11 +1141,35 @@ export default function ProfilePage() {
                                 </div>
                               )}
 
+                              {/* Like button - top right */}
+                              {!item.isLocked && (
+                                <button
+                                  onClick={(e) => handleLikeContent(item.id, e)}
+                                  className="absolute top-2 right-2 z-10 p-2 rounded-full bg-black/50 backdrop-blur-md hover:bg-black/70 transition-all group/heart"
+                                >
+                                  <Heart
+                                    className={`w-5 h-5 transition-all ${
+                                      item.isLiked
+                                        ? 'text-red-500 fill-red-500 scale-110'
+                                        : 'text-white group-hover/heart:text-red-400'
+                                    }`}
+                                  />
+                                </button>
+                              )}
+
                               {/* Info */}
                               <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                                <h3 className="text-white font-bold text-sm line-clamp-1 mb-1">
-                                  {item.title}
-                                </h3>
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-white font-bold text-sm line-clamp-1 flex-1">
+                                    {item.title}
+                                  </h3>
+                                  {item.likes > 0 && (
+                                    <div className="flex items-center gap-1 text-white/80 text-xs ml-2">
+                                      <Heart className="w-3 h-3 text-red-400 fill-red-400" />
+                                      <span>{item.likes}</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}

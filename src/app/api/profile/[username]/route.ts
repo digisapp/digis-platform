@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorGoals, contentItems } from '@/lib/data/system';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { users, creatorGoals, contentItems, contentLikes } from '@/lib/data/system';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -127,6 +127,28 @@ export async function GET(
       messageRate = creatorSettings.messageRate || 0;
     }
 
+    // Get user's likes for this content if authenticated
+    let contentWithLikes = content;
+    if (currentUser && content.length > 0) {
+      try {
+        const contentIds = content.map((c: any) => c.id);
+        const likes = await db.query.contentLikes.findMany({
+          where: and(
+            eq(contentLikes.userId, currentUser.id),
+            inArray(contentLikes.contentId, contentIds)
+          ),
+          columns: { contentId: true },
+        });
+        const likedIds = new Set(likes.map(l => l.contentId));
+        contentWithLikes = content.map((item: any) => ({
+          ...item,
+          isLiked: likedIds.has(item.id),
+        }));
+      } catch (err) {
+        // Fail gracefully - just return content without like status
+      }
+    }
+
     return NextResponse.json({
       user,
       followCounts,
@@ -134,7 +156,7 @@ export async function GET(
       callSettings,
       messageRate,
       goals,
-      content,
+      content: contentWithLikes,
     });
   } catch (error: any) {
     console.error('[PROFILE]', {
