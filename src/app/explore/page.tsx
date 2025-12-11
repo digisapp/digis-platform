@@ -27,7 +27,7 @@ interface Creator {
 // Simple filters - removed complexity
 const FILTERS = [
   { key: 'all', label: 'All' },
-  { key: 'live', label: 'Live', icon: '🔴' },
+  { key: 'live', label: 'Live' },
   { key: 'online', label: 'Online' },
   { key: 'new', label: 'New' },
 ];
