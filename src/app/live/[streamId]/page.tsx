@@ -14,6 +14,7 @@ import {
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
+import { BRBOverlay } from '@/components/live/BRBOverlay';
 
 interface StreamData {
   id: string;
@@ -121,6 +122,7 @@ export default function TheaterModePage() {
   const [token, setToken] = useState<string | null>(null);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [streamEnded, setStreamEnded] = useState(false);
+  const [showBRB, setShowBRB] = useState(false);
 
   // UI state
   const [showChat, setShowChat] = useState(true);
@@ -185,6 +187,43 @@ export default function TheaterModePage() {
   const handleBroadcasterLeft = useCallback(() => {
     setStreamEnded(true);
   }, []);
+
+  // Poll heartbeat to detect BRB state (creator disconnected)
+  useEffect(() => {
+    if (!stream || stream.status !== 'live' || streamEnded) return;
+
+    const checkHeartbeat = async () => {
+      try {
+        const res = await fetch(`/api/streams/${streamId}/heartbeat`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (data.shouldAutoEnd) {
+          // Stream has exceeded grace period - trigger auto-end
+          setShowBRB(false);
+          setStreamEnded(true);
+          // Call auto-end endpoint to officially end the stream
+          fetch(`/api/streams/${streamId}/auto-end`, { method: 'POST' }).catch(() => {});
+        } else if (data.isBRB) {
+          // Creator disconnected but within grace period
+          setShowBRB(true);
+        } else {
+          // Creator is connected normally
+          setShowBRB(false);
+        }
+      } catch (e) {
+        console.error('[Stream] Failed to check heartbeat:', e);
+      }
+    };
+
+    // Check every 10 seconds
+    const interval = setInterval(checkHeartbeat, 10000);
+    // Also check immediately
+    checkHeartbeat();
+
+    return () => clearInterval(interval);
+  }, [stream, streamId, streamEnded]);
 
   const loadStream = async () => {
     try {
@@ -571,6 +610,15 @@ export default function TheaterModePage() {
                   <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
                   <RoomAudioRenderer muted={muted} />
                 </LiveKitRoom>
+                {/* BRB Overlay - shown when creator disconnects */}
+                {showBRB && (
+                  <BRBOverlay
+                    streamId={streamId}
+                    creatorName={stream?.creator?.displayName || stream?.creator?.username || 'Creator'}
+                    isTicketed={stream?.privacy === 'private'}
+                    onStreamEnded={() => setStreamEnded(true)}
+                  />
+                )}
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
               </>
