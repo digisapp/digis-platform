@@ -359,19 +359,18 @@ export default function BroadcastStudioPage() {
         }]);
       }
       // Add gift message to chat so host can see it
-      const giftMessage: StreamMessage = {
+      const giftMessage = {
         id: `gift-${Date.now()}`,
         streamId,
-        senderId: giftEvent.streamGift.senderId,
-        senderUsername: giftEvent.streamGift.senderUsername,
-        senderDisplayName: null,
-        senderAvatarUrl: giftEvent.streamGift.senderAvatarUrl || null,
-        content: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.emoji} ${giftEvent.gift.name}`,
+        userId: giftEvent.streamGift.senderId,
+        username: giftEvent.streamGift.senderUsername,
+        message: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.emoji} ${giftEvent.gift.name}`,
+        messageType: 'gift' as const,
+        giftId: giftEvent.gift.id,
+        giftAmount: giftEvent.streamGift.quantity * giftEvent.gift.coinCost,
         createdAt: new Date(),
-        isDeleted: false,
-        messageType: 'gift',
-      } as StreamMessage;
-      setMessages((prev) => [...prev, giftMessage]);
+      };
+      setMessages((prev) => [...prev, giftMessage as StreamMessage]);
       // Update goals progress and leaderboard
       fetchGoals();
       fetchLeaderboard();
