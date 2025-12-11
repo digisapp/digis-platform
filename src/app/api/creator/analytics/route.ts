@@ -167,8 +167,8 @@ export async function GET() {
             }),
           ]);
 
-          // Process stream data
-          const totalStreamViews = creatorStreams.reduce((sum, stream) => sum + (stream.currentViewers || 0), 0);
+          // Process stream data - use totalViews (historical) not currentViewers (live count)
+          const totalStreamViews = creatorStreams.reduce((sum, stream) => sum + (stream.totalViews || 0), 0);
           const peakViewers = Math.max(...creatorStreams.map(s => s.peakViewers || 0), 0);
           const totalStreams = creatorStreams.length;
 

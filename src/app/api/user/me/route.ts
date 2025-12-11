@@ -23,12 +23,17 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T | null> =>
 function buildFallbackUser(authUser: any) {
   const metadata = authUser.user_metadata || {};
 
-  // Determine role: prefer metadata, then check admin emails, fallback to creator
+  // Admin emails from environment with defaults
+  const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
+  const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
+
+  // Determine role: prefer metadata, then check admin emails, fallback to fan (safest default)
   const role =
     metadata.role ||
-    (authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc'
+    (authUser.email && adminEmails.includes(authUser.email.toLowerCase())
       ? 'admin'
-      : 'creator'); // Default to creator for Digis creators
+      : 'fan'); // Default to fan for safety - creators should have role in DB
 
   return {
     id: authUser.id,

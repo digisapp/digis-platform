@@ -14,7 +14,14 @@ export const notifications = pgTable('notifications', {
   imageUrl: text('image_url'), // Optional image for the notification
   metadata: text('metadata'), // JSON string for additional data
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for fetching user's notifications
+  userIdx: index('notifications_user_id_idx').on(table.userId),
+  // Compound index for user's notifications sorted by date (most common query)
+  userCreatedIdx: index('notifications_user_created_idx').on(table.userId, table.createdAt),
+  // Index for unread count queries
+  userUnreadIdx: index('notifications_user_unread_idx').on(table.userId, table.isRead),
+}));
 
 // Push notification subscriptions for Web Push API
 export const pushSubscriptions = pgTable('push_subscriptions', {

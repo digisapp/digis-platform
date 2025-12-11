@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { streams, wallets, walletTransactions, notifications } from '@/lib/data/system';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -107,106 +107,114 @@ export async function POST(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // Get user's wallet balance
-    const userWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, authUser.id),
-    });
-
-    if (!userWallet || userWallet.balance < price) {
-      return NextResponse.json(
-        {
-          error: 'Insufficient balance',
-          required: price,
-          current: userWallet?.balance || 0,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Get creator's wallet
-    let creatorWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, stream.creatorId),
-    });
-
     // Generate idempotency key
     const idempotencyKey = `stream_access_${authUser.id}_${streamId}_${Date.now()}`;
 
-    // Start transaction: Deduct from buyer, credit to creator
-    // 1. Deduct from buyer
-    await db
-      .update(wallets)
-      .set({
-        balance: userWallet.balance - price,
-        updatedAt: new Date(),
-      })
-      .where(eq(wallets.userId, authUser.id));
+    // Execute all financial operations in a single atomic transaction
+    const result = await db.transaction(async (tx) => {
+      // 1. Check user's wallet balance inside transaction to prevent race conditions
+      const userWallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, authUser.id),
+      });
 
-    // 2. Update or create creator wallet
-    if (!creatorWallet) {
-      const [newWallet] = await db.insert(wallets).values({
-        userId: stream.creatorId,
-        balance: price,
-      }).returning();
-      creatorWallet = newWallet;
-    } else {
-      await db
+      if (!userWallet || userWallet.balance < price) {
+        throw new Error(`INSUFFICIENT_BALANCE:${price}:${userWallet?.balance || 0}`);
+      }
+
+      // 2. Deduct from buyer using SQL expression
+      await tx
         .update(wallets)
         .set({
-          balance: creatorWallet.balance + price,
+          balance: sql`${wallets.balance} - ${price}`,
           updatedAt: new Date(),
         })
-        .where(eq(wallets.userId, stream.creatorId));
-    }
+        .where(eq(wallets.userId, authUser.id));
 
-    // 3. Create wallet transactions for both parties
-    const [buyerTransaction] = await db.insert(walletTransactions).values({
-      userId: authUser.id,
-      amount: -price,
-      type: 'ppv_unlock',
-      status: 'completed',
-      description: `Private stream access: ${stream.title}`,
-      idempotencyKey,
-      metadata: JSON.stringify({
-        streamId: stream.id,
-        streamTitle: stream.title,
-        creatorId: stream.creatorId,
-      }),
-    }).returning();
+      // 3. Get or create creator wallet and credit atomically
+      const creatorWallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, stream.creatorId),
+      });
 
-    await db.insert(walletTransactions).values({
-      userId: stream.creatorId,
-      amount: price,
-      type: 'ppv_unlock',
-      status: 'completed',
-      description: `Stream access sold`,
-      relatedTransactionId: buyerTransaction.id,
-      metadata: JSON.stringify({
-        streamId: stream.id,
-        buyerId: authUser.id,
-      }),
-    });
+      if (!creatorWallet) {
+        await tx.insert(wallets).values({
+          userId: stream.creatorId,
+          balance: price,
+          heldBalance: 0,
+        });
+      } else {
+        await tx
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} + ${price}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(wallets.userId, stream.creatorId));
+      }
 
-    // 4. Create notification for creator
-    await db.insert(notifications).values({
-      userId: stream.creatorId,
-      type: 'stream_purchase',
-      title: 'New Stream Access Purchase!',
-      message: `Someone purchased access to your private stream for ${price} coins!`,
-      metadata: JSON.stringify({
-        streamId: stream.id,
+      // 4. Create wallet transactions for both parties
+      const [buyerTransaction] = await tx.insert(walletTransactions).values({
+        userId: authUser.id,
+        amount: -price,
+        type: 'ppv_unlock',
+        status: 'completed',
+        description: `Private stream access: ${stream.title}`,
+        idempotencyKey,
+        metadata: JSON.stringify({
+          streamId: stream.id,
+          streamTitle: stream.title,
+          creatorId: stream.creatorId,
+        }),
+      }).returning();
+
+      await tx.insert(walletTransactions).values({
+        userId: stream.creatorId,
         amount: price,
-        buyerId: authUser.id,
-      }),
+        type: 'ppv_unlock',
+        status: 'completed',
+        description: `Stream access sold`,
+        relatedTransactionId: buyerTransaction.id,
+        metadata: JSON.stringify({
+          streamId: stream.id,
+          buyerId: authUser.id,
+        }),
+      });
+
+      // 5. Create notification for creator
+      await tx.insert(notifications).values({
+        userId: stream.creatorId,
+        type: 'stream_purchase',
+        title: 'New Stream Access Purchase!',
+        message: `Someone purchased access to your private stream for ${price} coins!`,
+        metadata: JSON.stringify({
+          streamId: stream.id,
+          amount: price,
+          buyerId: authUser.id,
+        }),
+      });
+
+      return {
+        newBalance: userWallet.balance - price,
+      };
     });
 
     return NextResponse.json({
       success: true,
       accessGranted: true,
-      newBalance: userWallet.balance - price,
+      newBalance: result.newBalance,
       message: `Access granted! You can now watch ${stream.title}`,
     });
   } catch (error) {
     console.error('[streams/purchase] Error:', error);
+
+    // Handle insufficient balance error from transaction
+    if (error instanceof Error && error.message.startsWith('INSUFFICIENT_BALANCE:')) {
+      const [, required, current] = error.message.split(':');
+      return NextResponse.json(
+        { error: 'Insufficient balance', required: Number(required), current: Number(current) },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Failed to purchase stream access' },
       { status: 500 }

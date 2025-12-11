@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
+import { db, users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM (used by StreamService)
 export const runtime = 'nodejs';
@@ -22,6 +24,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         failure('Unauthorized', 'auth', requestId),
         { status: 401, headers: { 'x-request-id': requestId } }
+      );
+    }
+
+    // Verify user is a creator
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { role: true },
+    });
+
+    if (!dbUser || dbUser.role !== 'creator') {
+      console.error('[STREAMS/CREATE]', { requestId, error: 'Not a creator', role: dbUser?.role });
+      return NextResponse.json(
+        failure('Only creators can create streams', 'auth', requestId),
+        { status: 403, headers: { 'x-request-id': requestId } }
       );
     }
 

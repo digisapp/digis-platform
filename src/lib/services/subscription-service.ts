@@ -514,112 +514,130 @@ export class SubscriptionService {
       throw new Error('Auto-renew is disabled');
     }
 
-    // Get user wallet
-    const userWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, subscription.userId),
-    });
-
-    if (!userWallet) {
-      throw new Error('Wallet not found');
-    }
-
     // Extract tier info for TypeScript narrowing
     // TypeScript doesn't properly narrow Drizzle types, so we use assertion
     const tier = subscription.tier as any;
     const tierPrice = tier.pricePerMonth as number;
     const tierName = tier.name as string;
 
-    // Check if user has enough coins
-    const availableBalance = userWallet.balance - userWallet.heldBalance;
-
-    if (availableBalance < tierPrice) {
-      throw new Error(`Insufficient balance. Need ${tierPrice} coins, have ${availableBalance}.`);
-    }
-
-    // Calculate new billing period
+    // Calculate new billing period (outside transaction for determinism)
     const now = new Date();
     const newExpiresAt = new Date(subscription.expiresAt);
     newExpiresAt.setDate(newExpiresAt.getDate() + 30);
     const newNextBillingAt = new Date(newExpiresAt);
 
-    // Create wallet transactions (double-entry)
+    // Generate idempotency key
     const idempotencyKey = `renewal_${subscriptionId}_${Date.now()}`;
 
-    // Deduct from user
-    const [userTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId: subscription.userId,
-        amount: -tierPrice,
-        type: 'subscription_payment',
-        status: 'completed',
-        description: `Subscription renewal - ${tierName}`,
-        idempotencyKey,
-        metadata: JSON.stringify({ subscriptionId, tierId: subscription.tierId }),
-      })
-      .returning();
+    // Execute all financial operations in a single atomic transaction
+    const result = await db.transaction(async (tx) => {
+      // 1. Check user wallet balance inside transaction to prevent race conditions
+      const userWallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, subscription.userId),
+      });
 
-    // Credit to creator
-    const [creatorTransaction] = await db
-      .insert(walletTransactions)
-      .values({
-        userId: subscription.creatorId,
-        amount: tierPrice,
-        type: 'subscription_earnings',
-        status: 'completed',
-        description: `Subscription renewal earnings - ${tierName}`,
-        relatedTransactionId: userTransaction.id,
-        metadata: JSON.stringify({ subscriptionId, subscriberId: subscription.userId }),
-      })
-      .returning();
+      if (!userWallet) {
+        throw new Error('WALLET_NOT_FOUND');
+      }
 
-    // Link transactions
-    await db
-      .update(walletTransactions)
-      .set({ relatedTransactionId: creatorTransaction.id })
-      .where(eq(walletTransactions.id, userTransaction.id));
+      // Check available balance (excluding held balance)
+      const availableBalance = userWallet.balance - userWallet.heldBalance;
+      if (availableBalance < tierPrice) {
+        throw new Error(`INSUFFICIENT_BALANCE:${tierPrice}:${availableBalance}`);
+      }
 
-    // Update wallet balances
-    await db
-      .update(wallets)
-      .set({ balance: userWallet.balance - tierPrice })
-      .where(eq(wallets.userId, subscription.userId));
-
-    const creatorWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, subscription.creatorId),
-    });
-
-    if (creatorWallet) {
-      await db
+      // 2. Deduct from user using SQL expression to prevent race conditions
+      await tx
         .update(wallets)
-        .set({ balance: creatorWallet.balance + tierPrice })
-        .where(eq(wallets.userId, subscription.creatorId));
-    }
+        .set({
+          balance: sql`${wallets.balance} - ${tierPrice}`,
+          updatedAt: now,
+        })
+        .where(eq(wallets.userId, subscription.userId));
 
-    // Update subscription
-    await db
-      .update(subscriptions)
-      .set({
-        expiresAt: newExpiresAt,
-        nextBillingAt: newNextBillingAt,
-        lastPaymentAt: now,
-        totalPaid: subscription.totalPaid + tierPrice,
-        failedPaymentCount: 0, // Reset failed count on success
-        updatedAt: now,
-      })
-      .where(eq(subscriptions.id, subscriptionId));
+      // 3. Get or create creator wallet and credit atomically
+      const creatorWallet = await tx.query.wallets.findFirst({
+        where: eq(wallets.userId, subscription.creatorId),
+      });
 
-    // Create payment record
-    await db.insert(subscriptionPayments).values({
-      subscriptionId: subscription.id,
-      userId: subscription.userId,
-      creatorId: subscription.creatorId,
-      amount: tierPrice,
-      status: 'completed',
-      transactionId: userTransaction.id,
-      billingPeriodStart: subscription.expiresAt,
-      billingPeriodEnd: newExpiresAt,
-      paidAt: now,
+      if (!creatorWallet) {
+        await tx.insert(wallets).values({
+          userId: subscription.creatorId,
+          balance: tierPrice,
+          heldBalance: 0,
+        });
+      } else {
+        await tx
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} + ${tierPrice}`,
+            updatedAt: now,
+          })
+          .where(eq(wallets.userId, subscription.creatorId));
+      }
+
+      // 4. Create wallet transactions (double-entry)
+      const [userTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId: subscription.userId,
+          amount: -tierPrice,
+          type: 'subscription_payment',
+          status: 'completed',
+          description: `Subscription renewal - ${tierName}`,
+          idempotencyKey,
+          metadata: JSON.stringify({ subscriptionId, tierId: subscription.tierId }),
+        })
+        .returning();
+
+      const [creatorTransaction] = await tx
+        .insert(walletTransactions)
+        .values({
+          userId: subscription.creatorId,
+          amount: tierPrice,
+          type: 'subscription_earnings',
+          status: 'completed',
+          description: `Subscription renewal earnings - ${tierName}`,
+          relatedTransactionId: userTransaction.id,
+          metadata: JSON.stringify({ subscriptionId, subscriberId: subscription.userId }),
+        })
+        .returning();
+
+      // Link transactions bidirectionally
+      await tx
+        .update(walletTransactions)
+        .set({ relatedTransactionId: creatorTransaction.id })
+        .where(eq(walletTransactions.id, userTransaction.id));
+
+      // 5. Update subscription with SQL expression for totalPaid
+      await tx
+        .update(subscriptions)
+        .set({
+          expiresAt: newExpiresAt,
+          nextBillingAt: newNextBillingAt,
+          lastPaymentAt: now,
+          totalPaid: sql`${subscriptions.totalPaid} + ${tierPrice}`,
+          failedPaymentCount: 0, // Reset failed count on success
+          updatedAt: now,
+        })
+        .where(eq(subscriptions.id, subscriptionId));
+
+      // 6. Create payment record
+      await tx.insert(subscriptionPayments).values({
+        subscriptionId: subscription.id,
+        userId: subscription.userId,
+        creatorId: subscription.creatorId,
+        amount: tierPrice,
+        status: 'completed',
+        transactionId: userTransaction.id,
+        billingPeriodStart: subscription.expiresAt,
+        billingPeriodEnd: newExpiresAt,
+        paidAt: now,
+      });
+
+      return {
+        newBalance: userWallet.balance - tierPrice,
+      };
     });
 
     return {

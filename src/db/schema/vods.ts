@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 import { streams } from './streams';
@@ -35,7 +35,12 @@ export const vods = pgTable('vods', {
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for creator's VODs list
+  creatorIdx: index('vods_creator_id_idx').on(table.creatorId),
+  // Compound index for creator's VODs sorted by date
+  creatorCreatedIdx: index('vods_creator_created_idx').on(table.creatorId, table.createdAt),
+}));
 
 // VOD purchases - track who bought access
 export const vodPurchases = pgTable('vod_purchases', {
@@ -46,7 +51,14 @@ export const vodPurchases = pgTable('vod_purchases', {
   priceCoins: integer('price_coins').notNull(), // Price paid at time of purchase
 
   purchasedAt: timestamp('purchased_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for VOD's purchase history
+  vodIdx: index('vod_purchases_vod_id_idx').on(table.vodId),
+  // Index for user's purchase history
+  userIdx: index('vod_purchases_user_id_idx').on(table.userId),
+  // Unique constraint to prevent duplicate purchases
+  uniquePurchase: uniqueIndex('vod_purchases_unique_idx').on(table.vodId, table.userId),
+}));
 
 // VOD views - track watch history
 export const vodViews = pgTable('vod_views', {
@@ -61,7 +73,14 @@ export const vodViews = pgTable('vod_views', {
 
   viewedAt: timestamp('viewed_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for VOD's view analytics
+  vodIdx: index('vod_views_vod_id_idx').on(table.vodId),
+  // Index for user's watch history
+  userIdx: index('vod_views_user_id_idx').on(table.userId),
+  // Index for completion analytics
+  completedIdx: index('vod_views_completed_idx').on(table.completed),
+}));
 
 // Relations
 export const vodsRelations = relations(vods, ({ one, many }) => ({

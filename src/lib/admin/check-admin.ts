@@ -1,8 +1,11 @@
 import { User } from '@supabase/supabase-js';
 import { AdminService } from './admin-service';
 
-// Hardcoded admin emails - these ALWAYS get admin access
-const ADMIN_EMAILS = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
+// Admin emails from environment with sensible defaults
+// Configure ADMIN_EMAILS env var as comma-separated emails for production
+const DEFAULT_ADMIN_EMAILS = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
+const ENV_ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+const ADMIN_EMAILS = [...new Set([...DEFAULT_ADMIN_EMAILS, ...ENV_ADMIN_EMAILS])];
 
 /**
  * Check if user is admin by email first (from JWT), then by DB

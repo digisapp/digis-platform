@@ -1,14 +1,21 @@
-import { pgTable, uuid, timestamp, text, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, timestamp, text, boolean, integer, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { relations } from 'drizzle-orm';
 
-// Follow relationship table
+// Follow relationship table with indexes for efficient queries
 export const follows = pgTable('follows', {
   id: uuid('id').primaryKey().defaultRandom(),
   followerId: uuid('follower_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   followingId: uuid('following_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for querying followers of a user (who follows X)
+  followingIdx: index('follows_following_id_idx').on(table.followingId),
+  // Index for querying who a user follows (X follows who)
+  followerIdx: index('follows_follower_id_idx').on(table.followerId),
+  // Unique constraint to prevent duplicate follows
+  uniqueFollow: uniqueIndex('follows_unique_idx').on(table.followerId, table.followingId),
+}));
 
 // Creator categories
 export const creatorCategories = pgTable('creator_categories', {

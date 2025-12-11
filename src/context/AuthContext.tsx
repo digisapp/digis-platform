@@ -40,8 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const appMeta = (authUser.app_metadata || {}) as Record<string, any>;
     const userMeta = (authUser.user_metadata || {}) as Record<string, any>;
 
-    // Check for admin emails (fallback check)
-    const isAdminEmail = authUser.email === 'admin@digis.cc' || authUser.email === 'nathan@digis.cc';
+    // Check for admin emails (fallback check for UI only - actual auth is server-side)
+    // Note: This is client-side so can't access env vars. Server enforces actual admin access.
+    const adminEmails = ['admin@digis.cc', 'nathan@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
+    const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
 
     // Role priority: app_metadata (server-set, authoritative) > user_metadata > 'fan'
     const role = appMeta.role || userMeta.role || 'fan';
