@@ -14,7 +14,8 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.15",
     "@livekit/components-styles": "^1.1.6",
-    "@stripe/stripe-js": "^4.8.0",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.5.3",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.7",
     "@types/uuid": "^10.0.0",

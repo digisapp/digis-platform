@@ -165,6 +165,34 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     )}
                   </div>
                 </div>
+              ) : (msg as any).messageType === 'tip' ? (
+                // Tip message - special green styling
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+                  {/* Avatar */}
+                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+                    <img
+                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+                      alt={msg.username}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {msg.username?.[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-green-400">{msg.username}</span>
+                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl">💰</span>
+                      <span className="text-sm text-white">
+                        Tipped <span className="font-bold text-green-400">{(msg as any).tipAmount || (msg as any).giftAmount || '?'} coins</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ) : (
                 // Regular message
                 <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">

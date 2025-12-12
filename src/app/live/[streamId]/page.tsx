@@ -929,7 +929,7 @@ export default function TheaterModePage() {
                   </button>
                 )}
                 {/* Gift Bar - inline */}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-visible">
                   <FloatingGiftBar
                     streamId={streamId}
                     creatorId={stream.creator.id}
@@ -1345,8 +1345,8 @@ export default function TheaterModePage() {
       {/* Tron-style Goal Bar Overlay - vertical on mobile, horizontal on desktop */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
         <>
-          {/* Mobile - vertical on right side */}
-          <div className="lg:hidden fixed right-2 top-1/3 z-40">
+          {/* Mobile - vertical inside video area */}
+          <div className="lg:hidden fixed right-2 top-20 z-40">
             <TronGoalBar
               vertical
               goals={stream.goals
