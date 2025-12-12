@@ -135,35 +135,11 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                   </div>
                 </div>
               ) : msg.messageType === 'gift' ? (
-                // Gift message - special styling
-                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-xl border border-digis-pink/20">
-                  {/* Avatar */}
-                  {(msg as any).user?.avatarUrl ? (
-                    <img
-                      src={(msg as any).user.avatarUrl}
-                      alt={msg.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-digis-pink">{msg.username}</span>
-                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-2xl">🎁</span>
-                      <span className="text-sm text-white">
-                        Sent <span className="font-bold text-digis-cyan">{msg.giftAmount} coins</span>
-                      </span>
-                    </div>
-                    {msg.message && (
-                      <p className="text-sm text-gray-300 mt-1">{msg.message}</p>
-                    )}
-                  </div>
+                // Gift message - compact single line
+                <div className="flex items-center gap-2 py-1 px-2 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-lg border border-digis-pink/20">
+                  <span className="font-bold text-digis-pink text-sm">{msg.username}</span>
+                  <span className="text-sm text-white/70">sent</span>
+                  <span className="text-lg">{(msg as any).giftEmoji || '🎁'}</span>
                 </div>
               ) : (msg as any).messageType === 'tip' ? (
                 // Tip message - special green styling
