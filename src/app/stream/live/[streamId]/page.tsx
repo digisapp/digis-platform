@@ -491,6 +491,22 @@ export default function BroadcastStudioPage() {
       setTotalEarnings((prev) => prev + tipData.amount);
       fetchLeaderboard();
 
+      // Add tip message to chat so host can see it
+      // Using unknown cast because UI message type differs from DB schema type
+      const tipMessage = {
+        id: `tip-${Date.now()}-${Math.random()}`,
+        streamId,
+        senderId: tipData.senderId,
+        senderUsername: tipData.senderUsername,
+        displayName: null,
+        avatarUrl: tipData.senderAvatarUrl || null,
+        content: `tipped ${tipData.amount} coins!`,
+        messageType: 'tip' as const,
+        tipAmount: tipData.amount,
+        createdAt: new Date(),
+      } as unknown as StreamMessage;
+      setMessages((prev) => [...prev, tipMessage]);
+
       // Add floating coin emoji for visual feedback
       setFloatingGifts(prev => [...prev, {
         id: `tip-${Date.now()}-${Math.random()}`,
@@ -498,8 +514,6 @@ export default function BroadcastStudioPage() {
         rarity: tipData.amount >= 100 ? 'epic' : tipData.amount >= 50 ? 'rare' : 'common',
         timestamp: Date.now()
       }]);
-
-      // Top tipper spotlight removed - top supporters shown in leaderboard instead
     },
     onViewerCount: (data) => {
       setViewerCount(data.currentViewers);

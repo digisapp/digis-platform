@@ -18,6 +18,7 @@ import { BRBOverlay } from '@/components/live/BRBOverlay';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
+import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import dynamic from 'next/dynamic';
 
 const OverlayChat = dynamic(() => import('@/components/live/OverlayChat'), { ssr: false });
@@ -155,6 +156,7 @@ export default function TheaterModePage() {
   const [showChat, setShowChat] = useState(true);
   const [showViewerList, setShowViewerList] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
+  const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
 
@@ -1202,13 +1204,15 @@ export default function TheaterModePage() {
           userBalance={userBalance}
           isAuthenticated={!!currentUser}
           onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+          onBuyCoins={() => setShowBuyCoinsModal(true)}
         />
       )}
 
-      {/* Tron-style Goal Bar Overlay - centered over video, below header */}
+      {/* Tron-style Goal Bar Overlay - vertical on right side */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[336px] lg:max-w-[336px]">
+        <div className="fixed right-3 top-1/2 -translate-y-1/2 z-40">
           <TronGoalBar
+            vertical
             goals={stream.goals
               .filter((g: any) => g.isActive && !g.isCompleted)
               .map((g: any) => ({
@@ -1441,6 +1445,17 @@ export default function TheaterModePage() {
           </div>
         </div>
       )}
+
+      {/* Buy Coins Modal */}
+      <BuyCoinsModal
+        isOpen={showBuyCoinsModal}
+        onClose={() => setShowBuyCoinsModal(false)}
+        onSuccess={() => {
+          // Refresh user balance after successful purchase
+          loadCurrentUser();
+          setShowBuyCoinsModal(false);
+        }}
+      />
     </div>
   );
 }

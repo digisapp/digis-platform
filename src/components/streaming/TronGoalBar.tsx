@@ -13,11 +13,112 @@ interface TronGoalBarProps {
   goals: Goal[];
   className?: string;
   onEdit?: (goalId: string) => void; // Optional edit callback for host
+  vertical?: boolean; // If true, renders as vertical bar on the side
 }
 
-export function TronGoalBar({ goals, className = '', onEdit }: TronGoalBarProps) {
+export function TronGoalBar({ goals, className = '', onEdit, vertical = false }: TronGoalBarProps) {
   if (!goals || goals.length === 0) return null;
 
+  // Vertical layout - shows progress bar going up/down
+  if (vertical) {
+    return (
+      <div className={`${onEdit ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}>
+        <div className="flex flex-col gap-2">
+          {goals.map((goal) => {
+            const percentage = Math.min((goal.currentAmount / goal.targetAmount) * 100, 100);
+            const isComplete = percentage >= 100;
+
+            return (
+              <div
+                key={goal.id}
+                className="relative bg-black/70 backdrop-blur-xl rounded-xl p-2 border border-cyan-500/40 shadow-[0_0_25px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden w-14"
+              >
+                {/* Animated scan line effect - vertical */}
+                <div className="absolute inset-0 overflow-hidden rounded-xl">
+                  <div
+                    className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-scan-vertical"
+                    style={{ animationDuration: '3s' }}
+                  />
+                </div>
+
+                {/* Corner accents - Tron style */}
+                <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400 rounded-tl-lg" />
+                <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400 rounded-tr-lg" />
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400 rounded-bl-lg" />
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400 rounded-br-lg" />
+
+                {/* Content - vertical layout */}
+                <div className="relative z-10 flex flex-col items-center">
+                  {/* Target icon */}
+                  <div className={`p-1 rounded ${isComplete ? 'bg-green-500/20' : 'bg-cyan-500/20'} mb-1`}>
+                    <Target className={`w-4 h-4 ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`} />
+                  </div>
+
+                  {/* Vertical progress bar container */}
+                  <div className="w-3 h-24 bg-gray-800/80 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner relative">
+                    {/* Progress fill - from bottom up */}
+                    <div
+                      className={`absolute bottom-0 left-0 right-0 transition-all duration-700 ease-out ${
+                        isComplete
+                          ? 'bg-gradient-to-t from-green-500 via-emerald-400 to-green-500'
+                          : 'bg-gradient-to-t from-cyan-500 via-cyan-400 to-purple-500'
+                      }`}
+                      style={{ height: `${percentage}%` }}
+                    >
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-white/0 via-white/30 to-white/0 animate-pulse" />
+                    </div>
+                  </div>
+
+                  {/* Amount text */}
+                  <div className="mt-1.5 text-center">
+                    <div className={`text-[10px] font-bold ${isComplete ? 'text-green-400' : 'text-cyan-300'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`}>
+                      {goal.currentAmount}
+                    </div>
+                    <div className="text-[8px] text-gray-400">
+                      /{goal.targetAmount}
+                    </div>
+                  </div>
+
+                  {/* Percentage */}
+                  <div className={`text-[9px] font-bold mt-0.5 ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]`}>
+                    {Math.round(percentage)}%
+                  </div>
+
+                  {/* Edit button */}
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(goal.id)}
+                      className="mt-1 p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 transition-colors border border-cyan-500/30"
+                    >
+                      <Pencil className="w-2.5 h-2.5 text-cyan-400" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* CSS animations */}
+        <style jsx>{`
+          @keyframes scan-vertical {
+            0% {
+              transform: translateY(-100%);
+            }
+            100% {
+              transform: translateY(100%);
+            }
+          }
+          .animate-scan-vertical {
+            animation: scan-vertical 3s ease-in-out infinite;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Horizontal layout (original)
   return (
     <div className={`${onEdit ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}>
       {goals.map((goal) => {

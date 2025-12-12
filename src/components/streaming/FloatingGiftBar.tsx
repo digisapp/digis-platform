@@ -11,6 +11,7 @@ type FloatingGiftBarProps = {
   userBalance: number;
   isAuthenticated: boolean;
   onAuthRequired?: () => void;
+  onBuyCoins?: () => void; // Callback when user clicks balance to buy more coins
   inline?: boolean; // If true, renders inline instead of floating
 };
 
@@ -21,6 +22,7 @@ export function FloatingGiftBar({
   userBalance,
   isAuthenticated,
   onAuthRequired,
+  onBuyCoins,
   inline = false
 }: FloatingGiftBarProps) {
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
@@ -274,14 +276,19 @@ export function FloatingGiftBar({
             <ChevronUp className={`${inline ? 'w-4 h-4' : 'w-5 h-5'} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Balance indicator */}
-          <div className={inline
-            ? "flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 flex-shrink-0"
-            : "flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30"
-          }>
+          {/* Balance indicator - clickable to buy more coins */}
+          <button
+            onClick={onBuyCoins}
+            className={`${inline
+              ? "flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 flex-shrink-0"
+              : "flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30"
+            } hover:from-green-500/30 hover:to-emerald-500/30 hover:border-green-400/50 transition-all hover:scale-105 active:scale-95`}
+            title="Buy more coins"
+          >
             <Coins className={`${inline ? 'w-3 h-3' : 'w-4 h-4'} text-green-400`} />
             <span className={`${inline ? 'text-xs' : 'text-sm'} font-bold text-green-400`}>{userBalance.toLocaleString()}</span>
-          </div>
+            <Plus className={`${inline ? 'w-2.5 h-2.5' : 'w-3 h-3'} text-green-400/60`} />
+          </button>
         </div>
       </div>
 

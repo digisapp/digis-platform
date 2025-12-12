@@ -57,7 +57,7 @@ export const streams = pgTable('streams', {
 }));
 
 // Message type enum
-export const messageTypeEnum = pgEnum('message_type', ['chat', 'system', 'gift']);
+export const messageTypeEnum = pgEnum('message_type', ['chat', 'system', 'gift', 'tip']);
 
 // Stream messages (chat)
 export const streamMessages = pgTable('stream_messages', {

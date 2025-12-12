@@ -221,7 +221,7 @@ function FaceTimeVideoLayout({
   const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="fixed inset-0 bg-black overflow-hidden h-screen">
       {/* Remote participant - full screen */}
       <div className="absolute inset-0">
         {remoteVideoTrack ? (
@@ -1091,7 +1091,7 @@ export default function VideoCallPage() {
   const isVoiceCall = callData.callType === 'voice';
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden h-screen">
       {/* Static background effects - no animations to prevent glitching */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl"></div>
