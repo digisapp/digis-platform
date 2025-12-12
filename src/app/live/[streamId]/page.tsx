@@ -560,6 +560,26 @@ export default function TheaterModePage() {
         const data = await response.json();
         setUserBalance(data.newBalance);
         streamAnalytics.quickTipSent(streamId, amount);
+
+        // Add tip message to chat immediately (optimistic update)
+        const tipMessage: ChatMessage = {
+          id: `tip-${Date.now()}-${Math.random()}`,
+          userId: currentUser.id,
+          username: currentUser.username || 'You',
+          displayName: currentUser.displayName || null,
+          avatarUrl: currentUser.avatarUrl || null,
+          content: `tipped ${amount} coins`,
+          timestamp: Date.now(),
+          messageType: 'tip',
+          tipAmount: amount,
+        };
+        setMessages(prev => {
+          // Avoid duplicate if Ably already added it
+          if (prev.some(m => m.messageType === 'tip' && m.userId === currentUser.id && m.tipAmount === amount && Date.now() - m.timestamp < 2000)) {
+            return prev;
+          }
+          return [...prev, tipMessage];
+        });
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to send tip');
@@ -821,20 +841,55 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Quick Actions Bar - desktop only (mobile uses inline gift bar below) */}
-          <div className="hidden lg:block px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-cyan-200 mr-1 font-semibold">Tip:</span>
-              {[5, 10, 25, 50, 100].map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => handleTip(amount)}
-                  disabled={!currentUser}
-                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-digis-cyan to-digis-pink text-white font-bold text-xs hover:scale-105 transition-all shadow-md shadow-digis-pink/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {amount}
-                </button>
-              ))}
+          {/* Custom Tip Input - Tron Theme - desktop only */}
+          <div className="hidden lg:flex px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-center gap-3">
+            <div className="relative flex items-center">
+              {/* Tron-style input container */}
+              <div className="relative bg-black/70 backdrop-blur-xl rounded-xl border border-cyan-500/40 shadow-[0_0_15px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
+                {/* Corner accents - Tron style */}
+                <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400 rounded-tl-lg" />
+                <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400 rounded-tr-lg" />
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400 rounded-bl-lg" />
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400 rounded-br-lg" />
+
+                <div className="flex items-center px-3 py-2">
+                  <span className="text-cyan-400 font-bold text-sm mr-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">💰</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10000"
+                    placeholder="Enter coins"
+                    className="w-24 bg-transparent text-white text-sm font-semibold placeholder-cyan-400/50 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        const amount = parseInt(input.value);
+                        if (amount > 0) {
+                          handleTip(amount);
+                          input.value = '';
+                        }
+                      }
+                    }}
+                    id="desktop-tip-input"
+                  />
+                </div>
+              </div>
+
+              {/* Send Tip Button - Tron style */}
+              <button
+                onClick={() => {
+                  const input = document.getElementById('desktop-tip-input') as HTMLInputElement;
+                  const amount = parseInt(input?.value || '0');
+                  if (amount > 0) {
+                    handleTip(amount);
+                    if (input) input.value = '';
+                  }
+                }}
+                disabled={!currentUser}
+                className="ml-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50"
+              >
+                Send Tip
+              </button>
             </div>
           </div>
 
