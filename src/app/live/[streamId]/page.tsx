@@ -923,7 +923,9 @@ export default function TheaterModePage() {
                   .filter((g: any) => g.isActive && !g.isCompleted)
                   .map((g: any) => ({
                     id: g.id,
-                    description: g.description || 'Stream Goal',
+                    title: g.title || 'Stream Goal',
+                    description: g.description,
+                    rewardText: g.rewardText,
                     targetAmount: g.targetAmount,
                     currentAmount: g.currentAmount,
                   }))}
@@ -1366,7 +1368,9 @@ export default function TheaterModePage() {
               .filter((g: any) => g.isActive && !g.isCompleted)
               .map((g: any) => ({
                 id: g.id,
-                description: g.description || 'Stream Goal',
+                title: g.title || 'Stream Goal',
+                description: g.description,
+                rewardText: g.rewardText,
                 targetAmount: g.targetAmount,
                 currentAmount: g.currentAmount,
               }))}

@@ -82,7 +82,9 @@ export async function GET(
         ...stream,
         goals: goals.map(g => ({
           id: g.id,
+          title: g.title,
           description: g.description,
+          rewardText: g.rewardText,
           targetAmount: g.targetAmount,
           currentAmount: g.currentAmount,
           isActive: g.isActive,

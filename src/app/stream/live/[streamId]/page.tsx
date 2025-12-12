@@ -1578,7 +1578,9 @@ export default function BroadcastStudioPage() {
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
-              description: g.description || 'Stream Goal',
+              title: g.title || 'Stream Goal',
+              description: g.description,
+              rewardText: g.rewardText,
               targetAmount: g.targetAmount,
               currentAmount: g.currentAmount,
             }))}

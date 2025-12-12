@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, streams, users, notifications } from '@/lib/data/system';
+import { wallets, walletTransactions, streams, users, notifications, streamGoals } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { withIdempotency } from '@/lib/idempotency';
@@ -213,6 +213,49 @@ export async function POST(req: NextRequest) {
         amount,
         note: sanitizedNote,
       });
+    }
+
+    // Update stream goal progress with tip amount
+    try {
+      const activeGoals = await db.query.streamGoals.findMany({
+        where: and(
+          eq(streamGoals.streamId, streamId),
+          eq(streamGoals.isActive, true),
+          eq(streamGoals.isCompleted, false)
+        ),
+      });
+
+      for (const goal of activeGoals) {
+        const newAmount = goal.currentAmount + amount;
+        const isNowCompleted = newAmount >= goal.targetAmount;
+
+        await db
+          .update(streamGoals)
+          .set({
+            currentAmount: sql`${streamGoals.currentAmount} + ${amount}`,
+            isCompleted: isNowCompleted,
+            completedAt: isNowCompleted ? new Date() : null,
+            updatedAt: new Date(),
+          })
+          .where(eq(streamGoals.id, goal.id));
+      }
+
+      // Broadcast goal update via Ably if goals were updated
+      if (activeGoals.length > 0) {
+        // Broadcast update for each goal that was modified
+        for (const goal of activeGoals) {
+          const newAmount = goal.currentAmount + amount;
+          const isNowCompleted = newAmount >= goal.targetAmount;
+          await AblyRealtimeService.broadcastGoalUpdate(streamId, {
+            ...goal,
+            currentAmount: newAmount,
+            isCompleted: isNowCompleted,
+          }, isNowCompleted ? 'completed' : 'updated');
+        }
+      }
+    } catch (goalError) {
+      console.error('[tips/quick] Error updating goal progress:', goalError);
+      // Don't fail the tip if goal update fails
     }
 
       return NextResponse.json({
