@@ -917,8 +917,8 @@ export default function TheaterModePage() {
 
           {/* Mobile Action Bar - inline below title */}
           {!streamEnded && (
-            <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20">
-              <div className="flex items-center gap-2">
+            <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
+              <div className="flex items-center gap-2 overflow-visible">
                 {/* Tip Button */}
                 {currentUser && (
                   <button
@@ -929,7 +929,7 @@ export default function TheaterModePage() {
                   </button>
                 )}
                 {/* Gift Bar - inline */}
-                <div className="flex-1 overflow-visible">
+                <div className="flex-1 relative z-50">
                   <FloatingGiftBar
                     streamId={streamId}
                     creatorId={stream.creator.id}
@@ -1024,7 +1024,7 @@ export default function TheaterModePage() {
                       onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                       placeholder="Send a message..."
                       disabled={sendingMessage}
-                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-sm"
+                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-[16px]"
                     />
                     <button
                       onClick={sendMessage}
