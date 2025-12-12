@@ -221,7 +221,7 @@ function FaceTimeVideoLayout({
   const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden h-screen">
+    <div className="fixed inset-0 bg-black overflow-hidden" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
       {/* Remote participant - full screen */}
       <div className="absolute inset-0">
         {remoteVideoTrack ? (
@@ -287,8 +287,8 @@ function FaceTimeVideoLayout({
       </div>
 
       {/* Top bar - duration and cost - safe area aware */}
-      <div className="absolute top-0 left-0 right-0 z-30 pt-safe">
-        <div className="flex items-center justify-center pt-2 sm:pt-4">
+      <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
+        <div className="flex items-center justify-center pt-1 sm:pt-2">
           {hasStarted && (
             <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
               <div className="flex items-center gap-1.5 sm:gap-2">
@@ -422,8 +422,8 @@ function FaceTimeVideoLayout({
       )}
 
       {/* Bottom controls - safe area aware */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe">
-        <div className="pb-4 sm:pb-6">
+      <div className="absolute bottom-0 left-0 right-0 z-30" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
+        <div className="pb-2 sm:pb-4">
           {/* Participant name */}
           {hasRemoteParticipant && (
             <div className="flex justify-center mb-3">
@@ -1091,7 +1091,7 @@ export default function VideoCallPage() {
   const isVoiceCall = callData.callType === 'voice';
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden h-screen">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
       {/* Static background effects - no animations to prevent glitching */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl"></div>
