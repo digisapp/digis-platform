@@ -1305,7 +1305,28 @@ export default function BroadcastStudioPage() {
               )}
             </div>
 
-            {/* Active Goals - Now shown as floating Tron bar over video */}
+            {/* Active Goals - Inline below video on desktop */}
+            {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
+              <div className="hidden lg:block mt-3">
+                <TronGoalBar
+                  goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
+                    id: g.id,
+                    title: g.title || 'Stream Goal',
+                    description: g.description,
+                    rewardText: g.rewardText,
+                    targetAmount: g.targetAmount,
+                    currentAmount: g.currentAmount,
+                  }))}
+                  onEdit={(goalId) => {
+                    const goalToEdit = goals.find(g => g.id === goalId);
+                    if (goalToEdit) {
+                      setEditingGoal(goalToEdit);
+                      setShowGoalModal(true);
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Chat Sidebar + Top Gifters */}
@@ -1597,9 +1618,9 @@ export default function BroadcastStudioPage() {
         }
       `}</style>
 
-      {/* Floating Tron Goal Bar - centered over video on all screens */}
+      {/* Floating Tron Goal Bar - mobile only (desktop shows inline below video) */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[336px] lg:max-w-[336px]">
+        <div className="lg:hidden fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px]">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
