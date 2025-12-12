@@ -279,7 +279,7 @@ export default function LiveStreamsPage() {
                 <div
                   key={stream.id}
                   className="group cursor-pointer"
-                  onClick={() => router.push(stream.type === 'free' ? `/stream/${stream.id}` : `/streams/${stream.id}`)}
+                  onClick={() => router.push(stream.type === 'free' ? `/live/${stream.id}` : `/streams/${stream.id}`)}
                 >
                   <div className="relative">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>

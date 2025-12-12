@@ -90,7 +90,7 @@ export default function MyTicketsPage() {
 
       // Redirect to viewer page
       if (data.roomName) {
-        router.push(`/stream/${data.roomName}`);
+        router.push(`/live/${data.roomName}`);
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to join stream');
