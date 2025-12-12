@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { packageId } = await request.json();
+    const { packageId, returnUrl } = await request.json();
 
     if (!packageId) {
       return NextResponse.json(
@@ -25,6 +25,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Use the origin from the request or fall back to env variable
+    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_URL || 'https://digis.cc';
+
+    // Encode return URL for safe passing through query params
+    const encodedReturnUrl = encodeURIComponent(returnUrl || '/wallet');
 
     const coinPackage = getCoinPackage(packageId);
 
@@ -85,8 +91,8 @@ export async function POST(request: NextRequest) {
           setup_future_usage: 'on_session', // Save card for future purchases
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_URL}/wallet/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL}/wallet/cancelled`,
+      success_url: `${origin}/wallet/success?session_id={CHECKOUT_SESSION_ID}&returnUrl=${encodedReturnUrl}`,
+      cancel_url: `${origin}/wallet/cancelled?returnUrl=${encodedReturnUrl}`,
       metadata: {
         userId: user.id,
         packageId: coinPackage.id,

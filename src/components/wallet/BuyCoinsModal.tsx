@@ -41,11 +41,14 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
     setLoading(true);
 
     try {
+      // Get current URL for return after checkout
+      const returnUrl = typeof window !== 'undefined' ? window.location.href : '/wallet';
+
       // Create Stripe checkout session
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId }),
+        body: JSON.stringify({ packageId, returnUrl }),
       });
 
       const data = await response.json();

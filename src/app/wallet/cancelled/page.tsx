@@ -1,10 +1,59 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import { GlassCard, GlassButton } from '@/components/ui';
 
-export default function CancelledPage() {
+function CancelledContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [returnUrl, setReturnUrl] = useState<string>('/wallet');
+  const [countdown, setCountdown] = useState(5);
+
+  useEffect(() => {
+    // Get return URL from query params
+    const returnParam = searchParams.get('returnUrl');
+    if (returnParam) {
+      try {
+        const decoded = decodeURIComponent(returnParam);
+        // Only allow relative URLs or same-origin URLs for security
+        if (decoded.startsWith('/') || decoded.includes('digis.cc')) {
+          setReturnUrl(decoded);
+        }
+      } catch {
+        // Keep default
+      }
+    }
+  }, [searchParams]);
+
+  // Auto-redirect countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // Navigate back
+          if (returnUrl.startsWith('http')) {
+            window.location.href = returnUrl;
+          } else {
+            router.push(returnUrl);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [returnUrl, router]);
+
+  const handleGoBack = () => {
+    if (returnUrl.startsWith('http')) {
+      window.location.href = returnUrl;
+    } else {
+      router.push(returnUrl);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -24,28 +73,37 @@ export default function CancelledPage() {
             Payment Cancelled
           </h1>
 
-          <p className="text-xl text-gray-300 mb-8">
-            Your payment was cancelled. No charges were made to your account.
+          <p className="text-xl text-gray-300 mb-4">
+            Your payment was cancelled. No charges were made.
+          </p>
+
+          <p className="text-gray-400 mb-8">
+            Returning in {countdown} seconds...
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <GlassButton
               variant="gradient"
               size="lg"
-              onClick={() => router.push('/wallet')}
+              onClick={handleGoBack}
             >
-              Try Again
-            </GlassButton>
-            <GlassButton
-              variant="ghost"
-              size="lg"
-              onClick={() => router.push('/')}
-            >
-              Back to Home
+              Go Back Now
             </GlassButton>
           </div>
         </GlassCard>
       </div>
     </div>
+  );
+}
+
+export default function CancelledPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <CancelledContent />
+    </Suspense>
   );
 }
