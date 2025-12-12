@@ -847,7 +847,7 @@ export default function TheaterModePage() {
           </div>
 
           {/* Stream Info Bar */}
-          <div className="px-3 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+          <div className="px-3 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
             <h2 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent truncate">{stream.title}</h2>
             {stream.description && (
               <p className="text-xs text-white/80 truncate hidden sm:block">{stream.description}</p>
@@ -855,7 +855,7 @@ export default function TheaterModePage() {
           </div>
 
           {/* Action Buttons Bar - desktop only */}
-          <div className="hidden lg:flex px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
+          <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
             {/* Send Tip Button - opens modal */}
             <button
               onClick={() => setShowTipModal(true)}
@@ -878,16 +878,7 @@ export default function TheaterModePage() {
               />
             )}
 
-            {/* Message Button - opens DM */}
-            <button
-              onClick={() => router.push(`/chats?to=${stream.creator.username}`)}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2"
-              title="Send Private Message"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Message</span>
-            </button>
-          </div>
+            </div>
 
           {/* Mobile Gift Bar is now floating - see bottom of page */}
 
@@ -1214,13 +1205,6 @@ export default function TheaterModePage() {
               Tip <span className="font-bold text-cyan-300">@{stream?.creator.username}</span>
             </p>
 
-            {/* Balance Display */}
-            <div className="flex items-center justify-center gap-2 mb-4 text-sm">
-              <span className="text-white/60">Your balance:</span>
-              <Coins className="w-4 h-4 text-green-400" />
-              <span className="font-bold text-green-400">{userBalance.toLocaleString()}</span>
-            </div>
-
             {/* Amount Input */}
             <div className="mb-4">
               <label className="block text-cyan-300 text-xs font-semibold mb-2">Amount (coins)</label>
@@ -1255,15 +1239,15 @@ export default function TheaterModePage() {
 
             {/* Private Note Input */}
             <div className="mb-4">
-              <label className="block text-cyan-300 text-xs font-semibold mb-2">
+              <label className="block text-cyan-300 text-xs font-semibold mb-1.5">
                 Private Note <span className="text-white/40">(optional)</span>
               </label>
               <textarea
                 value={tipNote}
                 onChange={(e) => setTipNote(e.target.value.slice(0, 200))}
-                placeholder="Write a private message for the creator..."
-                rows={3}
-                className="w-full px-4 py-3 bg-white/10 border-2 border-cyan-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all resize-none text-sm"
+                placeholder="Write a private message..."
+                rows={2}
+                className="w-full px-3 py-2 bg-white/10 border border-cyan-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all resize-none text-sm"
               />
               <div className="flex items-center justify-between mt-1.5">
                 <div className="flex items-center gap-1.5 text-xs text-cyan-400/70">

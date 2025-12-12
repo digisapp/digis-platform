@@ -579,11 +579,11 @@ export default function VideoCallPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
-      {/* Animated background effects */}
+      {/* Static background effects - no animations to prevent glitching */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-[500px] h-[500px] top-1/2 right-0 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute w-[500px] h-[500px] top-1/2 right-0 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-pink-500/10 rounded-full blur-3xl"></div>
       </div>
 
       {/* Other Party Connection Error Modal */}
