@@ -789,19 +789,34 @@ export default function VideoCallPage() {
   }
 
   if (error) {
+    const isDeclined = error.includes('declined') || declineReason;
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-96 h-96 -top-10 -left-10 bg-red-500/10 rounded-full blur-3xl"></div>
+          <div className={`absolute w-96 h-96 -top-10 -left-10 ${isDeclined ? 'bg-orange-500/10' : 'bg-red-500/10'} rounded-full blur-3xl`}></div>
         </div>
 
         <div className="text-center max-w-md mx-auto px-4 relative z-10">
-          <div className="backdrop-blur-2xl bg-gradient-to-br from-red-500/10 via-gray-900/60 to-black/40 rounded-3xl p-8 border-2 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
-            <div className="w-16 h-16 mx-auto mb-6 bg-red-500/20 rounded-2xl flex items-center justify-center">
-              <PhoneOff className="w-8 h-8 text-red-400" />
+          <div className={`backdrop-blur-2xl bg-gradient-to-br ${isDeclined ? 'from-orange-500/10 via-gray-900/60 to-black/40 border-orange-500/30 shadow-[0_0_50px_rgba(249,115,22,0.2)]' : 'from-red-500/10 via-gray-900/60 to-black/40 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]'} rounded-3xl p-8 border-2`}>
+            <div className={`w-16 h-16 mx-auto mb-6 ${isDeclined ? 'bg-orange-500/20' : 'bg-red-500/20'} rounded-2xl flex items-center justify-center`}>
+              <PhoneOff className={`w-8 h-8 ${isDeclined ? 'text-orange-400' : 'text-red-400'}`} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Call Error</h2>
-            <p className="text-gray-400 mb-6">{error}</p>
+            <h2 className="text-2xl font-bold text-white mb-3">
+              {isDeclined ? 'Creator Unavailable' : 'Call Error'}
+            </h2>
+            {declineReason ? (
+              <div className="mb-6">
+                <p className="text-gray-400 mb-3">The creator left a message:</p>
+                <div className="px-4 py-3 bg-white/5 rounded-xl border border-orange-500/20">
+                  <p className="text-orange-300 italic">"{declineReason}"</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400 mb-6">
+                {isDeclined ? 'The creator is not available right now. Try again later!' : error}
+              </p>
+            )}
+            <p className="text-gray-500 text-sm mb-4">Redirecting to dashboard...</p>
             <button
               onClick={() => router.push('/dashboard')}
               className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-lg"
