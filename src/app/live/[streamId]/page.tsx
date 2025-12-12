@@ -915,7 +915,23 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Mobile Action Bar - inline below title */}
+          {/* Mobile Goal Bar - horizontal, below title, above action bar */}
+          {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
+            <div className="lg:hidden px-3 py-2">
+              <TronGoalBar
+                goals={stream.goals
+                  .filter((g: any) => g.isActive && !g.isCompleted)
+                  .map((g: any) => ({
+                    id: g.id,
+                    description: g.description || 'Stream Goal',
+                    targetAmount: g.targetAmount,
+                    currentAmount: g.currentAmount,
+                  }))}
+              />
+            </div>
+          )}
+
+          {/* Mobile Action Bar - inline below goal bar */}
           {!streamEnded && (
             <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
               <div className="flex items-center gap-2 overflow-visible">
@@ -1342,37 +1358,20 @@ export default function TheaterModePage() {
         </div>
       )}
 
-      {/* Tron-style Goal Bar Overlay - vertical on mobile, horizontal on desktop */}
+      {/* Desktop Goal Bar Overlay - horizontal at top */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <>
-          {/* Mobile - vertical inside video area */}
-          <div className="lg:hidden fixed left-2 top-20 z-40">
-            <TronGoalBar
-              vertical
-              goals={stream.goals
-                .filter((g: any) => g.isActive && !g.isCompleted)
-                .map((g: any) => ({
-                  id: g.id,
-                  description: g.description || 'Stream Goal',
-                  targetAmount: g.targetAmount,
-                  currentAmount: g.currentAmount,
-                }))}
-            />
-          </div>
-          {/* Desktop - horizontal at top */}
-          <div className="hidden lg:block fixed top-20 left-1/2 -translate-x-1/2 z-40 w-80">
-            <TronGoalBar
-              goals={stream.goals
-                .filter((g: any) => g.isActive && !g.isCompleted)
-                .map((g: any) => ({
-                  id: g.id,
-                  description: g.description || 'Stream Goal',
-                  targetAmount: g.targetAmount,
-                  currentAmount: g.currentAmount,
-                }))}
-            />
-          </div>
-        </>
+        <div className="hidden lg:block fixed top-20 left-1/2 -translate-x-1/2 z-40 w-80">
+          <TronGoalBar
+            goals={stream.goals
+              .filter((g: any) => g.isActive && !g.isCompleted)
+              .map((g: any) => ({
+                id: g.id,
+                description: g.description || 'Stream Goal',
+                targetAmount: g.targetAmount,
+                currentAmount: g.currentAmount,
+              }))}
+          />
+        </div>
       )}
 
       {/* Floating Gift Emojis Animation */}
