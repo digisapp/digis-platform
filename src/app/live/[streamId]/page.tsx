@@ -716,8 +716,8 @@ export default function TheaterModePage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Video Player Area */}
-        <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1">
+        {/* Video Player Area - centered on desktop when chat is hidden */}
+        <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1 lg:mx-auto">
           {/* Video */}
           <div className="relative aspect-video lg:aspect-auto lg:flex-1">
             {streamEnded ? (
