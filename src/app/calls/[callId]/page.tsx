@@ -74,6 +74,16 @@ function RemoteParticipantMonitor({
   return null;
 }
 
+// Virtual gifts available during calls
+const CALL_GIFTS = [
+  { id: 'heart', emoji: '❤️', name: 'Heart', price: 5 },
+  { id: 'fire', emoji: '🔥', name: 'Fire', price: 10 },
+  { id: 'star', emoji: '⭐', name: 'Star', price: 25 },
+  { id: 'diamond', emoji: '💎', name: 'Diamond', price: 50 },
+  { id: 'crown', emoji: '👑', name: 'Crown', price: 100 },
+  { id: 'rocket', emoji: '🚀', name: 'Rocket', price: 200 },
+];
+
 // FaceTime-style video layout component
 function FaceTimeVideoLayout({
   callData,
@@ -82,6 +92,15 @@ function FaceTimeVideoLayout({
   duration,
   estimatedCost,
   hasStarted,
+  userBalance,
+  isFan,
+  onSendTip,
+  onSendGift,
+  tipSending,
+  chatMessages,
+  onSendMessage,
+  messageInput,
+  setMessageInput,
 }: {
   callData: CallData;
   onEndCall: () => void;
@@ -89,6 +108,15 @@ function FaceTimeVideoLayout({
   duration: number;
   estimatedCost: number;
   hasStarted: boolean;
+  userBalance: number;
+  isFan: boolean;
+  onSendTip: (amount: number) => void;
+  onSendGift: (gift: typeof CALL_GIFTS[0]) => void;
+  tipSending: boolean;
+  chatMessages: Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string }>;
+  onSendMessage: () => void;
+  messageInput: string;
+  setMessageInput: (value: string) => void;
 }) {
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -99,7 +127,16 @@ function FaceTimeVideoLayout({
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [localPosition, setLocalPosition] = useState({ x: 16, y: 16 });
   const [isDragging, setIsDragging] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showGifts, setShowGifts] = useState(false);
+  const [showTipMenu, setShowTipMenu] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const isConnected = connectionState === ConnectionState.Connected;
   const hasRemoteParticipant = remoteParticipants.length > 0;
@@ -181,8 +218,10 @@ function FaceTimeVideoLayout({
 
   const otherParticipant = callData.creator;
 
+  const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
+
   return (
-    <div className="relative w-full h-full bg-black">
+    <div className="fixed inset-0 bg-black overflow-hidden" style={{ height: '100dvh' }}>
       {/* Remote participant - full screen */}
       <div className="absolute inset-0">
         {remoteVideoTrack ? (
@@ -223,8 +262,8 @@ function FaceTimeVideoLayout({
 
       {/* Local participant - small draggable PIP */}
       <div
-        className={`absolute z-20 w-36 h-48 rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl cursor-move transition-shadow ${isDragging ? 'shadow-cyan-500/50' : ''}`}
-        style={{ right: localPosition.x, top: localPosition.y }}
+        className={`absolute z-20 w-28 h-36 sm:w-36 sm:h-48 rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl cursor-move transition-shadow ${isDragging ? 'shadow-cyan-500/50' : ''}`}
+        style={{ right: localPosition.x, top: Math.max(localPosition.y, 60) }}
         onMouseDown={handleDragStart}
         onTouchStart={handleDragStart}
       >
@@ -235,77 +274,243 @@ function FaceTimeVideoLayout({
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
           </div>
         )}
         {isMuted && (
-          <div className="absolute bottom-2 right-2 p-1.5 bg-red-500 rounded-full">
-            <MicOff className="w-3 h-3 text-white" />
+          <div className="absolute bottom-2 right-2 p-1 sm:p-1.5 bg-red-500 rounded-full">
+            <MicOff className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
           </div>
         )}
       </div>
 
-      {/* Top bar - duration and cost */}
-      {hasStarted && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-cyan-400" />
-            <span className="font-mono font-bold text-white">{formatDuration(duration)}</span>
-          </div>
-          <div className="w-px h-4 bg-white/30" />
-          <div className="flex items-center gap-1">
-            <Coins className="w-4 h-4 text-yellow-400" />
-            <span className="font-bold text-yellow-400">~{estimatedCost}</span>
-          </div>
+      {/* Top bar - duration and cost - safe area aware */}
+      <div className="absolute top-0 left-0 right-0 z-30 pt-safe">
+        <div className="flex items-center justify-center pt-2 sm:pt-4">
+          {hasStarted && (
+            <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
+              </div>
+              <div className="w-px h-3 sm:h-4 bg-white/30" />
+              <div className="flex items-center gap-1">
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+                <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Bottom controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4">
-        {/* Mute button */}
-        <button
-          onClick={toggleMute}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
-            isMuted
-              ? 'bg-red-500 text-white'
-              : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
-          }`}
-        >
-          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-        </button>
-
-        {/* End call button */}
-        <button
-          onClick={onEndCall}
-          disabled={isEnding}
-          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
-        >
-          {isEnding ? <Loader2 className="w-7 h-7 animate-spin" /> : <PhoneOff className="w-7 h-7" />}
-        </button>
-
-        {/* Video toggle button */}
-        <button
-          onClick={toggleVideo}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
-            isVideoOff
-              ? 'bg-red-500 text-white'
-              : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
-          }`}
-        >
-          {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-        </button>
       </div>
 
-      {/* Participant name overlay */}
-      {hasRemoteParticipant && (
-        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-          <span className="text-white font-medium">
-            {otherParticipant.displayName || otherParticipant.username}
-          </span>
+      {/* Chat Overlay - floating messages on left side */}
+      {showChat && (
+        <div className="absolute left-3 bottom-36 sm:bottom-40 z-30 w-64 sm:w-72 max-h-[40vh] overflow-hidden pointer-events-auto">
+          {/* Chat messages */}
+          <div className="space-y-1.5 overflow-y-auto max-h-[calc(40vh-60px)] scrollbar-hide">
+            {chatMessages.slice(-10).map((msg) => (
+              <div key={msg.id} className="animate-in slide-in-from-left duration-300">
+                {msg.type === 'tip' ? (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/80 to-emerald-500/80 backdrop-blur-sm shadow-lg">
+                    <Coins className="w-3.5 h-3.5 text-yellow-300" />
+                    <span className="text-white text-xs font-bold">{msg.senderName || 'You'}</span>
+                    <span className="text-yellow-300 text-xs font-bold">+{msg.amount}</span>
+                  </div>
+                ) : msg.type === 'gift' ? (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-sm shadow-lg">
+                    <span className="text-lg">{msg.giftEmoji}</span>
+                    <span className="text-white text-xs font-bold">{msg.senderName || 'You'}</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-sm max-w-full">
+                    <span className="text-cyan-300 text-xs font-bold shrink-0">{msg.senderName || 'You'}:</span>
+                    <span className="text-white text-xs break-words">{msg.content}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Chat input */}
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
+              placeholder="Say something..."
+              className="flex-1 px-3 py-2 bg-black/60 backdrop-blur-sm border border-white/20 rounded-full text-white text-sm placeholder-white/50 focus:outline-none focus:border-cyan-400"
+            />
+            <button
+              onClick={onSendMessage}
+              disabled={!messageInput.trim()}
+              className="p-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full disabled:opacity-50"
+            >
+              <Send className="w-4 h-4 text-white" />
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Gift picker overlay */}
+      {showGifts && isFan && (
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-white text-xs font-semibold">Send a Gift</span>
+              <button onClick={() => setShowGifts(false)} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {CALL_GIFTS.map((gift) => (
+                <button
+                  key={gift.id}
+                  onClick={() => {
+                    onSendGift(gift);
+                    setShowGifts(false);
+                  }}
+                  disabled={userBalance < gift.price || tipSending}
+                  className="flex flex-col items-center p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <span className="text-2xl mb-1">{gift.emoji}</span>
+                  <span className="text-yellow-400 text-xs font-bold">{gift.price}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 text-center text-xs text-gray-400">
+              Balance: <span className="text-yellow-400 font-bold">{userBalance}</span> coins
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tip picker overlay */}
+      {showTipMenu && isFan && (
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-white text-xs font-semibold">Send a Tip</span>
+              <button onClick={() => setShowTipMenu(false)} className="text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {TIP_AMOUNTS.map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => {
+                    onSendTip(amount);
+                    setShowTipMenu(false);
+                  }}
+                  disabled={userBalance < amount || tipSending}
+                  className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border border-yellow-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <Coins className="w-3.5 h-3.5 text-yellow-400" />
+                  <span className="text-yellow-400 font-bold text-sm">{amount}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-2 text-center text-xs text-gray-400">
+              Balance: <span className="text-yellow-400 font-bold">{userBalance}</span> coins
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom controls - safe area aware */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 pb-safe">
+        <div className="pb-4 sm:pb-6">
+          {/* Participant name */}
+          {hasRemoteParticipant && (
+            <div className="flex justify-center mb-3">
+              <div className="px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                <span className="text-white font-medium text-sm">
+                  {otherParticipant.displayName || otherParticipant.username}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Main control buttons */}
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            {/* Chat toggle */}
+            <button
+              onClick={() => { setShowChat(!showChat); setShowGifts(false); setShowTipMenu(false); }}
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                showChat
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+              }`}
+            >
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            {/* Mute button */}
+            <button
+              onClick={toggleMute}
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                isMuted
+                  ? 'bg-red-500 text-white'
+                  : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+              }`}
+            >
+              {isMuted ? <MicOff className="w-5 h-5 sm:w-6 sm:h-6" /> : <Mic className="w-5 h-5 sm:w-6 sm:h-6" />}
+            </button>
+
+            {/* End call button */}
+            <button
+              onClick={onEndCall}
+              disabled={isEnding}
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
+            >
+              {isEnding ? <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 animate-spin" /> : <PhoneOff className="w-6 h-6 sm:w-7 sm:h-7" />}
+            </button>
+
+            {/* Video toggle button */}
+            <button
+              onClick={toggleVideo}
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                isVideoOff
+                  ? 'bg-red-500 text-white'
+                  : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+              }`}
+            >
+              {isVideoOff ? <VideoOff className="w-5 h-5 sm:w-6 sm:h-6" /> : <Video className="w-5 h-5 sm:w-6 sm:h-6" />}
+            </button>
+
+            {/* Tip/Gift buttons - only for fans */}
+            {isFan && (
+              <>
+                <button
+                  onClick={() => { setShowTipMenu(!showTipMenu); setShowGifts(false); setShowChat(false); }}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    showTipMenu
+                      ? 'bg-yellow-500 text-white'
+                      : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+                  }`}
+                >
+                  <Coins className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+
+                <button
+                  onClick={() => { setShowGifts(!showGifts); setShowTipMenu(false); setShowChat(false); }}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+                    showGifts
+                      ? 'bg-pink-500 text-white'
+                      : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+                  }`}
+                >
+                  <Gift className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -450,8 +655,7 @@ export default function VideoCallPage() {
   const [hasStarted, setHasStarted] = useState(false);
 
   // Chat and tip state
-  const [showChat, setShowChat] = useState(true);
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; content: string; timestamp: number }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string }>>([]);
   const [messageInput, setMessageInput] = useState('');
   const [userBalance, setUserBalance] = useState(0);
   const [tipSending, setTipSending] = useState(false);
@@ -593,12 +797,15 @@ export default function VideoCallPage() {
 
       if (response.ok) {
         setUserBalance((prev) => prev - amount);
-        // Add a system message to chat
+        // Add a tip message to chat
         setChatMessages((prev) => [...prev, {
           id: `tip-${Date.now()}`,
-          sender: 'system',
-          content: `💰 You sent ${amount} coins!`,
+          sender: user?.id || 'You',
+          senderName: 'You',
+          content: `Sent ${amount} coins`,
           timestamp: Date.now(),
+          type: 'tip',
+          amount,
         }]);
       } else {
         const error = await response.json();
@@ -612,15 +819,63 @@ export default function VideoCallPage() {
     }
   };
 
-  // Send chat message (local only for now - could be extended with Supabase realtime)
+  // Send gift to creator
+  const handleSendGift = async (gift: { id: string; emoji: string; name: string; price: number }) => {
+    if (!callData || tipSending) return;
+
+    if (userBalance < gift.price) {
+      alert(`Insufficient balance. You need ${gift.price} coins but only have ${userBalance}.`);
+      return;
+    }
+
+    setTipSending(true);
+    try {
+      const response = await fetch('/api/tips/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: gift.price,
+          receiverId: callData.creatorId,
+          message: `Sent ${gift.emoji} ${gift.name} during video call`,
+        }),
+      });
+
+      if (response.ok) {
+        setUserBalance((prev) => prev - gift.price);
+        // Add a gift message to chat
+        setChatMessages((prev) => [...prev, {
+          id: `gift-${Date.now()}`,
+          sender: user?.id || 'You',
+          senderName: 'You',
+          content: `Sent ${gift.name}`,
+          timestamp: Date.now(),
+          type: 'gift',
+          amount: gift.price,
+          giftEmoji: gift.emoji,
+        }]);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to send gift');
+      }
+    } catch (err) {
+      console.error('Error sending gift:', err);
+      alert('Failed to send gift');
+    } finally {
+      setTipSending(false);
+    }
+  };
+
+  // Send chat message (local only for now - could be extended with Ably realtime)
   const handleSendMessage = () => {
     if (!messageInput.trim()) return;
 
     setChatMessages((prev) => [...prev, {
       id: `msg-${Date.now()}`,
       sender: user?.id || 'You',
+      senderName: 'You',
       content: messageInput,
       timestamp: Date.now(),
+      type: 'chat',
     }]);
     setMessageInput('');
   };
@@ -836,7 +1091,7 @@ export default function VideoCallPage() {
   const isVoiceCall = callData.callType === 'voice';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden" style={{ height: '100dvh' }}>
       {/* Static background effects - no animations to prevent glitching */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[600px] h-[600px] -top-20 -left-20 bg-cyan-500/10 rounded-full blur-3xl"></div>
@@ -994,7 +1249,7 @@ export default function VideoCallPage() {
           </>
         ) : (
           // Video Call UI - FaceTime Style
-          <div className="relative z-10 h-screen">
+          <>
             <FaceTimeVideoLayout
               callData={callData}
               onEndCall={handleEndCall}
@@ -1002,9 +1257,18 @@ export default function VideoCallPage() {
               duration={duration}
               estimatedCost={estimatedCost}
               hasStarted={hasStarted}
+              userBalance={userBalance}
+              isFan={!!isFan}
+              onSendTip={handleSendTip}
+              onSendGift={handleSendGift}
+              tipSending={tipSending}
+              chatMessages={chatMessages}
+              onSendMessage={handleSendMessage}
+              messageInput={messageInput}
+              setMessageInput={setMessageInput}
             />
             <RoomAudioRenderer />
-          </div>
+          </>
         )}
       </LiveKitRoom>
 
