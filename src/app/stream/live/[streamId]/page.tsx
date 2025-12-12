@@ -121,6 +121,7 @@ export default function BroadcastStudioPage() {
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
+  const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Detect Safari browser
   useEffect(() => {
@@ -519,8 +520,17 @@ export default function BroadcastStudioPage() {
       setViewerCount(data.currentViewers);
       setPeakViewers(data.peakViewers);
     },
-    onGoalUpdate: () => {
+    onGoalUpdate: (update) => {
       fetchGoals();
+      // Show celebration notification if goal completed
+      if (update.action === 'completed' && update.goal) {
+        setCompletedGoal({
+          title: update.goal.title || 'Stream Goal',
+          rewardText: update.goal.rewardText || 'Goal reached!',
+        });
+        // Auto-hide after 5 seconds
+        setTimeout(() => setCompletedGoal(null), 5000);
+      }
     },
   });
 
@@ -883,6 +893,21 @@ export default function BroadcastStudioPage() {
       <div className="relative z-10">
       {/* Floating Gift Emojis Overlay */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
+
+      {/* Goal Completed Celebration */}
+      {completedGoal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border-2 border-green-500 p-6 text-center animate-bounce shadow-[0_0_50px_rgba(34,197,94,0.5)]">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-green-400 mb-2">GOAL REACHED!</h2>
+            <p className="text-xl text-white font-bold mb-2">{completedGoal.title}</p>
+            <div className="flex items-center justify-center gap-2 text-pink-400">
+              <span className="text-2xl">🎁</span>
+              <span className="text-lg">{completedGoal.rewardText}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Note: GiftAnimationManager removed - gifts now show in chat messages */}
 

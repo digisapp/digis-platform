@@ -156,6 +156,7 @@ export default function TheaterModePage() {
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
+  const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -300,9 +301,18 @@ export default function TheaterModePage() {
       // Refresh goals when tip received
       loadStream();
     },
-    onGoalUpdate: () => {
+    onGoalUpdate: (update) => {
       // Refresh goals
       loadStream();
+      // Show celebration notification if goal completed
+      if (update.action === 'completed' && update.goal) {
+        setCompletedGoal({
+          title: update.goal.title || 'Stream Goal',
+          rewardText: update.goal.rewardText || 'Goal reached!',
+        });
+        // Auto-hide after 5 seconds
+        setTimeout(() => setCompletedGoal(null), 5000);
+      }
     },
     onViewerCount: (count) => {
       // Update viewer count from Ably real-time updates
@@ -741,9 +751,20 @@ export default function TheaterModePage() {
       {/* Header Bar - simplified for mobile */}
       <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
         <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          {/* Digis Logo - visible on mobile, hidden on desktop (sidebar has logo) */}
+          <button
+            onClick={() => router.push('/')}
+            className="lg:hidden flex-shrink-0"
+          >
+            <img
+              src="/images/digis-logo-white.png"
+              alt="Digis"
+              className="w-8 h-8"
+            />
+          </button>
           <button
             onClick={() => router.back()}
-            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+            className="hidden lg:block p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -976,7 +997,7 @@ export default function TheaterModePage() {
                   No messages yet. Be the first to chat!
                 </div>
               ) : (
-                messages.slice(-50).map((msg) => (
+                [...messages].slice(-50).reverse().map((msg) => (
                   msg.messageType === 'tip' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                       {msg.avatarUrl ? (
@@ -1380,6 +1401,21 @@ export default function TheaterModePage() {
 
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
+
+      {/* Goal Completed Celebration */}
+      {completedGoal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/80 backdrop-blur-xl rounded-2xl border-2 border-green-500 p-6 text-center animate-bounce shadow-[0_0_50px_rgba(34,197,94,0.5)]">
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-2xl font-bold text-green-400 mb-2">GOAL REACHED!</h2>
+            <p className="text-xl text-white font-bold mb-2">{completedGoal.title}</p>
+            <div className="flex items-center justify-center gap-2 text-pink-400">
+              <span className="text-2xl">🎁</span>
+              <span className="text-lg">{completedGoal.rewardText}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Persistent VIP Ticket Button - shows for late-joining viewers or after dismissing popup */}
       {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
