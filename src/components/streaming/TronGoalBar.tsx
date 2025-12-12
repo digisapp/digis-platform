@@ -54,8 +54,15 @@ export function TronGoalBar({ goals, className = '', onEdit, vertical = false }:
                     <Target className={`w-4 h-4 ${isComplete ? 'text-green-400' : 'text-cyan-400'} drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]`} />
                   </div>
 
+                  {/* Goal description - vertical text */}
+                  <div className="w-10 mb-1">
+                    <p className="text-[8px] font-bold text-white text-center leading-tight line-clamp-2 drop-shadow-[0_0_6px_rgba(255,255,255,0.3)]">
+                      {goal.description}
+                    </p>
+                  </div>
+
                   {/* Vertical progress bar container */}
-                  <div className="w-3 h-24 bg-gray-800/80 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner relative">
+                  <div className="w-3 h-20 bg-gray-800/80 rounded-full overflow-hidden border border-cyan-500/30 shadow-inner relative">
                     {/* Progress fill - from bottom up */}
                     <div
                       className={`absolute bottom-0 left-0 right-0 transition-all duration-700 ease-out ${
