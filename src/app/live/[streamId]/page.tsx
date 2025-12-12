@@ -18,6 +18,9 @@ import { BRBOverlay } from '@/components/live/BRBOverlay';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
+import dynamic from 'next/dynamic';
+
+const OverlayChat = dynamic(() => import('@/components/live/OverlayChat'), { ssr: false });
 
 interface StreamData {
   id: string;
@@ -824,6 +827,48 @@ export default function TheaterModePage() {
                 )}
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
+
+                {/* Mobile Overlay Chat - TikTok/IG Live style */}
+                <div className="lg:hidden">
+                  <OverlayChat
+                    messages={messages}
+                    onSendMessage={(content) => {
+                      if (!currentUser || sendingMessage) return;
+                      const optimisticMessage: ChatMessage = {
+                        id: `temp-${Date.now()}`,
+                        userId: currentUser.id,
+                        username: currentUser.username,
+                        displayName: currentUser.displayName,
+                        avatarUrl: currentUser.avatarUrl,
+                        content,
+                        timestamp: Date.now(),
+                        isCreator: currentUser.id === stream?.creator.id,
+                      };
+                      setMessages((prev) => [...prev, optimisticMessage]);
+                      setSendingMessage(true);
+                      fetch(`/api/streams/${streamId}/message`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content }),
+                      })
+                        .then((res) => {
+                          if (!res.ok) {
+                            setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+                          } else {
+                            streamAnalytics.chatMessageSent(streamId);
+                          }
+                        })
+                        .catch(() => {
+                          setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+                        })
+                        .finally(() => setSendingMessage(false));
+                    }}
+                    currentUserId={currentUser?.id}
+                    isAuthenticated={!!currentUser}
+                    disabled={sendingMessage || userBalance <= 0}
+                    streamId={streamId}
+                  />
+                </div>
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -915,9 +960,9 @@ export default function TheaterModePage() {
 
         </div>
 
-        {/* Right Sidebar - Chat & Viewers */}
+        {/* Right Sidebar - Chat & Viewers (Desktop only - mobile uses overlay chat) */}
         {showChat && (
-          <div className="w-full lg:w-96 flex-1 lg:flex-initial lg:h-auto glass-dark border-t lg:border-t-0 lg:border-l border-cyan-400/30 flex flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)] min-h-[300px]">
+          <div className="hidden lg:flex w-96 glass-dark border-l border-cyan-400/30 flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
             {/* Sidebar Tabs */}
             <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
               <button
