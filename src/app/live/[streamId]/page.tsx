@@ -1346,7 +1346,7 @@ export default function TheaterModePage() {
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
         <>
           {/* Mobile - vertical inside video area */}
-          <div className="lg:hidden fixed right-2 top-20 z-40">
+          <div className="lg:hidden fixed left-2 top-20 z-40">
             <TronGoalBar
               vertical
               goals={stream.goals
