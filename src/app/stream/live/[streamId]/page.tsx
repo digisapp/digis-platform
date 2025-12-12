@@ -22,7 +22,9 @@ import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { getAblyClient } from '@/lib/ably/client';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -108,6 +110,17 @@ export default function BroadcastStudioPage() {
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
   const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
+  const [privateTips, setPrivateTips] = useState<Array<{
+    id: string;
+    senderId: string;
+    senderUsername: string;
+    amount: number;
+    note: string;
+    timestamp: number;
+  }>>([]);
+  const [showPrivateTips, setShowPrivateTips] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
 
   // Detect Safari browser
   useEffect(() => {
@@ -115,6 +128,90 @@ export default function BroadcastStudioPage() {
     const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('chromium');
     setIsSafari(isSafariBrowser);
   }, []);
+
+  // Get current user ID for private tips subscription
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  // Subscribe to private tip notifications via Ably
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    let mounted = true;
+    let notificationsChannel: any = null;
+
+    const subscribeToPrivateTips = async () => {
+      try {
+        const ably = getAblyClient();
+
+        // Wait for connection
+        if (ably.connection.state !== 'connected') {
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
+        }
+
+        if (!mounted) return;
+
+        // Subscribe to user notifications channel for private tips
+        notificationsChannel = ably.channels.get(`user:${currentUserId}:notifications`);
+        notificationsChannel.subscribe('private_tip', (message: any) => {
+          const tipData = message.data;
+          if (mounted && tipData.note) {
+            setPrivateTips((prev) => [
+              {
+                id: `tip-${Date.now()}-${Math.random()}`,
+                senderId: tipData.senderId,
+                senderUsername: tipData.senderUsername,
+                amount: tipData.amount,
+                note: tipData.note,
+                timestamp: tipData.timestamp || Date.now(),
+              },
+              ...prev,
+            ].slice(0, 50)); // Keep last 50 tips
+
+            // Play notification sound
+            const audio = new Audio('/sounds/tip.wav');
+            audio.volume = 0.6;
+            audio.play().catch(() => {});
+
+            // Set flag for new tips if panel is closed
+            if (!showPrivateTips) {
+              setHasNewPrivateTips(true);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('[PrivateTips] Error subscribing:', err);
+      }
+    };
+
+    subscribeToPrivateTips();
+
+    return () => {
+      mounted = false;
+      if (notificationsChannel && notificationsChannel.state === 'attached') {
+        notificationsChannel.unsubscribe();
+        notificationsChannel.detach().catch(() => {});
+      }
+    };
+  }, [currentUserId, showPrivateTips]);
 
   // Prevent accidental navigation away from stream (swipe, back button, refresh, keyboard shortcuts)
   useEffect(() => {
@@ -1342,6 +1439,124 @@ export default function BroadcastStudioPage() {
           }}
         />
       )}
+
+      {/* Private Tips Button - Floating */}
+      <button
+        onClick={() => {
+          setShowPrivateTips(!showPrivateTips);
+          setHasNewPrivateTips(false);
+        }}
+        className={`fixed bottom-24 right-4 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
+          privateTips.length > 0
+            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
+            : 'bg-white/10 text-white/60 border border-white/20 backdrop-blur-xl'
+        }`}
+        title="Private Tip Notes"
+      >
+        <Lock className="w-5 h-5" />
+        {hasNewPrivateTips && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
+        )}
+        {privateTips.length > 0 && (
+          <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 bg-cyan-500 rounded-full text-xs font-bold flex items-center justify-center">
+            {privateTips.length}
+          </span>
+        )}
+      </button>
+
+      {/* Private Tips Panel - Slide-in from right */}
+      {showPrivateTips && (
+        <div className="fixed inset-y-0 right-0 z-[60] w-full max-w-sm">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm -left-full"
+            style={{ width: '200vw' }}
+            onClick={() => setShowPrivateTips(false)}
+          />
+          {/* Panel */}
+          <div className="relative h-full bg-gradient-to-br from-slate-900/98 via-purple-900/98 to-slate-900/98 backdrop-blur-xl border-l border-cyan-500/30 shadow-[-4px_0_30px_rgba(34,211,238,0.2)] flex flex-col animate-slideInRight">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-cyan-500/20">
+              <div className="flex items-center gap-2">
+                <Lock className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-bold text-white">Private Tip Notes</h3>
+              </div>
+              <button
+                onClick={() => setShowPrivateTips(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-white/60" />
+              </button>
+            </div>
+
+            {/* Tips List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {privateTips.length === 0 ? (
+                <div className="text-center py-10">
+                  <Lock className="w-12 h-12 mx-auto text-cyan-400/40 mb-4" />
+                  <p className="text-white/60 text-sm">
+                    Private notes from fans will appear here
+                  </p>
+                  <p className="text-white/40 text-xs mt-2">
+                    Only you can see these messages
+                  </p>
+                </div>
+              ) : (
+                privateTips.map((tip) => (
+                  <div
+                    key={tip.id}
+                    className="p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-400 flex items-center justify-center text-xs font-bold text-white">
+                          {tip.senderUsername[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <span className="font-bold text-cyan-300 text-sm">@{tip.senderUsername}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 px-2 py-0.5 bg-green-500/20 rounded-full border border-green-500/30">
+                        <Coins className="w-3.5 h-3.5 text-green-400" />
+                        <span className="text-green-400 text-sm font-bold">{tip.amount}</span>
+                      </div>
+                    </div>
+                    <p className="text-white/90 text-sm italic pl-10">"{tip.note}"</p>
+                    <div className="flex items-center justify-end mt-2">
+                      <span className="text-white/40 text-xs">
+                        {new Date(tip.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Info Footer */}
+            <div className="p-4 border-t border-cyan-500/20 bg-black/30">
+              <div className="flex items-center gap-2 text-white/50 text-xs">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Private notes are only visible to you</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS for slide animation */}
+      <style jsx>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        .animate-slideInRight {
+          animation: slideInRight 0.3s ease-out;
+        }
+      `}</style>
 
       {/* Floating Tron Goal Bar - centered over video on all screens */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (

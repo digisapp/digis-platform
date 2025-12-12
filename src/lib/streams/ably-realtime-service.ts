@@ -54,6 +54,32 @@ export class AblyRealtimeService {
   }
 
   /**
+   * Broadcast private tip with note to creator only
+   * Uses user notifications channel so only the creator sees it
+   */
+  static async broadcastPrivateTipNote(
+    creatorId: string,
+    streamId: string,
+    tipData: {
+      senderId: string;
+      senderUsername: string;
+      senderAvatarUrl?: string | null;
+      amount: number;
+      note: string;
+    }
+  ) {
+    await publishToChannel(
+      CHANNEL_NAMES.userNotifications(creatorId),
+      'private_tip',
+      {
+        ...tipData,
+        streamId,
+        timestamp: Date.now(),
+      }
+    );
+  }
+
+  /**
    * Broadcast viewer joined
    */
   static async broadcastViewerJoined(

@@ -145,6 +145,9 @@ export default function TheaterModePage() {
   // UI state
   const [showChat, setShowChat] = useState(true);
   const [showViewerList, setShowViewerList] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
+  const [tipNote, setTipNote] = useState('');
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -542,8 +545,8 @@ export default function TheaterModePage() {
     }
   };
 
-  // Handle tip
-  const handleTip = async (amount: number) => {
+  // Handle tip with optional note
+  const handleTip = async (amount: number, note?: string) => {
     if (!currentUser) {
       alert('Please sign in to send tips');
       return;
@@ -563,7 +566,7 @@ export default function TheaterModePage() {
           'Content-Type': 'application/json',
           'Idempotency-Key': idempotencyKey,
         },
-        body: JSON.stringify({ amount, streamId }),
+        body: JSON.stringify({ amount, streamId, note: note?.trim() || undefined }),
       });
 
       if (response.ok) {
@@ -851,56 +854,17 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Custom Tip Input - Tron Theme - desktop only */}
+          {/* Action Buttons Bar - desktop only */}
           <div className="hidden lg:flex px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
-            <div className="relative flex items-center">
-              {/* Tron-style input container */}
-              <div className="relative bg-black/70 backdrop-blur-xl rounded-xl border border-cyan-500/40 shadow-[0_0_15px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
-                {/* Corner accents - Tron style */}
-                <div className="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400 rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400 rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400 rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400 rounded-br-lg" />
-
-                <div className="flex items-center px-3 py-2">
-                  <span className="text-cyan-400 font-bold text-sm mr-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">💰</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10000"
-                    placeholder="Enter coins"
-                    className="w-24 bg-transparent text-white text-sm font-semibold placeholder-cyan-400/50 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        const amount = parseInt(input.value);
-                        if (amount > 0) {
-                          handleTip(amount);
-                          input.value = '';
-                        }
-                      }
-                    }}
-                    id="desktop-tip-input"
-                  />
-                </div>
-              </div>
-
-              {/* Send Tip Button - Tron style */}
-              <button
-                onClick={() => {
-                  const input = document.getElementById('desktop-tip-input') as HTMLInputElement;
-                  const amount = parseInt(input?.value || '0');
-                  if (amount > 0) {
-                    handleTip(amount);
-                    if (input) input.value = '';
-                  }
-                }}
-                disabled={!currentUser}
-                className="ml-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50"
-              >
-                Send Tip
-              </button>
-            </div>
+            {/* Send Tip Button - opens modal */}
+            <button
+              onClick={() => setShowTipModal(true)}
+              disabled={!currentUser}
+              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2"
+            >
+              <Coins className="w-4 h-4" />
+              <span>Send Tip</span>
+            </button>
 
             {/* Video Call Button */}
             {stream.creatorCallSettings && (
@@ -1151,6 +1115,17 @@ export default function TheaterModePage() {
         )}
       </div>
 
+      {/* Mobile Tip Button - floats above gift bar on mobile */}
+      {stream && !streamEnded && currentUser && (
+        <button
+          onClick={() => setShowTipModal(true)}
+          className="lg:hidden fixed bottom-20 left-4 z-50 p-3 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-full shadow-lg shadow-cyan-500/40 hover:scale-110 transition-all"
+          title="Send Tip"
+        >
+          <Coins className="w-5 h-5" />
+        </button>
+      )}
+
       {/* Floating Gift Bar - shows on all screens, floating position */}
       {stream && !streamEnded && (
         <FloatingGiftBar
@@ -1192,6 +1167,139 @@ export default function TheaterModePage() {
           <span>VIP Stream</span>
           <span className="text-amber-800">{dismissedTicketedStream.ticketPrice}</span>
         </button>
+      )}
+
+      {/* Tip Modal with Optional Note */}
+      {showTipModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            onClick={() => {
+              setShowTipModal(false);
+              setTipAmount('');
+              setTipNote('');
+            }}
+          />
+          {/* Modal */}
+          <div className="relative w-full max-w-sm bg-gradient-to-br from-cyan-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-cyan-400/60 shadow-[0_0_60px_rgba(34,211,238,0.4)] p-6 animate-slideUp">
+            {/* Corner accents - Tron style */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-xl" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-xl" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-xl" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-xl" />
+
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowTipModal(false);
+                setTipAmount('');
+                setTipNote('');
+              }}
+              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex justify-center mb-4">
+              <div className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/30">
+                <Coins className="w-4 h-4" />
+                SEND TIP
+              </div>
+            </div>
+
+            {/* Creator Name */}
+            <p className="text-white/80 text-center text-sm mb-4">
+              Tip <span className="font-bold text-cyan-300">@{stream?.creator.username}</span>
+            </p>
+
+            {/* Balance Display */}
+            <div className="flex items-center justify-center gap-2 mb-4 text-sm">
+              <span className="text-white/60">Your balance:</span>
+              <Coins className="w-4 h-4 text-green-400" />
+              <span className="font-bold text-green-400">{userBalance.toLocaleString()}</span>
+            </div>
+
+            {/* Amount Input */}
+            <div className="mb-4">
+              <label className="block text-cyan-300 text-xs font-semibold mb-2">Amount (coins)</label>
+              <input
+                type="number"
+                value={tipAmount}
+                onChange={(e) => setTipAmount(e.target.value)}
+                placeholder="Enter amount..."
+                min="1"
+                max={userBalance}
+                className="w-full px-4 py-3 bg-white/10 border-2 border-cyan-400/40 rounded-xl text-white text-lg font-bold placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all text-center"
+              />
+            </div>
+
+            {/* Quick Amount Buttons */}
+            <div className="flex gap-2 mb-4">
+              {[10, 50, 100, 500].map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => setTipAmount(amt.toString())}
+                  disabled={userBalance < amt}
+                  className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
+                    tipAmount === amt.toString()
+                      ? 'bg-cyan-500 text-black'
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  } ${userBalance < amt ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  {amt}
+                </button>
+              ))}
+            </div>
+
+            {/* Private Note Input */}
+            <div className="mb-4">
+              <label className="block text-cyan-300 text-xs font-semibold mb-2">
+                Private Note <span className="text-white/40">(optional)</span>
+              </label>
+              <textarea
+                value={tipNote}
+                onChange={(e) => setTipNote(e.target.value.slice(0, 200))}
+                placeholder="Write a private message for the creator..."
+                rows={3}
+                className="w-full px-4 py-3 bg-white/10 border-2 border-cyan-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all resize-none text-sm"
+              />
+              <div className="flex items-center justify-between mt-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-cyan-400/70">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Only the creator will see this</span>
+                </div>
+                <span className="text-xs text-white/40">{tipNote.length}/200</span>
+              </div>
+            </div>
+
+            {/* Send Button */}
+            <button
+              onClick={async () => {
+                const amount = parseInt(tipAmount);
+                if (amount > 0 && amount <= userBalance) {
+                  await handleTip(amount, tipNote || undefined);
+                  setShowTipModal(false);
+                  setTipAmount('');
+                  setTipNote('');
+                }
+              }}
+              disabled={!tipAmount || parseInt(tipAmount) <= 0 || parseInt(tipAmount) > userBalance}
+              className="w-full py-4 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 hover:from-cyan-400 hover:via-cyan-300 hover:to-cyan-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              <Coins className="w-5 h-5" />
+              {tipAmount ? `Send ${parseInt(tipAmount).toLocaleString()} Coins` : 'Enter Amount'}
+            </button>
+
+            {/* Cancel text */}
+            <p className="text-center text-gray-500 text-xs mt-3">
+              Tap outside to cancel
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Ticketed Show Announcement Popup */}

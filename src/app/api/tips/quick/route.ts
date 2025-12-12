@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     // Wrap the entire tip processing in idempotency check
     return await withIdempotency(`tips:${idempotencyKey}`, 60000, async () => {
-      const { amount, streamId } = await req.json();
+      const { amount, streamId, note } = await req.json();
 
     // Validate input
     if (!amount || !streamId || amount <= 0) {
@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Sanitize note (max 200 chars, trim whitespace)
+    const sanitizedNote = note ? String(note).trim().slice(0, 200) : null;
 
     // Get current user
     const supabase = await createClient();
@@ -175,12 +178,15 @@ export async function POST(req: NextRequest) {
         userId: creator.id,
         type: 'tip_received',
         title: 'New Tip!',
-        message: `@${sender?.username || 'Someone'} sent you ${amount} coins during your stream!`,
+        message: sanitizedNote
+          ? `@${sender?.username || 'Someone'} sent you ${amount} coins: "${sanitizedNote}"`
+          : `@${sender?.username || 'Someone'} sent you ${amount} coins during your stream!`,
         metadata: JSON.stringify({
           amount,
           streamId: stream.id,
           senderId: authUser.id,
           senderUsername: sender?.username,
+          note: sanitizedNote,
         }),
       });
 
@@ -197,6 +203,17 @@ export async function POST(req: NextRequest) {
       senderAvatarUrl: null,
       amount,
     });
+
+    // If there's a note, broadcast private tip notification to creator only
+    if (sanitizedNote) {
+      await AblyRealtimeService.broadcastPrivateTipNote(creator.id, streamId, {
+        senderId: authUser.id,
+        senderUsername: sender?.username || 'Anonymous',
+        senderAvatarUrl: null,
+        amount,
+        note: sanitizedNote,
+      });
+    }
 
       return NextResponse.json({
         success: true,
