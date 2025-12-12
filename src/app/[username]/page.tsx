@@ -978,12 +978,17 @@ export default function ProfilePage() {
                                     src={item.thumbnail}
                                     alt={item.title}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                                    onError={(e) => {
+                                      // Replace broken image with placeholder
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      target.parentElement?.querySelector('.photo-placeholder')?.classList.remove('hidden');
+                                    }}
                                   />
-                                ) : (
-                                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-900 via-purple-900 to-slate-900 flex items-center justify-center">
-                                    <Image className="w-16 h-16 text-gray-600" />
-                                  </div>
-                                )}
+                                ) : null}
+                                <div className={`absolute inset-0 bg-gradient-to-br from-cyan-900 via-purple-900 to-slate-900 flex items-center justify-center photo-placeholder ${item.thumbnail ? 'hidden' : ''}`}>
+                                  <Image className="w-16 h-16 text-gray-600" />
+                                </div>
 
                                 {/* Gradient Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
@@ -1074,12 +1079,17 @@ export default function ProfilePage() {
                                   src={item.thumbnail}
                                   alt={item.title}
                                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                  onError={(e) => {
+                                    // Replace broken image with placeholder
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    target.parentElement?.querySelector('.video-placeholder')?.classList.remove('hidden');
+                                  }}
                                 />
-                              ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center">
-                                  <Film className="w-12 h-12 text-gray-400" />
-                                </div>
-                              )}
+                              ) : null}
+                              <div className={`absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center video-placeholder ${item.thumbnail ? 'hidden' : ''}`}>
+                                <Film className="w-12 h-12 text-gray-400" />
+                              </div>
 
                               {/* Overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
