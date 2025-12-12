@@ -640,8 +640,8 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Message Input */}
-        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0">
+        {/* Message Input - pb-20 on mobile for bottom nav, pb-4 on desktop */}
+        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-16 lg:pb-0">
           <div className="container mx-auto px-4 py-4 max-w-2xl">
             <form onSubmit={sendMessage} className="flex gap-2">
               {/* Voice Message Button - placed first (furthest from input to avoid accidental taps) */}
