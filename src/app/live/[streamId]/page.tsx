@@ -1078,7 +1078,7 @@ export default function TheaterModePage() {
 
       {/* Tron-style Goal Bar Overlay - centered over video, below header */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[280px] lg:max-w-[280px]">
+        <div className="fixed top-28 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[336px] lg:max-w-[336px]">
           <TronGoalBar
             goals={stream.goals
               .filter((g: any) => g.isActive && !g.isCompleted)

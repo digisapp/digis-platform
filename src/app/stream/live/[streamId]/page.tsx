@@ -402,17 +402,7 @@ export default function BroadcastStudioPage() {
         timestamp: Date.now()
       }]);
 
-      // Show top tipper spotlight for large tips (100+ coins)
-      if (tipData.amount >= 100) {
-        const tipAlert: Alert = {
-          type: 'topTipper',
-          username: tipData.senderUsername,
-          amount: tipData.amount,
-          avatarUrl: tipData.senderAvatarUrl,
-          id: `tip-spotlight-${Date.now()}-${Math.random()}`,
-        };
-        setAlerts(prev => [...prev, tipAlert]);
-      }
+      // Top tipper spotlight removed - top supporters shown in leaderboard instead
     },
     onViewerCount: (data) => {
       setViewerCount(data.currentViewers);
@@ -1355,7 +1345,7 @@ export default function BroadcastStudioPage() {
 
       {/* Floating Tron Goal Bar - centered over video on all screens */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[280px] lg:max-w-[280px]">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px] lg:top-24 lg:w-[336px] lg:max-w-[336px]">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
