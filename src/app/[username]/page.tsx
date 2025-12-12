@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Radio, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -861,34 +861,6 @@ export default function ProfilePage() {
 
         {/* Inline Live Stream Section */}
         <ProfileLiveSection username={user.username} />
-
-        {/* Currently Live Banner (fallback - will be hidden if ProfileLiveSection shows) */}
-        {isLive && liveStreamId && (
-          <div className="mb-6">
-            <button
-              onClick={() => router.push(`/live/${liveStreamId}`)}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-2xl p-4 sm:p-6 transition-all hover:scale-[1.02] border-2 border-red-400 shadow-lg"
-            >
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="relative flex-shrink-0">
-                    <Radio className="w-8 h-8 text-white" />
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-pulse" />
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="text-lg sm:text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                      <span className="inline-block px-2 py-1 bg-red-600 rounded text-sm font-bold">LIVE</span>
-                      <span className="hidden sm:inline">{user.displayName || user.username} is streaming now!</span>
-                      <span className="sm:hidden">Streaming Now!</span>
-                    </h3>
-                    <p className="text-white/90 text-sm mt-1">Tap to watch the live stream</p>
-                  </div>
-                </div>
-                <Video className="w-6 h-6 text-white flex-shrink-0" />
-              </div>
-            </button>
-          </div>
-        )}
 
         {/* Profile Goals Widget */}
         {user.role === 'creator' && goals.length > 0 && (
