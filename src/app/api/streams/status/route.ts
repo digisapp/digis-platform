@@ -20,6 +20,7 @@ interface CachedStreamData {
   streamTitle: string;
   creatorName: string;
   creatorId: string;
+  currentViewers: number;
 }
 
 export async function GET(req: NextRequest) {
@@ -80,11 +81,12 @@ export async function GET(req: NextRequest) {
         // If no live/upcoming stream, return null (idle state)
         if (!stream || stream.status === 'ended') return null;
 
-        // Fetch full stream details including title
+        // Fetch full stream details including title and viewer count
         const streamDetails = await db.query.streams.findFirst({
           where: eq(streams.id, stream.id),
           columns: {
             title: true,
+            currentViewers: true,
           },
         });
 
@@ -106,6 +108,7 @@ export async function GET(req: NextRequest) {
           streamTitle: streamDetails?.title ?? 'Live Stream',
           creatorName: creatorDetails?.displayName || creatorDetails?.username || username,
           creatorId: creator.id,
+          currentViewers: streamDetails?.currentViewers ?? 0,
         };
       },
       3 // 3 second TTL for real-time accuracy

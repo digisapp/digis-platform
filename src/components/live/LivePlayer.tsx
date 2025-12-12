@@ -250,7 +250,7 @@ export default function LivePlayer({ streamId, miniOnScroll = true }: LivePlayer
 
             <button
               onClick={() => {
-                window.location.href = `/stream/${streamId}`;
+                window.location.href = `/live/${streamId}`;
                 streamAnalytics.theaterModeClicked('current_user', streamId);
               }}
               className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
