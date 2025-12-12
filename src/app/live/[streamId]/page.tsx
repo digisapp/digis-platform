@@ -842,7 +842,7 @@ export default function TheaterModePage() {
           </div>
 
           {/* Custom Tip Input - Tron Theme - desktop only */}
-          <div className="hidden lg:flex px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-center gap-3">
+          <div className="hidden lg:flex px-4 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
             <div className="relative flex items-center">
               {/* Tron-style input container */}
               <div className="relative bg-black/70 backdrop-blur-xl rounded-xl border border-cyan-500/40 shadow-[0_0_15px_rgba(34,211,238,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
