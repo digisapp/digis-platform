@@ -722,7 +722,7 @@ export default function TheaterModePage() {
               />
             ) : (
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold text-sm flex-shrink-0">
-                {stream.creator.displayName?.[0] || stream.creator.username[0]}
+                {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
               </div>
             )}
 
@@ -1014,7 +1014,7 @@ export default function TheaterModePage() {
                               <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-xs font-bold">
-                                {msg.username[0].toUpperCase()}
+                                {msg.username?.[0]?.toUpperCase() || '?'}
                               </div>
                             )}
                             <span className="font-bold text-green-300">@{msg.username}</span>
@@ -1030,7 +1030,7 @@ export default function TheaterModePage() {
                               <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-xs font-bold">
-                                {msg.username[0].toUpperCase()}
+                                {msg.username?.[0]?.toUpperCase() || '?'}
                               </div>
                             )}
                             <span className="font-bold text-pink-300">@{msg.username}</span>
@@ -1053,7 +1053,7 @@ export default function TheaterModePage() {
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">
-                            {msg.username[0].toUpperCase()}
+                            {msg.username?.[0]?.toUpperCase() || '?'}
                           </div>
                         )}
 
@@ -1162,7 +1162,7 @@ export default function TheaterModePage() {
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold shadow-lg shadow-cyan-500/30">
-                            {viewer.displayName?.[0] || viewer.username[0]}
+                            {viewer.displayName?.[0] || viewer.username?.[0] || '?'}
                           </div>
                         )}
 

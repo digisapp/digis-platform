@@ -167,7 +167,7 @@ export function CallRequestQueue({
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-cyan-400 flex items-center justify-center text-gray-900 font-bold text-xl border-2 border-yellow-400/50">
-                    {request.callerName[0].toUpperCase()}
+                    {request.callerName?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
               </div>

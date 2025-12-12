@@ -307,7 +307,7 @@ export default function MessagesPage() {
                             />
                           ) : (
                             <span className="text-white">
-                              {(conversation.otherUser.username || 'U')[0].toUpperCase()}
+                              {conversation.otherUser.username?.[0]?.toUpperCase() || '?'}
                             </span>
                           )}
                         </div>

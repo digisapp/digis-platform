@@ -261,7 +261,7 @@ export function IncomingCallPopup() {
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-3xl font-bold ring-4 ring-green-500 ring-offset-4 ring-offset-gray-900">
-                  {(currentCall.fan.displayName || currentCall.fan.username)[0].toUpperCase()}
+                  {(currentCall.fan.displayName || currentCall.fan.username)?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               {/* Pulsing indicator */}

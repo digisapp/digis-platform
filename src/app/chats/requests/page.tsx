@@ -206,7 +206,7 @@ export default function MessageRequestsPage() {
                       />
                     ) : (
                       <span className="text-white">
-                        {(request.fromUser.username || 'U')[0].toUpperCase()}
+                        {request.fromUser.username?.[0]?.toUpperCase() || '?'}
                       </span>
                     )}
                   </div>

@@ -108,7 +108,7 @@ export default function OverlayChat({
                   <img src={msg.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-green-300 flex items-center justify-center text-[10px] font-bold text-green-800">
-                    {msg.username[0].toUpperCase()}
+                    {msg.username?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
                 <span className="font-bold text-white text-xs">{msg.username}</span>
@@ -122,7 +122,7 @@ export default function OverlayChat({
                   <img src={msg.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-pink-300 flex items-center justify-center text-[10px] font-bold text-pink-800">
-                    {msg.username[0].toUpperCase()}
+                    {msg.username?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
                 <span className="font-bold text-white text-xs">{msg.username}</span>
@@ -139,7 +139,7 @@ export default function OverlayChat({
                   <img src={msg.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-0.5">
-                    {msg.username[0].toUpperCase()}
+                    {msg.username?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
                 <div className="min-w-0">

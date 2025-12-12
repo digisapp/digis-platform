@@ -157,7 +157,7 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs text-white font-bold">
-                  {(show.creator.displayName || show.creator.username)[0].toUpperCase()}
+                  {(show.creator.displayName || show.creator.username)?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
             </div>

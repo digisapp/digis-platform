@@ -141,7 +141,7 @@ export function AttendeeList({ showId }: AttendeeListProps) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                    {(attendee.user.displayName || attendee.user.username)[0].toUpperCase()}
+                    {(attendee.user.displayName || attendee.user.username)?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
               </div>
