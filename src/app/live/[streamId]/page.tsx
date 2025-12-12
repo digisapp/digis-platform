@@ -19,9 +19,6 @@ import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
-import dynamic from 'next/dynamic';
-
-const OverlayChat = dynamic(() => import('@/components/live/OverlayChat'), { ssr: false });
 
 interface StreamData {
   id: string;
@@ -869,58 +866,6 @@ export default function TheaterModePage() {
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
 
-                {/* Mobile Overlay Chat - Portrait only (TikTok/IG Live style) */}
-                {!isLandscape && (
-                  <div className="lg:hidden">
-                    <OverlayChat
-                      messages={messages}
-                      onSendMessage={(content) => {
-                        // Prevent double submission
-                        if (!currentUser || sendingMessage) return;
-
-                        // Check for duplicate content in recent messages
-                        const isDuplicate = messages.slice(-5).some(m =>
-                          m.userId === currentUser.id &&
-                          m.content === content
-                        );
-                        if (isDuplicate) return;
-
-                        const optimisticMessage: ChatMessage = {
-                          id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                          userId: currentUser.id,
-                          username: currentUser.username,
-                          displayName: currentUser.displayName,
-                          avatarUrl: currentUser.avatarUrl,
-                          content,
-                          timestamp: Date.now(),
-                          isCreator: currentUser.id === stream?.creator.id,
-                        };
-                        setMessages((prev) => [...prev, optimisticMessage]);
-                        setSendingMessage(true);
-                        fetch(`/api/streams/${streamId}/message`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ content }),
-                        })
-                          .then((res) => {
-                            if (!res.ok) {
-                              setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
-                            } else {
-                              streamAnalytics.chatMessageSent(streamId);
-                            }
-                          })
-                          .catch(() => {
-                            setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
-                          })
-                          .finally(() => setSendingMessage(false));
-                      }}
-                      currentUserId={currentUser?.id}
-                      isAuthenticated={!!currentUser}
-                      disabled={sendingMessage || userBalance <= 0}
-                      streamId={streamId}
-                    />
-                  </div>
-                )}
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -970,9 +915,105 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Landscape Mode Chat Input - below video on mobile */}
-          {isLandscape && !streamEnded && (
-            <div className="lg:hidden px-3 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl">
+          {/* Mobile Action Bar - inline below title */}
+          {!streamEnded && (
+            <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20">
+              <div className="flex items-center gap-2">
+                {/* Tip Button */}
+                {currentUser && (
+                  <button
+                    onClick={() => setShowTipModal(true)}
+                    className="p-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg flex-shrink-0"
+                  >
+                    <Coins className="w-4 h-4" />
+                  </button>
+                )}
+                {/* Gift Bar - inline */}
+                <div className="flex-1 overflow-hidden">
+                  <FloatingGiftBar
+                    streamId={streamId}
+                    creatorId={stream.creator.id}
+                    onSendGift={handleSendGift}
+                    userBalance={userBalance}
+                    isAuthenticated={!!currentUser}
+                    onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+                    onBuyCoins={() => setShowBuyCoinsModal(true)}
+                    inline
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Chat Section - below action bar */}
+          <div className="lg:hidden flex-1 flex flex-col min-h-0 bg-black/40">
+            {/* Chat Messages */}
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto px-3 py-2 space-y-2"
+              style={{ maxHeight: 'calc(100vh - 380px)' }}
+            >
+              {messages.length === 0 ? (
+                <div className="text-center text-cyan-300/60 text-xs py-4">
+                  No messages yet. Be the first to chat!
+                </div>
+              ) : (
+                messages.slice(-50).map((msg) => (
+                  msg.messageType === 'tip' ? (
+                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+                      {msg.avatarUrl ? (
+                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-green-400 flex items-center justify-center text-[10px] font-bold text-green-900">
+                          {msg.username?.[0]?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <span className="font-bold text-green-300 text-xs">@{msg.username}</span>
+                      <Coins className="w-3 h-3 text-green-400" />
+                      <span className="font-bold text-green-400 text-xs">{msg.tipAmount}</span>
+                    </div>
+                  ) : msg.messageType === 'gift' ? (
+                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30">
+                      {msg.avatarUrl ? (
+                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-900">
+                          {msg.username?.[0]?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <span className="font-bold text-pink-300 text-xs">@{msg.username}</span>
+                      <span className="text-white/70 text-xs">sent</span>
+                      {msg.giftQuantity && msg.giftQuantity > 1 && (
+                        <span className="font-bold text-pink-400 text-xs">{msg.giftQuantity}x</span>
+                      )}
+                      <span className="text-base">{msg.giftEmoji}</span>
+                    </div>
+                  ) : (
+                    <div key={msg.id} className="flex gap-2">
+                      {msg.avatarUrl ? (
+                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+                          {msg.username?.[0]?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <span className={`font-bold text-xs ${msg.isCreator ? 'text-yellow-400' : 'text-cyan-300'}`}>
+                          @{msg.username}
+                        </span>
+                        {msg.isCreator && (
+                          <span className="ml-1 text-[9px] px-1 py-0.5 bg-yellow-500/30 text-yellow-300 rounded">Creator</span>
+                        )}
+                        <p className="text-white text-xs break-words">{msg.content}</p>
+                      </div>
+                    </div>
+                  )
+                ))
+              )}
+            </div>
+
+            {/* Mobile Chat Input */}
+            <div className="px-3 py-2 border-t border-cyan-400/20 bg-black/60 pb-[calc(60px+env(safe-area-inset-bottom))]">
               {currentUser ? (
                 userBalance > 0 ? (
                   <div className="flex gap-2">
@@ -983,12 +1024,12 @@ export default function TheaterModePage() {
                       onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                       placeholder="Send a message..."
                       disabled={sendingMessage}
-                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-sm"
+                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-sm"
                     />
                     <button
                       onClick={sendMessage}
                       disabled={!messageInput.trim() || sendingMessage}
-                      className="px-3 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full disabled:opacity-50"
                     >
                       <Send className="w-4 h-4" />
                     </button>
@@ -1000,7 +1041,7 @@ export default function TheaterModePage() {
                       Buy coins to chat
                     </span>
                     <button
-                      onClick={() => router.push('/wallet')}
+                      onClick={() => setShowBuyCoinsModal(true)}
                       className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs"
                     >
                       Get Coins
@@ -1019,7 +1060,7 @@ export default function TheaterModePage() {
                 </div>
               )}
             </div>
-          )}
+          </div>
 
           {/* Action Buttons Bar - desktop only */}
           <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
@@ -1285,37 +1326,6 @@ export default function TheaterModePage() {
         )}
       </div>
 
-      {/* Mobile Bottom Action Bar - above navigation, combines tip + gift bar */}
-      {stream && !streamEnded && (
-        <div className="lg:hidden fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] left-0 right-0 z-50 px-2 pb-2">
-          <div className="flex items-center gap-2">
-            {/* Tip Button */}
-            {currentUser && (
-              <button
-                onClick={() => setShowTipModal(true)}
-                className="p-2.5 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg shadow-cyan-500/40 hover:scale-105 transition-all flex-shrink-0"
-                title="Send Tip"
-              >
-                <Coins className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Gift Bar - inline mode for mobile */}
-            <div className="flex-1 overflow-hidden">
-              <FloatingGiftBar
-                streamId={streamId}
-                creatorId={stream.creator.id}
-                onSendGift={handleSendGift}
-                userBalance={userBalance}
-                isAuthenticated={!!currentUser}
-                onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-                onBuyCoins={() => setShowBuyCoinsModal(true)}
-                inline
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Desktop Floating Gift Bar */}
       {stream && !streamEnded && (
@@ -1368,11 +1378,11 @@ export default function TheaterModePage() {
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
-      {/* Persistent VIP Ticket Button - shows for late-joining viewers or after dismissing popup (mobile only, desktop has it in action bar) */}
+      {/* Persistent VIP Ticket Button - shows for late-joining viewers or after dismissing popup */}
       {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
         <button
           onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
-          className="lg:hidden fixed bottom-[calc(120px+env(safe-area-inset-bottom,0px))] right-3 z-50 px-3 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-1.5 animate-bounce"
+          className="lg:hidden fixed top-20 right-3 z-50 px-3 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-1.5 animate-bounce"
         >
           <Ticket className="w-3.5 h-3.5" />
           <span>VIP</span>
