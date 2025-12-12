@@ -152,7 +152,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
               />
             ) : (
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold border-2 border-pink-500">
-                {(spotlightedCreator.displayName || spotlightedCreator.username)[0]?.toUpperCase()}
+                {(spotlightedCreator.displayName || spotlightedCreator.username)?.[0]?.toUpperCase() || '?'}
               </div>
             )}
           </a>
@@ -213,7 +213,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
                 />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white font-bold">
-                  {(spotlightedCreator.displayName || spotlightedCreator.username)[0]?.toUpperCase()}
+                  {(spotlightedCreator.displayName || spotlightedCreator.username)?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               <div>

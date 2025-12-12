@@ -146,7 +146,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {msg.username[0]?.toUpperCase() || '?'}
+                      {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -177,7 +177,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {msg.username[0]?.toUpperCase() || '?'}
+                      {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
 

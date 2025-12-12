@@ -123,7 +123,7 @@ export function ViewerList({ streamId, currentViewers }: ViewerListProps) {
                         />
                       ) : (
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold flex-shrink-0">
-                          {(viewer.displayName || viewer.username)[0]?.toUpperCase()}
+                          {(viewer.displayName || viewer.username)?.[0]?.toUpperCase() || '?'}
                         </div>
                       )}
 
