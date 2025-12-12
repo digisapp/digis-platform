@@ -219,7 +219,8 @@ function FaceTimeVideoLayout({
     }
   }, [isDragging, handleDragMove, handleDragEnd]);
 
-  const otherParticipant = callData.creator;
+  // Determine other participant - fan sees creator, creator sees fan
+  const otherParticipant = isFan ? callData.creator : callData.fan;
 
   const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
@@ -467,10 +468,25 @@ function FaceTimeVideoLayout({
             </div>
           )}
 
-          {/* Participant name */}
-          {hasRemoteParticipant && (
+          {/* Other participant info - avatar and name */}
+          {hasRemoteParticipant && otherParticipant && (
             <div className="flex justify-center mb-3">
-              <div className="px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                {/* Avatar */}
+                <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                  {otherParticipant.avatarUrl ? (
+                    <img
+                      src={otherParticipant.avatarUrl}
+                      alt={otherParticipant.displayName || otherParticipant.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-xs font-bold">
+                      {(otherParticipant.displayName || otherParticipant.username)?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  )}
+                </div>
+                {/* Name */}
                 <span className="text-white font-medium text-sm">
                   {otherParticipant.displayName || otherParticipant.username}
                 </span>
