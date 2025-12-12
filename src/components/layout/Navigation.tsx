@@ -571,7 +571,7 @@ export function Navigation() {
                 style={{ minHeight: '56px' }}
               >
                 <HelpCircle className="w-6 h-6 md:w-5 md:h-5 text-cyan-400" />
-                <span className="text-base md:text-sm text-white font-semibold">Help & Support</span>
+                <span className="text-base md:text-sm text-white font-semibold">Support</span>
               </a>
 
               <button
