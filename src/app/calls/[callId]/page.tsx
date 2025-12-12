@@ -776,7 +776,7 @@ export default function VideoCallPage() {
 
   // Send tip to creator
   const handleSendTip = async (amount: number) => {
-    if (!callData || tipSending) return;
+    if (!callData || tipSending || !user) return;
 
     if (userBalance < amount) {
       alert(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
@@ -797,16 +797,19 @@ export default function VideoCallPage() {
 
       if (response.ok) {
         setUserBalance((prev) => prev - amount);
-        // Add a tip message to chat
-        setChatMessages((prev) => [...prev, {
-          id: `tip-${Date.now()}`,
-          sender: user?.id || 'You',
-          senderName: 'You',
-          content: `Sent ${amount} coins`,
-          timestamp: Date.now(),
-          type: 'tip',
+
+        // Publish tip to Ably so both users see it
+        const ably = getAblyClient();
+        const channel = ably.channels.get(`call:${callId}`);
+        const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
+
+        await channel.publish('tip_sent', {
+          id: `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          senderId: user.id,
+          senderName,
           amount,
-        }]);
+          timestamp: Date.now(),
+        });
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to send tip');
@@ -821,7 +824,7 @@ export default function VideoCallPage() {
 
   // Send gift to creator
   const handleSendGift = async (gift: { id: string; emoji: string; name: string; price: number }) => {
-    if (!callData || tipSending) return;
+    if (!callData || tipSending || !user) return;
 
     if (userBalance < gift.price) {
       alert(`Insufficient balance. You need ${gift.price} coins but only have ${userBalance}.`);
@@ -842,17 +845,21 @@ export default function VideoCallPage() {
 
       if (response.ok) {
         setUserBalance((prev) => prev - gift.price);
-        // Add a gift message to chat
-        setChatMessages((prev) => [...prev, {
-          id: `gift-${Date.now()}`,
-          sender: user?.id || 'You',
-          senderName: 'You',
-          content: `Sent ${gift.name}`,
-          timestamp: Date.now(),
-          type: 'gift',
-          amount: gift.price,
+
+        // Publish gift to Ably so both users see it
+        const ably = getAblyClient();
+        const channel = ably.channels.get(`call:${callId}`);
+        const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
+
+        await channel.publish('gift_sent', {
+          id: `gift-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          senderId: user.id,
+          senderName,
+          giftName: gift.name,
           giftEmoji: gift.emoji,
-        }]);
+          amount: gift.price,
+          timestamp: Date.now(),
+        });
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to send gift');
@@ -865,19 +872,42 @@ export default function VideoCallPage() {
     }
   };
 
-  // Send chat message (local only for now - could be extended with Ably realtime)
-  const handleSendMessage = () => {
-    if (!messageInput.trim()) return;
+  // Send chat message via Ably so both users can see it
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !user) return;
 
-    setChatMessages((prev) => [...prev, {
-      id: `msg-${Date.now()}`,
-      sender: user?.id || 'You',
-      senderName: 'You',
-      content: messageInput,
-      timestamp: Date.now(),
-      type: 'chat',
-    }]);
+    const msgContent = messageInput.trim();
     setMessageInput('');
+
+    try {
+      const ably = getAblyClient();
+      const channel = ably.channels.get(`call:${callId}`);
+
+      // Determine sender name
+      const senderName = callData?.fan?.id === user.id
+        ? (callData.fan.displayName || callData.fan.username)
+        : (callData?.creator?.displayName || callData?.creator?.username || 'Unknown');
+
+      await channel.publish('chat_message', {
+        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        senderId: user.id,
+        senderName,
+        content: msgContent,
+        timestamp: Date.now(),
+        type: 'chat',
+      });
+    } catch (err) {
+      console.error('[CallPage] Failed to send message:', err);
+      // Add message locally anyway as fallback
+      setChatMessages((prev) => [...prev, {
+        id: `msg-${Date.now()}`,
+        sender: user?.id || 'You',
+        senderName: 'You',
+        content: msgContent,
+        timestamp: Date.now(),
+        type: 'chat',
+      }]);
+    }
   };
 
   const [showEndConfirm, setShowEndConfirm] = useState(false);
@@ -948,6 +978,58 @@ export default function VideoCallPage() {
           if (message.data.userId !== user?.id) {
             setOtherPartyError(message.data.error || 'Connection failed');
           }
+        });
+
+        // Subscribe to chat messages from other party
+        channel.subscribe('chat_message', (message) => {
+          const data = message.data;
+          // Add message to chat
+          setChatMessages((prev) => {
+            // Check for duplicate
+            if (prev.some(m => m.id === data.id)) return prev;
+            return [...prev, {
+              id: data.id,
+              sender: data.senderId,
+              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              content: data.content,
+              timestamp: data.timestamp,
+              type: data.type || 'chat',
+            }];
+          });
+        });
+
+        // Subscribe to tip notifications
+        channel.subscribe('tip_sent', (message) => {
+          const data = message.data;
+          setChatMessages((prev) => {
+            if (prev.some(m => m.id === data.id)) return prev;
+            return [...prev, {
+              id: data.id || `tip-${Date.now()}`,
+              sender: data.senderId,
+              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              content: `tipped ${data.amount} coins`,
+              timestamp: data.timestamp || Date.now(),
+              type: 'tip',
+              amount: data.amount,
+            }];
+          });
+        });
+
+        // Subscribe to gift notifications
+        channel.subscribe('gift_sent', (message) => {
+          const data = message.data;
+          setChatMessages((prev) => {
+            if (prev.some(m => m.id === data.id)) return prev;
+            return [...prev, {
+              id: data.id || `gift-${Date.now()}`,
+              sender: data.senderId,
+              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              content: `sent ${data.giftName}`,
+              timestamp: data.timestamp || Date.now(),
+              type: 'gift',
+              giftEmoji: data.giftEmoji,
+            }];
+          });
         });
 
       } catch (err) {
