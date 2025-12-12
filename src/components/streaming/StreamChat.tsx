@@ -154,7 +154,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                       <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                     </div>
                     <p className="text-sm text-white">
-                      Sent {(msg as any).giftEmoji || '🎁'} <span className="text-digis-cyan">({msg.giftAmount} coins)</span>
+                      Sent {(msg as any).giftEmoji || '🎁'} <span className="font-bold text-digis-cyan">{msg.giftAmount} Coins</span>
                     </p>
                   </div>
                 </div>
