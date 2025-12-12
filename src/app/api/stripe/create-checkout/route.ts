@@ -85,11 +85,6 @@ export async function POST(request: NextRequest) {
           setup_future_usage: 'on_session', // Save card for future purchases
         },
       },
-      // Enable Link (Stripe's 1-click checkout) for faster repeat purchases
-      consent_collection: {
-        promotions: 'auto',
-      },
-      // Allow customers to adjust quantity
       success_url: `${process.env.NEXT_PUBLIC_URL}/wallet/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/wallet/cancelled`,
       metadata: {
