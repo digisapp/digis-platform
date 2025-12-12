@@ -691,7 +691,7 @@ export default function ProfilePage() {
       <ConfettiEffect show={showConfetti} duration={2000} />
 
       {/* Spacer for fixed mobile header */}
-      <div className="md:hidden" style={{ height: 'calc(64px + env(safe-area-inset-top, 0px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       {/* Banner with Parallax Effect */}
       <div className="relative">

@@ -9,6 +9,7 @@ import { Volume2, VolumeX, Maximize2, X } from 'lucide-react';
 interface LivePlayerProps {
   streamId: string;
   miniOnScroll?: boolean;
+  previewMode?: boolean; // Hide controls for embed previews
 }
 
 // Component to display only the broadcaster's video
@@ -70,7 +71,7 @@ function BroadcasterVideoPreview({ onConnectionChange }: { onConnectionChange: (
   );
 }
 
-export default function LivePlayer({ streamId, miniOnScroll = true }: LivePlayerProps) {
+export default function LivePlayer({ streamId, miniOnScroll = true, previewMode = false }: LivePlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(true);
   const [showMini, setShowMini] = useState(false);
@@ -233,33 +234,35 @@ export default function LivePlayer({ streamId, miniOnScroll = true }: LivePlayer
           <RoomAudioRenderer />
         </LiveKitRoom>
 
-        {/* Control overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={toggleMute}
-              className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
-              title={muted ? 'Unmute' : 'Mute'}
-            >
-              {muted ? (
-                <VolumeX className="w-5 h-5 text-white" />
-              ) : (
-                <Volume2 className="w-5 h-5 text-white" />
-              )}
-            </button>
+        {/* Control overlay - hidden in preview mode */}
+        {!previewMode && (
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={toggleMute}
+                className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
+                title={muted ? 'Unmute' : 'Mute'}
+              >
+                {muted ? (
+                  <VolumeX className="w-5 h-5 text-white" />
+                ) : (
+                  <Volume2 className="w-5 h-5 text-white" />
+                )}
+              </button>
 
-            <button
-              onClick={() => {
-                window.location.href = `/live/${streamId}`;
-                streamAnalytics.theaterModeClicked('current_user', streamId);
-              }}
-              className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
-              title="Watch Full Screen"
-            >
-              <Maximize2 className="w-5 h-5 text-white" />
-            </button>
+              <button
+                onClick={() => {
+                  window.location.href = `/live/${streamId}`;
+                  streamAnalytics.theaterModeClicked('current_user', streamId);
+                }}
+                className="p-2 rounded-lg bg-black/40 hover:bg-black/60 transition-colors"
+                title="Watch Full Screen"
+              >
+                <Maximize2 className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Sticky mini player */}

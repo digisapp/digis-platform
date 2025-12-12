@@ -154,7 +154,7 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
             /* Live player preview - clickable to go to full experience */
             <div className="relative aspect-video">
               {inView ? (
-                <LivePlayer streamId={status.streamId!} miniOnScroll={false} />
+                <LivePlayer streamId={status.streamId!} miniOnScroll={false} previewMode />
               ) : (
                 <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
                   <div className="text-white/40 text-sm">Loading...</div>
