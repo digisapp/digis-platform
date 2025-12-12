@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Phone, PhoneOff, Video, Mic } from 'lucide-react';
+import { Phone, PhoneOff, Video, Mic, X, ChevronDown } from 'lucide-react';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
 
@@ -22,12 +22,23 @@ interface IncomingCall {
   };
 }
 
+// Quick decline reasons
+const DECLINE_REASONS = [
+  'Busy right now',
+  'In a meeting',
+  'Taking a break',
+  'Try again later',
+  'Not available today',
+];
+
 export function IncomingCallPopup() {
   const router = useRouter();
   const { user, isCreator } = useAuth();
   const [incomingCalls, setIncomingCalls] = useState<IncomingCall[]>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [showDeclineOptions, setShowDeclineOptions] = useState(false);
+  const [customReason, setCustomReason] = useState('');
 
   // Play ringtone
   const playRingtone = useCallback(() => {
@@ -173,13 +184,17 @@ export function IncomingCallPopup() {
     }
   };
 
-  // Handle reject
-  const handleReject = async (call: IncomingCall) => {
+  // Handle reject with optional reason
+  const handleReject = async (call: IncomingCall, reason?: string) => {
     setProcessingId(call.id);
+    setShowDeclineOptions(false);
+    setCustomReason('');
 
     try {
       const response = await fetch(`/api/calls/${call.id}/reject`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
       });
 
       if (response.ok) {
@@ -269,15 +284,68 @@ export function IncomingCallPopup() {
 
           {/* Action Buttons */}
           <div className="flex gap-4">
-            {/* Reject */}
-            <button
-              onClick={() => handleReject(currentCall)}
-              disabled={processingId === currentCall.id}
-              className="flex-1 py-4 px-6 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-2xl text-red-400 font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
-            >
-              <PhoneOff className="w-5 h-5" />
-              Decline
-            </button>
+            {/* Reject - with dropdown for reasons */}
+            <div className="flex-1 relative">
+              <div className="flex">
+                <button
+                  onClick={() => handleReject(currentCall)}
+                  disabled={processingId === currentCall.id}
+                  className="flex-1 py-4 px-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-l-2xl text-red-400 font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <PhoneOff className="w-5 h-5" />
+                  Decline
+                </button>
+                <button
+                  onClick={() => setShowDeclineOptions(!showDeclineOptions)}
+                  disabled={processingId === currentCall.id}
+                  className="py-4 px-2 bg-red-500/20 hover:bg-red-500/30 border border-l-0 border-red-500/50 rounded-r-2xl text-red-400 transition-all disabled:opacity-50"
+                  title="Add decline reason"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showDeclineOptions ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+
+              {/* Decline reasons dropdown */}
+              {showDeclineOptions && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-900 border border-red-500/30 rounded-xl overflow-hidden shadow-xl z-10">
+                  <div className="p-2 border-b border-white/10">
+                    <p className="text-xs text-gray-400 text-center">Leave a quick note (optional)</p>
+                  </div>
+                  {DECLINE_REASONS.map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => handleReject(currentCall, reason)}
+                      className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-red-500/20 hover:text-white transition-colors"
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                  <div className="p-2 border-t border-white/10">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={customReason}
+                        onChange={(e) => setCustomReason(e.target.value.slice(0, 100))}
+                        placeholder="Custom message..."
+                        className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-red-500/50"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customReason.trim()) {
+                            handleReject(currentCall, customReason.trim());
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => customReason.trim() && handleReject(currentCall, customReason.trim())}
+                        disabled={!customReason.trim()}
+                        className="px-3 py-2 bg-red-500/30 hover:bg-red-500/50 rounded-lg text-red-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Accept */}
             <button

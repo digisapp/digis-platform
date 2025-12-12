@@ -19,12 +19,22 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get optional decline reason from request body
+    let declineReason: string | undefined;
+    try {
+      const body = await request.json();
+      declineReason = body.reason?.trim().slice(0, 200);
+    } catch {
+      // No body or invalid JSON is fine
+    }
+
     const call = await CallService.rejectCall(callId, user.id);
 
     // Notify the fan that their call was rejected via Ably
     await AblyRealtimeService.broadcastCallUpdate(callId, 'call_rejected', {
       callId,
       creatorId: user.id,
+      reason: declineReason || null,
     });
 
     return NextResponse.json({

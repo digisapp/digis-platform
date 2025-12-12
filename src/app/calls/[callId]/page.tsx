@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { LiveKitRoom, VideoConference, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks } from '@livekit/components-react';
+import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks, VideoTrack, AudioTrack } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
 import { ConnectionState, Track } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
@@ -72,6 +72,242 @@ function RemoteParticipantMonitor({
   }, [remoteParticipants.length, hadRemoteParticipant, hasStarted, connectionState, onRemoteLeft]);
 
   return null;
+}
+
+// FaceTime-style video layout component
+function FaceTimeVideoLayout({
+  callData,
+  onEndCall,
+  isEnding,
+  duration,
+  estimatedCost,
+  hasStarted,
+}: {
+  callData: CallData;
+  onEndCall: () => void;
+  isEnding: boolean;
+  duration: number;
+  estimatedCost: number;
+  hasStarted: boolean;
+}) {
+  const { localParticipant } = useLocalParticipant();
+  const remoteParticipants = useRemoteParticipants();
+  const connectionState = useConnectionState();
+  const tracks = useTracks([Track.Source.Camera, Track.Source.Microphone]);
+
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [localPosition, setLocalPosition] = useState({ x: 16, y: 16 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+
+  const isConnected = connectionState === ConnectionState.Connected;
+  const hasRemoteParticipant = remoteParticipants.length > 0;
+  const remoteParticipant = remoteParticipants[0];
+
+  // Get video tracks
+  const localVideoTrack = tracks.find(
+    t => t.participant.sid === localParticipant?.sid && t.source === Track.Source.Camera
+  );
+  const remoteVideoTrack = tracks.find(
+    t => t.participant.sid === remoteParticipant?.sid && t.source === Track.Source.Camera
+  );
+
+  const toggleMute = async () => {
+    if (localParticipant) {
+      await localParticipant.setMicrophoneEnabled(isMuted);
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleVideo = async () => {
+    if (localParticipant) {
+      await localParticipant.setCameraEnabled(isVideoOff);
+      setIsVideoOff(!isVideoOff);
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Handle dragging the local video
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      startPosX: localPosition.x,
+      startPosY: localPosition.y,
+    };
+    setIsDragging(true);
+  };
+
+  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (!dragRef.current || !isDragging) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const deltaX = clientX - dragRef.current.startX;
+    const deltaY = clientY - dragRef.current.startY;
+
+    const newX = Math.max(8, Math.min(window.innerWidth - 160, dragRef.current.startPosX + deltaX));
+    const newY = Math.max(8, Math.min(window.innerHeight - 220, dragRef.current.startPosY + deltaY));
+
+    setLocalPosition({ x: newX, y: newY });
+  }, [isDragging]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+    dragRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove);
+        window.removeEventListener('mouseup', handleDragEnd);
+        window.removeEventListener('touchmove', handleDragMove);
+        window.removeEventListener('touchend', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDragMove, handleDragEnd]);
+
+  const otherParticipant = callData.creator;
+
+  return (
+    <div className="relative w-full h-full bg-black">
+      {/* Remote participant - full screen */}
+      <div className="absolute inset-0">
+        {remoteVideoTrack ? (
+          <VideoTrack
+            trackRef={remoteVideoTrack}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+            <div className="text-center">
+              {hasRemoteParticipant ? (
+                <>
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                    {otherParticipant.avatarUrl ? (
+                      <img src={otherParticipant.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <span className="text-4xl font-bold text-white">
+                        {(otherParticipant.displayName || otherParticipant.username)[0].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400">Camera off</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 flex items-center justify-center animate-pulse">
+                    <User className="w-16 h-16 text-gray-500" />
+                  </div>
+                  <p className="text-gray-400">
+                    {isConnected ? 'Waiting for other participant...' : 'Connecting...'}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Local participant - small draggable PIP */}
+      <div
+        className={`absolute z-20 w-36 h-48 rounded-2xl overflow-hidden border-2 border-white/30 shadow-2xl cursor-move transition-shadow ${isDragging ? 'shadow-cyan-500/50' : ''}`}
+        style={{ right: localPosition.x, top: localPosition.y }}
+        onMouseDown={handleDragStart}
+        onTouchStart={handleDragStart}
+      >
+        {localVideoTrack && !isVideoOff ? (
+          <VideoTrack
+            trackRef={localVideoTrack}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+              <User className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        )}
+        {isMuted && (
+          <div className="absolute bottom-2 right-2 p-1.5 bg-red-500 rounded-full">
+            <MicOff className="w-3 h-3 text-white" />
+          </div>
+        )}
+      </div>
+
+      {/* Top bar - duration and cost */}
+      {hasStarted && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-cyan-400" />
+            <span className="font-mono font-bold text-white">{formatDuration(duration)}</span>
+          </div>
+          <div className="w-px h-4 bg-white/30" />
+          <div className="flex items-center gap-1">
+            <Coins className="w-4 h-4 text-yellow-400" />
+            <span className="font-bold text-yellow-400">~{estimatedCost}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom controls */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4">
+        {/* Mute button */}
+        <button
+          onClick={toggleMute}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+            isMuted
+              ? 'bg-red-500 text-white'
+              : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+          }`}
+        >
+          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+        </button>
+
+        {/* End call button */}
+        <button
+          onClick={onEndCall}
+          disabled={isEnding}
+          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
+        >
+          {isEnding ? <Loader2 className="w-7 h-7 animate-spin" /> : <PhoneOff className="w-7 h-7" />}
+        </button>
+
+        {/* Video toggle button */}
+        <button
+          onClick={toggleVideo}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+            isVideoOff
+              ? 'bg-red-500 text-white'
+              : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
+          }`}
+        >
+          {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Participant name overlay */}
+      {hasRemoteParticipant && (
+        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-30 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+          <span className="text-white font-medium">
+            {otherParticipant.displayName || otherParticipant.username}
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Voice Call UI Component
@@ -392,6 +628,7 @@ export default function VideoCallPage() {
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [callEndedByOther, setCallEndedByOther] = useState(false);
   const [otherPartyError, setOtherPartyError] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState<string | null>(null);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -438,10 +675,16 @@ export default function VideoCallPage() {
 
         channel.subscribe('call_rejected', (message) => {
           console.log('Call rejected:', message.data);
-          setError('Call was declined');
+          const reason = message.data?.reason;
+          if (reason) {
+            setDeclineReason(reason);
+            setError(`Call declined: "${reason}"`);
+          } else {
+            setError('Call was declined');
+          }
           setTimeout(() => {
             router.push('/dashboard');
-          }, 2000);
+          }, 3000);
         });
 
         channel.subscribe('connection_error', (message) => {
@@ -735,211 +978,17 @@ export default function VideoCallPage() {
             <RoomAudioRenderer />
           </>
         ) : (
-          // Video Call UI - Tron Styled
-          <div className="relative z-10 h-screen flex flex-col">
-            {/* Futuristic Header */}
-            <div className="absolute top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/60 border-b border-cyan-500/30 shadow-[0_4px_30px_rgba(34,211,238,0.2)]">
-              <div className="max-w-7xl mx-auto px-4 py-4">
-                <div className="flex items-center justify-between">
-                  {/* Left - Call Info */}
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <div className="absolute -inset-1 bg-cyan-500/30 rounded-full blur-md animate-pulse"></div>
-                      <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
-                        <Video className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                    <div>
-                      <h1 className="text-lg font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                        Video Call
-                      </h1>
-                      <p className="text-sm text-gray-400 flex items-center gap-2">
-                        <span className="text-cyan-400">{callData.fan.displayName || callData.fan.username}</span>
-                        <Zap className="w-3 h-3 text-yellow-400" />
-                        <span className="text-purple-400">{callData.creator.displayName || callData.creator.username}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Center - Duration & Cost */}
-                  <div className="hidden md:flex items-center gap-6">
-                    {hasStarted && (
-                      <>
-                        <div className="flex items-center gap-3 px-4 py-2 bg-cyan-500/10 rounded-xl border border-cyan-500/30">
-                          <Clock className="w-5 h-5 text-cyan-400" />
-                          <span className="text-2xl font-bold font-mono text-cyan-400">{formatDuration(duration)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 rounded-xl border border-yellow-500/30">
-                          <Coins className="w-5 h-5 text-yellow-400" />
-                          <span className="text-lg font-bold text-yellow-400">~{estimatedCost}</span>
-                          <span className="text-sm text-yellow-400/60">coins</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Right - End Call */}
-                  <button
-                    onClick={handleEndCall}
-                    disabled={isEnding}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg shadow-red-500/30 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    {isEnding ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span className="hidden sm:inline">Ending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <PhoneOff className="w-5 h-5" />
-                        <span className="hidden sm:inline">End Call</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Mobile Duration/Cost */}
-                {hasStarted && (
-                  <div className="md:hidden flex items-center justify-center gap-4 mt-3 pt-3 border-t border-white/10">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-cyan-400" />
-                      <span className="font-bold font-mono text-cyan-400">{formatDuration(duration)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Coins className="w-4 h-4 text-yellow-400" />
-                      <span className="font-bold text-yellow-400">~{estimatedCost}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Video Call Area with Sidebar */}
-            <div className="flex-1 pt-24 md:pt-20 flex">
-              {/* Main Video Area - Centered */}
-              <div className="flex-1 flex items-center justify-center p-4">
-                <div className="w-full h-full max-w-5xl livekit-container">
-                  <VideoConference />
-                </div>
-              </div>
-              <RoomAudioRenderer />
-
-              {/* Chat & Tips Sidebar */}
-              {showChat && (
-                <div className="w-80 bg-black/60 backdrop-blur-xl border-l border-cyan-500/30 flex flex-col">
-                  {/* Sidebar Header */}
-                  <div className="p-4 border-b border-cyan-500/30 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-5 h-5 text-cyan-400" />
-                      <span className="font-bold text-white">Chat & Tips</span>
-                    </div>
-                    <button
-                      onClick={() => setShowChat(false)}
-                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <X className="w-4 h-4 text-gray-400" />
-                    </button>
-                  </div>
-
-                  {/* Quick Tip Buttons (for fans only) */}
-                  {isFan && (
-                    <div className="p-4 border-b border-cyan-500/30">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Gift className="w-4 h-4 text-pink-400" />
-                        <span className="text-sm font-semibold text-white">Quick Tips</span>
-                        <span className="text-xs text-gray-400 ml-auto">{userBalance} coins</span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[5, 10, 25, 50].map((amount) => (
-                          <button
-                            key={amount}
-                            onClick={() => handleSendTip(amount)}
-                            disabled={tipSending || userBalance < amount}
-                            className="py-2 px-1 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 text-pink-300 font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
-                          >
-                            {amount}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 mt-2">
-                        {[100, 250, 500].map((amount) => (
-                          <button
-                            key={amount}
-                            onClick={() => handleSendTip(amount)}
-                            disabled={tipSending || userBalance < amount}
-                            className="py-2 px-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/40 text-yellow-300 font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
-                          >
-                            {amount}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Chat Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {chatMessages.length === 0 ? (
-                      <div className="text-center text-gray-500 text-sm mt-8">
-                        <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>No messages yet</p>
-                        <p className="text-xs mt-1">Chat during your call!</p>
-                      </div>
-                    ) : (
-                      chatMessages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`p-2 rounded-lg ${
-                            msg.sender === 'system'
-                              ? 'bg-yellow-500/20 border border-yellow-500/30 text-center'
-                              : 'bg-white/5'
-                          }`}
-                        >
-                          {msg.sender !== 'system' && (
-                            <div className="text-xs text-cyan-400 font-semibold mb-1">
-                              {msg.sender === user?.id ? 'You' : 'Other'}
-                            </div>
-                          )}
-                          <p className={`text-sm ${msg.sender === 'system' ? 'text-yellow-300' : 'text-white'}`}>
-                            {msg.content}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Chat Input */}
-                  <div className="p-4 border-t border-cyan-500/30">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Send a message..."
-                        className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-                      />
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={!messageInput.trim()}
-                        className="p-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-white hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Toggle Chat Button (when hidden) */}
-              {!showChat && (
-                <button
-                  onClick={() => setShowChat(true)}
-                  className="fixed right-4 top-1/2 -translate-y-1/2 p-3 bg-cyan-500/20 border border-cyan-500/40 rounded-xl text-cyan-400 hover:bg-cyan-500/30 transition-all"
-                >
-                  <MessageCircle className="w-6 h-6" />
-                </button>
-              )}
-            </div>
+          // Video Call UI - FaceTime Style
+          <div className="relative z-10 h-screen">
+            <FaceTimeVideoLayout
+              callData={callData}
+              onEndCall={handleEndCall}
+              isEnding={isEnding}
+              duration={duration}
+              estimatedCost={estimatedCost}
+              hasStarted={hasStarted}
+            />
+            <RoomAudioRenderer />
           </div>
         )}
       </LiveKitRoom>
