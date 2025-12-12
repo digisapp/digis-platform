@@ -34,6 +34,9 @@ export const users = pgTable('users', {
   lifetimeSpending: integer('lifetime_spending').default(0).notNull(), // Total coins spent across platform
   spendTier: spendTierEnum('spend_tier').default('none').notNull(), // Calculated tier based on lifetime spending
 
+  // Stripe integration
+  stripeCustomerId: text('stripe_customer_id').unique(), // For saved payment methods
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

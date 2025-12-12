@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { stripe, getCoinPackage } from '@/lib/stripe/config';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,9 +35,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe checkout session
+    // Get or create Stripe customer for saved payment methods
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { stripeCustomerId: true, email: true, username: true, displayName: true },
+    });
+
+    let stripeCustomerId = dbUser?.stripeCustomerId;
+
+    if (!stripeCustomerId) {
+      // Create a new Stripe customer
+      const customer = await stripe.customers.create({
+        email: user.email || dbUser?.email,
+        name: dbUser?.displayName || dbUser?.username || undefined,
+        metadata: {
+          userId: user.id,
+        },
+      });
+      stripeCustomerId = customer.id;
+
+      // Save the Stripe customer ID to the database
+      await db.update(users)
+        .set({ stripeCustomerId: customer.id })
+        .where(eq(users.id, user.id));
+    }
+
+    // Create Stripe checkout session with modern payment options
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      customer: stripeCustomerId,
+      // Don't specify payment_method_types - let Stripe automatically show
+      // the best options (Apple Pay, Google Pay, Link, cards) based on device
       line_items: [
         {
           price_data: {
@@ -49,6 +79,17 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'payment',
+      // Enable saved payment methods for returning customers
+      payment_method_options: {
+        card: {
+          setup_future_usage: 'on_session', // Save card for future purchases
+        },
+      },
+      // Enable Link (Stripe's 1-click checkout) for faster repeat purchases
+      consent_collection: {
+        promotions: 'auto',
+      },
+      // Allow customers to adjust quantity
       success_url: `${process.env.NEXT_PUBLIC_URL}/wallet/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/wallet/cancelled`,
       metadata: {
@@ -56,7 +97,6 @@ export async function POST(request: NextRequest) {
         packageId: coinPackage.id,
         coins: coinPackage.coins.toString(),
       },
-      customer_email: user.email,
     });
 
     return NextResponse.json({
