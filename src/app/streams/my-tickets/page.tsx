@@ -267,7 +267,7 @@ export default function MyTicketsPage() {
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-xs text-white font-bold">
-                                  {(ticket.show.creator.displayName || ticket.show.creator.username)[0].toUpperCase()}
+                                  {(ticket.show.creator.displayName || ticket.show.creator.username)?.[0]?.toUpperCase() || '?'}
                                 </div>
                               )}
                             </div>

@@ -251,7 +251,7 @@ export default function FanDashboard() {
                       {stream.creator.avatarUrl ? (
                         <img src={stream.creator.avatarUrl} alt={stream.creator.username} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        <span className="text-white font-bold text-sm">{stream.creator.username[0].toUpperCase()}</span>
+                        <span className="text-white font-bold text-sm">{stream.creator.username?.[0]?.toUpperCase() || '?'}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -321,7 +321,7 @@ export default function FanDashboard() {
                         {content.creator.avatarUrl ? (
                           <img src={content.creator.avatarUrl} alt={content.creator.username} className="w-full h-full rounded-full object-cover" />
                         ) : (
-                          <span className="text-white text-xs font-bold">{content.creator.username[0].toUpperCase()}</span>
+                          <span className="text-white text-xs font-bold">{content.creator.username?.[0]?.toUpperCase() || '?'}</span>
                         )}
                       </div>
                       <span className="text-white text-xs font-medium truncate max-w-[80px]">{content.creator.username}</span>
@@ -388,7 +388,7 @@ export default function FanDashboard() {
                           {show.creator.avatarUrl ? (
                             <img src={show.creator.avatarUrl} alt={show.creator.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
-                            <span className="text-white text-xs font-bold">{show.creator.username[0].toUpperCase()}</span>
+                            <span className="text-white text-xs font-bold">{show.creator.username?.[0]?.toUpperCase() || '?'}</span>
                           )}
                         </div>
                         <span className="text-gray-400 text-sm">{show.creator.username}</span>

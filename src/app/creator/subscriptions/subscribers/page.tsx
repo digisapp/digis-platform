@@ -172,7 +172,7 @@ export default function SubscribersPage() {
                           />
                         ) : (
                           <span className="text-white font-bold">
-                            {(subscriber.user.displayName || subscriber.user.username)[0].toUpperCase()}
+                            {(subscriber.user.displayName || subscriber.user.username)?.[0]?.toUpperCase() || '?'}
                           </span>
                         )}
                       </div>

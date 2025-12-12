@@ -307,7 +307,7 @@ export default function ConnectionsPage() {
                           />
                         ) : (
                           <span className="text-white font-bold text-xl">
-                            {(sub.creator.displayName || sub.creator.username)[0].toUpperCase()}
+                            {(sub.creator.displayName || sub.creator.username)?.[0]?.toUpperCase() || '?'}
                           </span>
                         )}
                       </div>

@@ -1524,7 +1524,7 @@ export default function BroadcastStudioPage() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-400 flex items-center justify-center text-xs font-bold text-white">
-                          {tip.senderUsername[0].toUpperCase()}
+                          {tip.senderUsername?.[0]?.toUpperCase() || '?'}
                         </div>
                         <div>
                           <span className="font-bold text-cyan-300 text-sm">@{tip.senderUsername}</span>

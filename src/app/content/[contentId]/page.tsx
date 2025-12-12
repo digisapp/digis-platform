@@ -187,7 +187,7 @@ export default function ContentDetailPage() {
                     />
                   ) : (
                     <span className="text-white text-2xl font-bold">
-                      {(content.creator.displayName || content.creator.username)[0].toUpperCase()}
+                      {(content.creator.displayName || content.creator.username)?.[0]?.toUpperCase() || '?'}
                     </span>
                   )}
                 </div>

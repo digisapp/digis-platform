@@ -75,15 +75,14 @@ function RemoteParticipantMonitor({
   return null;
 }
 
-// Virtual gifts available during calls
-const CALL_GIFTS = [
-  { id: 'heart', emoji: '❤️', name: 'Heart', price: 5 },
-  { id: 'fire', emoji: '🔥', name: 'Fire', price: 10 },
-  { id: 'star', emoji: '⭐', name: 'Star', price: 25 },
-  { id: 'diamond', emoji: '💎', name: 'Diamond', price: 50 },
-  { id: 'crown', emoji: '👑', name: 'Crown', price: 100 },
-  { id: 'rocket', emoji: '🚀', name: 'Rocket', price: 200 },
-];
+// Virtual gift type matching the database schema
+interface VirtualGift {
+  id: string;
+  name: string;
+  emoji: string;
+  coinCost: number;
+  rarity: string;
+}
 
 // FaceTime-style video layout component
 function FaceTimeVideoLayout({
@@ -97,6 +96,7 @@ function FaceTimeVideoLayout({
   isFan,
   onSendTip,
   onSendGift,
+  gifts,
   tipSending,
   chatMessages,
   onSendMessage,
@@ -115,7 +115,8 @@ function FaceTimeVideoLayout({
   userBalance: number;
   isFan: boolean;
   onSendTip: (amount: number) => void;
-  onSendGift: (gift: typeof CALL_GIFTS[0]) => void;
+  onSendGift: (gift: VirtualGift) => void;
+  gifts: VirtualGift[];
   tipSending: boolean;
   chatMessages: Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string }>;
   onSendMessage: () => void;
@@ -127,11 +128,10 @@ function FaceTimeVideoLayout({
 }) {
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
-  const connectionState = useConnectionState();
   const tracks = useTracks([Track.Source.Camera, Track.Source.Microphone]);
 
   const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(true); // Default video OFF - users manually enable
   const [localPosition, setLocalPosition] = useState({ x: 16, y: 16 });
   const [isDragging, setIsDragging] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -233,7 +233,6 @@ function FaceTimeVideoLayout({
   // Low balance threshold
   const isLowBalance = userBalance < 100;
 
-  const isConnected = connectionState === ConnectionState.Connected;
   const hasRemoteParticipant = remoteParticipants.length > 0;
   const remoteParticipant = remoteParticipants[0];
 
@@ -364,25 +363,20 @@ function FaceTimeVideoLayout({
               {hasRemoteParticipant ? (
                 <>
                   <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
-                    {otherParticipant.avatarUrl ? (
+                    {otherParticipant?.avatarUrl ? (
                       <img src={otherParticipant.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       <span className="text-4xl font-bold text-white">
-                        {(otherParticipant.displayName || otherParticipant.username)[0].toUpperCase()}
+                        {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}
                       </span>
                     )}
                   </div>
                   <p className="text-gray-400">Camera off</p>
                 </>
               ) : (
-                <>
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 flex items-center justify-center animate-pulse">
-                    <User className="w-16 h-16 text-gray-500" />
-                  </div>
-                  <p className="text-gray-400">
-                    {isConnected ? 'Waiting for other participant...' : 'Connecting...'}
-                  </p>
-                </>
+                <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 flex items-center justify-center animate-pulse">
+                  <User className="w-16 h-16 text-gray-500" />
+                </div>
               )}
             </div>
           </div>
@@ -415,24 +409,9 @@ function FaceTimeVideoLayout({
         )}
       </div>
 
-      {/* Top bar - duration, earnings, and connection quality - safe area aware */}
+      {/* Top bar - duration and earnings - safe area aware */}
       <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
         <div className="flex items-center justify-center gap-2 pt-1 sm:pt-2 px-3">
-          {/* Connection quality indicator */}
-          <div className="flex items-center gap-0.5 px-2 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-            {[1, 2, 3, 4].map((bar) => (
-              <div
-                key={bar}
-                className={`w-1 rounded-full ${
-                  isConnected
-                    ? bar <= 3 ? 'bg-green-400' : 'bg-green-400/40'
-                    : 'bg-gray-500'
-                }`}
-                style={{ height: `${bar * 3 + 4}px` }}
-              />
-            ))}
-          </div>
-
           {hasStarted && (
             <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
               <div className="flex items-center gap-1.5 sm:gap-2">
@@ -441,16 +420,16 @@ function FaceTimeVideoLayout({
               </div>
               <div className="w-px h-3 sm:h-4 bg-white/30" />
               {isFan ? (
-                // Fan sees cost
+                // Fan sees cost - using green for better visibility
                 <div className="flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
-                  <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                  <span className="font-bold text-emerald-400 text-sm sm:text-base">~{estimatedCost}</span>
                 </div>
               ) : (
                 // Creator sees total earnings (call + tips)
                 <div className="flex items-center gap-1">
-                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
-                  <span className="font-bold text-green-400 text-sm sm:text-base">+{estimatedCost + totalTipsReceived}</span>
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                  <span className="font-bold text-emerald-400 text-sm sm:text-base">+{estimatedCost + totalTipsReceived}</span>
                 </div>
               )}
             </div>
@@ -458,9 +437,9 @@ function FaceTimeVideoLayout({
 
           {/* Tips indicator for creator */}
           {!isFan && totalTipsReceived > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-full border border-yellow-500/30">
-              <Gift className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="font-bold text-yellow-400 text-sm">+{totalTipsReceived}</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-xl rounded-full border border-emerald-500/30">
+              <Gift className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="font-bold text-emerald-400 text-sm">+{totalTipsReceived}</span>
             </div>
           )}
         </div>
@@ -474,9 +453,9 @@ function FaceTimeVideoLayout({
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
                 {msg.type === 'tip' ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-sm shadow-lg border border-green-400/30">
-                    <Coins className="w-4 h-4 text-yellow-300" />
+                    <Coins className="w-4 h-4 text-emerald-300" />
                     <span className="text-white text-sm font-bold">{msg.senderName || 'Someone'}</span>
-                    <span className="text-yellow-300 text-sm font-bold">+{msg.amount} coins!</span>
+                    <span className="text-emerald-300 text-sm font-bold">+{msg.amount} coins!</span>
                   </div>
                 ) : (
                   <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-500/90 to-purple-500/90 backdrop-blur-sm shadow-lg border border-pink-400/30">
@@ -499,9 +478,9 @@ function FaceTimeVideoLayout({
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
                 {msg.type === 'tip' ? (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/80 to-emerald-500/80 backdrop-blur-sm shadow-lg">
-                    <Coins className="w-3.5 h-3.5 text-yellow-300" />
+                    <Coins className="w-3.5 h-3.5 text-emerald-300" />
                     <span className="text-white text-xs font-bold">{msg.senderName || 'You'}</span>
-                    <span className="text-yellow-300 text-xs font-bold">+{msg.amount}</span>
+                    <span className="text-emerald-300 text-xs font-bold">+{msg.amount}</span>
                   </div>
                 ) : msg.type === 'gift' ? (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-sm shadow-lg">
@@ -520,7 +499,7 @@ function FaceTimeVideoLayout({
           </div>
 
           {/* Chat input */}
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
             <input
               type="text"
               value={messageInput}
@@ -528,9 +507,13 @@ function FaceTimeVideoLayout({
               onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
               placeholder="Say something..."
               className="flex-1 px-3 py-2 bg-black/60 backdrop-blur-sm border border-white/20 rounded-full text-white text-sm placeholder-white/50 focus:outline-none focus:border-cyan-400"
+              onClick={(e) => e.stopPropagation()}
             />
             <button
-              onClick={onSendMessage}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSendMessage();
+              }}
               disabled={!messageInput.trim()}
               className="p-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full disabled:opacity-50"
             >
@@ -542,7 +525,7 @@ function FaceTimeVideoLayout({
 
       {/* Gift picker overlay */}
       {showGifts && isFan && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200 w-[85vw] max-w-xs">
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-white text-xs font-semibold">Send a Gift</span>
@@ -550,24 +533,26 @@ function FaceTimeVideoLayout({
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {CALL_GIFTS.map((gift) => (
-                <button
-                  key={gift.id}
-                  onClick={() => {
-                    onSendGift(gift);
-                    setShowGifts(false);
-                  }}
-                  disabled={userBalance < gift.price || tipSending}
-                  className="flex flex-col items-center p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                >
-                  <span className="text-2xl mb-1">{gift.emoji}</span>
-                  <span className="text-yellow-400 text-xs font-bold">{gift.price}</span>
-                </button>
-              ))}
+            <div className="max-h-56 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+              <div className="grid grid-cols-3 gap-2 pr-1">
+                {gifts.map((gift) => (
+                  <button
+                    key={gift.id}
+                    onClick={() => {
+                      onSendGift(gift);
+                      setShowGifts(false);
+                    }}
+                    disabled={userBalance < gift.coinCost || tipSending}
+                    className="flex flex-col items-center p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                  >
+                    <span className="text-2xl mb-1">{gift.emoji}</span>
+                    <span className="text-emerald-400 text-xs font-bold">{gift.coinCost}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="mt-2 text-center text-xs text-gray-400">
-              Balance: <span className="text-yellow-400 font-bold">{userBalance}</span> coins
+              Balance: <span className="text-emerald-400 font-bold">{userBalance}</span> coins
             </div>
           </div>
         </div>
@@ -594,13 +579,13 @@ function FaceTimeVideoLayout({
                   disabled={userBalance < amount || tipSending}
                   className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border border-yellow-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
-                  <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                  <span className="text-yellow-400 font-bold text-sm">{amount}</span>
+                  <Coins className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold text-sm">{amount}</span>
                 </button>
               ))}
             </div>
             <div className="mt-2 text-center text-xs text-gray-400">
-              Balance: <span className="text-yellow-400 font-bold">{userBalance}</span> coins
+              Balance: <span className="text-emerald-400 font-bold">{userBalance}</span> coins
             </div>
           </div>
         </div>
@@ -621,29 +606,12 @@ function FaceTimeVideoLayout({
                 }`}
                 title="Tap to buy more coins"
               >
-                <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`} />
-                <span className={`font-bold ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`}>{userBalance}</span>
-                <span className={`text-xs ${isLowBalance ? 'text-red-400/60' : 'text-yellow-400/60'}`}>coins</span>
+                <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
+                <span className={`font-bold ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>{userBalance}</span>
+                <span className={`text-xs ${isLowBalance ? 'text-red-400/60' : 'text-emerald-400/60'}`}>coins</span>
                 {isLowBalance && <span className="text-red-400 text-xs font-bold">LOW!</span>}
-                <span className={`text-sm ml-1 ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`}>+</span>
+                <span className={`text-sm ml-1 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>+</span>
               </button>
-            </div>
-          )}
-
-          {/* Quick tip buttons for fans */}
-          {isFan && (
-            <div className="flex justify-center gap-2 mb-3">
-              {[10, 25, 50].map((amount) => (
-                <button
-                  key={amount}
-                  onClick={() => onSendTip(amount)}
-                  disabled={userBalance < amount || tipSending}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-full border border-yellow-500/30 hover:from-yellow-500/30 hover:to-orange-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
-                >
-                  <Coins className="w-3 h-3 text-yellow-400" />
-                  <span className="text-yellow-400 font-bold text-xs">{amount}</span>
-                </button>
-              ))}
             </div>
           )}
 
@@ -661,7 +629,7 @@ function FaceTimeVideoLayout({
                     />
                   ) : (
                     <span className="text-white text-xs font-bold">
-                      {(otherParticipant.displayName || otherParticipant.username)?.[0]?.toUpperCase() || '?'}
+                      {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}
                     </span>
                   )}
                 </div>
@@ -761,14 +729,12 @@ function FaceTimeVideoLayout({
 
 // Voice Call UI Component
 function VoiceCallUI({
-  callId,
   callData,
   duration,
   estimatedCost,
   isEnding,
   onEndCall,
 }: {
-  callId: string;
   callData: CallData;
   duration: number;
   estimatedCost: number;
@@ -905,6 +871,7 @@ export default function VideoCallPage() {
   const [tipSending, setTipSending] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [totalTipsReceived, setTotalTipsReceived] = useState(0);
+  const [gifts, setGifts] = useState<VirtualGift[]>([]);
 
   // Notify other party of connection error
   const notifyConnectionError = async (errorMessage: string) => {
@@ -1017,6 +984,22 @@ export default function VideoCallPage() {
     fetchBalance();
   }, []);
 
+  // Fetch virtual gifts from API (same as live streams)
+  useEffect(() => {
+    const fetchGifts = async () => {
+      try {
+        const res = await fetch('/api/gifts');
+        if (res.ok) {
+          const data = await res.json();
+          setGifts(data.gifts || []);
+        }
+      } catch (err) {
+        console.error('Error fetching gifts:', err);
+      }
+    };
+    fetchGifts();
+  }, []);
+
   // Determine if current user is the fan (can send tips to creator)
   const isFan = user?.id && callData && user.id === callData.fanId;
 
@@ -1084,11 +1067,11 @@ export default function VideoCallPage() {
   }, [userBalance, tipSending, handleSendTip]);
 
   // Send gift to creator
-  const handleSendGift = async (gift: { id: string; emoji: string; name: string; price: number }) => {
+  const handleSendGift = async (gift: VirtualGift) => {
     if (!callData || tipSending || !user) return;
 
-    if (userBalance < gift.price) {
-      alert(`Insufficient balance. You need ${gift.price} coins but only have ${userBalance}.`);
+    if (userBalance < gift.coinCost) {
+      alert(`Insufficient balance. You need ${gift.coinCost} coins but only have ${userBalance}.`);
       return;
     }
 
@@ -1098,7 +1081,7 @@ export default function VideoCallPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: gift.price,
+          amount: gift.coinCost,
           receiverId: callData.creatorId,
           message: `Sent ${gift.emoji} ${gift.name} during video call`,
         }),
@@ -1123,7 +1106,7 @@ export default function VideoCallPage() {
             senderName,
             giftName: gift.name,
             giftEmoji: gift.emoji,
-            amount: gift.price,
+            amount: gift.coinCost,
             timestamp: Date.now(),
           });
           console.log('[CallPage] Gift published to Ably');
@@ -1521,7 +1504,7 @@ export default function VideoCallPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm mt-2">
                     <span className="text-gray-400">Estimated Cost</span>
-                    <span className="font-bold text-yellow-400">{estimatedCost} coins</span>
+                    <span className="font-bold text-emerald-400">{estimatedCost} coins</span>
                   </div>
                 </div>
               )}
@@ -1558,7 +1541,7 @@ export default function VideoCallPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm mt-2">
                     <span className="text-gray-400">Estimated Cost</span>
-                    <span className="font-bold text-yellow-400">{estimatedCost} coins</span>
+                    <span className="font-bold text-emerald-400">{estimatedCost} coins</span>
                   </div>
                 </div>
               )}
@@ -1593,7 +1576,7 @@ export default function VideoCallPage() {
         connect={true}
         onConnected={handleConnected}
         audio={true}
-        video={!isVoiceCall}
+        video={false}
         className="h-full"
       >
         {/* Monitor for remote participant disconnection */}
@@ -1603,7 +1586,6 @@ export default function VideoCallPage() {
           // Voice Call UI
           <>
             <VoiceCallUI
-              callId={callId}
               callData={callData}
               duration={duration}
               estimatedCost={estimatedCost}
@@ -1626,6 +1608,7 @@ export default function VideoCallPage() {
               isFan={!!isFan}
               onSendTip={handleSendTip}
               onSendGift={handleSendGift}
+              gifts={gifts}
               tipSending={tipSending}
               chatMessages={chatMessages}
               onSendMessage={handleSendMessage}

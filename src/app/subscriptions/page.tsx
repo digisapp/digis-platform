@@ -190,7 +190,7 @@ export default function MySubscriptionsPage() {
                         />
                       ) : (
                         <span className="text-white font-bold text-2xl">
-                          {(subscription.creator.displayName || subscription.creator.username)[0].toUpperCase()}
+                          {(subscription.creator.displayName || subscription.creator.username)?.[0]?.toUpperCase() || '?'}
                         </span>
                       )}
                     </div>

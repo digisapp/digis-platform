@@ -1004,7 +1004,7 @@ export default function StreamViewerPage() {
                     ) : (
                       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-4 ring-yellow-500">
                         <span className="text-2xl font-bold text-white">
-                          {spotlightedCreator.username[0]}
+                          {spotlightedCreator.username?.[0]?.toUpperCase() || '?'}
                         </span>
                       </div>
                     )}
@@ -1176,7 +1176,7 @@ export default function StreamViewerPage() {
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center ring-2 ring-yellow-500">
                             <span className="text-sm font-bold text-white">
-                              {spotlightedCreator.username[0]}
+                              {spotlightedCreator.username?.[0]?.toUpperCase() || '?'}
                             </span>
                           </div>
                         )}

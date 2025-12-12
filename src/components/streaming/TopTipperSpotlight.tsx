@@ -93,7 +93,7 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
             ) : (
               <div className={`relative ${isMega ? 'w-20 h-20' : 'w-16 h-16'} rounded-full border-2 ${borderColor} bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center`}>
                 <span className={`${isMega ? 'text-3xl' : 'text-2xl'} font-bold text-white`}>
-                  {username[0]?.toUpperCase()}
+                  {username?.[0]?.toUpperCase() || '?'}
                 </span>
               </div>
             )}

@@ -253,7 +253,7 @@ export default function ContentLibraryPage() {
                             />
                           ) : (
                             <span className="text-white text-xs font-bold">
-                              {(item.creator.displayName || item.creator.username)[0].toUpperCase()}
+                              {(item.creator.displayName || item.creator.username)?.[0]?.toUpperCase() || '?'}
                             </span>
                           )}
                         </div>

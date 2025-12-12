@@ -850,7 +850,7 @@ export default function AdminDashboard() {
                           {user.avatarUrl ? (
                             <img src={user.avatarUrl} alt={user.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
-                            user.email[0].toUpperCase()
+                            user.email?.[0]?.toUpperCase() || '?'
                           )}
                         </div>
 
