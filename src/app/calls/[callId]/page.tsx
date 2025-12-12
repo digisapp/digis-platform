@@ -103,6 +103,8 @@ function FaceTimeVideoLayout({
   messageInput,
   setMessageInput,
   onBuyCoins,
+  totalTipsReceived,
+  onQuickTip,
 }: {
   callData: CallData;
   onEndCall: () => void;
@@ -120,6 +122,8 @@ function FaceTimeVideoLayout({
   messageInput: string;
   setMessageInput: (value: string) => void;
   onBuyCoins: () => void;
+  totalTipsReceived: number;
+  onQuickTip: () => void;
 }) {
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -133,13 +137,101 @@ function FaceTimeVideoLayout({
   const [showChat, setShowChat] = useState(false);
   const [showGifts, setShowGifts] = useState(false);
   const [showTipMenu, setShowTipMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showGiftAnimation, setShowGiftAnimation] = useState<{ emoji: string; id: string } | null>(null);
+  const [lastDoubleTap, setLastDoubleTap] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Track unread messages when chat is closed
+  useEffect(() => {
+    if (!showChat && chatMessages.length > 0) {
+      const lastMsg = chatMessages[chatMessages.length - 1];
+      if (lastMsg.type === 'chat') {
+        setUnreadCount(prev => prev + 1);
+      }
+    }
+  }, [chatMessages.length, showChat]);
+
+  // Reset unread count when chat opens
+  useEffect(() => {
+    if (showChat) {
+      setUnreadCount(0);
+    }
+  }, [showChat]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Show gift animation when gift received
+  useEffect(() => {
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg?.type === 'gift' && lastMsg.giftEmoji) {
+      setShowGiftAnimation({ emoji: lastMsg.giftEmoji, id: lastMsg.id });
+      // Play sound
+      try {
+        const audio = new Audio('/sounds/gift.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch {}
+      setTimeout(() => setShowGiftAnimation(null), 2000);
+    } else if (lastMsg?.type === 'tip') {
+      // Play tip sound
+      try {
+        const audio = new Audio('/sounds/coin.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch {}
+    }
+  }, [chatMessages.length]);
+
+  // Double tap handler for quick tip
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastDoubleTap < 300) {
+      // Double tap detected - send quick tip
+      if (isFan && userBalance >= 10) {
+        onQuickTip();
+      }
+    }
+    setLastDoubleTap(now);
+  }, [lastDoubleTap, isFan, userBalance, onQuickTip]);
+
+  // Swipe gesture handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    swipeStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!swipeStartRef.current) return;
+    const deltaX = e.changedTouches[0].clientX - swipeStartRef.current.x;
+    const deltaY = e.changedTouches[0].clientY - swipeStartRef.current.y;
+
+    // Only trigger if horizontal swipe is dominant
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX > 0) {
+        // Swipe right - open chat
+        setShowChat(true);
+        setShowGifts(false);
+        setShowTipMenu(false);
+      } else {
+        // Swipe left - open tip menu (for fans)
+        if (isFan) {
+          setShowTipMenu(true);
+          setShowChat(false);
+          setShowGifts(false);
+        }
+      }
+    }
+    swipeStartRef.current = null;
+  }, [isFan]);
+
+  // Low balance threshold
+  const isLowBalance = userBalance < 100;
 
   const isConnected = connectionState === ConnectionState.Connected;
   const hasRemoteParticipant = remoteParticipants.length > 0;
@@ -225,7 +317,40 @@ function FaceTimeVideoLayout({
   const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden" style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}>
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-black overflow-hidden"
+      style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
+      onClick={handleDoubleTap}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Gift Animation Overlay */}
+      {showGiftAnimation && (
+        <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+          <div className="animate-bounce">
+            <span className="text-[120px] drop-shadow-2xl">{showGiftAnimation.emoji}</span>
+          </div>
+          {/* Floating particles */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-4xl animate-ping"
+                style={{
+                  left: `${10 + Math.random() * 80}%`,
+                  top: `${10 + Math.random() * 80}%`,
+                  animationDelay: `${Math.random() * 0.5}s`,
+                  animationDuration: '1s',
+                }}
+              >
+                {showGiftAnimation.emoji}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Remote participant - full screen */}
       <div className="absolute inset-0">
         {remoteVideoTrack ? (
@@ -290,9 +415,24 @@ function FaceTimeVideoLayout({
         )}
       </div>
 
-      {/* Top bar - duration and cost - safe area aware */}
+      {/* Top bar - duration, earnings, and connection quality - safe area aware */}
       <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
-        <div className="flex items-center justify-center pt-1 sm:pt-2">
+        <div className="flex items-center justify-center gap-2 pt-1 sm:pt-2 px-3">
+          {/* Connection quality indicator */}
+          <div className="flex items-center gap-0.5 px-2 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+            {[1, 2, 3, 4].map((bar) => (
+              <div
+                key={bar}
+                className={`w-1 rounded-full ${
+                  isConnected
+                    ? bar <= 3 ? 'bg-green-400' : 'bg-green-400/40'
+                    : 'bg-gray-500'
+                }`}
+                style={{ height: `${bar * 3 + 4}px` }}
+              />
+            ))}
+          </div>
+
           {hasStarted && (
             <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
               <div className="flex items-center gap-1.5 sm:gap-2">
@@ -300,10 +440,27 @@ function FaceTimeVideoLayout({
                 <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
               </div>
               <div className="w-px h-3 sm:h-4 bg-white/30" />
-              <div className="flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
-                <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
-              </div>
+              {isFan ? (
+                // Fan sees cost
+                <div className="flex items-center gap-1">
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+                  <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
+                </div>
+              ) : (
+                // Creator sees total earnings (call + tips)
+                <div className="flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
+                  <span className="font-bold text-green-400 text-sm sm:text-base">+{estimatedCost + totalTipsReceived}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tips indicator for creator */}
+          {!isFan && totalTipsReceived > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-full border border-yellow-500/30">
+              <Gift className="w-3.5 h-3.5 text-yellow-400" />
+              <span className="font-bold text-yellow-400 text-sm">+{totalTipsReceived}</span>
             </div>
           )}
         </div>
@@ -452,28 +609,50 @@ function FaceTimeVideoLayout({
       {/* Bottom controls - safe area aware */}
       <div className="absolute bottom-0 left-0 right-0 z-30" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
         <div className="pb-2 sm:pb-4">
-          {/* Wallet balance for fan - clickable to buy more */}
+          {/* Wallet balance for fan - clickable to buy more, with low balance warning */}
           {isFan && (
             <div className="flex justify-center mb-3">
               <button
                 onClick={onBuyCoins}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-yellow-500/40 hover:bg-yellow-500/20 hover:border-yellow-500/60 transition-all active:scale-95 shadow-lg"
+                className={`inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg ${
+                  isLowBalance
+                    ? 'border-2 border-red-500/60 animate-pulse'
+                    : 'border border-yellow-500/40 hover:bg-yellow-500/20 hover:border-yellow-500/60'
+                }`}
                 title="Tap to buy more coins"
               >
-                <Coins className="w-4 h-4 text-yellow-400" />
-                <span className="font-bold text-yellow-400">{userBalance}</span>
-                <span className="text-yellow-400/60 text-xs">coins</span>
-                <span className="text-yellow-400 text-sm ml-1">+</span>
+                <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`} />
+                <span className={`font-bold ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`}>{userBalance}</span>
+                <span className={`text-xs ${isLowBalance ? 'text-red-400/60' : 'text-yellow-400/60'}`}>coins</span>
+                {isLowBalance && <span className="text-red-400 text-xs font-bold">LOW!</span>}
+                <span className={`text-sm ml-1 ${isLowBalance ? 'text-red-400' : 'text-yellow-400'}`}>+</span>
               </button>
+            </div>
+          )}
+
+          {/* Quick tip buttons for fans */}
+          {isFan && (
+            <div className="flex justify-center gap-2 mb-3">
+              {[10, 25, 50].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => onSendTip(amount)}
+                  disabled={userBalance < amount || tipSending}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-xl rounded-full border border-yellow-500/30 hover:from-yellow-500/30 hover:to-orange-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                >
+                  <Coins className="w-3 h-3 text-yellow-400" />
+                  <span className="text-yellow-400 font-bold text-xs">{amount}</span>
+                </button>
+              ))}
             </div>
           )}
 
           {/* Other participant info - avatar and name */}
           {hasRemoteParticipant && otherParticipant && (
             <div className="flex justify-center mb-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-                {/* Avatar */}
-                <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                {/* Avatar - larger size */}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
                   {otherParticipant.avatarUrl ? (
                     <img
                       src={otherParticipant.avatarUrl}
@@ -496,16 +675,22 @@ function FaceTimeVideoLayout({
 
           {/* Main control buttons */}
           <div className="flex items-center justify-center gap-3 sm:gap-4">
-            {/* Chat toggle */}
+            {/* Chat toggle with unread badge */}
             <button
               onClick={() => { setShowChat(!showChat); setShowGifts(false); setShowTipMenu(false); }}
-              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 showChat
                   ? 'bg-cyan-500 text-white'
                   : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
               }`}
             >
               <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              {/* Unread badge */}
+              {!showChat && unreadCount > 0 && (
+                <div className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                </div>
+              )}
             </button>
 
             {/* Mute button */}
@@ -719,6 +904,7 @@ export default function VideoCallPage() {
   const [userBalance, setUserBalance] = useState(0);
   const [tipSending, setTipSending] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
+  const [totalTipsReceived, setTotalTipsReceived] = useState(0);
 
   // Notify other party of connection error
   const notifyConnectionError = async (errorMessage: string) => {
@@ -889,6 +1075,13 @@ export default function VideoCallPage() {
       setTipSending(false);
     }
   };
+
+  // Quick tip handler (10 coins) - for double-tap gesture
+  const handleQuickTip = useCallback(() => {
+    if (userBalance >= 10 && !tipSending) {
+      handleSendTip(10);
+    }
+  }, [userBalance, tipSending, handleSendTip]);
 
   // Send gift to creator
   const handleSendGift = async (gift: { id: string; emoji: string; name: string; price: number }) => {
@@ -1095,11 +1288,19 @@ export default function VideoCallPage() {
               amount: data.amount,
             }];
           });
+          // Track tips received (for creator)
+          if (data.senderId !== user?.id) {
+            setTotalTipsReceived((prev) => prev + (data.amount || 0));
+          }
         });
 
         // Subscribe to gift notifications
         channel.subscribe('gift_sent', (message) => {
           const data = message.data;
+          // Track gifts received (for creator)
+          if (data.senderId !== user?.id) {
+            setTotalTipsReceived((prev) => prev + (data.amount || 0));
+          }
           setChatMessages((prev) => {
             if (prev.some(m => m.id === data.id)) return prev;
             return [...prev, {
@@ -1431,6 +1632,8 @@ export default function VideoCallPage() {
               messageInput={messageInput}
               setMessageInput={setMessageInput}
               onBuyCoins={() => setShowBuyCoinsModal(true)}
+              totalTipsReceived={totalTipsReceived}
+              onQuickTip={handleQuickTip}
             />
             <RoomAudioRenderer />
           </>
