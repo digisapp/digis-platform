@@ -291,41 +291,20 @@ function FaceTimeVideoLayout({
 
       {/* Top bar - duration and cost - safe area aware */}
       <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
-        <div className="flex items-center justify-between px-3 sm:px-4 pt-1 sm:pt-2">
-          {/* Left side - wallet balance for fan (clickable to buy more) */}
-          <div className="w-24 sm:w-28">
-            {isFan && (
-              <button
-                onClick={onBuyCoins}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-yellow-500/30 hover:bg-yellow-500/20 hover:border-yellow-500/50 transition-all active:scale-95"
-                title="Buy more coins"
-              >
-                <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                <span className="font-bold text-yellow-400 text-sm">{userBalance}</span>
-                <span className="text-yellow-400/70 text-xs">+</span>
-              </button>
-            )}
-          </div>
-
-          {/* Center - duration and cost */}
-          <div className="flex-shrink-0">
-            {hasStarted && (
-              <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-                  <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
-                </div>
-                <div className="w-px h-3 sm:h-4 bg-white/30" />
-                <div className="flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
-                  <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
-                </div>
+        <div className="flex items-center justify-center pt-1 sm:pt-2">
+          {hasStarted && (
+            <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
               </div>
-            )}
-          </div>
-
-          {/* Right side - spacer to balance layout */}
-          <div className="w-20 sm:w-24" />
+              <div className="w-px h-3 sm:h-4 bg-white/30" />
+              <div className="flex items-center gap-1">
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+                <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -472,6 +451,22 @@ function FaceTimeVideoLayout({
       {/* Bottom controls - safe area aware */}
       <div className="absolute bottom-0 left-0 right-0 z-30" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
         <div className="pb-2 sm:pb-4">
+          {/* Wallet balance for fan - clickable to buy more */}
+          {isFan && (
+            <div className="flex justify-center mb-3">
+              <button
+                onClick={onBuyCoins}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-yellow-500/40 hover:bg-yellow-500/20 hover:border-yellow-500/60 transition-all active:scale-95 shadow-lg"
+                title="Tap to buy more coins"
+              >
+                <Coins className="w-4 h-4 text-yellow-400" />
+                <span className="font-bold text-yellow-400">{userBalance}</span>
+                <span className="text-yellow-400/60 text-xs">coins</span>
+                <span className="text-yellow-400 text-sm ml-1">+</span>
+              </button>
+            </div>
+          )}
+
           {/* Participant name */}
           {hasRemoteParticipant && (
             <div className="flex justify-center mb-3">
@@ -944,34 +939,40 @@ export default function VideoCallPage() {
     const msgContent = messageInput.trim();
     setMessageInput('');
 
+    const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const timestamp = Date.now();
+
+    // Determine sender name
+    const senderName = callData?.fan?.id === user.id
+      ? (callData.fan.displayName || callData.fan.username)
+      : (callData?.creator?.displayName || callData?.creator?.username || 'Unknown');
+
+    // Optimistically add message locally immediately for sender
+    setChatMessages((prev) => [...prev, {
+      id: msgId,
+      sender: user.id,
+      senderName: 'You',
+      content: msgContent,
+      timestamp,
+      type: 'chat',
+    }]);
+
     try {
       const ably = getAblyClient();
       const channel = ably.channels.get(`call:${callId}`);
 
-      // Determine sender name
-      const senderName = callData?.fan?.id === user.id
-        ? (callData.fan.displayName || callData.fan.username)
-        : (callData?.creator?.displayName || callData?.creator?.username || 'Unknown');
-
       await channel.publish('chat_message', {
-        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        id: msgId,
         senderId: user.id,
         senderName,
         content: msgContent,
-        timestamp: Date.now(),
+        timestamp,
         type: 'chat',
       });
+      console.log('[CallPage] Chat message published to Ably');
     } catch (err) {
       console.error('[CallPage] Failed to send message:', err);
-      // Add message locally anyway as fallback
-      setChatMessages((prev) => [...prev, {
-        id: `msg-${Date.now()}`,
-        sender: user?.id || 'You',
-        senderName: 'You',
-        content: msgContent,
-        timestamp: Date.now(),
-        type: 'chat',
-      }]);
+      // Message was already added locally, so no fallback needed
     }
   };
 
