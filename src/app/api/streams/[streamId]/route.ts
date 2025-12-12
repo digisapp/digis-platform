@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { streamGoals } from '@/lib/data/system';
+import { streamGoals, creatorSettings } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
@@ -55,7 +55,12 @@ export async function GET(
       ),
     });
 
-    // Return stream with goals
+    // Fetch creator's call settings for the video call button
+    const callSettings = stream.creatorId ? await db.query.creatorSettings.findFirst({
+      where: eq(creatorSettings.userId, stream.creatorId),
+    }) : null;
+
+    // Return stream with goals and call settings
     return NextResponse.json({
       stream: {
         ...stream,
@@ -67,6 +72,14 @@ export async function GET(
           isActive: g.isActive,
           isCompleted: g.isCompleted,
         })),
+        creatorCallSettings: callSettings ? {
+          isAvailableForCalls: callSettings.isAvailableForCalls,
+          isAvailableForVoiceCalls: callSettings.isAvailableForVoiceCalls,
+          callRatePerMinute: callSettings.callRatePerMinute,
+          voiceCallRatePerMinute: callSettings.voiceCallRatePerMinute,
+          minimumCallDuration: callSettings.minimumCallDuration,
+          minimumVoiceCallDuration: callSettings.minimumVoiceCallDuration,
+        } : null,
       }
     });
   } catch (error: any) {

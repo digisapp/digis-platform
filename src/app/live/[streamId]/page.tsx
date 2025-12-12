@@ -8,9 +8,10 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Target, Ticket, Coins
+  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import { FloatingGiftBar } from '@/components/streaming/FloatingGiftBar';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { BRBOverlay } from '@/components/live/BRBOverlay';
@@ -41,6 +42,15 @@ interface StreamData {
     targetAmount: number;
     currentAmount: number;
   }[];
+  creatorCallSettings?: {
+    isAvailableForCalls: boolean;
+    isAvailableForVoiceCalls: boolean;
+    callRatePerMinute: number;
+    voiceCallRatePerMinute: number;
+    minimumCallDuration: number;
+    minimumVoiceCallDuration: number;
+    messageRate?: number;
+  } | null;
 }
 
 interface ChatMessage {
@@ -891,6 +901,28 @@ export default function TheaterModePage() {
                 Send Tip
               </button>
             </div>
+
+            {/* Video Call Button */}
+            {stream.creatorCallSettings && (
+              <RequestCallButton
+                creatorId={stream.creator.id}
+                creatorName={stream.creator.displayName || stream.creator.username}
+                ratePerMinute={stream.creatorCallSettings.callRatePerMinute}
+                minimumDuration={stream.creatorCallSettings.minimumCallDuration}
+                isAvailable={stream.creatorCallSettings.isAvailableForCalls}
+                callType="video"
+              />
+            )}
+
+            {/* Message Button - opens DM */}
+            <button
+              onClick={() => router.push(`/chats?to=${stream.creator.username}`)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2"
+              title="Send Private Message"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Message</span>
+            </button>
           </div>
 
           {/* Mobile Gift Bar is now floating - see bottom of page */}
