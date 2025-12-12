@@ -23,9 +23,11 @@ type Status = {
 
 interface ProfileLiveSectionProps {
   username: string;
+  isAuthenticated?: boolean;
+  onRequireAuth?: (action: string) => void;
 }
 
-export default function ProfileLiveSection({ username }: ProfileLiveSectionProps) {
+export default function ProfileLiveSection({ username, isAuthenticated, onRequireAuth }: ProfileLiveSectionProps) {
   const [status, setStatus] = useState<Status>({ state: 'idle' });
   const [inView, setInView] = useState(true);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
@@ -77,6 +79,12 @@ export default function ProfileLiveSection({ username }: ProfileLiveSectionProps
   }, [username]);
 
   const handleClick = () => {
+    // Require authentication before allowing access to live streams
+    if (!isAuthenticated && onRequireAuth) {
+      onRequireAuth('watch live streams');
+      return;
+    }
+
     if (status.streamId) {
       router.push(`/live/${status.streamId}`);
       streamAnalytics.theaterModeClicked(username, status.streamId);

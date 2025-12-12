@@ -860,7 +860,14 @@ export default function ProfilePage() {
         </div>
 
         {/* Inline Live Stream Section */}
-        <ProfileLiveSection username={user.username} />
+        <ProfileLiveSection
+          username={user.username}
+          isAuthenticated={isAuthenticated}
+          onRequireAuth={(action) => {
+            setSignUpAction(action);
+            setShowSignUpModal(true);
+          }}
+        />
 
         {/* Profile Goals Widget */}
         {user.role === 'creator' && goals.length > 0 && (

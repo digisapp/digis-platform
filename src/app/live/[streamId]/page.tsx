@@ -176,6 +176,9 @@ export default function TheaterModePage() {
   // Floating gift emojis state
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
 
+  // Orientation state for mobile layout
+  const [isLandscape, setIsLandscape] = useState(false);
+
   // Ticketed show announcement state
   const [ticketedAnnouncement, setTicketedAnnouncement] = useState<{
     ticketedStreamId: string;
@@ -226,9 +229,23 @@ export default function TheaterModePage() {
       };
 
       setMessages((prev) => {
-        // Check if message already exists to avoid duplicates
+        // Check if message already exists to avoid duplicates (by exact ID)
         if (prev.some(m => m.id === chatMessage.id)) {
           return prev;
+        }
+        // Check for optimistic message from same user with same content (within 5 seconds)
+        // Replace the temp message with the real one instead of adding duplicate
+        const optimisticIndex = prev.findIndex(m =>
+          m.id.startsWith('temp-') &&
+          m.userId === chatMessage.userId &&
+          m.content === chatMessage.content &&
+          Math.abs(m.timestamp - chatMessage.timestamp) < 5000
+        );
+        if (optimisticIndex !== -1) {
+          // Replace optimistic message with real one
+          const newMessages = [...prev];
+          newMessages[optimisticIndex] = chatMessage;
+          return newMessages;
         }
         return [...prev, chatMessage];
       });
@@ -301,6 +318,20 @@ export default function TheaterModePage() {
 
   // Use real-time viewer count from Ably if available, otherwise use stream data
   const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
+
+  // Detect orientation for mobile layout
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
 
   // Load stream data
   useEffect(() => {
@@ -830,47 +861,49 @@ export default function TheaterModePage() {
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
 
-                {/* Mobile Overlay Chat - TikTok/IG Live style */}
-                <div className="lg:hidden">
-                  <OverlayChat
-                    messages={messages}
-                    onSendMessage={(content) => {
-                      if (!currentUser || sendingMessage) return;
-                      const optimisticMessage: ChatMessage = {
-                        id: `temp-${Date.now()}`,
-                        userId: currentUser.id,
-                        username: currentUser.username,
-                        displayName: currentUser.displayName,
-                        avatarUrl: currentUser.avatarUrl,
-                        content,
-                        timestamp: Date.now(),
-                        isCreator: currentUser.id === stream?.creator.id,
-                      };
-                      setMessages((prev) => [...prev, optimisticMessage]);
-                      setSendingMessage(true);
-                      fetch(`/api/streams/${streamId}/message`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content }),
-                      })
-                        .then((res) => {
-                          if (!res.ok) {
+                {/* Mobile Overlay Chat - Portrait only (TikTok/IG Live style) */}
+                {!isLandscape && (
+                  <div className="lg:hidden">
+                    <OverlayChat
+                      messages={messages}
+                      onSendMessage={(content) => {
+                        if (!currentUser || sendingMessage) return;
+                        const optimisticMessage: ChatMessage = {
+                          id: `temp-${Date.now()}`,
+                          userId: currentUser.id,
+                          username: currentUser.username,
+                          displayName: currentUser.displayName,
+                          avatarUrl: currentUser.avatarUrl,
+                          content,
+                          timestamp: Date.now(),
+                          isCreator: currentUser.id === stream?.creator.id,
+                        };
+                        setMessages((prev) => [...prev, optimisticMessage]);
+                        setSendingMessage(true);
+                        fetch(`/api/streams/${streamId}/message`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ content }),
+                        })
+                          .then((res) => {
+                            if (!res.ok) {
+                              setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+                            } else {
+                              streamAnalytics.chatMessageSent(streamId);
+                            }
+                          })
+                          .catch(() => {
                             setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
-                          } else {
-                            streamAnalytics.chatMessageSent(streamId);
-                          }
-                        })
-                        .catch(() => {
-                          setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
-                        })
-                        .finally(() => setSendingMessage(false));
-                    }}
-                    currentUserId={currentUser?.id}
-                    isAuthenticated={!!currentUser}
-                    disabled={sendingMessage || userBalance <= 0}
-                    streamId={streamId}
-                  />
-                </div>
+                          })
+                          .finally(() => setSendingMessage(false));
+                      }}
+                      currentUserId={currentUser?.id}
+                      isAuthenticated={!!currentUser}
+                      disabled={sendingMessage || userBalance <= 0}
+                      streamId={streamId}
+                    />
+                  </div>
+                )}
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -919,6 +952,57 @@ export default function TheaterModePage() {
               <p className="text-xs text-white/80 truncate hidden sm:block">{stream.description}</p>
             )}
           </div>
+
+          {/* Landscape Mode Chat Input - below video on mobile */}
+          {isLandscape && !streamEnded && (
+            <div className="lg:hidden px-3 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl">
+              {currentUser ? (
+                userBalance > 0 ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      placeholder="Send a message..."
+                      disabled={sendingMessage}
+                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-sm"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!messageInput.trim() || sendingMessage}
+                      className="px-3 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-xs">
+                    <span className="text-amber-300">
+                      <Coins className="w-3 h-3 inline mr-1" />
+                      Buy coins to chat
+                    </span>
+                    <button
+                      onClick={() => router.push('/wallet')}
+                      className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs"
+                    >
+                      Get Coins
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="text-center text-xs text-white/70">
+                  <button
+                    onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
+                    className="text-cyan-400 hover:text-cyan-300 font-semibold"
+                  >
+                    Sign in
+                  </button>{' '}
+                  to chat
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons Bar - desktop only */}
           <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
@@ -1184,28 +1268,51 @@ export default function TheaterModePage() {
         )}
       </div>
 
-      {/* Mobile Tip Button - floats above gift bar on mobile */}
-      {stream && !streamEnded && currentUser && (
-        <button
-          onClick={() => setShowTipModal(true)}
-          className="lg:hidden fixed bottom-20 left-4 z-50 p-3 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-full shadow-lg shadow-cyan-500/40 hover:scale-110 transition-all"
-          title="Send Tip"
-        >
-          <Coins className="w-5 h-5" />
-        </button>
+      {/* Mobile Bottom Action Bar - above navigation, combines tip + gift bar */}
+      {stream && !streamEnded && (
+        <div className="lg:hidden fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] left-0 right-0 z-50 px-2 pb-2">
+          <div className="flex items-center gap-2">
+            {/* Tip Button */}
+            {currentUser && (
+              <button
+                onClick={() => setShowTipModal(true)}
+                className="p-2.5 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg shadow-cyan-500/40 hover:scale-105 transition-all flex-shrink-0"
+                title="Send Tip"
+              >
+                <Coins className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Gift Bar - inline mode for mobile */}
+            <div className="flex-1 overflow-hidden">
+              <FloatingGiftBar
+                streamId={streamId}
+                creatorId={stream.creator.id}
+                onSendGift={handleSendGift}
+                userBalance={userBalance}
+                isAuthenticated={!!currentUser}
+                onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+                onBuyCoins={() => setShowBuyCoinsModal(true)}
+                inline
+              />
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Floating Gift Bar - shows on all screens, floating position */}
+      {/* Desktop Floating Gift Bar */}
       {stream && !streamEnded && (
-        <FloatingGiftBar
-          streamId={streamId}
-          creatorId={stream.creator.id}
-          onSendGift={handleSendGift}
-          userBalance={userBalance}
-          isAuthenticated={!!currentUser}
-          onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-          onBuyCoins={() => setShowBuyCoinsModal(true)}
-        />
+        <div className="hidden lg:block">
+          <FloatingGiftBar
+            streamId={streamId}
+            creatorId={stream.creator.id}
+            onSendGift={handleSendGift}
+            userBalance={userBalance}
+            isAuthenticated={!!currentUser}
+            onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+            onBuyCoins={() => setShowBuyCoinsModal(true)}
+          />
+        </div>
       )}
 
       {/* Tron-style Goal Bar Overlay - vertical on right side */}
@@ -1232,9 +1339,9 @@ export default function TheaterModePage() {
       {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
         <button
           onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
-          className="lg:hidden fixed bottom-20 right-4 z-50 px-4 py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-sm transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-2 animate-bounce"
+          className="lg:hidden fixed bottom-[calc(120px+env(safe-area-inset-bottom,0px))] right-3 z-50 px-3 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-1.5 animate-bounce"
         >
-          <Ticket className="w-4 h-4" />
+          <Ticket className="w-3.5 h-3.5" />
           <span>VIP</span>
           <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
         </button>
