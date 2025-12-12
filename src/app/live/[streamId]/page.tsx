@@ -748,20 +748,20 @@ export default function TheaterModePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 text-white flex flex-col lg:pl-16">
-      {/* Header Bar - simplified for mobile */}
+      {/* Mobile Logo Header - centered */}
+      <div className="lg:hidden flex items-center justify-center py-2 glass-dark border-b border-cyan-400/20">
+        <button onClick={() => router.push('/')}>
+          <img
+            src="/images/digis-logo-white.png"
+            alt="Digis"
+            className="h-7"
+          />
+        </button>
+      </div>
+
+      {/* Header Bar - creator info */}
       <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
         <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-          {/* Digis Logo - visible on mobile, hidden on desktop (sidebar has logo) */}
-          <button
-            onClick={() => router.push('/')}
-            className="lg:hidden flex-shrink-0"
-          >
-            <img
-              src="/images/digis-logo-white.png"
-              alt="Digis"
-              className="w-8 h-8"
-            />
-          </button>
           <button
             onClick={() => router.back()}
             className="hidden lg:block p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
