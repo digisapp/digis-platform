@@ -866,7 +866,7 @@ export default function ProfilePage() {
         {isLive && liveStreamId && (
           <div className="mb-6">
             <button
-              onClick={() => router.push(`/stream/${liveStreamId}`)}
+              onClick={() => router.push(`/live/${liveStreamId}`)}
               className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-2xl p-4 sm:p-6 transition-all hover:scale-[1.02] border-2 border-red-400 shadow-lg"
             >
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
