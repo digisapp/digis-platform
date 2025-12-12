@@ -8,6 +8,7 @@ import { ConnectionState, Track } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getAblyClient } from '@/lib/ably/client';
+import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import type Ably from 'ably';
 
 interface CallToken {
@@ -101,6 +102,7 @@ function FaceTimeVideoLayout({
   onSendMessage,
   messageInput,
   setMessageInput,
+  onBuyCoins,
 }: {
   callData: CallData;
   onEndCall: () => void;
@@ -117,6 +119,7 @@ function FaceTimeVideoLayout({
   onSendMessage: () => void;
   messageInput: string;
   setMessageInput: (value: string) => void;
+  onBuyCoins: () => void;
 }) {
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -288,22 +291,67 @@ function FaceTimeVideoLayout({
 
       {/* Top bar - duration and cost - safe area aware */}
       <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
-        <div className="flex items-center justify-center pt-1 sm:pt-2">
-          {hasStarted && (
-            <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-                <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
+        <div className="flex items-center justify-between px-3 sm:px-4 pt-1 sm:pt-2">
+          {/* Left side - wallet balance for fan (clickable to buy more) */}
+          <div className="w-24 sm:w-28">
+            {isFan && (
+              <button
+                onClick={onBuyCoins}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-yellow-500/30 hover:bg-yellow-500/20 hover:border-yellow-500/50 transition-all active:scale-95"
+                title="Buy more coins"
+              >
+                <Coins className="w-3.5 h-3.5 text-yellow-400" />
+                <span className="font-bold text-yellow-400 text-sm">{userBalance}</span>
+                <span className="text-yellow-400/70 text-xs">+</span>
+              </button>
+            )}
+          </div>
+
+          {/* Center - duration and cost */}
+          <div className="flex-shrink-0">
+            {hasStarted && (
+              <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                  <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
+                </div>
+                <div className="w-px h-3 sm:h-4 bg-white/30" />
+                <div className="flex items-center gap-1">
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
+                  <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
+                </div>
               </div>
-              <div className="w-px h-3 sm:h-4 bg-white/30" />
-              <div className="flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400" />
-                <span className="font-bold text-yellow-400 text-sm sm:text-base">~{estimatedCost}</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Right side - spacer to balance layout */}
+          <div className="w-20 sm:w-24" />
         </div>
       </div>
+
+      {/* Tips and Gifts - Always visible floating notifications */}
+      {!showChat && (
+        <div className="absolute left-3 bottom-36 sm:bottom-40 z-30 w-64 sm:w-72 max-h-[30vh] overflow-hidden pointer-events-none">
+          <div className="space-y-1.5 overflow-hidden">
+            {chatMessages.filter(m => m.type === 'tip' || m.type === 'gift').slice(-5).map((msg) => (
+              <div key={msg.id} className="animate-in slide-in-from-left duration-300">
+                {msg.type === 'tip' ? (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-sm shadow-lg border border-green-400/30">
+                    <Coins className="w-4 h-4 text-yellow-300" />
+                    <span className="text-white text-sm font-bold">{msg.senderName || 'Someone'}</span>
+                    <span className="text-yellow-300 text-sm font-bold">+{msg.amount} coins!</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-500/90 to-purple-500/90 backdrop-blur-sm shadow-lg border border-pink-400/30">
+                    <span className="text-xl">{msg.giftEmoji}</span>
+                    <span className="text-white text-sm font-bold">{msg.senderName || 'Someone'} sent a gift!</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Chat Overlay - floating messages on left side */}
       {showChat && (
@@ -659,6 +707,7 @@ export default function VideoCallPage() {
   const [messageInput, setMessageInput] = useState('');
   const [userBalance, setUserBalance] = useState(0);
   const [tipSending, setTipSending] = useState(false);
+  const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
 
   // Notify other party of connection error
   const notifyConnectionError = async (errorMessage: string) => {
@@ -795,24 +844,32 @@ export default function VideoCallPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        setUserBalance((prev) => prev - amount);
+        // Use actual new balance from API
+        setUserBalance(data.newBalance);
+        console.log('[CallPage] Tip sent successfully, new balance:', data.newBalance);
 
         // Publish tip to Ably so both users see it
-        const ably = getAblyClient();
-        const channel = ably.channels.get(`call:${callId}`);
-        const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
+        try {
+          const ably = getAblyClient();
+          const channel = ably.channels.get(`call:${callId}`);
+          const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
 
-        await channel.publish('tip_sent', {
-          id: `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-          senderId: user.id,
-          senderName,
-          amount,
-          timestamp: Date.now(),
-        });
+          await channel.publish('tip_sent', {
+            id: `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            senderId: user.id,
+            senderName,
+            amount,
+            timestamp: Date.now(),
+          });
+          console.log('[CallPage] Tip published to Ably');
+        } catch (ablyErr) {
+          console.error('[CallPage] Failed to publish tip to Ably:', ablyErr);
+        }
       } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to send tip');
+        alert(data.error || 'Failed to send tip');
       }
     } catch (err) {
       console.error('Error sending tip:', err);
@@ -843,26 +900,34 @@ export default function VideoCallPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        setUserBalance((prev) => prev - gift.price);
+        // Use actual new balance from API response
+        setUserBalance(data.newBalance);
+        console.log('[CallPage] Gift sent successfully, new balance:', data.newBalance);
 
         // Publish gift to Ably so both users see it
-        const ably = getAblyClient();
-        const channel = ably.channels.get(`call:${callId}`);
-        const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
+        try {
+          const ably = getAblyClient();
+          const channel = ably.channels.get(`call:${callId}`);
+          const senderName = callData.fan?.displayName || callData.fan?.username || 'Fan';
 
-        await channel.publish('gift_sent', {
-          id: `gift-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-          senderId: user.id,
-          senderName,
-          giftName: gift.name,
-          giftEmoji: gift.emoji,
-          amount: gift.price,
-          timestamp: Date.now(),
-        });
+          await channel.publish('gift_sent', {
+            id: `gift-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            senderId: user.id,
+            senderName,
+            giftName: gift.name,
+            giftEmoji: gift.emoji,
+            amount: gift.price,
+            timestamp: Date.now(),
+          });
+          console.log('[CallPage] Gift published to Ably');
+        } catch (ablyErr) {
+          console.error('[CallPage] Failed to publish gift to Ably:', ablyErr);
+        }
       } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to send gift');
+        alert(data.error || 'Failed to send gift');
       }
     } catch (err) {
       console.error('Error sending gift:', err);
@@ -1348,6 +1413,7 @@ export default function VideoCallPage() {
               onSendMessage={handleSendMessage}
               messageInput={messageInput}
               setMessageInput={setMessageInput}
+              onBuyCoins={() => setShowBuyCoinsModal(true)}
             />
             <RoomAudioRenderer />
           </>
@@ -1484,6 +1550,25 @@ export default function VideoCallPage() {
           aspect-ratio: 16/9 !important;
         }
       `}</style>
+
+      {/* Buy Coins Modal */}
+      <BuyCoinsModal
+        isOpen={showBuyCoinsModal}
+        onClose={() => setShowBuyCoinsModal(false)}
+        onSuccess={async () => {
+          // Refresh balance after purchase
+          try {
+            const res = await fetch('/api/wallet/balance');
+            if (res.ok) {
+              const data = await res.json();
+              setUserBalance(data.balance || 0);
+            }
+          } catch (err) {
+            console.error('Error refreshing balance:', err);
+          }
+          setShowBuyCoinsModal(false);
+        }}
+      />
     </div>
   );
 }
