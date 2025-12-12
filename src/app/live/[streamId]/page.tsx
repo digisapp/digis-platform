@@ -233,19 +233,27 @@ export default function TheaterModePage() {
         if (prev.some(m => m.id === chatMessage.id)) {
           return prev;
         }
-        // Check for optimistic message from same user with same content (within 5 seconds)
-        // Replace the temp message with the real one instead of adding duplicate
+        // Check for optimistic message from same user with same content
+        // Don't rely on timestamp comparison as server time may differ from client
         const optimisticIndex = prev.findIndex(m =>
           m.id.startsWith('temp-') &&
           m.userId === chatMessage.userId &&
-          m.content === chatMessage.content &&
-          Math.abs(m.timestamp - chatMessage.timestamp) < 5000
+          m.content === chatMessage.content
         );
         if (optimisticIndex !== -1) {
           // Replace optimistic message with real one
           const newMessages = [...prev];
           newMessages[optimisticIndex] = chatMessage;
           return newMessages;
+        }
+        // Also check for very recent duplicate content from same user (within last 10 messages)
+        const recentDuplicate = prev.slice(-10).some(m =>
+          m.userId === chatMessage.userId &&
+          m.content === chatMessage.content &&
+          m.messageType === 'chat'
+        );
+        if (recentDuplicate) {
+          return prev;
         }
         return [...prev, chatMessage];
       });
@@ -867,9 +875,18 @@ export default function TheaterModePage() {
                     <OverlayChat
                       messages={messages}
                       onSendMessage={(content) => {
+                        // Prevent double submission
                         if (!currentUser || sendingMessage) return;
+
+                        // Check for duplicate content in recent messages
+                        const isDuplicate = messages.slice(-5).some(m =>
+                          m.userId === currentUser.id &&
+                          m.content === content
+                        );
+                        if (isDuplicate) return;
+
                         const optimisticMessage: ChatMessage = {
-                          id: `temp-${Date.now()}`,
+                          id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                           userId: currentUser.id,
                           username: currentUser.username,
                           displayName: currentUser.displayName,
@@ -1315,21 +1332,37 @@ export default function TheaterModePage() {
         </div>
       )}
 
-      {/* Tron-style Goal Bar Overlay - vertical on right side */}
+      {/* Tron-style Goal Bar Overlay - vertical on mobile, horizontal on desktop */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <div className="fixed right-3 top-1/2 -translate-y-1/2 z-40">
-          <TronGoalBar
-            vertical
-            goals={stream.goals
-              .filter((g: any) => g.isActive && !g.isCompleted)
-              .map((g: any) => ({
-                id: g.id,
-                description: g.description || 'Stream Goal',
-                targetAmount: g.targetAmount,
-                currentAmount: g.currentAmount,
-              }))}
-          />
-        </div>
+        <>
+          {/* Mobile - vertical on right side */}
+          <div className="lg:hidden fixed right-2 top-1/3 z-40">
+            <TronGoalBar
+              vertical
+              goals={stream.goals
+                .filter((g: any) => g.isActive && !g.isCompleted)
+                .map((g: any) => ({
+                  id: g.id,
+                  description: g.description || 'Stream Goal',
+                  targetAmount: g.targetAmount,
+                  currentAmount: g.currentAmount,
+                }))}
+            />
+          </div>
+          {/* Desktop - horizontal at top */}
+          <div className="hidden lg:block fixed top-20 left-1/2 -translate-x-1/2 z-40 w-80">
+            <TronGoalBar
+              goals={stream.goals
+                .filter((g: any) => g.isActive && !g.isCompleted)
+                .map((g: any) => ({
+                  id: g.id,
+                  description: g.description || 'Stream Goal',
+                  targetAmount: g.targetAmount,
+                  currentAmount: g.currentAmount,
+                }))}
+            />
+          </div>
+        </>
       )}
 
       {/* Floating Gift Emojis Animation */}
