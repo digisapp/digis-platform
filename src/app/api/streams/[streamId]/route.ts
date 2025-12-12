@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { streamGoals, creatorSettings } from '@/lib/data/system';
-import { eq, and } from 'drizzle-orm';
+import { streamGoals, creatorSettings, shows } from '@/lib/data/system';
+import { eq, and, gt } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -60,7 +60,23 @@ export async function GET(
       where: eq(creatorSettings.userId, stream.creatorId),
     }) : null;
 
-    // Return stream with goals and call settings
+    // Fetch upcoming ticketed show from this stream (for late-joining viewers)
+    // This is set when creator announces a ticketed show from an active broadcast
+    const upcomingShow = stream.creatorId ? await db.query.shows.findFirst({
+      where: and(
+        eq(shows.creatorId, stream.creatorId),
+        eq(shows.status, 'scheduled'),
+        gt(shows.scheduledStart, new Date())
+      ),
+      columns: {
+        id: true,
+        title: true,
+        ticketPrice: true,
+        scheduledStart: true,
+      },
+    }) : null;
+
+    // Return stream with goals, call settings, and upcoming ticketed show
     return NextResponse.json({
       stream: {
         ...stream,
@@ -79,6 +95,12 @@ export async function GET(
           voiceCallRatePerMinute: callSettings.voiceCallRatePerMinute,
           minimumCallDuration: callSettings.minimumCallDuration,
           minimumVoiceCallDuration: callSettings.minimumVoiceCallDuration,
+        } : null,
+        upcomingTicketedShow: upcomingShow ? {
+          id: upcomingShow.id,
+          title: upcomingShow.title,
+          ticketPrice: upcomingShow.ticketPrice,
+          startsAt: upcomingShow.scheduledStart?.toISOString(),
         } : null,
       }
     });

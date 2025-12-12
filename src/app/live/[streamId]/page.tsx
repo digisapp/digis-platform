@@ -51,6 +51,12 @@ interface StreamData {
     minimumVoiceCallDuration: number;
     messageRate?: number;
   } | null;
+  upcomingTicketedShow?: {
+    id: string;
+    title: string;
+    ticketPrice: number;
+    startsAt: string;
+  } | null;
 }
 
 interface ChatMessage {
@@ -179,6 +185,14 @@ export default function TheaterModePage() {
     ticketedStreamId: string;
     title: string;
     ticketPrice: number;
+  } | null>(null);
+
+  // Upcoming ticketed show from creator (for late-joining viewers)
+  const [upcomingTicketedShow, setUpcomingTicketedShow] = useState<{
+    id: string;
+    title: string;
+    ticketPrice: number;
+    startsAt: string;
   } | null>(null);
 
   // Remove completed floating gift
@@ -446,6 +460,11 @@ export default function TheaterModePage() {
       const data = await response.json();
       const streamData = data.stream || data; // Handle both { stream } and direct stream object
       setStream(streamData);
+
+      // Set upcoming ticketed show for late-joining viewers
+      if (streamData.upcomingTicketedShow && !dismissedTicketedStream && !ticketedAnnouncement) {
+        setUpcomingTicketedShow(streamData.upcomingTicketedShow);
+      }
 
       if (streamData.status === 'ended') {
         setError('This stream has ended');
@@ -878,6 +897,18 @@ export default function TheaterModePage() {
               />
             )}
 
+            {/* VIP Stream Button - for late-joining viewers or after dismissing popup */}
+            {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
+              <button
+                onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300/50 flex items-center gap-2"
+              >
+                <Ticket className="w-4 h-4" />
+                <span>VIP Stream</span>
+                <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
+              </button>
+            )}
+
             </div>
 
           {/* Mobile Gift Bar is now floating - see bottom of page */}
@@ -1148,15 +1179,15 @@ export default function TheaterModePage() {
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
-      {/* Persistent VIP Ticket Button - shows after dismissing popup */}
-      {dismissedTicketedStream && !ticketedAnnouncement && (
+      {/* Persistent VIP Ticket Button - shows for late-joining viewers or after dismissing popup (mobile only, desktop has it in action bar) */}
+      {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
         <button
-          onClick={() => router.push(`/streams/${dismissedTicketedStream.ticketedStreamId}`)}
-          className="fixed bottom-20 right-4 z-50 px-4 py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-sm transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-2 animate-bounce"
+          onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
+          className="lg:hidden fixed bottom-20 right-4 z-50 px-4 py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-sm transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-2 animate-bounce"
         >
           <Ticket className="w-4 h-4" />
-          <span>VIP Stream</span>
-          <span className="text-amber-800">{dismissedTicketedStream.ticketPrice}</span>
+          <span>VIP</span>
+          <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
         </button>
       )}
 
