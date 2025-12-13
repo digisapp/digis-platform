@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { Send, Smile, Gift, Pin, X } from 'lucide-react';
+import { Send, Smile, Gift, Pin, X, Ticket, Coins } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
 
 type StreamChatProps = {
@@ -182,6 +182,40 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                       <span className="text-2xl">💰</span>
                       <span className="text-sm text-white">
                         Tipped <span className="font-bold text-green-400">{(msg as any).tipAmount || (msg as any).giftAmount || '?'} coins</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (msg as any).messageType === 'ticket_purchase' ? (
+                // Ticket purchase message - amber/gold styling
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20">
+                  {/* Avatar */}
+                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+                    <img
+                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+                      alt={msg.username}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-xs font-bold text-black flex-shrink-0">
+                      {msg.username?.[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-amber-400">{msg.username}</span>
+                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Ticket className="w-5 h-5 text-amber-400" />
+                      <span className="text-sm text-white">
+                        Bought a ticket
+                        {(msg as any).ticketPrice && (
+                          <span className="ml-2 inline-flex items-center gap-1">
+                            <Coins className="w-3 h-3 text-amber-400" />
+                            <span className="font-bold text-amber-400">{(msg as any).ticketPrice}</span>
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>

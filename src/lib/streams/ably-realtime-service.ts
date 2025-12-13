@@ -238,4 +238,37 @@ export class AblyRealtimeService {
       }
     );
   }
+
+  /**
+   * Broadcast ticket purchase to chat
+   * Shows in chat that a user bought a ticket for the upcoming show
+   */
+  static async broadcastTicketPurchase(
+    streamId: string,
+    data: {
+      userId: string;
+      username: string;
+      displayName?: string | null;
+      avatarUrl?: string | null;
+      showTitle: string;
+      ticketPrice: number;
+    }
+  ) {
+    await publishToChannel(
+      CHANNEL_NAMES.streamChat(streamId),
+      'chat',
+      {
+        id: `ticket-${data.userId}-${Date.now()}`,
+        userId: data.userId,
+        username: data.username,
+        displayName: data.displayName,
+        avatarUrl: data.avatarUrl,
+        content: `bought a ticket for "${data.showTitle}"`,
+        timestamp: Date.now(),
+        messageType: 'ticket_purchase',
+        ticketPrice: data.ticketPrice,
+        showTitle: data.showTitle,
+      }
+    );
+  }
 }

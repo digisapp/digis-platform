@@ -70,11 +70,13 @@ interface ChatMessage {
   timestamp: number;
   isCreator?: boolean;
   isModerator?: boolean;
-  messageType?: 'chat' | 'tip' | 'gift';
+  messageType?: 'chat' | 'tip' | 'gift' | 'ticket_purchase';
   tipAmount?: number;
   giftEmoji?: string;
   giftName?: string;
   giftQuantity?: number;
+  ticketPrice?: number;
+  showTitle?: string;
 }
 
 interface Viewer {
@@ -205,6 +207,10 @@ export default function TheaterModePage() {
     price: number;
   } | null>(null);
   const [quickBuyLoading, setQuickBuyLoading] = useState(false);
+
+  // Track if user has purchased ticket for upcoming show (before it starts)
+  const [hasPurchasedUpcomingTicket, setHasPurchasedUpcomingTicket] = useState(false);
+  const [showTicketPurchaseSuccess, setShowTicketPurchaseSuccess] = useState(false);
 
   // Upcoming ticketed show from creator (for late-joining viewers)
   const [upcomingTicketedShow, setUpcomingTicketedShow] = useState<{
@@ -452,7 +458,11 @@ export default function TheaterModePage() {
     try {
       const response = await fetch(`/api/shows/${showId}/purchase`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ streamId }), // Pass streamId for chat broadcast
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         // Update balance
@@ -462,10 +472,14 @@ export default function TheaterModePage() {
         setQuickBuyInfo(null);
         setTicketedAnnouncement(null);
         setDismissedTicketedStream(null);
-        // Grant access if ticketed mode is active
+        setUpcomingTicketedShow(null);
+        // Mark as purchased
+        setHasPurchasedUpcomingTicket(true);
         setHasTicket(true);
+        // Show success message
+        setShowTicketPurchaseSuccess(true);
+        setTimeout(() => setShowTicketPurchaseSuccess(false), 3000);
       } else {
-        const data = await response.json();
         if (data.error?.includes('Insufficient')) {
           setShowBuyCoinsModal(true);
         } else if (data.error?.includes('already')) {
@@ -473,6 +487,9 @@ export default function TheaterModePage() {
           setShowQuickBuyModal(false);
           setQuickBuyInfo(null);
           setTicketedAnnouncement(null);
+          setDismissedTicketedStream(null);
+          setUpcomingTicketedShow(null);
+          setHasPurchasedUpcomingTicket(true);
           setHasTicket(true);
         } else {
           alert(data.error || 'Failed to purchase ticket');
@@ -1289,6 +1306,19 @@ export default function TheaterModePage() {
                       )}
                       <span className="text-base">{msg.giftEmoji}</span>
                     </div>
+                  ) : msg.messageType === 'ticket_purchase' ? (
+                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
+                      {msg.avatarUrl ? (
+                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-900">
+                          {msg.username?.[0]?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <span className="font-bold text-amber-300 text-xs">@{msg.username}</span>
+                      <span className="text-white/70 text-xs">bought a ticket</span>
+                      <Ticket className="w-3 h-3 text-amber-400" />
+                    </div>
                   ) : (
                     <div key={msg.id} className="flex gap-2">
                       {msg.avatarUrl ? (
@@ -1396,7 +1426,7 @@ export default function TheaterModePage() {
             )}
 
             {/* Ticketed Stream Button - for late-joining viewers or after dismissing popup */}
-            {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
+            {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && !hasPurchasedUpcomingTicket && (
               <button
                 onClick={() => {
                   const showId = upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId;
@@ -1500,6 +1530,28 @@ export default function TheaterModePage() {
                             )}
                             <span className="text-xl">{msg.giftEmoji}</span>
                             <span className="font-bold text-pink-400">{msg.giftName}</span>
+                          </div>
+                        </div>
+                      ) : msg.messageType === 'ticket_purchase' ? (
+                        // Ticket purchase message - highlighted with amber/gold
+                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                          <div className="flex items-center gap-2">
+                            {msg.avatarUrl ? (
+                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center text-xs font-bold text-black">
+                                {msg.username?.[0]?.toUpperCase() || '?'}
+                              </div>
+                            )}
+                            <span className="font-bold text-amber-300">@{msg.username}</span>
+                            <span className="text-white/70">bought a ticket</span>
+                            <Ticket className="w-4 h-4 text-amber-400" />
+                            {msg.ticketPrice && (
+                              <>
+                                <Coins className="w-3 h-3 text-amber-400" />
+                                <span className="font-bold text-amber-400">{msg.ticketPrice}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -1741,8 +1793,23 @@ export default function TheaterModePage() {
         </div>
       )}
 
+      {/* Ticket Purchase Success Toast */}
+      {showTicketPurchaseSuccess && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-slideDown">
+          <div className="px-6 py-4 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-xl rounded-2xl border border-green-400/50 shadow-[0_0_30px_rgba(34,197,94,0.5)] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <Ticket className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-white font-bold text-lg">Ticket Purchased!</p>
+              <p className="text-white/80 text-sm">You have access when the stream starts</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Persistent Ticket Button - shows for late-joining viewers or after dismissing popup */}
-      {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && !showQuickBuyModal && (
+      {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && !showQuickBuyModal && !hasPurchasedUpcomingTicket && (
         <button
           onClick={() => {
             const showId = upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId;
