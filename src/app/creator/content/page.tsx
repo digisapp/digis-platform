@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
-import { Plus, Edit, Trash2, Eye, ShoppingCart, DollarSign, MoreVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins, MoreVertical } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface CreatorContent {
@@ -251,8 +251,8 @@ export default function CreatorContentStudioPage() {
                       <ShoppingCart className="w-3 h-3" />
                       {item.purchaseCount}
                     </span>
-                    <span className="flex items-center gap-1 text-digis-cyan font-medium">
-                      <DollarSign className="w-3 h-3" />
+                    <span className="flex items-center gap-1 text-yellow-400 font-medium">
+                      <Coins className="w-3 h-3" />
                       {item.totalEarnings}
                     </span>
                   </div>
@@ -266,8 +266,11 @@ export default function CreatorContentStudioPage() {
         {content.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
             <GlassCard className="p-4 text-center">
-              <DollarSign className="w-6 h-6 text-digis-cyan mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{totalEarnings}</div>
+              <Coins className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white flex items-center justify-center gap-1">
+                {totalEarnings}
+                <span className="text-sm font-normal text-yellow-400">coins</span>
+              </div>
               <div className="text-gray-400 text-sm">Total Earnings</div>
             </GlassCard>
             <GlassCard className="p-4 text-center">
