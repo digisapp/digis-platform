@@ -98,13 +98,11 @@ export function SuccessAnimation({ show, onComplete }: { show: boolean; onComple
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
       <div className="glass rounded-3xl border-2 border-purple-200 p-12 text-center animate-scale-in">
-        <div className="relative mb-6 flex items-center justify-center">
-          <div className="absolute bg-gradient-to-br from-digis-pink via-digis-purple to-digis-cyan rounded-full animate-spin-slow opacity-20"
-               style={{ width: 100, height: 100 }} />
+        <div className="mb-6 flex items-center justify-center">
           <img
             src="/images/digis-logo-white.png"
             alt="Digis"
-            className="relative w-20 h-20 object-contain animate-bounce-in drop-shadow-[0_0_15px_rgba(192,132,252,0.5)]"
+            className="w-20 h-20 object-contain animate-bounce-in drop-shadow-[0_0_15px_rgba(192,132,252,0.5)]"
           />
         </div>
         <h2 className="text-3xl font-bold bg-gradient-to-r from-digis-pink via-digis-purple to-digis-cyan bg-clip-text text-transparent mb-2">
@@ -134,22 +132,11 @@ export function SuccessAnimation({ show, onComplete }: { show: boolean; onComple
             transform: scale(1.2);
           }
         }
-        @keyframes spin-slow {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
         .animate-scale-in {
           animation: scale-in 0.5s ease-out;
         }
         .animate-bounce-in {
           animation: bounce-in 0.6s ease-in-out;
-        }
-        .animate-spin-slow {
-          animation: spin-slow 3s linear infinite;
         }
       `}</style>
     </div>
