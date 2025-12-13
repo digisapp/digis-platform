@@ -24,7 +24,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -109,6 +109,18 @@ export default function BroadcastStudioPage() {
       ticketRevenue: number;
       ticketBuyers: Array<{ username: string; displayName: string | null; avatarUrl: string | null }>;
     };
+    // Tip menu stats
+    tipMenuStats?: {
+      totalTipMenuCoins: number;
+      totalPurchases: number;
+      items: Array<{
+        id: string;
+        label: string;
+        totalCoins: number;
+        purchaseCount: number;
+        purchasers: Array<{ username: string; amount: number }>;
+      }>;
+    };
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
   const [isPortraitDevice, setIsPortraitDevice] = useState(false);
@@ -131,6 +143,7 @@ export default function BroadcastStudioPage() {
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
+  const [tipMenuEnabled, setTipMenuEnabled] = useState(false);
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Detect Safari browser
@@ -457,6 +470,8 @@ export default function BroadcastStudioPage() {
         messageType: msgData.messageType || 'chat',
         giftId: msgData.giftId || null,
         giftAmount: msgData.giftAmount || null,
+        tipMenuItemId: msgData.tipMenuItemId || null,
+        tipMenuItemLabel: msgData.tipMenuItemLabel || null,
         createdAt: msgData.createdAt ? new Date(msgData.createdAt) : new Date(),
         user: msgData.user, // Pass through user data for avatar display
       } as StreamMessage;
@@ -827,6 +842,31 @@ export default function BroadcastStudioPage() {
       const leaderboardResponse = await fetch(`/api/streams/${streamId}/leaderboard`);
       const leaderboardData = await leaderboardResponse.json();
 
+      // Fetch tip menu stats
+      let tipMenuStats: {
+        totalTipMenuCoins: number;
+        totalPurchases: number;
+        items: Array<{
+          id: string;
+          label: string;
+          totalCoins: number;
+          purchaseCount: number;
+          purchasers: Array<{ username: string; amount: number }>;
+        }>;
+      } | undefined;
+
+      try {
+        const tipMenuResponse = await fetch(`/api/streams/${streamId}/tip-menu-stats`);
+        if (tipMenuResponse.ok) {
+          const tipMenuData = await tipMenuResponse.json();
+          if (tipMenuData.totalPurchases > 0) {
+            tipMenuStats = tipMenuData;
+          }
+        }
+      } catch (tipMenuErr) {
+        console.error('Failed to fetch tip menu stats:', tipMenuErr);
+      }
+
       // Fetch ticket stats if there was a ticketed show
       let ticketStats: {
         ticketsSold: number;
@@ -878,6 +918,7 @@ export default function BroadcastStudioPage() {
           totalEarnings: finalStream.totalGiftsReceived || totalEarnings,
           topSupporters: leaderboardData.leaderboard?.slice(0, 3) || [],
           ticketStats,
+          tipMenuStats,
         });
       }
     } catch (err) {
@@ -1007,6 +1048,30 @@ export default function BroadcastStudioPage() {
       console.error('Failed to flip camera:', err);
     } finally {
       setTimeout(() => setIsFlippingCamera(false), 500);
+    }
+  };
+
+  // Toggle tip menu visibility for viewers
+  const handleToggleTipMenu = async () => {
+    const newEnabled = !tipMenuEnabled;
+    setTipMenuEnabled(newEnabled); // Optimistic update
+
+    try {
+      const response = await fetch(`/api/streams/${streamId}/tip-menu`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newEnabled }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setTipMenuEnabled(!newEnabled);
+        console.error('Failed to toggle tip menu');
+      }
+    } catch (err) {
+      // Revert on error
+      setTipMenuEnabled(!newEnabled);
+      console.error('Error toggling tip menu:', err);
     }
   };
 
@@ -1415,6 +1480,51 @@ export default function BroadcastStudioPage() {
                 </div>
               )}
 
+              {/* Tip Menu Stats */}
+              {streamSummary.tipMenuStats && streamSummary.tipMenuStats.totalPurchases > 0 && (
+                <div className="mb-6 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Tip Menu Stats
+                  </h3>
+                  <div className="text-center mb-4">
+                    <div className="text-3xl font-bold text-pink-400 flex items-center justify-center gap-2">
+                      <Coins className="w-7 h-7 text-yellow-400" />
+                      {streamSummary.tipMenuStats.totalTipMenuCoins.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      from {streamSummary.tipMenuStats.totalPurchases} tip menu purchase{streamSummary.tipMenuStats.totalPurchases !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {streamSummary.tipMenuStats.items.map((item) => (
+                      <div key={item.id} className="bg-white/5 rounded-lg p-3 border border-white/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-white">{item.label}</span>
+                          <span className="text-pink-400 font-bold flex items-center gap-1">
+                            <Coins className="w-4 h-4 text-yellow-400" />
+                            {item.totalCoins.toLocaleString()}
+                            <span className="text-gray-400 text-xs ml-1">({item.purchaseCount}x)</span>
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.purchasers.map((purchaser, idx) => (
+                            <span
+                              key={idx}
+                              className="text-xs px-2 py-0.5 bg-pink-500/20 text-pink-300 rounded-full"
+                            >
+                              @{purchaser.username}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Top Supporters */}
               {streamSummary.topSupporters.length > 0 && (
                 <div className="mb-6 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
@@ -1475,9 +1585,9 @@ export default function BroadcastStudioPage() {
           <h1 className="text-xl font-bold text-white truncate">{stream?.title || 'Live Stream'}</h1>
         </div>
 
-        <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
+        <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-4'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
-          <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
+          <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-3'} space-y-4`}>
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
@@ -1586,6 +1696,20 @@ export default function BroadcastStudioPage() {
                         </button>
                       );
                     })()}
+
+                    {/* Tip Menu Toggle Button */}
+                    <button
+                      onClick={handleToggleTipMenu}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                        tipMenuEnabled
+                          ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
+                          : 'bg-black/60 border-white/20 text-white/60 hover:border-white/40 hover:bg-black/80'
+                      }`}
+                      title={tipMenuEnabled ? 'Tip Menu is ON - click to hide' : 'Tip Menu is OFF - click to show'}
+                    >
+                      <List className={`w-4 h-4 ${tipMenuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
+                      <span className="text-sm hidden sm:inline">Menu</span>
+                    </button>
 
                     {/* Announce Ticketed Stream Button */}
                     {!announcedTicketedStream && (

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, streams, users, notifications, streamGoals } from '@/lib/data/system';
+import { wallets, walletTransactions, streams, users, notifications, streamGoals, streamMessages } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { withIdempotency } from '@/lib/idempotency';
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     // Wrap the entire tip processing in idempotency check
     return await withIdempotency(`tips:${idempotencyKey}`, 60000, async () => {
-      const { amount, streamId, note } = await req.json();
+      const { amount, streamId, note, tipMenuItemId, tipMenuItemLabel } = await req.json();
 
     // Validate input
     if (!amount || !streamId || amount <= 0) {
@@ -213,6 +213,35 @@ export async function POST(req: NextRequest) {
         amount,
         note: sanitizedNote,
       });
+    }
+
+    // Record tip in stream messages for tracking and summary
+    try {
+      const messageText = tipMenuItemLabel
+        ? `tipped ${amount} coins for "${tipMenuItemLabel}"`
+        : `tipped ${amount} coins`;
+
+      await db.insert(streamMessages).values({
+        streamId,
+        userId: authUser.id,
+        username: sender?.username || 'Anonymous',
+        message: messageText,
+        messageType: 'tip',
+        giftAmount: amount,
+        tipMenuItemId: tipMenuItemId || null,
+        tipMenuItemLabel: tipMenuItemLabel || null,
+      });
+
+      // Update stream total tips
+      await db
+        .update(streams)
+        .set({
+          totalGiftsReceived: sql`${streams.totalGiftsReceived} + ${amount}`,
+        })
+        .where(eq(streams.id, streamId));
+    } catch (msgError) {
+      console.error('[tips/quick] Error recording tip message:', msgError);
+      // Don't fail the tip if message insert fails
     }
 
     // Update stream goal progress with tip amount

@@ -585,6 +585,8 @@ export class StreamService {
    * Send a coin tip during a stream (without a virtual gift)
    * @param recipientCreatorId - Optional: direct the tip to a featured creator instead of stream host
    * @param recipientUsername - Optional: username of the featured creator
+   * @param tipMenuItemId - Optional: tip menu item ID if this tip was from the tip menu
+   * @param tipMenuItemLabel - Optional: label of the tip menu item
    */
   static async sendTip(
     streamId: string,
@@ -592,7 +594,9 @@ export class StreamService {
     senderUsername: string,
     amount: number,
     recipientCreatorId?: string,
-    recipientUsername?: string
+    recipientUsername?: string,
+    tipMenuItemId?: string,
+    tipMenuItemLabel?: string
   ) {
     if (amount < 1) {
       throw new Error('Minimum tip is 1 coin');
@@ -618,9 +622,11 @@ export class StreamService {
       .where(eq(streams.id, streamId));
 
     // Create tip message
-    const messageText = recipientCreatorId
-      ? `tipped ${amount} coins to @${recipientUsername}`
-      : `tipped ${amount} coins`;
+    const messageText = tipMenuItemLabel
+      ? `tipped ${amount} coins for "${tipMenuItemLabel}"`
+      : recipientCreatorId
+        ? `tipped ${amount} coins to @${recipientUsername}`
+        : `tipped ${amount} coins`;
 
     await db.insert(streamMessages).values({
       streamId,
@@ -629,6 +635,8 @@ export class StreamService {
       message: messageText,
       messageType: 'gift',
       giftAmount: amount,
+      tipMenuItemId: tipMenuItemId || null,
+      tipMenuItemLabel: tipMenuItemLabel || null,
     });
 
     if (recipientCreatorId) {

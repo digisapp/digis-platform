@@ -447,6 +447,8 @@ export default function StreamViewerPage() {
       messageType: 'chat' as const,
       giftId: null,
       giftAmount: null,
+      tipMenuItemId: null,
+      tipMenuItemLabel: null,
       createdAt: new Date(),
     };
 

@@ -36,6 +36,7 @@ export const streams = pgTable('streams', {
   thumbnailUrl: text('thumbnail_url'),
   privacy: text('privacy').default('public').notNull(), // public, followers, private
   orientation: text('orientation').default('landscape').notNull(), // landscape, portrait
+  tipMenuEnabled: boolean('tip_menu_enabled').default(false).notNull(), // Show tip menu to viewers
 
   // Featured creator commission (0-100, percentage host takes from featured creator tips)
   featuredCreatorCommission: integer('featured_creator_commission').default(0).notNull(),
@@ -75,6 +76,10 @@ export const streamMessages = pgTable('stream_messages', {
   // For gift messages
   giftId: uuid('gift_id'),
   giftAmount: integer('gift_amount'),
+
+  // For tip menu purchases
+  tipMenuItemId: uuid('tip_menu_item_id'),
+  tipMenuItemLabel: text('tip_menu_item_label'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({

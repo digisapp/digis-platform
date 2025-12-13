@@ -36,7 +36,7 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { amount, recipientCreatorId, recipientUsername } = await req.json();
+    const { amount, recipientCreatorId, recipientUsername, tipMenuItemId, tipMenuItemLabel } = await req.json();
 
     if (!amount || amount < 1) {
       return NextResponse.json({ error: 'Tip amount is required (minimum 1 coin)' }, { status: 400 });
@@ -67,7 +67,9 @@ export async function POST(
       username,
       amount,
       recipientCreatorId,
-      recipientUsername
+      recipientUsername,
+      tipMenuItemId,
+      tipMenuItemLabel
     );
 
     // Broadcast tip to all viewers using Ably (scales to 50k+)

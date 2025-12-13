@@ -73,6 +73,10 @@ interface TicketedAnnouncementEvent {
   minutesUntilStart: number;
 }
 
+interface TipMenuToggleEvent {
+  enabled: boolean;
+}
+
 interface VipModeChangeEvent {
   isActive: boolean;
   showId: string | null;
@@ -93,6 +97,7 @@ interface UseStreamChatOptions {
   onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
   onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
   onVipModeChange?: (event: VipModeChangeEvent) => void;
+  onTipMenuToggle?: (event: TipMenuToggleEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -118,6 +123,7 @@ export function useStreamChat({
   onSpotlightChanged,
   onTicketedAnnouncement,
   onVipModeChange,
+  onTipMenuToggle,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -136,6 +142,7 @@ export function useStreamChat({
     onSpotlightChanged,
     onTicketedAnnouncement,
     onVipModeChange,
+    onTipMenuToggle,
   });
 
   useEffect(() => {
@@ -150,8 +157,9 @@ export function useStreamChat({
       onSpotlightChanged,
       onTicketedAnnouncement,
       onVipModeChange,
+      onTipMenuToggle,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onTipMenuToggle]);
 
   useEffect(() => {
     let mounted = true;
@@ -217,6 +225,9 @@ export function useStreamChat({
         mainChannel = ably.channels.get(`stream:${streamId}`);
         mainChannel.subscribe('ticketed-announcement', (message) => {
           callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
+        });
+        mainChannel.subscribe('tip-menu-toggle', (message) => {
+          callbacksRef.current.onTipMenuToggle?.(message.data as TipMenuToggleEvent);
         });
         mainChannel.subscribe('stream_ended', () => {
           callbacksRef.current.onStreamEnded?.();
