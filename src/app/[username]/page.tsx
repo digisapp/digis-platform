@@ -690,8 +690,8 @@ export default function ProfilePage() {
       {/* Confetti Effect */}
       <ConfettiEffect show={showConfetti} duration={2000} />
 
-      {/* Spacer for fixed mobile header */}
-      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+      {/* Spacer for fixed mobile header - matches MobileHeader h-16 (64px) */}
+      <div className="md:hidden" style={{ height: 'calc(64px + env(safe-area-inset-top, 0px))' }} />
 
       {/* Banner with Parallax Effect */}
       <div className="relative">

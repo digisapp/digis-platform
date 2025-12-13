@@ -964,8 +964,7 @@ export function Navigation() {
       {/* Spacer for desktop side nav */}
       <div className="hidden md:block w-20" />
 
-      {/* Spacer for mobile bottom nav - Dynamic height for iPhone */}
-      <div className="md:hidden" style={{ height: 'calc(60px + env(safe-area-inset-bottom))' }} />
+      {/* Note: Mobile bottom nav spacing is handled by individual pages with pb-24 */}
 
       {/* Buy Coins Modal */}
       <BuyCoinsModal
