@@ -1472,14 +1472,15 @@ export default function BroadcastStudioPage() {
                       );
                     })()}
 
-                    {/* Announce VIP Stream Button */}
+                    {/* Announce Ticketed Stream Button */}
                     {!announcedTicketedStream && (
                       <button
                         onClick={() => setShowAnnounceModal(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-amber-500/30 text-white font-semibold text-sm hover:border-amber-500/60 hover:bg-black/80 transition-all"
+                        title="Announce Ticketed Stream"
                       >
                         <Ticket className="w-4 h-4 text-amber-400" />
-                        <span className="text-sm hidden sm:inline">VIP</span>
+                        <span className="text-sm hidden sm:inline">Ticketed</span>
                       </button>
                     )}
 
@@ -1494,64 +1495,67 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* VIP Stream Indicator - Shows when announced or active */}
-                  {announcedTicketedStream && (
-                    <div className="absolute bottom-20 sm:bottom-14 left-1/2 -translate-x-1/2 z-20">
-                      {vipModeActive ? (
-                        // VIP Mode Active
-                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
-                          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-                          <div className="text-center">
-                            <div className="text-red-400 font-bold text-sm">VIP LIVE</div>
-                            <div className="text-white text-xs">
-                              {announcedTicketedStream.title}
+                  {/* Bottom Center - Ticketed Stream + End Stream Button */}
+                  <div className="absolute bottom-14 sm:bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+                    {/* Ticketed Stream Indicator - Shows when announced or active */}
+                    {announcedTicketedStream && (
+                      <>
+                        {vipModeActive ? (
+                          // Ticketed Mode Active
+                          <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
+                            <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+                            <div className="text-left min-w-0">
+                              <div className="text-red-400 font-bold text-xs uppercase">LIVE</div>
+                              <div className="text-white text-xs truncate max-w-[120px] sm:max-w-[180px]">
+                                {announcedTicketedStream.title}
+                              </div>
                             </div>
+                            <button
+                              onClick={handleEndVipStream}
+                              className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-red-500/80 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg flex-shrink-0"
+                            >
+                              <Square className="w-3 h-3" />
+                              End
+                            </button>
                           </div>
-                          <button
-                            onClick={handleEndVipStream}
-                            className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-red-500/80 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg"
-                          >
-                            <Square className="w-3 h-3" />
-                            End VIP
-                          </button>
-                        </div>
-                      ) : (
-                        // VIP Mode Not Started Yet
-                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-                          <Ticket className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                          <div className="text-center">
-                            <div className="text-amber-400 font-bold text-sm">VIP Stream</div>
-                            <div className="text-white text-xs">
-                              {announcedTicketedStream.ticketPrice} coins • {announcedTicketedStream.startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        ) : (
+                          // Ticketed Mode Not Started Yet
+                          <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                            <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                            <div className="text-left min-w-0">
+                              <div className="text-white text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
+                                {announcedTicketedStream.title}
+                              </div>
+                              <div className="text-amber-400/80 text-[10px]">
+                                <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
+                              </div>
                             </div>
+                            <button
+                              onClick={handleStartVipStream}
+                              disabled={startingVipStream}
+                              className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg flex-shrink-0"
+                            >
+                              {startingVipStream ? (
+                                <LoadingSpinner size="sm" />
+                              ) : (
+                                <>
+                                  <Play className="w-3 h-3" />
+                                  <span className="hidden sm:inline">Start</span>
+                                </>
+                              )}
+                            </button>
                           </div>
-                          <button
-                            onClick={handleStartVipStream}
-                            disabled={startingVipStream}
-                            className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg"
-                          >
-                            {startingVipStream ? (
-                              <LoadingSpinner size="sm" />
-                            ) : (
-                              <>
-                                <Play className="w-3.5 h-3.5" />
-                                Start Now
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </>
+                    )}
 
-                  {/* Bottom Center - End Stream Button */}
-                  <div className="absolute bottom-14 sm:bottom-3 left-1/2 -translate-x-1/2 z-20">
+                    {/* End Stream Button */}
                     <button
                       onClick={() => {
                         setIsLeaveAttempt(false);
                         setShowEndConfirm(true);
                       }}
-                      className="flex items-center gap-2 px-5 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
+                      className="flex items-center gap-2 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all flex-shrink-0"
                     >
                       <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
