@@ -380,6 +380,7 @@ export default function TheaterModePage() {
       }
     },
     onTipMenuToggle: (event) => {
+      console.log('[TipMenu] Real-time toggle received:', event.enabled);
       setTipMenuEnabled(event.enabled);
     },
   });

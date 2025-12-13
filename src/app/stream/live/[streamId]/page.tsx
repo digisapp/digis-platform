@@ -1056,6 +1056,7 @@ export default function BroadcastStudioPage() {
   // Toggle tip menu visibility for viewers
   const handleToggleTipMenu = async () => {
     const newEnabled = !tipMenuEnabled;
+    console.log('[TipMenu] Creator toggling tip menu to:', newEnabled);
     setTipMenuEnabled(newEnabled); // Optimistic update
 
     try {
@@ -1068,12 +1069,15 @@ export default function BroadcastStudioPage() {
       if (!response.ok) {
         // Revert on error
         setTipMenuEnabled(!newEnabled);
-        console.error('Failed to toggle tip menu');
+        console.error('[TipMenu] Failed to toggle tip menu');
+      } else {
+        const data = await response.json();
+        console.log('[TipMenu] Toggle API response:', data);
       }
     } catch (err) {
       // Revert on error
       setTipMenuEnabled(!newEnabled);
-      console.error('Error toggling tip menu:', err);
+      console.error('[TipMenu] Error toggling tip menu:', err);
     }
   };
 
