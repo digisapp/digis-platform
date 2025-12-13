@@ -1045,8 +1045,8 @@ export default function TheaterModePage() {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area - centered on desktop when chat is hidden */}
         <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1 lg:mx-auto">
-          {/* Video */}
-          <div className="relative aspect-video lg:aspect-auto lg:flex-1">
+          {/* Video - limit height in landscape to leave room for chat */}
+          <div className="relative aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1">
             {streamEnded ? (
               /* Stream Ended State */
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -1265,11 +1265,10 @@ export default function TheaterModePage() {
 
           {/* Mobile Chat Section - below action bar */}
           <div className="lg:hidden flex-1 flex flex-col min-h-0 bg-black/40">
-            {/* Chat Messages */}
+            {/* Chat Messages - use more height in landscape mode */}
             <div
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto px-3 py-2 space-y-2"
-              style={{ maxHeight: 'calc(100vh - 380px)' }}
+              className="flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[calc(100vh-380px)] landscape:max-h-[40vh] landscape:min-h-[120px]"
             >
               {messages.length === 0 ? (
                 <div className="text-center text-cyan-300/60 text-xs py-4">
