@@ -602,6 +602,8 @@ export default function BroadcastStudioPage() {
         setTotalEarnings(data.stream.totalGiftsReceived);
         // Set stream orientation from database
         setStreamOrientation(data.stream.orientation || 'landscape');
+        // Set tip menu enabled state from database
+        setTipMenuEnabled(data.stream.tipMenuEnabled || false);
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -1585,9 +1587,9 @@ export default function BroadcastStudioPage() {
           <h1 className="text-xl font-bold text-white truncate">{stream?.title || 'Live Stream'}</h1>
         </div>
 
-        <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-5'} gap-4 sm:gap-6`}>
+        <div className={`grid grid-cols-1 ${streamOrientation === 'portrait' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-4 sm:gap-6`}>
           {/* Main Video Area */}
-          <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-3'} space-y-4`}>
+          <div className={`${streamOrientation === 'portrait' ? 'lg:col-span-1 max-w-md mx-auto' : 'lg:col-span-2'} space-y-4`}>
             {/* Video Player */}
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
@@ -1856,7 +1858,7 @@ export default function BroadcastStudioPage() {
           </div>
 
           {/* Chat Sidebar + Top Gifters */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
+          <div className="lg:col-span-1 flex flex-col gap-4">
             <div className={`${isPortraitDevice ? 'h-[500px]' : 'h-[400px]'} lg:h-[500px] backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden`}>
               <StreamChat
                 streamId={streamId}

@@ -1498,7 +1498,7 @@ export default function TheaterModePage() {
 
         {/* Right Sidebar - Chat & Viewers (Desktop only - mobile uses overlay chat) */}
         {showChat && (
-          <div className="hidden lg:flex w-80 glass-dark border-l border-cyan-400/30 flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
+          <div className="hidden lg:flex w-[340px] glass-dark border-l border-cyan-400/30 flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
             {/* Sidebar Tabs */}
             <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
               <button
