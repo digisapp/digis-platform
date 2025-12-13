@@ -545,6 +545,30 @@ export default function BroadcastStudioPage() {
     }
   }, [ablyViewerCount]);
 
+  // Poll for ticket count when there's an announced ticketed stream
+  useEffect(() => {
+    if (!announcedTicketedStream || vipModeActive) return;
+
+    const fetchTicketCount = async () => {
+      try {
+        const res = await fetch(`/api/shows/${announcedTicketedStream.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setVipTicketCount(data.show?.ticketsSold || 0);
+        }
+      } catch (e) {
+        console.error('[Ticketed] Failed to fetch ticket count:', e);
+      }
+    };
+
+    // Fetch immediately
+    fetchTicketCount();
+    // Then poll every 10 seconds
+    const interval = setInterval(fetchTicketCount, 10000);
+
+    return () => clearInterval(interval);
+  }, [announcedTicketedStream?.id, vipModeActive]);
+
   const fetchStreamDetails = async () => {
     try {
       const response = await fetch(`/api/streams/${streamId}`);
@@ -1526,8 +1550,15 @@ export default function BroadcastStudioPage() {
                               <div className="text-white text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
                                 {announcedTicketedStream.title}
                               </div>
-                              <div className="text-amber-400/80 text-[10px]">
-                                <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="text-amber-400/80">
+                                  <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
+                                </span>
+                                {vipTicketCount > 0 && (
+                                  <span className="text-green-400 font-medium">
+                                    {vipTicketCount} sold
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <button

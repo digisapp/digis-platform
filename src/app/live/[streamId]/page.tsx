@@ -191,7 +191,11 @@ export default function TheaterModePage() {
     ticketedStreamId: string;
     title: string;
     ticketPrice: number;
+    startsAt: string;
   } | null>(null);
+
+  // Countdown timer for ticketed stream
+  const [ticketCountdown, setTicketCountdown] = useState<string>('');
 
   // Upcoming ticketed show from creator (for late-joining viewers)
   const [upcomingTicketedShow, setUpcomingTicketedShow] = useState<{
@@ -592,6 +596,43 @@ export default function TheaterModePage() {
 
     return () => clearInterval(interval);
   }, [stream?.status, streamId, streamEnded, currentUser]);
+
+  // Countdown timer for ticketed stream
+  useEffect(() => {
+    const startsAt = upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt;
+    if (!startsAt) {
+      setTicketCountdown('');
+      return;
+    }
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const startTime = new Date(startsAt).getTime();
+      const diff = startTime - now;
+
+      if (diff <= 0) {
+        setTicketCountdown('Starting...');
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (hours > 0) {
+        setTicketCountdown(`${hours}h ${minutes}m`);
+      } else if (minutes > 0) {
+        setTicketCountdown(`${minutes}m ${seconds}s`);
+      } else {
+        setTicketCountdown(`${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [upcomingTicketedShow?.startsAt, dismissedTicketedStream?.startsAt]);
 
   const loadStream = async () => {
     try {
@@ -1636,11 +1677,18 @@ export default function TheaterModePage() {
       {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
         <button
           onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
-          className="lg:hidden fixed top-20 right-3 z-50 px-3 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-1.5 animate-bounce"
+          className="lg:hidden fixed top-20 right-3 z-50 px-3 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex flex-col items-center"
         >
-          <Ticket className="w-3.5 h-3.5" />
-          <Coins className="w-3 h-3 text-amber-800" />
-          <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
+          <div className="flex items-center gap-1">
+            <Ticket className="w-3 h-3" />
+            <Coins className="w-3 h-3 text-amber-800" />
+            <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
+          </div>
+          {ticketCountdown && (
+            <div className="text-[10px] text-amber-900 font-medium">
+              {ticketCountdown}
+            </div>
+          )}
         </button>
       )}
 
@@ -1782,6 +1830,7 @@ export default function TheaterModePage() {
                 ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
                 title: ticketedAnnouncement.title,
                 ticketPrice: ticketedAnnouncement.ticketPrice,
+                startsAt: ticketedAnnouncement.startsAt,
               });
               setTicketedAnnouncement(null);
             }}
@@ -1796,6 +1845,7 @@ export default function TheaterModePage() {
                   ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
                   title: ticketedAnnouncement.title,
                   ticketPrice: ticketedAnnouncement.ticketPrice,
+                  startsAt: ticketedAnnouncement.startsAt,
                 });
                 setTicketedAnnouncement(null);
               }}
