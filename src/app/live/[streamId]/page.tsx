@@ -159,6 +159,7 @@ export default function TheaterModePage() {
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
+  const [tipMenuItems, setTipMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null }>>([]);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -721,6 +722,18 @@ export default function TheaterModePage() {
       const data = await response.json();
       const streamData = data.stream || data; // Handle both { stream } and direct stream object
       setStream(streamData);
+
+      // Fetch tip menu items for this creator
+      if (streamData.creator?.id) {
+        fetch(`/api/tip-menu/${streamData.creator.id}`)
+          .then(res => res.json())
+          .then(menuData => {
+            if (menuData.items) {
+              setTipMenuItems(menuData.items);
+            }
+          })
+          .catch(err => console.error('Error fetching tip menu:', err));
+      }
 
       // Set upcoming ticketed show for late-joining viewers
       if (streamData.upcomingTicketedShow && !dismissedTicketedStream && !ticketedAnnouncement) {
@@ -1909,6 +1922,36 @@ export default function TheaterModePage() {
                 className="w-full px-4 py-3 bg-white/10 border-2 border-cyan-400/40 rounded-xl text-white text-lg font-bold placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all text-center"
               />
             </div>
+
+            {/* Tip Menu Items */}
+            {tipMenuItems.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-cyan-300 text-xs font-semibold mb-2">Tip Menu</label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                  {tipMenuItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setTipAmount(item.price.toString());
+                        setTipNote(item.label);
+                      }}
+                      disabled={userBalance < item.price}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-left transition-all ${
+                        tipAmount === item.price.toString() && tipNote === item.label
+                          ? 'bg-cyan-500/30 border-cyan-400'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10'
+                      } border ${userBalance < item.price ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    >
+                      <span className="text-lg">{item.emoji || '🎁'}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-xs font-medium truncate">{item.label}</div>
+                        <div className="text-yellow-400 text-xs font-bold">{item.price}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Quick Amount Buttons */}
             <div className="flex gap-2 mb-4">
