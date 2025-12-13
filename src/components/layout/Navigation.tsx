@@ -20,7 +20,8 @@ import {
   Radio,
   Upload,
   Camera,
-  HelpCircle
+  HelpCircle,
+  DollarSign
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -514,14 +515,14 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
-                      router.push('/creator/tip-menu');
+                      router.push('/creator/pricing');
                       setShowProfileMenu(false);
                     }}
                     className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
                     style={{ minHeight: '56px' }}
                   >
-                    <Coins className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
-                    <span className="text-base md:text-sm text-white font-semibold">Tip Menu</span>
+                    <DollarSign className="w-6 h-6 md:w-5 md:h-5 text-green-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Pricing</span>
                   </button>
                 </>
               )}
