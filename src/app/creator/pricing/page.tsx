@@ -85,6 +85,9 @@ function PricingPageContent() {
   const [formEmoji, setFormEmoji] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [formCategory, setFormCategory] = useState<'interaction' | 'product' | 'service'>('interaction');
+  const [formFulfillment, setFormFulfillment] = useState<'instant' | 'digital' | 'manual'>('instant');
+  const [formDigitalUrl, setFormDigitalUrl] = useState('');
   const [savingItem, setSavingItem] = useState(false);
 
   useEffect(() => {
@@ -165,6 +168,9 @@ function PricingPageContent() {
     setFormEmoji('');
     setFormPrice('');
     setFormDescription('');
+    setFormCategory('interaction');
+    setFormFulfillment('instant');
+    setFormDigitalUrl('');
     setEditingItem(null);
   };
 
@@ -173,17 +179,27 @@ function PricingPageContent() {
     setShowAddModal(true);
   };
 
-  const openEditModal = (item: TipMenuItem) => {
+  const openEditModal = (item: MenuItem) => {
     setFormLabel(item.label);
     setFormEmoji(item.emoji || '');
     setFormPrice(item.price.toString());
     setFormDescription(item.description || '');
+    setFormCategory((item.itemCategory as 'interaction' | 'product' | 'service') || 'interaction');
+    setFormFulfillment((item.fulfillmentType as 'instant' | 'digital' | 'manual') || 'instant');
+    setFormDigitalUrl(''); // TODO: fetch from API if needed
     setEditingItem(item);
     setShowAddModal(true);
   };
 
   const handleSaveItem = async () => {
     if (!formLabel.trim() || !formPrice) return;
+
+    // Validate digital URL if fulfillment type is digital
+    if (formFulfillment === 'digital' && !formDigitalUrl.trim()) {
+      setError('Digital products require a download URL');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
 
     setSavingItem(true);
     try {
@@ -192,6 +208,9 @@ function PricingPageContent() {
         emoji: formEmoji || null,
         price: parseInt(formPrice),
         description: formDescription.trim() || null,
+        itemCategory: formCategory,
+        fulfillmentType: formFulfillment,
+        digitalContentUrl: formFulfillment === 'digital' ? formDigitalUrl.trim() : null,
       };
 
       let response;
@@ -761,6 +780,69 @@ function PricingPageContent() {
                   maxLength={100}
                 />
               </div>
+
+              {/* Category & Fulfillment Type */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value as 'interaction' | 'product' | 'service')}
+                    className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="interaction" className="bg-gray-900">⚡ Interaction</option>
+                    <option value="product" className="bg-gray-900">📦 Product</option>
+                    <option value="service" className="bg-gray-900">🎯 Service</option>
+                  </select>
+                </div>
+
+                {/* Fulfillment Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Delivery
+                  </label>
+                  <select
+                    value={formFulfillment}
+                    onChange={(e) => setFormFulfillment(e.target.value as 'instant' | 'digital' | 'manual')}
+                    className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <option value="instant" className="bg-gray-900">⚡ Instant</option>
+                    <option value="digital" className="bg-gray-900">📥 Digital Download</option>
+                    <option value="manual" className="bg-gray-900">✋ Manual Fulfillment</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Digital Content URL - only show for digital fulfillment */}
+              {formFulfillment === 'digital' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Download URL *
+                  </label>
+                  <input
+                    type="url"
+                    value={formDigitalUrl}
+                    onChange={(e) => setFormDigitalUrl(e.target.value)}
+                    placeholder="https://drive.google.com/... or any download link"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Buyers will get this link immediately after purchase
+                  </p>
+                </div>
+              )}
+
+              {/* Manual Fulfillment Info */}
+              {formFulfillment === 'manual' && (
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                  <p className="text-sm text-yellow-300">
+                    You'll need to manually fulfill this item. Orders will appear in your pending orders.
+                  </p>
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex gap-3 pt-2">

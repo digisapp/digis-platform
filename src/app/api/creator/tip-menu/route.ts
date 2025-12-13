@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/creator/tip-menu
- * Create a new tip menu item
+ * Create a new menu item
  */
 export async function POST(request: NextRequest) {
   try {
@@ -49,11 +49,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { label, emoji, price, description } = body;
+    const { label, emoji, price, description, itemCategory, fulfillmentType, digitalContentUrl } = body;
 
     if (!label || typeof price !== 'number' || price < 1) {
       return NextResponse.json(
         { error: 'Label and price (minimum 1) are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate digital content URL for digital items
+    if (fulfillmentType === 'digital' && !digitalContentUrl) {
+      return NextResponse.json(
+        { error: 'Digital products require a download URL' },
         { status: 400 }
       );
     }
@@ -73,15 +81,18 @@ export async function POST(request: NextRequest) {
         emoji: emoji || null,
         price,
         description: description || null,
+        itemCategory: itemCategory || 'interaction',
+        fulfillmentType: fulfillmentType || 'instant',
+        digitalContentUrl: fulfillmentType === 'digital' ? digitalContentUrl : null,
         displayOrder: maxOrder + 1,
       })
       .returning();
 
     return NextResponse.json({ item });
   } catch (error: any) {
-    console.error('Error creating tip menu item:', error);
+    console.error('Error creating menu item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create tip menu item' },
+      { error: error.message || 'Failed to create menu item' },
       { status: 500 }
     );
   }

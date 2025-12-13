@@ -25,7 +25,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { label, emoji, price, description, isActive, displayOrder } = body;
+    const { label, emoji, price, description, isActive, displayOrder, itemCategory, fulfillmentType, digitalContentUrl } = body;
 
     // Verify ownership
     const existing = await db.query.tipMenuItems.findFirst({
@@ -39,6 +39,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Item not found' }, { status: 404 });
     }
 
+    // Validate digital content URL for digital items
+    const newFulfillmentType = fulfillmentType ?? existing.fulfillmentType;
+    if (newFulfillmentType === 'digital' && !digitalContentUrl && !existing.digitalContentUrl) {
+      return NextResponse.json(
+        { error: 'Digital products require a download URL' },
+        { status: 400 }
+      );
+    }
+
     const updates: any = { updatedAt: new Date() };
     if (label !== undefined) updates.label = label;
     if (emoji !== undefined) updates.emoji = emoji || null;
@@ -46,6 +55,9 @@ export async function PUT(
     if (description !== undefined) updates.description = description || null;
     if (isActive !== undefined) updates.isActive = isActive;
     if (displayOrder !== undefined) updates.displayOrder = displayOrder;
+    if (itemCategory !== undefined) updates.itemCategory = itemCategory;
+    if (fulfillmentType !== undefined) updates.fulfillmentType = fulfillmentType;
+    if (digitalContentUrl !== undefined) updates.digitalContentUrl = fulfillmentType === 'digital' ? digitalContentUrl : null;
 
     const [item] = await db
       .update(tipMenuItems)
