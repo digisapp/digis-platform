@@ -201,14 +201,15 @@ export default function TheaterModePage() {
     startsAt: string;
   } | null>(null);
 
-  // VIP mode state (when host activates ticketed stream)
-  const [vipModeActive, setVipModeActive] = useState(false);
-  const [hasVipTicket, setHasVipTicket] = useState(false);
-  const [vipShowInfo, setVipShowInfo] = useState<{
+  // Ticketed stream mode state (when host activates ticketed stream)
+  const [ticketedModeActive, setTicketedModeActive] = useState(false);
+  const [hasTicket, setHasTicket] = useState(false);
+  const [ticketedShowInfo, setTicketedShowInfo] = useState<{
     showId: string;
     showTitle: string;
     ticketPrice: number;
   } | null>(null);
+  const [purchasingTicket, setPurchasingTicket] = useState(false);
 
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
@@ -340,34 +341,34 @@ export default function TheaterModePage() {
     },
     onVipModeChange: async (vipEvent) => {
       if (vipEvent.isActive) {
-        // VIP mode started - check if user has ticket
-        setVipModeActive(true);
-        setVipShowInfo({
+        // Ticketed mode started - check if user has ticket
+        setTicketedModeActive(true);
+        setTicketedShowInfo({
           showId: vipEvent.showId!,
           showTitle: vipEvent.showTitle!,
           ticketPrice: vipEvent.ticketPrice!,
         });
-        // Check VIP access
-        await checkVipAccess();
+        // Check ticket access
+        await checkTicketAccess();
       } else {
-        // VIP mode ended - return to free stream
-        setVipModeActive(false);
-        setVipShowInfo(null);
-        setHasVipTicket(false);
+        // Ticketed mode ended - return to free stream
+        setTicketedModeActive(false);
+        setTicketedShowInfo(null);
+        setHasTicket(false);
       }
     },
   });
 
-  // Check VIP access for current user
-  const checkVipAccess = async () => {
+  // Check ticketed stream access for current user
+  const checkTicketAccess = async () => {
     try {
       const response = await fetch(`/api/streams/${streamId}/vip`);
       if (response.ok) {
         const data = await response.json();
-        setVipModeActive(data.vipActive);
-        setHasVipTicket(data.hasAccess);
+        setTicketedModeActive(data.vipActive);
+        setHasTicket(data.hasAccess);
         if (data.vipActive && data.showId) {
-          setVipShowInfo({
+          setTicketedShowInfo({
             showId: data.showId,
             showTitle: data.showTitle,
             ticketPrice: data.ticketPrice,
@@ -375,7 +376,49 @@ export default function TheaterModePage() {
         }
       }
     } catch (error) {
-      console.error('[VIP] Error checking VIP access:', error);
+      console.error('[Ticketed] Error checking ticket access:', error);
+    }
+  };
+
+  // Instant ticket purchase - deducts coins and grants immediate access
+  const handleInstantTicketPurchase = async () => {
+    if (!ticketedShowInfo || !currentUser) {
+      if (!currentUser) {
+        router.push('/login');
+      }
+      return;
+    }
+
+    // Check if user has enough coins
+    if (userBalance < ticketedShowInfo.ticketPrice) {
+      setShowBuyCoinsModal(true);
+      return;
+    }
+
+    setPurchasingTicket(true);
+    try {
+      const response = await fetch(`/api/shows/${ticketedShowInfo.showId}/purchase`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update balance and grant access
+        setUserBalance(prev => prev - ticketedShowInfo.ticketPrice);
+        setHasTicket(true);
+      } else {
+        const data = await response.json();
+        if (data.error?.includes('Insufficient')) {
+          setShowBuyCoinsModal(true);
+        } else {
+          alert(data.error || 'Failed to purchase ticket');
+        }
+      }
+    } catch (error) {
+      console.error('[Ticketed] Error purchasing ticket:', error);
+      alert('Failed to purchase ticket. Please try again.');
+    } finally {
+      setPurchasingTicket(false);
     }
   };
 
@@ -400,7 +443,7 @@ export default function TheaterModePage() {
   useEffect(() => {
     loadStream();
     loadCurrentUser();
-    checkVipAccess(); // Check if VIP mode is active
+    checkTicketAccess(); // Check if ticketed stream mode is active
   }, [streamId]);
 
   // Join stream when viewer loads (adds to database for viewer list)
@@ -936,50 +979,70 @@ export default function TheaterModePage() {
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
 
-                {/* VIP Mode Blocked Screen - covers video when VIP is active and user doesn't have ticket */}
-                {vipModeActive && !hasVipTicket && vipShowInfo && (
-                  <div className="absolute inset-0 z-50 bg-gradient-to-br from-purple-900/95 via-black/98 to-amber-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6">
-                    {/* VIP Badge */}
-                    <div className="mb-4 px-4 py-2 bg-amber-500/20 border border-amber-500 rounded-full flex items-center gap-2 animate-pulse">
-                      <Ticket className="w-5 h-5 text-amber-400" />
-                      <span className="text-amber-400 font-bold text-sm">VIP STREAM IN SESSION</span>
+                {/* Ticketed Stream Blocked Screen - compact overlay for non-ticket holders */}
+                {ticketedModeActive && !hasTicket && ticketedShowInfo && (
+                  <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6">
+                    {/* Compact layout for mobile */}
+                    <div className="flex flex-col items-center max-w-xs w-full">
+                      {/* Lock Icon + Badge combined */}
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 mb-3 rounded-full bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-500/50 flex items-center justify-center">
+                        <svg className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+
+                      {/* Title */}
+                      <h2 className="text-lg sm:text-xl font-bold text-white mb-1 text-center line-clamp-2">
+                        {ticketedShowInfo.showTitle}
+                      </h2>
+
+                      {/* Ticketed Stream Badge */}
+                      <div className="mb-3 px-3 py-1 bg-amber-500/20 border border-amber-500/50 rounded-full">
+                        <span className="text-amber-400 font-semibold text-xs">TICKETED STREAM</span>
+                      </div>
+
+                      {/* Price + Buy Button combined */}
+                      <button
+                        onClick={handleInstantTicketPurchase}
+                        disabled={purchasingTicket}
+                        className="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-base hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {purchasingTicket ? (
+                          <>
+                            <LoadingSpinner size="sm" />
+                            <span>Purchasing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ticket className="w-4 h-4" />
+                            <span>Buy Ticket</span>
+                            <span className="mx-1">•</span>
+                            <Coins className="w-4 h-4 text-yellow-200" />
+                            <span>{ticketedShowInfo.ticketPrice}</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Balance indicator */}
+                      {currentUser && (
+                        <p className="mt-2 text-xs text-gray-400">
+                          Your balance: <Coins className="w-3 h-3 inline text-yellow-400" /> {userBalance}
+                          {userBalance < ticketedShowInfo.ticketPrice && (
+                            <button
+                              onClick={() => setShowBuyCoinsModal(true)}
+                              className="ml-2 text-cyan-400 hover:underline"
+                            >
+                              Get more
+                            </button>
+                          )}
+                        </p>
+                      )}
+
+                      {/* FOMO message - compact */}
+                      <p className="mt-3 text-gray-500 text-xs text-center">
+                        Chat visible below
+                      </p>
                     </div>
-
-                    {/* Lock Icon */}
-                    <div className="w-20 h-20 mb-6 rounded-full bg-white/10 flex items-center justify-center">
-                      <svg className="w-10 h-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </div>
-
-                    {/* Title */}
-                    <h2 className="text-2xl font-bold text-white mb-2 text-center">
-                      {vipShowInfo.showTitle}
-                    </h2>
-                    <p className="text-gray-300 mb-6 text-center max-w-xs">
-                      This is a ticketed VIP stream. Purchase a ticket to watch!
-                    </p>
-
-                    {/* Price */}
-                    <div className="flex items-center gap-2 mb-6 px-6 py-3 bg-white/10 rounded-xl border border-white/20">
-                      <Coins className="w-6 h-6 text-yellow-400" />
-                      <span className="text-2xl font-bold text-white">{vipShowInfo.ticketPrice}</span>
-                      <span className="text-gray-400">coins</span>
-                    </div>
-
-                    {/* Buy Ticket Button */}
-                    <button
-                      onClick={() => router.push(`/streams/${vipShowInfo.showId}`)}
-                      className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/30 hover:scale-105"
-                    >
-                      <Ticket className="w-5 h-5 inline mr-2" />
-                      Buy Ticket
-                    </button>
-
-                    {/* FOMO message */}
-                    <p className="mt-6 text-gray-400 text-sm text-center">
-                      👀 You can still see the chat below!
-                    </p>
                   </div>
                 )}
               </>
@@ -1148,12 +1211,12 @@ export default function TheaterModePage() {
 
             {/* Mobile Chat Input */}
             <div className="px-3 py-2 border-t border-cyan-400/20 bg-black/60 pb-[calc(60px+env(safe-area-inset-bottom))]">
-              {/* VIP Mode - Chat disabled for non-ticket holders */}
-              {vipModeActive && !hasVipTicket ? (
+              {/* Ticketed Mode - Chat disabled for non-ticket holders */}
+              {ticketedModeActive && !hasTicket ? (
                 <div className="text-center text-xs py-2">
                   <span className="text-amber-400">
                     <Ticket className="w-3 h-3 inline mr-1" />
-                    VIP stream in session - Buy a ticket to chat
+                    Buy a ticket to chat
                   </span>
                 </div>
               ) : currentUser ? (
@@ -1228,14 +1291,15 @@ export default function TheaterModePage() {
               />
             )}
 
-            {/* VIP Stream Button - for late-joining viewers or after dismissing popup */}
+            {/* Ticketed Stream Button - for late-joining viewers or after dismissing popup */}
             {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
               <button
                 onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
                 className="px-4 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300/50 flex items-center gap-2"
               >
                 <Ticket className="w-4 h-4" />
-                <span>VIP Stream</span>
+                <span>Get Ticket</span>
+                <Coins className="w-3 h-3 text-amber-800" />
                 <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
               </button>
             )}
@@ -1373,13 +1437,13 @@ export default function TheaterModePage() {
 
                 {/* Message Input - extra padding on mobile for floating gift bar */}
                 <div className="p-4 pb-20 lg:pb-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
-                  {/* VIP Mode - Chat disabled for non-ticket holders */}
-                  {vipModeActive && !hasVipTicket ? (
+                  {/* Ticketed Mode - Chat disabled for non-ticket holders */}
+                  {ticketedModeActive && !hasTicket ? (
                     <div className="text-center py-3">
                       <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                         <p className="text-amber-300 font-medium">
                           <Ticket className="w-4 h-4 inline mr-1" />
-                          VIP stream in session - Buy a ticket to chat
+                          Buy a ticket to chat
                         </p>
                       </div>
                     </div>
@@ -1565,14 +1629,14 @@ export default function TheaterModePage() {
         </div>
       )}
 
-      {/* Persistent VIP Ticket Button - shows for late-joining viewers or after dismissing popup */}
+      {/* Persistent Ticket Button - shows for late-joining viewers or after dismissing popup */}
       {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
         <button
           onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
           className="lg:hidden fixed top-20 right-3 z-50 px-3 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-full font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex items-center gap-1.5 animate-bounce"
         >
           <Ticket className="w-3.5 h-3.5" />
-          <span>VIP</span>
+          <Coins className="w-3 h-3 text-amber-800" />
           <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
         </button>
       )}
@@ -1737,11 +1801,11 @@ export default function TheaterModePage() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* VIP Badge */}
+            {/* Ticketed Badge */}
             <div className="flex justify-center mb-4">
               <div className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/30">
                 <Ticket className="w-4 h-4" />
-                VIP STREAM
+                PRIVATE STREAM
               </div>
             </div>
 
