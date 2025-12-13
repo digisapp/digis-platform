@@ -1542,17 +1542,20 @@ export default function VideoCallPage() {
 
   // Handle remote participant disconnection (e.g., computer died, browser closed)
   const handleRemoteLeft = useCallback(() => {
-    console.log('Remote participant disconnected unexpectedly');
+    console.log('[handleRemoteLeft] Remote participant disconnected');
+    console.log('[handleRemoteLeft] user.id:', user?.id, 'callData.creatorId:', callData?.creatorId, 'hasStartedRef:', hasStartedRef.current);
 
     // Try to end the call on our side too
     fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
 
     // Check if current user is creator - show summary instead of auto-redirect
     const isCreator = user?.id && callData && user.id === callData.creatorId;
+    console.log('[handleRemoteLeft] isCreator:', isCreator);
     if (isCreator && hasStartedRef.current) {
       // Show creator summary - no auto-redirect
       const currentDuration = durationRef.current;
       const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+      console.log('[handleRemoteLeft] Showing creator summary! duration:', currentDuration, 'earnings:', callEarnings);
       setFinalCallDuration(currentDuration);
       setFinalCallEarnings(callEarnings);
       setFinalTipEarnings(totalTipsReceivedRef.current);
@@ -1579,6 +1582,7 @@ export default function VideoCallPage() {
 
     // Check if current user is creator
     const isCreator = user?.id && callData && user.id === callData.creatorId;
+    console.log('[confirmEndCall] isCreator:', isCreator, 'hasStarted:', hasStarted, 'user.id:', user?.id, 'callData.creatorId:', callData?.creatorId);
 
     try {
       const res = await fetch(`/api/calls/${callId}/end`, {
@@ -1596,6 +1600,7 @@ export default function VideoCallPage() {
       // Show summary for creator, redirect for fan
       if (isCreator && hasStarted) {
         const callEarnings = callData ? Math.ceil(duration / 60) * callData.ratePerMinute : 0;
+        console.log('[confirmEndCall] Showing creator summary! duration:', duration, 'earnings:', callEarnings);
         setFinalCallDuration(duration);
         setFinalCallEarnings(callEarnings);
         setFinalTipEarnings(totalTipsReceived);
@@ -1603,6 +1608,7 @@ export default function VideoCallPage() {
         setCallEndedByOther(false); // Ensure fan modal doesn't interfere
         setIsEnding(false);
       } else {
+        console.log('[confirmEndCall] NOT showing summary - isCreator:', isCreator, 'hasStarted:', hasStarted);
         // Redirect to dashboard for fan
         router.push('/dashboard');
       }
@@ -1822,6 +1828,7 @@ export default function VideoCallPage() {
       )}
 
       {/* Creator Call Summary Modal */}
+      {showCreatorSummary && console.log('[RENDER] Creator Summary Modal is showing!')}
       {showCreatorSummary && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-emerald-500/40 shadow-[0_0_60px_rgba(16,185,129,0.3)] animate-in zoom-in-95 duration-200">
