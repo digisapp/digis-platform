@@ -29,7 +29,6 @@ const DISPLAY_PACKAGES = COIN_PACKAGES.map(pkg => ({
   coins: pkg.coins,
   price: formatPrice(pkg.price),
   priceValue: pkg.price,
-  popular: pkg.popular,
 }));
 
 export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps) {
@@ -165,21 +164,9 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
               {DISPLAY_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className={`
-                    glass glass-hover p-5 rounded-2xl cursor-pointer transition-all
-                    ${pkg.popular ? 'border-2 border-digis-pink glow-pink' : 'border-2 border-transparent hover:border-white/20'}
-                  `}
+                  className="glass glass-hover p-5 rounded-2xl cursor-pointer transition-all border-2 border-transparent hover:border-white/20"
                   onClick={() => handleSelectPackage(pkg.id)}
                 >
-                  {/* Popular Badge */}
-                  {pkg.popular && (
-                    <div className="mb-3">
-                      <span className="bg-gradient-to-r from-digis-pink to-digis-purple px-3 py-1 rounded-full text-xs font-bold text-white">
-                        MOST POPULAR
-                      </span>
-                    </div>
-                  )}
-
                   {/* Package Details */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -198,7 +185,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
                   {/* Select Button */}
                   <GlassButton
-                    variant={pkg.popular ? 'gradient' : 'cyan'}
+                    variant="cyan"
                     size="md"
                     className="w-full"
                     onClick={(e) => {
