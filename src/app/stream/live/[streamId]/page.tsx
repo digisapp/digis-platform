@@ -1649,29 +1649,21 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        // Use portrait or landscape resolution based on stream setting
-                        // On mobile, use lower resolution to prevent camera zoom/crop
+                        // Default to 2K (1440p) for all streams
                         resolution: streamOrientation === 'portrait'
-                          ? { width: isPortraitDevice ? 720 : 1080, height: isPortraitDevice ? 1280 : 1920, frameRate: 30 }
-                          : (isSafari ? VideoPresets.h720 : VideoPresets.h1440),
+                          ? { width: 1440, height: 2560, frameRate: 30 } // 1440p portrait (2K)
+                          : VideoPresets.h1440, // 1440p landscape (2K)
                         facingMode: 'user',
                       },
                       publishDefaults: {
-                        videoSimulcastLayers: isSafari
-                          ? [
-                              VideoPresets.h720,  // 720p max for Safari
-                              VideoPresets.h540,  // 540p for medium quality
-                              VideoPresets.h360,  // 360p for low bandwidth
-                            ]
-                          : [
-                              VideoPresets.h1440, // 2K (1440p) for premium viewers
-                              VideoPresets.h1080, // 1080p for high-quality
-                              VideoPresets.h720,  // 720p for medium quality
-                              VideoPresets.h360,  // 360p for low bandwidth
-                            ],
+                        videoSimulcastLayers: [
+                          VideoPresets.h1440, // 2K (1440p) - default max quality
+                          VideoPresets.h1080, // 1080p for high-quality
+                          VideoPresets.h720,  // 720p for medium quality
+                          VideoPresets.h360,  // 360p for low bandwidth
+                        ],
                         videoEncoding: {
-                          // Lower bitrate for Safari
-                          maxBitrate: isSafari ? 2_500_000 : 8_000_000,
+                          maxBitrate: 8_000_000, // 8 Mbps for 2K quality
                           maxFramerate: 30,
                         },
                         dtx: true,

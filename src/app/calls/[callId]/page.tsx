@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks, VideoTrack, AudioTrack } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
-import { ConnectionState, Track } from 'livekit-client';
+import { ConnectionState, Track, VideoPresets } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getAblyClient } from '@/lib/ably/client';
@@ -2015,6 +2015,23 @@ export default function VideoCallPage() {
         audio={true}
         video={false}
         className="h-full"
+        options={{
+          videoCaptureDefaults: {
+            resolution: VideoPresets.h1440, // 2K (1440p) default
+            facingMode: 'user',
+          },
+          publishDefaults: {
+            videoSimulcastLayers: [
+              VideoPresets.h1440, // 2K (1440p) - max quality
+              VideoPresets.h1080, // 1080p
+              VideoPresets.h720,  // 720p
+            ],
+            videoEncoding: {
+              maxBitrate: 8_000_000, // 8 Mbps for 2K quality
+              maxFramerate: 30,
+            },
+          },
+        }}
       >
         {/* Monitor for remote participant disconnection */}
         <RemoteParticipantMonitor onRemoteLeft={handleRemoteLeft} hasStarted={hasStarted} />
