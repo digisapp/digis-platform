@@ -53,10 +53,10 @@ export const COIN_PACKAGES = [
     popular: false,
   },
   {
-    id: '4000',
-    name: '4,000 Coins',
-    coins: 4000,
-    price: 64999, // $649.99 - $0.16/coin - 38% margin (bulk discount)
+    id: '3000',
+    name: '3,000 Coins',
+    coins: 3000,
+    price: 49999, // $499.99 - $0.17/coin - 40% margin (bulk discount)
     popular: false,
   },
 ];
