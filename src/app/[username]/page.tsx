@@ -1381,7 +1381,7 @@ export default function ProfilePage() {
           onSuccess={() => {
             setContentToUnlock(null);
             // Refresh content to show unlocked item
-            fetchContent();
+            fetchCreatorContent();
           }}
         />
       )}
