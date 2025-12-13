@@ -201,6 +201,15 @@ export default function TheaterModePage() {
     startsAt: string;
   } | null>(null);
 
+  // VIP mode state (when host activates ticketed stream)
+  const [vipModeActive, setVipModeActive] = useState(false);
+  const [hasVipTicket, setHasVipTicket] = useState(false);
+  const [vipShowInfo, setVipShowInfo] = useState<{
+    showId: string;
+    showTitle: string;
+    ticketPrice: number;
+  } | null>(null);
+
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -329,7 +338,46 @@ export default function TheaterModePage() {
       // Show the ticketed stream popup
       setTicketedAnnouncement(announcement);
     },
+    onVipModeChange: async (vipEvent) => {
+      if (vipEvent.isActive) {
+        // VIP mode started - check if user has ticket
+        setVipModeActive(true);
+        setVipShowInfo({
+          showId: vipEvent.showId!,
+          showTitle: vipEvent.showTitle!,
+          ticketPrice: vipEvent.ticketPrice!,
+        });
+        // Check VIP access
+        await checkVipAccess();
+      } else {
+        // VIP mode ended - return to free stream
+        setVipModeActive(false);
+        setVipShowInfo(null);
+        setHasVipTicket(false);
+      }
+    },
   });
+
+  // Check VIP access for current user
+  const checkVipAccess = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/vip`);
+      if (response.ok) {
+        const data = await response.json();
+        setVipModeActive(data.vipActive);
+        setHasVipTicket(data.hasAccess);
+        if (data.vipActive && data.showId) {
+          setVipShowInfo({
+            showId: data.showId,
+            showTitle: data.showTitle,
+            ticketPrice: data.ticketPrice,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[VIP] Error checking VIP access:', error);
+    }
+  };
 
   // Use real-time viewer count from Ably if available, otherwise use stream data
   const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
@@ -352,6 +400,7 @@ export default function TheaterModePage() {
   useEffect(() => {
     loadStream();
     loadCurrentUser();
+    checkVipAccess(); // Check if VIP mode is active
   }, [streamId]);
 
   // Join stream when viewer loads (adds to database for viewer list)
@@ -887,6 +936,52 @@ export default function TheaterModePage() {
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
 
+                {/* VIP Mode Blocked Screen - covers video when VIP is active and user doesn't have ticket */}
+                {vipModeActive && !hasVipTicket && vipShowInfo && (
+                  <div className="absolute inset-0 z-50 bg-gradient-to-br from-purple-900/95 via-black/98 to-amber-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6">
+                    {/* VIP Badge */}
+                    <div className="mb-4 px-4 py-2 bg-amber-500/20 border border-amber-500 rounded-full flex items-center gap-2 animate-pulse">
+                      <Ticket className="w-5 h-5 text-amber-400" />
+                      <span className="text-amber-400 font-bold text-sm">VIP STREAM IN SESSION</span>
+                    </div>
+
+                    {/* Lock Icon */}
+                    <div className="w-20 h-20 mb-6 rounded-full bg-white/10 flex items-center justify-center">
+                      <svg className="w-10 h-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+
+                    {/* Title */}
+                    <h2 className="text-2xl font-bold text-white mb-2 text-center">
+                      {vipShowInfo.showTitle}
+                    </h2>
+                    <p className="text-gray-300 mb-6 text-center max-w-xs">
+                      This is a ticketed VIP stream. Purchase a ticket to watch!
+                    </p>
+
+                    {/* Price */}
+                    <div className="flex items-center gap-2 mb-6 px-6 py-3 bg-white/10 rounded-xl border border-white/20">
+                      <Coins className="w-6 h-6 text-yellow-400" />
+                      <span className="text-2xl font-bold text-white">{vipShowInfo.ticketPrice}</span>
+                      <span className="text-gray-400">coins</span>
+                    </div>
+
+                    {/* Buy Ticket Button */}
+                    <button
+                      onClick={() => router.push(`/streams/${vipShowInfo.showId}`)}
+                      className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/30 hover:scale-105"
+                    >
+                      <Ticket className="w-5 h-5 inline mr-2" />
+                      Buy Ticket
+                    </button>
+
+                    {/* FOMO message */}
+                    <p className="mt-6 text-gray-400 text-sm text-center">
+                      👀 You can still see the chat below!
+                    </p>
+                  </div>
+                )}
               </>
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-black">
@@ -1053,7 +1148,15 @@ export default function TheaterModePage() {
 
             {/* Mobile Chat Input */}
             <div className="px-3 py-2 border-t border-cyan-400/20 bg-black/60 pb-[calc(60px+env(safe-area-inset-bottom))]">
-              {currentUser ? (
+              {/* VIP Mode - Chat disabled for non-ticket holders */}
+              {vipModeActive && !hasVipTicket ? (
+                <div className="text-center text-xs py-2">
+                  <span className="text-amber-400">
+                    <Ticket className="w-3 h-3 inline mr-1" />
+                    VIP stream in session - Buy a ticket to chat
+                  </span>
+                </div>
+              ) : currentUser ? (
                 userBalance > 0 ? (
                   <div className="flex gap-2">
                     <input
@@ -1270,7 +1373,17 @@ export default function TheaterModePage() {
 
                 {/* Message Input - extra padding on mobile for floating gift bar */}
                 <div className="p-4 pb-20 lg:pb-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
-                  {currentUser ? (
+                  {/* VIP Mode - Chat disabled for non-ticket holders */}
+                  {vipModeActive && !hasVipTicket ? (
+                    <div className="text-center py-3">
+                      <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                        <p className="text-amber-300 font-medium">
+                          <Ticket className="w-4 h-4 inline mr-1" />
+                          VIP stream in session - Buy a ticket to chat
+                        </p>
+                      </div>
+                    </div>
+                  ) : currentUser ? (
                     userBalance > 0 ? (
                       <div className="flex gap-2">
                         <input

@@ -216,4 +216,26 @@ export class AblyRealtimeService {
       data
     );
   }
+
+  /**
+   * Broadcast VIP mode change to all viewers
+   */
+  static async broadcastVipModeChange(
+    streamId: string,
+    data: {
+      isActive: boolean;
+      showId: string | null;
+      showTitle: string | null;
+      ticketPrice: number | null;
+    }
+  ) {
+    await publishToChannel(
+      CHANNEL_NAMES.streamChat(streamId),
+      'vip_mode_change',
+      {
+        ...data,
+        timestamp: Date.now(),
+      }
+    );
+  }
 }

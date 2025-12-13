@@ -45,6 +45,10 @@ export const streams = pgTable('streams', {
   ticketsSold: integer('tickets_sold').default(0).notNull(),
   ticketRevenue: integer('ticket_revenue').default(0).notNull(), // Total coins from ticket sales
 
+  // VIP Mode (when host activates a ticketed show within this stream)
+  activeVipShowId: uuid('active_vip_show_id'), // References shows table - set when VIP mode is active
+  vipStartedAt: timestamp('vip_started_at'), // When VIP mode was activated
+
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 

@@ -73,6 +73,14 @@ interface TicketedAnnouncementEvent {
   minutesUntilStart: number;
 }
 
+interface VipModeChangeEvent {
+  isActive: boolean;
+  showId: string | null;
+  showTitle: string | null;
+  ticketPrice: number | null;
+  timestamp: number;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   onMessage?: (message: ChatMessage) => void;
@@ -84,6 +92,7 @@ interface UseStreamChatOptions {
   onGoalUpdate?: (update: GoalUpdate) => void;
   onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
   onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
+  onVipModeChange?: (event: VipModeChangeEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -108,6 +117,7 @@ export function useStreamChat({
   onGoalUpdate,
   onSpotlightChanged,
   onTicketedAnnouncement,
+  onVipModeChange,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -125,6 +135,7 @@ export function useStreamChat({
     onGoalUpdate,
     onSpotlightChanged,
     onTicketedAnnouncement,
+    onVipModeChange,
   });
 
   useEffect(() => {
@@ -138,8 +149,9 @@ export function useStreamChat({
       onGoalUpdate,
       onSpotlightChanged,
       onTicketedAnnouncement,
+      onVipModeChange,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange]);
 
   useEffect(() => {
     let mounted = true;
@@ -187,6 +199,9 @@ export function useStreamChat({
         });
         chatChannel.subscribe('spotlight-changed', (message) => {
           callbacksRef.current.onSpotlightChanged?.(message.data as SpotlightChangedEvent);
+        });
+        chatChannel.subscribe('vip_mode_change', (message) => {
+          callbacksRef.current.onVipModeChange?.(message.data as VipModeChangeEvent);
         });
 
         // Subscribe to tips channel (tips, gifts)
