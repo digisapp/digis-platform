@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorGoals, contentItems, contentLikes } from '@/lib/data/system';
+import { users, creatorGoals, contentItems, contentLikes, contentPurchases } from '@/lib/data/system';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
@@ -127,25 +127,46 @@ export async function GET(
       messageRate = creatorSettings.messageRate || 0;
     }
 
-    // Get user's likes for this content if authenticated
-    let contentWithLikes = content;
+    // Get user's likes and purchases for this content if authenticated
+    let contentWithStatus = content.map((item: any) => ({
+      ...item,
+      isLiked: false,
+      hasPurchased: currentUser?.id === user.id, // Creator always has access
+    }));
+
     if (currentUser && content.length > 0) {
       try {
         const contentIds = content.map((c: any) => c.id);
-        const likes = await db.query.contentLikes.findMany({
-          where: and(
-            eq(contentLikes.userId, currentUser.id),
-            inArray(contentLikes.contentId, contentIds)
-          ),
-          columns: { contentId: true },
-        });
+
+        // Fetch likes and purchases in parallel
+        const [likes, purchases] = await Promise.all([
+          db.query.contentLikes.findMany({
+            where: and(
+              eq(contentLikes.userId, currentUser.id),
+              inArray(contentLikes.contentId, contentIds)
+            ),
+            columns: { contentId: true },
+          }),
+          db.query.contentPurchases.findMany({
+            where: and(
+              eq(contentPurchases.userId, currentUser.id),
+              inArray(contentPurchases.contentId, contentIds)
+            ),
+            columns: { contentId: true },
+          }),
+        ]);
+
         const likedIds = new Set(likes.map(l => l.contentId));
-        contentWithLikes = content.map((item: any) => ({
+        const purchasedIds = new Set(purchases.map(p => p.contentId));
+
+        contentWithStatus = content.map((item: any) => ({
           ...item,
           isLiked: likedIds.has(item.id),
+          // User has access if: they're the creator OR they purchased it
+          hasPurchased: currentUser.id === user.id || purchasedIds.has(item.id),
         }));
       } catch (err) {
-        // Fail gracefully - just return content without like status
+        // Fail gracefully - just return content without like/purchase status
       }
     }
 
@@ -156,7 +177,7 @@ export async function GET(
       callSettings,
       messageRate,
       goals,
-      content: contentWithLikes,
+      content: contentWithStatus,
     });
   } catch (error: any) {
     console.error('[PROFILE]', {
