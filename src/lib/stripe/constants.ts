@@ -7,56 +7,56 @@ export const MIN_PAYOUT_COINS = 100; // Minimum 100 coins = $10 USD
 export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimum
 
 // Coin packages available for purchase
-// Net margins: 28-34% after Stripe fees (~3%)
-// Creator payout: $0.10 per coin (10 coins = $1.00)
+// Premium pricing: ~50% margin (industry standard for live streaming platforms)
+// Creator payout: $0.10 per coin (10 coins = $1.00) - 2x what creators earn on Chaturbate
 export const COIN_PACKAGES = [
   {
     id: '20',
     name: '20 Coins',
     coins: 20,
-    price: 299, // $2.99 - margin 30%
+    price: 399, // $3.99 - $0.20/coin - 50% margin
     popular: false,
   },
   {
     id: '50',
     name: '50 Coins',
     coins: 50,
-    price: 799, // $7.99 - margin 34%
+    price: 999, // $9.99 - $0.20/coin - 50% margin
     popular: false,
   },
   {
     id: '100',
     name: '100 Coins',
     coins: 100,
-    price: 1599, // $15.99 - margin 34%
-    popular: false,
+    price: 1999, // $19.99 - $0.20/coin - 50% margin
+    popular: true,
   },
   {
     id: '250',
     name: '250 Coins',
     coins: 250,
-    price: 3899, // $38.99 - margin 33%
+    price: 4999, // $49.99 - $0.20/coin - 50% margin
     popular: false,
   },
   {
     id: '500',
     name: '500 Coins',
     coins: 500,
-    price: 7499, // $74.99 - margin 30%
+    price: 9499, // $94.99 - $0.19/coin - 47% margin
     popular: false,
   },
   {
     id: '1000',
     name: '1,000 Coins',
     coins: 1000,
-    price: 14499, // $144.99 - margin 28%
+    price: 17999, // $179.99 - $0.18/coin - 44% margin
     popular: false,
   },
   {
     id: '4000',
     name: '4,000 Coins',
     coins: 4000,
-    price: 54799, // $547.99 - margin 24%
+    price: 64999, // $649.99 - $0.16/coin - 38% margin (bulk discount)
     popular: false,
   },
 ];
