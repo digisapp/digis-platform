@@ -197,6 +197,15 @@ export default function TheaterModePage() {
   // Countdown timer for ticketed stream
   const [ticketCountdown, setTicketCountdown] = useState<string>('');
 
+  // Quick buy modal state (for simple ticket purchase)
+  const [showQuickBuyModal, setShowQuickBuyModal] = useState(false);
+  const [quickBuyInfo, setQuickBuyInfo] = useState<{
+    showId: string;
+    title: string;
+    price: number;
+  } | null>(null);
+  const [quickBuyLoading, setQuickBuyLoading] = useState(false);
+
   // Upcoming ticketed show from creator (for late-joining viewers)
   const [upcomingTicketedShow, setUpcomingTicketedShow] = useState<{
     id: string;
@@ -423,6 +432,57 @@ export default function TheaterModePage() {
       alert('Failed to purchase ticket. Please try again.');
     } finally {
       setPurchasingTicket(false);
+    }
+  };
+
+  // Quick buy ticket - instant purchase from announcement or persistent button
+  const handleQuickBuyTicket = async (showId: string, price: number) => {
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+
+    // Check if user has enough coins
+    if (userBalance < price) {
+      setShowBuyCoinsModal(true);
+      return;
+    }
+
+    setQuickBuyLoading(true);
+    try {
+      const response = await fetch(`/api/shows/${showId}/purchase`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        // Update balance
+        setUserBalance(prev => prev - price);
+        // Close any modals/popups
+        setShowQuickBuyModal(false);
+        setQuickBuyInfo(null);
+        setTicketedAnnouncement(null);
+        setDismissedTicketedStream(null);
+        // Grant access if ticketed mode is active
+        setHasTicket(true);
+      } else {
+        const data = await response.json();
+        if (data.error?.includes('Insufficient')) {
+          setShowBuyCoinsModal(true);
+        } else if (data.error?.includes('already')) {
+          // Already has ticket - just close and grant access
+          setShowQuickBuyModal(false);
+          setQuickBuyInfo(null);
+          setTicketedAnnouncement(null);
+          setHasTicket(true);
+        } else {
+          alert(data.error || 'Failed to purchase ticket');
+        }
+      }
+    } catch (error) {
+      console.error('[Ticketed] Error purchasing ticket:', error);
+      alert('Failed to purchase ticket. Please try again.');
+    } finally {
+      setQuickBuyLoading(false);
     }
   };
 
@@ -1338,7 +1398,15 @@ export default function TheaterModePage() {
             {/* Ticketed Stream Button - for late-joining viewers or after dismissing popup */}
             {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
               <button
-                onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
+                onClick={() => {
+                  const showId = upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId;
+                  const title = upcomingTicketedShow?.title || dismissedTicketedStream?.title || 'Private Stream';
+                  const price = upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice || 0;
+                  if (showId) {
+                    setQuickBuyInfo({ showId, title, price });
+                    setShowQuickBuyModal(true);
+                  }
+                }}
                 className="px-4 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300/50 flex items-center gap-2"
               >
                 <Ticket className="w-4 h-4" />
@@ -1674,9 +1742,17 @@ export default function TheaterModePage() {
       )}
 
       {/* Persistent Ticket Button - shows for late-joining viewers or after dismissing popup */}
-      {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && (
+      {(upcomingTicketedShow || dismissedTicketedStream) && !ticketedAnnouncement && !showQuickBuyModal && (
         <button
-          onClick={() => router.push(`/streams/${upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId}`)}
+          onClick={() => {
+            const showId = upcomingTicketedShow?.id || dismissedTicketedStream?.ticketedStreamId;
+            const title = upcomingTicketedShow?.title || dismissedTicketedStream?.title || 'Private Stream';
+            const price = upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice || 0;
+            if (showId) {
+              setQuickBuyInfo({ showId, title, price });
+              setShowQuickBuyModal(true);
+            }
+          }}
           className="lg:hidden fixed top-20 right-3 z-50 px-3 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-xs transition-all hover:scale-105 shadow-lg shadow-amber-500/40 flex flex-col items-center"
         >
           <div className="flex items-center gap-1">
@@ -1855,7 +1931,7 @@ export default function TheaterModePage() {
             </button>
 
             {/* Ticketed Badge */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3">
               <div className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/30">
                 <Ticket className="w-4 h-4" />
                 PRIVATE STREAM
@@ -1872,30 +1948,130 @@ export default function TheaterModePage() {
               Starts in {ticketedAnnouncement.minutesUntilStart} minutes
             </p>
 
-            {/* Price */}
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Coins className="w-6 h-6 text-green-400" />
-              <span className="text-3xl font-bold text-green-400">
-                {ticketedAnnouncement.ticketPrice}
-              </span>
-              <span className="text-gray-400">coins</span>
+            {/* Price + Balance */}
+            <div className="flex flex-col items-center gap-1 mb-4">
+              <div className="flex items-center gap-2">
+                <Coins className="w-6 h-6 text-yellow-400" />
+                <span className="text-3xl font-bold text-white">
+                  {ticketedAnnouncement.ticketPrice}
+                </span>
+                <span className="text-gray-400">coins</span>
+              </div>
+              {currentUser && (
+                <p className="text-xs text-gray-400">
+                  Your balance: {userBalance} coins
+                  {userBalance < ticketedAnnouncement.ticketPrice && (
+                    <button
+                      onClick={() => setShowBuyCoinsModal(true)}
+                      className="ml-2 text-cyan-400 hover:underline"
+                    >
+                      Get more
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
 
-            {/* Buy Button */}
+            {/* Buy Button - Instant Purchase */}
             <button
-              onClick={() => {
-                router.push(`/streams/${ticketedAnnouncement.ticketedStreamId}`);
-              }}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2"
+              onClick={() => handleQuickBuyTicket(ticketedAnnouncement.ticketedStreamId, ticketedAnnouncement.ticketPrice)}
+              disabled={quickBuyLoading}
+              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Ticket className="w-5 h-5" />
-              Get Ticket
+              {quickBuyLoading ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  <span>Purchasing...</span>
+                </>
+              ) : (
+                <>
+                  <Ticket className="w-5 h-5" />
+                  Buy Ticket
+                </>
+              )}
             </button>
 
             {/* Dismiss text */}
             <p className="text-center text-gray-500 text-xs mt-3">
               Tap outside to dismiss
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Simple Quick Buy Modal - for persistent button */}
+      {showQuickBuyModal && quickBuyInfo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => {
+              setShowQuickBuyModal(false);
+              setQuickBuyInfo(null);
+            }}
+          />
+          <div className="relative w-full max-w-xs bg-gradient-to-br from-amber-900/95 via-black/98 to-black/95 rounded-2xl border border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)] p-5">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowQuickBuyModal(false);
+                setQuickBuyInfo(null);
+              }}
+              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Title */}
+            <h3 className="text-lg font-bold text-white text-center mb-1 pr-6">
+              {quickBuyInfo.title}
+            </h3>
+
+            {/* Countdown */}
+            {ticketCountdown && (
+              <p className="text-amber-400 text-center text-sm mb-4">
+                Starts in {ticketCountdown}
+              </p>
+            )}
+
+            {/* Price */}
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Coins className="w-7 h-7 text-yellow-400" />
+              <span className="text-4xl font-bold text-white">{quickBuyInfo.price}</span>
+            </div>
+
+            {/* Balance */}
+            {currentUser && (
+              <p className="text-center text-xs text-gray-400 mb-4">
+                Your balance: {userBalance} coins
+                {userBalance < quickBuyInfo.price && (
+                  <button
+                    onClick={() => setShowBuyCoinsModal(true)}
+                    className="ml-2 text-cyan-400 hover:underline"
+                  >
+                    Get more
+                  </button>
+                )}
+              </p>
+            )}
+
+            {/* Buy Button */}
+            <button
+              onClick={() => handleQuickBuyTicket(quickBuyInfo.showId, quickBuyInfo.price)}
+              disabled={quickBuyLoading}
+              className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 rounded-xl font-bold text-black text-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {quickBuyLoading ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  <span>Buying...</span>
+                </>
+              ) : (
+                <>
+                  <Ticket className="w-5 h-5" />
+                  Buy Now
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
