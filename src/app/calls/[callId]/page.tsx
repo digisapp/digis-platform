@@ -1292,6 +1292,7 @@ export default function VideoCallPage() {
             setFinalCallEarnings(callEarnings);
             setFinalTipEarnings(totalTipsReceivedRef.current);
             setShowCreatorSummary(true);
+            setCallEndedByOther(false); // Ensure fan modal doesn't show
           } else {
             setCallEndedByOther(true);
             // Navigate to dashboard after a short delay
@@ -1425,6 +1426,7 @@ export default function VideoCallPage() {
       setFinalCallEarnings(callEarnings);
       setFinalTipEarnings(totalTipsReceivedRef.current);
       setShowCreatorSummary(true);
+      setCallEndedByOther(false); // Ensure fan modal doesn't show
     } else {
       // Fan - show ended modal and redirect
       setCallEndedByOther(true);
@@ -1467,6 +1469,7 @@ export default function VideoCallPage() {
         setFinalCallEarnings(callEarnings);
         setFinalTipEarnings(totalTipsReceived);
         setShowCreatorSummary(true);
+        setCallEndedByOther(false); // Ensure fan modal doesn't interfere
         setIsEnding(false);
       } else {
         // Redirect to dashboard for fan
@@ -1601,8 +1604,8 @@ export default function VideoCallPage() {
         </div>
       )}
 
-      {/* Call Ended by Other Party Modal */}
-      {callEndedByOther && (
+      {/* Call Ended by Other Party Modal - only show for fan, not when creator summary is showing */}
+      {callEndedByOther && !showCreatorSummary && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-cyan-500/40 shadow-[0_0_60px_rgba(34,211,238,0.3)] animate-in zoom-in-95 duration-200">
             <div className="relative text-center">
