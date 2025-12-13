@@ -1074,7 +1074,7 @@ export default function TheaterModePage() {
         {/* Video Player Area - centered on desktop when chat is hidden */}
         <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1 lg:mx-auto">
           {/* Video - limit height in landscape to leave room for chat */}
-          <div className="relative aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1">
+          <div className="relative aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1 lg:min-h-[75vh]">
             {streamEnded ? (
               /* Stream Ended State */
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">
