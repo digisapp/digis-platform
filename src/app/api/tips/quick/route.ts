@@ -6,6 +6,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { withIdempotency } from '@/lib/idempotency';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { MessageService } from '@/lib/messages/message-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -307,7 +308,7 @@ export async function POST(req: NextRequest) {
       // Don't fail the tip if goal update fails
     }
 
-    // For manual fulfillment items, create a purchase record
+    // For manual fulfillment items, create a purchase record and send auto-DM
     if (menuItem && fulfillmentType === 'manual') {
       try {
         await db.insert(menuPurchases).values({
@@ -321,6 +322,11 @@ export async function POST(req: NextRequest) {
           coinsPaid: amount,
           status: 'pending',
         });
+
+        // Send auto-DM from creator to fan for manual fulfillment orders
+        const itemName = tipMenuItemLabel || menuItem.label;
+        const autoMessage = `Thanks for your order! 💜\n\nYou purchased: "${itemName}"\n\nI'll follow up here when it's ready!`;
+        await MessageService.sendAutoMessage(creator.id, authUser.id, autoMessage);
       } catch (purchaseError) {
         console.error('[tips/quick] Error creating purchase record:', purchaseError);
         // Don't fail the tip if purchase record fails - money already transferred

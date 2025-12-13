@@ -1056,4 +1056,56 @@ export class MessageService {
       reason: block.reason,
     }));
   }
+
+  /**
+   * Send an automatic message from creator to fan (no fees)
+   * Used for system-triggered messages like menu purchase confirmations
+   */
+  static async sendAutoMessage(
+    creatorId: string,
+    fanId: string,
+    content: string
+  ) {
+    try {
+      // Get or create conversation
+      const conversation = await this.getOrCreateConversation(creatorId, fanId);
+
+      // Create message directly (skip fee checks - this is system-triggered)
+      const [message] = await db
+        .insert(messages)
+        .values({
+          conversationId: conversation.id,
+          senderId: creatorId,
+          content,
+          messageType: 'text',
+        })
+        .returning();
+
+      // Update conversation's last message
+      const unreadCountField =
+        conversation.user1Id === fanId
+          ? 'user1_unread_count'
+          : 'user2_unread_count';
+
+      await db
+        .update(conversations)
+        .set({
+          lastMessageText: content.substring(0, 100),
+          lastMessageAt: new Date(),
+          lastMessageSenderId: creatorId,
+          [unreadCountField]: sql`CAST(${conversations[unreadCountField as keyof typeof conversations]} AS INTEGER) + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(conversations.id, conversation.id));
+
+      // Invalidate cache for both users
+      await invalidateConversationsCacheForBoth(creatorId, fanId);
+
+      return message;
+    } catch (error) {
+      console.error('[MessageService.sendAutoMessage] Error:', error);
+      // Don't throw - auto messages are non-critical
+      return null;
+    }
+  }
 }
