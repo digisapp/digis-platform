@@ -159,9 +159,9 @@ export default function TheaterModePage() {
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
-  const [tipMenuItems, setTipMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null }>>([]);
-  const [tipMenuEnabled, setTipMenuEnabled] = useState(false);
-  const [selectedTipMenuItem, setSelectedTipMenuItem] = useState<{ id: string; label: string } | null>(null);
+  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null }>>([]);
+  const [menuEnabled, setMenuEnabled] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string } | null>(null);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -379,9 +379,9 @@ export default function TheaterModePage() {
         setHasTicket(false);
       }
     },
-    onTipMenuToggle: (event) => {
-      console.log('[TipMenu] Real-time toggle received:', event.enabled);
-      setTipMenuEnabled(event.enabled);
+    onMenuToggle: (event) => {
+      console.log('[Menu] Real-time toggle received:', event.enabled);
+      setMenuEnabled(event.enabled);
     },
   });
 
@@ -729,23 +729,23 @@ export default function TheaterModePage() {
       const streamData = data.stream || data; // Handle both { stream } and direct stream object
       setStream(streamData);
 
-      // Set tip menu enabled state from stream data
-      console.log('[TipMenu] Stream tipMenuEnabled:', streamData.tipMenuEnabled);
-      setTipMenuEnabled(streamData.tipMenuEnabled || false);
+      // Set menu enabled state from stream data
+      console.log('[Menu] Stream menuEnabled:', streamData.menuEnabled);
+      setMenuEnabled(streamData.menuEnabled || false);
 
-      // Fetch tip menu items for this creator
+      // Fetch menu items for this creator
       const creatorId = streamData.creator?.id || streamData.creatorId;
-      console.log('[TipMenu] Creator ID:', creatorId);
+      console.log('[Menu] Creator ID:', creatorId);
       if (creatorId) {
         fetch(`/api/tip-menu/${creatorId}`)
           .then(res => res.json())
           .then(menuData => {
-            console.log('[TipMenu] Menu items fetched:', menuData.items?.length || 0, 'items');
+            console.log('[Menu] Menu items fetched:', menuData.items?.length || 0, 'items');
             if (menuData.items) {
-              setTipMenuItems(menuData.items);
+              setMenuItems(menuData.items);
             }
           })
-          .catch(err => console.error('Error fetching tip menu:', err));
+          .catch(err => console.error('Error fetching menu:', err));
       }
 
       // Set upcoming ticketed show for late-joining viewers
@@ -851,7 +851,7 @@ export default function TheaterModePage() {
     }
   };
 
-  // Handle tip with optional note and tip menu item
+  // Handle tip with optional note and menu item
   const handleTip = async (amount: number, note?: string, tipMenuItem?: { id: string; label: string } | null) => {
     if (!currentUser) {
       alert('Please sign in to send tips');
@@ -1269,14 +1269,14 @@ export default function TheaterModePage() {
           {!streamEnded && (
             <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
               <div className="flex items-center gap-2 overflow-visible">
-                {/* Tip Button with Tip Menu indicator */}
+                {/* Tip Button with Menu indicator */}
                 {currentUser && (
                   <button
                     onClick={() => setShowTipModal(true)}
                     className="relative p-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg flex-shrink-0"
                   >
                     <Coins className="w-4 h-4" />
-                    {tipMenuEnabled && tipMenuItems.length > 0 && (
+                    {menuEnabled && menuItems.length > 0 && (
                       <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
                     )}
                   </button>
@@ -1459,20 +1459,20 @@ export default function TheaterModePage() {
             >
               <Coins className="w-4 h-4" />
               <span>Send Tip</span>
-              {tipMenuEnabled && tipMenuItems.length > 0 && (
+              {menuEnabled && menuItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
               )}
             </button>
 
-            {/* Tip Menu Button - only shows when enabled */}
-            {tipMenuEnabled && tipMenuItems.length > 0 && (
+            {/* Menu Button - only shows when enabled */}
+            {menuEnabled && menuItems.length > 0 && (
               <button
                 onClick={() => setShowTipModal(true)}
                 disabled={!currentUser}
                 className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
               >
                 <List className="w-4 h-4" />
-                <span>Tip Menu</span>
+                <span>Menu</span>
               </button>
             )}
 
@@ -1960,22 +1960,22 @@ export default function TheaterModePage() {
               />
             </div>
 
-            {/* Tip Menu Items - only show when creator has enabled it */}
-            {tipMenuItems.length > 0 && tipMenuEnabled && (
+            {/* Menu Items - only show when creator has enabled it */}
+            {menuItems.length > 0 && menuEnabled && (
               <div className="mb-4">
-                <label className="block text-cyan-300 text-xs font-semibold mb-2">Tip Menu</label>
+                <label className="block text-cyan-300 text-xs font-semibold mb-2">Menu</label>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                  {tipMenuItems.map((item) => (
+                  {menuItems.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => {
                         setTipAmount(item.price.toString());
                         setTipNote(item.label);
-                        setSelectedTipMenuItem({ id: item.id, label: item.label });
+                        setSelectedMenuItem({ id: item.id, label: item.label });
                       }}
                       disabled={userBalance < item.price}
                       className={`flex items-center gap-2 p-2 rounded-lg text-left transition-all ${
-                        selectedTipMenuItem?.id === item.id
+                        selectedMenuItem?.id === item.id
                           ? 'bg-cyan-500/30 border-cyan-400'
                           : 'bg-white/5 hover:bg-white/10 border-white/10'
                       } border ${userBalance < item.price ? 'opacity-40 cursor-not-allowed' : ''}`}
@@ -1998,7 +1998,7 @@ export default function TheaterModePage() {
                   key={amt}
                   onClick={() => {
                     setTipAmount(amt.toString());
-                    setSelectedTipMenuItem(null); // Clear tip menu selection
+                    setSelectedMenuItem(null); // Clear menu selection
                   }}
                   disabled={userBalance < amt}
                   className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
@@ -2040,11 +2040,11 @@ export default function TheaterModePage() {
               onClick={async () => {
                 const amount = parseInt(tipAmount);
                 if (amount > 0 && amount <= userBalance) {
-                  await handleTip(amount, tipNote || undefined, selectedTipMenuItem);
+                  await handleTip(amount, tipNote || undefined, selectedMenuItem);
                   setShowTipModal(false);
                   setTipAmount('');
                   setTipNote('');
-                  setSelectedTipMenuItem(null);
+                  setSelectedMenuItem(null);
                 }
               }}
               disabled={!tipAmount || parseInt(tipAmount) <= 0 || parseInt(tipAmount) > userBalance}

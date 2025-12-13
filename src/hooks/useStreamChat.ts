@@ -73,7 +73,7 @@ interface TicketedAnnouncementEvent {
   minutesUntilStart: number;
 }
 
-interface TipMenuToggleEvent {
+interface MenuToggleEvent {
   enabled: boolean;
 }
 
@@ -97,7 +97,7 @@ interface UseStreamChatOptions {
   onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
   onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
   onVipModeChange?: (event: VipModeChangeEvent) => void;
-  onTipMenuToggle?: (event: TipMenuToggleEvent) => void;
+  onMenuToggle?: (event: MenuToggleEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -123,7 +123,7 @@ export function useStreamChat({
   onSpotlightChanged,
   onTicketedAnnouncement,
   onVipModeChange,
-  onTipMenuToggle,
+  onMenuToggle,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -142,7 +142,7 @@ export function useStreamChat({
     onSpotlightChanged,
     onTicketedAnnouncement,
     onVipModeChange,
-    onTipMenuToggle,
+    onMenuToggle,
   });
 
   useEffect(() => {
@@ -157,9 +157,9 @@ export function useStreamChat({
       onSpotlightChanged,
       onTicketedAnnouncement,
       onVipModeChange,
-      onTipMenuToggle,
+      onMenuToggle,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onTipMenuToggle]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle]);
 
   useEffect(() => {
     let mounted = true;
@@ -227,7 +227,7 @@ export function useStreamChat({
           callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
         });
         mainChannel.subscribe('tip-menu-toggle', (message) => {
-          callbacksRef.current.onTipMenuToggle?.(message.data as TipMenuToggleEvent);
+          callbacksRef.current.onMenuToggle?.(message.data as MenuToggleEvent);
         });
         mainChannel.subscribe('stream_ended', () => {
           callbacksRef.current.onStreamEnded?.();

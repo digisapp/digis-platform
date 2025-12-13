@@ -143,7 +143,7 @@ export default function BroadcastStudioPage() {
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
-  const [tipMenuEnabled, setTipMenuEnabled] = useState(false);
+  const [menuEnabled, setMenuEnabled] = useState(false);
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Detect Safari browser
@@ -602,8 +602,8 @@ export default function BroadcastStudioPage() {
         setTotalEarnings(data.stream.totalGiftsReceived);
         // Set stream orientation from database
         setStreamOrientation(data.stream.orientation || 'landscape');
-        // Set tip menu enabled state from database
-        setTipMenuEnabled(data.stream.tipMenuEnabled || false);
+        // Set menu enabled state from database
+        setMenuEnabled(data.stream.menuEnabled || false);
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -844,7 +844,7 @@ export default function BroadcastStudioPage() {
       const leaderboardResponse = await fetch(`/api/streams/${streamId}/leaderboard`);
       const leaderboardData = await leaderboardResponse.json();
 
-      // Fetch tip menu stats
+      // Fetch menu stats
       let tipMenuStats: {
         totalTipMenuCoins: number;
         totalPurchases: number;
@@ -866,7 +866,7 @@ export default function BroadcastStudioPage() {
           }
         }
       } catch (tipMenuErr) {
-        console.error('Failed to fetch tip menu stats:', tipMenuErr);
+        console.error('Failed to fetch menu stats:', tipMenuErr);
       }
 
       // Fetch ticket stats if there was a ticketed show
@@ -1053,11 +1053,11 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  // Toggle tip menu visibility for viewers
-  const handleToggleTipMenu = async () => {
-    const newEnabled = !tipMenuEnabled;
-    console.log('[TipMenu] Creator toggling tip menu to:', newEnabled);
-    setTipMenuEnabled(newEnabled); // Optimistic update
+  // Toggle menu visibility for viewers
+  const handleToggleMenu = async () => {
+    const newEnabled = !menuEnabled;
+    console.log('[Menu] Creator toggling menu to:', newEnabled);
+    setMenuEnabled(newEnabled); // Optimistic update
 
     try {
       const response = await fetch(`/api/streams/${streamId}/tip-menu`, {
@@ -1068,16 +1068,16 @@ export default function BroadcastStudioPage() {
 
       if (!response.ok) {
         // Revert on error
-        setTipMenuEnabled(!newEnabled);
-        console.error('[TipMenu] Failed to toggle tip menu');
+        setMenuEnabled(!newEnabled);
+        console.error('[Menu] Failed to toggle menu');
       } else {
         const data = await response.json();
-        console.log('[TipMenu] Toggle API response:', data);
+        console.log('[Menu] Toggle API response:', data);
       }
     } catch (err) {
       // Revert on error
-      setTipMenuEnabled(!newEnabled);
-      console.error('[TipMenu] Error toggling tip menu:', err);
+      setMenuEnabled(!newEnabled);
+      console.error('[Menu] Error toggling menu:', err);
     }
   };
 
@@ -1486,14 +1486,14 @@ export default function BroadcastStudioPage() {
                 </div>
               )}
 
-              {/* Tip Menu Stats */}
+              {/* Menu Stats */}
               {streamSummary.tipMenuStats && streamSummary.tipMenuStats.totalPurchases > 0 && (
                 <div className="mb-6 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
                   <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                     <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    Tip Menu Stats
+                    Menu Stats
                   </h3>
                   <div className="text-center mb-4">
                     <div className="text-3xl font-bold text-pink-400 flex items-center justify-center gap-2">
@@ -1501,7 +1501,7 @@ export default function BroadcastStudioPage() {
                       {streamSummary.tipMenuStats.totalTipMenuCoins.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-400">
-                      from {streamSummary.tipMenuStats.totalPurchases} tip menu purchase{streamSummary.tipMenuStats.totalPurchases !== 1 ? 's' : ''}
+                      from {streamSummary.tipMenuStats.totalPurchases} menu purchase{streamSummary.tipMenuStats.totalPurchases !== 1 ? 's' : ''}
                     </div>
                   </div>
                   <div className="space-y-3">
@@ -1703,17 +1703,17 @@ export default function BroadcastStudioPage() {
                       );
                     })()}
 
-                    {/* Tip Menu Toggle Button */}
+                    {/* Menu Toggle Button */}
                     <button
-                      onClick={handleToggleTipMenu}
+                      onClick={handleToggleMenu}
                       className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                        tipMenuEnabled
+                        menuEnabled
                           ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
                           : 'bg-black/60 border-white/20 text-white/60 hover:border-white/40 hover:bg-black/80'
                       }`}
-                      title={tipMenuEnabled ? 'Tip Menu is ON - click to hide' : 'Tip Menu is OFF - click to show'}
+                      title={menuEnabled ? 'Menu is ON - click to hide' : 'Menu is OFF - click to show'}
                     >
-                      <List className={`w-4 h-4 ${tipMenuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
+                      <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
                       <span className="text-sm hidden sm:inline">Menu</span>
                     </button>
 

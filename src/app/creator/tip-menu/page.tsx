@@ -9,7 +9,7 @@ export default function TipMenuRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/creator/pricing?tab=tip-menu');
+    router.replace('/creator/pricing?tab=menu');
   }, [router]);
 
   return (

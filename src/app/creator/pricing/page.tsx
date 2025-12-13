@@ -16,7 +16,7 @@ const formatCoinsToUSD = (coins: number): string => {
   return usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 };
 
-interface TipMenuItem {
+interface MenuItem {
   id: string;
   label: string;
   emoji: string | null;
@@ -24,11 +24,13 @@ interface TipMenuItem {
   description: string | null;
   isActive: boolean;
   displayOrder: number;
+  itemCategory?: string;
+  fulfillmentType?: string;
 }
 
 const EMOJI_OPTIONS = ['🎵', '🎤', '💋', '🔥', '💃', '🎮', '❓', '💪', '🎭', '⭐', '💬', '🎁'];
 
-type ActiveTab = 'calls' | 'messages' | 'subscriptions' | 'tip-menu';
+type ActiveTab = 'calls' | 'messages' | 'subscriptions' | 'menu';
 
 // Wrapper component with Suspense for useSearchParams
 export default function PricingPage() {
@@ -54,7 +56,7 @@ function PricingPageContent() {
   // Get initial tab from URL query parameter
   const initialTab = (searchParams.get('tab') as ActiveTab) || 'calls';
   const [activeTab, setActiveTab] = useState<ActiveTab>(
-    ['calls', 'messages', 'subscriptions', 'tip-menu'].includes(initialTab) ? initialTab : 'calls'
+    ['calls', 'messages', 'subscriptions', 'menu'].includes(initialTab) ? initialTab : 'calls'
   );
 
   // Call settings
@@ -75,10 +77,10 @@ function PricingPageContent() {
     monthlyPrice: 50,
   });
 
-  // Tip menu items
-  const [tipMenuItems, setTipMenuItems] = useState<TipMenuItem[]>([]);
+  // Menu items
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<TipMenuItem | null>(null);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formLabel, setFormLabel] = useState('');
   const [formEmoji, setFormEmoji] = useState('');
   const [formPrice, setFormPrice] = useState('');
@@ -88,7 +90,7 @@ function PricingPageContent() {
   useEffect(() => {
     Promise.all([
       fetchCallSettings(),
-      fetchTipMenuItems(),
+      fetchMenuItems(),
     ]).finally(() => setLoading(false));
   }, []);
 
@@ -116,15 +118,15 @@ function PricingPageContent() {
     }
   };
 
-  const fetchTipMenuItems = async () => {
+  const fetchMenuItems = async () => {
     try {
       const response = await fetch('/api/creator/tip-menu');
       if (response.ok) {
         const data = await response.json();
-        setTipMenuItems(data.items || []);
+        setMenuItems(data.items || []);
       }
     } catch (error) {
-      console.error('Error fetching tip menu:', error);
+      console.error('Error fetching menu:', error);
     }
   };
 
@@ -157,7 +159,7 @@ function PricingPageContent() {
     }
   };
 
-  // Tip menu functions
+  // Menu functions
   const resetForm = () => {
     setFormLabel('');
     setFormEmoji('');
@@ -208,7 +210,7 @@ function PricingPageContent() {
       }
 
       if (response.ok) {
-        await fetchTipMenuItems();
+        await fetchMenuItems();
         setShowAddModal(false);
         resetForm();
         setMessage(editingItem ? 'Item updated!' : 'Item added!');
@@ -222,14 +224,14 @@ function PricingPageContent() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Delete this tip menu item?')) return;
+    if (!confirm('Delete this menu item?')) return;
 
     try {
       const response = await fetch(`/api/creator/tip-menu/${id}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setTipMenuItems(tipMenuItems.filter(item => item.id !== id));
+        setTipMenuItems(menuItems.filter(item => item.id !== id));
         setMessage('Item deleted');
         setTimeout(() => setMessage(''), 3000);
       }
@@ -246,7 +248,7 @@ function PricingPageContent() {
         body: JSON.stringify({ isActive: !item.isActive }),
       });
       if (response.ok) {
-        setTipMenuItems(tipMenuItems.map(i =>
+        setTipMenuItems(menuItems.map(i =>
           i.id === item.id ? { ...i, isActive: !i.isActive } : i
         ));
       }
@@ -278,7 +280,7 @@ function PricingPageContent() {
               Pricing
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Set your rates for calls, messages, subscriptions, and tip menu
+              Set your rates for calls, messages, subscriptions, and menu
             </p>
           </div>
 
@@ -332,15 +334,15 @@ function PricingPageContent() {
               <span className="hidden sm:inline">Subs</span>
             </button>
             <button
-              onClick={() => setActiveTab('tip-menu')}
+              onClick={() => setActiveTab('menu')}
               className={`flex-1 min-w-[80px] px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                activeTab === 'tip-menu'
+                activeTab === 'menu'
                   ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <Coins className="w-4 h-4" />
-              <span className="hidden sm:inline">Tip Menu</span>
+              <span className="hidden sm:inline">Menu</span>
             </button>
           </div>
 
@@ -571,8 +573,8 @@ function PricingPageContent() {
             </div>
           )}
 
-          {/* Tip Menu Tab */}
-          {activeTab === 'tip-menu' && (
+          {/* Menu Tab */}
+          {activeTab === 'menu' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-400">
@@ -589,10 +591,10 @@ function PricingPageContent() {
                 </GlassButton>
               </div>
 
-              {tipMenuItems.length === 0 ? (
+              {menuItems.length === 0 ? (
                 <GlassCard className="p-8 text-center">
                   <Coins className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">No tip menu items yet</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">No menu items yet</h3>
                   <p className="text-gray-400 mb-4">
                     Add items that fans can tip for during your live streams
                   </p>
@@ -603,7 +605,7 @@ function PricingPageContent() {
                 </GlassCard>
               ) : (
                 <div className="space-y-3">
-                  {tipMenuItems.map((item) => (
+                  {menuItems.map((item) => (
                     <GlassCard
                       key={item.id}
                       className={`p-4 ${!item.isActive ? 'opacity-50' : ''}`}
@@ -665,13 +667,13 @@ function PricingPageContent() {
         </div>
       </div>
 
-      {/* Add/Edit Tip Menu Item Modal */}
+      {/* Add/Edit Menu Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <GlassCard className="w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">
-                {editingItem ? 'Edit Item' : 'Add Tip Menu Item'}
+                {editingItem ? 'Edit Item' : 'Add Menu Item'}
               </h2>
               <button
                 onClick={() => {
