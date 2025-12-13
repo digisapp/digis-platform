@@ -1499,7 +1499,7 @@ export default function TheaterModePage() {
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
                           <List className="w-3 h-3 text-white" />
                         </div>
-                        <span className="font-bold text-pink-300 text-xs">🎁 Menu Available!</span>
+                        <span className="font-bold text-pink-300 text-xs">Menu</span>
                       </div>
                       <div className="space-y-1 ml-8">
                         {msg.menuPreviewItems?.map((item, idx) => (
@@ -1517,9 +1517,6 @@ export default function TheaterModePage() {
                       {msg.content && (
                         <div className="text-white/50 text-[10px] ml-8 mt-1">{msg.content}</div>
                       )}
-                      <div className="mt-2 ml-8">
-                        <span className="text-pink-400 text-[10px] font-medium">Tap to view menu →</span>
-                      </div>
                     </div>
                   ) : (
                     <div key={msg.id} className="flex gap-2">
@@ -1785,7 +1782,7 @@ export default function TheaterModePage() {
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
                               <List className="w-4 h-4 text-white" />
                             </div>
-                            <span className="font-bold text-pink-300">🎁 Menu Available!</span>
+                            <span className="font-bold text-pink-300">Menu</span>
                           </div>
                           <div className="space-y-2 ml-10">
                             {msg.menuPreviewItems?.map((item, idx) => (
@@ -1803,9 +1800,6 @@ export default function TheaterModePage() {
                           {msg.content && (
                             <div className="text-white/50 text-xs ml-10 mt-1">{msg.content}</div>
                           )}
-                          <div className="mt-3 ml-10">
-                            <span className="text-pink-400 text-xs font-medium hover:text-pink-300">Click to view full menu →</span>
-                          </div>
                         </div>
                       ) : (
                       // Regular chat message
