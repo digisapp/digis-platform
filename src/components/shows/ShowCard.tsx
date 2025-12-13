@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { Coins } from 'lucide-react';
+import { Coins, Play } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -68,10 +70,35 @@ const statusColors = {
 
 export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
   const router = useRouter();
+  const [startingShow, setStartingShow] = useState(false);
 
   const handleClick = () => {
     // Both creator and fan go to the same stream detail page
     router.push(`/streams/${show.id}`);
+  };
+
+  const handleStartNow = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    setStartingShow(true);
+
+    try {
+      const response = await fetch(`/api/shows/${show.id}/start`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start stream');
+      }
+
+      // Redirect to broadcast page
+      if (data.roomName) {
+        router.push(`/stream/live/${data.roomName}`);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to start stream');
+      setStartingShow(false);
+    }
   };
 
   const isFree = show.ticketPrice === 0;
@@ -205,6 +232,24 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
             </div>
           )}
         </div>
+
+        {/* Start Now Button - Creator only, scheduled shows only */}
+        {isCreator && show.status === 'scheduled' && (
+          <button
+            onClick={handleStartNow}
+            disabled={startingShow}
+            className="mt-4 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold hover:from-green-600 hover:to-emerald-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-green-500/30"
+          >
+            {startingShow ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <>
+                <Play className="w-5 h-5" />
+                Start Now
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

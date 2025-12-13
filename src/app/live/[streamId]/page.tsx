@@ -749,12 +749,12 @@ export default function TheaterModePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 text-white flex flex-col lg:pl-16">
       {/* Mobile Logo Header - centered */}
-      <div className="lg:hidden flex items-center justify-center py-2 glass-dark border-b border-cyan-400/20">
-        <button onClick={() => router.push('/')}>
+      <div className="lg:hidden flex items-center justify-center py-2 bg-black/90 border-b border-cyan-400/30">
+        <button onClick={() => router.push('/')} className="flex items-center">
           <img
             src="/images/digis-logo-white.png"
             alt="Digis"
-            className="h-7"
+            className="h-6"
           />
         </button>
       </div>
