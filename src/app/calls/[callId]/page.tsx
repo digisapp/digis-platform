@@ -137,7 +137,6 @@ function FaceTimeVideoLayout({
   const [showChat, setShowChat] = useState(false);
   const [showGifts, setShowGifts] = useState(false);
   const [showTipMenu, setShowTipMenu] = useState(false);
-  const [showWalletMenu, setShowWalletMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showGiftAnimation, setShowGiftAnimation] = useState<{ emoji: string; id: string } | null>(null);
   const [lastDoubleTap, setLastDoubleTap] = useState(0);
@@ -410,39 +409,69 @@ function FaceTimeVideoLayout({
         )}
       </div>
 
-      {/* Top bar - duration and earnings - safe area aware */}
+      {/* Top bar - duration, earnings, and other participant info - safe area aware */}
       <div className="absolute top-0 left-0 right-0 z-30" style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}>
-        <div className="flex items-center justify-center gap-2 pt-1 sm:pt-2 px-3">
-          {hasStarted && (
-            <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
-                <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
+        <div className="flex items-center justify-between pt-1 sm:pt-2 px-3">
+          {/* Left side - Other participant avatar and name */}
+          <div className="flex-1">
+            {hasRemoteParticipant && otherParticipant && (
+              <div className="inline-flex items-center gap-2 px-2.5 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                  {otherParticipant.avatarUrl ? (
+                    <img
+                      src={otherParticipant.avatarUrl}
+                      alt={otherParticipant.displayName || otherParticipant.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-xs font-bold">
+                      {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  )}
+                </div>
+                <span className="text-white font-medium text-sm max-w-[80px] truncate">
+                  {otherParticipant.displayName || otherParticipant.username}
+                </span>
               </div>
-              <div className="w-px h-3 sm:h-4 bg-white/30" />
-              {isFan ? (
-                // Fan sees cost - using green for better visibility
-                <div className="flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
-                  <span className="font-bold text-emerald-400 text-sm sm:text-base">~{estimatedCost}</span>
-                </div>
-              ) : (
-                // Creator sees total earnings (call + tips)
-                <div className="flex items-center gap-1">
-                  <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
-                  <span className="font-bold text-emerald-400 text-sm sm:text-base">+{estimatedCost + totalTipsReceived}</span>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Tips indicator for creator */}
-          {!isFan && totalTipsReceived > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-xl rounded-full border border-emerald-500/30">
-              <Gift className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-bold text-emerald-400 text-sm">+{totalTipsReceived}</span>
-            </div>
-          )}
+          {/* Center - Timer and cost/earnings */}
+          <div className="flex items-center gap-2">
+            {hasStarted && (
+              <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+                  <span className="font-mono font-bold text-white text-sm sm:text-base">{formatDuration(duration)}</span>
+                </div>
+                <div className="w-px h-3 sm:h-4 bg-white/30" />
+                {isFan ? (
+                  // Fan sees cost - using green for better visibility
+                  <div className="flex items-center gap-1">
+                    <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                    <span className="font-bold text-emerald-400 text-sm sm:text-base">~{estimatedCost}</span>
+                  </div>
+                ) : (
+                  // Creator sees total earnings (call + tips)
+                  <div className="flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                    <span className="font-bold text-emerald-400 text-sm sm:text-base">+{estimatedCost + totalTipsReceived}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tips indicator for creator */}
+            {!isFan && totalTipsReceived > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-xl rounded-full border border-emerald-500/30">
+                <Gift className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-bold text-emerald-400 text-sm">+{totalTipsReceived}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - spacer for balance */}
+          <div className="flex-1" />
         </div>
       </div>
 
@@ -592,79 +621,48 @@ function FaceTimeVideoLayout({
         </div>
       )}
 
-      {/* Wallet button for fan - positioned on LEFT side to avoid PIP overlap */}
-      {isFan && (
-        <div className="absolute top-16 left-3 z-40" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowWalletMenu(!showWalletMenu);
-            }}
-            className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600/80 to-green-600/80 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-500/30 ${
-              isLowBalance
-                ? 'border-2 border-red-500 animate-pulse'
-                : 'border border-emerald-400/50'
-            }`}
-            title="View balance & Buy Coins"
-          >
-            <Coins className={`w-5 h-5 ${isLowBalance ? 'text-red-300' : 'text-emerald-200'}`} />
-            <span className={`font-bold text-sm ${isLowBalance ? 'text-red-300' : 'text-white'}`}>
-              {userBalance.toLocaleString()}
-            </span>
-            {isLowBalance && <span className="text-red-300 text-xs font-bold">LOW</span>}
-          </button>
-
-          {/* Wallet dropdown */}
-          {showWalletMenu && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setShowWalletMenu(false)} />
-              <div className="absolute left-0 mt-2 z-40 bg-black/95 backdrop-blur-xl rounded-xl border border-emerald-500/40 shadow-xl shadow-emerald-500/20 overflow-hidden min-w-[180px]">
-                <div className="px-4 py-4 border-b border-emerald-500/20 text-center bg-gradient-to-b from-emerald-500/10 to-transparent">
-                  <div className="text-3xl font-bold text-emerald-400">{userBalance.toLocaleString()}</div>
-                  <div className="text-xs text-gray-400 mt-1">coins available</div>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowWalletMenu(false);
-                    onBuyCoins();
-                  }}
-                  className="w-full px-4 py-4 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 hover:from-emerald-500/30 hover:to-green-500/30 active:from-emerald-500/40 active:to-green-500/40 transition-colors"
-                >
-                  <Coins className="w-5 h-5 text-emerald-400" />
-                  <span className="text-emerald-400 font-bold">Buy More Coins</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {/* Bottom controls - safe area aware */}
       <div className="absolute bottom-0 left-0 right-0 z-30" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
         <div className="pb-2 sm:pb-4">
-          {/* Other participant info - avatar and name */}
-          {hasRemoteParticipant && otherParticipant && (
+          {/* Coin balance and Buy Coins button - for fans only */}
+          {isFan && (
             <div className="flex justify-center mb-3">
-              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full border border-white/20">
-                {/* Avatar - larger size */}
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                  {otherParticipant.avatarUrl ? (
-                    <img
-                      src={otherParticipant.avatarUrl}
-                      alt={otherParticipant.displayName || otherParticipant.username}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white text-xs font-bold">
-                      {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}
-                    </span>
-                  )}
+              <div className={`flex items-center gap-3 px-4 py-2.5 bg-black/70 backdrop-blur-xl rounded-2xl border ${isLowBalance ? 'border-red-500/50' : 'border-emerald-500/40'} shadow-lg`}>
+                {/* Coin balance */}
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${isLowBalance ? 'bg-red-500/20' : 'bg-emerald-500/20'}`}>
+                    <Coins className={`w-5 h-5 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
+                  </div>
+                  <div>
+                    <div className={`text-lg font-bold ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>
+                      {userBalance.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] text-gray-400 -mt-0.5">coins</div>
+                  </div>
                 </div>
-                {/* Name */}
-                <span className="text-white font-medium text-sm">
-                  {otherParticipant.displayName || otherParticipant.username}
-                </span>
+
+                {/* Divider */}
+                <div className="w-px h-8 bg-white/20" />
+
+                {/* Buy Coins button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBuyCoins();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 rounded-xl text-white font-bold text-sm transition-all active:scale-95 shadow-md shadow-emerald-500/30"
+                >
+                  <span>+</span>
+                  <span>Buy Coins</span>
+                </button>
+
+                {/* Low balance warning */}
+                {isLowBalance && (
+                  <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-red-500 rounded-full">
+                    <span className="text-white text-[10px] font-bold">LOW</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -955,7 +953,13 @@ export default function VideoCallPage() {
 
   // Start call when connected
   const handleConnected = async () => {
-    if (hasStarted) return;
+    // Use ref to avoid stale closure - check if already started
+    if (hasStartedRef.current) {
+      console.log('[CallPage] handleConnected called but already started, skipping');
+      return;
+    }
+
+    console.log('[CallPage] Room connected! Starting timer for both parties');
 
     // Always start the local timer when connected - both parties should track time
     setHasStarted(true);
@@ -969,25 +973,39 @@ export default function VideoCallPage() {
       if (!res.ok) {
         const errorData = await res.json();
         // This is expected for the second person to join - call already started
-        console.log('Call start API response:', errorData.error || 'already started');
+        console.log('[CallPage] Call start API response:', errorData.error || 'already started');
       } else {
-        console.log('Call started successfully on backend');
+        console.log('[CallPage] Call started successfully on backend');
       }
     } catch (err) {
-      console.error('Error calling start API:', err);
+      console.error('[CallPage] Error calling start API:', err);
       // Timer is already running locally, so this is fine
     }
   };
 
   // Timer for duration and cost
   useEffect(() => {
-    if (!hasStarted) return;
+    if (!hasStarted) {
+      console.log('[CallPage] Timer effect: hasStarted is false, not starting timer');
+      return;
+    }
+
+    console.log('[CallPage] Timer effect: Starting timer! hasStarted =', hasStarted);
 
     const interval = setInterval(() => {
-      setDuration((prev) => prev + 1);
+      setDuration((prev) => {
+        const newDuration = prev + 1;
+        if (newDuration % 10 === 0) {
+          console.log('[CallPage] Timer tick: duration =', newDuration);
+        }
+        return newDuration;
+      });
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('[CallPage] Timer cleanup');
+      clearInterval(interval);
+    };
   }, [hasStarted]);
 
   // Format duration
