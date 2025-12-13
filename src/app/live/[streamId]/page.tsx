@@ -1215,9 +1215,9 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Mobile Goal Bar - horizontal, below title, above action bar */}
+          {/* Desktop Goal Bar - inline below stream info (matches creator POV) */}
           {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-            <div className="lg:hidden px-3 py-2">
+            <div className="hidden lg:block px-4 lg:pl-6 py-2">
               <TronGoalBar
                 goals={stream.goals
                   .filter((g: any) => g.isActive && !g.isCompleted)
@@ -1738,9 +1738,9 @@ export default function TheaterModePage() {
         </div>
       )}
 
-      {/* Desktop Goal Bar Overlay - horizontal at top */}
+      {/* Mobile Goal Bar - floating at top (matches creator mobile POV) */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-        <div className="hidden lg:block fixed top-20 left-1/2 -translate-x-1/2 z-40 w-80">
+        <div className="lg:hidden fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px]">
           <TronGoalBar
             goals={stream.goals
               .filter((g: any) => g.isActive && !g.isCompleted)
