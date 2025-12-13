@@ -137,6 +137,7 @@ function FaceTimeVideoLayout({
   const [showChat, setShowChat] = useState(false);
   const [showGifts, setShowGifts] = useState(false);
   const [showTipMenu, setShowTipMenu] = useState(false);
+  const [showWalletMenu, setShowWalletMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showGiftAnimation, setShowGiftAnimation] = useState<{ emoji: string; id: string } | null>(null);
   const [lastDoubleTap, setLastDoubleTap] = useState(0);
@@ -447,7 +448,7 @@ function FaceTimeVideoLayout({
 
       {/* Tips and Gifts - Always visible floating notifications */}
       {!showChat && (
-        <div className="absolute left-3 bottom-36 sm:bottom-40 z-30 w-64 sm:w-72 max-h-[30vh] overflow-hidden pointer-events-none">
+        <div className="absolute left-3 bottom-48 sm:bottom-52 z-30 w-64 sm:w-72 max-h-[30vh] overflow-hidden pointer-events-none">
           <div className="space-y-1.5 overflow-hidden">
             {chatMessages.filter(m => m.type === 'tip' || m.type === 'gift').slice(-5).map((msg) => (
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
@@ -469,9 +470,9 @@ function FaceTimeVideoLayout({
         </div>
       )}
 
-      {/* Chat Overlay - floating messages on left side */}
+      {/* Chat Overlay - floating messages on left side, positioned above wallet balance widget */}
       {showChat && (
-        <div className="absolute left-3 bottom-36 sm:bottom-40 z-30 w-64 sm:w-72 max-h-[40vh] overflow-hidden pointer-events-auto">
+        <div className="absolute left-3 bottom-48 sm:bottom-52 z-30 w-64 sm:w-72 max-h-[40vh] overflow-hidden pointer-events-auto">
           {/* Chat messages */}
           <div className="space-y-1.5 overflow-y-auto max-h-[calc(40vh-60px)] scrollbar-hide">
             {chatMessages.slice(-10).map((msg) => (
@@ -525,7 +526,7 @@ function FaceTimeVideoLayout({
 
       {/* Gift picker overlay */}
       {showGifts && isFan && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200 w-[85vw] max-w-xs">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-48 sm:bottom-52 z-40 animate-in slide-in-from-bottom duration-200 w-[85vw] max-w-xs">
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-white text-xs font-semibold">Send a Gift</span>
@@ -560,7 +561,7 @@ function FaceTimeVideoLayout({
 
       {/* Tip picker overlay */}
       {showTipMenu && isFan && (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-36 sm:bottom-40 z-40 animate-in slide-in-from-bottom duration-200">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-48 sm:bottom-52 z-40 animate-in slide-in-from-bottom duration-200">
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-white text-xs font-semibold">Send a Tip</span>
@@ -591,30 +592,49 @@ function FaceTimeVideoLayout({
         </div>
       )}
 
+      {/* Wallet button for fan - small button in top right corner with dropdown */}
+      {isFan && (
+        <div className="absolute top-16 right-3 z-40" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
+          <button
+            onClick={() => setShowWalletMenu(!showWalletMenu)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg ${
+              isLowBalance
+                ? 'border-2 border-red-500/60 animate-pulse'
+                : 'border border-emerald-500/40'
+            }`}
+            title="View balance"
+          >
+            <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
+            {isLowBalance && <span className="text-red-400 text-[10px] font-bold">!</span>}
+          </button>
+
+          {/* Wallet dropdown */}
+          {showWalletMenu && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setShowWalletMenu(false)} />
+              <div className="absolute right-0 mt-2 z-40 bg-black/90 backdrop-blur-xl rounded-xl border border-emerald-500/30 shadow-lg overflow-hidden min-w-[140px]">
+                <div className="px-4 py-3 border-b border-emerald-500/20 text-center">
+                  <div className="text-2xl font-bold text-emerald-400">{userBalance.toLocaleString()}</div>
+                  <div className="text-xs text-gray-400">coins</div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowWalletMenu(false);
+                    onBuyCoins();
+                  }}
+                  className="w-full px-4 py-3 flex items-center justify-center gap-2 hover:bg-emerald-500/10 active:bg-emerald-500/20 transition-colors"
+                >
+                  <span className="text-emerald-400 font-bold text-sm">+ Buy Coins</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Bottom controls - safe area aware */}
       <div className="absolute bottom-0 left-0 right-0 z-30" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
         <div className="pb-2 sm:pb-4">
-          {/* Wallet balance for fan - clickable to buy more, with low balance warning */}
-          {isFan && (
-            <div className="flex justify-center mb-3">
-              <button
-                onClick={onBuyCoins}
-                className={`inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg ${
-                  isLowBalance
-                    ? 'border-2 border-red-500/60 animate-pulse'
-                    : 'border border-yellow-500/40 hover:bg-yellow-500/20 hover:border-yellow-500/60'
-                }`}
-                title="Tap to buy more coins"
-              >
-                <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
-                <span className={`font-bold ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>{userBalance}</span>
-                <span className={`text-xs ${isLowBalance ? 'text-red-400/60' : 'text-emerald-400/60'}`}>coins</span>
-                {isLowBalance && <span className="text-red-400 text-xs font-bold">LOW!</span>}
-                <span className={`text-sm ml-1 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>+</span>
-              </button>
-            </div>
-          )}
-
           {/* Other participant info - avatar and name */}
           {hasRemoteParticipant && otherParticipant && (
             <div className="flex justify-center mb-3">
