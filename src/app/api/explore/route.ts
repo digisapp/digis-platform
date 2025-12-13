@@ -72,10 +72,10 @@ export async function GET(request: NextRequest) {
       .catch(() => null);
 
     // Run queries in parallel
-    const [liveCreatorIds, allCreators, categoryNames, recentStreams, recentContent] = await Promise.all([
-      // 1. Live creator IDs - can fail gracefully
+    const [liveStreams, allCreators, categoryNames, recentStreams, recentContent] = await Promise.all([
+      // 1. Live streams with creator IDs - can fail gracefully
       Promise.race([
-        db.select({ creatorId: streams.creatorId }).from(streams).where(eq(streams.status, 'live')),
+        db.select({ creatorId: streams.creatorId, streamId: streams.id }).from(streams).where(eq(streams.status, 'live')),
         new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
       ]).catch(() => []),
 
@@ -177,7 +177,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Build lookup maps for activity
-    const liveCreatorIdSet = new Set(liveCreatorIds.map(s => s.creatorId));
+    const liveCreatorIdSet = new Set(liveStreams.map(s => s.creatorId));
+    const liveStreamIdMap = new Map(liveStreams.map(s => [s.creatorId, s.streamId]));
 
     const recentStreamCounts = new Map<string, number>();
     recentStreams.forEach(s => {
@@ -194,6 +195,7 @@ export async function GET(request: NextRequest) {
       .filter(c => c.id !== currentUserId)
       .map(creator => {
         const isLive = liveCreatorIdSet.has(creator.id);
+        const liveStreamId = liveStreamIdMap.get(creator.id) || null;
         const isNewCreator = creator.createdAt && new Date(creator.createdAt) >= thirtyDaysAgo;
 
         const creatorData = {
@@ -201,6 +203,7 @@ export async function GET(request: NextRequest) {
           isFollowing: false,
           isOnline: creator.isOnline || isLive,
           isLive,
+          liveStreamId,
         };
 
         // Calculate discovery score

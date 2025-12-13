@@ -20,6 +20,7 @@ interface Creator {
   isOnline: boolean;
   isFollowing: boolean;
   isLive?: boolean;
+  liveStreamId?: string | null;
   primaryCategory?: string | null;
   createdAt?: string;
 }
@@ -220,7 +221,7 @@ export default function ExplorePage() {
                   <LiveCreatorCard
                     key={creator.id}
                     creator={creator}
-                    onClick={() => router.push(`/${creator.username}`)}
+                    onClick={() => router.push(creator.liveStreamId ? `/live/${creator.liveStreamId}` : `/${creator.username}`)}
                   />
                 ))}
               </div>
@@ -257,7 +258,7 @@ export default function ExplorePage() {
                   <CreatorCard
                     key={creator.id}
                     creator={creator}
-                    onClick={() => router.push(`/${creator.username}`)}
+                    onClick={() => router.push(creator.isLive && creator.liveStreamId ? `/live/${creator.liveStreamId}` : `/${creator.username}`)}
                   />
                 ))}
               </div>
