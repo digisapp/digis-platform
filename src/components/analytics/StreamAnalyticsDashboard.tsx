@@ -76,8 +76,8 @@ export function StreamAnalyticsDashboard({ timeRange = '30d' }: StreamAnalyticsD
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount / 100); // Assuming coins are in cents
+      minimumFractionDigits: 2,
+    }).format(amount / 10); // 10 coins = $1 USD (1 coin = $0.10)
   };
 
   const formatNumber = (num: number) => {

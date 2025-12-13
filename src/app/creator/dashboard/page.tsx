@@ -519,7 +519,7 @@ export default function CreatorDashboard() {
                   <span className="text-4xl font-bold text-white">{monthlyEarnings.toLocaleString()}</span>
                   <span className="text-lg text-gray-400">coins</span>
                 </div>
-                <p className="text-sm text-green-400 mt-1">≈ ${(monthlyEarnings * 0.01).toFixed(2)} USD</p>
+                <p className="text-sm text-green-400 mt-1">≈ ${(monthlyEarnings * 0.1).toFixed(2)} USD</p>
               </div>
               <div className="hidden md:flex items-center gap-6">
                 <button
