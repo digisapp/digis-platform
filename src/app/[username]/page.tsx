@@ -161,7 +161,8 @@ export default function ProfilePage() {
           likes: item.likeCount || 0,
           isLiked: item.isLiked || false,
           views: item.viewCount,
-          isLocked: !item.isFree,
+          // Content is locked if: not free AND user hasn't purchased it
+          isLocked: !item.isFree && !item.hasPurchased,
           unlockPrice: item.unlockPrice,
           isFree: item.isFree,
           timestamp: new Date(item.createdAt).toLocaleDateString(),
@@ -345,7 +346,8 @@ export default function ProfilePage() {
           likes: item.likeCount || 0,
           isLiked: item.isLiked || false,
           views: item.viewCount,
-          isLocked: !item.isFree,
+          // Content is locked if: not free AND user hasn't purchased it
+          isLocked: !item.isFree && !item.hasPurchased,
           unlockPrice: item.unlockPrice,
           isFree: item.isFree,
           timestamp: new Date(item.createdAt).toLocaleDateString(),
