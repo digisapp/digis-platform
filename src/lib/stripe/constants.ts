@@ -7,56 +7,56 @@ export const MIN_PAYOUT_COINS = 100; // Minimum 100 coins = $10 USD
 export const MIN_PAYOUT_USD = MIN_PAYOUT_COINS * COIN_TO_USD_RATE; // $10 minimum
 
 // Coin packages available for purchase
-// Premium pricing: ~50% margin (industry standard for live streaming platforms)
+// Competitive pricing: 30-40% margin (between Fanfix 20% and Chaturbate 50%)
 // Creator payout: $0.10 per coin (10 coins = $1.00) - 2x what creators earn on Chaturbate
 export const COIN_PACKAGES = [
   {
     id: '20',
     name: '20 Coins',
     coins: 20,
-    price: 399, // $3.99 - $0.20/coin - 50% margin
+    price: 329, // $3.29 - $0.165/coin - 39% margin
     popular: false,
   },
   {
     id: '50',
     name: '50 Coins',
     coins: 50,
-    price: 999, // $9.99 - $0.20/coin - 50% margin
+    price: 799, // $7.99 - $0.16/coin - 37% margin
     popular: false,
   },
   {
     id: '100',
     name: '100 Coins',
     coins: 100,
-    price: 1999, // $19.99 - $0.20/coin - 50% margin
+    price: 1499, // $14.99 - $0.15/coin - 33% margin
     popular: true,
   },
   {
     id: '250',
     name: '250 Coins',
     coins: 250,
-    price: 4999, // $49.99 - $0.20/coin - 50% margin
+    price: 3599, // $35.99 - $0.144/coin - 31% margin
     popular: false,
   },
   {
     id: '500',
     name: '500 Coins',
     coins: 500,
-    price: 9499, // $94.99 - $0.19/coin - 47% margin
+    price: 7199, // $71.99 - $0.144/coin - 31% margin
     popular: false,
   },
   {
     id: '1000',
     name: '1,000 Coins',
     coins: 1000,
-    price: 17999, // $179.99 - $0.18/coin - 44% margin
+    price: 14299, // $142.99 - $0.143/coin - 30% margin
     popular: false,
   },
   {
     id: '3000',
     name: '3,000 Coins',
     coins: 3000,
-    price: 49999, // $499.99 - $0.17/coin - 40% margin (bulk discount)
+    price: 42999, // $429.99 - $0.143/coin - 30% margin (bulk discount)
     popular: false,
   },
 ];
