@@ -409,9 +409,55 @@ export default function TheaterModePage() {
         setHasTicket(false);
       }
     },
-    onMenuToggle: (event) => {
+    onMenuToggle: async (event) => {
       console.log('[Menu] Real-time toggle received:', event.enabled);
       setMenuEnabled(event.enabled);
+
+      // When menu is enabled, show preview in chat (fetch items if needed)
+      if (event.enabled && !menuPreviewShownRef.current) {
+        const creatorId = stream?.creator?.id;
+        if (creatorId) {
+          try {
+            // Fetch menu items if we don't have them
+            let items = menuItems;
+            if (items.length === 0) {
+              const res = await fetch(`/api/tip-menu/${creatorId}`);
+              const menuData = await res.json();
+              if (menuData.items && menuData.items.length > 0) {
+                setMenuItems(menuData.items);
+                items = menuData.items;
+              }
+            }
+
+            // Show menu preview in chat
+            if (items.length > 0) {
+              menuPreviewShownRef.current = true;
+              const previewItems = items.slice(0, 3).map((item: any) => ({
+                emoji: item.emoji,
+                label: item.label,
+                price: item.price,
+              }));
+              const remainingCount = items.length - 3;
+
+              setMessages(prev => [...prev, {
+                id: `menu-preview-${Date.now()}`,
+                userId: 'system',
+                username: 'Menu',
+                displayName: null,
+                avatarUrl: null,
+                content: remainingCount > 0
+                  ? `${remainingCount} more item${remainingCount > 1 ? 's' : ''} available...`
+                  : '',
+                timestamp: Date.now(),
+                messageType: 'menu_preview',
+                menuPreviewItems: previewItems,
+              }]);
+            }
+          } catch (err) {
+            console.error('[Menu] Error fetching menu items on toggle:', err);
+          }
+        }
+      }
     },
   });
 
