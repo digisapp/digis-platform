@@ -1403,17 +1403,21 @@ export default function VideoCallPage() {
   const [finalCallEarnings, setFinalCallEarnings] = useState(0);
   const [finalTipEarnings, setFinalTipEarnings] = useState(0);
 
-  // Refs to track latest values for Ably callbacks
+  // Refs to track latest values for Ably callbacks (avoids stale closures)
   const durationRef = useRef(duration);
   const totalTipsReceivedRef = useRef(totalTipsReceived);
   const hasStartedRef = useRef(hasStarted);
   const showCreatorSummaryRef = useRef(showCreatorSummary);
   const callEndHandledRef = useRef(false); // Prevent multiple handlers from running
+  const callDataRef = useRef(callData);
+  const userIdRef = useRef(user?.id);
 
   useEffect(() => { durationRef.current = duration; }, [duration]);
   useEffect(() => { totalTipsReceivedRef.current = totalTipsReceived; }, [totalTipsReceived]);
   useEffect(() => { hasStartedRef.current = hasStarted; }, [hasStarted]);
   useEffect(() => { showCreatorSummaryRef.current = showCreatorSummary; }, [showCreatorSummary]);
+  useEffect(() => { callDataRef.current = callData; }, [callData]);
+  useEffect(() => { userIdRef.current = user?.id; }, [user?.id]);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -1465,18 +1469,22 @@ export default function VideoCallPage() {
             return;
           }
 
+          // Use refs to get latest values (avoid stale closures)
+          const currentCallData = callDataRef.current;
+          const currentUserId = userIdRef.current;
+
           // For creator, show summary; for fan, show simple ended modal
-          const isCreator = user?.id && callData && user.id === callData.creatorId;
+          const isCreator = currentUserId && currentCallData && currentUserId === currentCallData.creatorId;
           // Use hasStartedRef OR duration > 0 as backup check
           const callHasStarted = hasStartedRef.current || durationRef.current > 0;
-          console.log('[Ably call_ended] isCreator:', isCreator, 'callHasStarted:', callHasStarted, 'duration:', durationRef.current);
+          console.log('[Ably call_ended] isCreator:', isCreator, 'callHasStarted:', callHasStarted, 'duration:', durationRef.current, 'userId:', currentUserId, 'creatorId:', currentCallData?.creatorId);
 
           callEndHandledRef.current = true; // Mark as handled
 
           if (isCreator && callHasStarted) {
             // Save final stats for summary using refs for latest values
             const currentDuration = durationRef.current;
-            const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+            const callEarnings = currentCallData ? Math.ceil(currentDuration / 60) * currentCallData.ratePerMinute : 0;
             console.log('[Ably call_ended] Showing creator summary! duration:', currentDuration, 'earnings:', callEarnings);
             setFinalCallDuration(currentDuration);
             setFinalCallEarnings(callEarnings);
@@ -1522,14 +1530,14 @@ export default function VideoCallPage() {
         // Subscribe to chat messages from other party
         channel.subscribe('chat_message', (message) => {
           const data = message.data;
-          // Add message to chat
+          // Add message to chat (use ref to get latest user id)
           setChatMessages((prev) => {
             // Check for duplicate
             if (prev.some(m => m.id === data.id)) return prev;
             return [...prev, {
               id: data.id,
               sender: data.senderId,
-              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              senderName: data.senderId === userIdRef.current ? 'You' : data.senderName,
               content: data.content,
               timestamp: data.timestamp,
               type: data.type || 'chat',
@@ -1545,7 +1553,7 @@ export default function VideoCallPage() {
             return [...prev, {
               id: data.id || `tip-${Date.now()}`,
               sender: data.senderId,
-              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              senderName: data.senderId === userIdRef.current ? 'You' : data.senderName,
               content: `tipped ${data.amount} coins`,
               timestamp: data.timestamp || Date.now(),
               type: 'tip',
@@ -1553,7 +1561,7 @@ export default function VideoCallPage() {
             }];
           });
           // Track tips received (for creator)
-          if (data.senderId !== user?.id) {
+          if (data.senderId !== userIdRef.current) {
             setTotalTipsReceived((prev) => prev + (data.amount || 0));
           }
         });
@@ -1562,7 +1570,7 @@ export default function VideoCallPage() {
         channel.subscribe('gift_sent', (message) => {
           const data = message.data;
           // Track gifts received (for creator)
-          if (data.senderId !== user?.id) {
+          if (data.senderId !== userIdRef.current) {
             setTotalTipsReceived((prev) => prev + (data.amount || 0));
           }
           setChatMessages((prev) => {
@@ -1570,7 +1578,7 @@ export default function VideoCallPage() {
             return [...prev, {
               id: data.id || `gift-${Date.now()}`,
               sender: data.senderId,
-              senderName: data.senderId === user?.id ? 'You' : data.senderName,
+              senderName: data.senderId === userIdRef.current ? 'You' : data.senderName,
               content: `sent ${data.giftName}`,
               timestamp: data.timestamp || Date.now(),
               type: 'gift',
