@@ -22,6 +22,9 @@ interface TipEvent {
   senderUsername: string;
   senderAvatarUrl?: string | null;
   amount: number;
+  menuItemLabel?: string | null;
+  itemCategory?: string | null;
+  fulfillmentType?: string | null;
 }
 
 interface GiftEvent {

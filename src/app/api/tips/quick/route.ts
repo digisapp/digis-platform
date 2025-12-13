@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, streams, users, notifications, streamGoals, streamMessages } from '@/lib/data/system';
+import { wallets, walletTransactions, streams, users, notifications, streamGoals, streamMessages, tipMenuItems, menuPurchases } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { withIdempotency } from '@/lib/idempotency';
@@ -44,6 +44,23 @@ export async function POST(req: NextRequest) {
 
     // Sanitize note (max 200 chars, trim whitespace)
     const sanitizedNote = note ? String(note).trim().slice(0, 200) : null;
+
+    // Look up menu item if provided to get fulfillment details
+    let menuItem = null;
+    let digitalContentUrl = null;
+    let fulfillmentType = 'instant';
+    let itemCategory = 'interaction';
+
+    if (tipMenuItemId) {
+      menuItem = await db.query.tipMenuItems.findFirst({
+        where: eq(tipMenuItems.id, tipMenuItemId),
+      });
+      if (menuItem) {
+        fulfillmentType = menuItem.fulfillmentType;
+        itemCategory = menuItem.itemCategory;
+        digitalContentUrl = menuItem.digitalContentUrl;
+      }
+    }
 
     // Get current user
     const supabase = await createClient();
@@ -287,12 +304,36 @@ export async function POST(req: NextRequest) {
       // Don't fail the tip if goal update fails
     }
 
+    // For manual fulfillment items, create a purchase record
+    if (menuItem && fulfillmentType === 'manual') {
+      try {
+        await db.insert(menuPurchases).values({
+          buyerId: authUser.id,
+          creatorId: creator.id,
+          menuItemId: tipMenuItemId,
+          streamId: streamId,
+          itemLabel: tipMenuItemLabel || menuItem.label,
+          itemCategory: itemCategory,
+          fulfillmentType: fulfillmentType,
+          coinsPaid: amount,
+          status: 'pending',
+        });
+      } catch (purchaseError) {
+        console.error('[tips/quick] Error creating purchase record:', purchaseError);
+        // Don't fail the tip if purchase record fails - money already transferred
+      }
+    }
+
       return NextResponse.json({
         success: true,
         amount,
         newBalance: result.newBalance,
         transactionId: result.transactionId,
         message: `Sent ${amount} coins to ${creator.displayName || creator.username}`,
+        // Include digital content URL for digital items
+        digitalContentUrl: fulfillmentType === 'digital' ? digitalContentUrl : null,
+        fulfillmentType: menuItem ? fulfillmentType : null,
+        itemLabel: tipMenuItemLabel,
       }, { headers: rl.headers });
     }); // end withIdempotency
   } catch (error) {

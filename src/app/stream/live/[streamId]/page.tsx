@@ -517,6 +517,27 @@ export default function BroadcastStudioPage() {
       setTotalEarnings((prev) => prev + tipData.amount);
       fetchLeaderboard();
 
+      // Generate message content based on item type
+      let content = `tipped ${tipData.amount} coins!`;
+      let messageType: 'tip' | 'menu_purchase' | 'menu_order' | 'menu_tip' = 'tip';
+      let emoji = '💰';
+
+      if (tipData.menuItemLabel) {
+        if (tipData.itemCategory === 'product' || tipData.fulfillmentType === 'digital') {
+          content = `📥 purchased "${tipData.menuItemLabel}" for ${tipData.amount} coins`;
+          messageType = 'menu_purchase';
+          emoji = '📦';
+        } else if (tipData.fulfillmentType === 'manual' || tipData.itemCategory === 'service') {
+          content = `💌 ordered "${tipData.menuItemLabel}" for ${tipData.amount} coins`;
+          messageType = 'menu_order';
+          emoji = '📝';
+        } else {
+          content = `⭐ sent ${tipData.amount} coins for "${tipData.menuItemLabel}"`;
+          messageType = 'menu_tip';
+          emoji = '⭐';
+        }
+      }
+
       // Add tip message to chat so host can see it
       // Using unknown cast because UI message type differs from DB schema type
       const tipMessage = {
@@ -526,17 +547,17 @@ export default function BroadcastStudioPage() {
         senderUsername: tipData.senderUsername,
         displayName: null,
         avatarUrl: tipData.senderAvatarUrl || null,
-        content: `tipped ${tipData.amount} coins!`,
-        messageType: 'tip' as const,
+        content,
+        messageType: messageType as any,
         tipAmount: tipData.amount,
         createdAt: new Date(),
       } as unknown as StreamMessage;
       setMessages((prev) => [...prev, tipMessage]);
 
-      // Add floating coin emoji for visual feedback
+      // Add floating emoji for visual feedback
       setFloatingGifts(prev => [...prev, {
         id: `tip-${Date.now()}-${Math.random()}`,
-        emoji: '💰',
+        emoji,
         rarity: tipData.amount >= 100 ? 'epic' : tipData.amount >= 50 ? 'rare' : 'common',
         timestamp: Date.now()
       }]);

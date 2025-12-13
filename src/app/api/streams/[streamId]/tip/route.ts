@@ -3,7 +3,7 @@ import { StreamService } from '@/lib/streams/stream-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
+import { users, tipMenuItems, menuPurchases } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 
@@ -61,6 +61,23 @@ export async function POST(
     const username = dbUser.username || dbUser.displayName || 'Anonymous';
     const avatarUrl = dbUser.avatarUrl || null;
 
+    // Look up menu item if provided to get fulfillment details
+    let menuItem = null;
+    let digitalContentUrl = null;
+    let fulfillmentType = 'instant';
+    let itemCategory = 'interaction';
+
+    if (tipMenuItemId) {
+      menuItem = await db.query.tipMenuItems.findFirst({
+        where: eq(tipMenuItems.id, tipMenuItemId),
+      });
+      if (menuItem) {
+        fulfillmentType = menuItem.fulfillmentType;
+        itemCategory = menuItem.itemCategory;
+        digitalContentUrl = menuItem.digitalContentUrl;
+      }
+    }
+
     const result = await StreamService.sendTip(
       streamId,
       user.id,
@@ -72,6 +89,21 @@ export async function POST(
       tipMenuItemLabel
     );
 
+    // For manual fulfillment items, create a purchase record
+    if (menuItem && fulfillmentType === 'manual') {
+      await db.insert(menuPurchases).values({
+        buyerId: user.id,
+        creatorId: recipientCreatorId || result.recipientCreatorId,
+        menuItemId: tipMenuItemId,
+        streamId: streamId,
+        itemLabel: tipMenuItemLabel || menuItem.label,
+        itemCategory: itemCategory,
+        fulfillmentType: fulfillmentType,
+        coinsPaid: amount,
+        status: 'pending',
+      });
+    }
+
     // Broadcast tip to all viewers using Ably (scales to 50k+)
     await AblyRealtimeService.broadcastTip(streamId, {
       senderId: user.id,
@@ -80,12 +112,21 @@ export async function POST(
       amount,
       recipientCreatorId: result.recipientCreatorId,
       recipientUsername: result.recipientUsername,
+      // Include item type info for chat announcements
+      menuItemLabel: tipMenuItemLabel,
+      itemCategory: menuItem ? itemCategory : null,
+      fulfillmentType: menuItem ? fulfillmentType : null,
     });
 
+    // Return response with digital content URL if applicable
     return NextResponse.json({
       success: true,
       amount,
       newBalance: result.newBalance,
+      // Include digital content URL for digital items
+      digitalContentUrl: fulfillmentType === 'digital' ? digitalContentUrl : null,
+      fulfillmentType: menuItem ? fulfillmentType : null,
+      itemLabel: tipMenuItemLabel,
     });
   } catch (error: any) {
     console.error('Error sending tip:', error);

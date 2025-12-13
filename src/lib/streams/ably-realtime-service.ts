@@ -44,6 +44,9 @@ export class AblyRealtimeService {
       amount: number;
       recipientCreatorId?: string | null;
       recipientUsername?: string | null;
+      menuItemLabel?: string | null;
+      itemCategory?: string | null;
+      fulfillmentType?: string | null;
     }
   ) {
     await publishToChannel(

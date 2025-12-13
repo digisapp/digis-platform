@@ -250,7 +250,7 @@ function PricingPageContent() {
         method: 'DELETE',
       });
       if (response.ok) {
-        setTipMenuItems(menuItems.filter(item => item.id !== id));
+        setMenuItems(menuItems.filter(item => item.id !== id));
         setMessage('Item deleted');
         setTimeout(() => setMessage(''), 3000);
       }
@@ -259,7 +259,7 @@ function PricingPageContent() {
     }
   };
 
-  const toggleItemActive = async (item: TipMenuItem) => {
+  const toggleItemActive = async (item: MenuItem) => {
     try {
       const response = await fetch(`/api/creator/tip-menu/${item.id}`, {
         method: 'PUT',
@@ -267,7 +267,7 @@ function PricingPageContent() {
         body: JSON.stringify({ isActive: !item.isActive }),
       });
       if (response.ok) {
-        setTipMenuItems(menuItems.map(i =>
+        setMenuItems(menuItems.map(i =>
           i.id === item.id ? { ...i, isActive: !i.isActive } : i
         ));
       }

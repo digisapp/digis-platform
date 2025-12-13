@@ -8,7 +8,8 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle, List
+  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle, List,
+  Download, CheckCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -70,7 +71,7 @@ interface ChatMessage {
   timestamp: number;
   isCreator?: boolean;
   isModerator?: boolean;
-  messageType?: 'chat' | 'tip' | 'gift' | 'ticket_purchase';
+  messageType?: 'chat' | 'tip' | 'gift' | 'ticket_purchase' | 'menu_purchase' | 'menu_order' | 'menu_tip';
   tipAmount?: number;
   giftEmoji?: string;
   giftName?: string;
@@ -204,6 +205,14 @@ export default function TheaterModePage() {
 
   // Quick buy modal state (for simple ticket purchase)
   const [showQuickBuyModal, setShowQuickBuyModal] = useState(false);
+
+  // Digital download confirmation state
+  const [digitalDownload, setDigitalDownload] = useState<{
+    show: boolean;
+    url: string;
+    itemLabel: string;
+    amount: number;
+  } | null>(null);
   const [quickBuyInfo, setQuickBuyInfo] = useState<{
     showId: string;
     title: string;
@@ -318,6 +327,23 @@ export default function TheaterModePage() {
       loadStream();
     },
     onTip: (tipEvent) => {
+      // Generate message content based on item type
+      let content = `tipped ${tipEvent.amount} coins`;
+      let messageType: ChatMessage['messageType'] = 'tip';
+
+      if (tipEvent.menuItemLabel) {
+        if (tipEvent.itemCategory === 'product' || tipEvent.fulfillmentType === 'digital') {
+          content = `📥 purchased "${tipEvent.menuItemLabel}" for ${tipEvent.amount} coins`;
+          messageType = 'menu_purchase';
+        } else if (tipEvent.fulfillmentType === 'manual' || tipEvent.itemCategory === 'service') {
+          content = `💌 ordered "${tipEvent.menuItemLabel}" for ${tipEvent.amount} coins`;
+          messageType = 'menu_order';
+        } else {
+          content = `⭐ sent ${tipEvent.amount} coins for "${tipEvent.menuItemLabel}"`;
+          messageType = 'menu_tip';
+        }
+      }
+
       // Add tip message to chat
       setMessages(prev => [...prev, {
         id: `tip-${Date.now()}`,
@@ -325,9 +351,9 @@ export default function TheaterModePage() {
         username: tipEvent.senderUsername,
         displayName: null,
         avatarUrl: tipEvent.senderAvatarUrl || null,
-        content: `tipped ${tipEvent.amount} coins`,
+        content,
         timestamp: Date.now(),
-        messageType: 'tip',
+        messageType,
         tipAmount: tipEvent.amount,
       }]);
       // Refresh goals when tip received
@@ -905,6 +931,16 @@ export default function TheaterModePage() {
           }
           return [...prev, tipMessage];
         });
+
+        // Show digital download confirmation if applicable
+        if (data.digitalContentUrl && data.fulfillmentType === 'digital') {
+          setDigitalDownload({
+            show: true,
+            url: data.digitalContentUrl,
+            itemLabel: data.itemLabel || tipMenuItem?.label || 'Digital Product',
+            amount,
+          });
+        }
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to send tip');
@@ -2254,6 +2290,41 @@ export default function TheaterModePage() {
           setShowBuyCoinsModal(false);
         }}
       />
+
+      {/* Digital Download Confirmation Modal */}
+      {digitalDownload?.show && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-gray-900 to-black border border-green-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Purchase Complete!</h3>
+              <p className="text-gray-400 mb-4">
+                You purchased <span className="text-green-400 font-semibold">{digitalDownload.itemLabel}</span> for {digitalDownload.amount} coins
+              </p>
+              <a
+                href={digitalDownload.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold rounded-xl transition-all mb-3"
+              >
+                <Download className="w-5 h-5" />
+                Download Now
+              </a>
+              <p className="text-xs text-gray-500 mb-4">
+                This link will also be saved in your purchase history
+              </p>
+              <button
+                onClick={() => setDigitalDownload(null)}
+                className="text-gray-400 hover:text-white text-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
