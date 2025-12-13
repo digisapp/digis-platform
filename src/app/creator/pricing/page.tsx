@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -30,7 +30,20 @@ const EMOJI_OPTIONS = ['🎵', '🎤', '💋', '🔥', '💃', '🎮', '❓', '�
 
 type ActiveTab = 'calls' | 'messages' | 'subscriptions' | 'tip-menu';
 
+// Wrapper component with Suspense for useSearchParams
 export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <PricingPageContent />
+    </Suspense>
+  );
+}
+
+function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
