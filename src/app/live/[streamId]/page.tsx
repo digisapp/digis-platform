@@ -72,14 +72,13 @@ interface ChatMessage {
   timestamp: number;
   isCreator?: boolean;
   isModerator?: boolean;
-  messageType?: 'chat' | 'tip' | 'gift' | 'ticket_purchase' | 'menu_purchase' | 'menu_order' | 'menu_tip' | 'menu_preview';
+  messageType?: 'chat' | 'tip' | 'gift' | 'ticket_purchase' | 'menu_purchase' | 'menu_order' | 'menu_tip';
   tipAmount?: number;
   giftEmoji?: string;
   giftName?: string;
   giftQuantity?: number;
   ticketPrice?: number;
   showTitle?: string;
-  menuPreviewItems?: Array<{ emoji: string | null; label: string; price: number }>;
 }
 
 interface Viewer {
@@ -173,7 +172,6 @@ export default function TheaterModePage() {
   const [messageInput, setMessageInput] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const menuPreviewShownRef = useRef(false);
 
   // Viewers state
   const [viewers, setViewers] = useState<Viewer[]>([]);
@@ -414,45 +412,15 @@ export default function TheaterModePage() {
       console.log('[Menu] Real-time toggle received:', event.enabled);
       setMenuEnabled(event.enabled);
 
-      // When menu is enabled, show preview in chat (fetch items if needed)
-      if (event.enabled && !menuPreviewShownRef.current) {
+      // Fetch menu items if we don't have them yet (for pinned display)
+      if (event.enabled && menuItems.length === 0) {
         const creatorId = stream?.creator?.id;
         if (creatorId) {
           try {
-            // Fetch menu items if we don't have them
-            let items = menuItems;
-            if (items.length === 0) {
-              const res = await fetch(`/api/tip-menu/${creatorId}`);
-              const menuData = await res.json();
-              if (menuData.items && menuData.items.length > 0) {
-                setMenuItems(menuData.items);
-                items = menuData.items;
-              }
-            }
-
-            // Show menu preview in chat
-            if (items.length > 0) {
-              menuPreviewShownRef.current = true;
-              const previewItems = items.slice(0, 3).map((item: any) => ({
-                emoji: item.emoji,
-                label: item.label,
-                price: item.price,
-              }));
-              const remainingCount = items.length - 3;
-
-              setMessages(prev => [...prev, {
-                id: `menu-preview-${Date.now()}`,
-                userId: 'system',
-                username: 'Menu',
-                displayName: null,
-                avatarUrl: null,
-                content: remainingCount > 0
-                  ? `${remainingCount} more item${remainingCount > 1 ? 's' : ''} available...`
-                  : '',
-                timestamp: Date.now(),
-                messageType: 'menu_preview',
-                menuPreviewItems: previewItems,
-              }]);
+            const res = await fetch(`/api/tip-menu/${creatorId}`);
+            const menuData = await res.json();
+            if (menuData.items && menuData.items.length > 0) {
+              setMenuItems(menuData.items);
             }
           } catch (err) {
             console.error('[Menu] Error fetching menu items on toggle:', err);
@@ -813,7 +781,7 @@ export default function TheaterModePage() {
         setMenuEnabled(streamData.tipMenuEnabled);
       }
 
-      // Fetch menu items for this creator
+      // Fetch menu items for this creator (for pinned menu display)
       const creatorId = streamData.creator?.id || streamData.creatorId;
       console.log('[Menu] Creator ID:', creatorId);
       if (creatorId) {
@@ -823,38 +791,6 @@ export default function TheaterModePage() {
             console.log('[Menu] Menu items fetched:', menuData.items?.length || 0, 'items');
             if (menuData.items && menuData.items.length > 0) {
               setMenuItems(menuData.items);
-
-              // Show menu preview in chat (only once per session)
-              const isMenuEnabled = typeof streamData.tipMenuEnabled === 'boolean'
-                ? streamData.tipMenuEnabled
-                : false;
-
-              if (isMenuEnabled && !menuPreviewShownRef.current) {
-                menuPreviewShownRef.current = true;
-                // Add menu preview message to chat after a short delay
-                setTimeout(() => {
-                  const previewItems = menuData.items.slice(0, 3).map((item: any) => ({
-                    emoji: item.emoji,
-                    label: item.label,
-                    price: item.price,
-                  }));
-                  const remainingCount = menuData.items.length - 3;
-
-                  setMessages(prev => [...prev, {
-                    id: `menu-preview-${Date.now()}`,
-                    userId: 'system',
-                    username: 'Menu',
-                    displayName: null,
-                    avatarUrl: null,
-                    content: remainingCount > 0
-                      ? `${remainingCount} more item${remainingCount > 1 ? 's' : ''} available...`
-                      : '',
-                    timestamp: Date.now(),
-                    messageType: 'menu_preview',
-                    menuPreviewItems: previewItems,
-                  }]);
-                }, 1500); // Show after 1.5s so viewer sees it after joining
-              }
             }
           })
           .catch(err => console.error('Error fetching menu:', err));
@@ -1436,6 +1372,38 @@ export default function TheaterModePage() {
 
           {/* Mobile Chat Section - below action bar */}
           <div className="lg:hidden flex-1 flex flex-col min-h-0 bg-black/40">
+            {/* Pinned Menu Preview - always visible when menu is enabled */}
+            {menuEnabled && menuItems.length > 0 && (
+              <div className="px-3 pt-2 flex-shrink-0">
+                <div
+                  className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
+                  onClick={() => setShowMenuModal(true)}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                      <List className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="font-bold text-pink-300 text-xs">Menu</span>
+                  </div>
+                  <div className="space-y-1 ml-8">
+                    {menuItems.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span className="text-white/90 truncate">
+                          {item.emoji || '🎁'} {item.label}
+                        </span>
+                        <span className="text-yellow-400 font-bold ml-2 flex items-center gap-0.5">
+                          <Coins className="w-3 h-3" />
+                          {item.price}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {menuItems.length > 3 && (
+                    <div className="text-white/50 text-[10px] ml-8 mt-1">{menuItems.length - 3} more item{menuItems.length - 3 > 1 ? 's' : ''} available...</div>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Chat Messages - use more height in landscape mode */}
             <div
               ref={chatContainerRef}
@@ -1488,35 +1456,6 @@ export default function TheaterModePage() {
                       <span className="font-bold text-amber-300 text-xs">@{msg.username}</span>
                       <span className="text-white/70 text-xs">bought a ticket</span>
                       <Ticket className="w-3 h-3 text-amber-400" />
-                    </div>
-                  ) : msg.messageType === 'menu_preview' ? (
-                    <div
-                      key={msg.id}
-                      className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
-                      onClick={() => setShowMenuModal(true)}
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
-                          <List className="w-3 h-3 text-white" />
-                        </div>
-                        <span className="font-bold text-pink-300 text-xs">Menu</span>
-                      </div>
-                      <div className="space-y-1 ml-8">
-                        {msg.menuPreviewItems?.map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs">
-                            <span className="text-white/90 truncate">
-                              {item.emoji || '🎁'} {item.label}
-                            </span>
-                            <span className="text-yellow-400 font-bold ml-2 flex items-center gap-0.5">
-                              <Coins className="w-3 h-3" />
-                              {item.price}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {msg.content && (
-                        <div className="text-white/50 text-[10px] ml-8 mt-1">{msg.content}</div>
-                      )}
                     </div>
                   ) : (
                     <div key={msg.id} className="flex gap-2">
@@ -1702,6 +1641,38 @@ export default function TheaterModePage() {
             {/* Chat View */}
             {!showViewerList && (
               <>
+                {/* Pinned Menu Preview - always visible when menu is enabled */}
+                {menuEnabled && menuItems.length > 0 && (
+                  <div className="p-3 flex-shrink-0 border-b border-pink-400/20">
+                    <div
+                      className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
+                      onClick={() => setShowMenuModal(true)}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                          <List className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="font-bold text-pink-300">Menu</span>
+                      </div>
+                      <div className="space-y-2 ml-10">
+                        {menuItems.slice(0, 3).map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="text-white/90 truncate">
+                              {item.emoji || '🎁'} {item.label}
+                            </span>
+                            <span className="text-yellow-400 font-bold ml-3 flex items-center gap-1">
+                              <Coins className="w-3.5 h-3.5" />
+                              {item.price}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {menuItems.length > 3 && (
+                        <div className="text-white/50 text-xs ml-10 mt-1">{menuItems.length - 3} more item{menuItems.length - 3 > 1 ? 's' : ''} available...</div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 {/* Messages */}
                 <div
                   ref={chatContainerRef}
@@ -1770,36 +1741,6 @@ export default function TheaterModePage() {
                               </>
                             )}
                           </div>
-                        </div>
-                      ) : msg.messageType === 'menu_preview' ? (
-                        // Menu preview card - clickable
-                        <div
-                          key={msg.id}
-                          className="p-4 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 shadow-[0_0_20px_rgba(236,72,153,0.2)] cursor-pointer hover:border-pink-400/60 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] transition-all"
-                          onClick={() => setShowMenuModal(true)}
-                        >
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                              <List className="w-4 h-4 text-white" />
-                            </div>
-                            <span className="font-bold text-pink-300">Menu</span>
-                          </div>
-                          <div className="space-y-2 ml-10">
-                            {msg.menuPreviewItems?.map((item, idx) => (
-                              <div key={idx} className="flex items-center justify-between">
-                                <span className="text-white/90 truncate">
-                                  {item.emoji || '🎁'} {item.label}
-                                </span>
-                                <span className="text-yellow-400 font-bold ml-3 flex items-center gap-1">
-                                  <Coins className="w-3.5 h-3.5" />
-                                  {item.price}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          {msg.content && (
-                            <div className="text-white/50 text-xs ml-10 mt-1">{msg.content}</div>
-                          )}
                         </div>
                       ) : (
                       // Regular chat message
