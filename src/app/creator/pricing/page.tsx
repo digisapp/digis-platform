@@ -597,7 +597,7 @@ function PricingPageContent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-400">
-                  Items fans can tip for during live streams
+                  Sell interactions, digital products, or custom services during streams
                 </p>
                 <GlassButton
                   onClick={openAddModal}

@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
-  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy
+  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -54,13 +54,17 @@ interface Analytics {
 
 interface Activity {
   id: string;
-  type: 'gift' | 'follow' | 'call' | 'stream' | 'tip' | 'notification' | 'subscribe';
+  type: 'gift' | 'follow' | 'call' | 'stream' | 'tip' | 'notification' | 'subscribe' | 'order';
   title: string;
   description: string;
   timestamp: string;
-  icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins' | 'heart';
+  icon: 'gift' | 'userplus' | 'phone' | 'video' | 'coins' | 'heart' | 'package';
   color: string;
   amount?: number;
+  action?: {
+    label: string;
+    orderId: string;
+  };
 }
 
 interface ContentItem {
@@ -258,10 +262,11 @@ export default function CreatorDashboard() {
 
   const fetchAllDashboardData = async () => {
     try {
-      const [callsRes, notificationsRes, showsRes] = await Promise.all([
+      const [callsRes, notificationsRes, showsRes, ordersRes] = await Promise.all([
         fetch('/api/calls/history?limit=50').catch(() => null),
         fetch('/api/notifications?limit=30').catch(() => null),
         fetch('/api/shows/creator').catch(() => null),
+        fetch('/api/creator/orders?status=pending').catch(() => null),
       ]);
 
       const activities: Activity[] = [];
@@ -340,9 +345,37 @@ export default function CreatorDashboard() {
         }
       }
 
-      // Sort activities by timestamp
-      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities(activities.slice(0, 10));
+      // Process pending orders (show at top as they need action)
+      if (ordersRes?.ok) {
+        try {
+          const ordersData = await ordersRes.json();
+          const ordersArray = ordersData.orders || [];
+          ordersArray.forEach((order: any) => {
+            activities.unshift({
+              id: `order-${order.id}`,
+              type: 'order',
+              title: `📦 Order: ${order.itemLabel}`,
+              description: `@${order.buyer?.username || 'Someone'} ordered for ${order.coinsPaid} coins`,
+              timestamp: order.createdAt,
+              icon: 'package',
+              color: 'text-orange-400',
+              amount: order.coinsPaid,
+              action: {
+                label: 'Fulfill',
+                orderId: order.id,
+              },
+            });
+          });
+        } catch (e) {
+          console.error('Error parsing orders data:', e);
+        }
+      }
+
+      // Sort activities by timestamp (but keep orders at top)
+      const orders = activities.filter(a => a.type === 'order');
+      const nonOrders = activities.filter(a => a.type !== 'order');
+      nonOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setRecentActivities([...orders, ...nonOrders].slice(0, 10));
 
       // Sort events by scheduled time
       events.sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
@@ -366,6 +399,8 @@ export default function CreatorDashboard() {
         return <Coins className="w-4 h-4" />;
       case 'heart':
         return <Heart className="w-4 h-4" />;
+      case 'package':
+        return <Package className="w-4 h-4" />;
       default:
         return <Clock className="w-4 h-4" />;
     }
@@ -379,6 +414,28 @@ export default function CreatorDashboard() {
         return <ImageIcon className="w-4 h-4" />;
       default:
         return <ImageIcon className="w-4 h-4" />;
+    }
+  };
+
+  const handleFulfillOrder = async (orderId: string) => {
+    try {
+      const response = await fetch(`/api/creator/orders/${orderId}/fulfill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      if (response.ok) {
+        showToast('Order fulfilled!', 'success');
+        // Remove the fulfilled order from activities
+        setRecentActivities(prev => prev.filter(a => a.id !== `order-${orderId}`));
+      } else {
+        const error = await response.json();
+        showToast(error.error || 'Failed to fulfill order', 'error');
+      }
+    } catch (error) {
+      console.error('Error fulfilling order:', error);
+      showToast('Failed to fulfill order', 'error');
     }
   };
 
@@ -627,7 +684,7 @@ export default function CreatorDashboard() {
                   {recentActivities.slice(0, 8).map((activity) => (
                     <div
                       key={activity.id}
-                      className="flex items-center gap-3 p-3 bg-white/5 rounded-lg"
+                      className={`flex items-center gap-3 p-3 rounded-lg ${activity.action ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-white/5'}`}
                     >
                       <div className={`p-2 rounded-lg bg-white/10 ${activity.color}`}>
                         {getActivityIcon(activity.icon)}
@@ -636,9 +693,18 @@ export default function CreatorDashboard() {
                         <p className="text-sm text-white truncate">{activity.title}</p>
                         <p className="text-xs text-gray-400 truncate">{activity.description}</p>
                       </div>
-                      <p className="text-xs text-gray-500 whitespace-nowrap">
-                        {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                      </p>
+                      {activity.action ? (
+                        <button
+                          onClick={() => handleFulfillOrder(activity.action!.orderId)}
+                          className="px-3 py-1.5 bg-orange-500 hover:bg-orange-400 text-white text-xs font-medium rounded-lg transition-colors whitespace-nowrap"
+                        >
+                          {activity.action.label}
+                        </button>
+                      ) : (
+                        <p className="text-xs text-gray-500 whitespace-nowrap">
+                          {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
