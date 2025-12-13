@@ -161,7 +161,7 @@ export default function ExplorePage() {
       <div className="max-w-7xl mx-auto">
         <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
-        <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-8">
+        <div className="px-4 pt-4 md:pt-10 pb-24 md:pb-8">
           {/* Search Bar */}
           <div className="mb-4">
             <div className="relative">

@@ -784,6 +784,7 @@ function VoiceCallUI({
   const [isMuted, setIsMuted] = useState(false);
   const [showTipMenu, setShowTipMenu] = useState(false);
   const [showGifts, setShowGifts] = useState(false);
+  const [sentNotification, setSentNotification] = useState<{ type: 'tip' | 'gift'; amount?: number; emoji?: string } | null>(null);
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const connectionState = useConnectionState();
@@ -791,6 +792,19 @@ function VoiceCallUI({
   const isConnected = connectionState === ConnectionState.Connected;
   const hasRemoteParticipant = remoteParticipants.length > 0;
   const isLowBalance = userBalance < 50;
+
+  // Show notification when tip/gift is sent
+  const handleSendTip = (amount: number) => {
+    onSendTip(amount);
+    setSentNotification({ type: 'tip', amount });
+    setTimeout(() => setSentNotification(null), 3000);
+  };
+
+  const handleSendGift = (gift: any) => {
+    onSendGift(gift);
+    setSentNotification({ type: 'gift', emoji: gift.emoji, amount: gift.coinCost });
+    setTimeout(() => setSentNotification(null), 3000);
+  };
 
   const toggleMute = async () => {
     if (localParticipant) {
@@ -897,7 +911,7 @@ function VoiceCallUI({
                 <button
                   key={amount}
                   onClick={() => {
-                    onSendTip(amount);
+                    handleSendTip(amount);
                     setShowTipMenu(false);
                   }}
                   disabled={userBalance < amount || tipSending}
@@ -927,7 +941,7 @@ function VoiceCallUI({
                   <button
                     key={gift.id}
                     onClick={() => {
-                      onSendGift(gift);
+                      handleSendGift(gift);
                       setShowGifts(false);
                     }}
                     disabled={userBalance < gift.coinCost || tipSending}
@@ -1002,6 +1016,35 @@ function VoiceCallUI({
           <MicOff className="w-4 h-4" />
           You are muted
         </p>
+      )}
+
+      {/* Sent notification toast */}
+      {sentNotification && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5 fade-in duration-300">
+          <div className={`px-6 py-3 rounded-2xl shadow-xl border backdrop-blur-xl ${
+            sentNotification.type === 'tip'
+              ? 'bg-yellow-500/20 border-yellow-500/40'
+              : 'bg-pink-500/20 border-pink-500/40'
+          }`}>
+            <div className="flex items-center gap-2">
+              {sentNotification.type === 'tip' ? (
+                <>
+                  <Coins className="w-5 h-5 text-yellow-400" />
+                  <span className="text-white font-semibold">
+                    Sent {sentNotification.amount} coins tip!
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl">{sentNotification.emoji}</span>
+                  <span className="text-white font-semibold">
+                    Gift sent!
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1411,14 +1454,18 @@ export default function VideoCallPage() {
         console.log('[CallPage] Ably channel attached, subscribing to events');
 
         channel.subscribe('call_ended', (message) => {
-          console.log('Call ended by other party:', message.data);
+          console.log('[Ably call_ended] Call ended by other party:', message.data);
 
           // For creator, show summary; for fan, show simple ended modal
           const isCreator = user?.id && callData && user.id === callData.creatorId;
-          if (isCreator && hasStartedRef.current) {
+          // Use hasStartedRef OR duration > 0 as backup check
+          const callHasStarted = hasStartedRef.current || durationRef.current > 0;
+          console.log('[Ably call_ended] isCreator:', isCreator, 'callHasStarted:', callHasStarted, 'duration:', durationRef.current);
+          if (isCreator && callHasStarted) {
             // Save final stats for summary using refs for latest values
             const currentDuration = durationRef.current;
             const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+            console.log('[Ably call_ended] Showing creator summary! duration:', currentDuration, 'earnings:', callEarnings);
             setFinalCallDuration(currentDuration);
             setFinalCallEarnings(callEarnings);
             setFinalTipEarnings(totalTipsReceivedRef.current);
@@ -1543,15 +1590,17 @@ export default function VideoCallPage() {
   // Handle remote participant disconnection (e.g., computer died, browser closed)
   const handleRemoteLeft = useCallback(() => {
     console.log('[handleRemoteLeft] Remote participant disconnected');
-    console.log('[handleRemoteLeft] user.id:', user?.id, 'callData.creatorId:', callData?.creatorId, 'hasStartedRef:', hasStartedRef.current);
+    console.log('[handleRemoteLeft] user.id:', user?.id, 'callData.creatorId:', callData?.creatorId, 'hasStartedRef:', hasStartedRef.current, 'durationRef:', durationRef.current);
 
     // Try to end the call on our side too
     fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
 
     // Check if current user is creator - show summary instead of auto-redirect
     const isCreator = user?.id && callData && user.id === callData.creatorId;
-    console.log('[handleRemoteLeft] isCreator:', isCreator);
-    if (isCreator && hasStartedRef.current) {
+    // Use ref for hasStarted check, also check duration > 0 as backup
+    const callHasStarted = hasStartedRef.current || durationRef.current > 0;
+    console.log('[handleRemoteLeft] isCreator:', isCreator, 'callHasStarted:', callHasStarted);
+    if (isCreator && callHasStarted) {
       // Show creator summary - no auto-redirect
       const currentDuration = durationRef.current;
       const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
@@ -1582,7 +1631,9 @@ export default function VideoCallPage() {
 
     // Check if current user is creator
     const isCreator = user?.id && callData && user.id === callData.creatorId;
-    console.log('[confirmEndCall] isCreator:', isCreator, 'hasStarted:', hasStarted, 'user.id:', user?.id, 'callData.creatorId:', callData?.creatorId);
+    // Use ref for hasStarted check to avoid stale closure, also check duration > 0 as backup
+    const callHasStarted = hasStartedRef.current || durationRef.current > 0;
+    console.log('[confirmEndCall] isCreator:', isCreator, 'hasStarted:', hasStarted, 'hasStartedRef:', hasStartedRef.current, 'duration:', durationRef.current, 'callHasStarted:', callHasStarted);
 
     try {
       const res = await fetch(`/api/calls/${callId}/end`, {
@@ -1598,17 +1649,19 @@ export default function VideoCallPage() {
       console.log('Call ended:', result);
 
       // Show summary for creator, redirect for fan
-      if (isCreator && hasStarted) {
-        const callEarnings = callData ? Math.ceil(duration / 60) * callData.ratePerMinute : 0;
-        console.log('[confirmEndCall] Showing creator summary! duration:', duration, 'earnings:', callEarnings);
-        setFinalCallDuration(duration);
+      // Use callHasStarted which checks both ref and duration
+      if (isCreator && callHasStarted) {
+        const currentDuration = durationRef.current;
+        const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+        console.log('[confirmEndCall] Showing creator summary! duration:', currentDuration, 'earnings:', callEarnings);
+        setFinalCallDuration(currentDuration);
         setFinalCallEarnings(callEarnings);
-        setFinalTipEarnings(totalTipsReceived);
+        setFinalTipEarnings(totalTipsReceivedRef.current);
         setShowCreatorSummary(true);
         setCallEndedByOther(false); // Ensure fan modal doesn't interfere
         setIsEnding(false);
       } else {
-        console.log('[confirmEndCall] NOT showing summary - isCreator:', isCreator, 'hasStarted:', hasStarted);
+        console.log('[confirmEndCall] NOT showing summary - isCreator:', isCreator, 'callHasStarted:', callHasStarted);
         // Redirect to dashboard for fan
         router.push('/dashboard');
       }
@@ -1828,7 +1881,6 @@ export default function VideoCallPage() {
       )}
 
       {/* Creator Call Summary Modal */}
-      {showCreatorSummary && console.log('[RENDER] Creator Summary Modal is showing!')}
       {showCreatorSummary && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
           <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-emerald-500/40 shadow-[0_0_60px_rgba(16,185,129,0.3)] animate-in zoom-in-95 duration-200">
