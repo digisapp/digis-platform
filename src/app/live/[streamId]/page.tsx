@@ -31,6 +31,7 @@ interface StreamData {
   peakViewers: number;
   totalViews: number;
   totalGiftsReceived: number;
+  tipMenuEnabled?: boolean;
   creator: {
     id: string;
     username: string;
