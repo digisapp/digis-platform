@@ -103,6 +103,12 @@ export default function BroadcastStudioPage() {
     peakViewers: number;
     totalEarnings: number;
     topSupporters: Array<{ username: string; totalCoins: number }>;
+    // Ticket stats (if ticketed show was active)
+    ticketStats?: {
+      ticketsSold: number;
+      ticketRevenue: number;
+      ticketBuyers: Array<{ username: string; displayName: string | null; avatarUrl: string | null }>;
+    };
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
   const [isPortraitDevice, setIsPortraitDevice] = useState(false);
@@ -821,6 +827,39 @@ export default function BroadcastStudioPage() {
       const leaderboardResponse = await fetch(`/api/streams/${streamId}/leaderboard`);
       const leaderboardData = await leaderboardResponse.json();
 
+      // Fetch ticket stats if there was a ticketed show
+      let ticketStats: {
+        ticketsSold: number;
+        ticketRevenue: number;
+        ticketBuyers: Array<{ username: string; displayName: string | null; avatarUrl: string | null }>;
+      } | undefined;
+
+      if (announcedTicketedStream) {
+        try {
+          const [statsRes, attendeesRes] = await Promise.all([
+            fetch(`/api/shows/${announcedTicketedStream.id}/stats`),
+            fetch(`/api/shows/${announcedTicketedStream.id}/attendees`),
+          ]);
+
+          if (statsRes.ok && attendeesRes.ok) {
+            const statsData = await statsRes.json();
+            const attendeesData = await attendeesRes.json();
+
+            ticketStats = {
+              ticketsSold: statsData.stats?.ticketsSold || vipTicketCount,
+              ticketRevenue: statsData.stats?.totalRevenue || 0,
+              ticketBuyers: attendeesData.attendees?.map((a: any) => ({
+                username: a.user?.username || 'Unknown',
+                displayName: a.user?.displayName || null,
+                avatarUrl: a.user?.avatarUrl || null,
+              })) || [],
+            };
+          }
+        } catch (ticketErr) {
+          console.error('Failed to fetch ticket stats:', ticketErr);
+        }
+      }
+
       if (streamResponse.ok) {
         const finalStream = streamData.stream;
         const duration = finalStream.durationSeconds
@@ -838,6 +877,7 @@ export default function BroadcastStudioPage() {
           peakViewers: Math.max(dbPeakViewers, peakViewers),
           totalEarnings: finalStream.totalGiftsReceived || totalEarnings,
           topSupporters: leaderboardData.leaderboard?.slice(0, 3) || [],
+          ticketStats,
         });
       }
     } catch (err) {
@@ -1319,10 +1359,61 @@ export default function BroadcastStudioPage() {
                   <div className="mb-2">
                     <Coins className="w-8 h-8 mx-auto text-yellow-400" />
                   </div>
-                  <div className="text-2xl font-bold text-yellow-400">{streamSummary.totalEarnings}</div>
-                  <div className="text-sm text-gray-200 font-medium">Coins Earned</div>
+                  <div className="text-2xl font-bold text-yellow-400">
+                    {(streamSummary.totalEarnings || 0) + (streamSummary.ticketStats?.ticketRevenue || 0)}
+                  </div>
+                  <div className="text-sm text-gray-200 font-medium">Total Coins Earned</div>
                 </div>
               </div>
+
+              {/* Ticket Sales Stats */}
+              {streamSummary.ticketStats && streamSummary.ticketStats.ticketsSold > 0 && (
+                <div className="mb-6 backdrop-blur-xl bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/30 p-4">
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <Ticket className="w-5 h-5 text-amber-400" />
+                    Ticket Sales
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-amber-400">{streamSummary.ticketStats.ticketsSold}</div>
+                      <div className="text-xs text-gray-300">Tickets Sold</div>
+                    </div>
+                    <div className="bg-white/10 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-green-400 flex items-center justify-center gap-1">
+                        <Coins className="w-5 h-5" />
+                        {streamSummary.ticketStats.ticketRevenue}
+                      </div>
+                      <div className="text-xs text-gray-300">Ticket Revenue</div>
+                    </div>
+                  </div>
+                  {streamSummary.ticketStats.ticketBuyers.length > 0 && (
+                    <div>
+                      <div className="text-sm font-medium text-gray-300 mb-2">Ticket Buyers:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {streamSummary.ticketStats.ticketBuyers.map((buyer, index) => (
+                          <div key={index} className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-full">
+                            {buyer.avatarUrl ? (
+                              <img src={buyer.avatarUrl} alt={buyer.username} className="w-5 h-5 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-[10px] font-bold text-black">
+                                {buyer.username?.[0]?.toUpperCase() || '?'}
+                              </div>
+                            )}
+                            <span className="text-xs font-medium text-white">@{buyer.username}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Earnings Breakdown (if there were both tips and tickets) */}
+              {streamSummary.ticketStats && streamSummary.ticketStats.ticketRevenue > 0 && streamSummary.totalEarnings > 0 && (
+                <div className="mb-6 text-sm text-gray-400 text-center">
+                  <span className="text-yellow-400">{streamSummary.totalEarnings}</span> from tips/gifts + <span className="text-amber-400">{streamSummary.ticketStats.ticketRevenue}</span> from tickets
+                </div>
+              )}
 
               {/* Top Supporters */}
               {streamSummary.topSupporters.length > 0 && (
