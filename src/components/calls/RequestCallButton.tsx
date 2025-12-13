@@ -7,6 +7,8 @@ import { GlassButton, LoadingSpinner } from '@/components/ui';
 import { Phone, Clock, DollarSign, Video, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
+import { getAblyClient } from '@/lib/ably/client';
+import type Ably from 'ably';
 
 interface RequestCallButtonProps {
   creatorId: string;
@@ -39,6 +41,8 @@ export function RequestCallButton({
   const [mounted, setMounted] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const ablyChannelRef = useRef<Ably.RealtimeChannel | null>(null);
+  const rejectionHandledRef = useRef(false);
 
   const estimatedCost = ratePerMinute * minimumDuration;
 
@@ -66,16 +70,25 @@ export function RequestCallButton({
     setShowModal(true);
   };
 
-  // Cleanup polling and countdown on unmount
+  // Cleanup polling, countdown, and Ably on unmount
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      if (ablyChannelRef.current) {
+        ablyChannelRef.current.unsubscribe();
+        if (ablyChannelRef.current.state === 'attached') {
+          ablyChannelRef.current.detach().catch(() => {});
+        }
+      }
     };
   }, []);
 
   // Poll for call status
   const startPolling = (id: string) => {
+    // Reset rejection handled flag
+    rejectionHandledRef.current = false;
+
     // Start countdown
     setTimeRemaining(120);
     countdownIntervalRef.current = setInterval(() => {
@@ -88,7 +101,37 @@ export function RequestCallButton({
       });
     }, 1000);
 
-    // Poll call status every 2 seconds
+    // Subscribe to Ably for real-time call updates
+    try {
+      const ably = getAblyClient();
+      const channel = ably.channels.get(`call:${id}`);
+      ablyChannelRef.current = channel;
+
+      // Listen for call_rejected with reason
+      channel.subscribe('call_rejected', (message) => {
+        if (rejectionHandledRef.current) return;
+        rejectionHandledRef.current = true;
+
+        const reason = message.data?.reason;
+        stopPolling();
+        setWaiting(false);
+        setError(reason || 'Call request was declined');
+        setTimeout(() => {
+          setShowModal(false);
+          setError('');
+        }, 3000); // Show for 3 seconds so user can read the message
+      });
+
+      // Listen for call_accepted
+      channel.subscribe('call_accepted', () => {
+        stopPolling();
+        router.push(`/calls/${id}`);
+      });
+    } catch (err) {
+      console.error('Error setting up Ably subscription:', err);
+    }
+
+    // Poll call status every 2 seconds as backup
     pollingIntervalRef.current = setInterval(async () => {
       try {
         const response = await fetch(`/api/calls/${id}`);
@@ -101,7 +144,11 @@ export function RequestCallButton({
             stopPolling();
             router.push(`/calls/${id}`);
           } else if (status === 'rejected') {
-            // Creator rejected
+            // Creator rejected - Ably should handle this with reason,
+            // but this is a fallback if Ably missed it
+            if (rejectionHandledRef.current) return;
+            rejectionHandledRef.current = true;
+
             stopPolling();
             setWaiting(false);
             setError('Call request was declined');
@@ -125,6 +172,14 @@ export function RequestCallButton({
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
+    }
+    // Cleanup Ably channel
+    if (ablyChannelRef.current) {
+      ablyChannelRef.current.unsubscribe();
+      if (ablyChannelRef.current.state === 'attached') {
+        ablyChannelRef.current.detach().catch(() => {});
+      }
+      ablyChannelRef.current = null;
     }
   };
 

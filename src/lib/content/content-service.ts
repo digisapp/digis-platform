@@ -355,10 +355,16 @@ export class ContentService {
       throw new Error('Unauthorized');
     }
 
+    // If unlockPrice is being updated, also update isFree accordingly
+    const finalUpdates: typeof updates & { isFree?: boolean } = { ...updates };
+    if (typeof updates.unlockPrice === 'number') {
+      finalUpdates.isFree = updates.unlockPrice === 0;
+    }
+
     const [updated] = await db
       .update(contentItems)
       .set({
-        ...updates,
+        ...finalUpdates,
         updatedAt: new Date(),
       })
       .where(eq(contentItems.id, contentId))

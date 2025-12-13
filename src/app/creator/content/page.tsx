@@ -326,14 +326,18 @@ export default function CreatorContentStudioPage() {
                     Unlock Price (coins)
                   </label>
                   <input
-                    type="number"
-                    value={editForm.unlockPrice}
-                    onChange={(e) => setEditForm({ ...editForm, unlockPrice: parseInt(e.target.value) || 0 })}
-                    min={0}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={editForm.unlockPrice === 0 ? '' : editForm.unlockPrice.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setEditForm({ ...editForm, unlockPrice: value === '' ? 0 : parseInt(value) });
+                    }}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan transition-all"
                     placeholder="0 for free"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Set to 0 for free content</p>
+                  <p className="text-xs text-gray-500 mt-1">Set to 0 for free content, or enter a price to make it PPV</p>
                 </div>
               </div>
 

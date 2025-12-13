@@ -477,10 +477,15 @@ export default function CreateContentPage() {
                 <div className="flex items-center gap-4">
                   <Coins className="w-6 h-6 text-green-400" />
                   <input
-                    type="number"
-                    min="1"
-                    value={formData.unlockPrice}
-                    onChange={(e) => setFormData({ ...formData, unlockPrice: parseInt(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={formData.unlockPrice === 0 ? '' : formData.unlockPrice.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData({ ...formData, unlockPrice: value === '' ? 0 : parseInt(value) });
+                    }}
+                    placeholder="Enter price"
                     className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-semibold focus:outline-none focus:border-digis-cyan transition-colors"
                   />
                   <span className="text-gray-300">coins</span>
