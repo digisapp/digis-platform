@@ -8,7 +8,7 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle
+  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle, List
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -1265,13 +1265,16 @@ export default function TheaterModePage() {
           {!streamEnded && (
             <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
               <div className="flex items-center gap-2 overflow-visible">
-                {/* Tip Button */}
+                {/* Tip Button with Tip Menu indicator */}
                 {currentUser && (
                   <button
                     onClick={() => setShowTipModal(true)}
-                    className="p-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg flex-shrink-0"
+                    className="relative p-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg flex-shrink-0"
                   >
                     <Coins className="w-4 h-4" />
+                    {tipMenuEnabled && tipMenuItems.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
+                    )}
                   </button>
                 )}
                 {/* Video Call Button - mobile */}
@@ -1448,11 +1451,26 @@ export default function TheaterModePage() {
             <button
               onClick={() => setShowTipModal(true)}
               disabled={!currentUser}
-              className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2"
+              className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2"
             >
               <Coins className="w-4 h-4" />
               <span>Send Tip</span>
+              {tipMenuEnabled && tipMenuItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
+              )}
             </button>
+
+            {/* Tip Menu Button - only shows when enabled */}
+            {tipMenuEnabled && tipMenuItems.length > 0 && (
+              <button
+                onClick={() => setShowTipModal(true)}
+                disabled={!currentUser}
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
+              >
+                <List className="w-4 h-4" />
+                <span>Tip Menu</span>
+              </button>
+            )}
 
             {/* Video Call Button */}
             {stream.creatorCallSettings && (
