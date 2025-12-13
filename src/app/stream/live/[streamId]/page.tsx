@@ -144,6 +144,7 @@ export default function BroadcastStudioPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(false);
+  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Detect Safari browser
@@ -625,6 +626,18 @@ export default function BroadcastStudioPage() {
         setStreamOrientation(data.stream.orientation || 'landscape');
         // Set menu enabled state from database
         setMenuEnabled(data.stream.menuEnabled || false);
+
+        // Fetch menu items for the creator (which is the current user)
+        if (data.stream.creatorId) {
+          fetch(`/api/tip-menu/${data.stream.creatorId}`)
+            .then(res => res.json())
+            .then(menuData => {
+              if (menuData.items && menuData.items.length > 0) {
+                setMenuItems(menuData.items);
+              }
+            })
+            .catch(err => console.error('Error fetching menu items:', err));
+        }
       } else {
         setError(data.error || 'Stream not found');
       }
@@ -1893,6 +1906,8 @@ export default function BroadcastStudioPage() {
                 onMessageDeleted={fetchMessages}
                 pinnedMessage={pinnedMessage}
                 onPinMessage={handlePinMessage}
+                menuEnabled={menuEnabled}
+                menuItems={menuItems}
               />
             </div>
 

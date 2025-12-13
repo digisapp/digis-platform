@@ -2,8 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { Send, Smile, Gift, Pin, X, Ticket, Coins } from 'lucide-react';
+import { Send, Smile, Gift, Pin, X, Ticket, Coins, List } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
+
+type MenuItem = {
+  id: string;
+  label: string;
+  emoji: string | null;
+  price: number;
+  description?: string | null;
+};
 
 type StreamChatProps = {
   streamId: string;
@@ -13,12 +21,15 @@ type StreamChatProps = {
   onMessageDeleted?: () => void;
   pinnedMessage?: StreamMessage | null;
   onPinMessage?: (message: StreamMessage | null) => void;
+  menuEnabled?: boolean;
+  menuItems?: MenuItem[];
+  onMenuClick?: () => void;
 };
 
 // Quick emojis for chat
 const CHAT_EMOJIS = ['❤️', '🔥', '😂', '👏', '🎉', '💯', '😍', '🙌'];
 
-export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage }: StreamChatProps) {
+export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -91,6 +102,39 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               >
                 <X className="w-4 h-4 text-gray-400" />
               </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pinned Menu Preview */}
+      {menuEnabled && menuItems.length > 0 && (
+        <div className="p-3 flex-shrink-0 border-b border-pink-400/20">
+          <div
+            className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
+            onClick={onMenuClick}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                <List className="w-3 h-3 text-white" />
+              </div>
+              <span className="font-bold text-pink-300 text-sm">Menu</span>
+            </div>
+            <div className="space-y-1 ml-8">
+              {menuItems.slice(0, 3).map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between text-sm">
+                  <span className="text-white/90 truncate">
+                    {item.emoji || '🎁'} {item.label}
+                  </span>
+                  <span className="text-yellow-400 font-bold ml-2 flex items-center gap-0.5">
+                    <Coins className="w-3 h-3" />
+                    {item.price}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {menuItems.length > 3 && (
+              <div className="text-white/50 text-xs ml-8 mt-1">{menuItems.length - 3} more item{menuItems.length - 3 > 1 ? 's' : ''} available...</div>
             )}
           </div>
         </div>
