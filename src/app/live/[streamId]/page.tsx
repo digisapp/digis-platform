@@ -156,13 +156,14 @@ export default function TheaterModePage() {
   const [showChat, setShowChat] = useState(true);
   const [showViewerList, setShowViewerList] = useState(false);
   const [showTipModal, setShowTipModal] = useState(false);
+  const [showMenuModal, setShowMenuModal] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
-  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null }>>([]);
+  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
   const [menuEnabled, setMenuEnabled] = useState(false);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string } | null>(null);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number } | null>(null);
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -1503,7 +1504,7 @@ export default function TheaterModePage() {
             {/* Menu Button - only shows when enabled */}
             {menuEnabled && menuItems.length > 0 && (
               <button
-                onClick={() => setShowTipModal(true)}
+                onClick={() => setShowMenuModal(true)}
                 disabled={!currentUser}
                 className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
               >
@@ -1996,46 +1997,12 @@ export default function TheaterModePage() {
               />
             </div>
 
-            {/* Menu Items - only show when creator has enabled it */}
-            {menuItems.length > 0 && menuEnabled && (
-              <div className="mb-4">
-                <label className="block text-cyan-300 text-xs font-semibold mb-2">Menu</label>
-                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                  {menuItems.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setTipAmount(item.price.toString());
-                        setTipNote(item.label);
-                        setSelectedMenuItem({ id: item.id, label: item.label });
-                      }}
-                      disabled={userBalance < item.price}
-                      className={`flex items-center gap-2 p-2 rounded-lg text-left transition-all ${
-                        selectedMenuItem?.id === item.id
-                          ? 'bg-cyan-500/30 border-cyan-400'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10'
-                      } border ${userBalance < item.price ? 'opacity-40 cursor-not-allowed' : ''}`}
-                    >
-                      <span className="text-lg">{item.emoji || '🎁'}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white text-xs font-medium truncate">{item.label}</div>
-                        <div className="text-yellow-400 text-xs font-bold">{item.price}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Quick Amount Buttons */}
             <div className="flex gap-2 mb-4">
               {[10, 50, 100, 500].map((amt) => (
                 <button
                   key={amt}
-                  onClick={() => {
-                    setTipAmount(amt.toString());
-                    setSelectedMenuItem(null); // Clear menu selection
-                  }}
+                  onClick={() => setTipAmount(amt.toString())}
                   disabled={userBalance < amt}
                   className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
                     tipAmount === amt.toString()
@@ -2076,11 +2043,10 @@ export default function TheaterModePage() {
               onClick={async () => {
                 const amount = parseInt(tipAmount);
                 if (amount > 0 && amount <= userBalance) {
-                  await handleTip(amount, tipNote || undefined, selectedMenuItem);
+                  await handleTip(amount, tipNote || undefined, null);
                   setShowTipModal(false);
                   setTipAmount('');
                   setTipNote('');
-                  setSelectedMenuItem(null);
                 }
               }}
               disabled={!tipAmount || parseInt(tipAmount) <= 0 || parseInt(tipAmount) > userBalance}
@@ -2089,6 +2055,120 @@ export default function TheaterModePage() {
               <Coins className="w-5 h-5" />
               {tipAmount ? `Send ${parseInt(tipAmount).toLocaleString()} Coins` : 'Enter Amount'}
             </button>
+
+            {/* Cancel text */}
+            <p className="text-center text-gray-500 text-xs mt-3">
+              Tap outside to cancel
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Menu Modal - Purple/Pink themed */}
+      {showMenuModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            onClick={() => {
+              setShowMenuModal(false);
+              setSelectedMenuItem(null);
+            }}
+          />
+          {/* Modal */}
+          <div className="relative w-full max-w-sm bg-gradient-to-br from-purple-900/95 via-black/98 to-pink-900/95 rounded-2xl border-2 border-pink-400/60 shadow-[0_0_60px_rgba(236,72,153,0.4)] p-6 animate-slideUp">
+            {/* Corner accents - Pink style */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-pink-400 rounded-tl-xl" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-pink-400 rounded-tr-xl" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-pink-400 rounded-bl-xl" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-pink-400 rounded-br-xl" />
+
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowMenuModal(false);
+                setSelectedMenuItem(null);
+              }}
+              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header */}
+            <div className="flex justify-center mb-4">
+              <div className="px-4 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-pink-500/30">
+                <List className="w-4 h-4" />
+                MENU
+              </div>
+            </div>
+
+            {/* Creator Name */}
+            <p className="text-white/80 text-center text-sm mb-4">
+              Purchase from <span className="font-bold text-pink-300">@{stream?.creator.username}</span>
+            </p>
+
+            {/* Balance Display */}
+            <div className="flex items-center justify-center gap-2 mb-4 text-sm">
+              <Coins className="w-4 h-4 text-yellow-400" />
+              <span className="text-white">Your balance: <span className="font-bold text-yellow-400">{userBalance.toLocaleString()}</span></span>
+            </div>
+
+            {/* Menu Items Grid */}
+            <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setSelectedMenuItem({ id: item.id, label: item.label, price: item.price })}
+                  disabled={userBalance < item.price}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
+                    selectedMenuItem?.id === item.id
+                      ? 'bg-pink-500/30 border-2 border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.3)]'
+                      : 'bg-white/5 hover:bg-white/10 border-2 border-transparent'
+                  } ${userBalance < item.price ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  <span className="text-2xl">{item.emoji || '🎁'}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-medium truncate">{item.label}</div>
+                    {item.description && (
+                      <div className="text-gray-400 text-xs truncate">{item.description}</div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-yellow-400 font-bold">
+                    <Coins className="w-4 h-4" />
+                    {item.price}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Purchase Button */}
+            <button
+              onClick={async () => {
+                if (selectedMenuItem && userBalance >= selectedMenuItem.price) {
+                  await handleTip(selectedMenuItem.price, undefined, selectedMenuItem);
+                  setShowMenuModal(false);
+                  setSelectedMenuItem(null);
+                }
+              }}
+              disabled={!selectedMenuItem || userBalance < (selectedMenuItem?.price || 0)}
+              className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 hover:from-pink-400 hover:via-purple-400 hover:to-pink-400 rounded-xl font-bold text-white text-lg transition-all hover:scale-105 shadow-lg shadow-pink-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              <Coins className="w-5 h-5" />
+              {selectedMenuItem ? `Purchase for ${selectedMenuItem.price} Coins` : 'Select an Item'}
+            </button>
+
+            {/* Buy More Coins Link */}
+            {selectedMenuItem && userBalance < selectedMenuItem.price && (
+              <button
+                onClick={() => {
+                  setShowMenuModal(false);
+                  setShowBuyCoinsModal(true);
+                }}
+                className="w-full mt-2 text-center text-pink-400 hover:text-pink-300 text-sm"
+              >
+                Need more coins? Buy now →
+              </button>
+            )}
 
             {/* Cancel text */}
             <p className="text-center text-gray-500 text-xs mt-3">
