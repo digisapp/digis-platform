@@ -2017,17 +2017,17 @@ export default function VideoCallPage() {
         className="h-full"
         options={{
           videoCaptureDefaults: {
-            resolution: VideoPresets.h1440, // 2K (1440p) default
+            resolution: VideoPresets.h1080, // 1080p default
             facingMode: 'user',
           },
           publishDefaults: {
             videoSimulcastLayers: [
-              VideoPresets.h1440, // 2K (1440p) - max quality
-              VideoPresets.h1080, // 1080p
+              VideoPresets.h1080, // 1080p - max quality
               VideoPresets.h720,  // 720p
+              VideoPresets.h360,  // 360p for low bandwidth
             ],
             videoEncoding: {
-              maxBitrate: 8_000_000, // 8 Mbps for 2K quality
+              maxBitrate: 4_000_000, // 4 Mbps for 1080p quality
               maxFramerate: 30,
             },
           },

@@ -1649,21 +1649,20 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        // Default to 2K (1440p) for all streams
+                        // Default to 1080p for all streams
                         resolution: streamOrientation === 'portrait'
-                          ? { width: 1440, height: 2560, frameRate: 30 } // 1440p portrait (2K)
-                          : VideoPresets.h1440, // 1440p landscape (2K)
+                          ? { width: 1080, height: 1920, frameRate: 30 } // 1080p portrait
+                          : VideoPresets.h1080, // 1080p landscape
                         facingMode: 'user',
                       },
                       publishDefaults: {
                         videoSimulcastLayers: [
-                          VideoPresets.h1440, // 2K (1440p) - default max quality
-                          VideoPresets.h1080, // 1080p for high-quality
+                          VideoPresets.h1080, // 1080p - default max quality
                           VideoPresets.h720,  // 720p for medium quality
                           VideoPresets.h360,  // 360p for low bandwidth
                         ],
                         videoEncoding: {
-                          maxBitrate: 8_000_000, // 8 Mbps for 2K quality
+                          maxBitrate: 4_000_000, // 4 Mbps for 1080p quality
                           maxFramerate: 30,
                         },
                         dtx: true,
