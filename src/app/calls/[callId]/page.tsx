@@ -760,20 +760,37 @@ function VoiceCallUI({
   estimatedCost,
   isEnding,
   onEndCall,
+  isFan,
+  userBalance,
+  onSendTip,
+  onSendGift,
+  gifts,
+  tipSending,
+  onBuyCoins,
 }: {
   callData: CallData;
   duration: number;
   estimatedCost: number;
   isEnding: boolean;
   onEndCall: () => void;
+  isFan: boolean;
+  userBalance: number;
+  onSendTip: (amount: number) => void;
+  onSendGift: (gift: any) => void;
+  gifts: any[];
+  tipSending: boolean;
+  onBuyCoins: () => void;
 }) {
   const [isMuted, setIsMuted] = useState(false);
+  const [showTipMenu, setShowTipMenu] = useState(false);
+  const [showGifts, setShowGifts] = useState(false);
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const connectionState = useConnectionState();
 
   const isConnected = connectionState === ConnectionState.Connected;
   const hasRemoteParticipant = remoteParticipants.length > 0;
+  const isLowBalance = userBalance < 50;
 
   const toggleMute = async () => {
     if (localParticipant) {
@@ -789,9 +806,10 @@ function VoiceCallUI({
   };
 
   const otherParticipant = callData.creator;
+  const tipAmounts = [10, 25, 50, 100, 250, 500];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col items-center justify-center p-8 relative">
       {/* Avatar and Status */}
       <div className="text-center mb-8">
         <div className="relative mb-6">
@@ -842,28 +860,141 @@ function VoiceCallUI({
         </div>
       </div>
 
+      {/* Coin Balance & Buy Coins - for fans */}
+      {isFan && (
+        <div className="mb-6">
+          <div className={`flex items-center gap-3 px-4 py-2.5 bg-black/50 backdrop-blur-xl rounded-2xl border ${isLowBalance ? 'border-red-500/50' : 'border-emerald-500/40'}`}>
+            <div className="flex items-center gap-2">
+              <Coins className={`w-5 h-5 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
+              <span className={`text-lg font-bold ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`}>
+                {userBalance.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-px h-6 bg-white/20" />
+            <button
+              onClick={onBuyCoins}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 rounded-xl text-white font-bold text-sm transition-all active:scale-95"
+            >
+              <span>+</span>
+              <span>Buy Coins</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tip Menu Popup */}
+      {showTipMenu && isFan && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in zoom-in-95 duration-200">
+          <div className="bg-black/90 backdrop-blur-xl rounded-2xl p-4 border border-yellow-500/30 shadow-xl min-w-[280px]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white font-semibold">Send a Tip</span>
+              <button onClick={() => setShowTipMenu(false)} className="text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {tipAmounts.map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => {
+                    onSendTip(amount);
+                    setShowTipMenu(false);
+                  }}
+                  disabled={userBalance < amount || tipSending}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-amber-500/20 hover:from-yellow-500/30 hover:to-amber-500/30 border border-yellow-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                >
+                  <span className="text-yellow-400 font-bold">{amount}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gift Picker Popup */}
+      {showGifts && isFan && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in zoom-in-95 duration-200">
+          <div className="bg-black/90 backdrop-blur-xl rounded-2xl p-4 border border-pink-500/30 shadow-xl min-w-[280px]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white font-semibold">Send a Gift</span>
+              <button onClick={() => setShowGifts(false)} className="text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-3 gap-2">
+                {gifts.map((gift) => (
+                  <button
+                    key={gift.id}
+                    onClick={() => {
+                      onSendGift(gift);
+                      setShowGifts(false);
+                    }}
+                    disabled={userBalance < gift.coinCost || tipSending}
+                    className="flex flex-col items-center p-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+                  >
+                    <span className="text-2xl mb-1">{gift.emoji}</span>
+                    <span className="text-emerald-400 text-xs font-bold">{gift.coinCost}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Controls */}
       <div className="flex items-center gap-4">
         <button
           onClick={toggleMute}
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
             isMuted
               ? 'bg-red-500 text-white shadow-red-500/30'
               : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
           }`}
           title={isMuted ? 'Unmute' : 'Mute'}
         >
-          {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
         </button>
+
+        {/* Tip button - for fans */}
+        {isFan && (
+          <button
+            onClick={() => { setShowTipMenu(!showTipMenu); setShowGifts(false); }}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              showTipMenu
+                ? 'bg-yellow-500 text-white'
+                : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
+            }`}
+            title="Send Tip"
+          >
+            <Coins className="w-6 h-6" />
+          </button>
+        )}
 
         <button
           onClick={onEndCall}
           disabled={isEnding}
-          className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all disabled:opacity-50 shadow-lg shadow-red-500/30"
+          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all disabled:opacity-50 shadow-lg shadow-red-500/30"
           title="End Call"
         >
-          {isEnding ? <Loader2 className="w-8 h-8 animate-spin" /> : <PhoneOff className="w-8 h-8" />}
+          {isEnding ? <Loader2 className="w-7 h-7 animate-spin" /> : <PhoneOff className="w-7 h-7" />}
         </button>
+
+        {/* Gift button - for fans */}
+        {isFan && (
+          <button
+            onClick={() => { setShowGifts(!showGifts); setShowTipMenu(false); }}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              showGifts
+                ? 'bg-pink-500 text-white'
+                : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
+            }`}
+            title="Send Gift"
+          >
+            <Gift className="w-6 h-6" />
+          </button>
+        )}
       </div>
 
       {isMuted && (
@@ -1807,6 +1938,13 @@ export default function VideoCallPage() {
               estimatedCost={estimatedCost}
               isEnding={isEnding}
               onEndCall={handleEndCall}
+              isFan={!!isFan}
+              userBalance={userBalance}
+              onSendTip={handleSendTip}
+              onSendGift={handleSendGift}
+              gifts={gifts}
+              tipSending={tipSending}
+              onBuyCoins={() => setShowBuyCoinsModal(true)}
             />
             <RoomAudioRenderer />
           </>
