@@ -24,7 +24,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -95,6 +95,8 @@ export default function BroadcastStudioPage() {
   } | null>(null);
   const [startingVipStream, setStartingVipStream] = useState(false);
   const [vipModeActive, setVipModeActive] = useState(false);
+  const [showVipEndChoice, setShowVipEndChoice] = useState(false);
+  const [vipTicketCount, setVipTicketCount] = useState(0);
   const [streamSummary, setStreamSummary] = useState<{
     duration: string;
     totalViewers: number;
@@ -665,6 +667,24 @@ export default function BroadcastStudioPage() {
   };
 
   const handleEndStream = async () => {
+    // Check if there's a pending VIP show that hasn't started yet
+    if (announcedTicketedStream && !vipModeActive && !showVipEndChoice) {
+      // Fetch ticket count for the VIP show
+      try {
+        const res = await fetch(`/api/shows/${announcedTicketedStream.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setVipTicketCount(data.show?.ticketsSold || 0);
+        }
+      } catch (e) {
+        console.error('Failed to fetch VIP show info:', e);
+      }
+      // Show VIP choice dialog instead of ending immediately
+      setShowEndConfirm(false);
+      setShowVipEndChoice(true);
+      return;
+    }
+
     setIsEnding(true);
     setHasManuallyEnded(true); // Prevent auto-end from triggering
 
@@ -677,17 +697,91 @@ export default function BroadcastStudioPage() {
         // Fetch stream summary data
         await fetchStreamSummary();
         setShowEndConfirm(false);
+        setShowVipEndChoice(false);
         setShowStreamSummary(true);
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to end stream');
         setHasManuallyEnded(false); // Reset if failed
         setShowEndConfirm(false);
+        setShowVipEndChoice(false);
       }
     } catch (err) {
       alert('Failed to end stream');
       setHasManuallyEnded(false); // Reset if failed
       setShowEndConfirm(false);
+      setShowVipEndChoice(false);
+    } finally {
+      setIsEnding(false);
+    }
+  };
+
+  // End stream and keep VIP show scheduled
+  const handleEndStreamKeepVip = async () => {
+    setShowVipEndChoice(false);
+    setIsEnding(true);
+    setHasManuallyEnded(true);
+
+    try {
+      const response = await fetch(`/api/streams/${streamId}/end`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchStreamSummary();
+        setShowStreamSummary(true);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to end stream');
+        setHasManuallyEnded(false);
+      }
+    } catch (err) {
+      alert('Failed to end stream');
+      setHasManuallyEnded(false);
+    } finally {
+      setIsEnding(false);
+    }
+  };
+
+  // End stream and cancel VIP show with refunds
+  const handleEndStreamCancelVip = async () => {
+    if (!announcedTicketedStream) return;
+
+    setShowVipEndChoice(false);
+    setIsEnding(true);
+    setHasManuallyEnded(true);
+
+    try {
+      // First cancel the VIP show (this will refund tickets)
+      const cancelRes = await fetch(`/api/shows/${announcedTicketedStream.id}/cancel`, {
+        method: 'POST',
+      });
+
+      if (!cancelRes.ok) {
+        const data = await cancelRes.json();
+        alert(data.error || 'Failed to cancel VIP show');
+        setHasManuallyEnded(false);
+        setIsEnding(false);
+        return;
+      }
+
+      // Then end the stream
+      const response = await fetch(`/api/streams/${streamId}/end`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        await fetchStreamSummary();
+        setAnnouncedTicketedStream(null);
+        setShowStreamSummary(true);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to end stream');
+        setHasManuallyEnded(false);
+      }
+    } catch (err) {
+      alert('Failed to end stream');
+      setHasManuallyEnded(false);
     } finally {
       setIsEnding(false);
     }
@@ -1052,6 +1146,103 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
           </div>
+      )}
+
+      {/* VIP Show Choice Modal - When ending stream with pending VIP show */}
+      {showVipEndChoice && announcedTicketedStream && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowVipEndChoice(false)} />
+          <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-md w-full">
+            {/* Close button */}
+            <button
+              onClick={() => setShowVipEndChoice(false)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                <Ticket className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                You Have a Pending VIP Show
+              </h3>
+              <p className="text-gray-300 text-sm">
+                "{announcedTicketedStream.title}" is scheduled but hasn't started yet.
+                {vipTicketCount > 0 && (
+                  <span className="block mt-2 text-amber-400 font-medium">
+                    {vipTicketCount} {vipTicketCount === 1 ? 'person has' : 'people have'} already purchased tickets!
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-3">
+              {/* Keep Scheduled Option */}
+              <button
+                onClick={handleEndStreamKeepVip}
+                disabled={isEnding}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-emerald-600/20 to-green-600/20 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-600/30 transition-all text-left group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/20 group-hover:bg-emerald-500/30 transition-colors">
+                    <Calendar className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-1">Keep Scheduled</h4>
+                    <p className="text-xs text-gray-400">
+                      End your stream but keep the VIP show scheduled. You can start it in a future stream.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Cancel & Refund Option */}
+              <button
+                onClick={handleEndStreamCancelVip}
+                disabled={isEnding}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-red-600/20 to-pink-600/20 border border-red-500/50 hover:border-red-400 hover:bg-red-600/30 transition-all text-left group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/20 group-hover:bg-red-500/30 transition-colors">
+                    <RotateCcw className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-white mb-1">Cancel & Refund</h4>
+                    <p className="text-xs text-gray-400">
+                      Cancel the VIP show and automatically refund all ticket purchases.
+                      {vipTicketCount > 0 && ` (${vipTicketCount} refund${vipTicketCount === 1 ? '' : 's'})`}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Loading State */}
+            {isEnding && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-gray-400">
+                <LoadingSpinner size="sm" />
+                <span className="text-sm">Processing...</span>
+              </div>
+            )}
+
+            {/* Cancel Button */}
+            <div className="mt-4">
+              <GlassButton
+                variant="ghost"
+                size="md"
+                onClick={() => setShowVipEndChoice(false)}
+                disabled={isEnding}
+                className="w-full !text-gray-400 !border-gray-600 hover:!text-white"
+              >
+                Go Back to Stream
+              </GlassButton>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Stream Summary Modal */}
