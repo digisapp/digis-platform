@@ -449,9 +449,9 @@ export default function CreatorDashboard() {
                   </span>
                 </button>
 
-                {/* Set Call Rates */}
+                {/* Set Pricing Rates */}
                 <button
-                  onClick={() => router.push('/settings')}
+                  onClick={() => router.push('/creator/pricing')}
                   className={`flex items-center gap-3 p-4 rounded-xl transition-all ${
                     userProfile.perMinuteRate > 0
                       ? 'bg-green-500/10 border border-green-500/30'
@@ -464,7 +464,7 @@ export default function CreatorDashboard() {
                     <Circle className="w-5 h-5 text-gray-500 flex-shrink-0" />
                   )}
                   <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
-                    Set call rates
+                    Set Pricing rates
                   </span>
                 </button>
 
