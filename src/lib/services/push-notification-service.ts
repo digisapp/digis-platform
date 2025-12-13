@@ -26,7 +26,7 @@ if (vapidPublicKey && vapidPrivateKey) {
   console.warn('[PushNotificationService] VAPID keys not configured. Push notifications disabled.');
 }
 
-export type NotificationType = 'message' | 'tip' | 'follow' | 'call' | 'stream' | 'gift' | 'system' | 'earnings';
+export type NotificationType = 'message' | 'tip' | 'follow' | 'call' | 'stream' | 'gift' | 'system' | 'earnings' | 'purchase';
 
 interface PushPayload {
   title: string;

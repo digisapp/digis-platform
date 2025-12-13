@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ContentService } from '@/lib/content/content-service';
+import { NotificationService } from '@/lib/services/notification-service';
+import { db } from '@/lib/data/system';
+import { users, contentItems } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
@@ -22,6 +26,45 @@ export async function POST(
         { error: result.error },
         { status: 400 }
       );
+    }
+
+    // Send notification to creator about the purchase (non-blocking)
+    if (result.purchase && result.purchase.coinsSpent > 0) {
+      (async () => {
+        try {
+          // Get content and buyer details
+          const [content, buyer] = await Promise.all([
+            db.query.contentItems.findFirst({
+              where: eq(contentItems.id, contentId),
+              columns: { title: true, creatorId: true, unlockPrice: true },
+            }),
+            db.query.users.findFirst({
+              where: eq(users.id, user.id),
+              columns: { username: true, displayName: true, avatarUrl: true },
+            }),
+          ]);
+
+          if (content && buyer) {
+            const buyerName = buyer.displayName || buyer.username || 'Someone';
+            await NotificationService.sendNotification(
+              content.creatorId,
+              'purchase',
+              `${buyerName} unlocked your content! 🎉`,
+              `"${content.title}" for ${content.unlockPrice} coins`,
+              `/${buyer.username}`,
+              buyer.avatarUrl || undefined,
+              {
+                contentId,
+                buyerId: user.id,
+                buyerUsername: buyer.username,
+                coinsSpent: content.unlockPrice,
+              }
+            );
+          }
+        } catch (err) {
+          console.error('Error sending purchase notification:', err);
+        }
+      })();
     }
 
     return NextResponse.json({
