@@ -1407,10 +1407,13 @@ export default function VideoCallPage() {
   const durationRef = useRef(duration);
   const totalTipsReceivedRef = useRef(totalTipsReceived);
   const hasStartedRef = useRef(hasStarted);
+  const showCreatorSummaryRef = useRef(showCreatorSummary);
+  const callEndHandledRef = useRef(false); // Prevent multiple handlers from running
 
   useEffect(() => { durationRef.current = duration; }, [duration]);
   useEffect(() => { totalTipsReceivedRef.current = totalTipsReceived; }, [totalTipsReceived]);
   useEffect(() => { hasStartedRef.current = hasStarted; }, [hasStarted]);
+  useEffect(() => { showCreatorSummaryRef.current = showCreatorSummary; }, [showCreatorSummary]);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -1456,11 +1459,20 @@ export default function VideoCallPage() {
         channel.subscribe('call_ended', (message) => {
           console.log('[Ably call_ended] Call ended by other party:', message.data);
 
+          // Skip if already handled or summary is showing
+          if (callEndHandledRef.current || showCreatorSummaryRef.current) {
+            console.log('[Ably call_ended] Already handled or summary showing, skipping');
+            return;
+          }
+
           // For creator, show summary; for fan, show simple ended modal
           const isCreator = user?.id && callData && user.id === callData.creatorId;
           // Use hasStartedRef OR duration > 0 as backup check
           const callHasStarted = hasStartedRef.current || durationRef.current > 0;
           console.log('[Ably call_ended] isCreator:', isCreator, 'callHasStarted:', callHasStarted, 'duration:', durationRef.current);
+
+          callEndHandledRef.current = true; // Mark as handled
+
           if (isCreator && callHasStarted) {
             // Save final stats for summary using refs for latest values
             const currentDuration = durationRef.current;
@@ -1592,6 +1604,12 @@ export default function VideoCallPage() {
     console.log('[handleRemoteLeft] Remote participant disconnected');
     console.log('[handleRemoteLeft] user.id:', user?.id, 'callData.creatorId:', callData?.creatorId, 'hasStartedRef:', hasStartedRef.current, 'durationRef:', durationRef.current);
 
+    // Skip if already handled or summary is showing
+    if (callEndHandledRef.current || showCreatorSummaryRef.current) {
+      console.log('[handleRemoteLeft] Already handled or summary showing, skipping');
+      return;
+    }
+
     // Try to end the call on our side too
     fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
 
@@ -1600,6 +1618,9 @@ export default function VideoCallPage() {
     // Use ref for hasStarted check, also check duration > 0 as backup
     const callHasStarted = hasStartedRef.current || durationRef.current > 0;
     console.log('[handleRemoteLeft] isCreator:', isCreator, 'callHasStarted:', callHasStarted);
+
+    callEndHandledRef.current = true; // Mark as handled
+
     if (isCreator && callHasStarted) {
       // Show creator summary - no auto-redirect
       const currentDuration = durationRef.current;
@@ -1650,6 +1671,8 @@ export default function VideoCallPage() {
 
       // Show summary for creator, redirect for fan
       // Use callHasStarted which checks both ref and duration
+      callEndHandledRef.current = true; // Mark as handled to prevent other handlers
+
       if (isCreator && callHasStarted) {
         const currentDuration = durationRef.current;
         const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
