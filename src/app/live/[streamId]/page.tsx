@@ -729,14 +729,17 @@ export default function TheaterModePage() {
       setStream(streamData);
 
       // Set tip menu enabled state from stream data
+      console.log('[TipMenu] Stream tipMenuEnabled:', streamData.tipMenuEnabled);
       setTipMenuEnabled(streamData.tipMenuEnabled || false);
 
       // Fetch tip menu items for this creator
       const creatorId = streamData.creator?.id || streamData.creatorId;
+      console.log('[TipMenu] Creator ID:', creatorId);
       if (creatorId) {
         fetch(`/api/tip-menu/${creatorId}`)
           .then(res => res.json())
           .then(menuData => {
+            console.log('[TipMenu] Menu items fetched:', menuData.items?.length || 0, 'items');
             if (menuData.items) {
               setTipMenuItems(menuData.items);
             }
