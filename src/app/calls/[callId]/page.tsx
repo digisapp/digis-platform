@@ -1411,14 +1411,28 @@ export default function VideoCallPage() {
   // Handle remote participant disconnection (e.g., computer died, browser closed)
   const handleRemoteLeft = useCallback(() => {
     console.log('Remote participant disconnected unexpectedly');
-    setCallEndedByOther(true);
+
     // Try to end the call on our side too
     fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
-    // Navigate to dashboard after delay
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 2000);
-  }, [callId, router]);
+
+    // Check if current user is creator - show summary instead of auto-redirect
+    const isCreator = user?.id && callData && user.id === callData.creatorId;
+    if (isCreator && hasStartedRef.current) {
+      // Show creator summary - no auto-redirect
+      const currentDuration = durationRef.current;
+      const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+      setFinalCallDuration(currentDuration);
+      setFinalCallEarnings(callEarnings);
+      setFinalTipEarnings(totalTipsReceivedRef.current);
+      setShowCreatorSummary(true);
+    } else {
+      // Fan - show ended modal and redirect
+      setCallEndedByOther(true);
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 2000);
+    }
+  }, [callId, router, user?.id, callData]);
 
   // End call
   const handleEndCall = async () => {
