@@ -1251,14 +1251,10 @@ export default function VideoCallPage() {
 
         // Wait for channel to be attached before subscribing
         if (channel.state !== 'attached') {
-          await new Promise<void>((resolve, reject) => {
-            const attachTimeout = setTimeout(() => reject(new Error('Channel attach timeout')), 10000);
-            channel!.attach((err) => {
-              clearTimeout(attachTimeout);
-              if (err) reject(err);
-              else resolve();
-            });
-          });
+          await Promise.race([
+            channel.attach(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Channel attach timeout')), 10000))
+          ]);
         }
 
         if (!mounted) return;
