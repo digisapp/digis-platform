@@ -163,7 +163,8 @@ export default function TheaterModePage() {
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
   const [menuEnabled, setMenuEnabled] = useState(false);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number } | null>(null);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number; fulfillmentType?: string } | null>(null);
+  const [menuNote, setMenuNote] = useState('');
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -2073,6 +2074,7 @@ export default function TheaterModePage() {
             onClick={() => {
               setShowMenuModal(false);
               setSelectedMenuItem(null);
+              setMenuNote('');
             }}
           />
           {/* Modal */}
@@ -2088,6 +2090,7 @@ export default function TheaterModePage() {
               onClick={() => {
                 setShowMenuModal(false);
                 setSelectedMenuItem(null);
+                setMenuNote('');
               }}
               className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
             >
@@ -2118,7 +2121,7 @@ export default function TheaterModePage() {
               {menuItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setSelectedMenuItem({ id: item.id, label: item.label, price: item.price })}
+                  onClick={() => setSelectedMenuItem({ id: item.id, label: item.label, price: item.price, fulfillmentType: item.fulfillmentType })}
                   disabled={userBalance < item.price}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                     selectedMenuItem?.id === item.id
@@ -2141,13 +2144,37 @@ export default function TheaterModePage() {
               ))}
             </div>
 
+            {/* Optional Note - shows when item is selected */}
+            {selectedMenuItem && (
+              <div className="mb-4">
+                <label className="block text-pink-300 text-xs font-semibold mb-1.5">
+                  Message to Creator <span className="text-white/40">(optional)</span>
+                </label>
+                <textarea
+                  value={menuNote}
+                  onChange={(e) => setMenuNote(e.target.value.slice(0, 300))}
+                  placeholder={
+                    selectedMenuItem.fulfillmentType === 'manual'
+                      ? "Add details (shipping address, special requests, etc.)..."
+                      : "Say thanks or add a message..."
+                  }
+                  rows={2}
+                  className="w-full px-3 py-2 bg-white/10 border border-pink-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-pink-400 focus:shadow-[0_0_15px_rgba(236,72,153,0.2)] transition-all resize-none text-sm"
+                />
+                <div className="flex justify-end mt-1">
+                  <span className="text-xs text-white/40">{menuNote.length}/300</span>
+                </div>
+              </div>
+            )}
+
             {/* Purchase Button */}
             <button
               onClick={async () => {
                 if (selectedMenuItem && userBalance >= selectedMenuItem.price) {
-                  await handleTip(selectedMenuItem.price, undefined, selectedMenuItem);
+                  await handleTip(selectedMenuItem.price, menuNote || undefined, selectedMenuItem);
                   setShowMenuModal(false);
                   setSelectedMenuItem(null);
+                  setMenuNote('');
                 }
               }}
               disabled={!selectedMenuItem || userBalance < (selectedMenuItem?.price || 0)}
