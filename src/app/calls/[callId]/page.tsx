@@ -592,39 +592,47 @@ function FaceTimeVideoLayout({
         </div>
       )}
 
-      {/* Wallet button for fan - small button in top right corner with dropdown */}
+      {/* Wallet button for fan - positioned on LEFT side to avoid PIP overlap */}
       {isFan && (
-        <div className="absolute top-16 right-3 z-40" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="absolute top-16 left-3 z-40" style={{ marginTop: 'env(safe-area-inset-top, 0px)' }}>
           <button
-            onClick={() => setShowWalletMenu(!showWalletMenu)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg ${
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowWalletMenu(!showWalletMenu);
+            }}
+            className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600/80 to-green-600/80 backdrop-blur-xl rounded-full transition-all active:scale-95 shadow-lg shadow-emerald-500/30 ${
               isLowBalance
-                ? 'border-2 border-red-500/60 animate-pulse'
-                : 'border border-emerald-500/40'
+                ? 'border-2 border-red-500 animate-pulse'
+                : 'border border-emerald-400/50'
             }`}
-            title="View balance"
+            title="View balance & Buy Coins"
           >
-            <Coins className={`w-4 h-4 ${isLowBalance ? 'text-red-400' : 'text-emerald-400'}`} />
-            {isLowBalance && <span className="text-red-400 text-[10px] font-bold">!</span>}
+            <Coins className={`w-5 h-5 ${isLowBalance ? 'text-red-300' : 'text-emerald-200'}`} />
+            <span className={`font-bold text-sm ${isLowBalance ? 'text-red-300' : 'text-white'}`}>
+              {userBalance.toLocaleString()}
+            </span>
+            {isLowBalance && <span className="text-red-300 text-xs font-bold">LOW</span>}
           </button>
 
           {/* Wallet dropdown */}
           {showWalletMenu && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setShowWalletMenu(false)} />
-              <div className="absolute right-0 mt-2 z-40 bg-black/90 backdrop-blur-xl rounded-xl border border-emerald-500/30 shadow-lg overflow-hidden min-w-[140px]">
-                <div className="px-4 py-3 border-b border-emerald-500/20 text-center">
-                  <div className="text-2xl font-bold text-emerald-400">{userBalance.toLocaleString()}</div>
-                  <div className="text-xs text-gray-400">coins</div>
+              <div className="absolute left-0 mt-2 z-40 bg-black/95 backdrop-blur-xl rounded-xl border border-emerald-500/40 shadow-xl shadow-emerald-500/20 overflow-hidden min-w-[180px]">
+                <div className="px-4 py-4 border-b border-emerald-500/20 text-center bg-gradient-to-b from-emerald-500/10 to-transparent">
+                  <div className="text-3xl font-bold text-emerald-400">{userBalance.toLocaleString()}</div>
+                  <div className="text-xs text-gray-400 mt-1">coins available</div>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowWalletMenu(false);
                     onBuyCoins();
                   }}
-                  className="w-full px-4 py-3 flex items-center justify-center gap-2 hover:bg-emerald-500/10 active:bg-emerald-500/20 transition-colors"
+                  className="w-full px-4 py-4 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 hover:from-emerald-500/30 hover:to-green-500/30 active:from-emerald-500/40 active:to-green-500/40 transition-colors"
                 >
-                  <span className="text-emerald-400 font-bold text-sm">+ Buy Coins</span>
+                  <Coins className="w-5 h-5 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold">Buy More Coins</span>
                 </button>
               </div>
             </>
@@ -949,6 +957,10 @@ export default function VideoCallPage() {
   const handleConnected = async () => {
     if (hasStarted) return;
 
+    // Always start the local timer when connected - both parties should track time
+    setHasStarted(true);
+
+    // Try to notify backend that call has started (only one party will succeed, that's ok)
     try {
       const res = await fetch(`/api/calls/${callId}/start`, {
         method: 'POST',
@@ -956,12 +968,14 @@ export default function VideoCallPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Failed to start call:', errorData.error);
+        // This is expected for the second person to join - call already started
+        console.log('Call start API response:', errorData.error || 'already started');
       } else {
-        setHasStarted(true);
+        console.log('Call started successfully on backend');
       }
     } catch (err) {
-      console.error('Error starting call:', err);
+      console.error('Error calling start API:', err);
+      // Timer is already running locally, so this is fine
     }
   };
 
@@ -1192,6 +1206,19 @@ export default function VideoCallPage() {
   const [callEndedByOther, setCallEndedByOther] = useState(false);
   const [otherPartyError, setOtherPartyError] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState<string | null>(null);
+  const [showCreatorSummary, setShowCreatorSummary] = useState(false);
+  const [finalCallDuration, setFinalCallDuration] = useState(0);
+  const [finalCallEarnings, setFinalCallEarnings] = useState(0);
+  const [finalTipEarnings, setFinalTipEarnings] = useState(0);
+
+  // Refs to track latest values for Ably callbacks
+  const durationRef = useRef(duration);
+  const totalTipsReceivedRef = useRef(totalTipsReceived);
+  const hasStartedRef = useRef(hasStarted);
+
+  useEffect(() => { durationRef.current = duration; }, [duration]);
+  useEffect(() => { totalTipsReceivedRef.current = totalTipsReceived; }, [totalTipsReceived]);
+  useEffect(() => { hasStartedRef.current = hasStarted; }, [hasStarted]);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -1219,16 +1246,45 @@ export default function VideoCallPage() {
 
         if (!mounted) return;
 
-        // Subscribe to call channel
+        // Subscribe to call channel - explicitly attach first
         channel = ably.channels.get(`call:${callId}`);
+
+        // Wait for channel to be attached before subscribing
+        if (channel.state !== 'attached') {
+          await new Promise<void>((resolve, reject) => {
+            const attachTimeout = setTimeout(() => reject(new Error('Channel attach timeout')), 10000);
+            channel!.attach((err) => {
+              clearTimeout(attachTimeout);
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+        }
+
+        if (!mounted) return;
+
+        console.log('[CallPage] Ably channel attached, subscribing to events');
 
         channel.subscribe('call_ended', (message) => {
           console.log('Call ended by other party:', message.data);
-          setCallEndedByOther(true);
-          // Navigate to dashboard after a short delay
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 2000);
+
+          // For creator, show summary; for fan, show simple ended modal
+          const isCreator = user?.id && callData && user.id === callData.creatorId;
+          if (isCreator && hasStartedRef.current) {
+            // Save final stats for summary using refs for latest values
+            const currentDuration = durationRef.current;
+            const callEarnings = callData ? Math.ceil(currentDuration / 60) * callData.ratePerMinute : 0;
+            setFinalCallDuration(currentDuration);
+            setFinalCallEarnings(callEarnings);
+            setFinalTipEarnings(totalTipsReceivedRef.current);
+            setShowCreatorSummary(true);
+          } else {
+            setCallEndedByOther(true);
+            // Navigate to dashboard after a short delay
+            setTimeout(() => {
+              router.push('/dashboard');
+            }, 2000);
+          }
         });
 
         channel.subscribe('call_accepted', (message) => {
@@ -1360,6 +1416,9 @@ export default function VideoCallPage() {
     setIsEnding(true);
     setShowEndConfirm(false);
 
+    // Check if current user is creator
+    const isCreator = user?.id && callData && user.id === callData.creatorId;
+
     try {
       const res = await fetch(`/api/calls/${callId}/end`, {
         method: 'POST',
@@ -1373,8 +1432,18 @@ export default function VideoCallPage() {
       const result = await res.json();
       console.log('Call ended:', result);
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Show summary for creator, redirect for fan
+      if (isCreator && hasStarted) {
+        const callEarnings = callData ? Math.ceil(duration / 60) * callData.ratePerMinute : 0;
+        setFinalCallDuration(duration);
+        setFinalCallEarnings(callEarnings);
+        setFinalTipEarnings(totalTipsReceived);
+        setShowCreatorSummary(true);
+        setIsEnding(false);
+      } else {
+        // Redirect to dashboard for fan
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       console.error('Error ending call:', err);
       setIsEnding(false);
@@ -1585,6 +1654,102 @@ export default function VideoCallPage() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Creator Call Summary Modal */}
+      {showCreatorSummary && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative backdrop-blur-2xl bg-gradient-to-br from-black/60 via-gray-900/80 to-black/60 rounded-3xl p-8 max-w-sm w-full border-2 border-emerald-500/40 shadow-[0_0_60px_rgba(16,185,129,0.3)] animate-in zoom-in-95 duration-200">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 animate-pulse" />
+            </div>
+
+            <div className="relative text-center">
+              {/* Success icon */}
+              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-2xl flex items-center justify-center border border-emerald-500/40">
+                <Zap className="w-10 h-10 text-emerald-400" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-white mb-2">Call Complete!</h3>
+              <p className="text-gray-400 mb-6">Here's your earnings summary</p>
+
+              {/* Stats breakdown */}
+              <div className="space-y-3 mb-6">
+                {/* Duration */}
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-cyan-400" />
+                    <span className="text-gray-400 text-sm">Call Duration</span>
+                  </div>
+                  <span className="font-mono font-bold text-cyan-400">{formatDuration(finalCallDuration)}</span>
+                </div>
+
+                {/* Call earnings */}
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-emerald-400" />
+                    <span className="text-gray-400 text-sm">Call Earnings</span>
+                  </div>
+                  <span className="font-bold text-emerald-400">+{finalCallEarnings} coins</span>
+                </div>
+
+                {/* Tips & Gifts */}
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-pink-400" />
+                    <span className="text-gray-400 text-sm">Tips & Gifts</span>
+                  </div>
+                  <span className="font-bold text-pink-400">+{finalTipEarnings} coins</span>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-white/10 my-2" />
+
+                {/* Total earnings */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-500/30">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-emerald-400" />
+                    <span className="text-white font-semibold">Total Earned</span>
+                  </div>
+                  <span className="text-2xl font-bold text-emerald-400">+{finalCallEarnings + finalTipEarnings}</span>
+                </div>
+              </div>
+
+              {/* Fan info */}
+              {callData?.fan && (
+                <div className="mb-6 p-3 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                    {callData.fan.avatarUrl ? (
+                      <img
+                        src={callData.fan.avatarUrl}
+                        alt={callData.fan.displayName || callData.fan.username}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white text-sm font-bold">
+                        {(callData.fan.displayName || callData.fan.username)?.[0]?.toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-medium text-sm">
+                      {callData.fan.displayName || callData.fan.username}
+                    </p>
+                    <p className="text-gray-400 text-xs">Fan</p>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-emerald-500/30"
+              >
+                Back to Dashboard
+              </button>
             </div>
           </div>
         </div>
