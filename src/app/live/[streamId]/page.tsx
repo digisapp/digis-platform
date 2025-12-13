@@ -1246,6 +1246,20 @@ export default function TheaterModePage() {
                     <Coins className="w-4 h-4" />
                   </button>
                 )}
+                {/* Video Call Button - mobile */}
+                {stream.creatorCallSettings && currentUser && (
+                  <div className="flex-shrink-0">
+                    <RequestCallButton
+                      creatorId={stream.creator.id}
+                      creatorName={stream.creator.displayName || stream.creator.username}
+                      ratePerMinute={stream.creatorCallSettings.callRatePerMinute}
+                      minimumDuration={stream.creatorCallSettings.minimumCallDuration}
+                      isAvailable={stream.creatorCallSettings.isAvailableForCalls}
+                      callType="video"
+                      iconOnly
+                    />
+                  </div>
+                )}
                 {/* Gift Bar - inline */}
                 <div className="flex-1 relative z-50">
                   <FloatingGiftBar
@@ -1442,6 +1456,9 @@ export default function TheaterModePage() {
                 <span>Get Ticket</span>
                 <Coins className="w-3 h-3 text-amber-800" />
                 <span className="text-amber-800">{upcomingTicketedShow?.ticketPrice || dismissedTicketedStream?.ticketPrice}</span>
+                {ticketCountdown && (
+                  <span className="text-amber-900 text-xs ml-1">• {ticketCountdown}</span>
+                )}
               </button>
             )}
 
