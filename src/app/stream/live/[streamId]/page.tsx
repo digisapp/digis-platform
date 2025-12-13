@@ -24,7 +24,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
@@ -93,6 +93,7 @@ export default function BroadcastStudioPage() {
     ticketPrice: number;
     startsAt: Date;
   } | null>(null);
+  const [startingVipStream, setStartingVipStream] = useState(false);
   const [streamSummary, setStreamSummary] = useState<{
     duration: string;
     totalViewers: number;
@@ -850,6 +851,31 @@ export default function BroadcastStudioPage() {
     }
   };
 
+  // Start the VIP ticketed stream immediately
+  const handleStartVipStream = async () => {
+    if (!announcedTicketedStream || startingVipStream) return;
+    setStartingVipStream(true);
+
+    try {
+      const response = await fetch(`/api/shows/${announcedTicketedStream.id}/start`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start VIP stream');
+      }
+
+      // Redirect to the ticketed stream broadcast page
+      if (data.roomName) {
+        router.push(`/stream/live/${data.roomName}`);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to start VIP stream');
+      setStartingVipStream(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 flex items-center justify-center">
@@ -1256,14 +1282,28 @@ export default function BroadcastStudioPage() {
                   {/* VIP Stream Countdown - Shows when announced */}
                   {announcedTicketedStream && (
                     <div className="absolute bottom-20 sm:bottom-14 left-1/2 -translate-x-1/2 z-20">
-                      <div className="flex items-center gap-3 px-4 py-2.5 backdrop-blur-xl bg-amber-500/20 rounded-full border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)] animate-pulse">
-                        <Ticket className="w-5 h-5 text-amber-400" />
+                      <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                        <Ticket className="w-5 h-5 text-amber-400 flex-shrink-0" />
                         <div className="text-center">
                           <div className="text-amber-400 font-bold text-sm">VIP Stream</div>
                           <div className="text-white text-xs">
-                            {announcedTicketedStream.ticketPrice} coins • Starts at {announcedTicketedStream.startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            {announcedTicketedStream.ticketPrice} coins • {announcedTicketedStream.startsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                           </div>
                         </div>
+                        <button
+                          onClick={handleStartVipStream}
+                          disabled={startingVipStream}
+                          className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg"
+                        >
+                          {startingVipStream ? (
+                            <LoadingSpinner size="sm" />
+                          ) : (
+                            <>
+                              <Play className="w-3.5 h-3.5" />
+                              Start Now
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   )}
