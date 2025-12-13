@@ -757,9 +757,12 @@ export default function TheaterModePage() {
       const streamData = data.stream || data; // Handle both { stream } and direct stream object
       setStream(streamData);
 
-      // Set menu enabled state from stream data
-      console.log('[Menu] Stream menuEnabled:', streamData.menuEnabled);
-      setMenuEnabled(streamData.menuEnabled || false);
+      // Set menu enabled state from stream data (database column is tipMenuEnabled)
+      // Only update if we get a definitive boolean value to avoid race conditions
+      if (typeof streamData.tipMenuEnabled === 'boolean') {
+        console.log('[Menu] Stream tipMenuEnabled:', streamData.tipMenuEnabled);
+        setMenuEnabled(streamData.tipMenuEnabled);
+      }
 
       // Fetch menu items for this creator
       const creatorId = streamData.creator?.id || streamData.creatorId;

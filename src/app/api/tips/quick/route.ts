@@ -219,6 +219,9 @@ export async function POST(req: NextRequest) {
       senderUsername: sender?.username || 'Anonymous',
       senderAvatarUrl: null,
       amount,
+      menuItemLabel: tipMenuItemLabel || null,
+      itemCategory: menuItem ? itemCategory : null,
+      fulfillmentType: menuItem ? fulfillmentType : null,
     });
 
     // If there's a note, broadcast private tip notification to creator only
