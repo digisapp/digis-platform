@@ -245,29 +245,6 @@ export default function TipMenuPage() {
             </div>
           )}
 
-          {/* Preview Section */}
-          {items.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold text-white mb-3">Preview (as fans see it)</h2>
-              <GlassCard className="p-4">
-                <div className="text-sm text-gray-400 mb-3">Tip Menu</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {items.filter(i => i.isActive).map((item) => (
-                    <button
-                      key={item.id}
-                      className="flex items-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors text-left"
-                    >
-                      <span className="text-xl">{item.emoji || '🎁'}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white text-sm font-medium truncate">{item.label}</div>
-                        <div className="text-yellow-400 text-xs font-bold">{item.price} coins</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </GlassCard>
-            </div>
-          )}
         </div>
       </div>
 
