@@ -348,8 +348,10 @@ export function Navigation() {
   // Don't show navigation while loading or if no user
   if (authLoading || !authUser) return null;
 
-  // Hide navigation completely during video/voice calls and live broadcasts
-  if (pathname?.startsWith('/calls/') || pathname?.startsWith('/stream/live/')) return null;
+  // Hide navigation completely during video/voice calls, live broadcasts, and watching live streams
+  // Match /live/[streamId] but not /live (listing page)
+  const isWatchingLiveStream = pathname?.match(/^\/live\/[^/]+$/);
+  if (pathname?.startsWith('/calls/') || pathname?.startsWith('/stream/live/') || isWatchingLiveStream) return null;
 
   return (
     <>

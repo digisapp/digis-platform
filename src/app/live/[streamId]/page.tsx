@@ -840,8 +840,11 @@ export default function TheaterModePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 text-white flex flex-col lg:pl-16">
-      {/* Mobile Logo Header - centered */}
-      <div className="lg:hidden flex items-center justify-center py-2 bg-black/90 border-b border-cyan-400/30">
+      {/* Mobile Logo Header - centered, with safe area padding for notch */}
+      <div
+        className="lg:hidden flex items-center justify-center py-2 bg-black border-b border-cyan-400/30"
+        style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}
+      >
         <button onClick={() => router.push('/')} className="flex items-center">
           <img
             src="/images/digis-logo-white.png"
