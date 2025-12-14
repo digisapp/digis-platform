@@ -425,7 +425,8 @@ export class StreamService {
     giftId: string,
     quantity: number = 1,
     recipientCreatorId?: string,
-    recipientUsername?: string
+    recipientUsername?: string,
+    idempotencyKey?: string
   ) {
     // Get gift details
     const gift = await db.query.virtualGifts.findFirst({
@@ -438,6 +439,11 @@ export class StreamService {
 
     const totalCoins = gift.coinCost * quantity;
 
+    // Generate deterministic idempotency key if not provided
+    // Uses 1-second precision to allow retries but block rapid double-clicks
+    const finalIdempotencyKey = idempotencyKey ||
+      `gift_${senderId}_${streamId}_${giftId}_${quantity}_${Math.floor(Date.now() / 1000)}`;
+
     // Deduct coins from sender using wallet service
     await WalletService.createTransaction({
       userId: senderId,
@@ -446,7 +452,7 @@ export class StreamService {
       description: recipientCreatorId
         ? `Sent ${quantity}x ${gift.emoji} ${gift.name} to @${recipientUsername}`
         : `Sent ${quantity}x ${gift.emoji} ${gift.name} to stream`,
-      idempotencyKey: `gift_${uuidv4()}`,
+      idempotencyKey: finalIdempotencyKey,
     });
 
     // Record gift with optional recipient
@@ -596,11 +602,17 @@ export class StreamService {
     recipientCreatorId?: string,
     recipientUsername?: string,
     tipMenuItemId?: string,
-    tipMenuItemLabel?: string
+    tipMenuItemLabel?: string,
+    idempotencyKey?: string
   ) {
     if (amount < 1) {
       throw new Error('Minimum tip is 1 coin');
     }
+
+    // Generate deterministic idempotency key if not provided
+    // Uses 1-second precision to allow retries but block rapid double-clicks
+    const finalIdempotencyKey = idempotencyKey ||
+      `tip_${senderId}_${streamId}_${amount}_${Math.floor(Date.now() / 1000)}`;
 
     // Deduct coins from sender
     await WalletService.createTransaction({
@@ -610,7 +622,7 @@ export class StreamService {
       description: recipientCreatorId
         ? `Tipped ${amount} coins to @${recipientUsername}`
         : `Tipped ${amount} coins during stream`,
-      idempotencyKey: `tip_${uuidv4()}`,
+      idempotencyKey: finalIdempotencyKey,
     });
 
     // Update stream total gifts/tips

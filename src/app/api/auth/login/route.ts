@@ -74,19 +74,10 @@ export async function POST(request: NextRequest) {
       // Don't fail login - just use metadata
     }
 
-    // 3) Check if user should be admin based on ADMIN_EMAILS env var
-    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
-    const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
-    const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
-
-    // If user is in ADMIN_EMAILS but doesn't have isAdmin flag, set it (fire-and-forget)
-    if (isAdminEmail && dbUser && !dbUser.isAdmin) {
-      db.update(users).set({ isAdmin: true }).where(eq(users.id, authUser.id))
-        .then(() => console.log(`[LOGIN] Set isAdmin=true for ${authUser.email}`))
-        .catch((e) => console.warn('[LOGIN] Failed to set isAdmin flag:', e));
-      dbUser.isAdmin = true; // Optimistically set for response
-    }
+    // 3) Admin status is determined ONLY by the database isAdmin flag
+    // SECURITY: Removed hardcoded admin emails - admin status must be set via database
+    // To make someone admin: UPDATE users SET is_admin = true WHERE email = 'user@example.com';
+    // Or use the admin dashboard to promote users
 
     // Priority: DB role > metadata role > fan (default)
     // Note: role is separate from isAdmin - a creator can also be an admin
@@ -95,13 +86,14 @@ export async function POST(request: NextRequest) {
     const username = dbUser?.username || metadata.username || authUser.email?.split('@')[0];
 
     // Build response user object
+    // isAdmin is ONLY determined by database flag - no email-based admin promotion
     const responseUser = {
       id: authUser.id,
       email: authUser.email,
       username,
       displayName: dbUser?.displayName || metadata.display_name || username,
       role,
-      isAdmin: dbUser?.isAdmin || isAdminEmail || false, // Separate admin flag
+      isAdmin: dbUser?.isAdmin || false, // Only trust database flag
       isCreatorVerified: dbUser?.isCreatorVerified ?? !!metadata.isCreatorVerified,
       avatarUrl: dbUser?.avatarUrl || metadata.avatar_url || null,
     };

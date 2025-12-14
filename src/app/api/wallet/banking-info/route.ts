@@ -71,6 +71,10 @@ export async function POST(request: NextRequest) {
     const encryptedAccountNumber = encrypt(accountNumber);
     const encryptedRoutingNumber = encrypt(routingNumber);
 
+    // Get last 4 digits from the ORIGINAL (unencrypted) account number
+    // This is more efficient than decrypting what we just encrypted
+    const lastFourDigits = accountNumber.slice(-4);
+
     if (existing) {
       // Update existing
       const [updated] = await db
@@ -94,7 +98,7 @@ export async function POST(request: NextRequest) {
           accountHolderName: updated.accountHolderName,
           accountType: updated.accountType,
           bankName: updated.bankName,
-          lastFourDigits: getLastFourDigits(updated.accountNumber),
+          lastFourDigits, // Use original value directly
           isVerified: updated.isVerified === 1,
         }
       });
@@ -119,7 +123,7 @@ export async function POST(request: NextRequest) {
           accountHolderName: created.accountHolderName,
           accountType: created.accountType,
           bankName: created.bankName,
-          lastFourDigits: getLastFourDigits(created.accountNumber),
+          lastFourDigits, // Use original value directly
           isVerified: created.isVerified === 1,
         }
       }, { status: 201 });

@@ -33,7 +33,14 @@ export const creatorCategoryAssignments = pgTable('creator_category_assignments'
   creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   categoryId: uuid('category_id').references(() => creatorCategories.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for querying categories by creator
+  creatorIdx: index('creator_category_assignments_creator_id_idx').on(table.creatorId),
+  // Index for querying creators by category (explore page filtering)
+  categoryIdx: index('creator_category_assignments_category_id_idx').on(table.categoryId),
+  // Unique constraint to prevent duplicate assignments
+  uniqueAssignment: uniqueIndex('creator_category_assignments_unique_idx').on(table.creatorId, table.categoryId),
+}));
 
 // Relations
 export const followsRelations = relations(follows, ({ one }) => ({

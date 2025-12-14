@@ -12,6 +12,7 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'stream_ticket',
   'ppv_unlock',
   'creator_payout',
+  'payout_refund',
   'refund',
   'dm_tip',
   'locked_message',

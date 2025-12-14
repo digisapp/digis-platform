@@ -200,6 +200,20 @@ export const streamGoals = pgTable('stream_goals', {
   streamIdIdx: index('stream_goals_stream_id_idx').on(table.streamId, table.isActive),
 }));
 
+// Stream bans (persisted viewer bans)
+export const streamBans = pgTable('stream_bans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  bannedBy: uuid('banned_by').references(() => users.id, { onDelete: 'set null' }), // The creator who banned
+  reason: text('reason'), // Optional ban reason
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_bans_stream_id_idx').on(table.streamId),
+  userIdIdx: index('stream_bans_user_id_idx').on(table.userId),
+  uniqueBan: index('stream_bans_unique_idx').on(table.streamId, table.userId),
+}));
+
 // Stream tickets (for paid/ticketed streams)
 export const streamTickets = pgTable('stream_tickets', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -232,6 +246,7 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   goals: many(streamGoals),
   featuredCreators: many(streamFeaturedCreators),
   tickets: many(streamTickets),
+  bans: many(streamBans),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -304,6 +319,21 @@ export const streamTicketsRelations = relations(streamTickets, ({ one }) => ({
   }),
 }));
 
+export const streamBansRelations = relations(streamBans, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamBans.streamId],
+    references: [streams.id],
+  }),
+  user: one(users, {
+    fields: [streamBans.userId],
+    references: [users.id],
+  }),
+  bannedByUser: one(users, {
+    fields: [streamBans.bannedBy],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
@@ -321,3 +351,5 @@ export type StreamFeaturedCreator = typeof streamFeaturedCreators.$inferSelect;
 export type NewStreamFeaturedCreator = typeof streamFeaturedCreators.$inferInsert;
 export type StreamTicket = typeof streamTickets.$inferSelect;
 export type NewStreamTicket = typeof streamTickets.$inferInsert;
+export type StreamBan = typeof streamBans.$inferSelect;
+export type NewStreamBan = typeof streamBans.$inferInsert;

@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/data/system';
-import { streams } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { db, streams, streamBans } from '@/lib/data/system';
+import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// In-memory ban storage (resets on server restart)
-// In production, this should be stored in database
-const bans = new Map<string, Set<string>>(); // streamId -> Set of banned userIds
 
 // POST /api/streams/[streamId]/ban - Ban a user (creator only)
 export async function POST(
@@ -18,7 +13,7 @@ export async function POST(
 ) {
   try {
     const { streamId } = await params;
-    const { userId } = await request.json();
+    const { userId, reason } = await request.json();
 
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -45,11 +40,22 @@ export async function POST(
       return NextResponse.json({ error: 'Cannot ban yourself' }, { status: 400 });
     }
 
-    // Store ban
-    if (!bans.has(streamId)) {
-      bans.set(streamId, new Set());
+    // Check if already banned
+    const existingBan = await db.query.streamBans.findFirst({
+      where: and(eq(streamBans.streamId, streamId), eq(streamBans.userId, userId)),
+    });
+
+    if (existingBan) {
+      return NextResponse.json({ success: true, message: 'User already banned' });
     }
-    bans.get(streamId)!.add(userId);
+
+    // Store ban in database
+    await db.insert(streamBans).values({
+      streamId,
+      userId,
+      bannedBy: user.id,
+      reason: reason || null,
+    });
 
     console.log(`[BAN] User ${userId} banned from stream ${streamId}`);
 
@@ -97,14 +103,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Only the stream creator can unban users' }, { status: 403 });
     }
 
-    // Remove ban
-    const streamBans = bans.get(streamId);
-    if (streamBans) {
-      streamBans.delete(userId);
-      if (streamBans.size === 0) {
-        bans.delete(streamId);
-      }
-    }
+    // Remove ban from database
+    await db.delete(streamBans).where(
+      and(eq(streamBans.streamId, streamId), eq(streamBans.userId, userId))
+    );
+
+    console.log(`[UNBAN] User ${userId} unbanned from stream ${streamId}`);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -130,10 +134,12 @@ export async function GET(
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
-    const streamBans = bans.get(streamId);
-    const isBanned = streamBans ? streamBans.has(userId) : false;
+    // Check database for ban
+    const ban = await db.query.streamBans.findFirst({
+      where: and(eq(streamBans.streamId, streamId), eq(streamBans.userId, userId)),
+    });
 
-    return NextResponse.json({ isBanned });
+    return NextResponse.json({ isBanned: !!ban });
   } catch (error: any) {
     console.error('Error checking ban:', error);
     return NextResponse.json(

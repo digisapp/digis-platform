@@ -234,7 +234,8 @@ export class MessageService {
           }
 
           // Charge the cold outreach fee (platform keeps 100%)
-          const transactionId = uuidv4();
+          // Deterministic idempotency key - cold outreach can only be charged once per conversation
+          const coldOutreachKey = `cold_outreach_${conversationId}`;
 
           await tx.insert(walletTransactions).values({
             userId: senderId,
@@ -242,7 +243,7 @@ export class MessageService {
             type: 'message_charge',
             status: 'completed',
             description: `Message unlock: ${receiver.displayName || receiver.username}`,
-            idempotencyKey: `${transactionId}-cold-outreach`,
+            idempotencyKey: coldOutreachKey,
           });
 
           // Update sender's wallet balance
@@ -824,7 +825,8 @@ export class MessageService {
       }
 
       // Create transactions (double-entry)
-      const idempotencyKey = uuidv4();
+      // Deterministic idempotency key - a message can only be unlocked once per user
+      const idempotencyKey = `unlock_${userId}_${messageId}`;
 
       // Deduct from buyer
       const [buyerTransaction] = await tx
@@ -900,7 +902,8 @@ export class MessageService {
       }
 
       // Create transactions (double-entry)
-      const idempotencyKey = uuidv4();
+      // Deterministic idempotency key with 1-second precision to prevent double-clicks
+      const idempotencyKey = `dm_tip_${senderId}_${receiverId}_${amount}_${Math.floor(Date.now() / 1000)}`;
 
       // Deduct from sender
       const [senderTransaction] = await tx
@@ -923,6 +926,7 @@ export class MessageService {
         status: 'completed',
         description: tipMessage || 'Tip received via DM',
         relatedTransactionId: senderTransaction.id,
+        idempotencyKey: `${idempotencyKey}_credit`,
       });
 
       // Update wallet balances

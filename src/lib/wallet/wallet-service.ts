@@ -102,6 +102,9 @@ export class WalletService {
   /**
    * Create a transaction with idempotency
    * This implements the double-entry ledger system
+   *
+   * IMPORTANT: Uses row-level locking (FOR UPDATE) to prevent race conditions.
+   * This ensures only one transaction can modify a wallet at a time.
    */
   static async createTransaction(params: CreateTransactionParams) {
     const { userId, amount, type, description, metadata, idempotencyKey } = params;
@@ -121,13 +124,22 @@ export class WalletService {
 
     // Start transaction
     return await db.transaction(async (tx) => {
-      // Ensure wallet exists
-      let wallet = await tx.query.wallets.findFirst({
-        where: eq(wallets.userId, userId),
-      });
+      // Lock the wallet row for update to prevent race conditions
+      // This ensures only one transaction can modify this wallet at a time
+      const lockedWalletResult = await tx.execute(
+        sql`SELECT * FROM wallets WHERE user_id = ${userId} FOR UPDATE`
+      );
+
+      let wallet = lockedWalletResult.rows[0] as {
+        id: string;
+        user_id: string;
+        balance: number;
+        held_balance: number
+      } | undefined;
 
       if (!wallet) {
-        [wallet] = await tx
+        // Create wallet if it doesn't exist (with lock)
+        const [newWallet] = await tx
           .insert(wallets)
           .values({
             userId,
@@ -135,11 +147,19 @@ export class WalletService {
             heldBalance: 0,
           })
           .returning();
+
+        wallet = {
+          id: newWallet.id,
+          user_id: newWallet.userId,
+          balance: newWallet.balance,
+          held_balance: newWallet.heldBalance
+        };
       }
 
       // For debit transactions, check if user has sufficient balance
+      // This check is now safe because we hold the row lock
       if (amount < 0) {
-        const availableBalance = wallet.balance - wallet.heldBalance;
+        const availableBalance = wallet.balance - wallet.held_balance;
         if (availableBalance < Math.abs(amount)) {
           throw new Error('Insufficient balance');
         }
@@ -212,21 +232,32 @@ export class WalletService {
   /**
    * Create a spend hold (reserves coins for active calls/streams)
    * This prevents mid-call failures when users run out of coins
+   *
+   * IMPORTANT: Uses row-level locking (FOR UPDATE) to prevent race conditions.
+   * Concurrent hold requests cannot exceed available balance.
    */
   static async createHold(params: CreateHoldParams) {
     const { userId, amount, purpose, relatedId } = params;
 
     return await db.transaction(async (tx) => {
-      // Check available balance
-      const wallet = await tx.query.wallets.findFirst({
-        where: eq(wallets.userId, userId),
-      });
+      // Lock the wallet row to prevent concurrent holds exceeding balance
+      const lockedWalletResult = await tx.execute(
+        sql`SELECT * FROM wallets WHERE user_id = ${userId} FOR UPDATE`
+      );
+
+      const wallet = lockedWalletResult.rows[0] as {
+        id: string;
+        user_id: string;
+        balance: number;
+        held_balance: number
+      } | undefined;
 
       if (!wallet) {
         throw new Error('Wallet not found');
       }
 
-      const availableBalance = wallet.balance - wallet.heldBalance;
+      // Balance check is now safe because we hold the row lock
+      const availableBalance = wallet.balance - wallet.held_balance;
       if (availableBalance < amount) {
         throw new Error('Insufficient balance for hold');
       }
@@ -262,6 +293,10 @@ export class WalletService {
    *
    * IMPORTANT: This uses a single transaction to ensure atomicity.
    * All operations (transaction creation, hold update, balance update) happen together.
+   *
+   * SAFETY: If actualAmount exceeds available balance, it's capped to prevent
+   * negative balances. The hold system is designed to reserve sufficient funds,
+   * but this provides an additional safety net.
    */
   static async settleHold(holdId: string, actualAmount?: number) {
     const idempotencyKey = `settle_${holdId}`;
@@ -289,16 +324,42 @@ export class WalletService {
         throw new Error('Hold is not active');
       }
 
-      const amountToSettle = actualAmount || hold.amount;
       const transactionType = hold.purpose.includes('call') ? 'call_charge' : 'stream_tip';
 
-      // Get wallet within transaction
-      const wallet = await tx.query.wallets.findFirst({
-        where: eq(wallets.userId, hold.userId),
-      });
+      // Lock the wallet row to prevent race conditions
+      const lockedWalletResult = await tx.execute(
+        sql`SELECT * FROM wallets WHERE user_id = ${hold.userId} FOR UPDATE`
+      );
+
+      const wallet = lockedWalletResult.rows[0] as {
+        id: string;
+        user_id: string;
+        balance: number;
+        held_balance: number
+      } | undefined;
 
       if (!wallet) {
         throw new Error('Wallet not found');
+      }
+
+      // CRITICAL SAFETY: Cap the amount to settle to prevent negative balances
+      // 1. Start with requested amount (or full hold if not specified)
+      let amountToSettle = actualAmount ?? hold.amount;
+
+      // 2. Never charge more than what's in the wallet (prevents negative balance)
+      const maxChargeable = wallet.balance;
+      if (amountToSettle > maxChargeable) {
+        console.warn(
+          `[WalletService] Settlement capped: requested ${amountToSettle}, ` +
+          `but wallet only has ${maxChargeable}. Hold was ${hold.amount}. ` +
+          `User: ${hold.userId}, Hold: ${holdId}`
+        );
+        amountToSettle = maxChargeable;
+      }
+
+      // 3. Ensure we don't settle a negative amount
+      if (amountToSettle < 0) {
+        amountToSettle = 0;
       }
 
       // Create the transaction record (within this transaction, not nested)
@@ -311,7 +372,12 @@ export class WalletService {
           status: 'completed',
           description: `Settled hold for ${hold.purpose}`,
           idempotencyKey,
-          metadata: JSON.stringify({ holdId }),
+          metadata: JSON.stringify({
+            holdId,
+            requestedAmount: actualAmount ?? hold.amount,
+            actualSettled: amountToSettle,
+            wasCapped: amountToSettle < (actualAmount ?? hold.amount),
+          }),
         })
         .returning();
 

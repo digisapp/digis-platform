@@ -21,6 +21,8 @@ export const notifications = pgTable('notifications', {
   userCreatedIdx: index('notifications_user_created_idx').on(table.userId, table.createdAt),
   // Index for unread count queries
   userUnreadIdx: index('notifications_user_unread_idx').on(table.userId, table.isRead),
+  // Index for filtering notifications by type (e.g., show only tip notifications)
+  userTypeIdx: index('notifications_user_type_idx').on(table.userId, table.type, table.createdAt),
 }));
 
 // Push notification subscriptions for Web Push API
