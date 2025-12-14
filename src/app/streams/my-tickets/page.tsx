@@ -121,7 +121,7 @@ export default function MyTicketsPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">My Tickets 🎫</h1>
-          <p className="text-gray-400">Your VIP stream tickets and access history</p>
+          <p className="text-gray-400">Your ticketed stream access and history</p>
         </div>
 
         {/* Stats */}
@@ -188,8 +188,8 @@ export default function MyTicketsPage() {
             </h3>
             <p className="text-gray-400 mb-6">
               {filter === 'upcoming'
-                ? 'Join live streams and watch for VIP announcements to get tickets'
-                : 'Your attended VIP streams will appear here'}
+                ? 'Join live streams and watch for ticketed stream announcements'
+                : 'Your attended ticketed streams will appear here'}
             </p>
             {filter === 'upcoming' && (
               <GlassButton

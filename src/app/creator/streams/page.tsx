@@ -134,15 +134,15 @@ export default function CreatorStreamsPage() {
           </div>
         )}
 
-        {/* Upcoming VIP Streams (announced but not yet started) */}
+        {/* Upcoming Ticketed Streams (announced but not yet started) */}
         {scheduledStreams.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Ticket className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-bold text-white">VIP Streams (Tickets on Sale)</h2>
+              <h2 className="text-lg font-bold text-white">Ticketed Streams (On Sale)</h2>
             </div>
             <p className="text-sm text-gray-400 mb-4">
-              These are VIP streams you announced during live broadcasts. Fans are buying tickets now!
+              These are ticketed streams you announced during live broadcasts. Fans are buying tickets now!
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {scheduledStreams.map((show) => (

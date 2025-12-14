@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Ticket, Clock, Coins, Sparkles } from 'lucide-react';
+import { Ticket, Clock, Coins } from 'lucide-react';
 
 interface AnnounceTicketedStreamModalProps {
   streamId: string;
@@ -96,7 +96,7 @@ export function AnnounceTicketedStreamModal({
                 <Ticket className="w-6 h-6 text-amber-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">Announce VIP Stream</h2>
+                <h2 className="text-xl font-bold text-white">Announce Ticketed Stream</h2>
                 <p className="text-xs text-gray-400">{currentViewers} viewers watching now</p>
               </div>
             </div>
@@ -106,17 +106,6 @@ export function AnnounceTicketedStreamModal({
             >
               ✕
             </button>
-          </div>
-
-          {/* Info Banner */}
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-gray-300">
-                <p className="font-medium text-amber-400 mb-1">How it works</p>
-                <p>Announce a private ticketed stream to your current viewers. They'll have {minutesUntilStart} minutes to buy tickets before it starts!</p>
-              </div>
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">

@@ -83,7 +83,7 @@ export async function POST(
     // Create the ticketed stream (show)
     const [ticketedStream] = await db.insert(shows).values({
       creatorId: user.id,
-      title: title?.trim() || `${stream.title} - VIP Stream`,
+      title: title?.trim() || `${stream.title} - Ticketed Stream`,
       description: `Exclusive ticketed stream from ${stream.title}`,
       showType: 'hangout',
       ticketPrice,

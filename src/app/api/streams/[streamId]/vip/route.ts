@@ -229,7 +229,7 @@ export async function GET(
       vipActive: true,
       hasAccess: hasTicket,
       showId: stream.activeVipShowId,
-      showTitle: show?.title || 'VIP Stream',
+      showTitle: show?.title || 'Ticketed Stream',
       ticketPrice: show?.ticketPrice || 0,
       vipStartedAt: stream.vipStartedAt,
     });
