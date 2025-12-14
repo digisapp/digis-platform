@@ -540,18 +540,20 @@ export default function BroadcastStudioPage() {
       }
 
       // Add tip message to chat so host can see it
-      // Using unknown cast because UI message type differs from DB schema type
+      // Map Ably event fields to StreamMessage fields expected by StreamChat component
       const tipMessage = {
         id: `tip-${Date.now()}-${Math.random()}`,
         streamId,
-        senderId: tipData.senderId,
-        senderUsername: tipData.senderUsername,
-        displayName: null,
-        avatarUrl: tipData.senderAvatarUrl || null,
-        content,
+        userId: tipData.senderId,
+        username: tipData.senderUsername,
+        message: content,
         messageType: messageType as any,
-        tipAmount: tipData.amount,
+        giftAmount: tipData.amount,
         createdAt: new Date(),
+        // Include user object for avatar display
+        user: {
+          avatarUrl: tipData.senderAvatarUrl || null,
+        },
       } as unknown as StreamMessage;
       setMessages((prev) => [...prev, tipMessage]);
 

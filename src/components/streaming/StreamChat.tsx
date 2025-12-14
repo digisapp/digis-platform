@@ -264,6 +264,35 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     </div>
                   </div>
                 </div>
+              ) : (msg as any).messageType === 'menu_purchase' || (msg as any).messageType === 'menu_order' || (msg as any).messageType === 'menu_tip' ? (
+                // Menu item purchase/order - purple/pink styling
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+                  {/* Avatar */}
+                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+                    <img
+                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+                      alt={msg.username}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {msg.username?.[0]?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-purple-400">{msg.username}</span>
+                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+                    </div>
+                    <p className="text-sm text-white/90 mt-1">{msg.message}</p>
+                    {(msg as any).giftAmount && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Coins className="w-4 h-4 text-purple-400" />
+                        <span className="font-bold text-purple-400">{(msg as any).giftAmount}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ) : (
                 // Regular message
                 <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">

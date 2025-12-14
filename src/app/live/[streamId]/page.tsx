@@ -934,25 +934,10 @@ export default function TheaterModePage() {
         setUserBalance(data.newBalance);
         streamAnalytics.quickTipSent(streamId, amount);
 
-        // Add tip message to chat immediately (optimistic update)
-        const tipMessage: ChatMessage = {
-          id: `tip-${Date.now()}-${Math.random()}`,
-          userId: currentUser.id,
-          username: currentUser.username || 'You',
-          displayName: currentUser.displayName || null,
-          avatarUrl: currentUser.avatarUrl || null,
-          content: `tipped ${amount} coins`,
-          timestamp: Date.now(),
-          messageType: 'tip',
-          tipAmount: amount,
-        };
-        setMessages(prev => {
-          // Avoid duplicate if Ably already added it
-          if (prev.some(m => m.messageType === 'tip' && m.userId === currentUser.id && m.tipAmount === amount && Date.now() - m.timestamp < 2000)) {
-            return prev;
-          }
-          return [...prev, tipMessage];
-        });
+        // NOTE: We don't add an optimistic tip message here anymore.
+        // The Ably onTip handler will add the message with proper formatting
+        // (menu_purchase, menu_order, menu_tip) based on item type.
+        // This prevents duplicate messages showing up in chat.
 
         // Show digital download confirmation if applicable
         if (data.digitalContentUrl && data.fulfillmentType === 'digital') {
@@ -1740,6 +1725,29 @@ export default function TheaterModePage() {
                                 <span className="font-bold text-amber-400">{msg.ticketPrice}</span>
                               </>
                             )}
+                          </div>
+                        </div>
+                      ) : msg.messageType === 'menu_purchase' || msg.messageType === 'menu_order' || msg.messageType === 'menu_tip' ? (
+                        // Menu item purchase/order - highlighted with purple/pink gradient
+                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                          <div className="flex items-start gap-2">
+                            {msg.avatarUrl ? (
+                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold">
+                                {msg.username?.[0]?.toUpperCase() || '?'}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <span className="font-bold text-purple-300">@{msg.username}</span>
+                              <p className="text-sm text-white/90 mt-0.5">{msg.content}</p>
+                              {msg.tipAmount && (
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Coins className="w-3 h-3 text-purple-400" />
+                                  <span className="font-bold text-purple-400">{msg.tipAmount}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ) : (
