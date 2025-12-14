@@ -84,6 +84,7 @@ export default function BroadcastStudioPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [showFeaturedCreators, setShowFeaturedCreators] = useState(false); // Hidden by default
   const [showStreamSummary, setShowStreamSummary] = useState(false);
   const [showSaveStreamModal, setShowSaveStreamModal] = useState(false);
   const [showAnnounceModal, setShowAnnounceModal] = useState(false);
@@ -1904,9 +1905,23 @@ export default function BroadcastStudioPage() {
               />
             </div>
 
-            {/* Featured Creators Panel - Desktop only */}
+            {/* Featured Creators Panel - Desktop only (toggleable) */}
             <div className="hidden lg:block backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden">
-              <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+              <button
+                onClick={() => setShowFeaturedCreators(!showFeaturedCreators)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+              >
+                <span className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-400" />
+                  Featured Creators
+                </span>
+                <span className={`text-gray-400 transition-transform ${showFeaturedCreators ? 'rotate-180' : ''}`}>
+                  ▼
+                </span>
+              </button>
+              {showFeaturedCreators && (
+                <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+              )}
             </div>
 
             {/* Top Gifters Leaderboard - Desktop only */}
@@ -1969,9 +1984,23 @@ export default function BroadcastStudioPage() {
           </div>
         </div>
 
-        {/* Featured Creators Panel - Mobile only */}
-        <div className="lg:hidden mt-4">
-          <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+        {/* Featured Creators Panel - Mobile only (toggleable) */}
+        <div className="lg:hidden mt-4 backdrop-blur-xl bg-black/60 rounded-2xl border border-white/10 overflow-hidden">
+          <button
+            onClick={() => setShowFeaturedCreators(!showFeaturedCreators)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+          >
+            <span className="text-sm font-semibold text-white flex items-center gap-2">
+              <Users className="w-4 h-4 text-purple-400" />
+              Featured Creators
+            </span>
+            <span className={`text-gray-400 transition-transform ${showFeaturedCreators ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+          {showFeaturedCreators && (
+            <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+          )}
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
