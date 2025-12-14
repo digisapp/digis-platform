@@ -27,13 +27,15 @@ interface FeaturedCreatorsPanelProps {
   streamId: string;
   onSpotlightChange?: (creator: FeaturedCreator | null) => void;
   isHost?: boolean; // Whether the current user is the stream host
+  defaultExpanded?: boolean; // Initial expanded state (default: false for hosts)
 }
 
-export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = false }: FeaturedCreatorsPanelProps) {
+export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = false, defaultExpanded }: FeaturedCreatorsPanelProps) {
   const [creators, setCreators] = useState<FeaturedCreator[]>([]);
   const [loading, setLoading] = useState(true);
   const [spotlighting, setSpotlighting] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Default to collapsed for hosts (most won't use this feature)
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded ?? !isHost);
 
   // Search state (for adding creators during stream)
   const [searchQuery, setSearchQuery] = useState('');
