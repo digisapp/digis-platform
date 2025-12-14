@@ -48,13 +48,15 @@ export async function POST(request: NextRequest) {
         sql`SELECT * FROM payout_requests WHERE id = ${payoutId} FOR UPDATE`
       );
 
-      const payout = lockedPayoutResult.rows[0] as {
+      // Drizzle execute returns array directly
+      const payoutRows = lockedPayoutResult as unknown as Array<{
         id: string;
         creator_id: string;
         amount: number;
         status: string;
         requested_at: Date;
-      } | undefined;
+      }>;
+      const payout = payoutRows[0];
 
       if (!payout) {
         throw new Error('Payout not found');

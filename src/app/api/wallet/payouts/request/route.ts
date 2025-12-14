@@ -55,12 +55,14 @@ export async function POST(request: NextRequest) {
         sql`SELECT * FROM wallets WHERE user_id = ${user.id} FOR UPDATE`
       );
 
-      const wallet = lockedWalletResult.rows[0] as {
+      // Drizzle execute returns array directly
+      const walletRows = lockedWalletResult as unknown as Array<{
         id: string;
         user_id: string;
         balance: number;
         held_balance: number
-      } | undefined;
+      }>;
+      const wallet = walletRows[0];
 
       if (!wallet || wallet.balance < amount) {
         throw new Error('Insufficient balance');

@@ -130,12 +130,14 @@ export class WalletService {
         sql`SELECT * FROM wallets WHERE user_id = ${userId} FOR UPDATE`
       );
 
-      let wallet = lockedWalletResult.rows[0] as {
+      // Drizzle execute returns array directly
+      const walletRows = lockedWalletResult as unknown as Array<{
         id: string;
         user_id: string;
         balance: number;
         held_balance: number
-      } | undefined;
+      }>;
+      let wallet = walletRows[0];
 
       if (!wallet) {
         // Create wallet if it doesn't exist (with lock)
@@ -245,12 +247,14 @@ export class WalletService {
         sql`SELECT * FROM wallets WHERE user_id = ${userId} FOR UPDATE`
       );
 
-      const wallet = lockedWalletResult.rows[0] as {
+      // Drizzle execute returns array directly
+      const walletRows = lockedWalletResult as unknown as Array<{
         id: string;
         user_id: string;
         balance: number;
         held_balance: number
-      } | undefined;
+      }>;
+      const wallet = walletRows[0];
 
       if (!wallet) {
         throw new Error('Wallet not found');
@@ -331,12 +335,14 @@ export class WalletService {
         sql`SELECT * FROM wallets WHERE user_id = ${hold.userId} FOR UPDATE`
       );
 
-      const wallet = lockedWalletResult.rows[0] as {
+      // Drizzle execute returns array directly
+      const walletRows = lockedWalletResult as unknown as Array<{
         id: string;
         user_id: string;
         balance: number;
         held_balance: number
-      } | undefined;
+      }>;
+      const wallet = walletRows[0];
 
       if (!wallet) {
         throw new Error('Wallet not found');
