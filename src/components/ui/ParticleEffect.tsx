@@ -105,10 +105,9 @@ export function SuccessAnimation({ show, onComplete }: { show: boolean; onComple
             className="w-20 h-20 object-contain animate-bounce-in drop-shadow-[0_0_15px_rgba(192,132,252,0.5)]"
           />
         </div>
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-digis-pink via-digis-purple to-digis-cyan bg-clip-text text-transparent mb-2">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-digis-pink via-digis-purple to-digis-cyan bg-clip-text text-transparent">
           Going Live!
         </h2>
-        <p className="text-gray-700">Preparing your broadcast studio...</p>
       </div>
       <style jsx>{`
         @keyframes scale-in {
