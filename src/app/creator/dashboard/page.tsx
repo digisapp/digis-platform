@@ -98,7 +98,6 @@ export default function CreatorDashboard() {
   const [monthlyEarnings, setMonthlyEarnings] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const [subscriberCount, setSubscriberCount] = useState(0);
-  const [pendingCallsCount, setPendingCallsCount] = useState(0);
 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [dismissedChecklist, setDismissedChecklist] = useState(false);
@@ -262,8 +261,7 @@ export default function CreatorDashboard() {
 
   const fetchAllDashboardData = async () => {
     try {
-      const [callsRes, notificationsRes, showsRes, ordersRes] = await Promise.all([
-        fetch('/api/calls/history?limit=50').catch(() => null),
+      const [notificationsRes, showsRes, ordersRes] = await Promise.all([
         fetch('/api/notifications?limit=30').catch(() => null),
         fetch('/api/shows/creator').catch(() => null),
         fetch('/api/creator/orders?status=pending').catch(() => null),
@@ -271,19 +269,6 @@ export default function CreatorDashboard() {
 
       const activities: Activity[] = [];
       const events: UpcomingEvent[] = [];
-      let pendingCalls = 0;
-
-      // Process calls
-      if (callsRes?.ok) {
-        try {
-          const callsData = await callsRes.json();
-          const callsArray = Array.isArray(callsData.data) ? callsData.data : [];
-          pendingCalls = callsArray.filter((c: any) => c.status === 'pending').length;
-          setPendingCallsCount(pendingCalls);
-        } catch (e) {
-          console.error('Error parsing calls data:', e);
-        }
-      }
 
       // Process notifications - focus on tips, follows, subscriptions
       if (notificationsRes?.ok) {
@@ -593,15 +578,6 @@ export default function CreatorDashboard() {
                   <p className="text-2xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
                   <p className="text-xs text-gray-400">Subscribers</p>
                 </button>
-                {pendingCallsCount > 0 && (
-                  <button
-                    onClick={() => router.push('/creator/calls')}
-                    className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <p className="text-2xl font-bold text-yellow-400">{pendingCallsCount}</p>
-                    <p className="text-xs text-gray-400">Pending Calls</p>
-                  </button>
-                )}
               </div>
             </div>
 
@@ -621,15 +597,6 @@ export default function CreatorDashboard() {
                 <p className="text-xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Subscribers</p>
               </button>
-              {pendingCallsCount > 0 && (
-                <button
-                  onClick={() => router.push('/creator/calls')}
-                  className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
-                >
-                  <p className="text-xl font-bold text-yellow-400">{pendingCallsCount}</p>
-                  <p className="text-xs text-gray-400">Calls</p>
-                </button>
-              )}
             </div>
           </div>
 
