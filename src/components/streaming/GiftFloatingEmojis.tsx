@@ -18,14 +18,30 @@ type GiftFloatingEmojisProps = {
 
 // Gift-specific sounds - unique sound for each gift type
 const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
-  'Champagne': '/sounds/gift-champagne.mp3',   // Pop and fizz
+  // Common gifts
+  'Fire': '/sounds/gift-fire.mp3',             // Fire whoosh
+  'Heart': '/sounds/gift-heart.mp3',           // Heartbeat/love
+  'Peach': '/sounds/gift-peach.mp3',           // Juicy pop
+  'Pizza': '/sounds/gift-pizza.mp3',           // Oven ding
   'Rocket': '/sounds/gift-rocket.mp3',         // Rocket whoosh
-  'Sports Car': '/sounds/gift-sports-car.mp3', // Vroom engine
-  'Crown': '/sounds/gift-crown.mp3',           // Royal fanfare
-  'Gold Bar': '/sounds/gift-money.mp3',        // Coins/jackpot
-  'Steak': '/sounds/gift-steak.mp3',           // Sizzle
+  'Rose': '/sounds/gift-rose.mp3',             // Romantic chime
+  'Martini': '/sounds/gift-martini.mp3',       // Glass clink
+  // Rare gifts
   'Cake': '/sounds/gift-cake.mp3',             // Celebration
-  'Sushi': '/sounds/gift-sushi.mp3',           // Tasty mmm sound
+  'Sushi': '/sounds/gift-sushi.mp3',           // Pleasant pop
+  'Steak': '/sounds/gift-steak.mp3',           // Sizzle
+  'Champagne': '/sounds/gift-champagne.mp3',   // Cork pop and fizz
+  'Gold Bar': '/sounds/gift-money.mp3',        // Coins/jackpot
+  'Crown': '/sounds/gift-crown.mp3',           // Royal fanfare
+  // Epic gifts
+  'Designer Bag': '/sounds/gift-bag.mp3',      // Shopping sound
+  'Diamond': '/sounds/gift-diamond.mp3',       // Sparkle/bling
+  'Engagement Ring': '/sounds/gift-ring.mp3',  // Magic shimmer
+  'Sports Car': '/sounds/gift-sports-car.mp3', // Engine rev
+  // Legendary gifts
+  'Yacht': '/sounds/gift-yacht.mp3',           // Boat horn
+  'Jet': '/sounds/gift-jet.mp3',               // Jet flyby
+  'Mansion': '/sounds/gift-mansion.mp3',       // Grand fanfare
 };
 
 // Fallback sounds for gifts without specific sounds - based on rarity
