@@ -569,30 +569,51 @@ export default function TheaterModePage() {
 
   // Play waiting room music for non-ticket holders during ticketed streams
   const waitingRoomAudioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => {
-    if (ticketedModeActive && !hasTicket && ticketedShowInfo) {
-      // Start playing waiting room music
-      const audio = new Audio('/sounds/waiting-room.mp3');
-      audio.volume = 0.3;
-      audio.loop = true;
-      waitingRoomAudioRef.current = audio;
-      audio.play().catch(() => {});
+  const shouldPlayWaitingMusic = ticketedModeActive && !hasTicket && ticketedShowInfo;
 
-      return () => {
-        // Stop music when leaving or getting ticket
-        if (waitingRoomAudioRef.current) {
-          waitingRoomAudioRef.current.pause();
-          waitingRoomAudioRef.current = null;
-        }
-      };
+  useEffect(() => {
+    if (shouldPlayWaitingMusic) {
+      // Only create new audio if we don't have one playing
+      if (!waitingRoomAudioRef.current) {
+        console.log('[WaitingRoom] Starting waiting room music');
+        const audio = new Audio('/sounds/waiting-room.mp3');
+        audio.volume = 0.3;
+        audio.loop = true;
+        waitingRoomAudioRef.current = audio;
+
+        // Try to play - may fail due to autoplay policies
+        audio.play().catch((err) => {
+          console.log('[WaitingRoom] Autoplay blocked, will retry on user interaction:', err.message);
+          // Add one-time click handler to start music on user interaction
+          const startOnInteraction = () => {
+            if (waitingRoomAudioRef.current) {
+              waitingRoomAudioRef.current.play().catch(() => {});
+            }
+            document.removeEventListener('click', startOnInteraction);
+            document.removeEventListener('touchstart', startOnInteraction);
+          };
+          document.addEventListener('click', startOnInteraction, { once: true });
+          document.addEventListener('touchstart', startOnInteraction, { once: true });
+        });
+      }
     } else {
       // Stop music if conditions no longer apply
+      if (waitingRoomAudioRef.current) {
+        console.log('[WaitingRoom] Stopping waiting room music');
+        waitingRoomAudioRef.current.pause();
+        waitingRoomAudioRef.current.currentTime = 0;
+        waitingRoomAudioRef.current = null;
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
       if (waitingRoomAudioRef.current) {
         waitingRoomAudioRef.current.pause();
         waitingRoomAudioRef.current = null;
       }
-    }
-  }, [ticketedModeActive, hasTicket, ticketedShowInfo]);
+    };
+  }, [shouldPlayWaitingMusic]);
 
   // Detect orientation for mobile layout
   useEffect(() => {
