@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X, Image, Video, Lock, Eye, Coins } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface MediaAttachmentModalProps {
   onClose: () => void;
@@ -14,6 +15,7 @@ interface MediaAttachmentModalProps {
 }
 
 export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalProps) {
+  const { showError } = useToastContext();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
@@ -31,7 +33,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                  selectedFile.type.startsWith('video/') ? 'video' : null;
 
     if (!type) {
-      alert('Please select an image or video file');
+      showError('Please select an image or video file');
       return;
     }
 
@@ -39,7 +41,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
     const maxSize = 5 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
       const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(1);
-      alert(`File too large (${sizeMB}MB). Please choose a file under 5MB.`);
+      showError(`File too large (${sizeMB}MB). Please choose a file under 5MB.`);
       return;
     }
 
@@ -68,7 +70,7 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
       onClose();
     } catch (error) {
       console.error('Error sending media:', error);
-      alert(error instanceof Error ? error.message : 'Failed to send media');
+      showError(error instanceof Error ? error.message : 'Failed to send media');
     } finally {
       setSending(false);
     }

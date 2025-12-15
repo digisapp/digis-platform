@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Coins, Sparkles } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface QuickTipButtonsProps {
   creatorId: string;
@@ -12,6 +13,7 @@ interface QuickTipButtonsProps {
 const PRESET_AMOUNTS = [10, 25, 50, 100];
 
 export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipButtonsProps) {
+  const { showError } = useToastContext();
   const [sending, setSending] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -41,7 +43,7 @@ export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipB
 
       onTipSent?.(amount);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to send tip');
+      showError(error instanceof Error ? error.message : 'Failed to send tip');
     } finally {
       setSending(null);
     }

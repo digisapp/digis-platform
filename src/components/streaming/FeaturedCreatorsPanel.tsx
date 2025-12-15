@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Star, StarOff, Users, Coins, ChevronUp, ChevronDown, Search, X, UserPlus } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 
 interface FeaturedCreator {
   id: string;
@@ -31,6 +32,7 @@ interface FeaturedCreatorsPanelProps {
 }
 
 export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = false, defaultExpanded }: FeaturedCreatorsPanelProps) {
+  const { showError } = useToastContext();
   const [creators, setCreators] = useState<FeaturedCreator[]>([]);
   const [loading, setLoading] = useState(true);
   const [spotlighting, setSpotlighting] = useState<string | null>(null);
@@ -147,7 +149,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
   // Add a new featured creator during stream
   const handleAddCreator = async (creator: SearchResult) => {
     if (creators.length >= 30) {
-      alert('Maximum 30 featured creators allowed');
+      showError('Maximum 30 featured creators allowed');
       return;
     }
 
@@ -168,11 +170,11 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
         setShowSearch(false);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to add creator');
+        showError(data.error || 'Failed to add creator');
       }
     } catch (err) {
       console.error('Error adding creator:', err);
-      alert('Failed to add creator');
+      showError('Failed to add creator');
     } finally {
       setAddingCreator(null);
     }
@@ -192,11 +194,11 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
         setCreators(prev => prev.filter(c => c.creatorId !== creatorId));
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to remove creator');
+        showError(data.error || 'Failed to remove creator');
       }
     } catch (err) {
       console.error('Error removing creator:', err);
-      alert('Failed to remove creator');
+      showError('Failed to remove creator');
     } finally {
       setRemovingCreator(null);
     }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Check, CheckCheck, SmilePlus } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
+import { useToastContext } from '@/context/ToastContext';
 
 type Message = {
   id: string;
@@ -35,6 +36,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, onDelete }: MessageBubbleProps) {
+  const { showError } = useToastContext();
   const [unlocking, setUnlocking] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -75,7 +77,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error('Error deleting message:', error);
-      alert('Failed to delete message');
+      showError('Failed to delete message');
     } finally {
       setDeleting(false);
     }

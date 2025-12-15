@@ -16,6 +16,7 @@ import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ContentUnlockModal } from '@/components/content/ContentUnlockModal';
 import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
+import { useToastContext } from '@/context/ToastContext';
 
 interface ProfileData {
   user: {
@@ -51,6 +52,7 @@ interface ProfileData {
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { showError, showInfo } = useToastContext();
   const username = params.username as string;
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -404,7 +406,7 @@ export default function ProfilePage() {
       }
     } catch (err: any) {
       console.error('Follow error:', err);
-      alert(err.message);
+      showError(err.message);
     } finally {
       setFollowLoading(false);
     }
@@ -489,7 +491,7 @@ export default function ProfilePage() {
       if (currentUserResponse.ok) {
         currentUserData = await currentUserResponse.json();
         if (currentUserData.user?.id === profile.user.id) {
-          alert("You can't message yourself");
+          showInfo("You can't message yourself");
           return;
         }
       }
@@ -526,7 +528,7 @@ export default function ProfilePage() {
       await createConversation();
     } catch (error) {
       console.error('Error starting conversation:', error);
-      alert('Failed to start conversation. Please try again.');
+      showError('Failed to start conversation. Please try again.');
     }
   };
 
@@ -551,11 +553,11 @@ export default function ProfilePage() {
         router.push(`/chats/${createData.conversationId}`);
       } else {
         const errorData = await createResponse.json();
-        alert(errorData.error || 'Failed to start conversation');
+        showError(errorData.error || 'Failed to start conversation');
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
-      alert('Failed to start conversation. Please try again.');
+      showError('Failed to start conversation. Please try again.');
     } finally {
       setMessageLoading(false);
     }
@@ -847,7 +849,7 @@ export default function ProfilePage() {
                     return;
                   }
                   if (currentUserId === user.id) {
-                    alert("You can't tip yourself");
+                    showInfo("You can't tip yourself");
                     return;
                   }
                   setShowTipModal(true);

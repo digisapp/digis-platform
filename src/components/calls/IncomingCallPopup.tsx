@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Phone, PhoneOff, Video, Mic, X, ChevronDown } from 'lucide-react';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
+import { useToastContext } from '@/context/ToastContext';
 
 interface IncomingCall {
   id: string;
@@ -34,6 +35,7 @@ const DECLINE_REASONS = [
 export function IncomingCallPopup() {
   const router = useRouter();
   const { user, isCreator } = useAuth();
+  const { showError } = useToastContext();
   const [incomingCalls, setIncomingCalls] = useState<IncomingCall[]>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -175,10 +177,10 @@ export function IncomingCallPopup() {
         router.push(`/calls/${call.id}`);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to accept call');
+        showError(data.error || 'Failed to accept call');
       }
     } catch (err) {
-      alert('Failed to accept call');
+      showError('Failed to accept call');
     } finally {
       setProcessingId(null);
     }
@@ -204,10 +206,10 @@ export function IncomingCallPopup() {
         }
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to reject call');
+        showError(data.error || 'Failed to reject call');
       }
     } catch (err) {
-      alert('Failed to reject call');
+      showError('Failed to reject call');
     } finally {
       setProcessingId(null);
     }

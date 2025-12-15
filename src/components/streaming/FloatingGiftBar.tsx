@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { VirtualGift } from '@/db/schema';
 import { X, Minus, Plus, Coins, ChevronUp } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 type FloatingGiftBarProps = {
   streamId: string;
@@ -25,6 +26,7 @@ export function FloatingGiftBar({
   onBuyCoins,
   inline = false
 }: FloatingGiftBarProps) {
+  const { showError, showInfo } = useToastContext();
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -69,7 +71,7 @@ export function FloatingGiftBar({
     const totalCost = selectedGift.coinCost * quantity;
 
     if (totalCost > userBalance) {
-      alert('Insufficient balance! Please purchase more coins.');
+      showInfo('Insufficient balance! Please purchase more coins.');
       return;
     }
 
@@ -79,7 +81,7 @@ export function FloatingGiftBar({
       setSelectedGift(null);
       setQuantity(1);
     } catch (error: any) {
-      alert(error.message || 'Failed to send gift');
+      showError(error.message || 'Failed to send gift');
     } finally {
       setIsSending(false);
     }

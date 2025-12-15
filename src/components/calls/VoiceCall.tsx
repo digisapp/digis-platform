@@ -13,6 +13,7 @@ import {
 import { ConnectionState } from 'livekit-client';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 import { Mic, MicOff, PhoneOff, Phone, Volume2 } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface VoiceCallProps {
   callId: string;
@@ -31,6 +32,7 @@ function VoiceCallControls({
   creatorName?: string;
   creatorAvatar?: string;
 }) {
+  const { showError } = useToastContext();
   const [ending, setEnding] = useState(false);
   const [startTime] = useState(Date.now());
   const [duration, setDuration] = useState(0);
@@ -67,7 +69,7 @@ function VoiceCallControls({
       onEnd();
     } catch (error) {
       console.error('Error ending call:', error);
-      alert('Failed to end call. Please try again.');
+      showError('Failed to end call. Please try again.');
     } finally {
       setEnding(false);
     }

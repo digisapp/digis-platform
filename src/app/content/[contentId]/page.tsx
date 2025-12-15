@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Lock, Play, Image as ImageIcon, Eye, ShoppingCart } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Content {
   id: string;
@@ -31,6 +32,7 @@ interface Content {
 export default function ContentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { showSuccess } = useToastContext();
   const contentId = params.contentId as string;
 
   const [content, setContent] = useState<Content | null>(null);
@@ -75,7 +77,7 @@ export default function ContentDetailPage() {
       if (response.ok) {
         // Refresh content to show unlocked
         await fetchContent();
-        alert('Content unlocked successfully!');
+        showSuccess('Content unlocked successfully!');
       } else {
         setError(data.error || 'Failed to purchase content');
       }

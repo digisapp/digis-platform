@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { VirtualGift } from '@/db/schema';
 import { Sparkles, Zap, Crown, Star, Coins, User } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 // Spotlighted creator info
 type SpotlightedCreator = {
@@ -22,6 +23,7 @@ type GiftSelectorProps = {
 };
 
 export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spotlightedCreator, hostName }: GiftSelectorProps) {
+  const { showError, showInfo } = useToastContext();
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -113,7 +115,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
     const totalCost = selectedGift.coinCost * quantity;
 
     if (totalCost > userBalance) {
-      alert('Insufficient balance! Please purchase more coins.');
+      showInfo('Insufficient balance! Please purchase more coins.');
       return;
     }
 
@@ -128,7 +130,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
       setSelectedGift(null);
       setQuantity(1);
     } catch (error: any) {
-      alert(error.message || 'Failed to send gift');
+      showError(error.message || 'Failed to send gift');
     } finally {
       setIsSending(false);
     }
@@ -139,7 +141,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
     if (!amount || isSending || !onSendTip) return;
 
     if (amount > userBalance) {
-      alert('Insufficient balance! Please purchase more coins.');
+      showInfo('Insufficient balance! Please purchase more coins.');
       return;
     }
 
@@ -154,7 +156,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
       setTipAmount(null);
       setCustomTipAmount('');
     } catch (error: any) {
-      alert(error.message || 'Failed to send tip');
+      showError(error.message || 'Failed to send tip');
     } finally {
       setIsSending(false);
     }

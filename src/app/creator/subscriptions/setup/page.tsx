@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 import { ArrowLeft, DollarSign, Star, Users, ToggleLeft, ToggleRight, Plus, X } from 'lucide-react';
 
 export default function SubscriptionSetupPage() {
   const router = useRouter();
+  const { showSuccess, showError } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -56,12 +58,12 @@ export default function SubscriptionSetupPage() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      alert('Please enter a name for your subscription');
+      showError('Please enter a name for your subscription');
       return;
     }
 
     if (formData.pricePerMonth < 1) {
-      alert('Price must be at least 1 coin per month');
+      showError('Price must be at least 1 coin per month');
       return;
     }
 
@@ -81,15 +83,15 @@ export default function SubscriptionSetupPage() {
       });
 
       if (response.ok) {
-        alert('Subscription settings saved!');
+        showSuccess('Subscription settings saved!');
         router.push('/creator/dashboard');
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to save settings');
+        showError(data.error || 'Failed to save settings');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings');
+      showError('Failed to save settings');
     } finally {
       setSaving(false);
     }

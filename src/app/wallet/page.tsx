@@ -8,6 +8,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
 import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp, Wallet, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Transaction {
   id: string;
@@ -41,6 +42,7 @@ type TabType = 'balance' | 'payouts' | 'banking';
 
 export default function WalletPage() {
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useToastContext();
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
@@ -511,11 +513,11 @@ export default function WalletPage() {
                     size="lg"
                     onClick={async () => {
                       if (balance < 1000) {
-                        alert('Minimum 1,000 coins required for payout');
+                        showInfo('Minimum 1,000 coins required for payout');
                         return;
                       }
                       if (!bankingInfo) {
-                        alert('Please add banking information first');
+                        showInfo('Please add banking information first');
                         setActiveTab('banking');
                         return;
                       }
@@ -527,14 +529,14 @@ export default function WalletPage() {
                             body: JSON.stringify({ amount: balance }),
                           });
                           if (response.ok) {
-                            alert('Payout requested successfully!');
+                            showSuccess('Payout requested successfully!');
                             await handleRefresh();
                           } else {
                             const error = await response.json();
-                            alert(`Error: ${error.error}`);
+                            showError(`Error: ${error.error}`);
                           }
                         } catch (err) {
-                          alert('Failed to request payout');
+                          showError('Failed to request payout');
                         }
                       }
                     }}

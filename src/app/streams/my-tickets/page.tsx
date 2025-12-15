@@ -6,6 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Ticket {
   id: string;
@@ -42,6 +43,7 @@ const showTypeEmojis: Record<string, string> = {
 
 export default function MyTicketsPage() {
   const router = useRouter();
+  const { showError } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
@@ -93,7 +95,7 @@ export default function MyTicketsPage() {
         router.push(`/live/${data.roomName}`);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to join stream');
+      showError(err instanceof Error ? err.message : 'Failed to join stream');
     }
   };
 

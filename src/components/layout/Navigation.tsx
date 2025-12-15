@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
+import { useToastContext } from '@/context/ToastContext';
 
 // Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
 const formatCoinBalance = (coins: number | null): string => {
@@ -43,6 +44,7 @@ const formatCoinBalance = (coins: number | null): string => {
 export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
+  const { showError } = useToastContext();
   const { user: authUser, session, loading: authLoading, isCreator, isAdmin } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number | null>(null);
@@ -250,13 +252,13 @@ export function Navigation() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      showError('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be less than 5MB');
+      showError('Image must be less than 5MB');
       return;
     }
 
@@ -277,11 +279,11 @@ export function Navigation() {
         // Update local state immediately
         setUserProfile((prev: any) => ({ ...prev, avatarUrl: data.avatarUrl }));
       } else {
-        alert(data.error || 'Failed to upload avatar');
+        showError(data.error || 'Failed to upload avatar');
       }
     } catch (err) {
       console.error('Error uploading avatar:', err);
-      alert('Failed to upload avatar');
+      showError('Failed to upload avatar');
     } finally {
       setUploadingAvatar(false);
       // Reset the input

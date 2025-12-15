@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToastContext } from '@/context/ToastContext';
 import { ArrowLeft, Users, DollarSign, Send, Image, Video, Lock, Eye, TrendingUp } from 'lucide-react';
 
 interface SubscriberStats {
@@ -12,6 +13,7 @@ interface SubscriberStats {
 
 export default function BroadcastMessagePage() {
   const router = useRouter();
+  const { showSuccess, showError } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [stats, setStats] = useState<SubscriberStats>({
@@ -60,13 +62,13 @@ export default function BroadcastMessagePage() {
                  selectedFile.type.startsWith('video/') ? 'video' : null;
 
     if (!type) {
-      alert('Please select an image or video file');
+      showError('Please select an image or video file');
       return;
     }
 
     const maxSize = type === 'image' ? 50 * 1024 * 1024 : 500 * 1024 * 1024;
     if (selectedFile.size > maxSize) {
-      alert(`File is too large. Max size: ${type === 'image' ? '50MB' : '500MB'}`);
+      showError(`File is too large. Max size: ${type === 'image' ? '50MB' : '500MB'}`);
       return;
     }
 
@@ -84,12 +86,12 @@ export default function BroadcastMessagePage() {
     e.preventDefault();
 
     if (formData.messageType === 'text' && !formData.textMessage.trim()) {
-      alert('Please enter a message');
+      showError('Please enter a message');
       return;
     }
 
     if (formData.messageType === 'media' && !formData.file) {
-      alert('Please select a file');
+      showError('Please select a file');
       return;
     }
 
@@ -128,14 +130,14 @@ export default function BroadcastMessagePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Success! Message sent to ${data.recipientCount} ${formData.targetAudience}${potentialRevenue > 0 ? `\n\nPotential revenue: ${potentialRevenue.toLocaleString()} coins` : ''}`);
+        showSuccess(`Message sent to ${data.recipientCount} ${formData.targetAudience}!${potentialRevenue > 0 ? ` Potential revenue: ${potentialRevenue.toLocaleString()} coins` : ''}`);
         router.push('/creator/dashboard');
       } else {
         throw new Error(data.error || 'Failed to send broadcast');
       }
     } catch (error) {
       console.error('Error sending broadcast:', error);
-      alert(error instanceof Error ? error.message : 'Failed to send broadcast');
+      showError(error instanceof Error ? error.message : 'Failed to send broadcast');
     } finally {
       setSending(false);
     }

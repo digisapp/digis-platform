@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Edit2, XCircle } from 'lucide-react';
 import type { StreamGoal, VirtualGift } from '@/db/schema';
+import { useToastContext } from '@/context/ToastContext';
 
 interface GoalWithGift extends StreamGoal {
   gift?: VirtualGift | null;
@@ -17,6 +18,7 @@ interface GoalProgressBarProps {
 }
 
 export function GoalProgressBar({ goals, isBroadcaster = false, streamId, onEdit, onGoalEnded }: GoalProgressBarProps) {
+  const { showError } = useToastContext();
   const [endingGoalId, setEndingGoalId] = useState<string | null>(null);
   const activeGoals = goals.filter(g => g.isActive && !g.isCompleted);
 
@@ -38,7 +40,7 @@ export function GoalProgressBar({ goals, isBroadcaster = false, streamId, onEdit
       // Notify parent to refresh goals
       onGoalEnded?.();
     } catch (error: any) {
-      alert(error.message || 'Failed to end goal');
+      showError(error.message || 'Failed to end goal');
     } finally {
       setEndingGoalId(null);
     }

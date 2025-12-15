@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Gift, Coins, X, Star, ExternalLink } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 
 interface SpotlightedCreator {
   id: string;
@@ -22,6 +23,7 @@ interface SpotlightedCreatorOverlayProps {
 const TIP_AMOUNTS = [10, 25, 50, 100, 500];
 
 export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent }: SpotlightedCreatorOverlayProps) {
+  const { showError } = useToastContext();
   const [spotlightedCreator, setSpotlightedCreator] = useState<SpotlightedCreator | null>(null);
   const [showTipModal, setShowTipModal] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(25);
@@ -80,12 +82,12 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
     const amount = customAmount ? parseInt(customAmount) : selectedAmount;
 
     if (!amount || amount < 1) {
-      alert('Please enter a valid amount');
+      showError('Please enter a valid amount');
       return;
     }
 
     if (userBalance !== null && amount > userBalance) {
-      alert('Insufficient balance');
+      showError('Insufficient balance');
       return;
     }
 
@@ -109,11 +111,11 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           setUserBalance(userBalance - amount);
         }
       } else {
-        alert(data.error || 'Failed to send tip');
+        showError(data.error || 'Failed to send tip');
       }
     } catch (err) {
       console.error('Error sending tip:', err);
-      alert('Failed to send tip');
+      showError('Failed to send tip');
     } finally {
       setIsSending(false);
     }

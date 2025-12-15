@@ -14,12 +14,14 @@ import {
 import { Track, facingModeFromLocalTrack, LocalVideoTrack } from 'livekit-client';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 import { Mic, MicOff, Video, VideoOff, SwitchCamera, PhoneOff } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface VideoCallProps {
   callId: string;
 }
 
 function CallControls({ callId, onEnd }: { callId: string; onEnd: () => void }) {
+  const { showError } = useToastContext();
   const [ending, setEnding] = useState(false);
   const [startTime] = useState(Date.now());
   const [duration, setDuration] = useState(0);
@@ -53,7 +55,7 @@ function CallControls({ callId, onEnd }: { callId: string; onEnd: () => void }) 
       onEnd();
     } catch (error) {
       console.error('Error ending call:', error);
-      alert('Failed to end call. Please try again.');
+      showError('Failed to end call. Please try again.');
     } finally {
       setEnding(false);
     }

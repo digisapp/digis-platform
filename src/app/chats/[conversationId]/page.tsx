@@ -13,6 +13,7 @@ import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWa
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
+import { useToastContext } from '@/context/ToastContext';
 
 type Message = {
   id: string;
@@ -50,6 +51,7 @@ type Conversation = {
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
+  const { showError } = useToastContext();
   const conversationId = params.conversationId as string;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -362,7 +364,7 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error unlocking message:', error);
-      alert(error instanceof Error ? error.message : 'Failed to unlock message');
+      showError(error instanceof Error ? error.message : 'Failed to unlock message');
     }
   };
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { refreshSession } from '@/lib/auth/refresh-session';
+import { useToastContext } from '@/context/ToastContext';
 
 interface RefreshSessionButtonProps {
   onRefresh?: () => void;
@@ -24,6 +25,7 @@ export function RefreshSessionButton({
   className = '',
   variant = 'button'
 }: RefreshSessionButtonProps) {
+  const { showError } = useToastContext();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -42,11 +44,11 @@ export function RefreshSessionButton({
         }
       } else {
         console.error('Failed to refresh session:', error);
-        alert(`Failed to refresh session: ${error}`);
+        showError(`Failed to refresh session: ${error}`);
       }
     } catch (err) {
       console.error('Unexpected error refreshing session:', err);
-      alert('Unexpected error refreshing session');
+      showError('Unexpected error refreshing session');
     } finally {
       setIsRefreshing(false);
     }

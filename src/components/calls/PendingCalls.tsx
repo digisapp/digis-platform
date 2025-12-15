@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Phone, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface PendingCall {
   id: string;
@@ -19,6 +20,7 @@ interface PendingCall {
 }
 
 export function PendingCalls() {
+  const { showError } = useToastContext();
   const router = useRouter();
   const [calls, setCalls] = useState<PendingCall[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,10 +63,10 @@ export function PendingCalls() {
         router.push(`/calls/${callId}`);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to accept call');
+        showError(data.error || 'Failed to accept call');
       }
     } catch (err) {
-      alert('Failed to accept call');
+      showError('Failed to accept call');
     } finally {
       setProcessingId(null);
     }
@@ -87,10 +89,10 @@ export function PendingCalls() {
         setCalls(calls.filter((call) => call.id !== callId));
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to reject call');
+        showError(data.error || 'Failed to reject call');
       }
     } catch (err) {
-      alert('Failed to reject call');
+      showError('Failed to reject call');
     } finally {
       setProcessingId(null);
     }

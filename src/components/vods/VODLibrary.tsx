@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Play, Eye, ShoppingCart, DollarSign, Clock, Trash2, Edit3 } from 'lucide-react';
 import { EditVODModal } from './EditVODModal';
+import { useToastContext } from '@/context/ToastContext';
 
 interface VOD {
   id: string;
@@ -23,6 +24,7 @@ interface VOD {
 }
 
 export function VODLibrary() {
+  const { showError } = useToastContext();
   const router = useRouter();
   const [vods, setVods] = useState<VOD[]>([]);
   const [totals, setTotals] = useState({ totalViews: 0, totalPurchases: 0, totalEarnings: 0 });
@@ -90,7 +92,7 @@ export function VODLibrary() {
       await fetchVODs();
     } catch (error) {
       console.error('Error deleting VOD:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete VOD');
+      showError(error instanceof Error ? error.message : 'Failed to delete VOD');
     } finally {
       setDeletingVOD(null);
     }

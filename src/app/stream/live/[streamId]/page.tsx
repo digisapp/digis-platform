@@ -26,6 +26,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
 import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
+import { useToastContext } from '@/context/ToastContext';
 
 // Component to show only the local camera preview (no participant tiles/placeholders)
 function LocalCameraPreview({ isPortrait = false }: { isPortrait?: boolean }) {
@@ -59,6 +60,7 @@ function LocalCameraPreview({ isPortrait = false }: { isPortrait?: boolean }) {
 export default function BroadcastStudioPage() {
   const params = useParams() as { streamId: string };
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useToastContext();
   const streamId = params.streamId as string;
 
   const [stream, setStream] = useState<Stream | null>(null);
@@ -817,13 +819,13 @@ export default function BroadcastStudioPage() {
         setShowStreamSummary(true);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to end stream');
+        showError(data.error || 'Failed to end stream');
         setHasManuallyEnded(false); // Reset if failed
         setShowEndConfirm(false);
         setShowVipEndChoice(false);
       }
     } catch (err) {
-      alert('Failed to end stream');
+      showError('Failed to end stream');
       setHasManuallyEnded(false); // Reset if failed
       setShowEndConfirm(false);
       setShowVipEndChoice(false);
@@ -848,11 +850,11 @@ export default function BroadcastStudioPage() {
         setShowStreamSummary(true);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to end stream');
+        showError(data.error || 'Failed to end stream');
         setHasManuallyEnded(false);
       }
     } catch (err) {
-      alert('Failed to end stream');
+      showError('Failed to end stream');
       setHasManuallyEnded(false);
     } finally {
       setIsEnding(false);
@@ -875,7 +877,7 @@ export default function BroadcastStudioPage() {
 
       if (!cancelRes.ok) {
         const data = await cancelRes.json();
-        alert(data.error || 'Failed to cancel VIP show');
+        showError(data.error || 'Failed to cancel VIP show');
         setHasManuallyEnded(false);
         setIsEnding(false);
         return;
@@ -892,11 +894,11 @@ export default function BroadcastStudioPage() {
         setShowStreamSummary(true);
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to end stream');
+        showError(data.error || 'Failed to end stream');
         setHasManuallyEnded(false);
       }
     } catch (err) {
-      alert('Failed to end stream');
+      showError('Failed to end stream');
       setHasManuallyEnded(false);
     } finally {
       setIsEnding(false);
@@ -1171,7 +1173,7 @@ export default function BroadcastStudioPage() {
       setVipModeActive(true);
       setStartingVipStream(false);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to start VIP stream');
+      showError(err instanceof Error ? err.message : 'Failed to start VIP stream');
       setStartingVipStream(false);
     }
   };
@@ -1194,7 +1196,7 @@ export default function BroadcastStudioPage() {
       setVipModeActive(false);
       setAnnouncedTicketedStream(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to end VIP stream');
+      showError(err instanceof Error ? err.message : 'Failed to end VIP stream');
     }
   };
 
@@ -2075,7 +2077,7 @@ export default function BroadcastStudioPage() {
           onSaved={(vodId) => {
             console.log('Stream saved as VOD:', vodId);
             // Optionally show success message or redirect
-            alert('Stream saved successfully! You can find it in your VOD library.');
+            showSuccess('Stream saved! You can find it in your VOD library.');
           }}
         />
       )}

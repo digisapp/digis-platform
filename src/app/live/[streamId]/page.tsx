@@ -20,6 +20,7 @@ import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
+import { useToastContext } from '@/context/ToastContext';
 
 interface StreamData {
   id: string;
@@ -138,6 +139,7 @@ function ViewerVideo({ onBroadcasterLeft }: { onBroadcasterLeft?: () => void }) 
 export default function TheaterModePage() {
   const params = useParams();
   const router = useRouter();
+  const { showSuccess, showError, showInfo } = useToastContext();
   const streamId = params.streamId as string;
 
   const [stream, setStream] = useState<StreamData | null>(null);
@@ -486,12 +488,12 @@ export default function TheaterModePage() {
         if (data.error?.includes('Insufficient')) {
           setShowBuyCoinsModal(true);
         } else {
-          alert(data.error || 'Failed to purchase ticket');
+          showError(data.error || 'Failed to purchase ticket');
         }
       }
     } catch (error) {
       console.error('[Ticketed] Error purchasing ticket:', error);
-      alert('Failed to purchase ticket. Please try again.');
+      showError('Failed to purchase ticket. Please try again.');
     } finally {
       setPurchasingTicket(false);
     }
@@ -553,12 +555,12 @@ export default function TheaterModePage() {
           setHasPurchasedUpcomingTicket(true);
           setHasTicket(true);
         } else {
-          alert(data.error || 'Failed to purchase ticket');
+          showError(data.error || 'Failed to purchase ticket');
         }
       }
     } catch (error) {
       console.error('[Ticketed] Error purchasing ticket:', error);
-      alert('Failed to purchase ticket. Please try again.');
+      showError('Failed to purchase ticket. Please try again.');
     } finally {
       setQuickBuyLoading(false);
     }
@@ -959,12 +961,12 @@ export default function TheaterModePage() {
   // Handle tip with optional note and menu item
   const handleTip = async (amount: number, note?: string, tipMenuItem?: { id: string; label: string } | null) => {
     if (!currentUser) {
-      alert('Please sign in to send tips');
+      showInfo('Please sign in to send tips');
       return;
     }
 
     if (userBalance < amount) {
-      alert(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
+      showInfo(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
       return;
     }
 
@@ -1038,11 +1040,11 @@ export default function TheaterModePage() {
         }
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to send tip');
+        showError(error.error || 'Failed to send tip');
       }
     } catch (error) {
       console.error('[TheaterMode] Error sending tip:', error);
-      alert('Failed to send tip');
+      showError('Failed to send tip');
     }
   };
 
@@ -1084,7 +1086,7 @@ export default function TheaterModePage() {
       });
     } else {
       await navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
+      showSuccess('Link copied to clipboard!');
     }
   };
 

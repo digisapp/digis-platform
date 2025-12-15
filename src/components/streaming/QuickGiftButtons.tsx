@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { VirtualGift } from '@/db/schema';
+import { useToastContext } from '@/context/ToastContext';
 
 type QuickGiftButtonsProps = {
   streamId: string;
@@ -10,6 +11,7 @@ type QuickGiftButtonsProps = {
 };
 
 export function QuickGiftButtons({ streamId, onSendGift, userBalance }: QuickGiftButtonsProps) {
+  const { showError } = useToastContext();
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [sending, setSending] = useState<string | null>(null);
 
@@ -32,7 +34,7 @@ export function QuickGiftButtons({ streamId, onSendGift, userBalance }: QuickGif
 
   const handleQuickGift = async (gift: VirtualGift) => {
     if (gift.coinCost > userBalance) {
-      alert('Insufficient balance!');
+      showError('Insufficient balance!');
       return;
     }
 
@@ -40,7 +42,7 @@ export function QuickGiftButtons({ streamId, onSendGift, userBalance }: QuickGif
     try {
       await onSendGift(gift.id, 1);
     } catch (error: any) {
-      alert(error.message || 'Failed to send gift');
+      showError(error.message || 'Failed to send gift');
     } finally {
       setSending(null);
     }

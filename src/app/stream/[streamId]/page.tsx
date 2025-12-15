@@ -20,6 +20,7 @@ import {
   Zap, Eye, TrendingUp, ExternalLink, Star, Ticket, Video, Phone
 } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
+import { useToastContext } from '@/context/ToastContext';
 
 type StreamWithCreator = Stream & {
   creator?: {
@@ -105,6 +106,7 @@ function BroadcasterVideo() {
 export default function StreamViewerPage() {
   const params = useParams() as { streamId: string };
   const router = useRouter();
+  const { showSuccess, showError } = useToastContext();
   const streamId = params.streamId as string;
   const videoContainerRef = useRef<HTMLDivElement>(null);
 
@@ -587,7 +589,7 @@ export default function StreamViewerPage() {
       await navigator.share({ title: stream?.title, text, url });
     } else {
       await navigator.clipboard.writeText(url);
-      alert('Link copied!');
+      showSuccess('Link copied!');
     }
   };
 
@@ -621,10 +623,10 @@ export default function StreamViewerPage() {
         setLoading(true);
         fetchStreamDetails();
       } else {
-        alert(data.error || 'Failed to purchase ticket');
+        showError(data.error || 'Failed to purchase ticket');
       }
     } catch (err) {
-      alert('Failed to purchase ticket. Please try again.');
+      showError('Failed to purchase ticket. Please try again.');
     } finally {
       setIsPurchasingTicket(false);
     }

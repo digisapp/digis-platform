@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Phone, Video, Clock, X, Check, AlertCircle } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 
 interface CallRequest {
   id: string;
@@ -25,6 +26,7 @@ export function CallRequestQueue({
   autoRefresh = true,
   refreshInterval = 5000,
 }: CallRequestQueueProps) {
+  const { showError } = useToastContext();
   const [requests, setRequests] = useState<CallRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -66,11 +68,11 @@ export function CallRequestQueue({
         window.location.href = `/calls/${callId}`;
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to accept call');
+        showError(error.error || 'Failed to accept call');
       }
     } catch (error) {
       console.error('[CallRequestQueue] Error accepting call:', error);
-      alert('Failed to accept call');
+      showError('Failed to accept call');
     } finally {
       setProcessingId(null);
       fetchPendingRequests();
@@ -90,11 +92,11 @@ export function CallRequestQueue({
         setRequests((prev) => prev.filter((r) => r.id !== callId));
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to reject call');
+        showError(error.error || 'Failed to reject call');
       }
     } catch (error) {
       console.error('[CallRequestQueue] Error rejecting call:', error);
-      alert('Failed to reject call');
+      showError('Failed to reject call');
     } finally {
       setProcessingId(null);
     }

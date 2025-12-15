@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { CheckCircle, XCircle, Loader2, AtSign } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface SignupModalProps {
 }
 
 export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
+  const { showSuccess, showError } = useToastContext();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -103,10 +105,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         throw resendError;
       }
 
-      alert('Confirmation email resent! Check your inbox.');
+      showSuccess('Confirmation email resent! Check your inbox.');
     } catch (err: any) {
       console.error('Resend error:', err);
-      alert(err.message || 'Failed to resend email');
+      showError(err.message || 'Failed to resend email');
     } finally {
       setResendLoading(false);
     }

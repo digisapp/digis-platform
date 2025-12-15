@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Show {
   id: string;
@@ -17,6 +18,7 @@ interface ShowControlsProps {
 }
 
 export function ShowControls({ show, onUpdate }: ShowControlsProps) {
+  const { showSuccess } = useToastContext();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -93,7 +95,7 @@ export function ShowControls({ show, onUpdate }: ShowControlsProps) {
       }
 
       // Show success message
-      alert(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
+      showSuccess(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
       router.push('/creator/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel stream');

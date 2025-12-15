@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { TicketPurchaseModal } from '@/components/shows/TicketPurchaseModal';
 import { Pencil, Trash2, Play, X } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Show {
   id: string;
@@ -52,6 +53,7 @@ const showTypeEmojis: Record<string, string> = {
 export default function StreamDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { showSuccess, showError } = useToastContext();
   const showId = params?.showId as string;
 
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export default function StreamDetailPage() {
         router.push(`/live/${data.roomName}`);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to join stream');
+      showError(err instanceof Error ? err.message : 'Failed to join stream');
     }
   };
 
@@ -144,7 +146,7 @@ export default function StreamDetailPage() {
         router.push(`/stream/live/${data.roomName}`);
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to start stream');
+      showError(err instanceof Error ? err.message : 'Failed to start stream');
     } finally {
       setActionLoading(false);
     }
@@ -162,10 +164,10 @@ export default function StreamDetailPage() {
         throw new Error(data.error || 'Failed to cancel stream');
       }
 
-      alert(`Stream cancelled successfully. ${data.refundedTickets} ticket(s) refunded.`);
+      showSuccess(`Stream cancelled. ${data.refundedTickets} ticket(s) refunded.`);
       router.push('/creator/streams');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to cancel stream');
+      showError(err instanceof Error ? err.message : 'Failed to cancel stream');
       setShowCancelConfirm(false);
     } finally {
       setActionLoading(false);

@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Star, Calendar, DollarSign, ToggleLeft, ToggleRight, X } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface Subscription {
   id: string;
@@ -30,6 +31,7 @@ interface Subscription {
 
 export default function MySubscriptionsPage() {
   const router = useRouter();
+  const { showSuccess, showError } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
@@ -81,11 +83,11 @@ export default function MySubscriptionsPage() {
         ));
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update auto-renew');
+        showError(data.error || 'Failed to update auto-renew');
       }
     } catch (error) {
       console.error('Error toggling auto-renew:', error);
-      alert('Failed to update auto-renew');
+      showError('Failed to update auto-renew');
     } finally {
       setTogglingId(null);
     }
@@ -105,15 +107,15 @@ export default function MySubscriptionsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        alert(data.message || 'Subscription cancelled');
+        showSuccess(data.message || 'Subscription cancelled');
         fetchSubscriptions(); // Refresh the list
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to cancel subscription');
+        showError(data.error || 'Failed to cancel subscription');
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert('Failed to cancel subscription');
+      showError('Failed to cancel subscription');
     } finally {
       setCancelingId(null);
     }

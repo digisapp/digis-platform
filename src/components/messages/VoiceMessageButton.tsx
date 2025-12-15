@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Mic, X, Send, Lock, Coins } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface VoiceMessageButtonProps {
   onSend: (audioBlob: Blob, duration: number, unlockPrice?: number) => Promise<void>;
@@ -10,6 +11,7 @@ interface VoiceMessageButtonProps {
 }
 
 export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageButtonProps) {
+  const { showError } = useToastContext();
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -71,7 +73,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
               await onSend(audioBlob, duration);
             } catch (error) {
               console.error('Error sending voice message:', error);
-              alert('Failed to send voice message');
+              showError('Failed to send voice message');
             }
           }
         }
@@ -88,7 +90,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
 
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      alert('Please allow microphone access to send voice messages');
+      showError('Please allow microphone access to send voice messages');
     }
   };
 
@@ -139,7 +141,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
       setIsPPV(false);
     } catch (error) {
       console.error('Error sending voice message:', error);
-      alert('Failed to send voice message');
+      showError('Failed to send voice message');
     } finally {
       setIsSending(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { StreamMessage } from '@/db/schema';
+import { useToastContext } from '@/context/ToastContext';
 
 type ModerationToolsProps = {
   message: StreamMessage;
@@ -13,6 +14,7 @@ type ModerationToolsProps = {
 };
 
 export function ModerationTools({ message, streamId, onMessageDeleted, onPinMessage, isPinned, onShoutout }: ModerationToolsProps) {
+  const { showSuccess, showError } = useToastContext();
   const [showMenu, setShowMenu] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -29,10 +31,10 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
         onMessageDeleted?.();
         setShowMenu(false);
       } else {
-        alert('Failed to delete message');
+        showError('Failed to delete message');
       }
     } catch (error) {
-      alert('Failed to delete message');
+      showError('Failed to delete message');
     } finally {
       setIsProcessing(false);
     }
@@ -53,13 +55,13 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       });
 
       if (response.ok) {
-        alert(`${message.username} has been timed out for ${duration} minutes`);
+        showSuccess(`${message.username} has been timed out for ${duration} minutes`);
         setShowMenu(false);
       } else {
-        alert('Failed to timeout user');
+        showError('Failed to timeout user');
       }
     } catch (error) {
-      alert('Failed to timeout user');
+      showError('Failed to timeout user');
     } finally {
       setIsProcessing(false);
     }
@@ -79,13 +81,13 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       });
 
       if (response.ok) {
-        alert(`${message.username} has been banned`);
+        showSuccess(`${message.username} has been banned`);
         setShowMenu(false);
       } else {
-        alert('Failed to ban user');
+        showError('Failed to ban user');
       }
     } catch (error) {
-      alert('Failed to ban user');
+      showError('Failed to ban user');
     } finally {
       setIsProcessing(false);
     }
@@ -107,10 +109,10 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
         setShowMenu(false);
         onShoutout?.(message.username);
       } else {
-        alert('Failed to send shoutout');
+        showError('Failed to send shoutout');
       }
     } catch (error) {
-      alert('Failed to send shoutout');
+      showError('Failed to send shoutout');
     } finally {
       setIsProcessing(false);
     }

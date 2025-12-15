@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { useToastContext } from '@/context/ToastContext';
 
 type ShareButtonProps = {
   streamTitle: string;
@@ -9,6 +10,7 @@ type ShareButtonProps = {
 };
 
 export function ShareButton({ streamTitle, creatorName }: ShareButtonProps) {
+  const { showError } = useToastContext();
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -21,7 +23,7 @@ export function ShareButton({ streamTitle, creatorName }: ShareButtonProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      alert('Failed to copy link');
+      showError('Failed to copy link');
     }
   };
 
