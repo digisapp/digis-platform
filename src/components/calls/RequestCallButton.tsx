@@ -220,7 +220,15 @@ export function RequestCallButton({
     }, 3000);
   };
 
-  const handleCancelRequest = () => {
+  const handleCancelRequest = async () => {
+    // Cancel the call request on the server so creator is notified
+    if (callId) {
+      try {
+        await fetch(`/api/calls/${callId}/cancel`, { method: 'POST' });
+      } catch (err) {
+        console.error('Error cancelling call:', err);
+      }
+    }
     stopPolling();
     setWaiting(false);
     setCallId(null);

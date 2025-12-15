@@ -209,6 +209,18 @@ export class AblyRealtimeService {
   }
 
   /**
+   * Broadcast call cancellation to creator
+   * Used when fan cancels their call request
+   */
+  static async broadcastCallCancelled(creatorId: string, data: { callId: string; fanId: string; reason?: string }) {
+    await publishToChannel(
+      CHANNEL_NAMES.userNotifications(creatorId),
+      'call_cancelled',
+      data
+    );
+  }
+
+  /**
    * Generic broadcast to stream channel
    * Used for featured creators, spotlight changes, etc.
    */
