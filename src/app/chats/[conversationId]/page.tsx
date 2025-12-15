@@ -567,7 +567,7 @@ export default function ChatPage() {
 
                 {/* Tappable profile link */}
                 <button
-                  onClick={() => router.push(`/@${conversation.otherUser.username}`)}
+                  onClick={() => router.push(`/${conversation.otherUser.username}`)}
                   className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold">
