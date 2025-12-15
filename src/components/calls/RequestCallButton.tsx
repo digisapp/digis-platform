@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
@@ -43,8 +43,31 @@ export function RequestCallButton({
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const ablyChannelRef = useRef<Ably.RealtimeChannel | null>(null);
   const rejectionHandledRef = useRef(false);
+  const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
   const estimatedCost = ratePerMinute * minimumDuration;
+
+  // Play ringing sound while waiting for creator to answer
+  const playRingtone = useCallback(() => {
+    try {
+      const ringtone = new Audio('/sounds/ringtone-magic.mp3');
+      ringtone.loop = true;
+      ringtone.volume = 0.5;
+      ringtone.play().catch(() => {});
+      ringtoneRef.current = ringtone;
+    } catch (err) {
+      console.error('Error playing ringtone:', err);
+    }
+  }, []);
+
+  // Stop ringing sound
+  const stopRingtone = useCallback(() => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+      ringtoneRef.current = null;
+    }
+  }, []);
 
   // Set mounted state for portal
   useEffect(() => {
@@ -70,7 +93,7 @@ export function RequestCallButton({
     setShowModal(true);
   };
 
-  // Cleanup polling, countdown, and Ably on unmount
+  // Cleanup polling, countdown, Ably, and ringtone on unmount
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
@@ -81,8 +104,9 @@ export function RequestCallButton({
           ablyChannelRef.current.detach().catch(() => {});
         }
       }
+      stopRingtone();
     };
-  }, []);
+  }, [stopRingtone]);
 
   // Poll for call status
   const startPolling = (id: string) => {
@@ -181,6 +205,8 @@ export function RequestCallButton({
       }
       ablyChannelRef.current = null;
     }
+    // Stop ringtone
+    stopRingtone();
   };
 
   const handleTimeout = () => {
@@ -217,6 +243,7 @@ export function RequestCallButton({
       if (response.ok) {
         setCallId(data.call.id);
         setWaiting(true);
+        playRingtone(); // Play ringing sound while waiting
         startPolling(data.call.id);
       } else {
         setError(data.error || 'Failed to request call');
