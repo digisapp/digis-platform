@@ -118,7 +118,7 @@ function FaceTimeVideoLayout({
   onSendGift: (gift: VirtualGift) => void;
   gifts: VirtualGift[];
   tipSending: boolean;
-  chatMessages: Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string }>;
+  chatMessages: Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string; giftName?: string; giftRarity?: string }>;
   onSendMessage: () => void;
   messageInput: string;
   setMessageInput: (value: string) => void;
@@ -167,22 +167,79 @@ function FaceTimeVideoLayout({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // Gift-specific sounds - unique sound for each gift type
+  const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
+    'Fire': '/sounds/gift-fire.mp3',
+    'Heart': '/sounds/gift-heart.mp3',
+    'Peach': '/sounds/gift-peach.mp3',
+    'Pizza': '/sounds/gift-pizza.mp3',
+    'Rocket': '/sounds/gift-rocket.mp3',
+    'Rose': '/sounds/gift-rose.mp3',
+    'Martini': '/sounds/gift-martini.mp3',
+    'Cake': '/sounds/gift-cake.mp3',
+    'Sushi': '/sounds/gift-sushi.mp3',
+    'Steak': '/sounds/gift-steak.mp3',
+    'Champagne': '/sounds/gift-champagne.mp3',
+    'Gold Bar': '/sounds/gift-money.mp3',
+    'Crown': '/sounds/gift-crown.mp3',
+    'Designer Bag': '/sounds/gift-bag.mp3',
+    'Diamond': '/sounds/gift-diamond.mp3',
+    'Engagement Ring': '/sounds/gift-ring.mp3',
+    'Sports Car': '/sounds/gift-sports-car.mp3',
+    'Yacht': '/sounds/gift-yacht.mp3',
+    'Jet': '/sounds/gift-jet.mp3',
+    'Mansion': '/sounds/gift-mansion.mp3',
+  };
+
+  // Rarity-based fallback sounds for gifts
+  const RARITY_SOUNDS: Record<string, string> = {
+    common: '/sounds/coin-common.mp3',
+    rare: '/sounds/coin-rare.mp3',
+    epic: '/sounds/coin-epic.mp3',
+    legendary: '/sounds/coin-legendary.mp3',
+  };
+
   // Show gift animation when gift received
   useEffect(() => {
     const lastMsg = chatMessages[chatMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftEmoji) {
       setShowGiftAnimation({ emoji: lastMsg.giftEmoji, id: lastMsg.id });
-      // Play gift sound (use epic tier for gifts during calls)
+      // Play gift-specific sound, or fall back to rarity-based sound
       try {
-        const audio = new Audio('/sounds/coin-epic.mp3');
+        let soundFile = '/sounds/coin-common.mp3';
+        if (lastMsg.giftName && GIFT_SPECIFIC_SOUNDS[lastMsg.giftName]) {
+          soundFile = GIFT_SPECIFIC_SOUNDS[lastMsg.giftName];
+        } else if (lastMsg.giftRarity && RARITY_SOUNDS[lastMsg.giftRarity]) {
+          soundFile = RARITY_SOUNDS[lastMsg.giftRarity];
+        }
+        const audio = new Audio(soundFile);
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch {}
       setTimeout(() => setShowGiftAnimation(null), 2000);
-    } else if (lastMsg?.type === 'tip') {
-      // Play tip sound
+    } else if (lastMsg?.type === 'tip' && lastMsg.amount) {
+      // Play tiered tip sound based on amount (1 coin = $0.10)
+      // Common: $0.10-$0.99 (1-9 coins)
+      // Nice: $1.00-$4.99 (10-49 coins)
+      // Super: $5-$19.99 (50-199 coins)
+      // Rare: $20-$49.99 (200-499 coins)
+      // Epic: $50-$99.99 (500-999 coins)
+      // Legendary: $100+ (1000+ coins)
       try {
-        const audio = new Audio('/sounds/coin-common.mp3');
+        const amount = lastMsg.amount;
+        let soundFile = '/sounds/coin-common.mp3';
+        if (amount >= 1000) {
+          soundFile = '/sounds/coin-legendary.mp3';
+        } else if (amount >= 500) {
+          soundFile = '/sounds/coin-epic.mp3';
+        } else if (amount >= 200) {
+          soundFile = '/sounds/coin-rare.mp3';
+        } else if (amount >= 50) {
+          soundFile = '/sounds/coin-super.mp3';
+        } else if (amount >= 10) {
+          soundFile = '/sounds/coin-nice.mp3';
+        }
+        const audio = new Audio(soundFile);
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch {}
@@ -1065,7 +1122,7 @@ export default function VideoCallPage() {
   const [hasStarted, setHasStarted] = useState(false);
 
   // Chat and tip state
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: string; senderName?: string; content: string; timestamp: number; type?: 'chat' | 'tip' | 'gift'; amount?: number; giftEmoji?: string; giftName?: string; giftRarity?: string }>>([]);
   const [messageInput, setMessageInput] = useState('');
   const [userBalance, setUserBalance] = useState(0);
   const [tipSending, setTipSending] = useState(false);
@@ -1332,6 +1389,7 @@ export default function VideoCallPage() {
             senderName,
             giftName: gift.name,
             giftEmoji: gift.emoji,
+            giftRarity: gift.rarity,
             amount: gift.coinCost,
             timestamp: Date.now(),
           });
@@ -1583,6 +1641,9 @@ export default function VideoCallPage() {
               timestamp: data.timestamp || Date.now(),
               type: 'gift',
               giftEmoji: data.giftEmoji,
+              giftName: data.giftName,
+              giftRarity: data.giftRarity,
+              amount: data.amount,
             }];
           });
         });
