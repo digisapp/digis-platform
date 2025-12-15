@@ -30,15 +30,32 @@ type StreamChatProps = {
 // Quick emojis for chat
 const CHAT_EMOJIS = ['❤️', '🔥', '😂', '👏', '🎉', '💯', '😍', '🙌'];
 
-// Helper to get username styling based on spend tier
-function getUsernameStyle(spendTier?: SpendTier | null) {
+// Helper to get username and avatar ring styling based on spend tier
+function getTierStyle(spendTier?: SpendTier | null) {
   if (!spendTier || spendTier === 'none') {
-    return { color: 'text-white/80', badge: null };
+    return {
+      color: 'text-white/80',
+      ringClass: '',
+      glowClass: '',
+    };
   }
   const config = getTierConfig(spendTier);
+
+  // Map tier to ring and glow classes
+  const ringMap: Record<string, { ring: string; glow: string }> = {
+    diamond: { ring: 'ring-2 ring-cyan-400', glow: 'shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
+    platinum: { ring: 'ring-2 ring-purple-400', glow: 'shadow-[0_0_8px_rgba(192,132,252,0.6)]' },
+    gold: { ring: 'ring-2 ring-yellow-400', glow: 'shadow-[0_0_8px_rgba(250,204,21,0.6)]' },
+    silver: { ring: 'ring-2 ring-gray-300', glow: 'shadow-[0_0_6px_rgba(209,213,219,0.4)]' },
+    bronze: { ring: 'ring-2 ring-orange-400', glow: 'shadow-[0_0_6px_rgba(251,146,60,0.5)]' },
+  };
+
+  const styles = ringMap[spendTier] || { ring: '', glow: '' };
+
   return {
     color: config.color,
-    badge: config.emoji,
+    ringClass: styles.ring,
+    glowClass: styles.glow,
   };
 }
 
@@ -194,23 +211,22 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               ) : msg.messageType === 'gift' ? (
                 // Gift message - 2 rows: avatar+username+time, then sent gift
                 (() => {
-                  const tierStyle = getUsernameStyle((msg as any).user?.spendTier);
+                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
                   return (
                 <div className="flex items-start gap-2 py-1 px-2 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-lg border border-digis-pink/20">
                   {(msg as any).user?.avatarUrl ? (
                     <img
                       src={(msg as any).user.avatarUrl}
                       alt={msg.username}
-                      className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                      className={`w-6 h-6 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
                     />
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
                       {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      {tierStyle.badge && <span className="text-sm">{tierStyle.badge}</span>}
                       <span className={`font-bold text-sm ${tierStyle.color}`}>{msg.username}</span>
                       <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                     </div>
@@ -228,7 +244,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               ) : (msg as any).messageType === 'tip' ? (
                 // Tip message - special green styling
                 (() => {
-                  const tierStyle = getUsernameStyle((msg as any).user?.spendTier);
+                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
                   return (
                 <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
                   {/* Avatar */}
@@ -236,16 +252,15 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     <img
                       src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
                       alt={msg.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
                       {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {tierStyle.badge && <span className="text-sm">{tierStyle.badge}</span>}
                       <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
                       <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                     </div>
@@ -262,7 +277,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               ) : (msg as any).messageType === 'ticket_purchase' ? (
                 // Ticket purchase message - amber/gold styling
                 (() => {
-                  const tierStyle = getUsernameStyle((msg as any).user?.spendTier);
+                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
                   return (
                 <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20">
                   {/* Avatar */}
@@ -270,16 +285,15 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     <img
                       src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
                       alt={msg.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-xs font-bold text-black flex-shrink-0">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-xs font-bold text-black flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
                       {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {tierStyle.badge && <span className="text-sm">{tierStyle.badge}</span>}
                       <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
                       <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                     </div>
@@ -302,7 +316,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               ) : (msg as any).messageType === 'menu_purchase' || (msg as any).messageType === 'menu_order' || (msg as any).messageType === 'menu_tip' ? (
                 // Menu item purchase/order - purple/pink styling
                 (() => {
-                  const tierStyle = getUsernameStyle((msg as any).user?.spendTier);
+                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
                   return (
                 <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
                   {/* Avatar */}
@@ -310,16 +324,15 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     <img
                       src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
                       alt={msg.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
                       {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {tierStyle.badge && <span className="text-sm">{tierStyle.badge}</span>}
                       <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
                       <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
                     </div>
@@ -337,7 +350,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               ) : (
                 // Regular message
                 (() => {
-                  const tierStyle = getUsernameStyle((msg as any).user?.spendTier);
+                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
                   return (
                 <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
                   {/* Avatar */}
@@ -345,10 +358,10 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                     <img
                       src={(msg as any).user.avatarUrl}
                       alt={msg.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
                       {msg.username?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -356,9 +369,6 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                   {/* Message Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {tierStyle.badge && (
-                        <span className="text-sm" title={`${(msg as any).user?.spendTier} tier`}>{tierStyle.badge}</span>
-                      )}
                       <span className={`font-semibold text-sm ${tierStyle.color}`}>
                         {msg.username}
                       </span>
