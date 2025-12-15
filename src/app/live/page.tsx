@@ -211,7 +211,7 @@ export default function LiveStreamsPage() {
 
       {/* Mobile Header */}
       <MobileHeader />
-      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}

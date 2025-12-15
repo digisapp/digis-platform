@@ -210,7 +210,7 @@ export default function MessagesPage() {
       <MobileHeader />
 
       {/* Spacer for fixed mobile header */}
-      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto max-w-7xl relative z-10">
         <div className="px-4 pt-2 md:pt-10">
