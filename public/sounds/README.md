@@ -1,53 +1,59 @@
-# Stream Alert Sound Files
+# Digis Sound Effects
 
-This directory should contain the following sound files for stream alerts:
+All sound files should be in MP3 format for optimal browser compatibility and file size.
 
-## Gift Alert Sounds
-- `gift-small.wav` - For gifts under 100 coins (light "ding" sound)
-- `gift-medium.wav` - For gifts 100-499 coins (pleasant chime)
-- `gift-large.wav` - For gifts 500-999 coins (exciting fanfare)
-- `gift-epic.wav` - For gifts 1000+ coins (epic celebration sound)
+## Incoming Call
+- `ringtone-magic.mp3` - Beautiful melody for incoming calls
 
-## Top Tipper Sound
-- `big-tip.wav` - For top tipper spotlight (celebratory fanfare)
+## Tip/Casino Sounds (by tier)
+- `coin-common.mp3` - Small tips: Coin drop sound
+- `coin-rare.mp3` - Medium tips: Cash register cha-ching
+- `coin-epic.mp3` - Large tips: Slot machine win
+- `coin-legendary.mp3` - Huge tips: Jackpot celebration
+- `coin-tip.mp3` - Quick tip notification
+- `big-tip.mp3` - Top tipper spotlight fanfare
 
-## Goal Celebration Sound
-- `goal-complete.wav` - For when a stream goal is reached (triumph fanfare)
+## Goal Celebration
+- `goal-complete.mp3` - Stream goal reached (achievement sound)
 
-## Quick Setup - Generate Sounds
+## Virtual Gift Sounds
 
-We've created a sound generator tool to create these files instantly:
+### Common Gifts
+- `gift-fire.mp3` - Fire whoosh
+- `gift-heart.mp3` - Heartbeat/love sound
+- `gift-peach.mp3` - Juicy pop
+- `gift-pizza.mp3` - Oven ding
+- `gift-rocket.mp3` - Rocket launch whoosh
+- `gift-rose.mp3` - Romantic chime
+- `gift-martini.mp3` - Glass clink
 
-1. Open `scripts/generate-sounds.html` in your browser
-2. Click "Preview" to listen to each sound
-3. Click "Download" to save each file (downloads as .wav)
-4. Move all 6 downloaded `.wav` files to this `public/sounds/` folder
-5. Refresh your stream page - sounds will play automatically!
+### Rare Gifts
+- `gift-cake.mp3` - Party celebration
+- `gift-sushi.mp3` - Pleasant pop
+- `gift-steak.mp3` - Sizzle sound
+- `gift-champagne.mp3` - Cork pop and fizz
+- `gift-money.mp3` - Coins/jackpot (for Gold Bar)
+- `gift-crown.mp3` - Royal fanfare
 
-**Note:** The generator creates high-quality WAV files using Web Audio API. All modern browsers support WAV audio natively.
+### Epic Gifts
+- `gift-bag.mp3` - Shopping bag rustle (Designer Bag)
+- `gift-diamond.mp3` - Sparkle/bling
+- `gift-ring.mp3` - Magic shimmer (Engagement Ring)
+- `gift-sports-car.mp3` - Engine rev
 
-## Sound Specifications
-- Format: WAV (uncompressed audio)
-- Sample Rate: 48kHz (browser AudioContext default)
-- Bit Depth: 16-bit
-- Duration: 0.3-1.5 seconds (short and punchy)
-- Volume: Normalized to prevent clipping
+### Legendary Gifts
+- `gift-yacht.mp3` - Boat horn
+- `gift-jet.mp3` - Jet flyby
+- `gift-mansion.mp3` - Grand fanfare
 
-## Recommendations
-You can find free sound effects at:
-- https://freesound.org
-- https://mixkit.co/free-sound-effects/
-- https://www.zapsplat.com
+## Download Helper
 
-Suggested keywords to search:
-- "coin drop"
-- "level up"
-- "achievement"
-- "fanfare"
-- "celebration"
-- "success chime"
-- "victory"
+Open `/download-sounds.html` in your browser for a guided download experience with Pixabay links for each sound.
+
+## Recommended Sources
+- https://pixabay.com/sound-effects/ (free, no attribution required)
+- https://freesound.org (free, check license)
+- https://mixkit.co/free-sound-effects/ (free)
 
 ## Note
-The app will gracefully handle missing sound files by silently failing.
-Audio playback will be attempted but won't crash if files don't exist.
+The app gracefully handles missing sound files - audio playback will be attempted but won't crash if files don't exist. Gifts without specific sounds fall back to the tier-based casino sounds.

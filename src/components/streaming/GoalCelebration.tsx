@@ -22,7 +22,7 @@ export function GoalCelebration({ goal, onComplete }: GoalCelebrationProps) {
 
   useEffect(() => {
     // Play celebration sound once
-    const audio = new Audio('/sounds/goal-complete.wav');
+    const audio = new Audio('/sounds/goal-complete.mp3');
     audio.volume = 0.5;
     audioRef.current = audio;
     audio.play().catch(() => {

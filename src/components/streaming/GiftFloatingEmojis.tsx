@@ -44,13 +44,13 @@ const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
   'Mansion': '/sounds/gift-mansion.mp3',       // Grand fanfare
 };
 
-// Fallback sounds for gifts without specific sounds - based on rarity
+// Fallback sounds for gifts without specific sounds - based on rarity (casino/jackpot style)
 const RARITY_SOUNDS: Record<string, string> = {
-  common: '/sounds/coin-common.wav',
-  rare: '/sounds/coin-rare.wav',
-  epic: '/sounds/coin-epic.wav',
-  legendary: '/sounds/coin-legendary.wav',
-  tip: '/sounds/coin-tip.wav',
+  common: '/sounds/coin-common.mp3',      // Coin drop
+  rare: '/sounds/coin-rare.mp3',          // Cash register cha-ching
+  epic: '/sounds/coin-epic.mp3',          // Slot machine win
+  legendary: '/sounds/coin-legendary.mp3', // Jackpot celebration
+  tip: '/sounds/coin-tip.mp3',            // Quick tip sound
 };
 
 // Gift burst counts, sizes, and duration by rarity - more hype for bigger gifts!

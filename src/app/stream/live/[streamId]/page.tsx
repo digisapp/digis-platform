@@ -703,7 +703,7 @@ export default function BroadcastStudioPage() {
             setCompletedGoalIds(prev => new Set(prev).add(goal.id));
 
             // Play celebration sound
-            const audio = new Audio('/sounds/goal-complete.wav');
+            const audio = new Audio('/sounds/goal-complete.mp3');
             audio.volume = 0.5;
             audio.play().catch(() => {});
 
