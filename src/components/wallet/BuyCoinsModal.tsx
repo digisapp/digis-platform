@@ -144,7 +144,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
             </div>
 
             {/* Stripe Embedded Checkout */}
-            <div className="min-h-[400px]">
+            <div className="min-h-[400px] pb-16 sm:pb-0">
               <EmbeddedCheckoutProvider
                 stripe={stripePromise}
                 options={{
