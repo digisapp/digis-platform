@@ -92,7 +92,7 @@ export class CallService {
     // Check if fan has enough coins
     const availableBalance = fanWallet.balance - fanWallet.heldBalance;
     if (availableBalance < estimatedCoins) {
-      throw new Error(`Insufficient balance. Need at least ${estimatedCoins} coins for a ${settings.minimumCallDuration} minute call.`);
+      throw new Error(`Insufficient balance. You have ${availableBalance} coins available but need ${estimatedCoins} coins for a ${minimumDuration} minute call at ${ratePerMinute} coins/min.`);
     }
 
     // Create spend hold for estimated amount
