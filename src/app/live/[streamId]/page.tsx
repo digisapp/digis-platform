@@ -970,9 +970,23 @@ export default function TheaterModePage() {
         setUserBalance(data.newBalance);
         streamAnalytics.quickTipSent(streamId, amount);
 
-        // Play menu purchase sound if this was a menu item purchase
+        // Play sound based on tip type and amount
         if (tipMenuItem) {
+          // Menu item purchase sound
           const audio = new Audio('/sounds/menu-purchase.mp3');
+          audio.volume = 0.5;
+          audio.play().catch(() => {});
+        } else {
+          // Tiered tip sound based on amount
+          let soundFile = '/sounds/coin-common.mp3';
+          if (amount >= 500) {
+            soundFile = '/sounds/coin-legendary.mp3';
+          } else if (amount >= 300) {
+            soundFile = '/sounds/coin-epic.mp3';
+          } else if (amount >= 100) {
+            soundFile = '/sounds/coin-rare.mp3';
+          }
+          const audio = new Audio(soundFile);
           audio.volume = 0.5;
           audio.play().catch(() => {});
         }

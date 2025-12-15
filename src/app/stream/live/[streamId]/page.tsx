@@ -211,8 +211,16 @@ export default function BroadcastStudioPage() {
               ...prev,
             ].slice(0, 50)); // Keep last 50 tips
 
-            // Play notification sound
-            const audio = new Audio('/sounds/tip.wav');
+            // Play notification sound - tiered based on amount
+            let soundFile = '/sounds/coin-common.mp3';
+            if (tipData.amount >= 500) {
+              soundFile = '/sounds/coin-legendary.mp3';
+            } else if (tipData.amount >= 300) {
+              soundFile = '/sounds/coin-epic.mp3';
+            } else if (tipData.amount >= 100) {
+              soundFile = '/sounds/coin-rare.mp3';
+            }
+            const audio = new Audio(soundFile);
             audio.volume = 0.6;
             audio.play().catch(() => {});
 
