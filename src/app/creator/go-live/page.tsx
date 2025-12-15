@@ -7,6 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ParticleEffect, SuccessAnimation } from '@/components/ui/ParticleEffect';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
+import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 
 interface FeaturedCreator {
@@ -39,6 +40,7 @@ interface ActiveStream {
 
 export default function GoLivePage() {
   const router = useRouter();
+  const { showError } = useToastContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
@@ -499,10 +501,10 @@ export default function GoLivePage() {
                   if (res.ok) {
                     setActiveStream(null);
                   } else {
-                    alert('Failed to end stream');
+                    showError('Failed to end stream');
                   }
                 } catch (e) {
-                  alert('Failed to end stream');
+                  showError('Failed to end stream');
                 }
               }}
               className="w-full py-3 px-6 bg-white/5 border border-white/20 rounded-xl text-gray-300 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 transition-all"

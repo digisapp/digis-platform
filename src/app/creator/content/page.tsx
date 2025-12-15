@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
+import { useToastContext } from '@/context/ToastContext';
 import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins, MoreVertical } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -24,6 +25,7 @@ interface CreatorContent {
 
 export default function CreatorContentStudioPage() {
   const router = useRouter();
+  const { showError } = useToastContext();
   const [content, setContent] = useState<CreatorContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContent, setSelectedContent] = useState<CreatorContent | null>(null);
@@ -95,11 +97,11 @@ export default function CreatorContentStudioPage() {
         await fetchContent();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to update content');
+        showError(data.error || 'Failed to update content');
       }
     } catch (error) {
       console.error('Error updating content:', error);
-      alert('Failed to update content');
+      showError('Failed to update content');
     } finally {
       setSaving(false);
     }

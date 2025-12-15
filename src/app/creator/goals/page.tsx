@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { useToastContext } from '@/context/ToastContext';
 import { Plus, Target, Users, Coins, Star, Edit2, Trash2, Check, X } from 'lucide-react';
 
 interface CreatorGoal {
@@ -22,6 +23,7 @@ interface CreatorGoal {
 
 export default function CreatorGoalsPage() {
   const router = useRouter();
+  const { showError } = useToastContext();
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<CreatorGoal[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -58,11 +60,11 @@ export default function CreatorGoalsPage() {
       if (response.ok) {
         setGoals(goals.filter(g => g.id !== goalId));
       } else {
-        alert('Failed to delete goal');
+        showError('Failed to delete goal');
       }
     } catch (error) {
       console.error('Error deleting goal:', error);
-      alert('Failed to delete goal');
+      showError('Failed to delete goal');
     }
   };
 
@@ -78,11 +80,11 @@ export default function CreatorGoalsPage() {
         const data = await response.json();
         setGoals(goals.map(g => g.id === goal.id ? data.goal : g));
       } else {
-        alert('Failed to update goal');
+        showError('Failed to update goal');
       }
     } catch (error) {
       console.error('Error updating goal:', error);
-      alert('Failed to update goal');
+      showError('Failed to update goal');
     }
   };
 
@@ -273,6 +275,7 @@ function GoalModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { showError } = useToastContext();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: goal?.title || '',
@@ -300,11 +303,11 @@ function GoalModal({
         onSuccess();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to save goal');
+        showError(data.error || 'Failed to save goal');
       }
     } catch (error) {
       console.error('Error saving goal:', error);
-      alert('Failed to save goal');
+      showError('Failed to save goal');
     } finally {
       setSubmitting(false);
     }

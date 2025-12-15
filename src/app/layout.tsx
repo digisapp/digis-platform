@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/context/ToastContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -30,9 +31,11 @@ export default function RootLayout({
     <html lang="en" className="bg-black">
       <body className="antialiased bg-black min-h-screen">
         <AuthProvider>
-          <Navigation />
-          <IncomingCallPopup />
-          {children}
+          <ToastProvider>
+            <Navigation />
+            <IncomingCallPopup />
+            {children}
+          </ToastProvider>
         </AuthProvider>
         <Analytics />
       </body>

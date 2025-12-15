@@ -7,6 +7,7 @@ import '@livekit/components-styles/themes/default';
 import { ConnectionState, Track, VideoPresets } from 'livekit-client';
 import { Phone, PhoneOff, Loader2, Mic, MicOff, Volume2, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useToastContext } from '@/context/ToastContext';
 import { getAblyClient } from '@/lib/ably/client';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import type Ably from 'ably';
@@ -1111,6 +1112,7 @@ export default function VideoCallPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { showError } = useToastContext();
   const callId = params.callId as string;
 
   const [callToken, setCallToken] = useState<CallToken | null>(null);
@@ -1291,7 +1293,7 @@ export default function VideoCallPage() {
     if (!callData || tipSending || !user) return;
 
     if (userBalance < amount) {
-      alert(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
+      showError(`Insufficient balance. You need ${amount} coins but only have ${userBalance}.`);
       return;
     }
 
@@ -1332,11 +1334,11 @@ export default function VideoCallPage() {
           console.error('[CallPage] Failed to publish tip to Ably:', ablyErr);
         }
       } else {
-        alert(data.error || 'Failed to send tip');
+        showError(data.error || 'Failed to send tip');
       }
     } catch (err) {
       console.error('Error sending tip:', err);
-      alert('Failed to send tip');
+      showError('Failed to send tip');
     } finally {
       setTipSending(false);
     }
@@ -1354,7 +1356,7 @@ export default function VideoCallPage() {
     if (!callData || tipSending || !user) return;
 
     if (userBalance < gift.coinCost) {
-      alert(`Insufficient balance. You need ${gift.coinCost} coins but only have ${userBalance}.`);
+      showError(`Insufficient balance. You need ${gift.coinCost} coins but only have ${userBalance}.`);
       return;
     }
 
@@ -1398,11 +1400,11 @@ export default function VideoCallPage() {
           console.error('[CallPage] Failed to publish gift to Ably:', ablyErr);
         }
       } else {
-        alert(data.error || 'Failed to send gift');
+        showError(data.error || 'Failed to send gift');
       }
     } catch (err) {
       console.error('Error sending gift:', err);
-      alert('Failed to send gift');
+      showError('Failed to send gift');
     } finally {
       setTipSending(false);
     }

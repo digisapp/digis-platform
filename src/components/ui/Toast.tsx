@@ -70,7 +70,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
   return (
     <div
-      className={`fixed top-4 right-4 max-w-md w-full sm:w-auto z-[9999] ${
+      className={`max-w-md w-full sm:w-auto ${
         isExiting ? 'animate-slide-out-right' : 'animate-slide-in-right'
       }`}
     >
