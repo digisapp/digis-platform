@@ -1466,12 +1466,18 @@ export default function TheaterModePage() {
                         </div>
                       )}
                       <span className="font-bold text-pink-300 text-xs">@{msg.username}</span>
-                      <span className="text-white/70 text-xs">sent</span>
-                      {msg.giftQuantity && msg.giftQuantity > 1 && (
-                        <span className="font-bold text-pink-400 text-xs">{msg.giftQuantity}x</span>
+                      {msg.giftName ? (
+                        <>
+                          <span className="text-white/70 text-xs">sent</span>
+                          {msg.giftQuantity && msg.giftQuantity > 1 && (
+                            <span className="font-bold text-pink-400 text-xs">{msg.giftQuantity}x</span>
+                          )}
+                          <span className="text-base">{msg.giftEmoji}</span>
+                          <span className="font-bold text-pink-200 text-xs">{msg.giftName}</span>
+                        </>
+                      ) : (
+                        <span className="text-white/90 text-xs">{msg.content}</span>
                       )}
-                      <span className="text-base">{msg.giftEmoji}</span>
-                      <span className="font-bold text-pink-200 text-xs">{msg.giftName}</span>
                     </div>
                   ) : msg.messageType === 'ticket_purchase' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
@@ -1741,12 +1747,18 @@ export default function TheaterModePage() {
                               </div>
                             )}
                             <span className="font-bold text-pink-300">@{msg.username}</span>
-                            <span className="text-white/70">sent</span>
-                            {msg.giftQuantity && msg.giftQuantity > 1 && (
-                              <span className="font-bold text-pink-400">{msg.giftQuantity}x</span>
+                            {msg.giftName ? (
+                              <>
+                                <span className="text-white/70">sent</span>
+                                {msg.giftQuantity && msg.giftQuantity > 1 && (
+                                  <span className="font-bold text-pink-400">{msg.giftQuantity}x</span>
+                                )}
+                                <span className="text-xl">{msg.giftEmoji}</span>
+                                <span className="font-bold text-pink-400">{msg.giftName}</span>
+                              </>
+                            ) : (
+                              <span className="text-white/90">{msg.content}</span>
                             )}
-                            <span className="text-xl">{msg.giftEmoji}</span>
-                            <span className="font-bold text-pink-400">{msg.giftName}</span>
                           </div>
                         </div>
                       ) : msg.messageType === 'ticket_purchase' ? (

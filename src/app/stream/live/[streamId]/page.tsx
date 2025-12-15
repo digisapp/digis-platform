@@ -462,7 +462,7 @@ export default function BroadcastStudioPage() {
       // Transform the received message to match StreamMessage type
       // The Ably message may have 'content' or 'message' field depending on source
       const msgData = message as any;
-      const streamMessage: StreamMessage = {
+      const streamMessage = {
         id: msgData.id,
         streamId: msgData.streamId || streamId,
         userId: msgData.userId,
@@ -471,11 +471,14 @@ export default function BroadcastStudioPage() {
         messageType: msgData.messageType || 'chat',
         giftId: msgData.giftId || null,
         giftAmount: msgData.giftAmount || null,
+        giftName: msgData.giftName || null,
+        giftEmoji: msgData.giftEmoji || null,
+        giftQuantity: msgData.giftQuantity || null,
         tipMenuItemId: msgData.tipMenuItemId || null,
         tipMenuItemLabel: msgData.tipMenuItemLabel || null,
         createdAt: msgData.createdAt ? new Date(msgData.createdAt) : new Date(),
         user: msgData.user, // Pass through user data for avatar display
-      } as StreamMessage;
+      } as unknown as StreamMessage;
 
       setMessages((prev) => {
         // Check if message already exists (from optimistic add or duplicate broadcast)
