@@ -396,8 +396,11 @@ function PricingPageContent() {
                       <input
                         type="number"
                         min="1"
-                        value={callSettings.callRatePerMinute}
-                        onChange={(e) => setCallSettings({ ...callSettings, callRatePerMinute: parseInt(e.target.value) || 1 })}
+                        value={callSettings.callRatePerMinute || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+/, '') || '1';
+                          setCallSettings({ ...callSettings, callRatePerMinute: parseInt(val) || 1 });
+                        }}
                         className="w-full px-3 py-2 bg-black/40 border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-cyan-500"
                       />
                       <span className="text-xs text-gray-400">coins</span>
@@ -411,8 +414,11 @@ function PricingPageContent() {
                         type="number"
                         min="1"
                         max="60"
-                        value={callSettings.minimumCallDuration}
-                        onChange={(e) => setCallSettings({ ...callSettings, minimumCallDuration: parseInt(e.target.value) || 1 })}
+                        value={callSettings.minimumCallDuration || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+/, '') || '1';
+                          setCallSettings({ ...callSettings, minimumCallDuration: Math.min(60, parseInt(val) || 1) });
+                        }}
                         className="w-full px-3 py-2 bg-black/40 border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-cyan-500"
                       />
                       <span className="text-xs text-gray-400">mins</span>
@@ -449,8 +455,11 @@ function PricingPageContent() {
                       <input
                         type="number"
                         min="1"
-                        value={callSettings.voiceCallRatePerMinute}
-                        onChange={(e) => setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(e.target.value) || 1 })}
+                        value={callSettings.voiceCallRatePerMinute || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+/, '') || '1';
+                          setCallSettings({ ...callSettings, voiceCallRatePerMinute: parseInt(val) || 1 });
+                        }}
                         className="w-full px-3 py-2 bg-black/40 border border-blue-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-blue-500"
                       />
                       <span className="text-xs text-gray-400">coins</span>
@@ -464,8 +473,11 @@ function PricingPageContent() {
                         type="number"
                         min="1"
                         max="60"
-                        value={callSettings.minimumVoiceCallDuration}
-                        onChange={(e) => setCallSettings({ ...callSettings, minimumVoiceCallDuration: parseInt(e.target.value) || 1 })}
+                        value={callSettings.minimumVoiceCallDuration || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+/, '') || '1';
+                          setCallSettings({ ...callSettings, minimumVoiceCallDuration: Math.min(60, parseInt(val) || 1) });
+                        }}
                         className="w-full px-3 py-2 bg-black/40 border border-blue-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-blue-500"
                       />
                       <span className="text-xs text-gray-400">mins</span>
@@ -505,8 +517,11 @@ function PricingPageContent() {
                     <input
                       type="number"
                       min="0"
-                      value={callSettings.messageRate}
-                      onChange={(e) => setCallSettings({ ...callSettings, messageRate: parseInt(e.target.value) || 0 })}
+                      value={callSettings.messageRate || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/^0+/, '') || '0';
+                        setCallSettings({ ...callSettings, messageRate: parseInt(val) || 0 });
+                      }}
                       className="w-full px-3 py-2 bg-black/40 border border-pink-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-pink-500"
                     />
                     <span className="text-xs text-gray-400">coins</span>
@@ -569,8 +584,11 @@ function PricingPageContent() {
                         <input
                           type="number"
                           min="1"
-                          value={subscriptionSettings.monthlyPrice}
-                          onChange={(e) => setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(e.target.value) || 1 })}
+                          value={subscriptionSettings.monthlyPrice || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/^0+/, '') || '1';
+                            setSubscriptionSettings({ ...subscriptionSettings, monthlyPrice: parseInt(val) || 1 });
+                          }}
                           className="w-full px-3 py-2 bg-black/40 border border-purple-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500"
                         />
                         <span className="text-xs text-gray-400">coins/mo</span>
