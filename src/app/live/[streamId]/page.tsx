@@ -1471,6 +1471,7 @@ export default function TheaterModePage() {
                         <span className="font-bold text-pink-400 text-xs">{msg.giftQuantity}x</span>
                       )}
                       <span className="text-base">{msg.giftEmoji}</span>
+                      <span className="font-bold text-pink-200 text-xs">{msg.giftName}</span>
                     </div>
                   ) : msg.messageType === 'ticket_purchase' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">

@@ -507,6 +507,10 @@ export default function BroadcastStudioPage() {
         messageType: 'gift' as const,
         giftId: giftEvent.gift.id,
         giftAmount: giftEvent.streamGift.quantity * giftEvent.gift.coinCost,
+        giftEmoji: giftEvent.gift.emoji,
+        giftName: giftEvent.gift.name,
+        giftQuantity: giftEvent.streamGift.quantity,
+        user: { avatarUrl: giftEvent.streamGift.senderAvatarUrl || null },
         createdAt: new Date(),
       };
       setMessages((prev) => [...prev, giftMessage as StreamMessage]);
