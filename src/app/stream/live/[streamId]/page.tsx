@@ -510,10 +510,12 @@ export default function BroadcastStudioPage() {
         giftEmoji: giftEvent.gift.emoji,
         giftName: giftEvent.gift.name,
         giftQuantity: giftEvent.streamGift.quantity,
+        tipMenuItemId: null,
+        tipMenuItemLabel: null,
         user: { avatarUrl: giftEvent.streamGift.senderAvatarUrl || null },
         createdAt: new Date(),
       };
-      setMessages((prev) => [...prev, giftMessage as StreamMessage]);
+      setMessages((prev) => [...prev, giftMessage as unknown as StreamMessage]);
       // Update goals progress and leaderboard
       fetchGoals();
       fetchLeaderboard();
