@@ -211,14 +211,21 @@ export default function BroadcastStudioPage() {
               ...prev,
             ].slice(0, 50)); // Keep last 50 tips
 
-            // Play notification sound - tiered based on amount
+            // Play notification sound - tiered based on amount (1 coin = $0.10)
+            // Common: $0.10-$4.90 (1-49 coins)
+            // Super: $5-$19.90 (50-199 coins)
+            // Rare: $20-$49.90 (200-499 coins)
+            // Epic: $50-$99.90 (500-999 coins)
+            // Legendary: $100+ (1000+ coins)
             let soundFile = '/sounds/coin-common.mp3';
-            if (tipData.amount >= 500) {
+            if (tipData.amount >= 1000) {
               soundFile = '/sounds/coin-legendary.mp3';
-            } else if (tipData.amount >= 300) {
+            } else if (tipData.amount >= 500) {
               soundFile = '/sounds/coin-epic.mp3';
-            } else if (tipData.amount >= 100) {
+            } else if (tipData.amount >= 200) {
               soundFile = '/sounds/coin-rare.mp3';
+            } else if (tipData.amount >= 50) {
+              soundFile = '/sounds/coin-super.mp3';
             }
             const audio = new Audio(soundFile);
             audio.volume = 0.6;
