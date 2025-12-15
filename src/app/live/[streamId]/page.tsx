@@ -999,10 +999,11 @@ export default function TheaterModePage() {
           audio.play().catch(() => {});
         } else {
           // Tiered tip sound based on amount (1 coin = $0.10)
-          // Common: $0.10-$4.90 (1-49 coins)
-          // Super: $5-$19.90 (50-199 coins)
-          // Rare: $20-$49.90 (200-499 coins)
-          // Epic: $50-$99.90 (500-999 coins)
+          // Common: $0.10-$0.99 (1-9 coins)
+          // Nice: $1.00-$4.99 (10-49 coins)
+          // Super: $5-$19.99 (50-199 coins)
+          // Rare: $20-$49.99 (200-499 coins)
+          // Epic: $50-$99.99 (500-999 coins)
           // Legendary: $100+ (1000+ coins)
           let soundFile = '/sounds/coin-common.mp3';
           if (amount >= 1000) {
@@ -1013,6 +1014,8 @@ export default function TheaterModePage() {
             soundFile = '/sounds/coin-rare.mp3';
           } else if (amount >= 50) {
             soundFile = '/sounds/coin-super.mp3';
+          } else if (amount >= 10) {
+            soundFile = '/sounds/coin-nice.mp3';
           }
           const audio = new Audio(soundFile);
           audio.volume = 0.5;
