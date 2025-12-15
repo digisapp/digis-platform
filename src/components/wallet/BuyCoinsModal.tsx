@@ -105,7 +105,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
       title={clientSecret ? undefined : "Buy Coins"}
       size="lg"
     >
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         {/* Error Message */}
         {error && (
           <div className="p-4 rounded-lg bg-red-500/20 border border-red-500 text-red-400 text-sm">
@@ -164,49 +164,50 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
         ) : (
           /* Package Selection */
           <>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {DISPLAY_PACKAGES.map((pkg) => (
                 <div
                   key={pkg.id}
-                  className="glass glass-hover p-5 rounded-2xl cursor-pointer transition-all border-2 border-transparent hover:border-white/20"
+                  className="glass glass-hover p-2.5 sm:p-5 rounded-xl sm:rounded-2xl cursor-pointer transition-all border-2 border-transparent hover:border-white/20 active:scale-95"
                   onClick={() => handleSelectPackage(pkg.id)}
                 >
-                  {/* Package Details */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-                        <Coins className="w-6 h-6 text-white" />
+                  {/* Package Details - Compact on mobile */}
+                  <div className="text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-1 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                          <Coins className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm sm:text-xl font-bold text-white">{pkg.coins.toLocaleString()}</p>
+                          <p className="text-[10px] sm:text-xs text-gray-400">coins</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">{pkg.name}</h3>
-                        <p className="text-xs text-gray-400">{pkg.coins.toLocaleString()} coins</p>
+                      <div className="sm:text-right">
+                        <p className="text-lg sm:text-2xl font-bold text-emerald-400">{pkg.price}</p>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-white">{pkg.price}</p>
                     </div>
                   </div>
 
                   {/* Select Button */}
                   <GlassButton
                     variant="cyan"
-                    size="md"
-                    className="w-full"
+                    size="sm"
+                    className="w-full text-xs sm:text-sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelectPackage(pkg.id);
                     }}
                   >
-                    Select
+                    Buy
                   </GlassButton>
                 </div>
               ))}
             </div>
 
-            {/* Security Info */}
-            <div className="text-center text-xs text-gray-400 space-y-1 pt-2">
-              <p>🔒 Secure payment powered by Stripe</p>
-              <p>✨ Coins added instantly • Apple Pay & Google Pay supported</p>
+            {/* Security Info - More compact on mobile */}
+            <div className="text-center text-[10px] sm:text-xs text-gray-400 pt-1 sm:pt-2">
+              <p>🔒 Secure payment • Apple Pay & Google Pay</p>
             </div>
           </>
         )}
