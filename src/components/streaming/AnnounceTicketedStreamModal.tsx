@@ -70,6 +70,11 @@ export function AnnounceTicketedStreamModal({
         throw new Error(data.error || 'Failed to announce ticketed stream');
       }
 
+      // Play ticketed announce sound
+      const audio = new Audio('/sounds/ticketed-announce.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+
       onSuccess({
         id: data.ticketedStream.id,
         title: data.ticketedStream.title,

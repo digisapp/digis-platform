@@ -569,6 +569,12 @@ export default function BroadcastStudioPage() {
       setViewerCount(data.currentViewers);
       setPeakViewers(data.peakViewers);
     },
+    onViewerJoined: () => {
+      // Play new viewer sound (with built-in cooldown via audio element)
+      const audio = new Audio('/sounds/new-viewer.mp3');
+      audio.volume = 0.3;
+      audio.play().catch(() => {});
+    },
     onGoalUpdate: (update) => {
       fetchGoals();
       // Show celebration notification if goal completed

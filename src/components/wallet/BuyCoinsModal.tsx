@@ -84,6 +84,10 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
   const handleCheckoutComplete = useCallback(() => {
     setCheckoutComplete(true);
+    // Play coin purchase sound
+    const audio = new Audio('/sounds/coin-purchase.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
     // Trigger success callback after a short delay
     setTimeout(() => {
       onSuccess?.();

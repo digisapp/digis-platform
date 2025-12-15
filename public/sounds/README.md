@@ -5,16 +5,28 @@ All sound files should be in MP3 format for optimal browser compatibility and fi
 ## Incoming Call
 - `ringtone-magic.mp3` - Beautiful melody for incoming calls
 
+## Purchases
+- `coin-purchase.mp3` - When user buys coins
+- `ticket-purchase.mp3` - When user buys a stream ticket
+- `menu-purchase.mp3` - When fan buys from tip menu
+
+## Stream Events
+- `stream-loading.mp3` - While stream is loading
+- `new-viewer.mp3` - When a new viewer joins
+- `ticketed-announce.mp3` - When creator announces a ticketed stream
+
 ## Tip/Casino Sounds (by tier)
 - `coin-common.mp3` - Small tips: Coin drop sound
 - `coin-rare.mp3` - Medium tips: Cash register cha-ching
 - `coin-epic.mp3` - Large tips: Slot machine win
 - `coin-legendary.mp3` - Huge tips: Jackpot celebration
-- `coin-tip.mp3` - Quick tip notification
 - `big-tip.mp3` - Top tipper spotlight fanfare
 
 ## Goal Celebration
 - `goal-complete.mp3` - Stream goal reached (achievement sound)
+
+## Waiting Room
+- `waiting-room.mp3` - Looping background music for non-ticket holders waiting during private ticketed streams
 
 ## Virtual Gift Sounds
 

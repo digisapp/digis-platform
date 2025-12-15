@@ -95,6 +95,7 @@ interface UseStreamChatOptions {
   onGift?: (gift: GiftEvent) => void;
   onReaction?: (reaction: ReactionEvent) => void;
   onViewerCount?: (count: { currentViewers: number; peakViewers: number }) => void;
+  onViewerJoined?: () => void;
   onStreamEnded?: () => void;
   onGoalUpdate?: (update: GoalUpdate) => void;
   onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
@@ -121,6 +122,7 @@ export function useStreamChat({
   onGift,
   onReaction,
   onViewerCount,
+  onViewerJoined,
   onStreamEnded,
   onGoalUpdate,
   onSpotlightChanged,
@@ -140,6 +142,7 @@ export function useStreamChat({
     onGift,
     onReaction,
     onViewerCount,
+    onViewerJoined,
     onStreamEnded,
     onGoalUpdate,
     onSpotlightChanged,
@@ -155,6 +158,7 @@ export function useStreamChat({
       onGift,
       onReaction,
       onViewerCount,
+      onViewerJoined,
       onStreamEnded,
       onGoalUpdate,
       onSpotlightChanged,
@@ -162,7 +166,7 @@ export function useStreamChat({
       onVipModeChange,
       onMenuToggle,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle]);
 
   useEffect(() => {
     let mounted = true;
@@ -258,7 +262,10 @@ export function useStreamChat({
 
         // Subscribe to presence changes
         presenceChannel.presence.subscribe('enter', () => {
-          if (mounted) setViewerCount((prev) => prev + 1);
+          if (mounted) {
+            setViewerCount((prev) => prev + 1);
+            callbacksRef.current.onViewerJoined?.();
+          }
         });
         presenceChannel.presence.subscribe('leave', () => {
           if (mounted) setViewerCount((prev) => Math.max(0, prev - 1));

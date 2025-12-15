@@ -172,9 +172,9 @@ function FaceTimeVideoLayout({
     const lastMsg = chatMessages[chatMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftEmoji) {
       setShowGiftAnimation({ emoji: lastMsg.giftEmoji, id: lastMsg.id });
-      // Play sound
+      // Play gift sound (use epic tier for gifts during calls)
       try {
-        const audio = new Audio('/sounds/gift.mp3');
+        const audio = new Audio('/sounds/coin-epic.mp3');
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch {}
@@ -182,7 +182,7 @@ function FaceTimeVideoLayout({
     } else if (lastMsg?.type === 'tip') {
       // Play tip sound
       try {
-        const audio = new Audio('/sounds/coin.mp3');
+        const audio = new Audio('/sounds/coin-common.mp3');
         audio.volume = 0.5;
         audio.play().catch(() => {});
       } catch {}

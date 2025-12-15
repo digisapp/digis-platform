@@ -21,7 +21,10 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
   const displayDuration = isMega ? 6000 : isSuper ? 5000 : 4000;
 
   useEffect(() => {
-    // Note: Sound is handled by GiftFloatingEmojis to prevent multiple overlapping sounds
+    // Play big tip fanfare sound for top tipper spotlight
+    const audio = new Audio('/sounds/big-tip.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
 
     const timer = setTimeout(() => {
       setIsVisible(false);

@@ -86,6 +86,11 @@ export function ParticleEffect({ trigger, onComplete }: ParticleEffectProps) {
 export function SuccessAnimation({ show, onComplete }: { show: boolean; onComplete?: () => void }) {
   useEffect(() => {
     if (show) {
+      // Play stream loading sound
+      const audio = new Audio('/sounds/stream-loading.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+
       const timer = setTimeout(() => {
         onComplete?.();
       }, 2000);

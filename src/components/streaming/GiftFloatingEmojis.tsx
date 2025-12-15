@@ -50,7 +50,6 @@ const RARITY_SOUNDS: Record<string, string> = {
   rare: '/sounds/coin-rare.mp3',          // Cash register cha-ching
   epic: '/sounds/coin-epic.mp3',          // Slot machine win
   legendary: '/sounds/coin-legendary.mp3', // Jackpot celebration
-  tip: '/sounds/coin-tip.mp3',            // Quick tip sound
 };
 
 // Gift burst counts, sizes, and duration by rarity - more hype for bigger gifts!
@@ -59,7 +58,6 @@ const RARITY_CONFIG: Record<string, { burstCount: number; baseScale: number; glo
   rare: { burstCount: 8, baseScale: 1.3, glowColor: 'rgba(59, 130, 246, 0.6)', duration: 6000 },
   epic: { burstCount: 15, baseScale: 1.5, glowColor: 'rgba(168, 85, 247, 0.7)', duration: 8000 },
   legendary: { burstCount: 25, baseScale: 1.8, glowColor: 'rgba(234, 179, 8, 0.8)', duration: 10000 },
-  tip: { burstCount: 8, baseScale: 1.3, glowColor: 'rgba(34, 197, 94, 0.7)', duration: 5500 },
 };
 
 export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProps) {
@@ -108,7 +106,6 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     rare: 3000,
     epic: 4000,
     legendary: 6000,
-    tip: 2500,
   };
 
   // Volume levels by rarity (balanced for impact)
@@ -117,7 +114,6 @@ export function GiftFloatingEmojis({ gifts, onComplete }: GiftFloatingEmojisProp
     rare: 0.35,
     epic: 0.45,
     legendary: 0.55,
-    tip: 0.3,
   };
 
   // Play sound for a gift - uses gift-specific sound if available, else falls back to rarity

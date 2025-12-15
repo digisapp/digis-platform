@@ -474,6 +474,10 @@ export default function TheaterModePage() {
 
       if (response.ok) {
         const data = await response.json();
+        // Play ticket purchase sound
+        const audio = new Audio('/sounds/ticket-purchase.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
         // Update balance and grant access
         setUserBalance(prev => prev - ticketedShowInfo.ticketPrice);
         setHasTicket(true);
@@ -517,6 +521,11 @@ export default function TheaterModePage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Play ticket purchase sound
+        const audio = new Audio('/sounds/ticket-purchase.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+
         // Update balance
         setUserBalance(prev => prev - price);
         // Close any modals/popups
@@ -557,6 +566,33 @@ export default function TheaterModePage() {
 
   // Use real-time viewer count from Ably if available, otherwise use stream data
   const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
+
+  // Play waiting room music for non-ticket holders during ticketed streams
+  const waitingRoomAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (ticketedModeActive && !hasTicket && ticketedShowInfo) {
+      // Start playing waiting room music
+      const audio = new Audio('/sounds/waiting-room.mp3');
+      audio.volume = 0.3;
+      audio.loop = true;
+      waitingRoomAudioRef.current = audio;
+      audio.play().catch(() => {});
+
+      return () => {
+        // Stop music when leaving or getting ticket
+        if (waitingRoomAudioRef.current) {
+          waitingRoomAudioRef.current.pause();
+          waitingRoomAudioRef.current = null;
+        }
+      };
+    } else {
+      // Stop music if conditions no longer apply
+      if (waitingRoomAudioRef.current) {
+        waitingRoomAudioRef.current.pause();
+        waitingRoomAudioRef.current = null;
+      }
+    }
+  }, [ticketedModeActive, hasTicket, ticketedShowInfo]);
 
   // Detect orientation for mobile layout
   useEffect(() => {
@@ -933,6 +969,13 @@ export default function TheaterModePage() {
         const data = await response.json();
         setUserBalance(data.newBalance);
         streamAnalytics.quickTipSent(streamId, amount);
+
+        // Play menu purchase sound if this was a menu item purchase
+        if (tipMenuItem) {
+          const audio = new Audio('/sounds/menu-purchase.mp3');
+          audio.volume = 0.5;
+          audio.play().catch(() => {});
+        }
 
         // NOTE: We don't add an optimistic tip message here anymore.
         // The Ably onTip handler will add the message with proper formatting
