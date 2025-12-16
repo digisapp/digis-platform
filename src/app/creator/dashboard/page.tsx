@@ -13,6 +13,7 @@ import {
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
   CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package
 } from 'lucide-react';
+import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -709,22 +710,22 @@ export default function CreatorDashboard() {
                       className="flex items-center gap-3 p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
                       onClick={() => router.push(`/content/${content.id}`)}
                     >
-                      <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden">
+                      <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden relative">
                         {content.thumbnailUrl ? (
-                          <img
+                          <Image
                             src={content.thumbnailUrl}
-                            alt=""
-                            className="w-full h-full object-cover"
+                            alt={content.title}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
                             onError={(e) => {
                               // Hide broken image and show fallback icon
                               e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
                             }}
                           />
-                        ) : null}
-                        <div className={content.thumbnailUrl ? 'hidden' : ''}>
-                          {getContentIcon(content.type)}
-                        </div>
+                        ) : (
+                          getContentIcon(content.type)
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white truncate">{content.title}</p>
