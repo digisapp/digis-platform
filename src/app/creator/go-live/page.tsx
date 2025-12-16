@@ -637,12 +637,12 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Orientation - Auto-follows device rotation on mobile */}
-              <div>
-                <label className="block text-sm font-semibold text-white mb-2">
-                  Screen Orientation
-                </label>
-                {isMobile ? (
+              {/* Orientation - Only show on mobile where it auto-follows device rotation */}
+              {isMobile && (
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    Screen Orientation
+                  </label>
                   <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
                     <div className="flex items-center gap-3">
                       <div className={`text-2xl transition-transform duration-300 ${
@@ -663,15 +663,8 @@ export default function GoLivePage() {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
-                    <div>
-                      <div className="font-semibold text-white text-sm">Landscape Mode</div>
-                      <div className="text-xs text-gray-400">Best for desktop streaming</div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Featured Creators */}
               <FeaturedCreatorSelector
