@@ -54,12 +54,6 @@ export default function SettingsPage() {
 
   // Email change
   const [email, setEmail] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [savingEmail, setSavingEmail] = useState(false);
-  const [emailMessage, setEmailMessage] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
 
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
@@ -233,29 +227,23 @@ export default function SettingsPage() {
   }, [newUsername, currentUser]);
 
   const handleEmailChange = async () => {
-    try {
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address');
-      }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Please enter a valid email address');
+    }
 
-      // Use Supabase Auth to update email with verification
-      const response = await fetch('/api/user/update-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newEmail: email }),
-      });
+    // Use Supabase Auth to update email with verification
+    const response = await fetch('/api/user/update-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newEmail: email }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update email');
-      }
-
-      setEmailVerificationSent(true);
-    } catch (err: any) {
-      throw new Error(`Email update failed: ${err.message}`);
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update email');
     }
   };
 
@@ -352,53 +340,6 @@ export default function SettingsPage() {
       setError(err.message);
     } finally {
       setSavingUsername(false);
-    }
-  };
-
-  const handleUpdateEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailMessage('');
-    setEmailError('');
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-
-    // Check if it's the same as current email
-    if (newEmail.toLowerCase() === currentUser?.email?.toLowerCase()) {
-      setEmailError('This is already your current email');
-      return;
-    }
-
-    setSavingEmail(true);
-
-    try {
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-
-      // Update email via Supabase Auth
-      const { error } = await supabase.auth.updateUser({
-        email: newEmail,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setEmailMessage('Verification email sent! Please check your inbox and confirm your new email address.');
-      setNewEmail('');
-
-      setTimeout(() => {
-        setEmailMessage('');
-      }, 5000);
-    } catch (err: any) {
-      setEmailError(err.message || 'Failed to update email');
-      setTimeout(() => setEmailError(''), 5000);
-    } finally {
-      setSavingEmail(false);
     }
   };
 
@@ -692,6 +633,7 @@ export default function SettingsPage() {
                 </div>
                 {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
                   <button
+                    type="button"
                     onClick={handleChangeUsername}
                     disabled={savingUsername}
                     className="mt-2 px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-purple text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
@@ -856,7 +798,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section Divider */}
-        <div className="border-t border-cyan-500/30/50 my-8" />
+        <div className="border-t border-cyan-500/30 my-8" />
 
         {/* Profile Information Section */}
         <GlassCard className="p-6">
@@ -1022,6 +964,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => handleUnblockUser(block.blockedId)}
                     disabled={unblockingId === block.blockedId}
                     className="px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50"
@@ -1051,6 +994,7 @@ export default function SettingsPage() {
               Join our community of creators and start earning from your content, live shows, and more.
             </p>
             <button
+              type="button"
               onClick={() => router.push('/creator/apply')}
               className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold text-white hover:scale-105 transition-transform"
             >
