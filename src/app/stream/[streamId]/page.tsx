@@ -1106,7 +1106,7 @@ export default function StreamViewerPage() {
 
             {/* Active Poll Overlay */}
             {activePoll && activePoll.isActive && (
-              <div className="absolute bottom-28 left-4 z-30 w-[220px] sm:w-[260px]">
+              <div className="absolute bottom-20 left-3 z-40 w-[220px] sm:w-[260px]">
                 <StreamPoll
                   poll={activePoll}
                   isBroadcaster={false}
@@ -1119,7 +1119,7 @@ export default function StreamViewerPage() {
 
             {/* Active Countdown Overlay */}
             {activeCountdown && activeCountdown.isActive && (
-              <div className="absolute bottom-28 right-4 z-30 w-[180px]">
+              <div className="absolute bottom-20 right-3 z-40 w-[180px]">
                 <StreamCountdown
                   countdown={activeCountdown}
                   isBroadcaster={false}
