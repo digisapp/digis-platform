@@ -150,7 +150,7 @@ export default function BroadcastStudioPage() {
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
-  const [menuEnabled, setMenuEnabled] = useState(false);
+  const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
@@ -738,8 +738,8 @@ export default function BroadcastStudioPage() {
         setTotalEarnings(data.stream.totalGiftsReceived);
         // Set stream orientation from database
         setStreamOrientation(data.stream.orientation || 'landscape');
-        // Set menu enabled state from database
-        setMenuEnabled(data.stream.menuEnabled || false);
+        // Set menu enabled state from database (default to true if not set)
+        setMenuEnabled(data.stream.menuEnabled ?? true);
 
         // Fetch menu items for the creator (which is the current user)
         if (data.stream.creatorId) {

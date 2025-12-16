@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { XCircle, Check, BarChart2 } from 'lucide-react';
+import { XCircle, Check, BarChart2, X } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface Poll {
@@ -31,6 +31,7 @@ export function StreamPoll({ poll, isBroadcaster = false, streamId, onPollEnded,
   const [ending, setEnding] = useState(false);
   const [localVoteCounts, setLocalVoteCounts] = useState<number[]>(poll.voteCounts);
   const [localTotalVotes, setLocalTotalVotes] = useState(poll.totalVotes);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
 
   // Check if user has already voted
   useEffect(() => {
@@ -108,8 +109,6 @@ export function StreamPoll({ poll, isBroadcaster = false, streamId, onPollEnded,
   };
 
   const handleEndPoll = async () => {
-    if (!confirm('End this poll now?')) return;
-
     setEnding(true);
     try {
       const response = await fetch(`/api/streams/${streamId}/polls/${poll.id}/end`, {
@@ -126,6 +125,7 @@ export function StreamPoll({ poll, isBroadcaster = false, streamId, onPollEnded,
       showError(error.message || 'Failed to end poll');
     } finally {
       setEnding(false);
+      setShowEndConfirm(false);
     }
   };
 
@@ -139,99 +139,151 @@ export function StreamPoll({ poll, isBroadcaster = false, streamId, onPollEnded,
   const showResults = hasVoted || isEnded || isBroadcaster;
 
   return (
-    <div className="bg-black/40 backdrop-blur-md rounded-xl border border-purple-500/30 p-4 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <BarChart2 className="w-5 h-5 text-purple-400" />
-          <span className="text-purple-400 font-semibold text-sm">POLL</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEnded && (
-            <span className="text-yellow-400 font-mono text-sm">
-              {formatTime(timeLeft)}
-            </span>
-          )}
-          {isEnded && (
-            <span className="text-gray-400 text-sm">Ended</span>
-          )}
-          {isBroadcaster && !isEnded && (
+    <>
+      {/* Tron-themed End Poll Confirmation Modal */}
+      {showEndConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowEndConfirm(false)} />
+          <div className="relative bg-black/95 rounded-2xl border border-purple-500/50 shadow-[0_0_40px_rgba(168,85,247,0.3)] p-5 max-w-xs w-full">
+            {/* Tron glow effect */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-purple-500/10 to-transparent pointer-events-none" />
+
+            {/* Close button */}
             <button
-              onClick={handleEndPoll}
-              disabled={ending}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-              title="End poll"
+              onClick={() => setShowEndConfirm(false)}
+              className="absolute top-3 right-3 p-1 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <XCircle className="w-4 h-4 text-red-400" />
+              <X className="w-4 h-4 text-gray-400" />
             </button>
-          )}
+
+            {/* Icon */}
+            <div className="flex justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center">
+                <BarChart2 className="w-6 h-6 text-purple-400" />
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center mb-5">
+              <h3 className="text-lg font-bold text-white mb-1">End Poll?</h3>
+              <p className="text-gray-400 text-sm">This will close voting and show final results.</p>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowEndConfirm(false)}
+                className="flex-1 py-2 px-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 transition-colors"
+              >
+                Keep Open
+              </button>
+              <button
+                onClick={handleEndPoll}
+                disabled={ending}
+                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+              >
+                {ending ? 'Ending...' : 'End Poll'}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Question */}
-      <h4 className="text-white font-semibold mb-3">{poll.question}</h4>
+      {/* Poll Card - Mobile Optimized */}
+      <div className="bg-black/70 backdrop-blur-md rounded-xl border border-purple-500/30 p-3 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <BarChart2 className="w-4 h-4 text-purple-400" />
+            <span className="text-purple-400 font-semibold text-xs">POLL</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {!isEnded && (
+              <span className="text-yellow-400 font-mono text-xs">
+                {formatTime(timeLeft)}
+              </span>
+            )}
+            {isEnded && (
+              <span className="text-gray-400 text-xs">Ended</span>
+            )}
+            {isBroadcaster && !isEnded && (
+              <button
+                onClick={() => setShowEndConfirm(true)}
+                disabled={ending}
+                className="p-1 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                title="End poll"
+              >
+                <XCircle className="w-3.5 h-3.5 text-red-400" />
+              </button>
+            )}
+          </div>
+        </div>
 
-      {/* Options */}
-      <div className="space-y-2">
-        {poll.options.map((option, index) => {
-          const votes = localVoteCounts[index] || 0;
-          const percentage = localTotalVotes > 0 ? Math.round((votes / localTotalVotes) * 100) : 0;
-          const isWinner = isEnded && votes === Math.max(...localVoteCounts);
-          const isMyVote = votedOption === index;
+        {/* Question */}
+        <h4 className="text-white font-semibold text-sm mb-2 line-clamp-2">{poll.question}</h4>
 
-          return (
-            <button
-              key={index}
-              onClick={() => handleVote(index)}
-              disabled={hasVoted || voting || isEnded}
-              className={`w-full relative overflow-hidden rounded-lg transition-all ${
-                hasVoted || isEnded
-                  ? 'cursor-default'
-                  : 'hover:scale-[1.02] active:scale-[0.98] cursor-pointer'
-              } ${
-                isMyVote
-                  ? 'border-2 border-purple-500'
-                  : 'border border-white/10'
-              }`}
-            >
-              {/* Background progress bar */}
-              {showResults && (
-                <div
-                  className={`absolute inset-y-0 left-0 transition-all duration-500 ${
-                    isWinner
-                      ? 'bg-gradient-to-r from-purple-600/40 to-pink-600/40'
-                      : 'bg-white/10'
-                  }`}
-                  style={{ width: `${percentage}%` }}
-                />
-              )}
+        {/* Options */}
+        <div className="space-y-1.5">
+          {poll.options.map((option, index) => {
+            const votes = localVoteCounts[index] || 0;
+            const percentage = localTotalVotes > 0 ? Math.round((votes / localTotalVotes) * 100) : 0;
+            const isWinner = isEnded && votes === Math.max(...localVoteCounts);
+            const isMyVote = votedOption === index;
 
-              {/* Content */}
-              <div className="relative flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-2">
-                  {isMyVote && <Check className="w-4 h-4 text-purple-400" />}
-                  <span className={`font-medium ${isWinner ? 'text-white' : 'text-gray-200'}`}>
-                    {option}
-                  </span>
-                </div>
+            return (
+              <button
+                key={index}
+                onClick={() => handleVote(index)}
+                disabled={hasVoted || voting || isEnded}
+                className={`w-full relative overflow-hidden rounded-lg transition-all ${
+                  hasVoted || isEnded
+                    ? 'cursor-default'
+                    : 'hover:scale-[1.01] active:scale-[0.99] cursor-pointer'
+                } ${
+                  isMyVote
+                    ? 'border-2 border-purple-500'
+                    : 'border border-white/10'
+                }`}
+              >
+                {/* Background progress bar */}
                 {showResults && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">{votes}</span>
-                    <span className={`text-sm font-semibold ${isWinner ? 'text-purple-400' : 'text-gray-400'}`}>
-                      {percentage}%
+                  <div
+                    className={`absolute inset-y-0 left-0 transition-all duration-500 ${
+                      isWinner
+                        ? 'bg-gradient-to-r from-purple-600/40 to-pink-600/40'
+                        : 'bg-white/10'
+                    }`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                )}
+
+                {/* Content */}
+                <div className="relative flex items-center justify-between px-3 py-2">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    {isMyVote && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
+                    <span className={`text-sm font-medium truncate ${isWinner ? 'text-white' : 'text-gray-200'}`}>
+                      {option}
                     </span>
                   </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                  {showResults && (
+                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                      <span className="text-xs text-gray-400">{votes}</span>
+                      <span className={`text-xs font-semibold ${isWinner ? 'text-purple-400' : 'text-gray-400'}`}>
+                        {percentage}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Total votes */}
-      <div className="mt-3 text-center text-sm text-gray-400">
-        {localTotalVotes} vote{localTotalVotes !== 1 ? 's' : ''}
+        {/* Total votes */}
+        <div className="mt-2 text-center text-xs text-gray-400">
+          {localTotalVotes} vote{localTotalVotes !== 1 ? 's' : ''}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
