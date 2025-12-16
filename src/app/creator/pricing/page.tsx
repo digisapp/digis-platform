@@ -342,17 +342,6 @@ function PricingPageContent() {
               <span className="hidden sm:inline">Messages</span>
             </button>
             <button
-              onClick={() => setActiveTab('subscriptions')}
-              className={`flex-1 min-w-[80px] px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                activeTab === 'subscriptions'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Star className="w-4 h-4" />
-              <span className="hidden sm:inline">Subs</span>
-            </button>
-            <button
               onClick={() => setActiveTab('menu')}
               className={`flex-1 min-w-[80px] px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'menu'
@@ -362,6 +351,17 @@ function PricingPageContent() {
             >
               <Coins className="w-4 h-4" />
               <span className="hidden sm:inline">Menu</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('subscriptions')}
+              className={`flex-1 min-w-[80px] px-4 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                activeTab === 'subscriptions'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Star className="w-4 h-4" />
+              <span className="hidden sm:inline">Subs</span>
             </button>
           </div>
 
