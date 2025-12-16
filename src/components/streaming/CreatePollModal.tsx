@@ -173,7 +173,12 @@ export function CreatePollModal({ isOpen, onClose, streamId, onPollCreated }: Cr
               Duration
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {[60, 120, 300, 600].map((sec) => (
+              {[
+                { sec: 60, label: '1m' },
+                { sec: 300, label: '5m' },
+                { sec: 1800, label: '30m' },
+                { sec: 3600, label: '1hr' },
+              ].map(({ sec, label }) => (
                 <button
                   key={sec}
                   type="button"
@@ -184,7 +189,7 @@ export function CreatePollModal({ isOpen, onClose, streamId, onPollCreated }: Cr
                       : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10'
                   }`}
                 >
-                  {sec / 60}m
+                  {label}
                 </button>
               ))}
             </div>
