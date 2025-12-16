@@ -774,6 +774,19 @@ export class MessageService {
     mediaType?: string,
     thumbnailUrl?: string
   ) {
+    // SECURITY: Verify sender is a participant in this conversation
+    const conversation = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user1Id !== senderId && conversation.user2Id !== senderId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
+    }
+
     // Create locked message
     const [message] = await db
       .insert(messages)
@@ -953,6 +966,19 @@ export class MessageService {
     amount: number,
     tipMessage?: string
   ) {
+    // SECURITY: Verify sender is a participant in this conversation
+    const conversation = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user1Id !== senderId && conversation.user2Id !== senderId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
+    }
+
     // Use transaction for all financial and message operations
     return await db.transaction(async (tx) => {
       // Check if sender has enough balance
