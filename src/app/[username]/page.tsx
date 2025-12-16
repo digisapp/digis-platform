@@ -1593,13 +1593,10 @@ export default function ProfilePage() {
               <h2 className="text-xl font-bold text-white mb-2">
                 Subscribe to {profile.user.displayName || profile.user.username}
               </h2>
-              <p className="text-gray-400 text-sm mb-6">
-                Get exclusive access to premium content
-              </p>
             </div>
 
             {/* Price */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4">
               <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
                 <div className="text-center">
                   <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -1610,20 +1607,20 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Benefits */}
-            {subscriptionTier.benefits && (
-              <div className="mb-6 text-sm text-gray-300 space-y-2">
-                {(Array.isArray(subscriptionTier.benefits)
-                  ? subscriptionTier.benefits
-                  : JSON.parse(subscriptionTier.benefits || '[]')
-                ).slice(0, 3).map((benefit: string, i: number) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                    <span>{benefit}</span>
-                  </div>
-                ))}
+            {/* Subscriber Benefits - Always show these */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+              <p className="text-xs text-purple-300 font-medium mb-3 text-center">Subscribers Get</p>
+              <div className="flex justify-center gap-4">
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="text-base">🔴</span>
+                  <span>Subs Only Streams</span>
+                </div>
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="text-base">💬</span>
+                  <span>Free Chats</span>
+                </div>
               </div>
-            )}
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3">

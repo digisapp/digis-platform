@@ -275,20 +275,20 @@ export default function MySubscriptionsPage() {
                         </div>
                       )}
 
-                      {/* Benefits */}
-                      {subscription.tier.benefits && subscription.tier.benefits.length > 0 && (
-                        <div className="mb-4">
-                          <div className="text-sm font-semibold text-gray-700 mb-2">Benefits:</div>
-                          <div className="space-y-1">
-                            {subscription.tier.benefits.map((benefit, index) => (
-                              <div key={index} className="flex items-start gap-2 text-sm text-gray-600">
-                                <span className="text-green-500">✓</span>
-                                <span>{benefit}</span>
-                              </div>
-                            ))}
+                      {/* Subscriber Benefits - Always show core benefits */}
+                      <div className="mb-4 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+                        <div className="text-xs font-semibold text-purple-400 mb-2">Your Benefits</div>
+                        <div className="flex flex-wrap gap-3">
+                          <div className="flex items-center gap-2 text-white text-sm">
+                            <span>🔴</span>
+                            <span>Subs Only Streams</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-white text-sm">
+                            <span>💬</span>
+                            <span>Free Chats</span>
                           </div>
                         </div>
-                      )}
+                      </div>
 
                       {/* Actions */}
                       <div className="flex gap-3">
