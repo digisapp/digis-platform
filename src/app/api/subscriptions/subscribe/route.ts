@@ -32,13 +32,13 @@ export async function POST(req: NextRequest) {
     let tier = tiers[0];
 
     // Auto-create default subscription tier if creator hasn't set one up
-    // Default price of 100 coins/month ensures creators earn from subscriptions
+    // Default price of 50 coins/month (consistent with SubscriptionService and creator setup)
     if (!tier) {
       tier = await SubscriptionService.upsertSubscriptionTier(creatorId, {
         name: 'Subscriber',
         tier: 'basic',
         description: 'Get exclusive access to subscriber-only content',
-        pricePerMonth: 100, // Default 100 coins/month
+        pricePerMonth: 50, // Default 50 coins/month
         benefits: ['Exclusive content', 'Subscriber badge', 'Direct messaging'],
       });
     }

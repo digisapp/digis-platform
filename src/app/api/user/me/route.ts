@@ -19,32 +19,31 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T | null> =>
 /**
  * Build fallback user from Supabase auth metadata
  * This ensures we NEVER return 500 for a valid logged-in session
+ *
+ * SECURITY: Admin status comes ONLY from app_metadata.isAdmin (synced from DB)
+ * No hardcoded email lists - DB is the only source of truth
  */
 function buildFallbackUser(authUser: any) {
-  const metadata = authUser.user_metadata || {};
+  const userMeta = authUser.user_metadata || {};
+  const appMeta = authUser.app_metadata || {};
 
-  // Admin emails from environment with defaults
-  const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
-  const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-  const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
+  // Role priority: app_metadata (server-set) > user_metadata > 'fan'
+  const role = appMeta.role || userMeta.role || 'fan';
 
-  // Determine role: prefer metadata, then check admin emails, fallback to fan (safest default)
-  const role =
-    metadata.role ||
-    (authUser.email && adminEmails.includes(authUser.email.toLowerCase())
-      ? 'admin'
-      : 'fan'); // Default to fan for safety - creators should have role in DB
+  // isAdmin from app_metadata (synced from DB)
+  const isAdmin = appMeta.isAdmin === true || role === 'admin';
 
   return {
     id: authUser.id,
     email: authUser.email!,
-    username: metadata.username || `user_${authUser.id.substring(0, 8)}`,
-    displayName: metadata.display_name || authUser.email?.split('@')[0],
+    username: userMeta.username || `user_${authUser.id.substring(0, 8)}`,
+    displayName: userMeta.display_name || authUser.email?.split('@')[0],
     role,
-    avatarUrl: metadata.avatar_url || null,
+    isAdmin,
+    avatarUrl: userMeta.avatar_url || null,
     bannerUrl: null,
     bio: null,
-    isCreatorVerified: !!metadata.isCreatorVerified,
+    isCreatorVerified: !!userMeta.isCreatorVerified,
     isOnline: false,
     lastSeenAt: null,
     usernameLastChangedAt: null,

@@ -50,14 +50,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // Check if user is admin by email (quick check without database query)
-    // Admin emails configured via ADMIN_EMAILS environment variable (comma-separated)
-    const adminEmails = (process.env.ADMIN_EMAILS || 'admin@digis.cc,nathan@digis.cc').split(',').map(e => e.trim().toLowerCase())
-    const isAdminEmail = user.email ? adminEmails.includes(user.email.toLowerCase()) : false
-    console.log('[Middleware] Is admin email:', isAdminEmail)
+    // SECURITY: Check admin status from app_metadata (synced from DB isAdmin flag)
+    // No hardcoded email lists - DB is the only source of truth
+    // app_metadata is set by server when user.isAdmin changes in DB
+    const appMeta = user.app_metadata || {}
+    const isAdmin = appMeta.isAdmin === true || appMeta.role === 'admin'
+    console.log('[Middleware] Is admin (from app_metadata):', isAdmin)
 
-    if (!isAdminEmail) {
-      // Not an admin email, redirect to dashboard
+    if (!isAdmin) {
+      // Not an admin, redirect to dashboard
       console.log('[Middleware] Redirecting non-admin user to dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { CallService } from '@/lib/calls/call-service';
+import { CallService } from '@/lib/services/call-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { db } from '@/lib/data/system';
 import { calls } from '@/lib/data/system';
@@ -25,7 +25,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the call first to find the creator ID
+    // Get the call first to find participants
     const call = await db.query.calls.findFirst({
       where: eq(calls.id, callId),
     });
@@ -34,19 +34,23 @@ export async function POST(
       return NextResponse.json({ error: 'Call not found' }, { status: 404 });
     }
 
-    // Only the fan who initiated the call can cancel it
-    if (call.fanId !== user.id) {
+    // Either party can cancel before the call starts
+    if (call.fanId !== user.id && call.creatorId !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Cancel the call (releases the hold)
-    const cancelledCall = await CallService.cancelCall(callId, user.id, 'Cancelled by fan');
+    const isFan = call.fanId === user.id;
+    const reason = isFan ? 'Cancelled by fan' : 'Cancelled by creator';
 
-    // Notify the creator that the call was cancelled
-    await AblyRealtimeService.broadcastCallCancelled(call.creatorId, {
+    // Cancel the call (releases the hold)
+    const cancelledCall = await CallService.cancelCall(callId, user.id, reason);
+
+    // Notify the other party that the call was cancelled
+    const otherPartyId = isFan ? call.creatorId : call.fanId;
+    await AblyRealtimeService.broadcastCallCancelled(otherPartyId, {
       callId,
-      fanId: user.id,
-      reason: 'Fan cancelled the request',
+      fanId: call.fanId,
+      reason,
     });
 
     return NextResponse.json({

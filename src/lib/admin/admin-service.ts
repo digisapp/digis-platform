@@ -5,13 +5,17 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
 export class AdminService {
-  // Check if user is admin (checks email first, then isAdmin flag, then role)
+  /**
+   * Check if user is admin
+   *
+   * SECURITY: Admin status is determined ONLY by the database isAdmin flag.
+   * Hardcoded email lists have been removed to prevent security vulnerabilities.
+   *
+   * To make someone admin:
+   * - Use the admin dashboard to set isAdmin = true
+   * - Or run: UPDATE users SET is_admin = true WHERE email = 'user@example.com';
+   */
   static async isAdmin(userId: string): Promise<boolean> {
-    // Hardcoded admin emails - ALWAYS grant access to these
-    const defaultAdmins = ['nathan@digis.cc', 'admin@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
-    const envAdmins = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-    const adminEmails = [...new Set([...defaultAdmins, ...envAdmins])];
-
     let user;
     try {
       user = await withTimeoutAndRetry(
@@ -23,7 +27,7 @@ export class AdminService {
       );
     } catch (e) {
       console.error('[AdminService] DB query failed:', e);
-      // If DB fails, we can't check - deny access
+      // If DB fails, we can't check - deny access for security
       return false;
     }
 
@@ -32,22 +36,15 @@ export class AdminService {
       return false;
     }
 
-    // PRIMARY CHECK: Is email in admin list? (most reliable)
-    const isAdminByEmail = user.email && adminEmails.includes(user.email.toLowerCase());
-    if (isAdminByEmail) {
-      console.log('[AdminService] Admin access granted by email:', user.email);
-      return true;
-    }
-
-    // SECONDARY: Check isAdmin flag in DB
+    // PRIMARY CHECK: isAdmin flag in DB (ONLY source of truth)
     if (user.isAdmin === true) {
       console.log('[AdminService] Admin access granted by isAdmin flag:', user.email);
       return true;
     }
 
-    // LEGACY: Check if role is 'admin'
+    // LEGACY: Check if role is 'admin' (for backwards compatibility)
     if (user.role === 'admin') {
-      console.log('[AdminService] Admin access granted by role:', user.email);
+      console.log('[AdminService] Admin access granted by legacy role:', user.email);
       return true;
     }
 
@@ -359,6 +356,42 @@ export class AdminService {
     }
 
     return { success: true };
+  }
+
+  /**
+   * Set or remove admin status for a user
+   * Updates both DB and Supabase auth metadata to keep them in sync
+   */
+  static async setAdminStatus(userId: string, isAdmin: boolean) {
+    // Update database
+    await db.update(users)
+      .set({
+        isAdmin,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    // Sync to Supabase auth app_metadata so middleware/client can check without DB
+    try {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          app_metadata: { isAdmin },
+        }
+      );
+
+      if (updateError) {
+        console.error('[AdminService] Failed to sync isAdmin to auth metadata:', updateError);
+        // Don't throw - DB update succeeded, auth will sync eventually
+      } else {
+        console.log('[AdminService] Admin status synced to auth metadata:', { userId, isAdmin });
+      }
+    } catch (authError) {
+      console.error('[AdminService] Error syncing admin status to auth:', authError);
+      // Don't throw - DB update succeeded
+    }
+
+    return { success: true, isAdmin };
   }
 
   // Toggle creator verification

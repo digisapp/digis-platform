@@ -660,6 +660,7 @@ export class MessageService {
 
   /**
    * Archive/unarchive conversation
+   * SECURITY: Verifies user is a participant before allowing archive
    */
   static async archiveConversation(conversationId: string, userId: string, archive: boolean) {
     const conversation = await db.query.conversations.findFirst({
@@ -668,6 +669,11 @@ export class MessageService {
 
     if (!conversation) {
       throw new Error('Conversation not found');
+    }
+
+    // SECURITY: Verify user is a participant in this conversation
+    if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
     }
 
     const archiveField =
@@ -683,6 +689,7 @@ export class MessageService {
 
   /**
    * Pin/unpin conversation
+   * SECURITY: Verifies user is a participant before allowing pin
    */
   static async pinConversation(conversationId: string, userId: string, pin: boolean) {
     const conversation = await db.query.conversations.findFirst({
@@ -691,6 +698,11 @@ export class MessageService {
 
     if (!conversation) {
       throw new Error('Conversation not found');
+    }
+
+    // SECURITY: Verify user is a participant in this conversation
+    if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
     }
 
     const pinField =
@@ -783,7 +795,7 @@ export class MessageService {
    * Uses database transaction to ensure atomicity of financial operations
    */
   static async unlockMessage(userId: string, messageId: string) {
-    // Get the message (outside transaction for validation)
+    // Get the message with conversation to verify recipient
     const message = await db.query.messages.findFirst({
       where: eq(messages.id, messageId),
       with: {
@@ -794,11 +806,33 @@ export class MessageService {
             username: true,
           },
         },
+        conversation: {
+          columns: {
+            user1Id: true,
+            user2Id: true,
+          },
+        },
       },
     });
 
     if (!message) {
       throw new Error('Message not found');
+    }
+
+    // SECURITY: Verify user is a participant and is the recipient (not sender)
+    const conversation = message.conversation;
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    const isParticipant = conversation.user1Id === userId || conversation.user2Id === userId;
+    if (!isParticipant) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
+    }
+
+    // Sender cannot unlock their own locked message
+    if (message.senderId === userId) {
+      throw new Error('Cannot unlock your own message');
     }
 
     if (!message.isLocked) {

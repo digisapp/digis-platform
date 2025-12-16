@@ -1,4 +1,5 @@
-import { pgTable, uuid, integer, text, timestamp, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, text, timestamp, pgEnum, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { users } from './users';
 
 export const transactionTypeEnum = pgEnum('transaction_type', [
@@ -51,7 +52,9 @@ export const walletTransactions = pgTable('wallet_transactions', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('wallet_transactions_user_id_idx').on(table.userId),
-  idempotencyIdx: index('wallet_transactions_idempotency_idx').on(table.idempotencyKey),
+  // SECURITY: Unique index ensures idempotency under concurrent requests
+  // The .unique() on the column creates a constraint; this adds an explicit unique index
+  idempotencyIdx: uniqueIndex('wallet_transactions_idempotency_key_idx').on(table.idempotencyKey),
   // Compound index for efficient recent activity queries (userId + status, ordered by createdAt)
   userStatusIdx: index('wallet_transactions_user_status_idx').on(table.userId, table.status, table.createdAt),
 }));
@@ -73,6 +76,7 @@ export const spendHolds = pgTable('spend_holds', {
 }));
 
 // Wallet balances (cached for performance)
+// CHECK constraints ensure balance integrity at the database level
 export const wallets = pgTable('wallets', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
@@ -83,6 +87,12 @@ export const wallets = pgTable('wallets', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('wallets_user_id_idx').on(table.userId),
+  // SECURITY: Prevent negative balances at database level
+  balanceNonNegative: check('balance_non_negative', sql`${table.balance} >= 0`),
+  // SECURITY: Prevent negative held balances
+  heldBalanceNonNegative: check('held_balance_non_negative', sql`${table.heldBalance} >= 0`),
+  // SECURITY: Held balance cannot exceed total balance
+  heldBalanceLimitCheck: check('held_balance_limit', sql`${table.heldBalance} <= ${table.balance}`),
 }));
 
 // Creator banking info for payouts

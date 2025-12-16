@@ -33,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   // Extract user data from session metadata (instant, no DB call)
+  // SECURITY: Admin status comes ONLY from app_metadata.isAdmin (synced from DB)
+  // No hardcoded email lists - server enforces actual admin access via DB
   const extractUserFromSession = (session: Session | null): AuthUser | null => {
     if (!session?.user) return null;
 
@@ -40,16 +42,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const appMeta = (authUser.app_metadata || {}) as Record<string, any>;
     const userMeta = (authUser.user_metadata || {}) as Record<string, any>;
 
-    // Check for admin emails (fallback check for UI only - actual auth is server-side)
-    // Note: This is client-side so can't access env vars. Server enforces actual admin access.
-    const adminEmails = ['admin@digis.cc', 'nathan@digis.cc', 'nathan@examodels.com', 'nathanmayell@gmail.com'];
-    const isAdminEmail = authUser.email && adminEmails.includes(authUser.email.toLowerCase());
-
     // Role priority: app_metadata (server-set, authoritative) > user_metadata > 'fan'
     const role = appMeta.role || userMeta.role || 'fan';
 
-    // isAdmin can be set via metadata.isAdmin OR if user is an admin email
-    const isAdmin = appMeta.isAdmin || userMeta.isAdmin || isAdminEmail || role === 'admin';
+    // isAdmin comes from app_metadata (synced from DB isAdmin flag) or legacy role
+    const isAdmin = appMeta.isAdmin === true || role === 'admin';
 
     return {
       id: authUser.id,

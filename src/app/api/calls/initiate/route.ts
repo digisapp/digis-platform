@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { CallService } from '@/lib/calls/call-service';
+import { CallService } from '@/lib/services/call-service';
 
+// Force Node.js runtime for Drizzle ORM
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * Initiate/request a call with a creator
+ * This route is an alias for /api/calls/request for backwards compatibility
+ */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -14,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { creatorId, estimatedMinutes } = await request.json();
+    const { creatorId, callType } = await request.json();
 
     if (!creatorId) {
       return NextResponse.json(
@@ -23,11 +31,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const call = await CallService.initiateCall({
-      fanId: user.id,
+    // Use requestCall from services call-service (has proper race condition protection)
+    const call = await CallService.requestCall(
+      user.id,
       creatorId,
-      estimatedMinutes,
-    });
+      callType || 'video'
+    );
 
     return NextResponse.json({ call });
   } catch (error) {

@@ -1,7 +1,9 @@
 import { db } from '@/lib/data/system';
 import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
-import { eq, and, or, desc, lt } from 'drizzle-orm';
+import { eq, and, or, desc, lt, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { WalletService } from '@/lib/wallet/wallet-service';
+import { invalidateBalanceCache } from '@/lib/cache';
 
 // Call timeout settings
 const PENDING_CALL_TIMEOUT_MINUTES = 5; // Calls auto-expire after 5 minutes
@@ -75,44 +77,32 @@ export class CallService {
       throw new Error('Creator is not available for voice calls');
     }
 
-    // Get fan's wallet balance
-    const fanWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, fanId),
-    });
-
-    if (!fanWallet) {
-      throw new Error('Wallet not found');
-    }
-
     // Calculate estimated coins for minimum duration based on call type
     const ratePerMinute = callType === 'video' ? settings.callRatePerMinute : settings.voiceCallRatePerMinute;
     const minimumDuration = callType === 'video' ? settings.minimumCallDuration : settings.minimumVoiceCallDuration;
     const estimatedCoins = ratePerMinute * minimumDuration;
 
-    // Check if fan has enough coins
-    const availableBalance = fanWallet.balance - fanWallet.heldBalance;
-    if (availableBalance < estimatedCoins) {
-      throw new Error(`Insufficient balance. You have ${availableBalance} coins available but need ${estimatedCoins} coins for a ${minimumDuration} minute call at ${ratePerMinute} coins/min.`);
-    }
-
-    // Create spend hold for estimated amount
-    const [hold] = await db
-      .insert(spendHolds)
-      .values({
+    // Use WalletService.createHold which has proper FOR UPDATE locking
+    // This prevents race conditions where concurrent calls could exceed available balance
+    let hold;
+    try {
+      hold = await WalletService.createHold({
         userId: fanId,
         amount: estimatedCoins,
-        purpose: 'video_call',
-        status: 'active',
-      })
-      .returning();
-
-    // Update wallet held balance
-    await db
-      .update(wallets)
-      .set({
-        heldBalance: fanWallet.heldBalance + estimatedCoins,
-      })
-      .where(eq(wallets.userId, fanId));
+        purpose: callType === 'video' ? 'video_call' : 'voice_call',
+        relatedId: undefined, // Will be set after call is created
+      });
+    } catch (error: any) {
+      if (error.message === 'Insufficient balance for hold') {
+        // Get current available balance for user-friendly message
+        const availableBalance = await WalletService.getAvailableBalance(fanId);
+        throw new Error(`Insufficient balance. You have ${availableBalance} coins available but need ${estimatedCoins} coins for a ${minimumDuration} minute call at ${ratePerMinute} coins/min.`);
+      }
+      if (error.message === 'Wallet not found') {
+        throw new Error('Wallet not found');
+      }
+      throw error;
+    }
 
     // Create call request
     const roomName = `call-${nanoid(16)}`;
@@ -131,6 +121,12 @@ export class CallService {
         acceptedAt: null,
       })
       .returning();
+
+    // Link the hold to the call for auditing/reconciliation
+    await db
+      .update(spendHolds)
+      .set({ relatedId: call.id })
+      .where(eq(spendHolds.id, hold.id));
 
     return call;
   }
@@ -188,28 +184,14 @@ export class CallService {
       throw new Error('Call is not pending');
     }
 
-    // Release the hold
+    // Release the hold using WalletService for proper transaction handling
     if (call.holdId) {
-      await db
-        .update(spendHolds)
-        .set({
-          status: 'released',
-          releasedAt: new Date(),
-        })
-        .where(eq(spendHolds.id, call.holdId));
-
-      // Update fan's held balance
-      const fanWallet = await db.query.wallets.findFirst({
-        where: eq(wallets.userId, call.fanId),
-      });
-
-      if (fanWallet) {
-        await db
-          .update(wallets)
-          .set({
-            heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
-          })
-          .where(eq(wallets.userId, call.fanId));
+      try {
+        await WalletService.releaseHold(call.holdId);
+      } catch (error) {
+        console.error('[CallService] Failed to release hold on reject:', error);
+        // Continue with rejecting the call even if hold release fails
+        // The hold will be cleaned up by reconciliation
       }
     }
 
@@ -217,6 +199,52 @@ export class CallService {
       .update(calls)
       .set({
         status: 'rejected',
+        updatedAt: new Date(),
+      })
+      .where(eq(calls.id, callId))
+      .returning();
+
+    return updated;
+  }
+
+  /**
+   * Cancel a call request (fan or creator before call starts)
+   */
+  static async cancelCall(callId: string, userId: string, reason?: string) {
+    const call = await db.query.calls.findFirst({
+      where: eq(calls.id, callId),
+    });
+
+    if (!call) {
+      throw new Error('Call not found');
+    }
+
+    // Either party can cancel before the call starts
+    if (call.fanId !== userId && call.creatorId !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    // Can only cancel pending or accepted calls (not active or completed)
+    if (call.status !== 'pending' && call.status !== 'accepted') {
+      throw new Error('Cannot cancel a call that has already started or completed');
+    }
+
+    // Release the hold using WalletService for proper transaction handling
+    if (call.holdId) {
+      try {
+        await WalletService.releaseHold(call.holdId);
+      } catch (error) {
+        console.error('[CallService] Failed to release hold on cancel:', error);
+        // Continue with cancelling the call
+      }
+    }
+
+    const [updated] = await db
+      .update(calls)
+      .set({
+        status: 'cancelled',
+        cancellationReason: reason || 'Cancelled by user',
+        cancelledBy: userId,
         updatedAt: new Date(),
       })
       .where(eq(calls.id, callId))
@@ -260,6 +288,14 @@ export class CallService {
 
   /**
    * End a call and process billing
+   *
+   * SECURITY: Uses a single transaction with FOR UPDATE locks to prevent:
+   * - Double-charging through concurrent endCall requests
+   * - Balance inconsistencies from stale data
+   *
+   * BILLING POLICY: If the call runs longer than estimated, we cap the charge
+   * at what's available (hold amount + any free balance). This prevents the
+   * CHECK constraints from failing and ensures calls always complete gracefully.
    */
   static async endCall(callId: string, userId: string) {
     const call = await db.query.calls.findFirst({
@@ -284,77 +320,158 @@ export class CallService {
     const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
     const durationMinutes = Math.ceil(durationSeconds / 60);
 
-    // Calculate actual charge
-    const actualCoins = call.ratePerMinute * durationMinutes;
+    // Calculate what we'd ideally charge based on duration
+    const calculatedCoins = call.ratePerMinute * durationMinutes;
 
-    // Settle the hold and process payment
-    if (call.holdId) {
-      const transactionId = `call-${callId}-${nanoid(8)}`;
+    // Use a single transaction with FOR UPDATE locks to prevent race conditions
+    const { updatedCall, fanId, creatorId } = await db.transaction(async (tx) => {
+      // Generate idempotency key for this call completion
+      const idempotencyKeyDebit = `call-end-${callId}-debit`;
+      const idempotencyKeyCredit = `call-end-${callId}-credit`;
 
-      // Settle the hold
-      await db
-        .update(spendHolds)
-        .set({
-          status: 'settled',
-          settledAt: new Date(),
-        })
-        .where(eq(spendHolds.id, call.holdId));
-
-      // Process the actual charge
-      // Debit fan
-      await db.insert(walletTransactions).values({
-        userId: call.fanId,
-        amount: -actualCoins,
-        type: 'call_charge',
-        status: 'completed',
-        description: `Video call (${durationMinutes} min)`,
-        idempotencyKey: `${transactionId}-debit`,
-        metadata: JSON.stringify({ callId, durationMinutes }),
+      // Check for idempotency (already processed)
+      const existingTx = await tx.query.walletTransactions.findFirst({
+        where: eq(walletTransactions.idempotencyKey, idempotencyKeyDebit),
       });
 
-      // Credit creator (platform takes 0% for now, can add commission later)
-      await db.insert(walletTransactions).values({
-        userId: call.creatorId,
-        amount: actualCoins,
-        type: 'call_earnings',
-        status: 'completed',
-        description: `Call earnings (${durationMinutes} min)`,
-        idempotencyKey: `${transactionId}-credit`,
-        metadata: JSON.stringify({ callId, durationMinutes }),
-      });
+      if (existingTx) {
+        console.log('[CallService] Call end already processed (idempotent):', callId);
+        // Just update call status and return
+        const [result] = await tx
+          .update(calls)
+          .set({
+            status: 'completed',
+            endedAt: endTime,
+            durationSeconds,
+            actualCoins: calculatedCoins,
+            updatedAt: endTime,
+          })
+          .where(eq(calls.id, callId))
+          .returning();
+        return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId };
+      }
 
-      // Release any remaining held amount
-      const refundAmount = Math.max(0, (call.estimatedCoins || 0) - actualCoins);
-      if (refundAmount > 0) {
-        const fanWallet = await db.query.wallets.findFirst({
-          where: eq(wallets.userId, call.fanId),
-        });
+      let billedCoins = calculatedCoins;
+
+      // Process the hold if exists
+      if (call.holdId) {
+        // Lock both wallets to prevent race conditions
+        const lockedWalletResult = await tx.execute(
+          sql`SELECT user_id, balance, held_balance FROM wallets WHERE user_id IN (${call.fanId}, ${call.creatorId}) FOR UPDATE`
+        );
+
+        // Find fan wallet from locked results
+        const walletRows = lockedWalletResult as unknown as Array<{
+          user_id: string;
+          balance: number;
+          held_balance: number;
+        }>;
+        const fanWallet = walletRows.find(w => w.user_id === call.fanId);
 
         if (fanWallet) {
-          await db
-            .update(wallets)
-            .set({
-              heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
-            })
-            .where(eq(wallets.userId, call.fanId));
+          // CRITICAL: Cap the charge to prevent negative balance
+          // Max we can charge = current balance (which includes the held amount)
+          const maxChargeable = fanWallet.balance;
+
+          if (calculatedCoins > maxChargeable) {
+            console.warn(
+              `[CallService] Call ${callId} billing capped: calculated ${calculatedCoins}, ` +
+              `but fan only has ${maxChargeable}. Estimated was ${call.estimatedCoins}.`
+            );
+            billedCoins = Math.max(0, maxChargeable);
+          }
         }
+
+        // Settle the hold
+        await tx
+          .update(spendHolds)
+          .set({
+            status: 'settled',
+            settledAt: new Date(),
+          })
+          .where(eq(spendHolds.id, call.holdId));
+
+        // Debit fan with idempotency key
+        await tx.insert(walletTransactions).values({
+          userId: call.fanId,
+          amount: -billedCoins,
+          type: 'call_charge',
+          status: 'completed',
+          description: `${call.callType === 'voice' ? 'Voice' : 'Video'} call (${durationMinutes} min)`,
+          idempotencyKey: idempotencyKeyDebit,
+          metadata: JSON.stringify({
+            callId,
+            durationMinutes,
+            callType: call.callType,
+            calculatedCoins,
+            billedCoins,
+            wasCapped: billedCoins < calculatedCoins,
+          }),
+        });
+
+        // Credit creator with idempotency key
+        await tx.insert(walletTransactions).values({
+          userId: call.creatorId,
+          amount: billedCoins,
+          type: 'call_earnings',
+          status: 'completed',
+          description: `Call earnings (${durationMinutes} min)`,
+          idempotencyKey: idempotencyKeyCredit,
+          metadata: JSON.stringify({
+            callId,
+            durationMinutes,
+            callType: call.callType,
+            calculatedCoins,
+            billedCoins,
+            wasCapped: billedCoins < calculatedCoins,
+          }),
+        });
+
+        // Update fan wallet: deduct billed coins and release hold
+        await tx
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} - ${billedCoins}`,
+            heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${call.estimatedCoins || 0})`,
+            updatedAt: new Date(),
+          })
+          .where(eq(wallets.userId, call.fanId));
+
+        // Update creator wallet: add earnings
+        await tx
+          .update(wallets)
+          .set({
+            balance: sql`${wallets.balance} + ${billedCoins}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(wallets.userId, call.creatorId));
       }
-    }
 
-    // Update call
-    const [updated] = await db
-      .update(calls)
-      .set({
-        status: 'completed',
-        endedAt: endTime,
-        durationSeconds,
-        actualCoins,
-        updatedAt: endTime,
-      })
-      .where(eq(calls.id, callId))
-      .returning();
+      // Update call status with actual billed amount
+      const [result] = await tx
+        .update(calls)
+        .set({
+          status: 'completed',
+          endedAt: endTime,
+          durationSeconds,
+          actualCoins: billedCoins,
+          updatedAt: endTime,
+        })
+        .where(eq(calls.id, callId))
+        .returning();
 
-    return updated;
+      return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId };
+    });
+
+    // Invalidate caches OUTSIDE the transaction to prevent Redis errors from rolling back DB
+    invalidateBalanceCache(fanId).catch(err =>
+      console.error('[CallService] Failed to invalidate fan cache:', err)
+    );
+    invalidateBalanceCache(creatorId).catch(err =>
+      console.error('[CallService] Failed to invalidate creator cache:', err)
+    );
+
+    return updatedCall;
   }
 
   /**
@@ -428,28 +545,14 @@ export class CallService {
       throw new Error('Call is not pending');
     }
 
-    // Release the hold if exists
+    // Release the hold using WalletService for proper transaction handling
     if (call.holdId) {
-      await db
-        .update(spendHolds)
-        .set({
-          status: 'released',
-          releasedAt: new Date(),
-        })
-        .where(eq(spendHolds.id, call.holdId));
-
-      // Update fan's held balance
-      const fanWallet = await db.query.wallets.findFirst({
-        where: eq(wallets.userId, call.fanId),
-      });
-
-      if (fanWallet) {
-        await db
-          .update(wallets)
-          .set({
-            heldBalance: Math.max(0, fanWallet.heldBalance - (call.estimatedCoins || 0)),
-          })
-          .where(eq(wallets.userId, call.fanId));
+      try {
+        await WalletService.releaseHold(call.holdId);
+      } catch (error) {
+        console.error('[CallService] Failed to release hold on missed call:', error);
+        // Continue with marking call as missed even if hold release fails
+        // The hold will be cleaned up by reconciliation
       }
     }
 
