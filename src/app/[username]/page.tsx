@@ -768,8 +768,8 @@ export default function ProfilePage() {
                     {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
                   </button>
 
-                  {/* Subscribe Button */}
-                  {user.role === 'creator' && subscriptionTier && !isSubscribed && (
+                  {/* Subscribe Button - Don't show on own profile */}
+                  {user.role === 'creator' && subscriptionTier && !isSubscribed && currentUserId !== user.id && (
                     <button
                       onClick={() => {
                         if (!isAuthenticated) {
@@ -785,8 +785,8 @@ export default function ProfilePage() {
                     </button>
                   )}
 
-                  {/* Subscribed Badge */}
-                  {user.role === 'creator' && isSubscribed && (
+                  {/* Subscribed Badge - Don't show on own profile */}
+                  {user.role === 'creator' && isSubscribed && currentUserId !== user.id && (
                     <div className="px-3 py-1 rounded-full font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
                       Subscribed
                     </div>

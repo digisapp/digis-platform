@@ -11,6 +11,7 @@ import {
   subscriptions,
   calls,
   contentPurchases,
+  follows,
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,7 +29,7 @@ const COLD_OUTREACH_FEE = 50;
 export class MessageService {
   /**
    * Check if sender has a relationship with recipient
-   * Relationship exists if recipient has: tipped, subscribed, messaged first, been on call, or purchased content
+   * Relationship exists if recipient has: followed, subscribed, messaged first, been on call, or purchased content
    */
   static async hasRelationship(senderId: string, recipientId: string): Promise<boolean> {
     // Run all relationship checks in PARALLEL instead of sequential
@@ -37,7 +38,8 @@ export class MessageService {
       existingConversation,
       hasSubscription,
       hasCall,
-      hasPurchasedContent
+      hasPurchasedContent,
+      isFollowing
     ] = await Promise.all([
       // Check if they already have a conversation
       db.query.conversations.findFirst({
@@ -85,6 +87,14 @@ export class MessageService {
         ),
         columns: { id: true },
       }),
+      // Check if recipient follows the sender (fan follows creator)
+      db.query.follows.findFirst({
+        where: and(
+          eq(follows.followerId, recipientId),
+          eq(follows.followingId, senderId)
+        ),
+        columns: { id: true },
+      }),
     ]);
 
     // Check conversation - if recipient messaged first
@@ -92,8 +102,8 @@ export class MessageService {
       return true;
     }
 
-    // Any other relationship exists
-    return !!(hasSubscription || hasCall || hasPurchasedContent);
+    // Any other relationship exists (subscription, call, purchase, or follow)
+    return !!(hasSubscription || hasCall || hasPurchasedContent || isFollowing);
   }
   /**
    * Get or create a conversation between two users
