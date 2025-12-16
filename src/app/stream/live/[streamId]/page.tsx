@@ -95,6 +95,7 @@ export default function BroadcastStudioPage() {
     ticketPrice: number;
     startsAt: Date;
   } | null>(null);
+  const [ticketedCountdown, setTicketedCountdown] = useState<string>('');
   const [startingVipStream, setStartingVipStream] = useState(false);
   const [vipModeActive, setVipModeActive] = useState(false);
   const [showVipEndChoice, setShowVipEndChoice] = useState(false);
@@ -655,6 +656,42 @@ export default function BroadcastStudioPage() {
 
     return () => clearInterval(interval);
   }, [announcedTicketedStream?.id, vipModeActive]);
+
+  // Countdown timer for announced ticketed stream
+  useEffect(() => {
+    if (!announcedTicketedStream || vipModeActive) {
+      setTicketedCountdown('');
+      return;
+    }
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const startsAt = new Date(announcedTicketedStream.startsAt);
+      const diff = startsAt.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTicketedCountdown('Starting soon');
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (hours > 0) {
+        setTicketedCountdown(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTicketedCountdown(`${minutes}m ${seconds}s`);
+      } else {
+        setTicketedCountdown(`${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [announcedTicketedStream, vipModeActive]);
 
   const fetchStreamDetails = async () => {
     try {
@@ -1833,7 +1870,7 @@ export default function BroadcastStudioPage() {
                             </button>
                           </div>
                         ) : (
-                          // Ticketed Mode Not Started Yet
+                          // Ticketed Mode Not Started Yet - with countdown
                           <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
                             <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
                             <div className="text-left min-w-0">
@@ -1850,6 +1887,12 @@ export default function BroadcastStudioPage() {
                                   </span>
                                 )}
                               </div>
+                              {/* Countdown Timer */}
+                              {ticketedCountdown && (
+                                <div className="text-cyan-400 text-[10px] font-mono font-semibold mt-0.5">
+                                  ⏱ {ticketedCountdown}
+                                </div>
+                              )}
                             </div>
                             <button
                               onClick={handleStartVipStream}

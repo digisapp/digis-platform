@@ -1238,8 +1238,7 @@ export default function TheaterModePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Stream Has Ended</h2>
-                  <p className="text-gray-400 mb-6">Thanks for watching!</p>
+                  <h2 className="text-2xl font-bold text-white mb-6">Stream has ended</h2>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <button
                       onClick={() => router.push(`/${stream?.creator.username}`)}
@@ -2065,8 +2064,7 @@ export default function TheaterModePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-3">Stream Has Ended</h2>
-            <p className="text-gray-400 mb-8 text-lg">Thanks for watching!</p>
+            <h2 className="text-3xl font-bold text-white mb-8">Stream has ended</h2>
             <div className="flex flex-col gap-4">
               <button
                 onClick={() => router.push(`/${stream?.creator.username}`)}
