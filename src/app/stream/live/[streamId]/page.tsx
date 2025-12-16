@@ -149,6 +149,7 @@ export default function BroadcastStudioPage() {
   }>>([]);
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
@@ -180,13 +181,23 @@ export default function BroadcastStudioPage() {
     setIsSafari(isSafariBrowser);
   }, []);
 
-  // Get current user ID for private tips subscription
+  // Get current user ID and username for private tips subscription and branding
   useEffect(() => {
     const fetchUser = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
+        // Fetch username for branding watermark
+        try {
+          const profileRes = await fetch('/api/user/profile');
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            setCurrentUsername(profileData.user?.username || null);
+          }
+        } catch (err) {
+          console.error('Error fetching username:', err);
+        }
       }
     };
     fetchUser();
@@ -2037,6 +2048,15 @@ export default function BroadcastStudioPage() {
                       <span className="text-red-400 text-sm font-semibold">End Stream</span>
                     </button>
                   </div>
+
+                  {/* Username Watermark - Appears in video for branding */}
+                  {currentUsername && (
+                    <div className="absolute top-3 left-3 z-20 pointer-events-none">
+                      <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-lg">
+                        <span className="text-white/70 text-sm font-medium">@{currentUsername}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Spotlighted Creator Overlay */}
                   <SpotlightedCreatorOverlay streamId={streamId} isHost={true} />

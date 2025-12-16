@@ -1053,6 +1053,15 @@ export default function StreamViewerPage() {
               </div>
             )}
 
+            {/* Username Watermark - Appears in video for branding */}
+            {stream?.creator?.username && (
+              <div className="absolute top-3 left-3 z-20 pointer-events-none">
+                <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-lg">
+                  <span className="text-white/70 text-sm font-medium">@{stream.creator.username}</span>
+                </div>
+              </div>
+            )}
+
             {/* Spotlight Card - Shows when a creator is spotlighted (Desktop) */}
             {spotlightedCreator && !isMobile && (
               <div className="absolute bottom-28 left-4 z-40 animate-in slide-in-from-left duration-500">
