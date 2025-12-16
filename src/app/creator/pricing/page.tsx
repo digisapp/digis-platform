@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
-  DollarSign, Clock, Video, Mic, MessageSquare, Star, Phone,
+  DollarSign, Video, Mic, MessageSquare, Star, Phone,
   ToggleLeft, ToggleRight, Plus, Trash2, Coins, X, CheckCircle, AlertCircle
 } from 'lucide-react';
 import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
@@ -379,6 +379,7 @@ function PricingPageContent() {
                     <p className="text-xs text-gray-400">1-on-1 video calls with fans</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setCallSettings({ ...callSettings, isAvailableForCalls: !callSettings.isAvailableForCalls })}
                   >
                     {callSettings.isAvailableForCalls ? (
@@ -438,6 +439,7 @@ function PricingPageContent() {
                     <p className="text-xs text-gray-400">Audio-only calls with fans</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setCallSettings({ ...callSettings, isAvailableForVoiceCalls: !callSettings.isAvailableForVoiceCalls })}
                   >
                     {callSettings.isAvailableForVoiceCalls ? (
@@ -556,6 +558,7 @@ function PricingPageContent() {
                     <p className="text-xs text-gray-400">Allow fans to subscribe monthly</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setSubscriptionSettings({ ...subscriptionSettings, enabled: !subscriptionSettings.enabled })}
                   >
                     {subscriptionSettings.enabled ? (

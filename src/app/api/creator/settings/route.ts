@@ -134,9 +134,9 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if (updates.messageRate !== undefined && updates.messageRate < 1) {
+    if (updates.messageRate !== undefined && updates.messageRate < 0) {
       return NextResponse.json(
-        failure('Message rate must be at least 1 coin', 'validation', requestId),
+        failure('Message rate cannot be negative', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
