@@ -11,7 +11,28 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const library = await ContentService.getUserLibrary(user.id);
+    const rawLibrary = await ContentService.getUserLibrary(user.id);
+
+    // Transform the nested structure to flat structure expected by the page
+    const library = rawLibrary.map((item: any) => ({
+      id: item.content.id,
+      title: item.content.title,
+      description: item.content.description,
+      contentType: item.content.contentType,
+      thumbnailUrl: item.content.thumbnailUrl,
+      mediaUrl: item.content.mediaUrl,
+      viewCount: item.content.viewCount || 0,
+      durationSeconds: item.content.durationSeconds,
+      purchasedAt: item.purchase.unlockedAt,
+      coinsSpent: item.purchase.coinsSpent || 0,
+      creator: {
+        id: item.creator.id,
+        username: item.creator.username,
+        displayName: item.creator.displayName,
+        avatarUrl: item.creator.avatarUrl,
+        isCreatorVerified: false, // Add this field if needed
+      },
+    }));
 
     return NextResponse.json({
       library,
