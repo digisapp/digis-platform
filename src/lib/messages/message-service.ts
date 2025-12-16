@@ -288,11 +288,13 @@ export class MessageService {
 
       // Messaging cost logic:
       // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
+      // - Subscriber → Creator: FREE (subscribers get free text messages)
       // - Fan → Creator: Fan pays the creator's message rate (if set)
       // - Creator → Creator: Sender pays the receiver's message rate (if set)
       // - Support conversations: ALWAYS FREE (messages with admin account)
       //
       // Only charge when the RECEIVER is a creator (fans can't charge for messages)
+      // Note: This is for regular text messages only - locked/PPV messages still cost coins
       const receiverIsCreator = receiver.role === 'creator';
 
       if (!isSupportConversation && receiverIsCreator) {
@@ -302,54 +304,68 @@ export class MessageService {
         });
 
         if (settings && settings.messageRate > 0) {
-          messageCost = settings.messageRate;
-
-          // Check sender's balance
-          const senderWallet = await tx.query.wallets.findFirst({
-            where: eq(wallets.userId, senderId),
+          // Check if sender is subscribed to the creator - subscribers get FREE text messages
+          const isSubscribed = await tx.query.subscriptions.findFirst({
+            where: and(
+              eq(subscriptions.userId, senderId),
+              eq(subscriptions.creatorId, receiverId),
+              eq(subscriptions.status, 'active'),
+              sql`${subscriptions.expiresAt} > NOW()`
+            ),
+            columns: { id: true },
           });
 
-          if (!senderWallet || senderWallet.balance < messageCost) {
-            throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
+          // Subscribers message for free, non-subscribers pay the message rate
+          if (!isSubscribed) {
+            messageCost = settings.messageRate;
+
+            // Check sender's balance
+            const senderWallet = await tx.query.wallets.findFirst({
+              where: eq(wallets.userId, senderId),
+            });
+
+            if (!senderWallet || senderWallet.balance < messageCost) {
+              throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
+            }
+
+            // Process payment
+            const transactionId = uuidv4();
+
+            // Deduct from sender
+            await tx.insert(walletTransactions).values({
+              userId: senderId,
+              amount: -messageCost,
+              type: 'message_charge',
+              status: 'completed',
+              description: `Message to ${receiver.displayName || receiver.username}`,
+              idempotencyKey: `${transactionId}-debit`,
+            });
+
+            // Credit to receiver (creator)
+            await tx.insert(walletTransactions).values({
+              userId: receiverId,
+              amount: messageCost,
+              type: 'message_earnings',
+              status: 'completed',
+              description: `Message from ${senderWallet ? 'fan' : 'user'}`,
+              idempotencyKey: `${transactionId}-credit`,
+            });
+
+            // Update wallet balances
+            await tx
+              .update(wallets)
+              .set({
+                balance: sql`${wallets.balance} - ${messageCost}`,
+              })
+              .where(eq(wallets.userId, senderId));
+
+            await tx
+              .update(wallets)
+              .set({
+                balance: sql`${wallets.balance} + ${messageCost}`,
+              })
+              .where(eq(wallets.userId, receiverId));
           }
-
-          // Process payment
-          const transactionId = uuidv4();
-
-          // Deduct from sender
-          await tx.insert(walletTransactions).values({
-            userId: senderId,
-            amount: -messageCost,
-            type: 'message_charge',
-            status: 'completed',
-            description: `Message to ${receiver.displayName || receiver.username}`,
-            idempotencyKey: `${transactionId}-debit`,
-          });
-
-          // Credit to receiver (creator)
-          await tx.insert(walletTransactions).values({
-            userId: receiverId,
-            amount: messageCost,
-            type: 'message_earnings',
-            status: 'completed',
-            description: `Message from ${senderWallet ? 'fan' : 'user'}`,
-            idempotencyKey: `${transactionId}-credit`,
-          });
-
-          // Update wallet balances
-          await tx
-            .update(wallets)
-            .set({
-              balance: sql`${wallets.balance} - ${messageCost}`,
-            })
-            .where(eq(wallets.userId, senderId));
-
-          await tx
-            .update(wallets)
-            .set({
-              balance: sql`${wallets.balance} + ${messageCost}`,
-            })
-            .where(eq(wallets.userId, receiverId));
         }
       }
 
