@@ -68,7 +68,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
   };
 
   const handleBanUser = async () => {
-    if (!confirm(`Permanently ban ${message.username}?`)) return;
+    if (!confirm(`Permanently ban ${message.username} from this stream?`)) return;
 
     setIsProcessing(true);
     try {
@@ -81,13 +81,41 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       });
 
       if (response.ok) {
-        showSuccess(`${message.username} has been banned`);
+        showSuccess(`${message.username} has been banned from this stream`);
         setShowMenu(false);
       } else {
         showError('Failed to ban user');
       }
     } catch (error) {
       showError('Failed to ban user');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!confirm(`Block ${message.username}? This will prevent them from viewing your streams, sending messages, gifts, and call requests.`)) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/users/block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockedId: message.userId,
+          reason: 'Blocked from stream chat',
+        }),
+      });
+
+      if (response.ok) {
+        showSuccess(`${message.username} has been blocked`);
+        setShowMenu(false);
+      } else {
+        const data = await response.json();
+        showError(data.error || 'Failed to block user');
+      }
+    } catch (error) {
+      showError('Failed to block user');
     } finally {
       setIsProcessing(false);
     }
@@ -187,7 +215,14 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
               disabled={isProcessing}
               className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/10 rounded flex items-center gap-2 disabled:opacity-50"
             >
-              🚫 Ban User
+              🚫 Ban from Stream
+            </button>
+            <button
+              onClick={handleBlockUser}
+              disabled={isProcessing}
+              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-white/10 rounded flex items-center gap-2 disabled:opacity-50"
+            >
+              ⛔ Block User
             </button>
           </div>
         </>

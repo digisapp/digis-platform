@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
-import { Gift } from 'lucide-react';
+import { Gift, MoreVertical } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
@@ -69,6 +69,8 @@ export default function ChatPage() {
   const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingSentRef = useRef<number>(0);
 
@@ -494,6 +496,36 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleBlockUser = async () => {
+    if (!conversation) return;
+
+    if (!confirm(`Block ${conversation.otherUser.username}? This will prevent them from viewing your streams, sending you messages, gifts, and call requests.`)) return;
+
+    setIsBlocking(true);
+    try {
+      const response = await fetch('/api/users/block', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockedId: conversation.otherUser.id,
+          reason: 'Blocked from DM',
+        }),
+      });
+
+      if (response.ok) {
+        setShowOptionsMenu(false);
+        router.push('/chats');
+      } else {
+        const data = await response.json();
+        showError(data.error || 'Failed to block user');
+      }
+    } catch (error) {
+      showError('Failed to block user');
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
   // Send typing indicator (throttled to once per second)
   const sendTypingIndicator = useCallback(async (isTyping: boolean) => {
     const now = Date.now();
@@ -597,15 +629,56 @@ export default function ChatPage() {
                 </button>
               </div>
 
-              {/* Tip Button - Only show when chatting with a creator */}
-              {conversation.otherUser.role === 'creator' && (
-                <button
-                  onClick={() => setShowTipModal(true)}
-                  className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
-                >
-                  <Gift className="w-5 h-5" />
-                </button>
-              )}
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                {/* Tip Button - Only show when chatting with a creator */}
+                {conversation.otherUser.role === 'creator' && (
+                  <button
+                    onClick={() => setShowTipModal(true)}
+                    className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
+                  >
+                    <Gift className="w-5 h-5" />
+                  </button>
+                )}
+
+                {/* Options Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                    className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-white/40 transition-all hover:scale-105 text-white"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
+
+                  {showOptionsMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowOptionsMenu(false)}
+                      />
+                      <div className="absolute right-0 top-12 bg-black/95 backdrop-blur-xl rounded-lg border border-white/20 p-2 min-w-[160px] z-50 shadow-xl">
+                        <button
+                          onClick={() => {
+                            router.push(`/${conversation.otherUser.username}`);
+                            setShowOptionsMenu(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-white hover:bg-white/10 rounded flex items-center gap-2"
+                        >
+                          👤 View Profile
+                        </button>
+                        <div className="border-t border-white/10 my-1" />
+                        <button
+                          onClick={handleBlockUser}
+                          disabled={isBlocking}
+                          className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/10 rounded flex items-center gap-2 disabled:opacity-50"
+                        >
+                          ⛔ Block User
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
