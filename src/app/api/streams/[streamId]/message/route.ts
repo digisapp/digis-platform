@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, streamMessages } from '@/lib/data/system';
+import { users, streamMessages, streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { BlockService } from '@/lib/services/block-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -54,6 +55,19 @@ export async function POST(
 
     if (isTimedOut) {
       return NextResponse.json({ error: 'You are currently timed out' }, { status: 403 });
+    }
+
+    // Check if user is blocked by the stream creator
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+      columns: { creatorId: true },
+    });
+
+    if (stream && stream.creatorId !== user.id) {
+      const isBlocked = await BlockService.isBlockedByCreator(stream.creatorId, user.id);
+      if (isBlocked) {
+        return NextResponse.json({ error: 'You cannot send messages in this stream' }, { status: 403 });
+      }
     }
 
     let body;

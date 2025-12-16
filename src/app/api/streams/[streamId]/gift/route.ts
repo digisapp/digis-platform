@@ -3,9 +3,10 @@ import { StreamService } from '@/lib/streams/stream-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, wallets } from '@/lib/data/system';
+import { users, wallets, streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import { BlockService } from '@/lib/services/block-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -37,6 +38,19 @@ export async function POST(
 
     const { streamId } = await params;
     const { giftId, quantity = 1, recipientCreatorId, recipientUsername } = await req.json();
+
+    // Check if user is blocked by the stream creator
+    const stream = await db.query.streams.findFirst({
+      where: eq(streams.id, streamId),
+      columns: { creatorId: true },
+    });
+
+    if (stream && stream.creatorId !== user.id) {
+      const isBlocked = await BlockService.isBlockedByCreator(stream.creatorId, user.id);
+      if (isBlocked) {
+        return NextResponse.json({ error: 'You cannot send gifts in this stream' }, { status: 403 });
+      }
+    }
 
     if (!giftId) {
       return NextResponse.json({ error: 'Gift ID is required' }, { status: 400 });

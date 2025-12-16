@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, pgEnum, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, pgEnum, integer, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
@@ -55,10 +55,28 @@ export const profiles = pgTable('profiles', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Global user blocks - blocks a user from ALL interactions with the blocker
+export const userBlocks = pgTable('user_blocks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  blockerId: uuid('blocker_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  blockedId: uuid('blocked_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Ensure a user can only block another user once
+  uniqueBlock: uniqueIndex('user_blocks_unique_idx').on(table.blockerId, table.blockedId),
+  // Fast lookup: "who has this user blocked?"
+  blockerIdx: index('user_blocks_blocker_idx').on(table.blockerId),
+  // Fast lookup: "is this user blocked by anyone?" (for filtering)
+  blockedIdx: index('user_blocks_blocked_idx').on(table.blockedId),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
+export type UserBlock = typeof userBlocks.$inferSelect;
+export type NewUserBlock = typeof userBlocks.$inferInsert;
 
 // Relations
 export const usersRelations = relations(users, ({ one }) => ({

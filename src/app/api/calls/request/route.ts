@@ -4,6 +4,7 @@ import { CallService } from '@/lib/services/call-service';
 import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { BlockService } from '@/lib/services/block-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +24,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Creator ID is required' },
         { status: 400 }
+      );
+    }
+
+    // Check if user is blocked by the creator
+    const isBlocked = await BlockService.isBlockedByCreator(creatorId, user.id);
+    if (isBlocked) {
+      return NextResponse.json(
+        { error: 'Unable to request call with this creator' },
+        { status: 403 }
       );
     }
 

@@ -3,6 +3,7 @@ import { db } from '@/lib/data/system';
 import { follows } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
+import { BlockService } from '@/lib/services/block-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,12 @@ export async function POST(
     // Can't follow yourself
     if (user.id === creatorId) {
       return NextResponse.json({ error: 'Cannot follow yourself' }, { status: 400 });
+    }
+
+    // Check if blocked by the creator
+    const isBlocked = await BlockService.isBlockedByCreator(creatorId, user.id);
+    if (isBlocked) {
+      return NextResponse.json({ error: 'Unable to follow this creator' }, { status: 403 });
     }
 
     // Check if already following

@@ -20,6 +20,7 @@ import {
   invalidateConversationsCacheForBoth,
   CachedConversation,
 } from '@/lib/cache';
+import { BlockService } from '@/lib/services/block-service';
 
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
 const COLD_OUTREACH_FEE = 50;
@@ -206,6 +207,16 @@ export class MessageService {
 
     if (!sender || !receiver) {
       throw new Error('User not found');
+    }
+
+    // Check if either user has blocked the other (includes both DM blocks and global blocks)
+    const [dmBlocked, globalBlocked] = await Promise.all([
+      this.isUserBlocked(receiverId, senderId), // DM-specific block
+      BlockService.isEitherBlocked(senderId, receiverId), // Global block
+    ]);
+
+    if (dmBlocked || globalBlocked) {
+      throw new Error('Unable to send message to this user');
     }
 
     // Check if this is the first message in the conversation (cold outreach)

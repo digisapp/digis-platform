@@ -26,6 +26,7 @@ import {
   decrementViewerCount as redisDecrementViewerCount,
 } from '@/lib/cache';
 import { LiveKitEgressService } from '../services/livekit-egress-service';
+import { BlockService } from '../services/block-service';
 
 /**
  * StreamService uses Drizzle ORM for complex streaming operations.
@@ -874,6 +875,14 @@ export class StreamService {
     // Creator always has access to their own stream
     if (userId && stream.creatorId === userId) {
       return { hasAccess: true };
+    }
+
+    // Check if user is blocked by the creator
+    if (userId) {
+      const isBlocked = await BlockService.isBlockedByCreator(stream.creatorId, userId);
+      if (isBlocked) {
+        return { hasAccess: false, reason: 'You do not have access to this stream.' };
+      }
     }
 
     // Public streams are accessible to everyone
