@@ -276,6 +276,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
         </div>
 
         <button
+          type="button"
           onClick={cancelRecording}
           className="p-2 hover:bg-red-500/20 rounded-full transition-colors"
           title="Cancel"
@@ -284,6 +285,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
         </button>
 
         <button
+          type="button"
           onClick={stopRecording}
           disabled={recordingTime < 1}
           className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50"
@@ -297,6 +299,7 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
   // Default mic button
   return (
     <button
+      type="button"
       onClick={startRecording}
       disabled={isSending}
       className="p-3 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 hover:border-cyan-500/50 transition-all flex items-center justify-center disabled:opacity-50"
