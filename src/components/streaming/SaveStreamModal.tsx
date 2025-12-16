@@ -5,8 +5,8 @@ import { GlassModal, GlassInput, GlassButton } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Coins } from 'lucide-react';
 
-// Minimum price for VOD saves (prevents free content flooding storage)
-const MIN_VOD_PRICE = 250;
+// Minimum price for VOD saves
+const MIN_VOD_PRICE = 50;
 
 interface SaveStreamModalProps {
   isOpen: boolean;
