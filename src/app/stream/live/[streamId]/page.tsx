@@ -739,7 +739,7 @@ export default function BroadcastStudioPage() {
         // Set stream orientation from database
         setStreamOrientation(data.stream.orientation || 'landscape');
         // Set menu enabled state from database (default to true if not set)
-        setMenuEnabled(data.stream.menuEnabled ?? true);
+        setMenuEnabled(data.stream.tipMenuEnabled ?? true);
 
         // Fetch menu items for the creator (which is the current user)
         if (data.stream.creatorId) {
@@ -2041,7 +2041,7 @@ export default function BroadcastStudioPage() {
 
                   {/* Active Poll Overlay */}
                   {activePoll && activePoll.isActive && (
-                    <div className="absolute bottom-20 left-3 z-30 w-[280px] sm:w-[320px]">
+                    <div className="absolute bottom-20 left-3 z-30 w-[220px] sm:w-[260px]">
                       <StreamPoll
                         poll={activePoll}
                         isBroadcaster={true}
@@ -2054,7 +2054,7 @@ export default function BroadcastStudioPage() {
 
                   {/* Active Countdown Overlay */}
                   {activeCountdown && activeCountdown.isActive && (
-                    <div className="absolute bottom-20 right-3 z-30 w-[250px]">
+                    <div className="absolute bottom-20 right-3 z-30 w-[180px]">
                       <StreamCountdown
                         countdown={activeCountdown}
                         isBroadcaster={true}
