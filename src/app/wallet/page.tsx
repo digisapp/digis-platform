@@ -7,7 +7,7 @@ import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/componen
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
-import { RefreshCw, DollarSign, History, Building2, Coins, Sparkles, TrendingUp, Wallet, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { DollarSign, History, Building2, Coins, Sparkles, TrendingUp, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface Transaction {
@@ -76,21 +76,27 @@ export default function WalletPage() {
         return;
       }
 
-      // Check if user is creator
+      // Check if user is creator FIRST before fetching wallet data
+      let userIsCreator = false;
       const profileResponse = await fetch('/api/user/profile');
       if (profileResponse.ok) {
         const profile = await profileResponse.json();
-        setIsCreator(profile.user?.role === 'creator');
+        userIsCreator = profile.user?.role === 'creator';
+        setIsCreator(userIsCreator);
       }
 
-      await fetchWalletData();
+      // Pass isCreator value to avoid race condition
+      await fetchWalletData(userIsCreator);
     } catch (error) {
       console.error('Error:', error);
       setLoading(false);
     }
   };
 
-  const fetchWalletData = async () => {
+  const fetchWalletData = async (userIsCreator?: boolean) => {
+    // Use passed value or fall back to state (for refresh calls)
+    const creatorStatus = userIsCreator ?? isCreator;
+
     try {
       // Fetch balance
       const balanceResponse = await fetch('/api/wallet/balance');
@@ -107,7 +113,7 @@ export default function WalletPage() {
       }
 
       // Fetch payouts if creator
-      if (isCreator) {
+      if (creatorStatus) {
         const payoutsResponse = await fetch('/api/wallet/payouts');
         if (payoutsResponse.ok) {
           const payoutsData = await payoutsResponse.json();
@@ -421,7 +427,7 @@ export default function WalletPage() {
             )}
 
             {/* Transaction History */}
-            <GlassCard className="!bg-white/10 backdrop-blur-xl p-6 !bg-white/10 backdrop-blur-xl">
+            <GlassCard className="!bg-white/10 backdrop-blur-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg">
