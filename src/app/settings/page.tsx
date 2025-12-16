@@ -1058,6 +1058,17 @@ export default function SettingsPage() {
             </button>
           </GlassCard>
         )}
+
+        {/* Support */}
+        <div className="text-center py-4">
+          <span className="text-gray-400">Contact Support: </span>
+          <a
+            href="mailto:support@digis.cc?subject=Digis Support Request"
+            className="text-cyan-400 hover:text-cyan-300 transition-colors"
+          >
+            support@digis.cc
+          </a>
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,9 @@ import { BlockService } from '@/lib/services/block-service';
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
 const COLD_OUTREACH_FEE = 50;
 
+// Admin/Support account username - messages to/from this account are always free
+const ADMIN_USERNAME = 'admin';
+
 export class MessageService {
   /**
    * Check if sender has a relationship with recipient
@@ -219,6 +222,9 @@ export class MessageService {
       throw new Error('User not found');
     }
 
+    // Check if this is a support conversation (with admin account) - always free
+    const isSupportConversation = sender.username === ADMIN_USERNAME || receiver.username === ADMIN_USERNAME;
+
     // Check if either user has blocked the other (includes both DM blocks and global blocks)
     const [dmBlocked, globalBlocked] = await Promise.all([
       this.isUserBlocked(receiverId, senderId), // DM-specific block
@@ -240,7 +246,8 @@ export class MessageService {
     return await db.transaction(async (tx) => {
       let messageCost = 0;
 
-      if (isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
+      // Skip all fees for support conversations (messages with admin account)
+      if (!isSupportConversation && isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
         // Sender is a creator, receiver is a fan - check if they have a relationship
         const hasRelationship = await MessageService.hasRelationship(senderId, receiverId);
 
@@ -283,11 +290,12 @@ export class MessageService {
       // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
       // - Fan → Creator: Fan pays the creator's message rate (if set)
       // - Creator → Creator: Sender pays the receiver's message rate (if set)
+      // - Support conversations: ALWAYS FREE (messages with admin account)
       //
       // Only charge when the RECEIVER is a creator (fans can't charge for messages)
       const receiverIsCreator = receiver.role === 'creator';
 
-      if (receiverIsCreator) {
+      if (!isSupportConversation && receiverIsCreator) {
         // Get creator settings to check message rate
         const settings = await tx.query.creatorSettings.findFirst({
           where: eq(creatorSettings.userId, receiverId),
