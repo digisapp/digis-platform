@@ -1844,12 +1844,11 @@ export default function BroadcastStudioPage() {
                     <LocalCameraPreview isPortrait={streamOrientation === 'portrait'} />
                     <RoomAudioRenderer />
                   </LiveKitRoom>
-                  {/* Top Left Overlay - LIVE + Timer */}
+                  {/* Top Left Overlay - Live Indicator + Timer */}
                   <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-                    {/* LIVE Badge + Timer */}
+                    {/* Red Dot + Timer */}
                     <div className="flex items-center gap-2 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]">
                       <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                      <span className="text-red-400 font-bold text-sm">LIVE</span>
                       <span className="text-white font-semibold text-sm">{formatDuration()}</span>
                     </div>
 
