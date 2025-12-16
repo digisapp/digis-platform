@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
-import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins, MoreVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import Image from 'next/image';
 
 interface CreatorContent {
   id: string;
@@ -29,7 +30,6 @@ export default function CreatorContentStudioPage() {
   const [content, setContent] = useState<CreatorContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContent, setSelectedContent] = useState<CreatorContent | null>(null);
-  const [showMenu, setShowMenu] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: '', description: '', unlockPrice: 0 });
   const [saving, setSaving] = useState(false);
 
@@ -180,10 +180,12 @@ export default function CreatorContentStudioPage() {
               <GlassCard key={item.id} className="overflow-hidden group relative">
                 {/* Thumbnail */}
                 <div className="aspect-square relative bg-black">
-                  <img
+                  <Image
                     src={item.thumbnailUrl}
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover"
                   />
 
                   {/* Type badge */}
@@ -301,11 +303,13 @@ export default function CreatorContentStudioPage() {
 
               {/* Thumbnail Preview */}
               {selectedContent.thumbnailUrl && (
-                <div className="mb-6 rounded-lg overflow-hidden bg-black flex items-center justify-center">
-                  <img
+                <div className="mb-6 rounded-lg overflow-hidden bg-black relative h-64">
+                  <Image
                     src={selectedContent.thumbnailUrl}
                     alt={selectedContent.title}
-                    className="max-w-full max-h-64 object-contain"
+                    fill
+                    sizes="500px"
+                    className="object-contain"
                   />
                 </div>
               )}
