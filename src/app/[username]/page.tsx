@@ -74,6 +74,7 @@ export default function ProfilePage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
+  const [isColdOutreach, setIsColdOutreach] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
   const [content, setContent] = useState<any[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
@@ -520,6 +521,7 @@ export default function ProfilePage() {
 
       // If creator has a message rate or if it's a creator messaging a fan, show confirmation modal
       if (messageRate > 0 || isCreatorMessagingFan) {
+        setIsColdOutreach(isCreatorMessagingFan && messageRate === 0);
         setShowMessageModal(true);
         return;
       }
@@ -1507,11 +1509,16 @@ export default function ProfilePage() {
 
               {/* Cost Info - Tron Style */}
               <div className="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-xl p-6 mb-6 text-center border-2 border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-                <p className="text-gray-400 text-sm mb-2 font-medium">Cost per Message</p>
+                <p className="text-gray-400 text-sm mb-2 font-medium">
+                  {isColdOutreach ? 'One-time unlock fee' : 'Cost per message'}
+                </p>
                 <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                   {profile.messageRate && profile.messageRate > 0 ? profile.messageRate : 50}
                 </div>
                 <p className="text-gray-400 text-sm mt-1 font-medium">coins</p>
+                {isColdOutreach && (
+                  <p className="text-gray-500 text-xs mt-2">Messages are free after unlocking</p>
+                )}
               </div>
 
               {/* Action Buttons - Tron Style */}
