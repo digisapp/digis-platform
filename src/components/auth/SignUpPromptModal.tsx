@@ -10,9 +10,11 @@ interface SignUpPromptModalProps {
   onClose: () => void;
   action?: string; // What action triggered this (e.g., "send a tip", "start a call")
   creatorName?: string;
+  onSignIn?: () => void; // Optional callback to open login modal
+  onSignUp?: () => void; // Optional callback to open signup modal
 }
 
-export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: SignUpPromptModalProps) {
+export function SignUpPromptModal({ isOpen, onClose, action, creatorName, onSignIn, onSignUp }: SignUpPromptModalProps) {
   const router = useRouter();
   const [isClosing, setIsClosing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -32,11 +34,21 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName }: Sign
   };
 
   const handleSignUp = () => {
-    router.push('/signup');
+    handleClose();
+    if (onSignUp) {
+      onSignUp();
+    } else {
+      router.push('/');
+    }
   };
 
   const handleSignIn = () => {
-    router.push('/login');
+    handleClose();
+    if (onSignIn) {
+      onSignIn();
+    } else {
+      router.push('/');
+    }
   };
 
   const modalContent = (

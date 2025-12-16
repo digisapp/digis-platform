@@ -16,6 +16,8 @@ import { ProfileGoalsWidget } from '@/components/profile/ProfileGoalsWidget';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { ContentUnlockModal } from '@/components/content/ContentUnlockModal';
 import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
+import { LoginModal } from '@/components/auth/LoginModal';
+import { SignupModal } from '@/components/auth/SignupModal';
 import { useToastContext } from '@/context/ToastContext';
 
 interface ProfileData {
@@ -84,6 +86,8 @@ export default function ProfilePage() {
   const [contentToUnlock, setContentToUnlock] = useState<any>(null);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [signUpAction, setSignUpAction] = useState<string>('');
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [showSignUpFormModal, setShowSignUpFormModal] = useState(false);
   const [showSubscribeSuccessModal, setShowSubscribeSuccessModal] = useState(false);
   const [showSubscribeConfirmModal, setShowSubscribeConfirmModal] = useState(false);
   const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
@@ -1556,6 +1560,28 @@ export default function ProfilePage() {
         onClose={() => setShowSignUpModal(false)}
         action={signUpAction}
         creatorName={profile?.user.displayName || profile?.user.username}
+        onSignIn={() => setShowSignInModal(true)}
+        onSignUp={() => setShowSignUpFormModal(true)}
+      />
+
+      {/* Sign In Modal */}
+      <LoginModal
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
+        onSwitchToSignup={() => {
+          setShowSignInModal(false);
+          setShowSignUpFormModal(true);
+        }}
+      />
+
+      {/* Sign Up Form Modal */}
+      <SignupModal
+        isOpen={showSignUpFormModal}
+        onClose={() => setShowSignUpFormModal(false)}
+        onSwitchToLogin={() => {
+          setShowSignUpFormModal(false);
+          setShowSignInModal(true);
+        }}
       />
 
       {/* Subscribe Confirmation Modal */}
