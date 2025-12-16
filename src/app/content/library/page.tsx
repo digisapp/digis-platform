@@ -148,28 +148,6 @@ export default function ContentLibraryPage() {
           </button>
         </div>
 
-        {/* Stats Summary */}
-        {content && content.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-              <div className="text-gray-400 text-sm mb-1">Total Items</div>
-              <div className="text-3xl font-bold text-white">{content.length}</div>
-            </div>
-            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-              <div className="text-gray-400 text-sm mb-1">Total Spent</div>
-              <div className="text-3xl font-bold text-cyan-400">
-                {content.reduce((sum, item) => sum + (item.coinsSpent || 0), 0)} coins
-              </div>
-            </div>
-            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-              <div className="text-gray-400 text-sm mb-1">Creators Supported</div>
-              <div className="text-3xl font-bold text-pink-400">
-                {new Set(content.map(item => item.creator?.id).filter(Boolean)).size}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Content Grid */}
         {content.length === 0 ? (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
