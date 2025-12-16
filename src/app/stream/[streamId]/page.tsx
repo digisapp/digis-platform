@@ -10,6 +10,8 @@ import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GiftAnimationManager } from '@/components/streaming/GiftAnimation';
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
+import { StreamPoll } from '@/components/streaming/StreamPoll';
+import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -140,6 +142,21 @@ export default function StreamViewerPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
+  const [activePoll, setActivePoll] = useState<{
+    id: string;
+    question: string;
+    options: string[];
+    voteCounts: number[];
+    totalVotes: number;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
+  const [activeCountdown, setActiveCountdown] = useState<{
+    id: string;
+    label: string;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
 
   // Call request state
   const [creatorCallSettings, setCreatorCallSettings] = useState<CreatorCallSettings | null>(null);
@@ -177,6 +194,8 @@ export default function StreamViewerPage() {
     fetchUserBalance();
     fetchGoals();
     fetchFeaturedCreators();
+    fetchPoll();
+    fetchCountdown();
   }, [streamId]);
 
   // Check follow status when stream loads
@@ -288,6 +307,14 @@ export default function StreamViewerPage() {
     }
   }, [ablyViewerCount]);
 
+  // Poll for active poll vote updates (every 5 seconds)
+  useEffect(() => {
+    if (!activePoll?.isActive) return;
+
+    const interval = setInterval(fetchPoll, 5000);
+    return () => clearInterval(interval);
+  }, [activePoll?.isActive, streamId]);
+
   // Auto-hide controls
   useEffect(() => {
     if (controlsTimeout) clearTimeout(controlsTimeout);
@@ -377,6 +404,26 @@ export default function StreamViewerPage() {
       if (response.ok) setGoals(data.goals);
     } catch (err) {
       if (isOnline()) console.error('Error fetching goals:', err);
+    }
+  };
+
+  const fetchPoll = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/polls`);
+      const data = await response.json();
+      if (response.ok) setActivePoll(data.poll);
+    } catch (err) {
+      if (isOnline()) console.error('Error fetching poll:', err);
+    }
+  };
+
+  const fetchCountdown = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/countdown`);
+      const data = await response.json();
+      if (response.ok) setActiveCountdown(data.countdown);
+    } catch (err) {
+      if (isOnline()) console.error('Error fetching countdown:', err);
     }
   };
 
@@ -1038,6 +1085,31 @@ export default function StreamViewerPage() {
                     <span>Tip</span>
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Active Poll Overlay */}
+            {activePoll && activePoll.isActive && (
+              <div className="absolute bottom-28 left-4 z-30 w-[280px] sm:w-[320px]">
+                <StreamPoll
+                  poll={activePoll}
+                  isBroadcaster={false}
+                  streamId={streamId}
+                  onPollEnded={() => setActivePoll(null)}
+                  onVoted={fetchPoll}
+                />
+              </div>
+            )}
+
+            {/* Active Countdown Overlay */}
+            {activeCountdown && activeCountdown.isActive && (
+              <div className="absolute bottom-28 right-4 z-30 w-[250px]">
+                <StreamCountdown
+                  countdown={activeCountdown}
+                  isBroadcaster={false}
+                  streamId={streamId}
+                  onCountdownEnded={() => setActiveCountdown(null)}
+                />
               </div>
             )}
 

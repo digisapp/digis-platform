@@ -18,13 +18,17 @@ import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { AnnounceTicketedStreamModal } from '@/components/streaming/AnnounceTicketedStreamModal';
+import { StreamPoll } from '@/components/streaming/StreamPoll';
+import { StreamCountdown } from '@/components/streaming/StreamCountdown';
+import { CreatePollModal } from '@/components/streaming/CreatePollModal';
+import { CreateCountdownModal } from '@/components/streaming/CreateCountdownModal';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock } from 'lucide-react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
 
@@ -149,6 +153,25 @@ export default function BroadcastStudioPage() {
   const [menuEnabled, setMenuEnabled] = useState(false);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
+
+  // Poll and Countdown state
+  const [activePoll, setActivePoll] = useState<{
+    id: string;
+    question: string;
+    options: string[];
+    voteCounts: number[];
+    totalVotes: number;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
+  const [activeCountdown, setActiveCountdown] = useState<{
+    id: string;
+    label: string;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
+  const [showCreatePollModal, setShowCreatePollModal] = useState(false);
+  const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
 
   // Detect Safari browser
   useEffect(() => {
@@ -405,6 +428,8 @@ export default function BroadcastStudioPage() {
     fetchBroadcastToken();
     fetchGoals();
     fetchLeaderboard();
+    fetchPoll();
+    fetchCountdown();
   }, [streamId]);
 
   // Check device orientation on mount and window resize
@@ -693,6 +718,14 @@ export default function BroadcastStudioPage() {
     return () => clearInterval(interval);
   }, [announcedTicketedStream, vipModeActive]);
 
+  // Poll for active poll vote updates (every 5 seconds)
+  useEffect(() => {
+    if (!activePoll?.isActive) return;
+
+    const interval = setInterval(fetchPoll, 5000);
+    return () => clearInterval(interval);
+  }, [activePoll?.isActive, streamId]);
+
   const fetchStreamDetails = async () => {
     try {
       const response = await fetch(`/api/streams/${streamId}`);
@@ -807,6 +840,34 @@ export default function BroadcastStudioPage() {
     } catch (err) {
       if (isOnline()) {
         console.error('Error fetching goals:', err);
+      }
+    }
+  };
+
+  const fetchPoll = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/polls`);
+      const data = await response.json();
+      if (response.ok) {
+        setActivePoll(data.poll);
+      }
+    } catch (err) {
+      if (isOnline()) {
+        console.error('Error fetching poll:', err);
+      }
+    }
+  };
+
+  const fetchCountdown = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/countdown`);
+      const data = await response.json();
+      if (response.ok) {
+        setActiveCountdown(data.countdown);
+      }
+    } catch (err) {
+      if (isOnline()) {
+        console.error('Error fetching countdown:', err);
       }
     }
   };
@@ -1326,6 +1387,22 @@ export default function BroadcastStudioPage() {
         existingGoal={editingGoal}
       />
 
+      {/* Create Poll Modal */}
+      <CreatePollModal
+        isOpen={showCreatePollModal}
+        onClose={() => setShowCreatePollModal(false)}
+        streamId={streamId}
+        onPollCreated={fetchPoll}
+      />
+
+      {/* Create Countdown Modal */}
+      <CreateCountdownModal
+        isOpen={showCreateCountdownModal}
+        onClose={() => setShowCreateCountdownModal(false)}
+        streamId={streamId}
+        onCountdownCreated={fetchCountdown}
+      />
+
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1823,6 +1900,36 @@ export default function BroadcastStudioPage() {
                       <span className="text-sm hidden sm:inline">Menu</span>
                     </button>
 
+                    {/* Poll Button */}
+                    <button
+                      onClick={() => setShowCreatePollModal(true)}
+                      disabled={!!activePoll?.isActive}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                        activePoll?.isActive
+                          ? 'bg-purple-500/20 border-purple-500/50 text-purple-400 cursor-not-allowed'
+                          : 'bg-black/60 border-purple-500/30 text-white hover:border-purple-500/60 hover:bg-black/80'
+                      }`}
+                      title={activePoll?.isActive ? 'Poll is active' : 'Create Poll'}
+                    >
+                      <BarChart2 className="w-4 h-4 text-purple-400" />
+                      <span className="text-sm hidden sm:inline">Poll</span>
+                    </button>
+
+                    {/* Countdown Button */}
+                    <button
+                      onClick={() => setShowCreateCountdownModal(true)}
+                      disabled={!!activeCountdown?.isActive}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                        activeCountdown?.isActive
+                          ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 cursor-not-allowed'
+                          : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
+                      }`}
+                      title={activeCountdown?.isActive ? 'Countdown is active' : 'Start Countdown'}
+                    >
+                      <Clock className="w-4 h-4 text-cyan-400" />
+                      <span className="text-sm hidden sm:inline">Timer</span>
+                    </button>
+
                     {/* Announce Ticketed Stream Button */}
                     {!announcedTicketedStream && (
                       <button
@@ -1931,6 +2038,31 @@ export default function BroadcastStudioPage() {
 
                   {/* Spotlighted Creator Overlay */}
                   <SpotlightedCreatorOverlay streamId={streamId} isHost={true} />
+
+                  {/* Active Poll Overlay */}
+                  {activePoll && activePoll.isActive && (
+                    <div className="absolute bottom-20 left-3 z-30 w-[280px] sm:w-[320px]">
+                      <StreamPoll
+                        poll={activePoll}
+                        isBroadcaster={true}
+                        streamId={streamId}
+                        onPollEnded={() => setActivePoll(null)}
+                        onVoted={fetchPoll}
+                      />
+                    </div>
+                  )}
+
+                  {/* Active Countdown Overlay */}
+                  {activeCountdown && activeCountdown.isActive && (
+                    <div className="absolute bottom-20 right-3 z-30 w-[250px]">
+                      <StreamCountdown
+                        countdown={activeCountdown}
+                        isBroadcaster={true}
+                        streamId={streamId}
+                        onCountdownEnded={() => setActiveCountdown(null)}
+                      />
+                    </div>
+                  )}
 
                   <VideoControls
                     onToggleMute={handleToggleMute}

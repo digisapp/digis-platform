@@ -252,6 +252,8 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   featuredCreators: many(streamFeaturedCreators),
   tickets: many(streamTickets),
   bans: many(streamBans),
+  polls: many(streamPolls),
+  countdowns: many(streamCountdowns),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -339,6 +341,98 @@ export const streamBansRelations = relations(streamBans, ({ one }) => ({
   }),
 }));
 
+// Stream polls (engagement feature)
+export const streamPolls = pgTable('stream_polls', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Poll content
+  question: text('question').notNull(),
+  options: text('options').array().notNull(), // Array of option strings
+
+  // Vote counts per option (indexed by option position)
+  voteCounts: integer('vote_counts').array().default([]).notNull(),
+  totalVotes: integer('total_votes').default(0).notNull(),
+
+  // Timing
+  durationSeconds: integer('duration_seconds').default(60).notNull(), // How long poll runs
+  endsAt: timestamp('ends_at').notNull(),
+
+  // Status
+  isActive: boolean('is_active').default(true).notNull(),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_polls_stream_id_idx').on(table.streamId, table.isActive),
+}));
+
+// Stream poll votes (track who voted for what)
+export const streamPollVotes = pgTable('stream_poll_votes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  pollId: uuid('poll_id').references(() => streamPolls.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  optionIndex: integer('option_index').notNull(), // Which option they voted for (0-based)
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  pollIdIdx: index('stream_poll_votes_poll_id_idx').on(table.pollId),
+  uniqueVote: index('stream_poll_votes_unique_idx').on(table.pollId, table.userId),
+}));
+
+// Stream countdown timers (hype builders)
+export const streamCountdowns = pgTable('stream_countdowns', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Countdown content
+  label: text('label').notNull(), // e.g., "Giveaway starts in..."
+  endsAt: timestamp('ends_at').notNull(),
+
+  // Status
+  isActive: boolean('is_active').default(true).notNull(),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_countdowns_stream_id_idx').on(table.streamId, table.isActive),
+}));
+
+// Poll relations
+export const streamPollsRelations = relations(streamPolls, ({ one, many }) => ({
+  stream: one(streams, {
+    fields: [streamPolls.streamId],
+    references: [streams.id],
+  }),
+  creator: one(users, {
+    fields: [streamPolls.creatorId],
+    references: [users.id],
+  }),
+  votes: many(streamPollVotes),
+}));
+
+export const streamPollVotesRelations = relations(streamPollVotes, ({ one }) => ({
+  poll: one(streamPolls, {
+    fields: [streamPollVotes.pollId],
+    references: [streamPolls.id],
+  }),
+  user: one(users, {
+    fields: [streamPollVotes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const streamCountdownsRelations = relations(streamCountdowns, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamCountdowns.streamId],
+    references: [streams.id],
+  }),
+  creator: one(users, {
+    fields: [streamCountdowns.creatorId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
@@ -358,3 +452,9 @@ export type StreamTicket = typeof streamTickets.$inferSelect;
 export type NewStreamTicket = typeof streamTickets.$inferInsert;
 export type StreamBan = typeof streamBans.$inferSelect;
 export type NewStreamBan = typeof streamBans.$inferInsert;
+export type StreamPoll = typeof streamPolls.$inferSelect;
+export type NewStreamPoll = typeof streamPolls.$inferInsert;
+export type StreamPollVote = typeof streamPollVotes.$inferSelect;
+export type NewStreamPollVote = typeof streamPollVotes.$inferInsert;
+export type StreamCountdown = typeof streamCountdowns.$inferSelect;
+export type NewStreamCountdown = typeof streamCountdowns.$inferInsert;
