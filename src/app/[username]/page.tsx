@@ -701,7 +701,7 @@ export default function ProfilePage() {
 
       {/* Banner with Parallax Effect */}
       <div className="relative">
-        <ParallaxBanner imageUrl={user.bannerUrl} height={user.bannerUrl ? "h-48 sm:h-64 md:h-96" : "h-40 sm:h-40 md:h-48"} />
+        <ParallaxBanner imageUrl={user.bannerUrl} height={user.bannerUrl ? "h-48 sm:h-64 md:h-96" : "h-40 sm:h-40 md:h-48"} username={user.username} />
         {/* Gradient Overlay for better contrast - Tron Theme */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90"></div>
       </div>

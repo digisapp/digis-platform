@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamPolls } from '@/lib/data/system';
 import { eq, and, desc } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -118,6 +119,9 @@ export async function POST(
         isActive: true,
       })
       .returning();
+
+    // Broadcast poll creation to all viewers
+    await AblyRealtimeService.broadcastPollUpdate(streamId, poll, 'created');
 
     return NextResponse.json({ poll });
   } catch (error: any) {

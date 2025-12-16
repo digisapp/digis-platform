@@ -286,4 +286,34 @@ export class AblyRealtimeService {
       }
     );
   }
+
+  /**
+   * Broadcast poll created/updated to viewers
+   */
+  static async broadcastPollUpdate(
+    streamId: string,
+    poll: any,
+    action: 'created' | 'updated' | 'ended'
+  ) {
+    await publishToChannel(
+      CHANNEL_NAMES.streamChat(streamId),
+      'poll_update',
+      { poll, action, timestamp: Date.now() }
+    );
+  }
+
+  /**
+   * Broadcast countdown created/updated to viewers
+   */
+  static async broadcastCountdownUpdate(
+    streamId: string,
+    countdown: any,
+    action: 'created' | 'cancelled' | 'ended'
+  ) {
+    await publishToChannel(
+      CHANNEL_NAMES.streamChat(streamId),
+      'countdown_update',
+      { countdown, action, timestamp: Date.now() }
+    );
+  }
 }

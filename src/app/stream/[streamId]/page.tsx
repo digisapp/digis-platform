@@ -298,6 +298,22 @@ export default function StreamViewerPage() {
         })));
       }
     },
+    onPollUpdate: (event) => {
+      // Refresh poll when host creates or updates a poll
+      if (event.action === 'created' || event.action === 'updated') {
+        setActivePoll(event.poll);
+      } else if (event.action === 'ended') {
+        setActivePoll(null);
+      }
+    },
+    onCountdownUpdate: (event) => {
+      // Refresh countdown when host creates or cancels a countdown
+      if (event.action === 'created') {
+        setActiveCountdown(event.countdown);
+      } else if (event.action === 'cancelled' || event.action === 'ended') {
+        setActiveCountdown(null);
+      }
+    },
   });
 
   // Update viewer count from Ably presence

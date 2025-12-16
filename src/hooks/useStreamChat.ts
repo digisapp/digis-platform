@@ -88,8 +88,21 @@ interface VipModeChangeEvent {
   timestamp: number;
 }
 
+interface PollUpdateEvent {
+  poll: any;
+  action: 'created' | 'updated' | 'ended';
+  timestamp: number;
+}
+
+interface CountdownUpdateEvent {
+  countdown: any;
+  action: 'created' | 'cancelled' | 'ended';
+  timestamp: number;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
+  isHost?: boolean; // If true, don't count this user in viewer count
   onMessage?: (message: ChatMessage) => void;
   onTip?: (tip: TipEvent) => void;
   onGift?: (gift: GiftEvent) => void;
@@ -102,6 +115,8 @@ interface UseStreamChatOptions {
   onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
   onVipModeChange?: (event: VipModeChangeEvent) => void;
   onMenuToggle?: (event: MenuToggleEvent) => void;
+  onPollUpdate?: (event: PollUpdateEvent) => void;
+  onCountdownUpdate?: (event: CountdownUpdateEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -117,6 +132,7 @@ interface UseStreamChatReturn {
  */
 export function useStreamChat({
   streamId,
+  isHost = false,
   onMessage,
   onTip,
   onGift,
@@ -129,6 +145,8 @@ export function useStreamChat({
   onTicketedAnnouncement,
   onVipModeChange,
   onMenuToggle,
+  onPollUpdate,
+  onCountdownUpdate,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -149,6 +167,8 @@ export function useStreamChat({
     onTicketedAnnouncement,
     onVipModeChange,
     onMenuToggle,
+    onPollUpdate,
+    onCountdownUpdate,
   });
 
   useEffect(() => {
@@ -165,8 +185,10 @@ export function useStreamChat({
       onTicketedAnnouncement,
       onVipModeChange,
       onMenuToggle,
+      onPollUpdate,
+      onCountdownUpdate,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate]);
 
   useEffect(() => {
     let mounted = true;
@@ -218,6 +240,12 @@ export function useStreamChat({
         chatChannel.subscribe('vip_mode_change', (message) => {
           callbacksRef.current.onVipModeChange?.(message.data as VipModeChangeEvent);
         });
+        chatChannel.subscribe('poll_update', (message) => {
+          callbacksRef.current.onPollUpdate?.(message.data as PollUpdateEvent);
+        });
+        chatChannel.subscribe('countdown_update', (message) => {
+          callbacksRef.current.onCountdownUpdate?.(message.data as CountdownUpdateEvent);
+        });
 
         // Subscribe to tips channel (tips, gifts)
         tipsChannel = ably.channels.get(`stream:${streamId}:tips`);
@@ -254,7 +282,10 @@ export function useStreamChat({
         });
 
         // Use presence for accurate viewer count
-        await presenceChannel.presence.enter();
+        // Host should not enter presence (they shouldn't count as a viewer)
+        if (!isHost) {
+          await presenceChannel.presence.enter();
+        }
         const members = await presenceChannel.presence.get();
         if (mounted) {
           setViewerCount(members.length);
@@ -295,7 +326,10 @@ export function useStreamChat({
 
       // Cleanup channels
       if (presenceChannel) {
-        presenceChannel.presence.leave().catch(() => {});
+        // Only leave presence if we entered it (non-host users)
+        if (!isHost) {
+          presenceChannel.presence.leave().catch(() => {});
+        }
         presenceChannel.unsubscribe();
         safeDetach(presenceChannel);
       }
@@ -312,7 +346,7 @@ export function useStreamChat({
         safeDetach(mainChannel);
       }
     };
-  }, [streamId]);
+  }, [streamId, isHost]);
 
   return {
     messages,

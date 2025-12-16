@@ -169,7 +169,7 @@ export default function TheaterModePage() {
   const [tipNote, setTipNote] = useState('');
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
-  const [menuEnabled, setMenuEnabled] = useState(false);
+  const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
   const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number; fulfillmentType?: string } | null>(null);
   const [menuNote, setMenuNote] = useState('');
 
@@ -1652,18 +1652,6 @@ export default function TheaterModePage() {
               )}
             </button>
 
-            {/* Menu Button - only shows when enabled */}
-            {menuEnabled && menuItems.length > 0 && (
-              <button
-                onClick={() => setShowMenuModal(true)}
-                disabled={!currentUser}
-                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
-              >
-                <List className="w-4 h-4" />
-                <span>Menu</span>
-              </button>
-            )}
-
             {/* Go Private Button */}
             {stream.creatorCallSettings && stream.goPrivateEnabled !== false && (
               <RequestCallButton
@@ -1674,6 +1662,18 @@ export default function TheaterModePage() {
                 isAvailable={stream.creatorCallSettings.isAvailableForCalls}
                 callType="video"
               />
+            )}
+
+            {/* Menu Button - only shows when enabled */}
+            {menuEnabled && menuItems.length > 0 && (
+              <button
+                onClick={() => setShowMenuModal(true)}
+                disabled={!currentUser}
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
+              >
+                <List className="w-4 h-4" />
+                <span>Menu</span>
+              </button>
             )}
 
             {/* Ticketed Stream Button - for late-joining viewers or after dismissing popup */}

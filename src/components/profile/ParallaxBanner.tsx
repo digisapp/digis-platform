@@ -1,14 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface ParallaxBannerProps {
   imageUrl: string | null;
   height?: string;
+  username?: string;
 }
 
-export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-80' }: ParallaxBannerProps) {
+export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-80', username }: ParallaxBannerProps) {
   const [scrollY, setScrollY] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     // Disable parallax on mobile and for reduced motion
@@ -35,9 +39,16 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-8
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const showImage = imageUrl && !imageError;
+
   return (
     <div className={`relative ${height} overflow-hidden bg-gradient-to-br from-digis-cyan/30 to-digis-pink/30`}>
-      {imageUrl ? (
+      {/* Loading skeleton */}
+      {imageUrl && !imageLoaded && !imageError && (
+        <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 via-digis-purple/20 to-digis-pink/20 animate-pulse" />
+      )}
+
+      {showImage ? (
         <div
           className="absolute inset-0 w-full h-full"
           style={{
@@ -45,10 +56,15 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-8
             transition: 'transform 0.1s ease-out',
           }}
         >
-          <img
+          <Image
             src={imageUrl}
-            alt="Profile banner"
-            className="w-full h-full object-cover object-center"
+            alt={username ? `${username}'s profile banner` : 'Profile banner'}
+            fill
+            sizes="100vw"
+            priority
+            className={`object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
           />
         </div>
       ) : (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamCountdowns } from '@/lib/data/system';
 import { eq, and, desc } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,9 @@ export async function POST(
       })
       .returning();
 
+    // Broadcast countdown creation to all viewers
+    await AblyRealtimeService.broadcastCountdownUpdate(streamId, countdown, 'created');
+
     return NextResponse.json({ countdown });
   } catch (error: any) {
     console.error('Error creating countdown:', error);
@@ -160,6 +164,9 @@ export async function DELETE(
         eq(streamCountdowns.streamId, streamId),
         eq(streamCountdowns.isActive, true)
       ));
+
+    // Broadcast countdown cancelled to all viewers
+    await AblyRealtimeService.broadcastCountdownUpdate(streamId, null, 'cancelled');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

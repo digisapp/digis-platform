@@ -502,8 +502,10 @@ export default function BroadcastStudioPage() {
   }, [stream, streamId, hasManuallyEnded]);
 
   // Setup real-time subscriptions with Ably
+  // isHost: true prevents the host from being counted as a viewer
   const { viewerCount: ablyViewerCount } = useStreamChat({
     streamId,
+    isHost: true,
     onMessage: (message) => {
       // Transform the received message to match StreamMessage type
       // The Ably message may have 'content' or 'message' field depending on source
