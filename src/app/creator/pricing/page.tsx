@@ -548,6 +548,21 @@ function PricingPageContent() {
           {/* Subscriptions Tab */}
           {activeTab === 'subscriptions' && (
             <div className="space-y-6">
+              {/* What Subscribers Get */}
+              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl">
+                <h4 className="text-sm font-semibold text-purple-300 mb-2">What Subscribers Get</h4>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center gap-2 text-white text-sm">
+                    <span className="text-lg">🔴</span>
+                    <span>Subs Only Streams</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white text-sm">
+                    <span className="text-lg">💬</span>
+                    <span>Free Chats</span>
+                  </div>
+                </div>
+              </div>
+
               <GlassCard className="p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-purple-500/20 rounded-lg">
