@@ -666,39 +666,6 @@ export default function GoLivePage() {
                 </div>
               )}
 
-              {/* Featured Creators */}
-              <FeaturedCreatorSelector
-                selectedCreators={featuredCreators}
-                onCreatorsChange={setFeaturedCreators}
-                maxCreators={30}
-              />
-
-              {/* Featured Creator Commission - Only show if featured creators are selected */}
-              {featuredCreators.length > 0 && (
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Featured Creator Commission
-                  </label>
-                  <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/5">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-gray-300">Your commission on tips to featured creators</span>
-                      <span className="text-lg font-bold text-pink-400">{featuredCreatorCommission}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={featuredCreatorCommission}
-                      onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
-                      className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
-                    />
-                    <p className="mt-3 text-sm text-gray-300">
-                      When viewers tip a featured creator, you'll receive <span className="text-pink-400 font-bold">{featuredCreatorCommission}%</span> and they'll receive <span className="text-pink-400 font-bold">{100 - featuredCreatorCommission}%</span>.
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {/* Go Private Settings */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
@@ -790,6 +757,39 @@ export default function GoLivePage() {
                   )}
                 </div>
               </div>
+
+              {/* Featured Creators */}
+              <FeaturedCreatorSelector
+                selectedCreators={featuredCreators}
+                onCreatorsChange={setFeaturedCreators}
+                maxCreators={30}
+              />
+
+              {/* Featured Creator Commission - Only show if featured creators are selected */}
+              {featuredCreators.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    Featured Creator Commission
+                  </label>
+                  <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-300">Your commission on tips to featured creators</span>
+                      <span className="text-lg font-bold text-pink-400">{featuredCreatorCommission}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={featuredCreatorCommission}
+                      onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
+                      className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
+                    />
+                    <p className="mt-3 text-sm text-gray-300">
+                      When viewers tip a featured creator, you'll receive <span className="text-pink-400 font-bold">{featuredCreatorCommission}%</span> and they'll receive <span className="text-pink-400 font-bold">{100 - featuredCreatorCommission}%</span>.
+                    </p>
+                  </div>
+                </div>
+              )}
 
             </div>
 
