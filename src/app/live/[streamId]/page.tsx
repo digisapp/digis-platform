@@ -33,6 +33,10 @@ interface StreamData {
   totalViews: number;
   totalGiftsReceived: number;
   tipMenuEnabled?: boolean;
+  // Go Private settings (stream-specific)
+  goPrivateEnabled?: boolean;
+  goPrivateRate?: number | null;
+  goPrivateMinDuration?: number | null;
   creator: {
     id: string;
     username: string;
@@ -272,6 +276,13 @@ export default function TheaterModePage() {
         messageType: msgData.messageType || 'chat',
       };
 
+      // Play sound for ticket purchases (for all viewers in the stream)
+      if (msgData.messageType === 'ticket_purchase') {
+        const audio = new Audio('/sounds/ticket-purchase.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      }
+
       setMessages((prev) => {
         // Check if message already exists to avoid duplicates (by exact ID)
         if (prev.some(m => m.id === chatMessage.id)) {
@@ -405,9 +416,15 @@ export default function TheaterModePage() {
         await checkTicketAccess();
       } else {
         // Ticketed mode ended - return to free stream
+        // Reset ALL ticketed-related state so viewer can see new announcements
         setTicketedModeActive(false);
         setTicketedShowInfo(null);
         setHasTicket(false);
+        // Clear announcement/ticket purchase state for next potential show
+        setHasPurchasedUpcomingTicket(false);
+        setDismissedTicketedStream(null);
+        setUpcomingTicketedShow(null);
+        setTicketedAnnouncement(null);
       }
     },
     onMenuToggle: async (event) => {
@@ -1414,14 +1431,14 @@ export default function TheaterModePage() {
                     )}
                   </button>
                 )}
-                {/* Video Call Button - mobile */}
-                {stream.creatorCallSettings && currentUser && (
+                {/* Go Private Button - mobile */}
+                {stream.creatorCallSettings && currentUser && stream.goPrivateEnabled !== false && (
                   <div className="flex-shrink-0">
                     <RequestCallButton
                       creatorId={stream.creator.id}
                       creatorName={stream.creator.displayName || stream.creator.username}
-                      ratePerMinute={stream.creatorCallSettings.callRatePerMinute}
-                      minimumDuration={stream.creatorCallSettings.minimumCallDuration}
+                      ratePerMinute={stream.goPrivateRate ?? stream.creatorCallSettings.callRatePerMinute}
+                      minimumDuration={stream.goPrivateMinDuration ?? stream.creatorCallSettings.minimumCallDuration}
                       isAvailable={stream.creatorCallSettings.isAvailableForCalls}
                       callType="video"
                       iconOnly
@@ -1648,13 +1665,13 @@ export default function TheaterModePage() {
               </button>
             )}
 
-            {/* Video Call Button */}
-            {stream.creatorCallSettings && (
+            {/* Go Private Button */}
+            {stream.creatorCallSettings && stream.goPrivateEnabled !== false && (
               <RequestCallButton
                 creatorId={stream.creator.id}
                 creatorName={stream.creator.displayName || stream.creator.username}
-                ratePerMinute={stream.creatorCallSettings.callRatePerMinute}
-                minimumDuration={stream.creatorCallSettings.minimumCallDuration}
+                ratePerMinute={stream.goPrivateRate ?? stream.creatorCallSettings.callRatePerMinute}
+                minimumDuration={stream.goPrivateMinDuration ?? stream.creatorCallSettings.minimumCallDuration}
                 isAvailable={stream.creatorCallSettings.isAvailableForCalls}
                 callType="video"
               />

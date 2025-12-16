@@ -55,6 +55,12 @@ export default function GoLivePage() {
   const [featuredCreatorCommission, setFeaturedCreatorCommission] = useState(0);
   const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
 
+  // Go Private settings
+  const [goPrivateEnabled, setGoPrivateEnabled] = useState(true);
+  const [goPrivateRate, setGoPrivateRate] = useState<number | null>(null);
+  const [goPrivateMinDuration, setGoPrivateMinDuration] = useState<number | null>(null);
+  const [defaultCallSettings, setDefaultCallSettings] = useState<{ rate: number; minDuration: number } | null>(null);
+
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -158,16 +164,28 @@ export default function GoLivePage() {
         return;
       }
 
-      // Fetch profile and active stream in parallel for faster load
-      const [profileRes, activeRes] = await Promise.all([
+      // Fetch profile, active stream, and call settings in parallel for faster load
+      const [profileRes, activeRes, callSettingsRes] = await Promise.all([
         fetch('/api/user/profile'),
-        fetch('/api/streams/active')
+        fetch('/api/streams/active'),
+        fetch('/api/user/call-settings')
       ]);
 
       const data = await profileRes.json();
 
       if (data.user?.role === 'creator') {
         setIsCreator(true);
+
+        // Load creator's default call settings for Go Private defaults
+        if (callSettingsRes.ok) {
+          const callData = await callSettingsRes.json();
+          if (callData.settings) {
+            setDefaultCallSettings({
+              rate: callData.settings.callRatePerMinute || 50,
+              minDuration: callData.settings.minimumCallDuration || 5,
+            });
+          }
+        }
 
         // Check if creator already has an active stream
         if (activeRes.ok) {
@@ -362,6 +380,9 @@ export default function GoLivePage() {
           privacy,
           orientation,
           featuredCreatorCommission,
+          goPrivateEnabled,
+          goPrivateRate: goPrivateRate || undefined,
+          goPrivateMinDuration: goPrivateMinDuration || undefined,
         }),
       });
 
@@ -684,6 +705,98 @@ export default function GoLivePage() {
                   </div>
                 </div>
               )}
+
+              {/* Go Private Settings */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Go Private Settings
+                </label>
+                <div className="p-4 rounded-xl border-2 border-green-500/30 bg-green-500/5 space-y-4">
+                  {/* Enable/Disable Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm text-white font-medium">Enable Go Private</span>
+                      <p className="text-xs text-gray-400">Allow viewers to request 1-on-1 video calls</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGoPrivateEnabled(!goPrivateEnabled)}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${
+                        goPrivateEnabled ? 'bg-green-500' : 'bg-gray-600'
+                      }`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        goPrivateEnabled ? 'translate-x-7' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* Rate and Duration - Only show if enabled */}
+                  {goPrivateEnabled && (
+                    <>
+                      <div className="border-t border-white/10 pt-4">
+                        <label className="block text-sm text-gray-300 mb-2">
+                          Rate per minute
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="number"
+                            value={goPrivateRate ?? ''}
+                            onChange={(e) => setGoPrivateRate(e.target.value ? parseInt(e.target.value) : null)}
+                            placeholder={defaultCallSettings ? `${defaultCallSettings.rate} (default)` : '50'}
+                            min={1}
+                            className="flex-1 px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
+                          />
+                          <span className="text-gray-400 text-sm">coins</span>
+                        </div>
+                        {defaultCallSettings && !goPrivateRate && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uses your default call rate of {defaultCallSettings.rate} coins/min
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-gray-300 mb-2">
+                          Minimum duration
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="number"
+                            value={goPrivateMinDuration ?? ''}
+                            onChange={(e) => setGoPrivateMinDuration(e.target.value ? parseInt(e.target.value) : null)}
+                            placeholder={defaultCallSettings ? `${defaultCallSettings.minDuration} (default)` : '5'}
+                            min={1}
+                            max={60}
+                            className="flex-1 px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
+                          />
+                          <span className="text-gray-400 text-sm">minutes</span>
+                        </div>
+                        {defaultCallSettings && !goPrivateMinDuration && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Uses your default minimum of {defaultCallSettings.minDuration} minutes
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Preview */}
+                      <div className="bg-black/30 rounded-lg p-3 mt-2">
+                        <p className="text-xs text-gray-400">
+                          Viewers will pay{' '}
+                          <span className="text-green-400 font-semibold">
+                            {goPrivateRate || defaultCallSettings?.rate || 50} coins/min
+                          </span>
+                          {' '}with a minimum of{' '}
+                          <span className="text-green-400 font-semibold">
+                            {goPrivateMinDuration || defaultCallSettings?.minDuration || 5} minutes
+                          </span>
+                          {' '}({(goPrivateRate || defaultCallSettings?.rate || 50) * (goPrivateMinDuration || defaultCallSettings?.minDuration || 5)} coins min)
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
 
             </div>
 

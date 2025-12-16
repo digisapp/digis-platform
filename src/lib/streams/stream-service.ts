@@ -60,7 +60,10 @@ export class StreamService {
     scheduledAt?: Date,
     orientation?: 'landscape' | 'portrait',
     featuredCreatorCommission?: number,
-    ticketPrice?: number
+    ticketPrice?: number,
+    goPrivateEnabled?: boolean,
+    goPrivateRate?: number,
+    goPrivateMinDuration?: number
   ) {
     // Check if creator already has an active stream
     const existingStream = await this.getActiveStream(creatorId);
@@ -89,6 +92,9 @@ export class StreamService {
         orientation: orientation || 'landscape',
         featuredCreatorCommission: featuredCreatorCommission || 0,
         ticketPrice: ticketPrice || null,
+        goPrivateEnabled: goPrivateEnabled ?? true,
+        goPrivateRate: goPrivateRate || null,
+        goPrivateMinDuration: goPrivateMinDuration || null,
       })
       .returning();
 

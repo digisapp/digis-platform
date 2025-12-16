@@ -500,6 +500,13 @@ export default function BroadcastStudioPage() {
         user: msgData.user, // Pass through user data for avatar display
       } as unknown as StreamMessage;
 
+      // Play sound for ticket purchases (so creator hears when someone buys a ticket)
+      if (msgData.messageType === 'ticket_purchase') {
+        const audio = new Audio('/sounds/ticket-purchase.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      }
+
       setMessages((prev) => {
         // Check if message already exists (from optimistic add or duplicate broadcast)
         if (prev.some(m => m.id === streamMessage.id)) {

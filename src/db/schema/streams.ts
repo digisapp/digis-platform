@@ -50,6 +50,11 @@ export const streams = pgTable('streams', {
   activeVipShowId: uuid('active_vip_show_id'), // References shows table - set when VIP mode is active
   vipStartedAt: timestamp('vip_started_at'), // When VIP mode was activated
 
+  // Go Private settings (1-on-1 video calls during stream)
+  goPrivateEnabled: boolean('go_private_enabled').default(true).notNull(),
+  goPrivateRate: integer('go_private_rate'), // Coins per minute (null = use creator's default call rate)
+  goPrivateMinDuration: integer('go_private_min_duration'), // Minutes (null = use creator's default)
+
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 
