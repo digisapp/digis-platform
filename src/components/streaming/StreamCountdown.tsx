@@ -96,7 +96,7 @@ export function StreamCountdown({ countdown, isBroadcaster = false, streamId, on
     <>
       {/* Tron-themed Cancel Confirmation Modal */}
       {showCancelConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowCancelConfirm(false)} />
           <div className="relative bg-black/95 rounded-2xl border border-cyan-500/50 shadow-[0_0_40px_rgba(6,182,212,0.3)] p-5 max-w-xs w-full">
             {/* Tron glow effect */}
