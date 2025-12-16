@@ -6,7 +6,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Users, UserPlus, BadgeCheck, ArrowRight, Sparkles, Search, Crown } from 'lucide-react';
+import { Users, UserPlus, BadgeCheck, ArrowRight, Sparkles, Search, Crown, Ban, UserX, Loader2 } from 'lucide-react';
 
 type User = {
   id: string;
@@ -25,33 +25,48 @@ type Subscriber = User & {
   subscriptionExpiresAt: string;
 };
 
-export default function FollowersPage() {
+type BlockedUser = {
+  id: string;
+  blockedId: string;
+  reason: string | null;
+  createdAt: string;
+  blockedUser: {
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+};
+
+export default function FansPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     }>
-      <FollowersContent />
+      <FansContent />
     </Suspense>
   );
 }
 
-function FollowersContent() {
+function FansContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
 
-  const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'subscribers'>('followers');
+  const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'subscribers' | 'blocked'>('followers');
   const [followers, setFollowers] = useState<User[]>([]);
   const [following, setFollowing] = useState<User[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
   // Set initial tab from URL parameter
   useEffect(() => {
-    if (tabParam === 'subscribers' || tabParam === 'following') {
+    if (tabParam === 'subscribers' || tabParam === 'following' || tabParam === 'blocked') {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
@@ -64,11 +79,12 @@ function FollowersContent() {
     try {
       setLoading(true);
 
-      // Fetch followers, following, and subscribers
-      const [followersRes, followingRes, subscribersRes] = await Promise.all([
+      // Fetch followers, following, subscribers, and blocked users
+      const [followersRes, followingRes, subscribersRes, blockedRes] = await Promise.all([
         fetch('/api/user/followers'),
         fetch('/api/user/following'),
         fetch('/api/user/subscribers'),
+        fetch('/api/users/block'),
       ]);
 
       if (!followersRes.ok || !followingRes.ok) {
@@ -84,13 +100,44 @@ function FollowersContent() {
         subscribersData = await subscribersRes.json();
       }
 
+      // Blocked users
+      let blockedData = { blockedUsers: [] };
+      if (blockedRes.ok) {
+        blockedData = await blockedRes.json();
+      }
+
       setFollowers(followersData.followers || []);
       setFollowing(followingData.following || []);
       setSubscribers(subscribersData.subscribers || []);
+      setBlockedUsers(blockedData.blockedUsers || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUnblockUser = async (blockedId: string) => {
+    if (!confirm('Are you sure you want to unblock this user?')) return;
+
+    setUnblockingId(blockedId);
+    try {
+      const response = await fetch('/api/users/block', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blockedId }),
+      });
+
+      if (response.ok) {
+        setBlockedUsers(prev => prev.filter(u => u.blockedId !== blockedId));
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to unblock user');
+      }
+    } catch (err) {
+      setError('Failed to unblock user');
+    } finally {
+      setUnblockingId(null);
     }
   };
 
@@ -213,6 +260,61 @@ function FollowersContent() {
     );
   };
 
+  const renderBlockedUserCard = (block: BlockedUser) => (
+    <GlassCard
+      key={block.id}
+      className="p-5 border-2 border-red-500/20"
+    >
+      <div className="flex items-center gap-4">
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          {block.blockedUser.avatarUrl ? (
+            <img
+              src={block.blockedUser.avatarUrl}
+              alt={block.blockedUser.username || 'User'}
+              className="w-16 h-16 rounded-full object-cover border-3 border-red-500/30 shadow-lg opacity-70"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-2xl font-bold text-white border-3 border-red-500/30 shadow-lg opacity-70">
+              {block.blockedUser.username?.[0]?.toUpperCase() || '?'}
+            </div>
+          )}
+          <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 shadow-lg">
+            <Ban className="w-4 h-4 text-white" />
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-bold text-white truncate text-lg">
+              {block.blockedUser.displayName || block.blockedUser.username || 'Unknown'}
+            </h3>
+          </div>
+          {block.blockedUser.username && (
+            <p className="text-sm text-gray-300 mb-1">@{block.blockedUser.username}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-2">
+            Blocked {new Date(block.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+
+        {/* Unblock Button */}
+        <button
+          onClick={() => handleUnblockUser(block.blockedId)}
+          disabled={unblockingId === block.blockedId}
+          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+        >
+          {unblockingId === block.blockedId ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            'Unblock'
+          )}
+        </button>
+      </div>
+    </GlassCard>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
@@ -258,6 +360,16 @@ function FollowersContent() {
             }`}
           >
             Subscribers ({subscribers.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('blocked')}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all whitespace-nowrap ${
+              activeTab === 'blocked'
+                ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg scale-105'
+                : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:bg-white/20'
+            }`}
+          >
+            Blocked ({blockedUsers.length})
           </button>
         </div>
 
@@ -316,7 +428,7 @@ function FollowersContent() {
                 </GlassButton>
               </GlassCard>
             )
-          ) : (
+          ) : activeTab === 'subscribers' ? (
             subscribers.length > 0 ? (
               subscribers.map(renderSubscriberCard)
             ) : (
@@ -336,6 +448,21 @@ function FollowersContent() {
                   <Crown className="w-4 h-4 mr-2" />
                   Set Up Subscriptions
                 </GlassButton>
+              </GlassCard>
+            )
+          ) : (
+            // Blocked Users Tab
+            blockedUsers.length > 0 ? (
+              blockedUsers.map(renderBlockedUserCard)
+            ) : (
+              <GlassCard className="text-center py-16">
+                <div className="p-6 bg-gradient-to-br from-gray-500/20 to-gray-600/20 rounded-2xl w-fit mx-auto mb-6">
+                  <UserX className="w-20 h-20 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">No blocked users</h3>
+                <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                  You haven't blocked anyone. Blocked users cannot view your streams, send messages, gifts, or call requests.
+                </p>
               </GlassCard>
             )
           )}

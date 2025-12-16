@@ -565,14 +565,14 @@ export default function CreatorDashboard() {
               </div>
               <div className="hidden md:flex items-center gap-6">
                 <button
-                  onClick={() => router.push('/creator/followers')}
+                  onClick={() => router.push('/creator/fans')}
                   className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
                 >
                   <p className="text-2xl font-bold text-white">{followerCount.toLocaleString()}</p>
                   <p className="text-xs text-gray-400">Followers</p>
                 </button>
                 <button
-                  onClick={() => router.push('/creator/followers?tab=subscribers')}
+                  onClick={() => router.push('/creator/fans?tab=subscribers')}
                   className="text-center hover:bg-white/5 px-4 py-2 rounded-lg transition-colors"
                 >
                   <p className="text-2xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
@@ -584,14 +584,14 @@ export default function CreatorDashboard() {
             {/* Mobile stats */}
             <div className="flex md:hidden items-center gap-4 mt-4 pt-4 border-t border-white/10">
               <button
-                onClick={() => router.push('/creator/followers')}
+                onClick={() => router.push('/creator/fans')}
                 className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
               >
                 <p className="text-xl font-bold text-white">{followerCount.toLocaleString()}</p>
                 <p className="text-xs text-gray-400">Followers</p>
               </button>
               <button
-                onClick={() => router.push('/creator/followers?tab=subscribers')}
+                onClick={() => router.push('/creator/fans?tab=subscribers')}
                 className="flex-1 text-center py-2 rounded-lg active:bg-white/5 transition-colors"
               >
                 <p className="text-xl font-bold text-white">{subscriberCount.toLocaleString()}</p>
