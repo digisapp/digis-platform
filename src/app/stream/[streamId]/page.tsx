@@ -1055,7 +1055,7 @@ export default function StreamViewerPage() {
 
             {/* Username Watermark - Appears in video for branding */}
             {stream?.creator?.username && (
-              <div className="absolute top-3 left-3 z-20 pointer-events-none">
+              <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
                 <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-lg">
                   <span className="text-white/70 text-sm font-medium">@{stream.creator.username}</span>
                 </div>
