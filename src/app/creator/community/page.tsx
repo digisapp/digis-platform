@@ -38,19 +38,19 @@ type BlockedUser = {
   };
 };
 
-export default function FansPage() {
+export default function CommunityPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     }>
-      <FansContent />
+      <CommunityContent />
     </Suspense>
   );
 }
 
-function FansContent() {
+function CommunityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');

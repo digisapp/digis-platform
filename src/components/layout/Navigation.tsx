@@ -432,10 +432,10 @@ export function Navigation() {
                 </div>
               </div>
 
-              {/* Follower Count - Creators go to /creator/fans, Fans go to /connections */}
+              {/* Follower Count - Creators go to /creator/community, Fans go to /connections */}
               <button
                 onClick={() => {
-                  router.push(userRole === 'creator' ? '/creator/fans' : '/connections');
+                  router.push(userRole === 'creator' ? '/creator/community' : '/connections');
                   setShowProfileMenu(false);
                 }}
                 className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/5 hover:bg-white/10 active:bg-white/15 border border-cyan-500/20 rounded-xl md:rounded-lg transition-all active:scale-98"
