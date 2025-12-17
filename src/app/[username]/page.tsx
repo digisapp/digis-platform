@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart, Scissors, Eye, ThumbsUp } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -68,7 +68,9 @@ export default function ProfilePage() {
 
   // Content tabs
   const [activeTab, setActiveTab] = useState<'photos' | 'video' | 'streams' | 'about'>('photos');
+  const [streamsSubTab, setStreamsSubTab] = useState<'vods' | 'clips'>('vods');
   const [streams, setStreams] = useState<any[]>([]); // Combined streams and shows
+  const [clips, setClips] = useState<any[]>([]); // Creator clips
   const [isLive, setIsLive] = useState(false);
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
@@ -223,10 +225,11 @@ export default function ProfilePage() {
 
     setContentLoading(true);
     try {
-      // Fetch saved streams (VODs) and shows in parallel
-      const [vodsRes, showsRes] = await Promise.all([
+      // Fetch saved streams (VODs), shows, and clips in parallel
+      const [vodsRes, showsRes, clipsRes] = await Promise.all([
         fetch(`/api/vods/my-vods?userId=${profile.user.id}`),
-        fetch(`/api/shows/creator?creatorId=${profile.user.id}`)
+        fetch(`/api/shows/creator?creatorId=${profile.user.id}`),
+        fetch(`/api/clips?creatorId=${profile.user.id}`)
       ]);
 
       const allStreamContent: any[] = [];
@@ -291,6 +294,12 @@ export default function ProfilePage() {
       });
 
       setStreams(allStreamContent);
+
+      // Parse clips
+      if (clipsRes.ok) {
+        const clipsData = await clipsRes.json();
+        setClips(clipsData.clips || []);
+      }
     } catch (err) {
       console.error('Error fetching content:', err);
     } finally {
@@ -1161,112 +1170,222 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* Streams Tab - Shows saved streams (VODs) and ticketed shows */}
+                  {/* Streams Tab - Shows saved streams (VODs), clips, and ticketed shows */}
                   {activeTab === 'streams' && (
                     <div>
-                      {streams.length === 0 ? (
-                        <div className="text-center py-12">
-                          <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                          <h3 className="text-lg font-semibold text-white mb-2">No streams yet</h3>
-                          <p className="text-gray-400 mb-4 px-4">
-                            {isFollowing
-                              ? "You'll be notified when they go live"
-                              : 'Follow to get notified when they go live'}
-                          </p>
-                          {!isFollowing && (
-                            <button
-                              onClick={handleFollowToggle}
-                              className="px-6 py-2.5 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-transform shadow-fun"
-                            >
-                              Follow {user.displayName || user.username}
-                            </button>
+                      {/* Sub-tabs for VODs and Clips */}
+                      <div className="flex gap-2 mb-6">
+                        <button
+                          onClick={() => setStreamsSubTab('vods')}
+                          className={`px-4 py-2 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${
+                            streamsSubTab === 'vods'
+                              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg'
+                              : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
+                          }`}
+                        >
+                          <Video className="w-4 h-4" />
+                          VODs
+                          {streams.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-white/20 rounded text-xs">{streams.length}</span>
                           )}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {streams.map((stream: any) => (
-                            <button
-                              key={stream.id}
-                              onClick={() => router.push(stream.isTicketed ? `/streams/${stream.id}` : `/vod/${stream.id}`)}
-                              className={`group relative aspect-video rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:scale-105 ${
-                                stream.isTicketed
-                                  ? 'border-2 border-purple-500/50 hover:border-purple-500 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
-                                  : 'border-2 border-cyan-500/30 hover:border-cyan-500 bg-gray-900'
-                              }`}
-                            >
-                              {/* Thumbnail */}
-                              {stream.thumbnailUrl ? (
-                                <img
-                                  src={stream.thumbnailUrl}
-                                  alt={stream.title}
-                                  className="absolute inset-0 w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className={`absolute inset-0 flex items-center justify-center ${
-                                  stream.isTicketed
-                                    ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'
-                                    : 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20'
-                                }`}>
-                                  {stream.isTicketed ? (
-                                    <Ticket className="w-12 h-12 text-purple-400 group-hover:scale-110 transition-transform" />
+                        </button>
+                        <button
+                          onClick={() => setStreamsSubTab('clips')}
+                          className={`px-4 py-2 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${
+                            streamsSubTab === 'clips'
+                              ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-white shadow-lg'
+                              : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/20'
+                          }`}
+                        >
+                          <Scissors className="w-4 h-4" />
+                          Clips
+                          {clips.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-white/20 rounded text-xs">{clips.length}</span>
+                          )}
+                          <span className="px-1.5 py-0.5 bg-green-500/30 text-green-300 rounded text-[10px] font-bold">FREE</span>
+                        </button>
+                      </div>
+
+                      {/* VODs Sub-tab */}
+                      {streamsSubTab === 'vods' && (
+                        <>
+                          {streams.length === 0 ? (
+                            <div className="text-center py-12">
+                              <Video className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                              <h3 className="text-lg font-semibold text-white mb-2">No streams yet</h3>
+                              <p className="text-gray-400 mb-4 px-4">
+                                {isFollowing
+                                  ? "You'll be notified when they go live"
+                                  : 'Follow to get notified when they go live'}
+                              </p>
+                              {!isFollowing && (
+                                <button
+                                  onClick={handleFollowToggle}
+                                  className="px-6 py-2.5 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-transform shadow-fun"
+                                >
+                                  Follow {user.displayName || user.username}
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {streams.map((stream: any) => (
+                                <button
+                                  key={stream.id}
+                                  onClick={() => router.push(stream.isTicketed ? `/streams/${stream.id}` : `/vod/${stream.id}`)}
+                                  className={`group relative aspect-video rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:scale-105 ${
+                                    stream.isTicketed
+                                      ? 'border-2 border-purple-500/50 hover:border-purple-500 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
+                                      : 'border-2 border-cyan-500/30 hover:border-cyan-500 bg-gray-900'
+                                  }`}
+                                >
+                                  {/* Thumbnail */}
+                                  {stream.thumbnailUrl ? (
+                                    <img
+                                      src={stream.thumbnailUrl}
+                                      alt={stream.title}
+                                      className="absolute inset-0 w-full h-full object-cover"
+                                    />
                                   ) : (
-                                    <Video className="w-12 h-12 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                    <div className={`absolute inset-0 flex items-center justify-center ${
+                                      stream.isTicketed
+                                        ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'
+                                        : 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20'
+                                    }`}>
+                                      {stream.isTicketed ? (
+                                        <Ticket className="w-12 h-12 text-purple-400 group-hover:scale-110 transition-transform" />
+                                      ) : (
+                                        <Video className="w-12 h-12 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                      )}
+                                    </div>
                                   )}
-                                </div>
-                              )}
 
-                              {/* Ticketed Badge */}
-                              {stream.isTicketed && (
-                                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-lg shadow-lg">
-                                  <Ticket className="w-3.5 h-3.5" />
-                                  <span>Ticketed</span>
-                                </div>
-                              )}
+                                  {/* Ticketed Badge */}
+                                  {stream.isTicketed && (
+                                    <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold rounded-lg shadow-lg">
+                                      <Ticket className="w-3.5 h-3.5" />
+                                      <span>Ticketed</span>
+                                    </div>
+                                  )}
 
-                              {/* LIVE Badge for ticketed shows */}
-                              {stream.isTicketed && stream.status === 'live' && (
-                                <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg animate-pulse">
-                                  <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                                  LIVE
-                                </div>
-                              )}
+                                  {/* LIVE Badge for ticketed shows */}
+                                  {stream.isTicketed && stream.status === 'live' && (
+                                    <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg animate-pulse">
+                                      <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                                      LIVE
+                                    </div>
+                                  )}
 
-                              {/* PPV Badge for VODs */}
-                              {!stream.isTicketed && stream.priceCoins > 0 && (
-                                <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg">
-                                  {stream.priceCoins} coins
-                                </div>
-                              )}
+                                  {/* PPV Badge for VODs */}
+                                  {!stream.isTicketed && stream.priceCoins > 0 && (
+                                    <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg">
+                                      {stream.priceCoins} coins
+                                    </div>
+                                  )}
 
-                              {/* Stream info overlay */}
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3 sm:p-4">
-                                <h4 className="text-white font-semibold text-sm sm:text-base line-clamp-1 mb-1">
-                                  {stream.title}
-                                </h4>
-                                <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-300">
-                                  {stream.isTicketed ? (
-                                    <>
+                                  {/* Stream info overlay */}
+                                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3 sm:p-4">
+                                    <h4 className="text-white font-semibold text-sm sm:text-base line-clamp-1 mb-1">
+                                      {stream.title}
+                                    </h4>
+                                    <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-300">
+                                      {stream.isTicketed ? (
+                                        <>
+                                          <span className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3" />
+                                            {new Date(stream.scheduledStart).toLocaleDateString('en-US', {
+                                              month: 'short',
+                                              day: 'numeric',
+                                            })}
+                                          </span>
+                                          <span className="text-yellow-400 font-bold">
+                                            {stream.ticketPrice?.toLocaleString()} coins
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span>
+                                          {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Clips Sub-tab */}
+                      {streamsSubTab === 'clips' && (
+                        <>
+                          {clips.length === 0 ? (
+                            <div className="text-center py-12">
+                              <Scissors className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                              <h3 className="text-lg font-semibold text-white mb-2">No clips yet</h3>
+                              <p className="text-gray-400 px-4">
+                                30-second highlights from streams will appear here
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                              {clips.map((clip: any) => (
+                                <button
+                                  key={clip.id}
+                                  onClick={() => router.push(`/clip/${clip.id}`)}
+                                  className="group relative aspect-[9/16] rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:scale-105 border-2 border-green-500/30 hover:border-green-500 bg-gray-900"
+                                >
+                                  {/* Thumbnail */}
+                                  {clip.thumbnailUrl ? (
+                                    <img
+                                      src={clip.thumbnailUrl}
+                                      alt={clip.title}
+                                      className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-500/20 to-cyan-500/20">
+                                      <Scissors className="w-10 h-10 text-green-400 group-hover:scale-110 transition-transform" />
+                                    </div>
+                                  )}
+
+                                  {/* FREE Badge */}
+                                  <div className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-green-500 to-cyan-500 text-white text-xs font-bold rounded-lg">
+                                    FREE
+                                  </div>
+
+                                  {/* Duration Badge */}
+                                  <div className="absolute top-2 right-2 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded-lg">
+                                    0:{(clip.duration || 30).toString().padStart(2, '0')}
+                                  </div>
+
+                                  {/* Play button overlay */}
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                                    <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
+                                      <Play className="w-8 h-8 text-white" fill="white" />
+                                    </div>
+                                  </div>
+
+                                  {/* Clip info overlay */}
+                                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3">
+                                    <h4 className="text-white font-semibold text-xs line-clamp-2 mb-1">
+                                      {clip.title}
+                                    </h4>
+                                    <div className="flex items-center gap-2 text-[10px] text-gray-400">
                                       <span className="flex items-center gap-1">
-                                        <Clock className="w-3 h-3" />
-                                        {new Date(stream.scheduledStart).toLocaleDateString('en-US', {
-                                          month: 'short',
-                                          day: 'numeric',
-                                        })}
+                                        <Eye className="w-3 h-3" />
+                                        {clip.viewCount || 0}
                                       </span>
-                                      <span className="text-yellow-400 font-bold">
-                                        {stream.ticketPrice?.toLocaleString()} coins
+                                      <span className="flex items-center gap-1">
+                                        <Heart className="w-3 h-3" />
+                                        {clip.likeCount || 0}
                                       </span>
-                                    </>
-                                  ) : (
-                                    <span>
-                                      {new Date(stream.endedAt || stream.startedAt).toLocaleDateString()}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

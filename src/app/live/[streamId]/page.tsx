@@ -21,6 +21,7 @@ import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
+import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
 interface StreamData {
   id: string;
@@ -33,6 +34,9 @@ interface StreamData {
   totalViews: number;
   totalGiftsReceived: number;
   tipMenuEnabled?: boolean;
+  // Category & Tags for discoverability
+  category?: string | null;
+  tags?: string[] | null;
   // Go Private settings (stream-specific)
   goPrivateEnabled?: boolean;
   goPrivateRate?: number | null;
@@ -1390,9 +1394,31 @@ export default function TheaterModePage() {
 
           {/* Stream Info Bar */}
           <div className="px-3 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
-            <h2 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent truncate">{stream.title}</h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent truncate">{stream.title}</h2>
+              {/* Category Badge */}
+              {stream.category && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300 flex-shrink-0">
+                  <span>{getCategoryIcon(stream.category)}</span>
+                  <span>{getCategoryById(stream.category)?.name || stream.category}</span>
+                </span>
+              )}
+              {/* Tags */}
+              {stream.tags && stream.tags.length > 0 && (
+                <div className="hidden sm:flex items-center gap-1.5">
+                  {stream.tags.slice(0, 3).map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
             {stream.description && (
-              <p className="text-xs text-white/80 truncate hidden sm:block">{stream.description}</p>
+              <p className="text-xs text-white/80 truncate hidden sm:block mt-1">{stream.description}</p>
             )}
           </div>
 

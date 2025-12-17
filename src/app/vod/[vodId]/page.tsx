@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { VODAccessModal } from '@/components/vods/VODAccessModal';
 import { EditVODModal } from '@/components/vods/EditVODModal';
+import { ClipCreatorModal } from '@/components/clips/ClipCreatorModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { Play, Users, Eye, Clock, TrendingUp, Edit3 } from 'lucide-react';
+import { Play, Users, Eye, Clock, TrendingUp, Edit3, Scissors } from 'lucide-react';
+import { useToastContext } from '@/context/ToastContext';
 
 interface VODData {
   id: string;
@@ -44,6 +46,7 @@ interface AccessInfo {
 export default function VODPlayerPage() {
   const params = useParams() as { vodId: string };
   const router = useRouter();
+  const { showSuccess } = useToastContext();
   const vodId = params.vodId;
 
   const [vod, setVod] = useState<VODData | null>(null);
@@ -52,6 +55,7 @@ export default function VODPlayerPage() {
   const [error, setError] = useState<string>('');
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showClipModal, setShowClipModal] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
 
   useEffect(() => {
@@ -174,15 +178,26 @@ export default function VODPlayerPage() {
               <div className="flex items-start justify-between mb-2">
                 <h1 className="text-2xl font-bold text-white flex-1">{vod.title}</h1>
                 {isCreator && (
-                  <GlassButton
-                    variant="purple"
-                    size="sm"
-                    onClick={() => setShowEditModal(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    <span>Edit</span>
-                  </GlassButton>
+                  <div className="flex items-center gap-2">
+                    <GlassButton
+                      variant="cyan"
+                      size="sm"
+                      onClick={() => setShowClipModal(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Scissors className="w-4 h-4" />
+                      <span>Create Clip</span>
+                    </GlassButton>
+                    <GlassButton
+                      variant="purple"
+                      size="sm"
+                      onClick={() => setShowEditModal(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Edit</span>
+                    </GlassButton>
+                  </div>
                 )}
               </div>
               {vod.description && (
@@ -324,6 +339,21 @@ export default function VODPlayerPage() {
           onClose={() => setShowEditModal(false)}
           onSuccess={() => {
             fetchVOD(); // Refresh to get updated VOD data
+          }}
+        />
+      )}
+
+      {/* Clip Creator Modal */}
+      {showClipModal && vod && (
+        <ClipCreatorModal
+          vodId={vod.id}
+          vodTitle={vod.title}
+          vodDuration={vod.duration}
+          thumbnailUrl={vod.thumbnailUrl}
+          onClose={() => setShowClipModal(false)}
+          onSuccess={(clip) => {
+            setShowClipModal(false);
+            showSuccess('Clip created successfully! It will appear on your profile.');
           }}
         />
       )}

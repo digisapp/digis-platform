@@ -64,7 +64,9 @@ export class StreamService {
     ticketPrice?: number,
     goPrivateEnabled?: boolean,
     goPrivateRate?: number,
-    goPrivateMinDuration?: number
+    goPrivateMinDuration?: number,
+    category?: string,
+    tags?: string[]
   ) {
     // Check if creator already has an active stream
     const existingStream = await this.getActiveStream(creatorId);
@@ -96,6 +98,8 @@ export class StreamService {
         goPrivateEnabled: goPrivateEnabled ?? true,
         goPrivateRate: goPrivateRate || null,
         goPrivateMinDuration: goPrivateMinDuration || null,
+        category: category || null,
+        tags: tags || [],
       })
       .returning();
 

@@ -9,6 +9,7 @@ import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
 import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
 import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
+import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
 
 interface FeaturedCreator {
   id: string;
@@ -43,6 +44,9 @@ export default function GoLivePage() {
   const { showError } = useToastContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [privacy, setPrivacy] = useState('public');
   const [isMobile, setIsMobile] = useState(false);
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
@@ -377,6 +381,8 @@ export default function GoLivePage() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || undefined,
+          category: category || undefined,
+          tags: tags.length > 0 ? tags : undefined,
           privacy,
           orientation,
           featuredCreatorCommission,
@@ -612,6 +618,120 @@ export default function GoLivePage() {
                 <div className="mt-2 text-xs text-gray-500 text-right">
                   {description.length}/500
                 </div>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Category
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {STREAM_CATEGORIES.slice(0, 8).map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategory(cat.id)}
+                      className={`flex flex-col items-center justify-center p-3 rounded-xl text-center transition-all duration-200 ${
+                        category === cat.id
+                          ? 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-2 border-cyan-500 text-white'
+                          : 'bg-white/5 border-2 border-white/10 text-gray-300 hover:border-cyan-500/30 hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="text-xl mb-1">{cat.icon}</span>
+                      <span className="text-xs font-medium">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+                {/* More categories dropdown */}
+                <div className="mt-2">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-2 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500/50 text-sm"
+                  >
+                    <option value="">More categories...</option>
+                    {STREAM_CATEGORIES.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.icon} {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Tags <span className="text-gray-500 font-normal">(up to 5)</span>
+                </label>
+                {/* Current tags */}
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 rounded-full text-sm text-cyan-300"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => setTags(tags.filter(t => t !== tag))}
+                          className="ml-1 text-gray-400 hover:text-white"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Tag input */}
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">#</span>
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const newTag = tagInput.trim();
+                        if (newTag && !tags.includes(newTag) && tags.length < 5) {
+                          setTags([...tags, newTag]);
+                          setTagInput('');
+                        }
+                      }
+                    }}
+                    placeholder="Add a tag and press Enter"
+                    className="w-full pl-8 pr-4 py-2 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-500/50 text-sm"
+                    disabled={tags.length >= 5}
+                    maxLength={20}
+                  />
+                </div>
+                {/* Suggested tags */}
+                {category && getSuggestedTags(category).length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-2">Suggested:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {getSuggestedTags(category)
+                        .filter(t => !tags.includes(t))
+                        .slice(0, 5)
+                        .map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              if (tags.length < 5) {
+                                setTags([...tags, tag]);
+                              }
+                            }}
+                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors"
+                          >
+                            #{tag}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Privacy Settings */}

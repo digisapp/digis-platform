@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Tv, Search, Radio, Ticket, Coins, Lock, Unlock } from 'lucide-react';
+import { Tv, Search, Radio, Ticket, Coins, Lock, Unlock, Hash, ChevronDown } from 'lucide-react';
 import type { Stream } from '@/db/schema';
+import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
 // Free live stream type
 type LiveStream = Stream & {
@@ -53,6 +54,8 @@ export default function LiveStreamsPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'free' | 'paid'>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Use AuthContext instead of separate API call
   const userRole = isCreator ? 'creator' : 'fan';
@@ -151,6 +154,13 @@ export default function LiveStreamsPage() {
       liveNow = liveNow.filter(s => s.type === 'paid');
     }
 
+    // Apply category filter (only for free streams which have category)
+    if (filterCategory) {
+      liveNow = liveNow.filter(s =>
+        s.type === 'free' && (s as LiveStream).category === filterCategory
+      );
+    }
+
     // Sort live streams by viewers (free) or ticket sales (paid)
     liveNow.sort((a, b) => {
       if (a.type === 'free' && b.type === 'free') {
@@ -231,7 +241,7 @@ export default function LiveStreamsPage() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {[
               { key: 'all', label: 'All', icon: null },
               { key: 'free', label: 'Free', icon: Unlock },
@@ -250,6 +260,61 @@ export default function LiveStreamsPage() {
                 {label}
               </button>
             ))}
+
+            {/* Category Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
+                  filterCategory
+                    ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                {filterCategory ? (
+                  <>
+                    <span>{getCategoryIcon(filterCategory)}</span>
+                    <span>{getCategoryById(filterCategory)?.name}</span>
+                  </>
+                ) : (
+                  <>
+                    <Hash className="w-4 h-4" />
+                    <span>Category</span>
+                  </>
+                )}
+                <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 mt-2 w-56 max-h-80 overflow-y-auto bg-gray-900 border border-white/20 rounded-xl shadow-xl z-50">
+                  <button
+                    onClick={() => {
+                      setFilterCategory('');
+                      setShowCategoryDropdown(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                  >
+                    <span className="text-lg">🎬</span>
+                    <span>All Categories</span>
+                  </button>
+                  {STREAM_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setFilterCategory(cat.id);
+                        setShowCategoryDropdown(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 flex items-center gap-2 ${
+                        filterCategory === cat.id ? 'text-cyan-400 bg-white/5' : 'text-gray-300'
+                      }`}
+                    >
+                      <span className="text-lg">{cat.icon}</span>
+                      <span>{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -332,6 +397,26 @@ export default function LiveStreamsPage() {
                         <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-red-400 transition-colors">
                           {stream.title}
                         </h3>
+
+                        {/* Category & Tags */}
+                        {stream.type === 'free' && ((stream as LiveStream).category || ((stream as LiveStream).tags && (stream as LiveStream).tags!.length > 0)) && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {(stream as LiveStream).category && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300">
+                                <span>{getCategoryIcon((stream as LiveStream).category!)}</span>
+                                <span>{getCategoryById((stream as LiveStream).category!)?.name || (stream as LiveStream).category}</span>
+                              </span>
+                            )}
+                            {(stream as LiveStream).tags?.slice(0, 2).map((tag: string) => (
+                              <span
+                                key={tag}
+                                className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

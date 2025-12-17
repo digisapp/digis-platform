@@ -38,6 +38,10 @@ export const streams = pgTable('streams', {
   orientation: text('orientation').default('landscape').notNull(), // landscape, portrait
   tipMenuEnabled: boolean('tip_menu_enabled').default(true).notNull(), // Show tip menu to viewers (enabled by default)
 
+  // Category & Tags (for discoverability)
+  category: text('category'), // Main category: "Just Chatting", "Gaming", "Music", etc.
+  tags: text('tags').array().default([]), // Array of hashtags like ["cozy", "lofi", "nightstream"]
+
   // Featured creator commission (0-100, percentage host takes from featured creator tips)
   featuredCreatorCommission: integer('featured_creator_commission').default(0).notNull(),
 
@@ -64,6 +68,7 @@ export const streams = pgTable('streams', {
   creatorIdIdx: index('streams_creator_id_idx').on(table.creatorId),
   statusIdx: index('streams_status_idx').on(table.status),
   startedAtIdx: index('streams_started_at_idx').on(table.startedAt),
+  categoryIdx: index('streams_category_idx').on(table.category),
 }));
 
 // Message type enum

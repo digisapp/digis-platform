@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration } = await req.json();
+    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration } = await req.json();
 
     if (!title) {
       return NextResponse.json(
@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
       requestId,
       userId: user.id,
       title,
+      category: category || null,
+      tags: tags || [],
       privacy,
       orientation: orientation || 'landscape',
       scheduled: !!scheduledAt,
@@ -94,7 +96,9 @@ export async function POST(req: NextRequest) {
           privacy === 'ticketed' ? ticketPrice : undefined,
           goPrivateEnabled ?? true,
           goPrivateRate,
-          goPrivateMinDuration
+          goPrivateMinDuration,
+          category,
+          tags
         ),
         {
           timeoutMs: 8000,
