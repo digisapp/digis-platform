@@ -45,6 +45,7 @@ export default function GoLivePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [privacy, setPrivacy] = useState('public');
@@ -625,37 +626,62 @@ export default function GoLivePage() {
                 <label className="block text-sm font-semibold text-white mb-2">
                   Category
                 </label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {STREAM_CATEGORIES.slice(0, 8).map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setCategory(cat.id)}
-                      className={`flex flex-col items-center justify-center p-3 rounded-xl text-center transition-all duration-200 ${
-                        category === cat.id
-                          ? 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border-2 border-cyan-500 text-white'
-                          : 'bg-white/5 border-2 border-white/10 text-gray-300 hover:border-cyan-500/30 hover:bg-white/10'
-                      }`}
-                    >
-                      <span className="text-xl mb-1">{cat.icon}</span>
-                      <span className="text-xs font-medium">{cat.name}</span>
-                    </button>
-                  ))}
-                </div>
-                {/* More categories dropdown */}
-                <div className="mt-2">
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-2 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-500/50 text-sm"
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                    className={`w-full px-4 py-3 rounded-xl text-left transition-all duration-300 flex items-center justify-between ${
+                      category
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.15)]'
+                        : 'bg-white/5 border-2 border-white/10 hover:border-cyan-500/30'
+                    }`}
                   >
-                    <option value="">More categories...</option>
-                    {STREAM_CATEGORIES.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="flex items-center gap-3">
+                      {category ? (
+                        <>
+                          <span className="text-xl">{STREAM_CATEGORIES.find(c => c.id === category)?.icon}</span>
+                          <span className="text-white font-medium">{STREAM_CATEGORIES.find(c => c.id === category)?.name}</span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">Select a category...</span>
+                      )}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 text-cyan-400 transition-transform duration-200 ${showCategoryDropdown ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Tron-themed Dropdown */}
+                  {showCategoryDropdown && (
+                    <div className="absolute z-50 w-full mt-2 py-2 bg-gray-900/95 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.2)] max-h-64 overflow-y-auto">
+                      {STREAM_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setCategory(cat.id);
+                            setShowCategoryDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
+                            category === cat.id
+                              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-l-2 border-cyan-400'
+                              : 'text-gray-300 hover:bg-cyan-500/10 hover:text-white border-l-2 border-transparent'
+                          }`}
+                        >
+                          <span className="text-xl">{cat.icon}</span>
+                          <div>
+                            <span className="font-medium">{cat.name}</span>
+                            <p className="text-xs text-gray-500">{cat.description}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
