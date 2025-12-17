@@ -120,17 +120,6 @@ export const broadcastMessageSchema = z.object({
 // Stream Schemas
 // ============================================
 
-export const createStreamSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title is required')
-    .max(100, 'Title too long'),
-  description: z.string().max(500, 'Description too long').optional(),
-  category: z.string().max(50).optional(),
-  isPrivate: z.boolean().default(false),
-  ticketPrice: z.number().int().min(0).max(10000).optional(),
-});
-
 export const streamChatMessageSchema = z.object({
   message: z
     .string()
@@ -167,7 +156,7 @@ export const bankingInfoSchema = z.object({
     .min(2, 'Account holder name is required')
     .max(100, 'Name too long'),
   accountType: z.enum(['checking', 'savings'], {
-    errorMap: () => ({ message: 'Invalid account type' }),
+    message: 'Invalid account type',
   }),
   routingNumber: z
     .string()
@@ -215,7 +204,7 @@ export const createStreamSchema = z.object({
 
 export const callRequestSchema = z.object({
   creatorId: uuidSchema,
-  callType: z.enum(['video', 'audio']).default('video'),
+  callType: z.enum(['video', 'voice']).default('video'),
 });
 
 // ============================================
@@ -235,8 +224,8 @@ export async function validateBody<T>(
     const result = schema.safeParse(body);
 
     if (!result.success) {
-      // Get the first error message
-      const firstError = result.error.errors[0];
+      // Get the first error message (Zod v4 uses 'issues' instead of 'errors')
+      const firstError = result.error.issues[0];
       const errorMessage = firstError.path.length > 0
         ? `${firstError.path.join('.')}: ${firstError.message}`
         : firstError.message;

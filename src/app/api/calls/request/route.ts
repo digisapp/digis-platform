@@ -9,6 +9,8 @@ import { callRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { callLogger, extractError } from '@/lib/logging/logger';
 
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
+
   try {
     const supabase = await createClient();
     const {
@@ -19,6 +21,8 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    userId = user.id;
 
     // Validate input with Zod
     const validation = await validateBody(request, callRequestSchema);
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
         err.message.includes('not accepting') ||
         err.message.includes('pending call')) {
       callLogger.warn('Call request failed - business rule', {
-        userId: user?.id,
+        userId,
         action: 'call_request_failed',
         reason: err.message,
         route: '/api/calls/request',
@@ -96,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Log unexpected error
     callLogger.error('Call request failed', {
-      userId: user?.id,
+      userId,
       action: 'call_request_failed',
       route: '/api/calls/request',
     }, err);

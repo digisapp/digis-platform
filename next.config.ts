@@ -64,12 +64,9 @@ export default withSentryConfig(nextConfig, {
   // Upload source maps for better stack traces
   widenClientFileUpload: true,
 
-  // Disable Sentry telemetry
-  disableLogger: true,
-
-  // Automatically tree-shake Sentry SDK
-  hideSourceMaps: true,
-
-  // Disable automatic instrumentation routes
-  automaticVercelMonitors: true,
+  // Source map handling
+  sourcemaps: {
+    // Hide source maps from browsers for security
+    deleteSourcemapsAfterUpload: true,
+  },
 });

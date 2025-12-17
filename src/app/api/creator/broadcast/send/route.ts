@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { db } from '@/lib/data/system';
 import { subscriptions, follows, conversations, messages } from '@/lib/data/system';
-import { eq, and, or, inArray } from 'drizzle-orm';
+import { eq, and, or, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';

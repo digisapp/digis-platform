@@ -19,6 +19,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  let userId: string | undefined;
+
   try {
     // Get current user first for rate limiting by user ID
     const supabase = await createClient();
@@ -30,6 +32,8 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
+
+    userId = authUser.id;
 
     // Rate limit financial operations
     const rateCheck = await rateLimitFinancial(authUser.id, 'tip');
@@ -216,7 +220,7 @@ export async function POST(req: NextRequest) {
     if (err.message.startsWith('INSUFFICIENT_BALANCE:')) {
       const [, required, current] = err.message.split(':');
       walletLogger.warn('Tip failed - insufficient balance', {
-        userId: authUser?.id,
+        userId,
         action: 'tip_failed',
         reason: 'insufficient_balance',
         required: Number(required),
@@ -230,7 +234,7 @@ export async function POST(req: NextRequest) {
 
     // Log error
     walletLogger.error('Tip failed', {
-      userId: authUser?.id,
+      userId,
       action: 'tip_failed',
       route: '/api/tips/send',
     }, err);
