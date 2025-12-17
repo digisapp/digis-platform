@@ -7,7 +7,7 @@ import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/componen
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
-import { DollarSign, History, Building2, Coins, Sparkles, TrendingUp, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { DollarSign, History, Building2, Coins, Sparkles, TrendingUp, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle, Ticket, MessageCircle, CreditCard } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface Transaction {
@@ -196,29 +196,53 @@ export default function WalletPage() {
     await handleRefresh();
   };
 
-  const getTransactionIcon = (type: string) => {
+  const getTransactionIcon = (type: string, amount: number) => {
     const iconClass = "w-6 h-6";
+    // Use amount to determine if it's income (positive) or expense (negative)
+    const isIncome = amount > 0;
+
     switch (type) {
-      case 'purchase': return <ArrowUpRight className={`${iconClass} text-green-600`} />;
-      case 'gift': return <Gift className={`${iconClass} text-pink-600`} />;
-      case 'call_charge': return <Phone className={`${iconClass} text-blue-600`} />;
-      case 'stream_tip': return <Star className={`${iconClass} text-yellow-600`} />;
-      case 'ppv_unlock': return <Lock className={`${iconClass} text-purple-600`} />;
-      case 'creator_payout': return <ArrowDownLeft className={`${iconClass} text-red-600`} />;
-      case 'refund': return <DollarSign className={`${iconClass} text-gray-400`} />;
-      default: return <Coins className={`${iconClass} text-gray-400`} />;
+      case 'purchase': return <ArrowUpRight className={`${iconClass} text-green-500`} />;
+      case 'gift': return <Gift className={`${iconClass} text-pink-500`} />;
+      case 'call_charge':
+      case 'call_earnings': return <Phone className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-blue-500'}`} />;
+      case 'stream_tip':
+      case 'dm_tip': return <Star className={`${iconClass} text-yellow-500`} />;
+      case 'stream_ticket': return <Ticket className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-purple-500'}`} />;
+      case 'ppv_unlock':
+      case 'locked_message': return <Lock className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-purple-500'}`} />;
+      case 'message_charge':
+      case 'message_earnings': return <MessageCircle className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-blue-500'}`} />;
+      case 'subscription_payment':
+      case 'subscription_earnings': return <CreditCard className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-cyan-500'}`} />;
+      case 'creator_payout': return <DollarSign className={`${iconClass} text-green-500`} />;
+      case 'payout_refund':
+      case 'refund': return <ArrowDownLeft className={`${iconClass} text-gray-400`} />;
+      default: return <Coins className={`${iconClass} ${isIncome ? 'text-green-500' : 'text-gray-400'}`} />;
     }
   };
 
-  const getTransactionColor = (type: string) => {
+  const getTransactionColor = (type: string, amount: number) => {
+    const isIncome = amount > 0;
+
     switch (type) {
-      case 'purchase': return 'from-green-500/20 to-emerald-500/20 border-green-200';
-      case 'gift': return 'from-pink-500/20 to-rose-500/20 border-pink-200';
-      case 'call_charge': return 'from-blue-500/20 to-cyan-500/20 border-blue-200';
-      case 'stream_tip': return 'from-yellow-500/20 to-amber-500/20 border-yellow-200';
-      case 'ppv_unlock': return 'from-purple-500/20 to-violet-500/20 border-cyan-500/30';
-      case 'creator_payout': return 'from-red-500/20 to-orange-500/20 border-red-200';
-      default: return 'from-gray-500/20 to-slate-500/20 border-cyan-500/30';
+      case 'purchase': return 'from-green-500/20 to-emerald-500/20 border-green-500/30';
+      case 'gift': return 'from-pink-500/20 to-rose-500/20 border-pink-500/30';
+      case 'call_charge':
+      case 'call_earnings': return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-blue-500/20 to-cyan-500/20 border-blue-500/30';
+      case 'stream_tip':
+      case 'dm_tip': return 'from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
+      case 'stream_ticket': return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-purple-500/20 to-violet-500/20 border-purple-500/30';
+      case 'ppv_unlock':
+      case 'locked_message': return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-purple-500/20 to-violet-500/20 border-purple-500/30';
+      case 'message_charge':
+      case 'message_earnings': return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-blue-500/20 to-cyan-500/20 border-blue-500/30';
+      case 'subscription_payment':
+      case 'subscription_earnings': return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-cyan-500/20 to-teal-500/20 border-cyan-500/30';
+      case 'creator_payout': return 'from-green-500/20 to-emerald-500/20 border-green-500/30';
+      case 'payout_refund':
+      case 'refund': return 'from-gray-500/20 to-slate-500/20 border-gray-500/30';
+      default: return isIncome ? 'from-green-500/20 to-emerald-500/20 border-green-500/30' : 'from-gray-500/20 to-slate-500/20 border-gray-500/30';
     }
   };
 
@@ -453,12 +477,12 @@ export default function WalletPage() {
                   {transactions.map((tx) => (
                     <div
                       key={tx.id}
-                      className={`p-4 rounded-xl border bg-gradient-to-r ${getTransactionColor(tx.type)} hover:shadow-md transition-all`}
+                      className={`p-4 rounded-xl border bg-gradient-to-r ${getTransactionColor(tx.type, tx.amount)} hover:shadow-md transition-all`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
                           <div className="p-3 backdrop-blur-xl bg-white/10 rounded-xl shadow-sm">
-                            {getTransactionIcon(tx.type)}
+                            {getTransactionIcon(tx.type, tx.amount)}
                           </div>
                           <div className="flex-1">
                             <p className="text-white font-semibold mb-1">
