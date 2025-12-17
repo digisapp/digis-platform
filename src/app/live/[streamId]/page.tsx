@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
@@ -8,7 +8,7 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Target, Ticket, Coins, Video, MessageCircle, List,
+  Share2, X, Send, Ticket, Coins, List,
   Download, CheckCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -97,6 +97,18 @@ interface Viewer {
   avatarUrl: string | null;
 }
 
+// Helper to validate URLs for security (prevent javascript: and other malicious protocols)
+function isValidDownloadUrl(url: string | undefined | null): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    // Only allow http and https protocols
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 // Component to render the remote video from broadcaster
 function ViewerVideo({ onBroadcasterLeft }: { onBroadcasterLeft?: () => void }) {
   const participants = useRemoteParticipants();
@@ -183,6 +195,11 @@ export default function TheaterModePage() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // Memoized reversed message list for performance
+  const displayMessages = useMemo(() => {
+    return [...messages].slice(-50).reverse();
+  }, [messages]);
+
   // Viewers state
   const [viewers, setViewers] = useState<Viewer[]>([]);
 
@@ -192,9 +209,6 @@ export default function TheaterModePage() {
 
   // Floating gift emojis state
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
-
-  // Orientation state for mobile layout
-  const [isLandscape, setIsLandscape] = useState(false);
 
   // Ticketed show announcement state
   const [ticketedAnnouncement, setTicketedAnnouncement] = useState<{
@@ -496,13 +510,17 @@ export default function TheaterModePage() {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const successData = await response.json();
         // Play ticket purchase sound
         const audio = new Audio('/sounds/ticket-purchase.mp3');
         audio.volume = 0.5;
         audio.play().catch(() => {});
-        // Update balance and grant access
-        setUserBalance(prev => prev - ticketedShowInfo.ticketPrice);
+        // Update balance and grant access - use server balance if available
+        if (typeof successData.newBalance === 'number') {
+          setUserBalance(successData.newBalance);
+        } else {
+          setUserBalance(prev => prev - ticketedShowInfo.ticketPrice);
+        }
         setHasTicket(true);
       } else {
         const data = await response.json();
@@ -638,20 +656,6 @@ export default function TheaterModePage() {
     };
   }, [shouldPlayWaitingMusic]);
 
-  // Detect orientation for mobile layout
-  useEffect(() => {
-    const checkOrientation = () => {
-      setIsLandscape(window.innerWidth > window.innerHeight);
-    };
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
-  }, []);
-
   // Load stream data
   useEffect(() => {
     loadStream();
@@ -683,10 +687,18 @@ export default function TheaterModePage() {
     }
   }, [stream, currentUser, streamId]);
 
-  // Auto-scroll chat to bottom
+  // Auto-scroll chat - desktop scrolls to bottom (oldest first), mobile scrolls to top (newest first)
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      // Check if we're on mobile (lg breakpoint is 1024px)
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
+        // Mobile shows newest first (reversed), so scroll to top
+        chatContainerRef.current.scrollTop = 0;
+      } else {
+        // Desktop shows oldest first, so scroll to bottom
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
     }
   }, [messages]);
 
@@ -991,7 +1003,7 @@ export default function TheaterModePage() {
       return;
     }
 
-    const idempotencyKey = `tip-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const idempotencyKey = `tip-${crypto.randomUUID()}`;
 
     try {
       const response = await fetch('/api/tips/quick', {
@@ -1075,7 +1087,7 @@ export default function TheaterModePage() {
       throw new Error('Please sign in to send gifts');
     }
 
-    const idempotencyKey = `gift-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const idempotencyKey = `gift-${crypto.randomUUID()}`;
 
     const response = await fetch(`/api/streams/${streamId}/gift`, {
       method: 'POST',
@@ -1099,15 +1111,27 @@ export default function TheaterModePage() {
   // Share stream
   const shareStream = async () => {
     const url = window.location.href;
-    if (navigator.share) {
-      await navigator.share({
-        title: stream?.title,
-        text: `Watch ${stream?.creator.displayName || stream?.creator.username} live!`,
-        url,
-      });
-    } else {
-      await navigator.clipboard.writeText(url);
-      showSuccess('Link copied to clipboard!');
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: stream?.title,
+          text: `Watch ${stream?.creator.displayName || stream?.creator.username} live!`,
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        showSuccess('Link copied to clipboard!');
+      }
+    } catch (error) {
+      // User cancelled share or clipboard failed - try clipboard as fallback
+      if ((error as Error).name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(url);
+          showSuccess('Link copied to clipboard!');
+        } catch {
+          showError('Unable to share. Please copy the URL manually.');
+        }
+      }
     }
   };
 
@@ -1210,17 +1234,19 @@ export default function TheaterModePage() {
           {/* Share Button */}
           <button
             onClick={shareStream}
-            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             title="Share"
+            aria-label="Share stream"
           >
-            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Share2 className="w-5 h-5" />
           </button>
 
           {/* Toggle Chat Button - desktop only since chat is always visible below video on mobile */}
           <button
             onClick={() => setShowChat(!showChat)}
-            className={`hidden sm:block p-2 rounded-lg transition-colors ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
+            className={`hidden sm:flex p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] items-center justify-center ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
             title={showChat ? 'Hide Chat' : 'Show Chat'}
+            aria-label={showChat ? 'Hide chat panel' : 'Show chat panel'}
           >
             <Users className="w-5 h-5" />
           </button>
@@ -1369,6 +1395,7 @@ export default function TheaterModePage() {
                   <button
                     onClick={toggleMute}
                     className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
+                    aria-label={muted ? 'Unmute audio' : 'Mute audio'}
                   >
                     {muted ? (
                       <VolumeX className="w-6 h-6" />
@@ -1381,6 +1408,7 @@ export default function TheaterModePage() {
                 <button
                   onClick={toggleFullscreen}
                   className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
+                  aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 >
                   {isFullscreen ? (
                     <Minimize className="w-6 h-6" />
@@ -1527,11 +1555,11 @@ export default function TheaterModePage() {
               className="flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[calc(100vh-380px)] landscape:max-h-[40vh] landscape:min-h-[120px]"
             >
               {messages.length === 0 ? (
-                <div className="text-center text-cyan-300/60 text-xs py-4">
+                <div className="text-center text-gray-400 text-xs py-4">
                   No messages yet. Be the first to chat!
                 </div>
               ) : (
-                [...messages].slice(-50).reverse().map((msg) => (
+                displayMessages.map((msg) => (
                   msg.messageType === 'tip' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                       {msg.avatarUrl ? (
@@ -1622,7 +1650,7 @@ export default function TheaterModePage() {
                       type="text"
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                       placeholder="Send a message..."
                       disabled={sendingMessage}
                       className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-[16px]"
@@ -1803,7 +1831,7 @@ export default function TheaterModePage() {
                   className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-cyan-500/5 to-transparent"
                 >
                   {messages.length === 0 ? (
-                    <div className="text-center text-cyan-300/60 text-sm mt-10 font-medium">
+                    <div className="text-center text-gray-400 text-sm mt-10 font-medium">
                       No messages yet. Be the first to chat!
                     </div>
                   ) : (
@@ -1959,7 +1987,7 @@ export default function TheaterModePage() {
                           type="text"
                           value={messageInput}
                           onChange={(e) => setMessageInput(e.target.value)}
-                          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                           placeholder="Send a message..."
                           disabled={sendingMessage}
                           className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
@@ -1980,7 +2008,7 @@ export default function TheaterModePage() {
                             Buy coins to chat
                           </p>
                           <button
-                            onClick={() => router.push('/wallet')}
+                            onClick={() => setShowBuyCoinsModal(true)}
                             className="mt-2 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs transition-colors"
                           >
                             Get Coins
@@ -2007,7 +2035,7 @@ export default function TheaterModePage() {
             {showViewerList && (
               <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-cyan-500/5 to-transparent">
                 {viewers.length === 0 ? (
-                  <div className="text-center text-cyan-300/60 text-sm mt-10 font-medium">
+                  <div className="text-center text-gray-400 text-sm mt-10 font-medium">
                     Loading viewers...
                   </div>
                 ) : (
@@ -2646,15 +2674,22 @@ export default function TheaterModePage() {
               <p className="text-gray-400 mb-4">
                 You purchased <span className="text-green-400 font-semibold">{digitalDownload.itemLabel}</span> for {digitalDownload.amount} coins
               </p>
-              <a
-                href={digitalDownload.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold rounded-xl transition-all mb-3"
-              >
-                <Download className="w-5 h-5" />
-                Download Now
-              </a>
+              {isValidDownloadUrl(digitalDownload.url) ? (
+                <a
+                  href={digitalDownload.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold rounded-xl transition-all mb-3"
+                >
+                  <Download className="w-5 h-5" />
+                  Download Now
+                </a>
+              ) : (
+                <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gray-600 text-gray-300 font-semibold rounded-xl mb-3">
+                  <Download className="w-5 h-5" />
+                  Download unavailable
+                </div>
+              )}
               <p className="text-xs text-gray-500 mb-4">
                 This link will also be saved in your purchase history
               </p>

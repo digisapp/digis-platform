@@ -4,6 +4,7 @@ import { db, payoutRequests, wallets, creatorBankingInfo } from '@/lib/data/syst
 import { eq, and, sql } from 'drizzle-orm';
 import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe/config';
 import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
+import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -29,10 +30,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only creators can request payouts' }, { status: 403 });
     }
 
-    const { amount } = await request.json();
+    // Validate input with Zod
+    const validation = await validateBody(request, payoutRequestSchema);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { amount } = validation.data;
 
     // Validate amount using new minimum threshold
-    if (!amount || amount < MIN_PAYOUT_COINS) {
+    if (amount < MIN_PAYOUT_COINS) {
       return NextResponse.json({
         error: `Minimum payout is ${MIN_PAYOUT_COINS.toLocaleString()} coins (${formatCoinsAsUSD(MIN_PAYOUT_COINS)})`
       }, { status: 400 });
@@ -126,10 +136,17 @@ export async function POST(request: NextRequest) {
         requestedAt: payout.requestedAt,
       }
     }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating payout request:', error);
+    // Handle known error types from transaction
+    const errorMessage = error instanceof Error ? error.message : '';
+    if (errorMessage === 'Insufficient balance' ||
+        errorMessage.includes('pending payout') ||
+        errorMessage.includes('being processed')) {
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
     return NextResponse.json(
-      { error: error.message || 'Failed to create payout request' },
+      { error: 'Failed to create payout request. Please try again.' },
       { status: 500 }
     );
   }

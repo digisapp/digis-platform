@@ -5,6 +5,8 @@ import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { BlockService } from '@/lib/services/block-service';
+import { callRequestSchema, validateBody } from '@/lib/validation/schemas';
+import { callLogger, extractError } from '@/lib/logging/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,14 +20,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { creatorId, callType = 'video' } = await request.json();
-
-    if (!creatorId) {
+    // Validate input with Zod
+    const validation = await validateBody(request, callRequestSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Creator ID is required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
+
+    const { creatorId, callType } = validation.data;
 
     // Check if user is blocked by the creator
     const isBlocked = await BlockService.isBlockedByCreator(creatorId, user.id);
@@ -60,15 +64,46 @@ export async function POST(request: NextRequest) {
       fan,
     });
 
+    // Log successful call request
+    callLogger.info('Call requested successfully', {
+      userId: user.id,
+      action: 'call_requested',
+      callId: call.id,
+      creatorId,
+      callType,
+      ratePerMinute: call.ratePerMinute,
+    });
+
     return NextResponse.json({
       call,
       message: 'Call requested successfully! The creator will be notified.',
     });
-  } catch (error: any) {
-    console.error('Error requesting call:', error);
+  } catch (error) {
+    const err = extractError(error);
+
+    // Handle known error types from CallService
+    if (err.message.includes('Insufficient') ||
+        err.message.includes('not accepting') ||
+        err.message.includes('pending call')) {
+      callLogger.warn('Call request failed - business rule', {
+        userId: user?.id,
+        action: 'call_request_failed',
+        reason: err.message,
+        route: '/api/calls/request',
+      });
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+
+    // Log unexpected error
+    callLogger.error('Call request failed', {
+      userId: user?.id,
+      action: 'call_request_failed',
+      route: '/api/calls/request',
+    }, err);
+
     return NextResponse.json(
-      { error: error.message || 'Failed to request call' },
-      { status: 400 }
+      { error: 'Failed to request call. Please try again.' },
+      { status: 500 }
     );
   }
 }

@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit } from '@/lib/rate-limit';
 import { MessageService } from '@/lib/messages/message-service';
+import { sendMessageSchema, validateBody } from '@/lib/validation/schemas';
 
 // POST /api/messages/send - Send a message
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit to prevent spam
+    const rateLimitResult = await rateLimit(request, 'messages:send');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please slow down.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -15,15 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { recipientId, content, mediaUrl, mediaType } = body;
-
-    if (!recipientId || !content) {
+    // Validate input with Zod
+    const validation = await validateBody(request, sendMessageSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Recipient ID and content are required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
+
+    const { recipientId, content, mediaUrl, mediaType } = validation.data;
 
     // Get or create conversation
     const conversation = await MessageService.getOrCreateConversation(
@@ -44,10 +56,11 @@ export async function POST(request: NextRequest) {
       message,
       conversationId: conversation.id,
     });
-  } catch (error: any) {
+  } catch (error) {
+    // Log full error server-side, return generic message to client
     console.error('Error sending message:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send message' },
+      { error: 'Failed to send message. Please try again.' },
       { status: 500 }
     );
   }

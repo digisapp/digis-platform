@@ -2,22 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { streams } from '@/db/schema';
 import { eq, and, lt, isNull, or } from 'drizzle-orm';
+import { timingSafeEqual } from 'crypto';
+
+// Timing-safe string comparison to prevent timing attacks
+function secureCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 /**
  * Cleanup stale live streams that haven't received a heartbeat in 2 minutes
  * This endpoint can be called via cron job or Edge function
  *
- * Also called from the streams listing API to ensure fresh data
+ * SECURITY: Requires CRON_SECRET authentication
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check for optional auth header for cron jobs
-    const authHeader = request.headers.get('authorization');
+    // SECURITY: Require cron secret - no exceptions
     const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      console.error('[Cleanup] CRON_SECRET environment variable is not set');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
 
-    // If CRON_SECRET is set, require it for external calls
-    // Internal calls (from other API routes) won't have the header
-    if (cronSecret && authHeader && authHeader !== `Bearer ${cronSecret}`) {
+    const authHeader = request.headers.get('authorization');
+    const expectedHeader = `Bearer ${cronSecret}`;
+
+    if (!authHeader || !secureCompare(authHeader, expectedHeader)) {
+      console.error('[Cleanup] Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

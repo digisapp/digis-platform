@@ -7,6 +7,7 @@ import { success, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { createStreamSchema, validateBody } from '@/lib/validation/schemas';
 
 // Force Node.js runtime for Drizzle ORM (used by StreamService)
 export const runtime = 'nodejs';
@@ -41,14 +42,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration } = await req.json();
-
-    if (!title) {
+    // Validate input with Zod
+    const validation = await validateBody(req, createStreamSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        failure('Title is required', 'validation', requestId),
+        failure(validation.error, 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
+
+    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration } = validation.data;
 
     // Parse scheduled date if provided
     const scheduledAt = scheduled_at ? new Date(scheduled_at) : undefined;

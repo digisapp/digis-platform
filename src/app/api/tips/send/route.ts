@@ -4,6 +4,16 @@ import { db } from '@/lib/data/system';
 import { wallets, walletTransactions, users, notifications } from '@/lib/data/system';
 import { eq, sql } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import { z } from 'zod';
+import { validateBody, uuidSchema, coinAmountSchema } from '@/lib/validation/schemas';
+import { walletLogger, extractError } from '@/lib/logging/logger';
+
+// Tip-specific schema
+const tipSendSchema = z.object({
+  amount: coinAmountSchema,
+  receiverId: uuidSchema,
+  message: z.string().max(500, 'Message too long').optional(),
+});
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,15 +43,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { amount, receiverId, message } = await req.json();
-
-    // Validate input
-    if (!amount || !receiverId || amount <= 0) {
+    // Validate input with Zod
+    const validation = await validateBody(req, tipSendSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid amount or receiver ID' },
+        { error: validation.error },
         { status: 400 }
       );
     }
+
+    const { amount, receiverId, message } = validation.data;
 
     // Cannot tip yourself
     if (authUser.id === receiverId) {
@@ -182,6 +193,15 @@ export async function POST(req: NextRequest) {
       };
     });
 
+    // Log successful tip
+    walletLogger.info('Tip sent successfully', {
+      userId: authUser.id,
+      action: 'tip_sent',
+      amount,
+      recipientId: receiver.id,
+      transactionId: result.transactionId,
+    });
+
     return NextResponse.json({
       success: true,
       amount,
@@ -190,16 +210,30 @@ export async function POST(req: NextRequest) {
       message: `Sent ${amount} coins to ${receiver.displayName || receiver.username}`,
     });
   } catch (error) {
-    console.error('[tips/send] Error:', error);
+    const err = extractError(error);
 
     // Handle insufficient balance error from transaction
-    if (error instanceof Error && error.message.startsWith('INSUFFICIENT_BALANCE:')) {
-      const [, required, current] = error.message.split(':');
+    if (err.message.startsWith('INSUFFICIENT_BALANCE:')) {
+      const [, required, current] = err.message.split(':');
+      walletLogger.warn('Tip failed - insufficient balance', {
+        userId: authUser?.id,
+        action: 'tip_failed',
+        reason: 'insufficient_balance',
+        required: Number(required),
+        current: Number(current),
+      });
       return NextResponse.json(
         { error: 'Insufficient balance', required: Number(required), current: Number(current) },
         { status: 400 }
       );
     }
+
+    // Log error
+    walletLogger.error('Tip failed', {
+      userId: authUser?.id,
+      action: 'tip_failed',
+      route: '/api/tips/send',
+    }, err);
 
     return NextResponse.json(
       { error: 'Failed to process tip' },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit } from '@/lib/rate-limit';
 import Ably from 'ably';
 
 export const runtime = 'nodejs';
@@ -11,6 +12,15 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: NextRequest) {
   try {
+    // Rate limit to prevent token flooding
+    const rateLimitResult = await rateLimit(req, 'ably:token');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     // Verify user is authenticated
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

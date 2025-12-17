@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { closeAblyClient } from '@/lib/ably/client';
 import type { Session } from '@supabase/supabase-js';
 
 interface AuthUser {
@@ -115,8 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // SIGNED_OUT: clear everything
+        // SIGNED_OUT: clear everything and cleanup connections
         if (event === 'SIGNED_OUT') {
+          closeAblyClient(); // Close real-time connection on logout
           setSession(null);
           setUser(null);
           setLoading(false);

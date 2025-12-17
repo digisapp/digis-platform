@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import type { StreamMessage } from '@/db/schema';
 import { Send, Smile, Gift, Pin, X, Ticket, Coins, List } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
@@ -59,6 +59,234 @@ function getTierStyle(spendTier?: SpendTier | null) {
   };
 }
 
+// Format timestamp helper
+function formatTimestamp(date: Date) {
+  return new Date(date).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+// Memoized chat message component to prevent unnecessary re-renders
+type ChatMessageProps = {
+  msg: StreamMessage;
+  streamId: string;
+  isCreator: boolean;
+  onMessageDeleted?: () => void;
+  onPinMessage?: (message: StreamMessage | null) => void;
+  isPinned: boolean;
+};
+
+const ChatMessage = memo(function ChatMessage({
+  msg,
+  streamId,
+  isCreator,
+  onMessageDeleted,
+  onPinMessage,
+  isPinned,
+}: ChatMessageProps) {
+  const tierStyle = getTierStyle((msg as any).user?.spendTier);
+
+  if (msg.messageType === 'system') {
+    return (
+      <div className="text-center">
+        <div className="py-2 px-4 bg-white/5 rounded-lg inline-block">
+          <span className="text-sm text-gray-400 italic">{msg.message}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if ((msg as any).messageType === 'shoutout') {
+    return (
+      <div className="py-3 px-4 bg-gradient-to-r from-cyan-500/20 to-digis-pink/20 rounded-xl border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl animate-bounce">📣</span>
+          <div>
+            <span className="text-sm text-white font-semibold">{msg.message}</span>
+            {(msg as any).shoutoutData?.targetUsername && (
+              <div className="text-xs text-cyan-400 mt-1">
+                Check out @{(msg as any).shoutoutData.targetUsername}!
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (msg.messageType === 'gift') {
+    return (
+      <div className="flex items-start gap-2 py-1 px-2 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-lg border border-digis-pink/20">
+        {(msg as any).user?.avatarUrl ? (
+          <img
+            src={(msg as any).user.avatarUrl}
+            alt={msg.username}
+            className={`w-6 h-6 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
+          />
+        ) : (
+          <div className={`w-6 h-6 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
+            {msg.username?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`font-bold text-sm ${tierStyle.color}`}>{msg.username}</span>
+            <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+          </div>
+          <p className="text-sm text-white">
+            {(msg as any).giftName ? (
+              <>Sent {(msg as any).giftQuantity > 1 ? `${(msg as any).giftQuantity}x ` : ''}{(msg as any).giftEmoji || '🎁'} <span className="font-bold text-digis-cyan">{(msg as any).giftName}</span></>
+            ) : (
+              <>{msg.message}</>
+            )}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if ((msg as any).messageType === 'tip') {
+    return (
+      <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+        {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+          <img
+            src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+            alt={msg.username}
+            className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
+          />
+        ) : (
+          <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
+            {msg.username?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
+            <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-2xl">💰</span>
+            <span className="text-sm text-white">
+              Tipped <span className="font-bold text-green-400">{(msg as any).tipAmount || (msg as any).giftAmount || '?'} coins</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if ((msg as any).messageType === 'ticket_purchase') {
+    return (
+      <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20">
+        {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+          <img
+            src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+            alt={msg.username}
+            className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
+          />
+        ) : (
+          <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-xs font-bold text-black flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
+            {msg.username?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
+            <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <Ticket className="w-5 h-5 text-amber-400" />
+            <span className="text-sm text-white">
+              Bought a ticket
+              {(msg as any).ticketPrice && (
+                <span className="ml-2 inline-flex items-center gap-1">
+                  <Coins className="w-3 h-3 text-amber-400" />
+                  <span className="font-bold text-amber-400">{(msg as any).ticketPrice}</span>
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if ((msg as any).messageType === 'menu_purchase' || (msg as any).messageType === 'menu_order' || (msg as any).messageType === 'menu_tip') {
+    return (
+      <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+        {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+          <img
+            src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+            alt={msg.username}
+            className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
+          />
+        ) : (
+          <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
+            {msg.username?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
+            <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
+          </div>
+          <p className="text-sm text-white/90 mt-1">{msg.message}</p>
+          {(msg as any).giftAmount && (
+            <div className="flex items-center gap-1 mt-1">
+              <Coins className="w-4 h-4 text-purple-400" />
+              <span className="font-bold text-purple-400">{(msg as any).giftAmount}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Regular message
+  return (
+    <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
+      {(msg as any).user?.avatarUrl ? (
+        <img
+          src={(msg as any).user.avatarUrl}
+          alt={msg.username}
+          className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
+        />
+      ) : (
+        <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
+          {msg.username?.[0]?.toUpperCase() || '?'}
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`font-semibold text-sm ${tierStyle.color}`}>
+            {msg.username}
+          </span>
+          <span className="text-xs text-gray-600">
+            {formatTimestamp(msg.createdAt)}
+          </span>
+        </div>
+        <p className="text-sm text-white/90 break-words leading-relaxed">
+          {msg.message}
+        </p>
+      </div>
+
+      {isCreator && (
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <ModerationTools
+            message={msg}
+            streamId={streamId}
+            onMessageDeleted={onMessageDeleted}
+            onPinMessage={onPinMessage}
+            isPinned={isPinned}
+          />
+        </div>
+      )}
+    </div>
+  );
+});
+
 export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -101,13 +329,6 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
     setNewMessage(prev => prev + emoji);
     setShowEmojis(false);
     inputRef.current?.focus();
-  };
-
-  const formatTimestamp = (date: Date) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
   };
 
   return (
@@ -189,214 +410,14 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               key={msg.id}
               className={`group relative ${msg.messageType === 'system' ? 'text-center' : ''}`}
             >
-              {msg.messageType === 'system' ? (
-                <div className="py-2 px-4 bg-white/5 rounded-lg inline-block">
-                  <span className="text-sm text-gray-400 italic">{msg.message}</span>
-                </div>
-              ) : (msg as any).messageType === 'shoutout' ? (
-                // Shoutout message - special highlighted styling
-                <div className="py-3 px-4 bg-gradient-to-r from-cyan-500/20 to-digis-pink/20 rounded-xl border border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl animate-bounce">📣</span>
-                    <div>
-                      <span className="text-sm text-white font-semibold">{msg.message}</span>
-                      {(msg as any).shoutoutData?.targetUsername && (
-                        <div className="text-xs text-cyan-400 mt-1">
-                          Check out @{(msg as any).shoutoutData.targetUsername}!
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : msg.messageType === 'gift' ? (
-                // Gift message - 2 rows: avatar+username+time, then sent gift
-                (() => {
-                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
-                  return (
-                <div className="flex items-start gap-2 py-1 px-2 bg-gradient-to-r from-digis-pink/10 to-digis-cyan/10 rounded-lg border border-digis-pink/20">
-                  {(msg as any).user?.avatarUrl ? (
-                    <img
-                      src={(msg as any).user.avatarUrl}
-                      alt={msg.username}
-                      className={`w-6 h-6 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
-                    />
-                  ) : (
-                    <div className={`w-6 h-6 rounded-full bg-gradient-to-br from-digis-pink to-digis-cyan flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold text-sm ${tierStyle.color}`}>{msg.username}</span>
-                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                    <p className="text-sm text-white">
-                      {(msg as any).giftName ? (
-                        <>Sent {(msg as any).giftQuantity > 1 ? `${(msg as any).giftQuantity}x ` : ''}{(msg as any).giftEmoji || '🎁'} <span className="font-bold text-digis-cyan">{(msg as any).giftName}</span></>
-                      ) : (
-                        <>{msg.message}</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                  );
-                })()
-              ) : (msg as any).messageType === 'tip' ? (
-                // Tip message - special green styling
-                (() => {
-                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
-                  return (
-                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
-                  {/* Avatar */}
-                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
-                    <img
-                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
-                      alt={msg.username}
-                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
-                    />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
-                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-2xl">💰</span>
-                      <span className="text-sm text-white">
-                        Tipped <span className="font-bold text-green-400">{(msg as any).tipAmount || (msg as any).giftAmount || '?'} coins</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                  );
-                })()
-              ) : (msg as any).messageType === 'ticket_purchase' ? (
-                // Ticket purchase message - amber/gold styling
-                (() => {
-                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
-                  return (
-                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20">
-                  {/* Avatar */}
-                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
-                    <img
-                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
-                      alt={msg.username}
-                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
-                    />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-xs font-bold text-black flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
-                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Ticket className="w-5 h-5 text-amber-400" />
-                      <span className="text-sm text-white">
-                        Bought a ticket
-                        {(msg as any).ticketPrice && (
-                          <span className="ml-2 inline-flex items-center gap-1">
-                            <Coins className="w-3 h-3 text-amber-400" />
-                            <span className="font-bold text-amber-400">{(msg as any).ticketPrice}</span>
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                  );
-                })()
-              ) : (msg as any).messageType === 'menu_purchase' || (msg as any).messageType === 'menu_order' || (msg as any).messageType === 'menu_tip' ? (
-                // Menu item purchase/order - purple/pink styling
-                (() => {
-                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
-                  return (
-                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
-                  {/* Avatar */}
-                  {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
-                    <img
-                      src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
-                      alt={msg.username}
-                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
-                    />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-bold ${tierStyle.color}`}>{msg.username}</span>
-                      <span className="text-xs text-gray-500">{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                    <p className="text-sm text-white/90 mt-1">{msg.message}</p>
-                    {(msg as any).giftAmount && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Coins className="w-4 h-4 text-purple-400" />
-                        <span className="font-bold text-purple-400">{(msg as any).giftAmount}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                  );
-                })()
-              ) : (
-                // Regular message
-                (() => {
-                  const tierStyle = getTierStyle((msg as any).user?.spendTier);
-                  return (
-                <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
-                  {/* Avatar */}
-                  {(msg as any).user?.avatarUrl ? (
-                    <img
-                      src={(msg as any).user.avatarUrl}
-                      alt={msg.username}
-                      className={`w-8 h-8 rounded-full object-cover flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}
-                    />
-                  ) : (
-                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 ${tierStyle.ringClass} ${tierStyle.glowClass}`}>
-                      {msg.username?.[0]?.toUpperCase() || '?'}
-                    </div>
-                  )}
-
-                  {/* Message Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-semibold text-sm ${tierStyle.color}`}>
-                        {msg.username}
-                      </span>
-                      <span className="text-xs text-gray-600">
-                        {formatTimestamp(msg.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-white/90 break-words leading-relaxed">
-                      {msg.message}
-                    </p>
-                  </div>
-
-                  {/* Moderation Tools (Creator Only) */}
-                  {isCreator && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                      <ModerationTools
-                        message={msg}
-                        streamId={streamId}
-                        onMessageDeleted={onMessageDeleted}
-                        onPinMessage={onPinMessage}
-                        isPinned={pinnedMessage?.id === msg.id}
-                      />
-                    </div>
-                  )}
-                </div>
-                  );
-                })()
-              )}
+              <ChatMessage
+                msg={msg}
+                streamId={streamId}
+                isCreator={isCreator}
+                onMessageDeleted={onMessageDeleted}
+                onPinMessage={onPinMessage}
+                isPinned={pinnedMessage?.id === msg.id}
+              />
             </div>
           ))
         )}

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { db } from '@/lib/data/system';
 import { subscriptions, follows, conversations, messages } from '@/lib/data/system';
-import { eq, and, or, sql } from 'drizzle-orm';
+import { eq, and, or, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';
@@ -68,6 +68,14 @@ export async function POST(req: NextRequest) {
 
     if (recipientIds.length === 0) {
       return NextResponse.json({ error: 'No recipients found' }, { status: 400 });
+    }
+
+    // SECURITY: Limit max recipients to prevent DoS
+    const MAX_RECIPIENTS = 10000;
+    if (recipientIds.length > MAX_RECIPIENTS) {
+      return NextResponse.json({
+        error: `Too many recipients. Maximum allowed: ${MAX_RECIPIENTS}`
+      }, { status: 400 });
     }
 
     // Handle message type
@@ -143,15 +151,16 @@ export async function POST(req: NextRequest) {
 
     // PERFORMANCE: Batch-fetch all existing conversations with recipients first
     // This avoids N+1 queries when finding conversations
+    // SECURITY: Using inArray() for parameterized queries instead of sql.raw()
     const existingConversations = await db.query.conversations.findMany({
       where: or(
         and(
           eq(conversations.user1Id, user.id),
-          sql`${conversations.user2Id} = ANY(ARRAY[${sql.raw(recipientIds.map(id => `'${id}'`).join(','))}]::uuid[])`
+          inArray(conversations.user2Id, recipientIds)
         ),
         and(
           eq(conversations.user2Id, user.id),
-          sql`${conversations.user1Id} = ANY(ARRAY[${sql.raw(recipientIds.map(id => `'${id}'`).join(','))}]::uuid[])`
+          inArray(conversations.user1Id, recipientIds)
         )
       ),
     });
@@ -243,9 +252,10 @@ export async function POST(req: NextRequest) {
       totalAttempts: recipientIds.length,
     });
   } catch (error) {
+    // Log full error server-side, return generic message to client
     console.error('Error sending broadcast:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to send broadcast' },
+      { error: 'Failed to send broadcast. Please try again later.' },
       { status: 500 }
     );
   }

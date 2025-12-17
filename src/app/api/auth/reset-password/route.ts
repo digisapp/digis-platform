@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { resetPasswordSchema, validateBody } from '@/lib/validation/schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,15 +8,16 @@ export const dynamic = 'force-dynamic';
 // POST /api/auth/reset-password - Request password reset email
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
-
-    if (!email) {
+    // Validate input
+    const validation = await validateBody(request, resetPasswordSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email is required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
+    const { email } = validation.data;
     const supabase = await createClient();
 
     // Send password reset email via Supabase Auth

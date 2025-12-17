@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, creatorBankingInfo } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { encrypt, getLastFourDigits } from '@/lib/crypto/encryption';
+import { bankingInfoSchema, validateBody } from '@/lib/validation/schemas';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -36,10 +37,10 @@ export async function GET(request: NextRequest) {
         isVerified: banking.isVerified === 1,
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching banking info:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch banking info' },
+      { error: 'Failed to fetch banking info. Please try again.' },
       { status: 500 }
     );
   }
@@ -55,12 +56,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { accountHolderName, accountType, routingNumber, accountNumber, bankName } = await request.json();
-
-    // Validate required fields
-    if (!accountHolderName || !accountType || !routingNumber || !accountNumber) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Validate input with Zod
+    const validation = await validateBody(request, bankingInfoSchema);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
     }
+
+    const { accountHolderName, accountType, routingNumber, accountNumber, bankName } = validation.data;
 
     // Check if banking info already exists
     const existing = await db.query.creatorBankingInfo.findFirst({
@@ -128,10 +133,10 @@ export async function POST(request: NextRequest) {
         }
       }, { status: 201 });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error saving banking info:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to save banking info' },
+      { error: 'Failed to save banking info. Please try again.' },
       { status: 500 }
     );
   }

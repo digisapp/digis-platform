@@ -3,6 +3,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
+import { signupSchema, validateBody } from '@/lib/validation/schemas';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -19,23 +20,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password, displayName, username } = await request.json();
-
-    if (!email || !password) {
+    // Validate input with Zod
+    const validation = await validateBody(request, signupSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    if (!username) {
-      return NextResponse.json(
-        { error: 'Username is required' },
-        { status: 400 }
-      );
-    }
+    const { email, password, displayName, username } = validation.data;
 
-    // Validate username
+    // Additional username validation (reserved words, etc.)
     const usernameValidation = validateUsername(username);
     if (!usernameValidation.valid) {
       return NextResponse.json(

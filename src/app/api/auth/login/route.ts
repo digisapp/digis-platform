@@ -4,6 +4,7 @@ import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
+import { loginSchema, validateBody } from '@/lib/validation/schemas';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -20,15 +21,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password } = await request.json();
-
-    if (!email || !password) {
+    // Validate input
+    const validation = await validateBody(request, loginSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
+    const { email, password } = validation.data;
     const supabase = await createClient();
 
     // 1) Supabase sign in - this is the source of truth for auth

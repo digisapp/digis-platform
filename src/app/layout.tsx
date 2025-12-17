@@ -4,6 +4,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -30,13 +31,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-black">
       <body className="antialiased bg-black min-h-screen">
-        <AuthProvider>
-          <ToastProvider>
-            <Navigation />
-            <IncomingCallPopup />
-            {children}
-          </ToastProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <ToastProvider>
+              <Navigation />
+              <IncomingCallPopup />
+              {children}
+            </ToastProvider>
+          </AuthProvider>
+        </ErrorBoundary>
         <Analytics />
       </body>
     </html>

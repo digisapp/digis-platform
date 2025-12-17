@@ -80,6 +80,10 @@ const bucketToLimiter: Record<string, keyof typeof limiters> = {
   'tips': 'financial',
   'gifts': 'financial',
   'purchases': 'financial',
+  // Real-time & social endpoints
+  'ably:token': 'moderate',      // 60 req/min - token refresh
+  'messages:send': 'moderate',   // 60 req/min - chat messages
+  'follow': 'moderate',          // 60 req/min - follow/unfollow
   'default': 'moderate',
 };
 
