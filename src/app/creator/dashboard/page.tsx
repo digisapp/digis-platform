@@ -105,17 +105,30 @@ export default function CreatorDashboard() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    checkAuth().then((isAuthorized) => {
-      if (isAuthorized) {
+    checkAuth().then((result) => {
+      if (result.authorized) {
         setLoading(false);
+
+        // If checkAuth already fetched the profile, use it
+        if (result.profile) {
+          setUserProfile(result.profile);
+          setFollowerCount(result.profile.followerCount || 0);
+          setSubscriberCount(result.profile.subscriberCount || 0);
+          const dismissed = localStorage.getItem('creator_checklist_dismissed');
+          if (dismissed === 'true') {
+            setDismissedChecklist(true);
+          }
+        }
+
         // Fetch all data in parallel - don't block page load
+        // Only fetch profile if checkAuth didn't already get it
         Promise.all([
           fetchWalletBalance(),
           fetchAnalytics(),
           fetchAllDashboardData(),
-          fetchUserProfile(),
+          !result.profile && fetchUserProfile(),
           fetchRecentContent(),
-        ]);
+        ].filter(Boolean));
       }
     });
   }, []);
@@ -139,14 +152,14 @@ export default function CreatorDashboard() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [router]);
 
-  const checkAuth = async (): Promise<boolean> => {
+  const checkAuth = async (): Promise<{ authorized: boolean; profile?: any }> => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       setLoading(false);
       router.push('/');
-      return false;
+      return { authorized: false };
     }
 
     const jwtRole = (user.app_metadata as any)?.role || (user.user_metadata as any)?.role;
@@ -154,26 +167,45 @@ export default function CreatorDashboard() {
     if (jwtRole && jwtRole !== 'creator') {
       setLoading(false);
       router.push('/dashboard');
-      return false;
+      return { authorized: false };
     }
 
-    if (!jwtRole) {
-      const response = await fetch('/api/user/profile');
-      const data = await response.json();
-      if (data.user?.role !== 'creator') {
-        setLoading(false);
-        router.push('/dashboard');
-        return false;
-      }
+    // Always fetch profile to get full data (follower count, etc.)
+    // This replaces the separate fetchUserProfile call
+    const response = await fetch('/api/user/profile');
+
+    // Handle auth failures - redirect to login
+    if (response.status === 401) {
+      console.warn('[Dashboard] Session expired during auth check');
+      setLoading(false);
+      router.push('/');
+      return { authorized: false };
+    }
+
+    const data = await response.json();
+
+    // Check role if not in JWT
+    if (!jwtRole && data.user?.role !== 'creator') {
+      setLoading(false);
+      router.push('/dashboard');
+      return { authorized: false };
     }
 
     setIsCreator(true);
-    return true;
+    return { authorized: true, profile: data.user };
   };
 
   const fetchUserProfile = async () => {
     try {
       const response = await fetch('/api/user/profile');
+
+      // Handle auth failures - redirect to login
+      if (response.status === 401) {
+        console.warn('[Dashboard] Session expired, redirecting to login');
+        router.push('/');
+        return;
+      }
+
       const data = await response.json();
       if (response.ok && data.user) {
         setUserProfile(data.user);
@@ -226,6 +258,13 @@ export default function CreatorDashboard() {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+
+      // Handle auth failures
+      if (response.status === 401) {
+        console.warn('[Dashboard] Session expired, redirecting to login');
+        router.push('/');
+        return;
+      }
 
       const result = await response.json();
       if (response.ok) {

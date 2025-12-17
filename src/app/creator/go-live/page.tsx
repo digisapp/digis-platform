@@ -176,6 +176,18 @@ export default function GoLivePage() {
         fetch('/api/user/call-settings')
       ]);
 
+      // Handle auth failures - redirect to login
+      if (profileRes.status === 401) {
+        console.warn('[GoLive] Session expired, redirecting to login');
+        router.push('/');
+        return;
+      }
+
+      if (!profileRes.ok) {
+        setError('Failed to verify creator status. Please try again.');
+        return;
+      }
+
       const data = await profileRes.json();
 
       if (data.user?.role === 'creator') {

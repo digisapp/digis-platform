@@ -73,7 +73,16 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
       window.location.replace(redirectPath);
     } catch (err) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Handle network errors vs API errors
+      if (err instanceof Error) {
+        if (err.message === 'fetch failed' || err.message.includes('NetworkError')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('An error occurred');
+      }
     } finally {
       setLoading(false);
     }

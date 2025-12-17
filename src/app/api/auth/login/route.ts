@@ -34,14 +34,28 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // 1) Supabase sign in - this is the source of truth for auth
+    console.log('[LOGIN] Attempting sign in for:', email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      console.error('[LOGIN] Supabase auth error:', error.message, error.status);
+
+      // Provide user-friendly error messages
+      let userMessage = error.message;
+      if (error.message.includes('Invalid login credentials')) {
+        userMessage = 'Invalid email or password';
+      } else if (error.message.includes('Email not confirmed')) {
+        userMessage = 'Please verify your email before logging in';
+      } else if (error.message.includes('rate limit')) {
+        userMessage = 'Too many attempts. Please try again later.';
+      }
+
       return NextResponse.json(
-        { error: error.message },
+        { error: userMessage },
         { status: 401 }
       );
     }

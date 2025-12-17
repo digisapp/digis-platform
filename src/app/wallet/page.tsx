@@ -61,10 +61,11 @@ export default function WalletPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && isCreator) {
+    // Recalculate earnings when period changes or transactions update
+    if (isCreator && transactions.length > 0) {
       fetchEarnings();
     }
-  }, [earningsPeriod, loading, isCreator]);
+  }, [earningsPeriod, transactions, isCreator]);
 
   const checkAuthAndFetchData = async () => {
     try {
@@ -76,19 +77,71 @@ export default function WalletPage() {
         return;
       }
 
-      // Check if user is creator FIRST before fetching wallet data
+      // Fetch profile and basic wallet data in PARALLEL
+      const [profileResponse, balanceResponse, transactionsResponse] = await Promise.all([
+        fetch('/api/user/profile'),
+        fetch('/api/wallet/balance'),
+        fetch('/api/wallet/transactions?limit=50'),
+      ]);
+
+      // Handle 401 errors - redirect to login
+      if (profileResponse.status === 401 || balanceResponse.status === 401) {
+        router.push('/');
+        return;
+      }
+
+      // Process profile
       let userIsCreator = false;
-      const profileResponse = await fetch('/api/user/profile');
       if (profileResponse.ok) {
         const profile = await profileResponse.json();
         userIsCreator = profile.user?.role === 'creator';
         setIsCreator(userIsCreator);
       }
 
-      // Pass isCreator value to avoid race condition
-      await fetchWalletData(userIsCreator);
+      // Process balance
+      if (balanceResponse.ok) {
+        const balanceData = await balanceResponse.json();
+        setBalance(balanceData.balance || 0);
+      }
+
+      // Process transactions
+      let transactionsData: Transaction[] = [];
+      if (transactionsResponse.ok) {
+        const data = await transactionsResponse.json();
+        transactionsData = data.transactions || [];
+        setTransactions(transactionsData);
+      }
+
+      // Calculate earnings from already-fetched transactions (no extra API call!)
+      if (userIsCreator && transactionsData.length > 0) {
+        const now = new Date();
+        const cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24h default
+        const totalEarnings = transactionsData
+          .filter((tx) => tx.amount > 0 && new Date(tx.createdAt) >= cutoffDate)
+          .reduce((sum, tx) => sum + tx.amount, 0);
+        setEarnings(totalEarnings);
+      }
+
+      // Fetch creator-specific data in parallel (if creator)
+      if (userIsCreator) {
+        const [payoutsResponse, bankingResponse] = await Promise.all([
+          fetch('/api/wallet/payouts'),
+          fetch('/api/wallet/banking-info'),
+        ]);
+
+        if (payoutsResponse.ok) {
+          const payoutsData = await payoutsResponse.json();
+          setPayouts(payoutsData.payouts || []);
+        }
+
+        if (bankingResponse.ok) {
+          const bankingData = await bankingResponse.json();
+          setBankingInfo(bankingData.bankingInfo);
+        }
+      }
     } catch (error) {
       console.error('Error:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -98,30 +151,34 @@ export default function WalletPage() {
     const creatorStatus = userIsCreator ?? isCreator;
 
     try {
-      // Fetch balance
-      const balanceResponse = await fetch('/api/wallet/balance');
+      // Fetch all basic data in parallel
+      const [balanceResponse, transactionsResponse] = await Promise.all([
+        fetch('/api/wallet/balance'),
+        fetch('/api/wallet/transactions?limit=50'),
+      ]);
+
       if (balanceResponse.ok) {
         const balanceData = await balanceResponse.json();
         setBalance(balanceData.balance || 0);
       }
 
-      // Fetch transactions
-      const transactionsResponse = await fetch('/api/wallet/transactions?limit=50');
       if (transactionsResponse.ok) {
         const transactionsData = await transactionsResponse.json();
         setTransactions(transactionsData.transactions || []);
       }
 
-      // Fetch payouts if creator
+      // Fetch creator-specific data in parallel
       if (creatorStatus) {
-        const payoutsResponse = await fetch('/api/wallet/payouts');
+        const [payoutsResponse, bankingResponse] = await Promise.all([
+          fetch('/api/wallet/payouts'),
+          fetch('/api/wallet/banking-info'),
+        ]);
+
         if (payoutsResponse.ok) {
           const payoutsData = await payoutsResponse.json();
           setPayouts(payoutsData.payouts || []);
         }
 
-        // Fetch banking info
-        const bankingResponse = await fetch('/api/wallet/banking-info');
         if (bankingResponse.ok) {
           const bankingData = await bankingResponse.json();
           setBankingInfo(bankingData.bankingInfo);
@@ -135,46 +192,37 @@ export default function WalletPage() {
   };
 
   const fetchEarnings = async () => {
-    try {
-      // Fetch transactions based on period
-      const limit = earningsPeriod === 'total' ? 1000 : earningsPeriod === '1m' ? 500 : 200;
-      const response = await fetch(`/api/wallet/transactions?limit=${limit}`);
-      if (response.ok) {
-        const data = await response.json();
-        const now = new Date();
-        let cutoffDate: Date | null = null;
+    // Use existing transactions from state - no extra API call needed!
+    const now = new Date();
+    let cutoffDate: Date | null = null;
 
-        // Calculate cutoff date based on selected period
-        switch (earningsPeriod) {
-          case '24h':
-            cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            break;
-          case '1w':
-            cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case '1m':
-            cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            break;
-          case 'total':
-            cutoffDate = null;
-            break;
-        }
-
-        // Sum up positive transactions (earnings) from selected period
-        const totalEarnings = (data.transactions || [])
-          .filter((tx: any) => {
-            if (tx.amount <= 0) return false;
-            if (!cutoffDate) return true;
-            const txDate = new Date(tx.createdAt);
-            return txDate >= cutoffDate;
-          })
-          .reduce((sum: number, tx: any) => sum + tx.amount, 0);
-
-        setEarnings(totalEarnings);
-      }
-    } catch (err) {
-      console.error('Error fetching earnings:', err);
+    // Calculate cutoff date based on selected period
+    switch (earningsPeriod) {
+      case '24h':
+        cutoffDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '1w':
+        cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '1m':
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'total':
+        cutoffDate = null;
+        break;
     }
+
+    // Sum up positive transactions (earnings) from selected period
+    const totalEarnings = transactions
+      .filter((tx) => {
+        if (tx.amount <= 0) return false;
+        if (!cutoffDate) return true;
+        const txDate = new Date(tx.createdAt);
+        return txDate >= cutoffDate;
+      })
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    setEarnings(totalEarnings);
   };
 
   const handleRefresh = async () => {
