@@ -6,7 +6,7 @@ import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import Image from 'next/image';
+import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 
 interface CreatorContent {
   id: string;
@@ -180,7 +180,7 @@ export default function CreatorContentStudioPage() {
               <GlassCard key={item.id} className="overflow-hidden group relative">
                 {/* Thumbnail */}
                 <div className="aspect-square relative bg-black">
-                  <Image
+                  <MediaThumbnail
                     src={item.thumbnailUrl}
                     alt={item.title}
                     fill
@@ -304,7 +304,7 @@ export default function CreatorContentStudioPage() {
               {/* Thumbnail Preview */}
               {selectedContent.thumbnailUrl && (
                 <div className="mb-6 rounded-lg overflow-hidden bg-black relative h-64">
-                  <Image
+                  <MediaThumbnail
                     src={selectedContent.thumbnailUrl}
                     alt={selectedContent.title}
                     fill

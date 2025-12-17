@@ -13,7 +13,7 @@ import {
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
   CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package
 } from 'lucide-react';
-import Image from 'next/image';
+import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -712,16 +712,12 @@ export default function CreatorDashboard() {
                     >
                       <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden relative">
                         {content.thumbnailUrl ? (
-                          <Image
+                          <MediaThumbnail
                             src={content.thumbnailUrl}
                             alt={content.title}
                             fill
                             sizes="48px"
                             className="object-cover"
-                            onError={(e) => {
-                              // Hide broken image and show fallback icon
-                              e.currentTarget.style.display = 'none';
-                            }}
                           />
                         ) : (
                           getContentIcon(content.type)
