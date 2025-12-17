@@ -812,6 +812,125 @@ export default function GoLivePage() {
                 </div>
               )}
 
+              </div>
+
+            {/* Right Column: Device Preview */}
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-6 md:p-8 space-y-4 hover:border-purple-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+              {/* Video Preview */}
+              {devicesLoading ? (
+                <VideoPreviewSkeleton />
+              ) : previewError ? (
+                <div className="relative aspect-video bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-xl overflow-hidden border-2 border-red-500/30">
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <div className="text-center">
+                      <div className="text-4xl mb-2">📷</div>
+                      <p className="text-red-400 text-sm font-semibold">{previewError}</p>
+                      <button
+                        type="button"
+                        onClick={initializeDevices}
+                        className="mt-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-500/30 group mx-auto ${
+                  orientation === 'portrait'
+                    ? 'aspect-[9/16] max-w-[280px]'
+                    : 'aspect-video w-full'
+                }`}>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`w-full h-full transition-transform duration-300 -scale-x-100 ${
+                      orientation === 'portrait' ? 'object-cover' : 'object-contain'
+                    }`}
+                  />
+                  {/* Live indicator */}
+                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                    PREVIEW
+                  </div>
+                  {/* Orientation badge */}
+                  <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                    {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
+                    {isMobile && <span className="text-cyan-400 ml-1">(auto)</span>}
+                  </div>
+                </div>
+              )}
+
+              {/* Device Selectors */}
+              <div className="space-y-4">
+                {/* Camera */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    📹 Camera
+                  </label>
+                  <select
+                    value={selectedVideoDevice}
+                    onChange={(e) => setSelectedVideoDevice(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                    disabled={videoDevices.length === 0}
+                  >
+                    {videoDevices.map((device) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Microphone */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    🎤 Microphone
+                  </label>
+                  <select
+                    value={selectedAudioDevice}
+                    onChange={(e) => setSelectedAudioDevice(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                    disabled={audioDevices.length === 0}
+                  >
+                    {audioDevices.map((device) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Microphone ${device.deviceId.slice(0, 5)}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Audio Level */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    Audio Level
+                  </label>
+                  <div className="relative w-full h-4 bg-white/5 rounded-full overflow-hidden border-2 border-white/10">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-digis-cyan to-digis-pink transition-all duration-100 rounded-full"
+                      style={{ width: `${Math.min(audioLevel, 100)}%` }}
+                    />
+                    {/* Peak indicators */}
+                    <div className="absolute inset-0 flex items-center px-1">
+                      <div className="flex-1 h-px bg-white/30" />
+                      <div className="w-px h-full bg-yellow-400/50" style={{ position: 'absolute', left: '70%' }} />
+                      <div className="w-px h-full bg-red-400/50" style={{ position: 'absolute', left: '90%' }} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-gray-300 font-semibold">
+                      {audioLevel > 5 ? '🟢 Microphone active' : '🔴 Speak to test mic'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {Math.round(audioLevel)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Go Private Settings */}
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
@@ -936,125 +1055,6 @@ export default function GoLivePage() {
                   </div>
                 </div>
               )}
-
-            </div>
-
-            {/* Right Column: Device Preview */}
-            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-6 md:p-8 space-y-4 hover:border-purple-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
-              {/* Video Preview */}
-              {devicesLoading ? (
-                <VideoPreviewSkeleton />
-              ) : previewError ? (
-                <div className="relative aspect-video bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-xl overflow-hidden border-2 border-red-500/30">
-                  <div className="absolute inset-0 flex items-center justify-center p-4">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">📷</div>
-                      <p className="text-red-400 text-sm font-semibold">{previewError}</p>
-                      <button
-                        type="button"
-                        onClick={initializeDevices}
-                        className="mt-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-500/30 group mx-auto ${
-                  orientation === 'portrait'
-                    ? 'aspect-[9/16] max-w-[280px]'
-                    : 'aspect-video w-full'
-                }`}>
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className={`w-full h-full transition-transform duration-300 -scale-x-100 ${
-                      orientation === 'portrait' ? 'object-cover' : 'object-contain'
-                    }`}
-                  />
-                  {/* Live indicator */}
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                    PREVIEW
-                  </div>
-                  {/* Orientation badge */}
-                  <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-                    {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
-                    {isMobile && <span className="text-cyan-400 ml-1">(auto)</span>}
-                  </div>
-                </div>
-              )}
-
-              {/* Device Selectors */}
-              <div className="space-y-4">
-                {/* Camera */}
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    📹 Camera
-                  </label>
-                  <select
-                    value={selectedVideoDevice}
-                    onChange={(e) => setSelectedVideoDevice(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                    disabled={videoDevices.length === 0}
-                  >
-                    {videoDevices.map((device) => (
-                      <option key={device.deviceId} value={device.deviceId}>
-                        {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Microphone */}
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    🎤 Microphone
-                  </label>
-                  <select
-                    value={selectedAudioDevice}
-                    onChange={(e) => setSelectedAudioDevice(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                    disabled={audioDevices.length === 0}
-                  >
-                    {audioDevices.map((device) => (
-                      <option key={device.deviceId} value={device.deviceId}>
-                        {device.label || `Microphone ${device.deviceId.slice(0, 5)}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Audio Level */}
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Audio Level
-                  </label>
-                  <div className="relative w-full h-4 bg-white/5 rounded-full overflow-hidden border-2 border-white/10">
-                    <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-400 via-digis-cyan to-digis-pink transition-all duration-100 rounded-full"
-                      style={{ width: `${Math.min(audioLevel, 100)}%` }}
-                    />
-                    {/* Peak indicators */}
-                    <div className="absolute inset-0 flex items-center px-1">
-                      <div className="flex-1 h-px bg-white/30" />
-                      <div className="w-px h-full bg-yellow-400/50" style={{ position: 'absolute', left: '70%' }} />
-                      <div className="w-px h-full bg-red-400/50" style={{ position: 'absolute', left: '90%' }} />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-gray-300 font-semibold">
-                      {audioLevel > 5 ? '🟢 Microphone active' : '🔴 Speak to test mic'}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {Math.round(audioLevel)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
