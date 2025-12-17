@@ -77,6 +77,10 @@ export default function SettingsPage() {
   // Blocked users
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loadingBlocked, setLoadingBlocked] = useState(true);
+
+  // Category dropdown states
+  const [showPrimaryCategoryDropdown, setShowPrimaryCategoryDropdown] = useState(false);
+  const [showSecondaryCategoryDropdown, setShowSecondaryCategoryDropdown] = useState(false);
   const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -856,43 +860,153 @@ export default function SettingsPage() {
             {/* Category selectors - Only for creators */}
             {currentUser?.role === 'creator' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Primary Category */}
                 <div>
                   <label className="block text-sm font-medium mb-2 text-gray-300">
                     <Tag className="w-4 h-4 inline mr-1" />
                     Primary Category
                   </label>
-                  <select
-                    className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]"
-                    value={primaryCategory}
-                    onChange={(e) => setPrimaryCategory(e.target.value)}
-                  >
-                    <option value="" className="bg-gray-900 text-gray-400">Select a category...</option>
-                    {CREATOR_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value} className="bg-gray-900 text-white py-2">
-                        {cat.emoji} {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPrimaryCategoryDropdown(!showPrimaryCategoryDropdown);
+                        setShowSecondaryCategoryDropdown(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-xl text-left transition-all duration-300 flex items-center justify-between ${
+                        primaryCategory
+                          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.15)]'
+                          : 'bg-white/5 border-2 border-white/10 hover:border-cyan-500/30'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        {primaryCategory ? (
+                          <>
+                            <span className="text-xl">{CREATOR_CATEGORIES.find(c => c.value === primaryCategory)?.emoji}</span>
+                            <span className="text-white font-medium">{CREATOR_CATEGORIES.find(c => c.value === primaryCategory)?.label}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">Select a category...</span>
+                        )}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-cyan-400 transition-transform duration-200 ${showPrimaryCategoryDropdown ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showPrimaryCategoryDropdown && (
+                      <div className="absolute z-50 w-full mt-2 py-2 bg-gray-900/95 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.2)] max-h-64 overflow-y-auto">
+                        {CREATOR_CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => {
+                              setPrimaryCategory(cat.value);
+                              setShowPrimaryCategoryDropdown(false);
+                              // Clear secondary if it matches primary
+                              if (secondaryCategory === cat.value) {
+                                setSecondaryCategory('');
+                              }
+                            }}
+                            className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
+                              primaryCategory === cat.value
+                                ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-l-2 border-cyan-400'
+                                : 'text-gray-300 hover:bg-cyan-500/10 hover:text-white border-l-2 border-transparent'
+                            }`}
+                          >
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="font-medium">{cat.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1">Main content category for discovery</p>
                 </div>
 
+                {/* Secondary Category */}
                 <div>
                   <label className="block text-sm font-medium mb-2 text-gray-300">
                     <Tag className="w-4 h-4 inline mr-1" />
                     Secondary Category (Optional)
                   </label>
-                  <select
-                    className="w-full px-4 py-3 backdrop-blur-xl bg-black/40 border-2 border-cyan-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-digis-cyan focus:border-digis-cyan transition-all cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(34,211,238,0.3)]"
-                    value={secondaryCategory}
-                    onChange={(e) => setSecondaryCategory(e.target.value)}
-                  >
-                    <option value="" className="bg-gray-900 text-gray-400">None</option>
-                    {CREATOR_CATEGORIES.filter(cat => cat.value !== primaryCategory).map((cat) => (
-                      <option key={cat.value} value={cat.value} className="bg-gray-900 text-white py-2">
-                        {cat.emoji} {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSecondaryCategoryDropdown(!showSecondaryCategoryDropdown);
+                        setShowPrimaryCategoryDropdown(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-xl text-left transition-all duration-300 flex items-center justify-between ${
+                        secondaryCategory
+                          ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border-2 border-cyan-500/50 shadow-[0_0_20px_rgba(34,211,238,0.15)]'
+                          : 'bg-white/5 border-2 border-white/10 hover:border-cyan-500/30'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        {secondaryCategory ? (
+                          <>
+                            <span className="text-xl">{CREATOR_CATEGORIES.find(c => c.value === secondaryCategory)?.emoji}</span>
+                            <span className="text-white font-medium">{CREATOR_CATEGORIES.find(c => c.value === secondaryCategory)?.label}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-400">None</span>
+                        )}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-cyan-400 transition-transform duration-200 ${showSecondaryCategoryDropdown ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showSecondaryCategoryDropdown && (
+                      <div className="absolute z-50 w-full mt-2 py-2 bg-gray-900/95 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.2)] max-h-64 overflow-y-auto">
+                        {/* None option */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSecondaryCategory('');
+                            setShowSecondaryCategoryDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
+                            !secondaryCategory
+                              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-l-2 border-cyan-400'
+                              : 'text-gray-300 hover:bg-cyan-500/10 hover:text-white border-l-2 border-transparent'
+                          }`}
+                        >
+                          <span className="text-xl">-</span>
+                          <span className="font-medium">None</span>
+                        </button>
+                        {CREATOR_CATEGORIES.filter(cat => cat.value !== primaryCategory).map((cat) => (
+                          <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => {
+                              setSecondaryCategory(cat.value);
+                              setShowSecondaryCategoryDropdown(false);
+                            }}
+                            className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
+                              secondaryCategory === cat.value
+                                ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-l-2 border-cyan-400'
+                                : 'text-gray-300 hover:bg-cyan-500/10 hover:text-white border-l-2 border-transparent'
+                            }`}
+                          >
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="font-medium">{cat.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-400 mt-1">Additional content category</p>
                 </div>
               </div>
