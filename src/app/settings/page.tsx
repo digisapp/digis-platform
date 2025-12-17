@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Ban, UserX } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Ban, UserX, Share2 } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 import { getCreatorNextTierProgress, getCreatorTierConfig, type CreatorTier } from '@/lib/tiers/creator-tiers';
+import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 interface UsernameStatus {
   canChange: boolean;
@@ -796,6 +797,29 @@ export default function SettingsPage() {
             </div>
           </GlassCard>
         </div>
+
+        {/* Share Your Digis Section - Creators Only */}
+        {currentUser?.role === 'creator' && (
+          <>
+            <div className="border-t border-cyan-500/30 my-8" />
+
+            <GlassCard className="p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Share2 className="w-5 h-5 text-digis-cyan" />
+                <h2 className="text-xl font-semibold text-white">Share Your Digis</h2>
+              </div>
+              <p className="text-gray-400 text-sm mb-6 text-center">
+                Your personal QR code for in-person sharing. Save the card or share your link!
+              </p>
+              <ShareDigisCard
+                username={currentUser.username || ''}
+                displayName={currentUser.displayName || undefined}
+                profileImage={currentUser.avatarUrl}
+                bio={currentUser.bio}
+              />
+            </GlassCard>
+          </>
+        )}
 
         {/* Section Divider */}
         <div className="border-t border-cyan-500/30 my-8" />
