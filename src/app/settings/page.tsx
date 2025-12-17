@@ -808,9 +808,6 @@ export default function SettingsPage() {
                 <Share2 className="w-5 h-5 text-digis-cyan" />
                 <h2 className="text-xl font-semibold text-white">Share Your Digis</h2>
               </div>
-              <p className="text-gray-400 text-sm mb-6 text-center">
-                Your personal QR code for in-person sharing. Save the card or share your link!
-              </p>
               <ShareDigisCard
                 username={currentUser.username || ''}
                 displayName={currentUser.displayName || undefined}

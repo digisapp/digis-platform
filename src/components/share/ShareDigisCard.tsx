@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import Image from 'next/image';
-import { Download, Share2, Check, Sparkles } from 'lucide-react';
+import { Download, Share2, Check } from 'lucide-react';
 
 interface ShareDigisCardProps {
   username: string;
@@ -102,12 +102,12 @@ export function ShareDigisCard({
 
         {/* Content */}
         <div className="relative flex flex-col items-center gap-4">
-          {/* Logo */}
-          <div className="flex items-center gap-1 text-cyan-400">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-bold tracking-wider">DIGIS</span>
-            <Sparkles className="w-4 h-4" />
-          </div>
+          {/* Digis Logo */}
+          <img
+            src="/images/digis-logo-white.png"
+            alt="Digis"
+            className="h-8 w-auto"
+          />
 
           {/* Profile Picture */}
           <div className="relative">
@@ -136,14 +136,6 @@ export function ShareDigisCard({
             </div>
           </div>
 
-          {/* Name & Username */}
-          <div className="text-center">
-            {displayName && (
-              <h3 className="text-lg font-bold text-white">{displayName}</h3>
-            )}
-            <p className="text-cyan-400 font-medium">@{username}</p>
-          </div>
-
           {/* QR Code */}
           <div className="p-3 bg-white rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.3)]">
             <QRCodeSVG
@@ -158,11 +150,6 @@ export function ShareDigisCard({
 
           {/* URL */}
           <p className="text-sm text-gray-400">digis.cc/{username}</p>
-
-          {/* Tagline */}
-          <p className="text-xs text-gray-500 text-center">
-            Scan to connect
-          </p>
         </div>
       </div>
 
