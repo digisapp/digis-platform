@@ -1,35 +1,39 @@
 import * as Sentry from '@sentry/nextjs';
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
-  // Performance monitoring
-  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+if (dsn) {
+  Sentry.init({
+    dsn,
 
-  // Enable in all environments for testing (set to production-only after verifying)
-  enabled: true,
+    // Performance monitoring
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Ignore common non-actionable errors
-  ignoreErrors: [
-    'ECONNRESET',
-    'ECONNREFUSED',
-    'ETIMEDOUT',
-  ],
+    // Always enabled (we verified DSN exists)
+    enabled: true,
 
-  // Filter out sensitive data
-  beforeSend(event) {
-    // Remove any PII from error reports
-    if (event.user) {
-      delete event.user.email;
-      delete event.user.ip_address;
-    }
+    // Ignore common non-actionable errors
+    ignoreErrors: [
+      'ECONNRESET',
+      'ECONNREFUSED',
+      'ETIMEDOUT',
+    ],
 
-    // Remove sensitive headers
-    if (event.request?.headers) {
-      delete event.request.headers['authorization'];
-      delete event.request.headers['cookie'];
-    }
+    // Filter out sensitive data
+    beforeSend(event) {
+      // Remove any PII from error reports
+      if (event.user) {
+        delete event.user.email;
+        delete event.user.ip_address;
+      }
 
-    return event;
-  },
-});
+      // Remove sensitive headers
+      if (event.request?.headers) {
+        delete event.request.headers['authorization'];
+        delete event.request.headers['cookie'];
+      }
+
+      return event;
+    },
+  });
+}
