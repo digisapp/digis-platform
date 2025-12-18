@@ -42,11 +42,17 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const connectingRef = useRef(false); // Prevent concurrent connection attempts
   const connectionStateRef = useRef<ConnectionState>('disconnected'); // Stable ref for guards
 
+  // Store callbacks in refs to avoid re-render dependency issues
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
   const updateState = useCallback((state: ConnectionState) => {
     connectionStateRef.current = state;
     setConnectionState(state);
-    options.onStateChange?.(state);
-  }, [options]);
+    optionsRef.current.onStateChange?.(state);
+  }, []);
 
   // Convert base64 to Float32Array (PCM 16-bit to float)
   const base64ToFloat32 = useCallback((base64: string): Float32Array => {
@@ -136,19 +142,19 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
         case 'conversation.item.input_audio_transcription.delta':
           if (message.delta) {
-            options.onTranscript?.(message.delta, false);
+            optionsRef.current.onTranscript?.(message.delta, false);
           }
           break;
 
         case 'conversation.item.input_audio_transcription.completed':
           if (message.transcript) {
-            options.onTranscript?.(message.transcript, true);
+            optionsRef.current.onTranscript?.(message.transcript, true);
           }
           break;
 
         case 'response.audio_transcript.delta':
           if (message.delta) {
-            options.onAiResponse?.(message.delta);
+            optionsRef.current.onAiResponse?.(message.delta);
           }
           break;
 
@@ -176,7 +182,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         case 'error':
           console.error('[AI Voice] Error:', message.error);
           setError(message.error?.message || 'Unknown error');
-          options.onError?.(message.error?.message || 'Unknown error');
+          optionsRef.current.onError?.(message.error?.message || 'Unknown error');
           break;
 
         default:
@@ -188,7 +194,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     } catch (err) {
       console.error('[AI Voice] Failed to parse message:', err);
     }
-  }, [base64ToFloat32, playAudioQueue, options]);
+  }, [base64ToFloat32, playAudioQueue]);
 
   // Setup audio capture
   const setupAudioCapture = useCallback(async () => {
@@ -423,11 +429,11 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         console.error('[AI Voice] Connection failed:', err);
         setError(err instanceof Error ? err.message : 'Connection failed');
         updateState('error');
-        options.onError?.(err instanceof Error ? err.message : 'Connection failed');
+        optionsRef.current.onError?.(err instanceof Error ? err.message : 'Connection failed');
         connectingRef.current = false; // Reset on error
       }
     },
-    [updateState, setupAudioCapture, handleMessage, options]
+    [updateState, setupAudioCapture, handleMessage]
   );
 
   // Disconnect
@@ -484,12 +490,56 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     setIsMuted((prev) => !prev);
   }, []);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - use refs directly to avoid dependency issues
   useEffect(() => {
     return () => {
-      disconnect();
+      console.log('[AI Voice] Cleanup running, sessionId:', sessionIdRef.current);
+
+      // Reset connecting state
+      connectingRef.current = false;
+      connectionStateRef.current = 'disconnected';
+
+      // Close WebSocket first to prevent any more messages
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+
+      // End session record (fire and forget) - only if we had an active session
+      const sessionId = sessionIdRef.current;
+      if (sessionId) {
+        sessionIdRef.current = null; // Clear immediately to prevent double-end
+        fetch(`/api/ai/session/${sessionId}/end`, {
+          method: 'POST',
+        }).catch((err) => {
+          // Session end failures are expected in some cases (e.g., StrictMode double-mount)
+          console.log('[AI Voice] Session end cleanup error (may be expected):', err);
+        });
+      }
+
+      // Stop audio capture
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+
+      // Disconnect worklet
+      if (workletNodeRef.current) {
+        workletNodeRef.current.disconnect();
+        workletNodeRef.current = null;
+      }
+
+      // Close audio context
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(console.error);
+        audioContextRef.current = null;
+      }
+
+      // Clear audio queue
+      audioQueueRef.current = [];
+      isPlayingRef.current = false;
     };
-  }, [disconnect]);
+  }, []); // Empty dependency array - only runs on true unmount
 
   return {
     connectionState,

@@ -48,11 +48,17 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     },
   });
 
-  // Start connection on mount - only once
+  // Start connection on mount
   useEffect(() => {
+    // Guard against double-calls within same mount cycle
     if (hasInitiatedRef.current) return;
     hasInitiatedRef.current = true;
     connect(creatorId);
+
+    // Reset on cleanup so reconnection can happen after StrictMode unmount
+    return () => {
+      hasInitiatedRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [creatorId]);
 
