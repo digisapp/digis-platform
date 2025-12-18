@@ -2018,8 +2018,8 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Bottom Center - Ticketed Stream + End Stream Button */}
-                  <div className="absolute bottom-14 sm:bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+                  {/* Bottom Left - Record + End Stream Buttons */}
+                  <div className="absolute bottom-14 sm:bottom-3 left-3 z-20 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                     {/* Ticketed Stream Indicator - Shows when announced or active */}
                     {announcedTicketedStream && (
                       <>
@@ -2116,9 +2116,9 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Centered at very bottom, visible in recordings */}
+                  {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
                   {currentUsername && (
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
                       <span
                         className="text-sm sm:text-base font-black tracking-wider whitespace-nowrap"
                         style={{

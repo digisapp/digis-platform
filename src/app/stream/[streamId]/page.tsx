@@ -1146,9 +1146,9 @@ export default function StreamViewerPage() {
               </div>
             )}
 
-            {/* Username Watermark - Centered at very bottom for portrait recordings (Instagram/TikTok) */}
+            {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
             {stream?.creator?.username && (
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
                 <span
                   className="text-sm sm:text-base font-black tracking-wider whitespace-nowrap"
                   style={{
