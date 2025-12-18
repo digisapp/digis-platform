@@ -40,8 +40,10 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const isPlayingRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const connectingRef = useRef(false); // Prevent concurrent connection attempts
+  const connectionStateRef = useRef<ConnectionState>('disconnected'); // Stable ref for guards
 
   const updateState = useCallback((state: ConnectionState) => {
+    connectionStateRef.current = state;
     setConnectionState(state);
     options.onStateChange?.(state);
   }, [options]);
@@ -279,8 +281,8 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   // Connect to xAI
   const connect = useCallback(
     async (creatorId: string) => {
-      // Prevent concurrent connection attempts using ref (more reliable than state)
-      if (connectingRef.current || connectionState !== 'disconnected') {
+      // Prevent concurrent connection attempts using refs (stable, not affected by re-renders)
+      if (connectingRef.current || connectionStateRef.current !== 'disconnected') {
         console.log('[AI Voice] Connection already in progress or connected, skipping');
         return;
       }
@@ -420,7 +422,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         connectingRef.current = false; // Reset on error
       }
     },
-    [connectionState, updateState, setupAudioCapture, handleMessage, options]
+    [updateState, setupAudioCapture, handleMessage, options]
   );
 
   // Disconnect

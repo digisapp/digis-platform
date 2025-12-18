@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 import { Mic, MicOff, PhoneOff, Bot, Volume2, Sparkles } from 'lucide-react';
@@ -24,6 +24,7 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
   const [ending, setEnding] = useState(false);
   const [rating, setRating] = useState(0);
   const [showRating, setShowRating] = useState(false);
+  const hasInitiatedRef = useRef(false);
 
   const {
     connectionState,
@@ -47,10 +48,13 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     },
   });
 
-  // Start connection on mount
+  // Start connection on mount - only once
   useEffect(() => {
+    if (hasInitiatedRef.current) return;
+    hasInitiatedRef.current = true;
     connect(creatorId);
-  }, [creatorId, connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [creatorId]);
 
   // Track duration
   useEffect(() => {
