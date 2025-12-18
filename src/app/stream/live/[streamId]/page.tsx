@@ -2123,8 +2123,8 @@ export default function BroadcastStudioPage() {
                         className="text-xl sm:text-2xl font-black tracking-wide whitespace-nowrap text-white"
                         style={{
                           fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
-                          WebkitTextStroke: '2px #ff1493',
-                          textShadow: '3px 3px 0 #ff1493, -3px -3px 0 #ff1493, 3px -3px 0 #ff1493, -3px 3px 0 #ff1493, 0 3px 0 #ff1493, 0 -3px 0 #ff1493, 3px 0 0 #ff1493, -3px 0 0 #ff1493',
+                          WebkitTextStroke: '1px #ff1493',
+                          textShadow: '1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493, 0 1.5px 0 #ff1493, 0 -1.5px 0 #ff1493, 1.5px 0 0 #ff1493, -1.5px 0 0 #ff1493',
                         }}
                       >
                         digis.cc/{currentUsername}
