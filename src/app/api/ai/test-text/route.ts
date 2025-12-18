@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
             'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
           },
           body: JSON.stringify({
-            model: 'grok-beta',
+            model: 'grok-3-mini',
             messages: [
               { role: 'user', content: 'Say "AI Text Chat is working!" in 5 words or less.' },
             ],
