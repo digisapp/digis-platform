@@ -26,14 +26,18 @@ const VOICE_OPTIONS = [
 
 interface AiSettings {
   enabled: boolean;
+  textChatEnabled: boolean;
   voice: string;
   personalityPrompt: string | null;
   welcomeMessage: string | null;
   boundaryPrompt: string | null;
   pricePerMinute: number;
+  textPricePerMessage: number;
   totalSessions: number;
   totalMinutes: number;
   totalEarnings: number;
+  totalTextMessages: number;
+  totalTextEarnings: number;
 }
 
 export default function AiTwinPage() {
@@ -45,14 +49,18 @@ export default function AiTwinPage() {
 
   const [settings, setSettings] = useState<AiSettings>({
     enabled: false,
+    textChatEnabled: false,
     voice: 'ara',
     personalityPrompt: null,
     welcomeMessage: null,
     boundaryPrompt: null,
     pricePerMinute: 20,
+    textPricePerMessage: 5,
     totalSessions: 0,
     totalMinutes: 0,
     totalEarnings: 0,
+    totalTextMessages: 0,
+    totalTextEarnings: 0,
   });
 
   useEffect(() => {
@@ -90,11 +98,13 @@ export default function AiTwinPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           enabled: settings.enabled,
+          textChatEnabled: settings.textChatEnabled,
           voice: settings.voice,
           personalityPrompt: settings.personalityPrompt,
           welcomeMessage: settings.welcomeMessage,
           boundaryPrompt: settings.boundaryPrompt,
           pricePerMinute: settings.pricePerMinute,
+          textPricePerMessage: settings.textPricePerMessage,
         }),
       });
 
@@ -141,7 +151,7 @@ export default function AiTwinPage() {
               </span>
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Let fans chat with your AI voice clone 24/7 in 100+ languages
+              Let fans chat with your AI clone via voice or text 24/7
             </p>
           </div>
 
@@ -159,80 +169,114 @@ export default function AiTwinPage() {
             </div>
           )}
 
-          {/* Stats Overview (only show if enabled and has data) */}
-          {settings.enabled && settings.totalSessions > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-6">
+          {/* Stats Overview (only show if has data) */}
+          {(settings.totalSessions > 0 || settings.totalTextMessages > 0) && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <GlassCard className="p-4 text-center">
                 <div className="text-2xl font-bold text-white">{settings.totalSessions}</div>
-                <div className="text-xs text-gray-400">Sessions</div>
+                <div className="text-xs text-gray-400">Voice Sessions</div>
               </GlassCard>
               <GlassCard className="p-4 text-center">
                 <div className="text-2xl font-bold text-white">{settings.totalMinutes}</div>
-                <div className="text-xs text-gray-400">Minutes</div>
+                <div className="text-xs text-gray-400">Voice Minutes</div>
               </GlassCard>
               <GlassCard className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-400">{settings.totalEarnings}</div>
-                <div className="text-xs text-gray-400">Earned</div>
+                <div className="text-2xl font-bold text-white">{settings.totalTextMessages}</div>
+                <div className="text-xs text-gray-400">Text Messages</div>
+              </GlassCard>
+              <GlassCard className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-400">{settings.totalEarnings + settings.totalTextEarnings}</div>
+                <div className="text-xs text-gray-400">Total Earned</div>
               </GlassCard>
             </div>
           )}
 
-          {/* Enable/Disable Toggle */}
-          <GlassCard className="p-5 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg">
-                <Sparkles className="w-6 h-6 text-cyan-400" />
+          {/* Enable/Disable Toggles */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            {/* Voice Chat Toggle */}
+            <GlassCard className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg">
+                  <Mic className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white">Voice Chat</h3>
+                  <p className="text-xs text-gray-400">
+                    Real-time voice calls with AI
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
+                >
+                  {settings.enabled ? (
+                    <ToggleRight className="w-12 h-12 text-cyan-500" />
+                  ) : (
+                    <ToggleLeft className="w-12 h-12 text-gray-500" />
+                  )}
+                </button>
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-white">Enable AI Twin</h3>
-                <p className="text-xs text-gray-400">
-                  Allow fans to voice chat with your AI avatar
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
-              >
-                {settings.enabled ? (
-                  <ToggleRight className="w-12 h-12 text-cyan-500" />
-                ) : (
-                  <ToggleLeft className="w-12 h-12 text-gray-500" />
-                )}
-              </button>
-            </div>
-          </GlassCard>
+            </GlassCard>
 
-          {settings.enabled && (
+            {/* Text Chat Toggle */}
+            <GlassCard className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
+                  <MessageSquare className="w-6 h-6 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-white">Text Chat</h3>
+                  <p className="text-xs text-gray-400">
+                    AI responds to DMs
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, textChatEnabled: !settings.textChatEnabled })}
+                >
+                  {settings.textChatEnabled ? (
+                    <ToggleRight className="w-12 h-12 text-purple-500" />
+                  ) : (
+                    <ToggleLeft className="w-12 h-12 text-gray-500" />
+                  )}
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+
+          {(settings.enabled || settings.textChatEnabled) && (
             <div className="space-y-6">
-              {/* Voice Selection */}
-              <GlassCard className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-purple-500/20 rounded-lg">
-                    <Volume2 className="w-5 h-5 text-purple-400" />
+              {/* Voice Selection - only show if voice enabled */}
+              {settings.enabled && (
+                <GlassCard className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <Volume2 className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">Voice</h3>
+                      <p className="text-xs text-gray-400">Choose your AI&apos;s voice</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-white">Voice</h3>
-                    <p className="text-xs text-gray-400">Choose your AI&apos;s voice</p>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {VOICE_OPTIONS.map((voice) => (
-                    <button
-                      key={voice.id}
-                      onClick={() => setSettings({ ...settings, voice: voice.id })}
-                      className={`p-3 rounded-xl border transition-all text-left ${
-                        settings.voice === voice.id
-                          ? `border-${voice.color}-500 bg-${voice.color}-500/20`
-                          : 'border-white/10 hover:border-white/30 bg-white/5'
-                      }`}
-                    >
-                      <div className="font-semibold text-white">{voice.name}</div>
-                      <div className="text-xs text-gray-400">{voice.description}</div>
-                    </button>
-                  ))}
-                </div>
-              </GlassCard>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {VOICE_OPTIONS.map((voice) => (
+                      <button
+                        key={voice.id}
+                        onClick={() => setSettings({ ...settings, voice: voice.id })}
+                        className={`p-3 rounded-xl border transition-all text-left ${
+                          settings.voice === voice.id
+                            ? `border-${voice.color}-500 bg-${voice.color}-500/20`
+                            : 'border-white/10 hover:border-white/30 bg-white/5'
+                        }`}
+                      >
+                        <div className="font-semibold text-white">{voice.name}</div>
+                        <div className="text-xs text-gray-400">{voice.description}</div>
+                      </button>
+                    ))}
+                  </div>
+                </GlassCard>
+              )}
 
               {/* Personality Prompt */}
               <GlassCard className="p-5">
@@ -312,27 +356,58 @@ export default function AiTwinPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">
-                    Rate per minute
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={settings.pricePerMinute || ''}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/^0+/, '') || '1';
-                        setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
-                      }}
-                      className="w-full px-3 py-2 bg-black/40 border border-yellow-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-yellow-500 max-w-[120px]"
-                    />
-                    <span className="text-xs text-gray-400">coins</span>
-                  </div>
-                  <p className="text-xs text-green-400 mt-1">
-                    You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Voice Chat Pricing */}
+                  {settings.enabled && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                        Voice Chat (per minute)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="1000"
+                          value={settings.pricePerMinute || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/^0+/, '') || '1';
+                            setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
+                          }}
+                          className="w-full px-3 py-2 bg-black/40 border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-cyan-500 max-w-[120px]"
+                        />
+                        <span className="text-xs text-gray-400">coins</span>
+                      </div>
+                      <p className="text-xs text-green-400 mt-1">
+                        You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Text Chat Pricing */}
+                  {settings.textChatEnabled && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">
+                        Text Chat (per message)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={settings.textPricePerMessage || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/^0+/, '') || '1';
+                            setSettings({ ...settings, textPricePerMessage: Math.min(100, parseInt(val) || 1) });
+                          }}
+                          className="w-full px-3 py-2 bg-black/40 border border-purple-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 max-w-[120px]"
+                        />
+                        <span className="text-xs text-gray-400">coins</span>
+                      </div>
+                      <p className="text-xs text-green-400 mt-1">
+                        You earn {formatCoinsToUSD(settings.textPricePerMessage)}/msg
+                      </p>
+                    </div>
+                  )}
                 </div>
               </GlassCard>
 
@@ -349,22 +424,16 @@ export default function AiTwinPage() {
           )}
 
           {/* Disabled State */}
-          {!settings.enabled && (
+          {!settings.enabled && !settings.textChatEnabled && (
             <div className="p-8 text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mx-auto mb-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Bot className="w-10 h-10 text-cyan-400" />
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Enable AI Twin</h3>
               <p className="text-gray-400 mb-4 max-w-md mx-auto">
-                Let fans chat with an AI version of you when you&apos;re not around.
-                Your AI speaks your language - literally! It supports 100+ languages automatically.
+                Let fans chat with an AI version of you via voice or text.
+                Toggle on Voice Chat, Text Chat, or both above to get started.
               </p>
-              <GlassButton
-                variant="gradient"
-                onClick={() => setSettings({ ...settings, enabled: true })}
-              >
-                Get Started
-              </GlassButton>
             </div>
           )}
         </div>

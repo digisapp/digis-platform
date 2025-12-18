@@ -71,6 +71,9 @@ export const messages = pgTable('messages', {
   tipAmount: integer('tip_amount'), // In coins
   tipTransactionId: uuid('tip_transaction_id').references(() => walletTransactions.id),
 
+  // AI-generated message flag
+  isAiGenerated: boolean('is_ai_generated').default(false).notNull(),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({

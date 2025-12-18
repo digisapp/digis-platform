@@ -94,6 +94,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const {
       enabled,
+      textChatEnabled,
       voice,
       personalityPrompt,
       welcomeMessage,
@@ -101,6 +102,7 @@ export async function PUT(request: NextRequest) {
       pricePerMinute,
       minimumMinutes,
       maxSessionMinutes,
+      textPricePerMessage,
     } = body;
 
     // Validate voice if provided
@@ -134,6 +136,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    if (textPricePerMessage !== undefined && (textPricePerMessage < 1 || textPricePerMessage > 100)) {
+      return NextResponse.json(
+        { error: 'Text price per message must be between 1 and 100 coins' },
+        { status: 400 }
+      );
+    }
+
     // Get existing settings or create new ones
     let settings = await db.query.aiTwinSettings.findFirst({
       where: eq(aiTwinSettings.creatorId, user.id),
@@ -144,6 +153,7 @@ export async function PUT(request: NextRequest) {
     };
 
     if (enabled !== undefined) updateData.enabled = enabled;
+    if (textChatEnabled !== undefined) updateData.textChatEnabled = textChatEnabled;
     if (voice !== undefined) updateData.voice = voice;
     if (personalityPrompt !== undefined) updateData.personalityPrompt = personalityPrompt;
     if (welcomeMessage !== undefined) updateData.welcomeMessage = welcomeMessage;
@@ -151,6 +161,7 @@ export async function PUT(request: NextRequest) {
     if (pricePerMinute !== undefined) updateData.pricePerMinute = pricePerMinute;
     if (minimumMinutes !== undefined) updateData.minimumMinutes = minimumMinutes;
     if (maxSessionMinutes !== undefined) updateData.maxSessionMinutes = maxSessionMinutes;
+    if (textPricePerMessage !== undefined) updateData.textPricePerMessage = textPricePerMessage;
 
     if (settings) {
       const [updated] = await db
@@ -166,6 +177,7 @@ export async function PUT(request: NextRequest) {
         .values({
           creatorId: user.id,
           enabled: enabled || false,
+          textChatEnabled: textChatEnabled || false,
           voice: voice || 'ara',
           personalityPrompt,
           welcomeMessage,
@@ -173,6 +185,7 @@ export async function PUT(request: NextRequest) {
           pricePerMinute: pricePerMinute || 20,
           minimumMinutes: minimumMinutes || 5,
           maxSessionMinutes: maxSessionMinutes || 60,
+          textPricePerMessage: textPricePerMessage || 5,
         })
         .returning();
 

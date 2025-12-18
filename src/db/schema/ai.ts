@@ -23,25 +23,35 @@ export const aiTwinSettings = pgTable('ai_twin_settings', {
   id: uuid('id').primaryKey().defaultRandom(),
   creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
 
-  // Enable/disable
+  // Voice Chat Enable/disable
   enabled: boolean('enabled').default(false).notNull(),
 
-  // Voice and personality
+  // Text Chat Enable/disable
+  textChatEnabled: boolean('text_chat_enabled').default(false).notNull(),
+
+  // Voice and personality (shared between voice & text)
   voice: aiVoiceEnum('voice').default('ara').notNull(),
   personalityPrompt: text('personality_prompt'), // Creator writes their AI's personality
   welcomeMessage: text('welcome_message'), // First message AI says
   boundaryPrompt: text('boundary_prompt'), // Things AI won't discuss
 
-  // Pricing
-  pricePerMinute: integer('price_per_minute').default(20).notNull(), // Coins per minute
+  // Voice Pricing
+  pricePerMinute: integer('price_per_minute').default(20).notNull(), // Coins per minute for voice
   minimumMinutes: integer('minimum_minutes').default(5).notNull(), // Minimum session length
   maxSessionMinutes: integer('max_session_minutes').default(60).notNull(), // Maximum session length
 
-  // Stats (denormalized for quick access)
+  // Text Chat Pricing
+  textPricePerMessage: integer('text_price_per_message').default(5).notNull(), // Coins per AI text response
+
+  // Voice Stats (denormalized for quick access)
   totalSessions: integer('total_sessions').default(0).notNull(),
   totalMinutes: integer('total_minutes').default(0).notNull(),
   totalEarnings: integer('total_earnings').default(0).notNull(),
   averageRating: integer('average_rating'), // 1-5 stars * 100 for precision
+
+  // Text Chat Stats
+  totalTextMessages: integer('total_text_messages').default(0).notNull(),
+  totalTextEarnings: integer('total_text_earnings').default(0).notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

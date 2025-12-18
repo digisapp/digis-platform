@@ -20,7 +20,9 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'subscription_payment',
   'subscription_earnings',
   'ai_session_charge',
-  'ai_session_earnings'
+  'ai_session_earnings',
+  'ai_text_chat',
+  'ai_text_earnings'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [

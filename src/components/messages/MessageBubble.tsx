@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash2, Check, CheckCheck, SmilePlus } from 'lucide-react';
+import { Trash2, Check, CheckCheck, SmilePlus, Bot } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 import { useToastContext } from '@/context/ToastContext';
 
@@ -19,6 +19,7 @@ type Message = {
   thumbnailUrl: string | null;
   isRead?: boolean;
   readAt?: Date | null;
+  isAiGenerated?: boolean;
   sender: {
     id: string;
     displayName: string | null;
@@ -334,9 +335,17 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
             className={`px-4 py-3 rounded-2xl ${
               isOwnMessage
                 ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                : 'bg-white/5 text-white'
+                : message.isAiGenerated
+                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white'
+                  : 'bg-white/5 text-white'
             }`}
           >
+            {message.isAiGenerated && (
+              <div className="flex items-center gap-1.5 mb-1.5 text-purple-400">
+                <Bot className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">AI Twin</span>
+              </div>
+            )}
             <p className="break-words">{message.content}</p>
           </div>
 
