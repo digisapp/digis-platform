@@ -56,12 +56,14 @@ export async function POST(request: NextRequest) {
     // Check if recipient has AI text chat enabled and auto-respond
     let aiResponse = null;
     try {
+      console.log('[AI Text] Attempting auto-respond for recipient:', recipientId);
       aiResponse = await AiTextService.tryAutoRespond(
         user.id,
         recipientId,
         content,
         conversation.id
       );
+      console.log('[AI Text] Auto-respond result:', aiResponse ? 'AI responded' : 'No AI response (disabled or error)');
     } catch (aiError) {
       // Don't fail the whole request if AI fails - just log it
       console.error('[AI Text] Auto-respond error:', aiError);

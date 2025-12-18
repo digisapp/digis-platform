@@ -21,14 +21,23 @@ export class AiTextService {
     aiMessage: any;
   } | null> {
     // Get recipient's AI settings
+    console.log('[AI Text] Looking up AI settings for creator:', recipientId);
     const aiSettings = await db.query.aiTwinSettings.findFirst({
       where: eq(aiTwinSettings.creatorId, recipientId),
     });
 
     // Check if AI text chat is enabled
-    if (!aiSettings?.textChatEnabled) {
+    if (!aiSettings) {
+      console.log('[AI Text] No AI settings found for creator');
       return null;
     }
+
+    if (!aiSettings.textChatEnabled) {
+      console.log('[AI Text] Text chat is disabled for this creator');
+      return null;
+    }
+
+    console.log('[AI Text] Text chat is enabled, proceeding with AI response');
 
     // Get recipient (creator) info
     const creator = await db.query.users.findFirst({
@@ -62,12 +71,15 @@ export class AiTextService {
     const systemPrompt = this.buildSystemPrompt(creatorName, aiSettings, creatorContent);
 
     // Call xAI API
+    console.log('[AI Text] Calling xAI API...');
     const aiResponseText = await this.callXaiApi(systemPrompt, messageContent);
 
     if (!aiResponseText) {
-      console.error('[AI Text] Failed to get AI response');
+      console.error('[AI Text] Failed to get AI response from xAI');
       return null;
     }
+
+    console.log('[AI Text] Got AI response, storing message...');
 
     // Store AI message and update stats (no billing - AI response is free)
     const result = await db.transaction(async (tx) => {
