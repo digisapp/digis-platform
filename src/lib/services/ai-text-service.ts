@@ -82,9 +82,32 @@ export class AiTextService {
     };
     const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent);
 
-    // Call xAI API
+    // Fetch recent conversation history for context
+    const recentMessages = await db.query.messages.findMany({
+      where: eq(messages.conversationId, conversationId),
+      orderBy: [desc(messages.createdAt)],
+      limit: 10, // Last 10 messages for context
+      columns: {
+        content: true,
+        senderId: true,
+        isAiGenerated: true,
+        createdAt: true,
+      },
+    });
+
+    // Build conversation history (oldest first)
+    const conversationHistory = recentMessages
+      .reverse()
+      .map(msg => ({
+        role: msg.senderId === recipientId ? 'assistant' as const : 'user' as const,
+        content: msg.content,
+      }));
+
+    console.log(`[AI Text] Including ${conversationHistory.length} messages of history`);
+
+    // Call xAI API with conversation history
     console.log('[AI Text] Calling xAI API...');
-    const aiResponseText = await this.callXaiApi(systemPrompt, messageContent);
+    const aiResponseText = await this.callXaiApi(systemPrompt, messageContent, conversationHistory);
 
     if (!aiResponseText) {
       console.error('[AI Text] Failed to get AI response from xAI');
@@ -187,21 +210,41 @@ export class AiTextService {
         prompt += `- ${typeEmoji} "${item.title}" (${priceText}) → USE: [[CONTENT:${item.id}]]\n`;
       });
 
-      prompt += `\nWHEN TO SEND CONTENT:\n`;
-      prompt += `- If they ask "send me something" → pick something hot and send it!\n`;
-      prompt += `- If they ask for "pics" or "videos" → send relevant content\n`;
+      prompt += `\nCONTENT TYPE MATCHING (IMPORTANT!):\n`;
+      prompt += `- "pics", "photos", "picture" → ONLY send 🖼️ photo or 📸 gallery content\n`;
+      prompt += `- "video", "videos", "clip" → ONLY send 🎬 video content\n`;
+      prompt += `- "something", "content", "PPV" → can send any type\n`;
+      prompt += `- NEVER send a video when they ask for pics, or pics when they ask for video!\n\n`;
+
+      prompt += `WHEN TO SEND CONTENT:\n`;
+      prompt += `- If they ask "send me something" → pick something and send it!\n`;
+      prompt += `- If they ask for "pics" → send a PHOTO, not a video\n`;
+      prompt += `- If they ask for "videos" → send a VIDEO, not a photo\n`;
       prompt += `- If they ask about "PPV" or "exclusive content" → show them what I have\n`;
       prompt += `- If they seem interested or are flirting → tease with content\n`;
-      prompt += `- If they ask "what do you have" → list a few and send one\n\n`;
+      prompt += `- If they ask "what do you have" → list a few options\n\n`;
+
+      prompt += `VARIETY (IMPORTANT!):\n`;
+      prompt += `- Look at conversation history - DON'T send content you already sent!\n`;
+      prompt += `- If you see [[CONTENT:xxx]] in recent messages, pick a DIFFERENT one\n`;
+      prompt += `- Vary your recommendations - don't repeat the same content twice\n`;
+      prompt += `- If they ask again, send something NEW from the list\n\n`;
+
+      // Group content by type for better examples
+      const photos = content.filter(c => c.contentType === 'photo' || c.contentType === 'gallery');
+      const videos = content.filter(c => c.contentType === 'video');
 
       prompt += `EXAMPLE RESPONSES:\n`;
+      if (photos.length > 0) {
+        prompt += `Fan: "send me some pics"\n`;
+        prompt += `Me: "here you go babe 😘 [[CONTENT:${photos[0].id}]]"\n\n`;
+      }
+      if (videos.length > 0) {
+        prompt += `Fan: "any videos?"\n`;
+        prompt += `Me: "yes just dropped this 🔥 [[CONTENT:${videos[0].id}]]"\n\n`;
+      }
       prompt += `Fan: "send me something spicy"\n`;
       prompt += `Me: "ooh I have just the thing for you 😏 [[CONTENT:${content[0]?.id || 'xxx'}]]"\n\n`;
-      prompt += `Fan: "any new videos?"\n`;
-      const videoContent = content.find(c => c.contentType === 'video');
-      if (videoContent) {
-        prompt += `Me: "yes babe just dropped this 🔥 [[CONTENT:${videoContent.id}]]"\n\n`;
-      }
     } else {
       prompt += `\nNOTE: I don't have any content uploaded yet. If they ask for content, tell them to check back soon or that I'm working on some new stuff!\n`;
     }
@@ -220,7 +263,8 @@ export class AiTextService {
 
   private static async callXaiApi(
     systemPrompt: string,
-    userMessage: string
+    userMessage: string,
+    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
   ): Promise<string | null> {
     const apiKey = process.env.XAI_API_KEY;
 
@@ -230,6 +274,13 @@ export class AiTextService {
     }
 
     try {
+      // Build messages array with system prompt, history, and new message
+      const apiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory,
+        { role: 'user', content: userMessage },
+      ];
+
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -238,12 +289,9 @@ export class AiTextService {
         },
         body: JSON.stringify({
           model: 'grok-3-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage },
-          ],
-          max_tokens: 500,
-          temperature: 0.8,
+          messages: apiMessages,
+          max_tokens: 300, // Shorter for natural texts
+          temperature: 0.9, // More creative/varied
         }),
       });
 
