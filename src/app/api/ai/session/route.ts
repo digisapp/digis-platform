@@ -60,11 +60,59 @@ export async function POST(request: NextRequest) {
         // Auto-cleanup stuck session or force cleanup requested
         console.log('[AI Session] Cleaning up session:', existingSession.id,
           forceCleanup ? '(force cleanup)' : `(stuck, age: ${Math.floor(sessionAgeMs / 60000)} minutes)`);
+
+        let cleanupSucceeded = false;
         try {
           await AiSessionService.failSession(existingSession.id,
             forceCleanup ? 'Session force-cleaned by user' : 'Session auto-cleaned due to inactivity');
+          cleanupSucceeded = true;
         } catch (cleanupError) {
-          console.error('[AI Session] Failed to cleanup session:', cleanupError);
+          console.error('[AI Session] Failed to cleanup session via service:', cleanupError);
+
+          // Fallback: Direct database update to force cleanup
+          try {
+            const { db } = await import('@/lib/data/system');
+            const { aiSessions } = await import('@/db/schema');
+            const { eq } = await import('drizzle-orm');
+
+            await db
+              .update(aiSessions)
+              .set({
+                status: 'failed',
+                endedAt: new Date(),
+                errorMessage: 'Force-cleaned via fallback',
+                updatedAt: new Date(),
+              })
+              .where(eq(aiSessions.id, existingSession.id));
+
+            console.log('[AI Session] Fallback cleanup succeeded for:', existingSession.id);
+            cleanupSucceeded = true;
+          } catch (fallbackError) {
+            console.error('[AI Session] Fallback cleanup also failed:', fallbackError);
+          }
+        }
+
+        // Verify cleanup actually worked
+        if (cleanupSucceeded) {
+          const stillExists = await AiSessionService.getActiveSession(user.id);
+          if (stillExists) {
+            console.error('[AI Session] Session still active after cleanup attempt:', stillExists.id);
+            return NextResponse.json(
+              {
+                error: 'Failed to cleanup existing session. Please try again.',
+                sessionId: stillExists.id,
+              },
+              { status: 409 }
+            );
+          }
+        } else {
+          return NextResponse.json(
+            {
+              error: 'Failed to cleanup existing session',
+              sessionId: existingSession.id,
+            },
+            { status: 409 }
+          );
         }
         // Continue to create new session below
       } else {

@@ -319,11 +319,18 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
         // 2. Start session record (with improved 409 handling)
         let sessionId: string | null = null;
-        const startSession = async (): Promise<string> => {
+        const startSession = async (retryCount = 0): Promise<string> => {
+          const maxRetries = 2;
+          const useForceCleanup = retryCount > 0;
+
           const sessionResponse = await fetch('/api/ai/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ creatorId, voice: sessionConfig.voice.toLowerCase() }),
+            body: JSON.stringify({
+              creatorId,
+              voice: sessionConfig.voice.toLowerCase(),
+              forceCleanup: useForceCleanup,
+            }),
           });
 
           if (sessionResponse.ok) {
@@ -333,28 +340,17 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
           const errorData = await sessionResponse.json();
 
-          // If there's an existing session, use forceCleanup to clean it up and start new one atomically
-          if (sessionResponse.status === 409 && errorData.sessionId) {
-            console.log('[AI Voice] Existing session detected, using forceCleanup:', errorData.sessionId);
-
-            // Retry with forceCleanup flag - this will cleanup the old session and create new one atomically
-            const retryResponse = await fetch('/api/ai/session', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                creatorId,
-                voice: sessionConfig.voice.toLowerCase(),
-                forceCleanup: true,
-              }),
-            });
-
-            if (!retryResponse.ok) {
-              const retryError = await retryResponse.json();
-              throw new Error(retryError.error || 'Failed to start session after cleanup');
+          // If there's an existing session conflict, retry with forceCleanup
+          if (sessionResponse.status === 409) {
+            if (retryCount < maxRetries) {
+              console.log(`[AI Voice] Session conflict (attempt ${retryCount + 1}/${maxRetries}), retrying with forceCleanup:`, errorData.sessionId);
+              // Small delay before retry to allow any in-flight requests to complete
+              await new Promise(resolve => setTimeout(resolve, 500));
+              return startSession(retryCount + 1);
+            } else {
+              console.error('[AI Voice] Session conflict persists after retries:', errorData.sessionId);
+              throw new Error('Unable to start session - please wait a moment and try again');
             }
-
-            const retryData = await retryResponse.json();
-            return retryData.session.id;
           }
 
           throw new Error(errorData.error || 'Failed to start session');
