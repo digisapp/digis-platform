@@ -514,6 +514,7 @@ export default function StreamViewerPage() {
       giftAmount: null,
       tipMenuItemId: null,
       tipMenuItemLabel: null,
+      isAiGenerated: false,
       createdAt: new Date(),
     };
 

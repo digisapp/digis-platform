@@ -91,6 +91,9 @@ export const streamMessages = pgTable('stream_messages', {
   tipMenuItemId: uuid('tip_menu_item_id'),
   tipMenuItemLabel: text('tip_menu_item_label'),
 
+  // AI Chat Moderator
+  isAiGenerated: boolean('is_ai_generated').default(false),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   streamIdIdx: index('stream_messages_stream_id_idx').on(table.streamId, table.createdAt),

@@ -29,6 +29,9 @@ export const aiTwinSettings = pgTable('ai_twin_settings', {
   // Text Chat Enable/disable
   textChatEnabled: boolean('text_chat_enabled').default(false).notNull(),
 
+  // Live Stream Chat Moderator Enable/disable
+  streamChatModEnabled: boolean('stream_chat_mod_enabled').default(false).notNull(),
+
   // Voice and personality (shared between voice & text)
   voice: aiVoiceEnum('voice').default('ara').notNull(),
   personalityPrompt: text('personality_prompt'), // Creator writes their AI's personality
@@ -52,6 +55,9 @@ export const aiTwinSettings = pgTable('ai_twin_settings', {
   // Text Chat Stats
   totalTextMessages: integer('total_text_messages').default(0).notNull(),
   totalTextEarnings: integer('total_text_earnings').default(0).notNull(),
+
+  // Stream Chat Mod Stats
+  totalStreamChatMessages: integer('total_stream_chat_messages').default(0).notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

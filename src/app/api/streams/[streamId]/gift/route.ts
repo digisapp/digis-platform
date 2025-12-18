@@ -7,6 +7,7 @@ import { users, wallets, streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 import { BlockService } from '@/lib/services/block-service';
+import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -92,6 +93,20 @@ export async function POST(
       recipientCreatorId: result.recipientCreatorId || null,
       recipientUsername: result.recipientUsername || null,
     }, result.gift);
+
+    // AI Chat Mod: Thank the gift sender (async, don't block)
+    const giftRecipient = result.recipientCreatorId || stream?.creatorId;
+    if (giftRecipient) {
+      AiStreamChatService.processTip(
+        streamId,
+        giftRecipient,
+        username,
+        result.gift.coinCost * quantity,
+        result.gift.name
+      ).catch(err => {
+        console.error('[AI Stream Chat] Error thanking gift sender:', err);
+      });
+    }
 
     // Fetch updated balance for the sender
     const senderWallet = await db.query.wallets.findFirst({

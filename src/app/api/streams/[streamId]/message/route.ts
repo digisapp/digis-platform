@@ -5,6 +5,7 @@ import { users, streamMessages, streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { BlockService } from '@/lib/services/block-service';
+import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -134,6 +135,19 @@ export async function POST(
 
     // Broadcast to all viewers using Ably (scales to 50k+ concurrent users)
     await AblyRealtimeService.broadcastChatMessage(streamId, messagePayload as any);
+
+    // Trigger AI Chat Moderator response (async, don't block)
+    if (stream?.creatorId) {
+      AiStreamChatService.processMessage(streamId, stream.creatorId, {
+        id: savedMessage.id,
+        userId: user.id,
+        username: dbUser.username || 'Anonymous',
+        message: content,
+        messageType: 'chat',
+      }).catch(err => {
+        console.error('[AI Stream Chat] Error processing message:', err);
+      });
+    }
 
     return NextResponse.json({ message: messagePayload, success: true });
   } catch (error: any) {

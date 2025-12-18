@@ -6,6 +6,7 @@ import { db } from '@/lib/data/system';
 import { users, tipMenuItems, menuPurchases } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -117,6 +118,19 @@ export async function POST(
       itemCategory: menuItem ? itemCategory : null,
       fulfillmentType: menuItem ? fulfillmentType : null,
     });
+
+    // AI Chat Mod: Thank the tipper (async, don't block)
+    if (result.recipientCreatorId) {
+      AiStreamChatService.processTip(
+        streamId,
+        result.recipientCreatorId,
+        username,
+        amount,
+        tipMenuItemLabel
+      ).catch(err => {
+        console.error('[AI Stream Chat] Error thanking tipper:', err);
+      });
+    }
 
     // Return response with digital content URL if applicable
     return NextResponse.json({
