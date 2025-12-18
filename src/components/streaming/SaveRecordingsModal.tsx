@@ -109,10 +109,8 @@ export function SaveRecordingsModal({
     }
   };
 
-  const handleDiscardAll = () => {
-    if (confirm('Discard all recordings? This cannot be undone.')) {
-      onClose();
-    }
+  const handleDeleteAll = () => {
+    onClose();
   };
 
   const pendingCount = recordingsToSave.filter((r) => r.status === 'pending').length;
@@ -292,21 +290,21 @@ export function SaveRecordingsModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/10 flex gap-3">
+        <div className="p-6 border-t border-white/10 flex flex-row gap-3">
           <GlassButton
             variant="ghost"
-            onClick={handleDiscardAll}
+            onClick={handleDeleteAll}
             disabled={isSaving || allSaved}
-            className="flex-1"
+            className="flex-1 whitespace-nowrap"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Discard All
+            Delete All
           </GlassButton>
           <GlassButton
             variant="gradient"
             onClick={allSaved ? onSaveComplete : handleSaveAll}
             disabled={isSaving || pendingCount === 0}
-            className="flex-1"
+            className="flex-1 whitespace-nowrap"
             shimmer
           >
             {isSaving ? (
@@ -322,7 +320,7 @@ export function SaveRecordingsModal({
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Save {pendingCount} Recording{pendingCount !== 1 ? 's' : ''}
+                Save Recording{pendingCount !== 1 ? 's' : ''}
               </>
             )}
           </GlassButton>
