@@ -184,10 +184,32 @@ export async function GET(
         ),
       });
 
+      // Get active guest details if there is one
+      let activeGuest = null;
+      if (stream.activeGuestId) {
+        const activeGuestRequest = await db.query.streamGuestRequests.findFirst({
+          where: and(
+            eq(streamGuestRequests.streamId, streamId),
+            eq(streamGuestRequests.userId, stream.activeGuestId),
+            eq(streamGuestRequests.status, 'active')
+          ),
+        });
+        if (activeGuestRequest) {
+          activeGuest = {
+            userId: activeGuestRequest.userId,
+            username: activeGuestRequest.username,
+            displayName: activeGuestRequest.displayName,
+            avatarUrl: activeGuestRequest.avatarUrl,
+            requestType: activeGuestRequest.requestType,
+          };
+        }
+      }
+
       return NextResponse.json({
         isHost: false,
         guestRequestsEnabled: stream.guestRequestsEnabled,
         myRequest,
+        activeGuest,
       });
     }
   } catch (error: any) {

@@ -12,10 +12,14 @@ import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
+import { GuestRequestButton } from '@/components/streaming/GuestRequestButton';
+import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
+import { GuestStreamView } from '@/components/streaming/GuestStreamView';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
+import { createClient } from '@/lib/supabase/client';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users, Heart, Share2,
   MessageCircle, Gift, ChevronDown, ChevronUp, X, Coins, Crown,
@@ -174,6 +178,18 @@ export default function StreamViewerPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  // Guest call-in state
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [guestRequestsEnabled, setGuestRequestsEnabled] = useState(false);
+  const [isGuest, setIsGuest] = useState(false); // Am I the active guest?
+  const [activeGuest, setActiveGuest] = useState<{
+    userId: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    requestType: 'video' | 'voice';
+  } | null>(null);
+
   // Animations
   const [giftAnimations, setGiftAnimations] = useState<Array<{ gift: VirtualGift; streamGift: StreamGift }>>([]);
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number }>>([]);
@@ -184,6 +200,18 @@ export default function StreamViewerPage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Get current user ID for guest features
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    fetchCurrentUser();
   }, []);
 
   // Fetch all data
@@ -314,6 +342,39 @@ export default function StreamViewerPage() {
         setActiveCountdown(null);
       }
     },
+    // Guest call-in events
+    onGuestAccepted: (event) => {
+      // Check if this viewer's request was accepted
+      if (event.userId === currentUserId) {
+        setIsGuest(true);
+        setActiveGuest({
+          userId: event.userId,
+          username: event.username,
+          displayName: event.displayName,
+          avatarUrl: event.avatarUrl,
+          requestType: event.requestType,
+        });
+      }
+    },
+    onGuestJoined: (event) => {
+      // Update active guest for all viewers when guest joins
+      setActiveGuest({
+        userId: event.userId,
+        username: event.username,
+        displayName: event.displayName,
+        avatarUrl: null,
+        requestType: event.requestType,
+      });
+    },
+    onGuestRemoved: () => {
+      // Clear active guest for all viewers
+      setActiveGuest(null);
+      // If I was the guest, reset my guest status
+      setIsGuest(false);
+    },
+    onGuestRequestsToggle: (event) => {
+      setGuestRequestsEnabled(event.enabled);
+    },
   });
 
   // Update viewer count from Ably presence
@@ -359,6 +420,21 @@ export default function StreamViewerPage() {
         setStream(data.stream);
         setViewerCount(data.stream.currentViewers);
         setPeakViewers(data.stream.peakViewers);
+        // Set guest requests enabled from stream data
+        setGuestRequestsEnabled(data.stream.guestRequestsEnabled || false);
+        // Check if there's an active guest already
+        if (data.stream.activeGuestId) {
+          // Fetch active guest details
+          try {
+            const guestRes = await fetch(`/api/streams/${streamId}/guest`);
+            const guestData = await guestRes.json();
+            if (guestRes.ok && guestData.activeGuest) {
+              setActiveGuest(guestData.activeGuest);
+            }
+          } catch (err) {
+            console.error('Error fetching active guest:', err);
+          }
+        }
       } else if (data.accessDenied) {
         setAccessDenied({
           reason: data.error,
@@ -799,6 +875,15 @@ export default function StreamViewerPage() {
 
   return (
     <div className="min-h-screen bg-black text-white md:pl-20">
+      {/* Guest Stream View - Shows when viewer is the active guest */}
+      {isGuest && activeGuest?.userId === currentUserId && (
+        <GuestStreamView
+          streamId={streamId}
+          requestType={activeGuest.requestType}
+          onLeave={() => setIsGuest(false)}
+        />
+      )}
+
       {/* Emoji Reactions Overlay */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
@@ -905,6 +990,13 @@ export default function StreamViewerPage() {
                 >
                   <Share2 className="w-5 h-5" />
                 </button>
+                {/* Guest Request Button */}
+                <GuestRequestButton
+                  streamId={streamId}
+                  guestRequestsEnabled={guestRequestsEnabled}
+                  isHost={false}
+                  onRequestAccepted={() => setIsGuest(true)}
+                />
                 {!isMobile && (
                   <button
                     onClick={() => setShowChat(!showChat)}
@@ -1054,15 +1146,36 @@ export default function StreamViewerPage() {
               </div>
             )}
 
-            {/* Username Watermark - Appears in video for branding */}
+            {/* Username Watermark - Centered for portrait recordings (Instagram/TikTok) */}
             {stream?.creator?.username && (
-              <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
-                <div className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-lg border border-white/10">
-                  <span className="text-white/90 text-sm font-black tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-                    digis.cc/<span className="text-cyan-400">{stream.creator.username}</span>
-                  </span>
-                </div>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                <span
+                  className="text-base font-black tracking-wider"
+                  style={{
+                    fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(200,230,255,0.9) 50%, rgba(150,220,255,0.85) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 0 8px rgba(0,255,255,0.6)) drop-shadow(0 0 20px rgba(0,200,255,0.4)) drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
+                    textShadow: '0 0 30px rgba(0,255,255,0.3)',
+                  }}
+                >
+                  digis.cc/{stream.creator.username}
+                </span>
               </div>
+            )}
+
+            {/* Guest Video Overlay - Shows when a guest is active */}
+            {activeGuest && (
+              <GuestVideoOverlay
+                guestUserId={activeGuest.userId}
+                guestUsername={activeGuest.username}
+                guestDisplayName={activeGuest.displayName}
+                guestAvatarUrl={activeGuest.avatarUrl}
+                requestType={activeGuest.requestType}
+                isHost={false}
+              />
             )}
 
             {/* Spotlight Card - Shows when a creator is spotlighted (Desktop) */}

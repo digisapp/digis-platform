@@ -100,6 +100,45 @@ interface CountdownUpdateEvent {
   timestamp: number;
 }
 
+// Guest call-in events
+interface GuestRequestEvent {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  requestType: 'video' | 'voice';
+  requestId: string;
+}
+
+interface GuestAcceptedEvent {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  requestType: 'video' | 'voice';
+}
+
+interface GuestRejectedEvent {
+  userId: string;
+  username: string;
+}
+
+interface GuestJoinedEvent {
+  userId: string;
+  username: string;
+  displayName: string | null;
+  requestType: 'video' | 'voice';
+}
+
+interface GuestRemovedEvent {
+  userId: string;
+  username: string | null;
+}
+
+interface GuestRequestsToggleEvent {
+  enabled: boolean;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   isHost?: boolean; // If true, don't count this user in viewer count
@@ -117,6 +156,13 @@ interface UseStreamChatOptions {
   onMenuToggle?: (event: MenuToggleEvent) => void;
   onPollUpdate?: (event: PollUpdateEvent) => void;
   onCountdownUpdate?: (event: CountdownUpdateEvent) => void;
+  // Guest call-in events
+  onGuestRequest?: (event: GuestRequestEvent) => void;
+  onGuestAccepted?: (event: GuestAcceptedEvent) => void;
+  onGuestRejected?: (event: GuestRejectedEvent) => void;
+  onGuestJoined?: (event: GuestJoinedEvent) => void;
+  onGuestRemoved?: (event: GuestRemovedEvent) => void;
+  onGuestRequestsToggle?: (event: GuestRequestsToggleEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -147,6 +193,12 @@ export function useStreamChat({
   onMenuToggle,
   onPollUpdate,
   onCountdownUpdate,
+  onGuestRequest,
+  onGuestAccepted,
+  onGuestRejected,
+  onGuestJoined,
+  onGuestRemoved,
+  onGuestRequestsToggle,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -169,6 +221,12 @@ export function useStreamChat({
     onMenuToggle,
     onPollUpdate,
     onCountdownUpdate,
+    onGuestRequest,
+    onGuestAccepted,
+    onGuestRejected,
+    onGuestJoined,
+    onGuestRemoved,
+    onGuestRequestsToggle,
   });
 
   useEffect(() => {
@@ -187,8 +245,14 @@ export function useStreamChat({
       onMenuToggle,
       onPollUpdate,
       onCountdownUpdate,
+      onGuestRequest,
+      onGuestAccepted,
+      onGuestRejected,
+      onGuestJoined,
+      onGuestRemoved,
+      onGuestRequestsToggle,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle]);
 
   useEffect(() => {
     let mounted = true;
@@ -256,7 +320,7 @@ export function useStreamChat({
           callbacksRef.current.onGift?.(message.data as GiftEvent);
         });
 
-        // Subscribe to main stream channel (ticketed announcements, stream events)
+        // Subscribe to main stream channel (ticketed announcements, stream events, guest events)
         mainChannel = ably.channels.get(`stream:${streamId}`);
         mainChannel.subscribe('ticketed-announcement', (message) => {
           callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
@@ -266,6 +330,25 @@ export function useStreamChat({
         });
         mainChannel.subscribe('stream_ended', () => {
           callbacksRef.current.onStreamEnded?.();
+        });
+        // Guest call-in events
+        mainChannel.subscribe('guest-request', (message) => {
+          callbacksRef.current.onGuestRequest?.(message.data as GuestRequestEvent);
+        });
+        mainChannel.subscribe('guest-request-accepted', (message) => {
+          callbacksRef.current.onGuestAccepted?.(message.data as GuestAcceptedEvent);
+        });
+        mainChannel.subscribe('guest-request-rejected', (message) => {
+          callbacksRef.current.onGuestRejected?.(message.data as GuestRejectedEvent);
+        });
+        mainChannel.subscribe('guest-joined', (message) => {
+          callbacksRef.current.onGuestJoined?.(message.data as GuestJoinedEvent);
+        });
+        mainChannel.subscribe('guest-removed', (message) => {
+          callbacksRef.current.onGuestRemoved?.(message.data as GuestRemovedEvent);
+        });
+        mainChannel.subscribe('guest-requests-toggle', (message) => {
+          callbacksRef.current.onGuestRequestsToggle?.(message.data as GuestRequestsToggleEvent);
         });
 
         // Subscribe to presence channel (viewer count, stream ended)

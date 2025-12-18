@@ -16,6 +16,8 @@ import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
+import { GuestRequestPanel } from '@/components/streaming/GuestRequestPanel';
+import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { AnnounceTicketedStreamModal } from '@/components/streaming/AnnounceTicketedStreamModal';
 import { StreamPoll } from '@/components/streaming/StreamPoll';
@@ -175,6 +177,15 @@ export default function BroadcastStudioPage() {
     isActive: boolean;
   } | null>(null);
   const [showCreatePollModal, setShowCreatePollModal] = useState(false);
+
+  // Guest call-in state
+  const [activeGuest, setActiveGuest] = useState<{
+    userId: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    requestType: 'video' | 'voice';
+  } | null>(null);
   const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
   const [showSaveRecordingsModal, setShowSaveRecordingsModal] = useState(false);
 
@@ -690,6 +701,22 @@ export default function BroadcastStudioPage() {
         // Auto-hide after 5 seconds
         setTimeout(() => setCompletedGoal(null), 5000);
       }
+    },
+    // Guest call-in events (host perspective)
+    onGuestJoined: (event) => {
+      // Update active guest when guest joins
+      setActiveGuest({
+        userId: event.userId,
+        username: event.username,
+        displayName: event.displayName,
+        avatarUrl: null,
+        requestType: event.requestType,
+      });
+      showSuccess(`${event.username} has joined as a guest!`);
+    },
+    onGuestRemoved: () => {
+      // Clear active guest when guest is removed
+      setActiveGuest(null);
     },
   });
 
@@ -2089,19 +2116,48 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Appears in video for branding */}
+                  {/* Username Watermark - Centered, shows what viewers see */}
                   {currentUsername && (
-                    <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
-                      <div className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-lg border border-white/10">
-                        <span className="text-white/90 text-sm font-black tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-                          digis.cc/<span className="text-cyan-400">{currentUsername}</span>
-                        </span>
-                      </div>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+                      <span
+                        className="text-base font-black tracking-wider"
+                        style={{
+                          fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
+                          background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(200,230,255,0.9) 50%, rgba(150,220,255,0.85) 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          filter: 'drop-shadow(0 0 8px rgba(0,255,255,0.6)) drop-shadow(0 0 20px rgba(0,200,255,0.4)) drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
+                          textShadow: '0 0 30px rgba(0,255,255,0.3)',
+                        }}
+                      >
+                        digis.cc/{currentUsername}
+                      </span>
                     </div>
                   )}
 
                   {/* Spotlighted Creator Overlay */}
                   <SpotlightedCreatorOverlay streamId={streamId} isHost={true} />
+
+                  {/* Guest Video Overlay */}
+                  {activeGuest && (
+                    <GuestVideoOverlay
+                      guestUserId={activeGuest.userId}
+                      guestUsername={activeGuest.username}
+                      guestDisplayName={activeGuest.displayName}
+                      guestAvatarUrl={activeGuest.avatarUrl}
+                      requestType={activeGuest.requestType}
+                      isHost={true}
+                      onRemoveGuest={async () => {
+                        try {
+                          await fetch(`/api/streams/${streamId}/guest/remove`, { method: 'POST' });
+                          setActiveGuest(null);
+                        } catch (err) {
+                          console.error('Failed to remove guest:', err);
+                        }
+                      }}
+                    />
+                  )}
 
                   {/* Active Poll Overlay */}
                   {activePoll && activePoll.isActive && (
@@ -2190,6 +2246,21 @@ export default function BroadcastStudioPage() {
               <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
             </div>
 
+            {/* Guest Request Panel - Desktop only */}
+            <div className="hidden lg:block">
+              <GuestRequestPanel
+                streamId={streamId}
+                onGuestAccepted={(guest) => setActiveGuest({
+                  userId: guest.userId,
+                  username: guest.username,
+                  displayName: guest.displayName,
+                  avatarUrl: guest.avatarUrl,
+                  requestType: guest.requestType as 'video' | 'voice',
+                })}
+                onGuestRemoved={() => setActiveGuest(null)}
+              />
+            </div>
+
             {/* Top Gifters Leaderboard - Desktop only */}
             <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
@@ -2253,6 +2324,21 @@ export default function BroadcastStudioPage() {
         {/* Featured Creators Panel - Mobile only (collapsed by default) */}
         <div className="lg:hidden mt-4">
           <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
+        </div>
+
+        {/* Guest Request Panel - Mobile only */}
+        <div className="lg:hidden mt-4">
+          <GuestRequestPanel
+            streamId={streamId}
+            onGuestAccepted={(guest) => setActiveGuest({
+              userId: guest.userId,
+              username: guest.username,
+              displayName: guest.displayName,
+              avatarUrl: guest.avatarUrl,
+              requestType: guest.requestType as 'video' | 'voice',
+            })}
+            onGuestRemoved={() => setActiveGuest(null)}
+          />
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
