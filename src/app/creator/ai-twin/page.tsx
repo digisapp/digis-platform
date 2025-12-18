@@ -6,7 +6,7 @@ import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
   Bot, Mic, ToggleLeft, ToggleRight, Coins, Sparkles,
-  CheckCircle, AlertCircle, MessageSquare, Clock, Volume2
+  CheckCircle, AlertCircle, MessageSquare, Volume2
 } from 'lucide-react';
 import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
 
@@ -31,8 +31,6 @@ interface AiSettings {
   welcomeMessage: string | null;
   boundaryPrompt: string | null;
   pricePerMinute: number;
-  minimumMinutes: number;
-  maxSessionMinutes: number;
   totalSessions: number;
   totalMinutes: number;
   totalEarnings: number;
@@ -52,8 +50,6 @@ export default function AiTwinPage() {
     welcomeMessage: null,
     boundaryPrompt: null,
     pricePerMinute: 20,
-    minimumMinutes: 5,
-    maxSessionMinutes: 60,
     totalSessions: 0,
     totalMinutes: 0,
     totalEarnings: 0,
@@ -99,7 +95,6 @@ export default function AiTwinPage() {
           welcomeMessage: settings.welcomeMessage,
           boundaryPrompt: settings.boundaryPrompt,
           pricePerMinute: settings.pricePerMinute,
-          minimumMinutes: settings.minimumMinutes,
         }),
       });
 
@@ -317,64 +312,27 @@ export default function AiTwinPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
-                      Rate per minute
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="1000"
-                        value={settings.pricePerMinute || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+/, '') || '1';
-                          setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
-                        }}
-                        className="w-full px-3 py-2 bg-black/40 border border-yellow-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-yellow-500"
-                      />
-                      <span className="text-xs text-gray-400">coins</span>
-                    </div>
-                    <p className="text-xs text-green-400 mt-1">
-                      You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
-                    </p>
+                <div>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">
+                    Rate per minute
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={settings.pricePerMinute || ''}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/^0+/, '') || '1';
+                        setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
+                      }}
+                      className="w-full px-3 py-2 bg-black/40 border border-yellow-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-yellow-500 max-w-[120px]"
+                    />
+                    <span className="text-xs text-gray-400">coins</span>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
-                      Minimum duration
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max="30"
-                        value={settings.minimumMinutes || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+/, '') || '1';
-                          setSettings({ ...settings, minimumMinutes: Math.min(30, parseInt(val) || 1) });
-                        }}
-                        className="w-full px-3 py-2 bg-black/40 border border-yellow-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-yellow-500"
-                      />
-                      <span className="text-xs text-gray-400">mins</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Fan must have enough coins to start
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-300">
-                      Minimum charge: <span className="font-semibold text-yellow-400">
-                        {settings.pricePerMinute * settings.minimumMinutes} coins
-                      </span>
-                      {' '}({formatCoinsToUSD(settings.pricePerMinute * settings.minimumMinutes)})
-                    </span>
-                  </div>
+                  <p className="text-xs text-green-400 mt-1">
+                    You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
+                  </p>
                 </div>
               </GlassCard>
 
