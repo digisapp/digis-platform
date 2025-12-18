@@ -223,144 +223,104 @@ export function IncomingCallPopup() {
   const currentCall = incomingCalls[0];
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      {/* Animated background rings */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="absolute w-64 h-64 rounded-full border-2 border-green-500/30 animate-ping" style={{ animationDuration: '2s' }} />
-        <div className="absolute w-80 h-80 rounded-full border-2 border-green-500/20 animate-ping" style={{ animationDuration: '2.5s' }} />
-        <div className="absolute w-96 h-96 rounded-full border-2 border-green-500/10 animate-ping" style={{ animationDuration: '3s' }} />
-      </div>
+    <div className="fixed top-4 right-4 z-[200] w-80 animate-slide-in-right">
+      {/* Compact call notification card */}
+      <div className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-green-500/30 shadow-2xl shadow-green-500/20 overflow-hidden">
+        {/* Animated top border */}
+        <div className="h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-400 animate-pulse" />
 
-      <div className="relative w-full max-w-sm">
-        {/* Call count indicator */}
-        {incomingCalls.length > 1 && (
-          <div className="absolute -top-3 -right-3 z-10 px-3 py-1 bg-red-500 rounded-full text-white text-sm font-bold shadow-lg">
-            +{incomingCalls.length - 1} more
-          </div>
-        )}
-
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl p-8 border border-white/10 shadow-2xl shadow-green-500/20">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-full text-green-400 text-sm font-medium mb-4">
+        <div className="p-4">
+          {/* Header with call type */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 px-2 py-1 bg-green-500/20 rounded-full">
               {currentCall.callType === 'video' ? (
-                <Video className="w-4 h-4" />
+                <Video className="w-3 h-3 text-green-400" />
               ) : (
-                <Mic className="w-4 h-4" />
+                <Mic className="w-3 h-3 text-green-400" />
               )}
-              Incoming {currentCall.callType} call
+              <span className="text-xs font-medium text-green-400">
+                Incoming {currentCall.callType} call
+              </span>
             </div>
+            {incomingCalls.length > 1 && (
+              <span className="px-2 py-0.5 bg-red-500 rounded-full text-white text-xs font-bold">
+                +{incomingCalls.length - 1}
+              </span>
+            )}
           </div>
 
-          {/* Caller Info */}
-          <div className="text-center mb-8">
-            <div className="relative inline-block mb-4">
+          {/* Caller Info - Compact */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="relative flex-shrink-0">
               {currentCall.fan.avatarUrl ? (
                 <img
                   src={currentCall.fan.avatarUrl}
                   alt={currentCall.fan.displayName || currentCall.fan.username}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-green-500 ring-offset-4 ring-offset-gray-900"
+                  className="w-12 h-12 rounded-full object-cover ring-2 ring-green-500 ring-offset-2 ring-offset-gray-900"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-3xl font-bold ring-4 ring-green-500 ring-offset-4 ring-offset-gray-900">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold ring-2 ring-green-500 ring-offset-2 ring-offset-gray-900">
                   {(currentCall.fan.displayName || currentCall.fan.username)?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               {/* Pulsing indicator */}
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                <Phone className="w-3 h-3 text-white" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
+                <Phone className="w-2 h-2 text-white" />
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {currentCall.fan.displayName || currentCall.fan.username}
-            </h2>
-            <p className="text-gray-400">@{currentCall.fan.username}</p>
-
-            {/* Call rate info */}
-            <div className="mt-4 px-4 py-2 bg-white/5 rounded-xl inline-block">
-              <span className="text-gray-400 text-sm">Rate: </span>
-              <span className="text-digis-cyan font-bold">{currentCall.ratePerMinute} coins/min</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-white truncate">
+                {currentCall.fan.displayName || currentCall.fan.username}
+              </h3>
+              <p className="text-xs text-gray-400 truncate">@{currentCall.fan.username}</p>
+              <p className="text-xs text-digis-cyan font-medium mt-0.5">
+                {currentCall.ratePerMinute} coins/min
+              </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4">
-            {/* Reject - with dropdown for reasons */}
-            <div className="flex-1 relative">
-              <div className="flex">
-                <button
-                  onClick={() => handleReject(currentCall)}
-                  disabled={processingId === currentCall.id}
-                  className="flex-1 py-4 px-4 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-l-2xl text-red-400 font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <PhoneOff className="w-5 h-5" />
-                  Decline
-                </button>
-                <button
-                  onClick={() => setShowDeclineOptions(!showDeclineOptions)}
-                  disabled={processingId === currentCall.id}
-                  className="py-4 px-2 bg-red-500/20 hover:bg-red-500/30 border border-l-0 border-red-500/50 rounded-r-2xl text-red-400 transition-all disabled:opacity-50"
-                  title="Add decline reason"
-                >
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showDeclineOptions ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-
-              {/* Decline reasons dropdown */}
-              {showDeclineOptions && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-900 border border-red-500/30 rounded-xl overflow-hidden shadow-xl z-10">
-                  <div className="p-2 border-b border-white/10">
-                    <p className="text-xs text-gray-400 text-center">Leave a quick note (optional)</p>
-                  </div>
-                  {DECLINE_REASONS.map((reason) => (
-                    <button
-                      key={reason}
-                      onClick={() => handleReject(currentCall, reason)}
-                      className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-red-500/20 hover:text-white transition-colors"
-                    >
-                      {reason}
-                    </button>
-                  ))}
-                  <div className="p-2 border-t border-white/10">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={customReason}
-                        onChange={(e) => setCustomReason(e.target.value.slice(0, 100))}
-                        placeholder="Custom message..."
-                        className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-red-500/50"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && customReason.trim()) {
-                            handleReject(currentCall, customReason.trim());
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={() => customReason.trim() && handleReject(currentCall, customReason.trim())}
-                        disabled={!customReason.trim()}
-                        className="px-3 py-2 bg-red-500/30 hover:bg-red-500/50 rounded-lg text-red-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Send
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Action Buttons - Compact */}
+          <div className="flex gap-2">
+            {/* Decline */}
+            <button
+              onClick={() => handleReject(currentCall)}
+              disabled={processingId === currentCall.id}
+              className="flex-1 py-2.5 px-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-xl text-red-400 font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              <PhoneOff className="w-4 h-4" />
+              Decline
+            </button>
 
             {/* Accept */}
             <button
               onClick={() => handleAccept(currentCall)}
               disabled={processingId === currentCall.id}
-              className="flex-1 py-4 px-6 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-white font-bold transition-all hover:scale-105 shadow-lg shadow-green-500/30 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 px-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-semibold text-sm transition-all shadow-lg shadow-green-500/20 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              <Phone className="w-5 h-5" />
+              <Phone className="w-4 h-4" />
               Accept
             </button>
           </div>
         </div>
       </div>
+
+      {/* Subtle slide-in animation */}
+      <style jsx>{`
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
