@@ -367,13 +367,15 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           throw new Error('Failed to setup audio');
         }
 
-        // 4. Connect to xAI WebSocket
-        const ws = new WebSocket(`${XAI_WEBSOCKET_URL}?model=grok-2-public`);
+        // 4. Connect to xAI WebSocket with token in URL (required for browser WebSocket auth)
+        const wsUrl = `${XAI_WEBSOCKET_URL}?model=grok-2-public&authorization=${encodeURIComponent(token)}`;
+        console.log('[AI Voice] Connecting to WebSocket...');
+        const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
           console.log('[AI Voice] WebSocket connected');
 
-          // Authenticate with ephemeral token
+          // Configure the session
           ws.send(
             JSON.stringify({
               type: 'session.update',
@@ -381,14 +383,6 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
                 ...sessionConfig,
                 input_audio_transcription: { model: 'whisper-1' },
               },
-            })
-          );
-
-          // Send authorization
-          ws.send(
-            JSON.stringify({
-              type: 'authenticate',
-              authorization: `Bearer ${token}`,
             })
           );
 
