@@ -39,6 +39,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const audioQueueRef = useRef<Float32Array[]>([]);
   const isPlayingRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
+  const connectingRef = useRef(false); // Prevent concurrent connection attempts
 
   const updateState = useCallback((state: ConnectionState) => {
     setConnectionState(state);
@@ -278,8 +279,13 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   // Connect to xAI
   const connect = useCallback(
     async (creatorId: string) => {
-      if (connectionState !== 'disconnected') return;
+      // Prevent concurrent connection attempts using ref (more reliable than state)
+      if (connectingRef.current || connectionState !== 'disconnected') {
+        console.log('[AI Voice] Connection already in progress or connected, skipping');
+        return;
+      }
 
+      connectingRef.current = true;
       updateState('connecting');
       setError(null);
 
@@ -311,38 +317,51 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           throw new Error('Invalid token response - no token found');
         }
 
-        // 2. Start session record
-        const sessionResponse = await fetch('/api/ai/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ creatorId, voice: sessionConfig.voice.toLowerCase() }),
-        });
+        // 2. Start session record (with improved 409 handling)
+        let sessionId: string | null = null;
+        const startSession = async (): Promise<string> => {
+          const sessionResponse = await fetch('/api/ai/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ creatorId, voice: sessionConfig.voice.toLowerCase() }),
+          });
 
-        if (!sessionResponse.ok) {
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json();
+            return sessionData.session.id;
+          }
+
           const errorData = await sessionResponse.json();
-          // If there's an existing session, try to end it first
+
+          // If there's an existing session, use forceCleanup to clean it up and start new one atomically
           if (sessionResponse.status === 409 && errorData.sessionId) {
-            console.log('[AI Voice] Cleaning up existing session:', errorData.sessionId);
-            await fetch(`/api/ai/session/${errorData.sessionId}/end`, { method: 'POST' });
-            // Retry starting a new session
+            console.log('[AI Voice] Existing session detected, using forceCleanup:', errorData.sessionId);
+
+            // Retry with forceCleanup flag - this will cleanup the old session and create new one atomically
             const retryResponse = await fetch('/api/ai/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ creatorId, voice: sessionConfig.voice.toLowerCase() }),
+              body: JSON.stringify({
+                creatorId,
+                voice: sessionConfig.voice.toLowerCase(),
+                forceCleanup: true,
+              }),
             });
+
             if (!retryResponse.ok) {
               const retryError = await retryResponse.json();
               throw new Error(retryError.error || 'Failed to start session after cleanup');
             }
+
             const retryData = await retryResponse.json();
-            sessionIdRef.current = retryData.session.id;
-          } else {
-            throw new Error(errorData.error || 'Failed to start session');
+            return retryData.session.id;
           }
-        } else {
-          const sessionData = await sessionResponse.json();
-          sessionIdRef.current = sessionData.session.id;
-        }
+
+          throw new Error(errorData.error || 'Failed to start session');
+        };
+
+        sessionId = await startSession();
+        sessionIdRef.current = sessionId;
 
         // 3. Setup audio capture
         const audioSetup = await setupAudioCapture();
@@ -377,6 +396,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
           updateState('connected');
           setSpeakingState('listening');
+          connectingRef.current = false; // Connection complete
         };
 
         ws.onmessage = handleMessage;
@@ -385,12 +405,14 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           console.error('[AI Voice] WebSocket error:', event);
           setError('Connection error');
           updateState('error');
+          connectingRef.current = false;
         };
 
         ws.onclose = () => {
           console.log('[AI Voice] WebSocket closed');
           updateState('disconnected');
           setSpeakingState('idle');
+          connectingRef.current = false;
         };
 
         wsRef.current = ws;
@@ -399,6 +421,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         setError(err instanceof Error ? err.message : 'Connection failed');
         updateState('error');
         options.onError?.(err instanceof Error ? err.message : 'Connection failed');
+        connectingRef.current = false; // Reset on error
       }
     },
     [connectionState, updateState, setupAudioCapture, handleMessage, options]
@@ -406,6 +429,9 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
   // Disconnect
   const disconnect = useCallback(async () => {
+    // Reset connecting state
+    connectingRef.current = false;
+
     // End session record
     if (sessionIdRef.current) {
       try {

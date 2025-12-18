@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request
     const body = await request.json();
-    const { creatorId, voice = 'ara' } = body;
+    const { creatorId, voice = 'ara', forceCleanup = false } = body;
 
     if (!creatorId) {
       return NextResponse.json(
@@ -52,13 +52,31 @@ export async function POST(request: NextRequest) {
     // Check if user already has an active session
     const existingSession = await AiSessionService.getActiveSession(user.id);
     if (existingSession) {
-      return NextResponse.json(
-        {
-          error: 'You already have an active session',
-          sessionId: existingSession.id,
-        },
-        { status: 409 }
-      );
+      // Check if the existing session is stuck (older than 30 minutes) or forceCleanup is requested
+      const sessionAgeMs = Date.now() - new Date(existingSession.startedAt).getTime();
+      const maxSessionAgeMs = 30 * 60 * 1000; // 30 minutes
+
+      if (sessionAgeMs > maxSessionAgeMs || forceCleanup) {
+        // Auto-cleanup stuck session or force cleanup requested
+        console.log('[AI Session] Cleaning up session:', existingSession.id,
+          forceCleanup ? '(force cleanup)' : `(stuck, age: ${Math.floor(sessionAgeMs / 60000)} minutes)`);
+        try {
+          await AiSessionService.failSession(existingSession.id,
+            forceCleanup ? 'Session force-cleaned by user' : 'Session auto-cleaned due to inactivity');
+        } catch (cleanupError) {
+          console.error('[AI Session] Failed to cleanup session:', cleanupError);
+        }
+        // Continue to create new session below
+      } else {
+        // Session is recent, return 409 so client can attempt cleanup
+        return NextResponse.json(
+          {
+            error: 'You already have an active session',
+            sessionId: existingSession.id,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // Start session
