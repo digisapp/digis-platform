@@ -2118,13 +2118,13 @@ export default function BroadcastStudioPage() {
 
                   {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
                   {currentUsername && (
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                    <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
                       <span
-                        className="text-base sm:text-lg font-black tracking-wide whitespace-nowrap text-white"
+                        className="text-xl sm:text-2xl font-black tracking-wide whitespace-nowrap text-white"
                         style={{
                           fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
-                          WebkitTextStroke: '1px rgba(0,0,0,0.8)',
-                          textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000',
+                          WebkitTextStroke: '2px #ff1493',
+                          textShadow: '3px 3px 0 #ff1493, -3px -3px 0 #ff1493, 3px -3px 0 #ff1493, -3px 3px 0 #ff1493, 0 3px 0 #ff1493, 0 -3px 0 #ff1493, 3px 0 0 #ff1493, -3px 0 0 #ff1493',
                         }}
                       >
                         digis.cc/{currentUsername}
