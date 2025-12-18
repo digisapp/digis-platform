@@ -320,11 +320,29 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
         if (!sessionResponse.ok) {
           const errorData = await sessionResponse.json();
-          throw new Error(errorData.error || 'Failed to start session');
+          // If there's an existing session, try to end it first
+          if (sessionResponse.status === 409 && errorData.sessionId) {
+            console.log('[AI Voice] Cleaning up existing session:', errorData.sessionId);
+            await fetch(`/api/ai/session/${errorData.sessionId}/end`, { method: 'POST' });
+            // Retry starting a new session
+            const retryResponse = await fetch('/api/ai/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ creatorId, voice: sessionConfig.voice.toLowerCase() }),
+            });
+            if (!retryResponse.ok) {
+              const retryError = await retryResponse.json();
+              throw new Error(retryError.error || 'Failed to start session after cleanup');
+            }
+            const retryData = await retryResponse.json();
+            sessionIdRef.current = retryData.session.id;
+          } else {
+            throw new Error(errorData.error || 'Failed to start session');
+          }
+        } else {
+          const sessionData = await sessionResponse.json();
+          sessionIdRef.current = sessionData.session.id;
         }
-
-        const { session } = await sessionResponse.json();
-        sessionIdRef.current = session.id;
 
         // 3. Setup audio capture
         const audioSetup = await setupAudioCapture();
