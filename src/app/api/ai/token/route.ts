@@ -106,7 +106,16 @@ export async function POST(request: NextRequest) {
     }
 
     const tokenData = await tokenResponse.json();
-    console.log('[AI Token] xAI response structure:', JSON.stringify(tokenData, null, 2));
+    console.log('[AI Token] xAI response:', JSON.stringify(tokenData, null, 2));
+
+    // xAI returns { value: "token...", expires_at: ... } directly
+    if (!tokenData.value) {
+      console.error('[AI Token] No token value in response:', tokenData);
+      return NextResponse.json(
+        { error: 'Invalid token from AI service' },
+        { status: 502 }
+      );
+    }
 
     // Build session configuration for the client
     const sessionConfig = {
@@ -143,7 +152,11 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json({
-      ...tokenData,
+      // Normalize the token structure for the client
+      client_secret: {
+        value: tokenData.value,
+        expires_at: tokenData.expires_at,
+      },
       settings: {
         pricePerMinute: settings.pricePerMinute,
         minimumMinutes: settings.minimumMinutes,
