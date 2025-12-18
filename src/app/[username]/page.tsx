@@ -273,6 +273,9 @@ export default function ProfilePage() {
           isPublic: vod.isPublic,
           isVod: true,
           isTicketed: false,
+          isLocked: vod.isLocked || false,
+          hasAccess: vod.hasAccess !== false, // Default to true if not specified
+          recordingType: vod.recordingType || 'auto',
           sortDate: new Date(vod.createdAt),
         }));
         allStreamContent.push(...savedStreams);
@@ -1388,8 +1391,19 @@ export default function ProfilePage() {
 
                                   {/* PPV Badge for VODs */}
                                   {!stream.isTicketed && stream.priceCoins > 0 && (
-                                    <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg">
+                                    <div className="absolute top-2 right-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg flex items-center gap-1">
+                                      {stream.isLocked && <Lock className="w-3 h-3" />}
                                       {stream.priceCoins} coins
+                                    </div>
+                                  )}
+
+                                  {/* Locked Overlay for PPV content user hasn't purchased */}
+                                  {stream.isLocked && (
+                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                                      <div className="text-center">
+                                        <Lock className="w-8 h-8 text-white/80 mx-auto mb-2" />
+                                        <p className="text-white text-xs font-medium">Unlock for {stream.priceCoins} coins</p>
+                                      </div>
                                     </div>
                                   )}
 

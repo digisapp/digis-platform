@@ -58,8 +58,8 @@ export async function GET(req: NextRequest) {
       { timeoutMs: 8000, retries: 1, tag: 'myVods' }
     );
 
-    // For public view, filter to accessible VODs only
-    let accessibleVODs = creatorVODs;
+    // For public view, filter out drafts and add access status
+    let accessibleVODs = creatorVODs.filter(vod => !(vod as any).isDraft); // Don't show drafts
     let purchasedVodIds: Set<string> = new Set();
     let isSubscribed = false;
 
@@ -82,20 +82,19 @@ export async function GET(req: NextRequest) {
         purchasedVodIds = new Set(purchases.map(p => p.vodId));
       }
 
-      // Filter VODs based on access
-      accessibleVODs = creatorVODs.filter(vod => {
-        // Public VODs are always visible
-        if (vod.isPublic) return true;
+      // Add access status to each VOD (show all non-draft VODs, mark locked ones)
+      accessibleVODs = accessibleVODs.map(vod => {
+        const hasAccess =
+          vod.isPublic ||
+          purchasedVodIds.has(vod.id) ||
+          (vod.priceCoins === 0 && vod.subscribersOnly && isSubscribed) ||
+          viewerId === creatorId; // Creator always has access
 
-        // User has purchased this VOD
-        if (purchasedVodIds.has(vod.id)) return true;
-
-        // Free for subscribers and user is subscribed
-        if (vod.priceCoins === 0 && vod.subscribersOnly && isSubscribed) return true;
-
-        // PPV VODs (priceCoins > 0) - only show if purchased
-        // Non-public, non-purchased VODs are hidden from public view
-        return false;
+        return {
+          ...vod,
+          hasAccess,
+          isLocked: !hasAccess && vod.priceCoins > 0,
+        };
       });
     }
 
