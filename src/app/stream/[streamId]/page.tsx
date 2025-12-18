@@ -1146,11 +1146,11 @@ export default function StreamViewerPage() {
               </div>
             )}
 
-            {/* Username Watermark - Centered for portrait recordings (Instagram/TikTok) */}
+            {/* Username Watermark - Centered at very bottom for portrait recordings (Instagram/TikTok) */}
             {stream?.creator?.username && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                 <span
-                  className="text-base font-black tracking-wider"
+                  className="text-sm sm:text-base font-black tracking-wider"
                   style={{
                     fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
                     background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(200,230,255,0.9) 50%, rgba(150,220,255,0.85) 100%)',
