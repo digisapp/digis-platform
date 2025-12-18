@@ -817,7 +817,7 @@ export default function ProfilePage() {
                       }}
                       className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
                     >
-                      Subscribe
+                      Sub
                     </button>
                   )}
 
