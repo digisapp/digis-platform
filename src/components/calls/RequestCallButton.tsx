@@ -264,8 +264,8 @@ export function RequestCallButton({
   };
 
   const Icon = callType === 'voice' ? Phone : Video;
-  const buttonTitle = callType === 'voice' ? 'Request Voice Call' : 'Go Private';
-  const buttonText = callType === 'voice' ? 'Request Voice Call' : 'Go Private';
+  const buttonTitle = callType === 'voice' ? 'Request Voice Call' : 'Video Call';
+  const buttonText = callType === 'voice' ? 'Request Voice Call' : 'Video Call';
   const gradientClass = callType === 'voice'
     ? 'from-blue-500 to-indigo-500'
     : 'from-green-500 to-emerald-500';
@@ -273,7 +273,7 @@ export function RequestCallButton({
   if (!isAvailable) {
     if (iconOnly) {
       return (
-        <button disabled title={`${callType === 'voice' ? 'Voice Call' : 'Go Private'} Unavailable`} className="w-10 h-10 rounded-full font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
+        <button disabled title={`${callType === 'voice' ? 'Voice Call' : 'Video Call'} Unavailable`} className="w-10 h-10 rounded-full font-semibold bg-gray-400 text-white flex items-center justify-center cursor-not-allowed opacity-50">
           <Icon className="w-4 h-4" />
         </button>
       );
@@ -284,7 +284,7 @@ export function RequestCallButton({
         className="px-4 py-2 rounded-full font-semibold bg-gray-600/50 text-gray-400 flex items-center gap-2 cursor-not-allowed text-sm"
       >
         <Icon className="w-4 h-4" />
-        <span>{callType === 'voice' ? 'Call' : 'Private'} Unavailable</span>
+        <span>{callType === 'voice' ? 'Call' : 'Video Call'} Unavailable</span>
       </button>
     );
   }
@@ -309,7 +309,7 @@ export function RequestCallButton({
           }`}
         >
           <Icon className="w-4 h-4" />
-          <span>{callType === 'voice' ? 'Call' : 'Go Private'}</span>
+          <span>{callType === 'voice' ? 'Call' : 'Video Call'}</span>
         </button>
       )}
 
@@ -385,7 +385,7 @@ export function RequestCallButton({
                     </div>
                   </div>
                   <h3 className="text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-1">
-                    {callType === 'voice' ? 'Voice Call' : 'Go Private'}
+                    {callType === 'voice' ? 'Voice Call' : 'Video Call'}
                   </h3>
                   <p className="text-gray-400 text-sm">with {creatorName}</p>
                 </div>
@@ -440,7 +440,7 @@ export function RequestCallButton({
       <SignUpPromptModal
         isOpen={showSignUpModal}
         onClose={() => setShowSignUpModal(false)}
-        action={callType === 'voice' ? 'start a voice call' : 'go private'}
+        action={callType === 'voice' ? 'start a voice call' : 'start a video call'}
         creatorName={creatorName}
       />
     </>
