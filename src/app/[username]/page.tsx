@@ -883,7 +883,6 @@ export default function ProfilePage() {
               >
                 <Bot className="w-4 h-4 text-cyan-400" />
                 <span>AI Twin</span>
-                <Sparkles className="w-3 h-3 text-purple-400" />
               </button>
             )}
 
