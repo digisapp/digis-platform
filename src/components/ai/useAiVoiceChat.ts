@@ -296,11 +296,19 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           throw new Error(errorData.error || 'Failed to get token');
         }
 
-        const { client_secret, sessionConfig } = await tokenResponse.json();
-        const token = client_secret?.value;
+        const tokenData = await tokenResponse.json();
+        console.log('[AI Voice] Token response:', tokenData);
+
+        // Handle different possible response structures from xAI
+        const token = tokenData.client_secret?.value ||
+                      tokenData.secret?.value ||
+                      tokenData.token ||
+                      tokenData.value;
+        const sessionConfig = tokenData.sessionConfig;
 
         if (!token) {
-          throw new Error('Invalid token response');
+          console.error('[AI Voice] Token data received:', tokenData);
+          throw new Error('Invalid token response - no token found');
         }
 
         // 2. Start session record

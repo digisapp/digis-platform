@@ -100,12 +100,13 @@ export async function POST(request: NextRequest) {
       const errorText = await tokenResponse.text();
       console.error('[AI Token] xAI API error:', tokenResponse.status, errorText);
       return NextResponse.json(
-        { error: 'Failed to initialize AI session' },
+        { error: 'Failed to initialize AI session', details: errorText },
         { status: 502 }
       );
     }
 
     const tokenData = await tokenResponse.json();
+    console.log('[AI Token] xAI response structure:', JSON.stringify(tokenData, null, 2));
 
     // Build session configuration for the client
     const sessionConfig = {
