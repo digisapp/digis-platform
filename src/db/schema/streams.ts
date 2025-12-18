@@ -62,6 +62,10 @@ export const streams = pgTable('streams', {
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 
+  // Guest call-in settings
+  guestRequestsEnabled: boolean('guest_requests_enabled').default(false).notNull(), // Allow viewers to request to join
+  activeGuestId: uuid('active_guest_id'), // Currently active guest user ID (null if no guest)
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -262,6 +266,7 @@ export const streamsRelations = relations(streams, ({ one, many }) => ({
   bans: many(streamBans),
   polls: many(streamPolls),
   countdowns: many(streamCountdowns),
+  guestRequests: many(streamGuestRequests),
 }));
 
 export const streamMessagesRelations = relations(streamMessages, ({ one }) => ({
@@ -441,7 +446,58 @@ export const streamCountdownsRelations = relations(streamCountdowns, ({ one }) =
   }),
 }));
 
+// Guest request status enum
+export const guestRequestStatusEnum = pgEnum('guest_request_status', ['pending', 'accepted', 'rejected', 'active', 'ended']);
+
+// Stream guest requests (viewers requesting to join stream as guest)
+export const streamGuestRequests = pgTable('stream_guest_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // User info (cached for display)
+  username: text('username').notNull(),
+  displayName: text('display_name'),
+  avatarUrl: text('avatar_url'),
+
+  // Request type
+  requestType: text('request_type').default('video').notNull(), // 'video' or 'voice'
+
+  // Status tracking
+  status: guestRequestStatusEnum('status').default('pending').notNull(),
+
+  // Timing
+  requestedAt: timestamp('requested_at').defaultNow().notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  joinedAt: timestamp('joined_at'), // When they actually connected
+  endedAt: timestamp('ended_at'),
+
+  // Duration tracking
+  durationSeconds: integer('duration_seconds'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  streamIdIdx: index('stream_guest_requests_stream_id_idx').on(table.streamId, table.status),
+  userIdIdx: index('stream_guest_requests_user_id_idx').on(table.userId),
+  uniqueRequest: index('stream_guest_requests_unique_idx').on(table.streamId, table.userId, table.status),
+}));
+
+// Stream guest requests relations
+export const streamGuestRequestsRelations = relations(streamGuestRequests, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamGuestRequests.streamId],
+    references: [streams.id],
+  }),
+  user: one(users, {
+    fields: [streamGuestRequests.userId],
+    references: [users.id],
+  }),
+}));
+
 // Type exports
+export type StreamGuestRequest = typeof streamGuestRequests.$inferSelect;
+export type NewStreamGuestRequest = typeof streamGuestRequests.$inferInsert;
 export type Stream = typeof streams.$inferSelect;
 export type NewStream = typeof streams.$inferInsert;
 export type StreamMessage = typeof streamMessages.$inferSelect;
