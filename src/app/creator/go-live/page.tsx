@@ -178,7 +178,7 @@ export default function GoLivePage() {
         fetch('/api/user/profile'),
         fetch('/api/streams/active'),
         fetch('/api/user/call-settings'),
-        fetch('/api/ai-twin/settings')
+        fetch('/api/ai/settings')
       ]);
 
       // Handle auth failures - redirect to login
@@ -213,8 +213,12 @@ export default function GoLivePage() {
         if (aiSettingsRes.ok) {
           const aiData = await aiSettingsRes.json();
           if (aiData.settings) {
-            // Creator has AI Twin set up
-            setHasAiTwin(true);
+            // Check if creator has actually configured their AI Twin
+            // (either enabled voice/text chat, or has a personality prompt)
+            const isConfigured = aiData.settings.enabled ||
+                                 aiData.settings.textChatEnabled ||
+                                 aiData.settings.personalityPrompt;
+            setHasAiTwin(!!isConfigured);
             // Default to their saved preference
             setAiChatModEnabled(aiData.settings.streamChatModEnabled || false);
           }
