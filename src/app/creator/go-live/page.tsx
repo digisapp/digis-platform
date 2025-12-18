@@ -937,55 +937,6 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* AI Chat Moderator - Only show if creator has AI Twin set up */}
-              {hasAiTwin && (
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    AI Chat Moderator
-                  </label>
-                  <div className="p-4 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-sm text-white font-medium">Enable AI Chat Mod</span>
-                        <p className="text-xs text-gray-400">Your AI Twin will help moderate chat during your stream</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setAiChatModEnabled(!aiChatModEnabled)}
-                        className={`relative w-12 h-6 rounded-full transition-colors ${
-                          aiChatModEnabled ? 'bg-cyan-500' : 'bg-gray-600'
-                        }`}
-                      >
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          aiChatModEnabled ? 'translate-x-7' : 'translate-x-1'
-                        }`} />
-                      </button>
-                    </div>
-
-                    {aiChatModEnabled && (
-                      <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-gray-300">
-                          <span className="text-cyan-400">✓</span>
-                          Greet new viewers automatically
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-300">
-                          <span className="text-cyan-400">✓</span>
-                          Answer common questions in your voice
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-300">
-                          <span className="text-cyan-400">✓</span>
-                          Thank tippers and gifters instantly
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-300">
-                          <span className="text-cyan-400">✓</span>
-                          Keep chat engaged during breaks
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               </div>
 
             {/* Right Column: Device Preview */}
@@ -1103,6 +1054,51 @@ export default function GoLivePage() {
                     </p>
                   </div>
                 </div>
+
+                {/* AI Chat Moderator - Only show if creator has AI Twin set up */}
+                {hasAiTwin && (
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      AI Chat Moderator
+                    </label>
+                    <div className="p-4 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm text-white font-medium">Enable AI Chat Mod</span>
+                          <p className="text-xs text-gray-400">Your AI Twin will help moderate chat during your stream</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAiChatModEnabled(!aiChatModEnabled)}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${
+                            aiChatModEnabled ? 'bg-cyan-500' : 'bg-gray-600'
+                          }`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                            aiChatModEnabled ? 'translate-x-7' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+
+                      {aiChatModEnabled && (
+                        <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+                          <div className="flex items-center gap-2 text-xs text-gray-300">
+                            <span className="text-cyan-400">✓</span>
+                            Greet new viewers
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-300">
+                            <span className="text-cyan-400">✓</span>
+                            Answer questions
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-300">
+                            <span className="text-cyan-400">✓</span>
+                            Thank gifters instantly
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Featured Creators */}

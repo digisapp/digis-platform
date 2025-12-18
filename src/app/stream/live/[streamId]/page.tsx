@@ -2101,8 +2101,10 @@ export default function BroadcastStudioPage() {
                   {/* Username Watermark - Appears in video for branding */}
                   {currentUsername && (
                     <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
-                      <div className="px-2.5 py-1 bg-black/40 backdrop-blur-sm rounded-lg">
-                        <span className="text-white/70 text-sm font-medium">@{currentUsername}</span>
+                      <div className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-lg border border-white/10">
+                        <span className="text-white/90 text-sm font-black tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+                          digis.cc/<span className="text-cyan-400">{currentUsername}</span>
+                        </span>
                       </div>
                     </div>
                   )}
