@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
       conversationId: conversation.id,
       aiResponse: aiResponse ? {
         message: aiResponse.aiMessage,
-        coinsCharged: aiResponse.coinsCharged,
       } : null,
     });
   } catch (error) {

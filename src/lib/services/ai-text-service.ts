@@ -1,16 +1,16 @@
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users, wallets, walletTransactions, conversations, messages } from '@/db/schema';
+import { aiTwinSettings, users, conversations, messages } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * AI Text Chat Service
  * Handles automatic AI responses to messages when creator has text chat enabled
+ * AI responses are FREE - the fan already paid the creator's message rate
  */
 export class AiTextService {
   /**
    * Try to auto-respond to a message if the recipient has AI text chat enabled
-   * Returns null if AI chat is not enabled or fan doesn't have enough balance
+   * Returns null if AI chat is not enabled
    */
   static async tryAutoRespond(
     senderId: string,
@@ -19,7 +19,6 @@ export class AiTextService {
     conversationId: string
   ): Promise<{
     aiMessage: any;
-    coinsCharged: number;
   } | null> {
     // Get recipient's AI settings
     const aiSettings = await db.query.aiTwinSettings.findFirst({
@@ -40,20 +39,6 @@ export class AiTextService {
       return null;
     }
 
-    // Check sender's (fan's) balance
-    const senderWallet = await db.query.wallets.findFirst({
-      where: eq(wallets.userId, senderId),
-    });
-
-    const pricePerMessage = aiSettings.textPricePerMessage;
-    const senderBalance = senderWallet?.balance || 0;
-
-    // If not enough balance, skip AI response (don't error)
-    if (senderBalance < pricePerMessage) {
-      console.log('[AI Text] Sender has insufficient balance for AI response');
-      return null;
-    }
-
     // Build system prompt
     const creatorName = creator.displayName || creator.username || 'Creator';
     const systemPrompt = this.buildSystemPrompt(creatorName, aiSettings);
@@ -66,57 +51,13 @@ export class AiTextService {
       return null;
     }
 
-    // Process billing and store AI message in transaction
+    // Store AI message and update stats (no billing - AI response is free)
     const result = await db.transaction(async (tx) => {
-      const idempotencyKey = uuidv4();
-      const creatorEarnings = pricePerMessage; // 100% to creator
-
-      // Deduct from sender wallet
-      await tx
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} - ${pricePerMessage}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(wallets.userId, senderId));
-
-      // Credit creator wallet
-      await tx
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} + ${creatorEarnings}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(wallets.userId, recipientId));
-
-      // Record sender transaction
-      await tx.insert(walletTransactions).values({
-        userId: senderId,
-        amount: -pricePerMessage,
-        type: 'ai_text_chat',
-        status: 'completed',
-        description: `AI chat with ${creatorName}`,
-        idempotencyKey,
-        metadata: JSON.stringify({ creatorId: recipientId }),
-      });
-
-      // Record creator earnings
-      await tx.insert(walletTransactions).values({
-        userId: recipientId,
-        amount: creatorEarnings,
-        type: 'ai_text_earnings',
-        status: 'completed',
-        description: 'AI text chat earnings',
-        idempotencyKey: `${idempotencyKey}-creator`,
-        metadata: JSON.stringify({ fanId: senderId }),
-      });
-
-      // Update AI Twin stats
+      // Update AI Twin stats (message count only, no earnings for free AI)
       await tx
         .update(aiTwinSettings)
         .set({
           totalTextMessages: sql`${aiTwinSettings.totalTextMessages} + 1`,
-          totalTextEarnings: sql`${aiTwinSettings.totalTextEarnings} + ${creatorEarnings}`,
           updatedAt: new Date(),
         })
         .where(eq(aiTwinSettings.creatorId, recipientId));
@@ -145,7 +86,6 @@ export class AiTextService {
 
       return {
         aiMessage,
-        coinsCharged: pricePerMessage,
       };
     });
 

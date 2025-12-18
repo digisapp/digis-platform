@@ -295,6 +295,7 @@ export class MessageService {
       //
       // Only charge when the RECEIVER is a creator (fans can't charge for messages)
       // Note: This is for regular text messages only - locked/PPV messages still cost coins
+      // Note: AI auto-responses are FREE - included in the message rate
       const receiverIsCreator = receiver.role === 'creator';
 
       if (!isSupportConversation && receiverIsCreator) {
