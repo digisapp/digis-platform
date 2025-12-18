@@ -22,7 +22,10 @@ import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { CreatePollModal } from '@/components/streaming/CreatePollModal';
 import { CreateCountdownModal } from '@/components/streaming/CreateCountdownModal';
+import { StreamRecordButton } from '@/components/streaming/StreamRecordButton';
+import { SaveRecordingsModal } from '@/components/streaming/SaveRecordingsModal';
 import { useStreamChat } from '@/hooks/useStreamChat';
+import { useStreamRecorder } from '@/hooks/useStreamRecorder';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
@@ -173,6 +176,32 @@ export default function BroadcastStudioPage() {
   } | null>(null);
   const [showCreatePollModal, setShowCreatePollModal] = useState(false);
   const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
+  const [showSaveRecordingsModal, setShowSaveRecordingsModal] = useState(false);
+
+  // Stream recording hook
+  const {
+    isRecording,
+    recordings,
+    currentDuration,
+    formattedDuration,
+    maxDuration,
+    maxRecordings,
+    remainingRecordings,
+    startRecording,
+    stopRecording,
+    formatDuration: formatRecordingDuration,
+  } = useStreamRecorder({
+    maxDuration: 1800, // 30 minutes
+    maxRecordings: 20,
+    onRecordingComplete: (recording) => {
+      const mins = Math.floor(recording.duration / 60);
+      const secs = recording.duration % 60;
+      showSuccess(`Recording saved! ${mins}:${secs.toString().padStart(2, '0')}`);
+    },
+    onError: (error) => {
+      showError(error);
+    },
+  });
 
   // Detect Safari browser
   useEffect(() => {
@@ -934,7 +963,13 @@ export default function BroadcastStudioPage() {
         await fetchStreamSummary();
         setShowEndConfirm(false);
         setShowVipEndChoice(false);
-        setShowStreamSummary(true);
+
+        // If there are recordings, show the save modal first
+        if (recordings.length > 0) {
+          setShowSaveRecordingsModal(true);
+        } else {
+          setShowStreamSummary(true);
+        }
       } else {
         const data = await response.json();
         showError(data.error || 'Failed to end stream');
@@ -2032,9 +2067,24 @@ export default function BroadcastStudioPage() {
                       </>
                     )}
 
+                    {/* Record Button */}
+                    <StreamRecordButton
+                      isRecording={isRecording}
+                      currentDuration={formattedDuration}
+                      maxDuration={maxDuration}
+                      recordingsCount={recordings.length}
+                      maxRecordings={maxRecordings}
+                      onStartRecording={startRecording}
+                      onStopRecording={stopRecording}
+                    />
+
                     {/* End Stream Button */}
                     <button
                       onClick={() => {
+                        // If recording, stop it first
+                        if (isRecording) {
+                          stopRecording();
+                        }
                         setIsLeaveAttempt(false);
                         setShowEndConfirm(true);
                       }}
@@ -2282,6 +2332,24 @@ export default function BroadcastStudioPage() {
             // Optionally show success message or redirect
             showSuccess('Stream saved! You can find it in your VOD library.');
           }}
+        />
+      )}
+
+      {/* Save Recordings Modal - Shows after stream ends if there are recordings */}
+      {showSaveRecordingsModal && recordings.length > 0 && (
+        <SaveRecordingsModal
+          recordings={recordings}
+          streamId={streamId}
+          onClose={() => {
+            setShowSaveRecordingsModal(false);
+            setShowStreamSummary(true);
+          }}
+          onSaveComplete={() => {
+            setShowSaveRecordingsModal(false);
+            setShowStreamSummary(true);
+            showSuccess('Recordings saved! They will appear in your Streams tab.');
+          }}
+          formatDuration={formatRecordingDuration}
         />
       )}
 

@@ -6,7 +6,7 @@ import { streams } from './streams';
 // VOD (Video on Demand) - Saved stream recordings
 export const vods = pgTable('vods', {
   id: uuid('id').primaryKey().defaultRandom(),
-  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  streamId: uuid('stream_id').references(() => streams.id, { onDelete: 'set null' }), // Nullable - recordings may outlive streams
   creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 
   // Metadata
@@ -18,9 +18,16 @@ export const vods = pgTable('vods', {
   videoUrl: text('video_url'), // URL to stored video file (S3, Cloudflare Stream, etc.)
   duration: integer('duration'), // Duration in seconds
 
+  // Recording type - 'manual' = creator clicked record, 'auto' = full stream recording (future)
+  recordingType: text('recording_type').default('manual').notNull(),
+
+  // Draft status - auto-saved recordings that haven't been published yet
+  isDraft: boolean('is_draft').default(false).notNull(),
+  draftExpiresAt: timestamp('draft_expires_at'), // Drafts expire after 7 days
+
   // Access control
   isPublic: boolean('is_public').default(false).notNull(), // Free for everyone
-  priceCoins: integer('price_coins').default(0).notNull(), // PPV price (0 = free for subscribers)
+  priceCoins: integer('price_coins').default(25).notNull(), // PPV price (min 25 coins)
   subscribersOnly: boolean('subscribers_only').default(false).notNull(), // Only subscribers can watch
 
   // Stats
@@ -33,6 +40,9 @@ export const vods = pgTable('vods', {
   originalPeakViewers: integer('original_peak_viewers').default(0).notNull(),
   originalEarnings: integer('original_earnings').default(0).notNull(),
 
+  // Auto-delete tracking - recordings with 0 purchases after 60 days get deleted
+  lastPurchaseCheck: timestamp('last_purchase_check'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -40,6 +50,10 @@ export const vods = pgTable('vods', {
   creatorIdx: index('vods_creator_id_idx').on(table.creatorId),
   // Compound index for creator's VODs sorted by date
   creatorCreatedIdx: index('vods_creator_created_idx').on(table.creatorId, table.createdAt),
+  // Index for drafts cleanup
+  draftIdx: index('vods_draft_idx').on(table.isDraft, table.draftExpiresAt),
+  // Index for auto-delete check (unpurchased recordings)
+  purchaseCheckIdx: index('vods_purchase_check_idx').on(table.purchaseCount, table.lastPurchaseCheck),
 }));
 
 // VOD purchases - track who bought access
