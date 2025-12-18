@@ -10,7 +10,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { displayName, bio, avatarUrl, bannerUrl, city, state, phoneNumber, primaryCategory, secondaryCategory } = await request.json();
+    const {
+      displayName, bio, avatarUrl, bannerUrl, city, state, phoneNumber, primaryCategory, secondaryCategory,
+      // Social media fields
+      twitterHandle, instagramHandle, tiktokHandle, snapchatHandle, youtubeHandle, showSocialLinks
+    } = await request.json();
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
@@ -66,8 +70,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update or create profile with city, state, and phone number using Drizzle
-    if (city !== undefined || state !== undefined || phoneNumber !== undefined) {
+    // Update or create profile with city, state, phone number, and social media handles using Drizzle
+    const hasProfileFields = city !== undefined || state !== undefined || phoneNumber !== undefined ||
+      twitterHandle !== undefined || instagramHandle !== undefined || tiktokHandle !== undefined ||
+      snapchatHandle !== undefined || youtubeHandle !== undefined || showSocialLinks !== undefined;
+
+    if (hasProfileFields) {
       const existingProfile = await db.query.profiles.findFirst({
         where: eq(profiles.userId, authUser.id),
       });
@@ -78,6 +86,13 @@ export async function POST(request: NextRequest) {
       if (city !== undefined) profileData.city = city;
       if (state !== undefined) profileData.state = state;
       if (phoneNumber !== undefined) profileData.phoneNumber = phoneNumber;
+      // Social media handles
+      if (twitterHandle !== undefined) profileData.twitterHandle = twitterHandle;
+      if (instagramHandle !== undefined) profileData.instagramHandle = instagramHandle;
+      if (tiktokHandle !== undefined) profileData.tiktokHandle = tiktokHandle;
+      if (snapchatHandle !== undefined) profileData.snapchatHandle = snapchatHandle;
+      if (youtubeHandle !== undefined) profileData.youtubeHandle = youtubeHandle;
+      if (showSocialLinks !== undefined) profileData.showSocialLinks = showSocialLinks;
 
       if (existingProfile) {
         // Update existing profile
@@ -94,6 +109,12 @@ export async function POST(request: NextRequest) {
             city: city || null,
             state: state || null,
             phoneNumber: phoneNumber || null,
+            twitterHandle: twitterHandle || null,
+            instagramHandle: instagramHandle || null,
+            tiktokHandle: tiktokHandle || null,
+            snapchatHandle: snapchatHandle || null,
+            youtubeHandle: youtubeHandle || null,
+            showSocialLinks: showSocialLinks ?? true,
           });
       }
     }

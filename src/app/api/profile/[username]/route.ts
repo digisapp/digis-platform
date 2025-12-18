@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorGoals, contentItems, contentLikes, contentPurchases } from '@/lib/data/system';
+import { users, profiles, creatorGoals, contentItems, contentLikes, contentPurchases } from '@/lib/data/system';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
@@ -65,7 +65,7 @@ export async function GET(
       ]);
 
     // Batch all queries in parallel with timeouts - non-essential queries fail gracefully
-    const [followCounts, isFollowing, creatorSettings, goals, content] = await Promise.all([
+    const [followCounts, isFollowing, creatorSettings, goals, content, userProfile] = await Promise.all([
       // 1. Get follow counts (essential - use cached fallback)
       withTimeout(
         FollowService.getFollowCounts(user.id),
@@ -110,6 +110,24 @@ export async function GET(
             []
           )
         : Promise.resolve([]),
+
+      // 6. Get profile with social media links if creator
+      user.role === 'creator'
+        ? withTimeout(
+            db.query.profiles.findFirst({
+              where: eq(profiles.userId, user.id),
+              columns: {
+                twitterHandle: true,
+                instagramHandle: true,
+                tiktokHandle: true,
+                snapchatHandle: true,
+                youtubeHandle: true,
+                showSocialLinks: true,
+              },
+            }).catch(() => null),
+            null
+          )
+        : Promise.resolve(null),
     ]);
 
     // Build call settings from result
@@ -170,6 +188,22 @@ export async function GET(
       }
     }
 
+    // Build social links object if creator has enabled it
+    let socialLinks = null;
+    if (userProfile && userProfile.showSocialLinks !== false) {
+      const hasSocialLinks = userProfile.instagramHandle || userProfile.tiktokHandle ||
+        userProfile.twitterHandle || userProfile.snapchatHandle || userProfile.youtubeHandle;
+      if (hasSocialLinks) {
+        socialLinks = {
+          instagram: userProfile.instagramHandle,
+          tiktok: userProfile.tiktokHandle,
+          twitter: userProfile.twitterHandle,
+          snapchat: userProfile.snapchatHandle,
+          youtube: userProfile.youtubeHandle,
+        };
+      }
+    }
+
     return NextResponse.json({
       user,
       followCounts,
@@ -178,6 +212,7 @@ export async function GET(
       messageRate,
       goals,
       content: contentWithStatus,
+      socialLinks,
     });
   } catch (error: any) {
     console.error('[PROFILE]', {

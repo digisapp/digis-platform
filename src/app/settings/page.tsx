@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Ban, UserX, Share2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Ban, UserX, Share2, Instagram, Youtube } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -52,6 +52,14 @@ export default function SettingsPage() {
   const [bannerUrl, setBannerUrl] = useState('');
   const [primaryCategory, setPrimaryCategory] = useState('');
   const [secondaryCategory, setSecondaryCategory] = useState('');
+
+  // Social media handles
+  const [instagramHandle, setInstagramHandle] = useState('');
+  const [tiktokHandle, setTiktokHandle] = useState('');
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [snapchatHandle, setSnapchatHandle] = useState('');
+  const [youtubeHandle, setYoutubeHandle] = useState('');
+  const [showSocialLinks, setShowSocialLinks] = useState(true);
 
   // Email change
   const [email, setEmail] = useState('');
@@ -122,6 +130,13 @@ export default function SettingsPage() {
       setPrimaryCategory(data.primaryCategory || '');
       setSecondaryCategory(data.secondaryCategory || '');
       setEmail(data.email || '');
+      // Social media handles
+      setInstagramHandle(data.profile?.instagramHandle || '');
+      setTiktokHandle(data.profile?.tiktokHandle || '');
+      setTwitterHandle(data.profile?.twitterHandle || '');
+      setSnapchatHandle(data.profile?.snapchatHandle || '');
+      setYoutubeHandle(data.profile?.youtubeHandle || '');
+      setShowSocialLinks(data.profile?.showSocialLinks ?? true);
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -281,6 +296,13 @@ export default function SettingsPage() {
           bannerUrl,
           primaryCategory: primaryCategory || null,
           secondaryCategory: secondaryCategory || null,
+          // Social media handles
+          instagramHandle: instagramHandle || null,
+          tiktokHandle: tiktokHandle || null,
+          twitterHandle: twitterHandle || null,
+          snapchatHandle: snapchatHandle || null,
+          youtubeHandle: youtubeHandle || null,
+          showSocialLinks,
         }),
       });
 
@@ -1037,6 +1059,130 @@ export default function SettingsPage() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
             />
+
+            {/* Social Media Section - Creators Only */}
+            {currentUser?.role === 'creator' && (
+              <div className="pt-6 border-t border-cyan-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Share2 className="w-5 h-5 text-digis-purple" />
+                    Social Media
+                  </h3>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-sm text-gray-400">Show on profile</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={showSocialLinks}
+                        onChange={(e) => setShowSocialLinks(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-digis-cyan peer-checked:to-digis-purple transition-all"></div>
+                      <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></div>
+                    </div>
+                  </label>
+                </div>
+                <p className="text-sm text-gray-400 mb-4">Add your social media profiles. Links will appear as icons on your public profile.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Instagram */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <Instagram className="w-4 h-4 text-pink-500" />
+                      Instagram
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={instagramHandle}
+                        onChange={(e) => setInstagramHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* TikTok */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                      </svg>
+                      TikTok
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={tiktokHandle}
+                        onChange={(e) => setTiktokHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* X (Twitter) */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      X (Twitter)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={twitterHandle}
+                        onChange={(e) => setTwitterHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Snapchat */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-.809-.329-1.224-.72-1.227-1.153-.015-.36.27-.69.72-.854.149-.06.314-.09.494-.09.12 0 .284.015.435.09.375.18.72.3 1.034.3.21 0 .314-.044.389-.074-.007-.18-.022-.345-.029-.525l-.006-.061c-.105-1.627-.225-3.654.3-4.848C7.849 1.069 11.205.793 12.191.793h.03z"/>
+                      </svg>
+                      Snapchat
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={snapchatHandle}
+                        onChange={(e) => setSnapchatHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="relative md:col-span-2">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <Youtube className="w-4 h-4 text-red-500" />
+                      YouTube
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="channel"
+                        value={youtubeHandle}
+                        onChange={(e) => setYoutubeHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <GlassButton
               type="submit"

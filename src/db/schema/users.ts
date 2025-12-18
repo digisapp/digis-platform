@@ -49,8 +49,13 @@ export const profiles = pgTable('profiles', {
   state: text('state'),
   location: text('location'),
   website: text('website'),
+  // Social Media Links
   twitterHandle: text('twitter_handle'),
   instagramHandle: text('instagram_handle'),
+  tiktokHandle: text('tiktok_handle'),
+  snapchatHandle: text('snapchat_handle'),
+  youtubeHandle: text('youtube_handle'),
+  showSocialLinks: boolean('show_social_links').default(true), // Toggle to show/hide on public profile
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
