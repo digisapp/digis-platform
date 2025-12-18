@@ -1,6 +1,12 @@
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users, conversations, messages, contentItems } from '@/db/schema';
+import { aiTwinSettings, users, conversations, messages, contentItems, fanMemories } from '@/db/schema';
 import { eq, sql, and, desc } from 'drizzle-orm';
+
+// Types for fan memory extraction
+interface ExtractedFact {
+  category: 'name' | 'location' | 'preference' | 'life_event' | 'personal' | 'interaction';
+  fact: string;
+}
 
 /**
  * AI Text Chat Service
@@ -98,7 +104,22 @@ export class AiTextService {
     const messageExamples = this.pickDiverseExamples(creatorRealMessages.map(m => m.content), 15);
     console.log(`[AI Text] Found ${creatorRealMessages.length} real messages, using ${messageExamples.length} examples`);
 
-    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent, messageExamples);
+    // Load fan's long-term memories (facts we remember about them)
+    const fanMemoriesData = await db.query.fanMemories.findMany({
+      where: and(
+        eq(fanMemories.creatorId, recipientId),
+        eq(fanMemories.fanId, senderId)
+      ),
+      orderBy: [desc(fanMemories.lastMentionedAt)],
+      limit: 15, // Top 15 most recent/relevant memories
+      columns: {
+        category: true,
+        fact: true,
+      },
+    });
+    console.log(`[AI Text] Loaded ${fanMemoriesData.length} memories about this fan`);
+
+    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent, messageExamples, fanMemoriesData);
 
     // Fetch recent conversation history for context
     const recentMessages = await db.query.messages.findMany({
@@ -172,6 +193,11 @@ export class AiTextService {
       };
     });
 
+    // Extract and save facts from fan's message (async, don't block response)
+    this.extractAndSaveFanFacts(recipientId, senderId, messageContent).catch(err => {
+      console.error('[AI Text] Error extracting fan facts:', err);
+    });
+
     return result;
   }
 
@@ -189,7 +215,8 @@ export class AiTextService {
       unlockPrice: number;
       isFree: boolean | null;
     }>,
-    messageExamples: string[] = []
+    messageExamples: string[] = [],
+    fanMemoriesData: Array<{ category: string; fact: string }> = []
   ): string {
     let prompt = `You ARE ${creator.name}. You're a content creator chatting with a fan in DMs. `;
     prompt += `Be completely natural - this should feel like real texting, not a chatbot.\n\n`;
@@ -202,6 +229,16 @@ export class AiTextService {
 
     if (settings.personalityPrompt) {
       prompt += `- My personality: ${settings.personalityPrompt}\n`;
+    }
+
+    // Add fan memories - things we remember about this specific fan
+    if (fanMemoriesData.length > 0) {
+      prompt += `\n## WHAT I REMEMBER ABOUT THIS FAN ##\n`;
+      prompt += `Use these naturally in conversation - don't list them all at once, just reference when relevant:\n`;
+      fanMemoriesData.forEach((memory) => {
+        prompt += `- ${memory.fact}\n`;
+      });
+      prompt += `\nUse their name if I know it! Reference these details to make conversation personal.\n`;
     }
 
     // Add real message examples to learn creator's style
@@ -377,5 +414,138 @@ export class AiTextService {
     }
 
     return result.slice(0, count);
+  }
+
+  /**
+   * Extract personal facts from fan's message using AI and save to database
+   * Runs async so it doesn't block the response
+   */
+  private static async extractAndSaveFanFacts(
+    creatorId: string,
+    fanId: string,
+    message: string
+  ): Promise<void> {
+    // Skip very short messages - unlikely to contain useful facts
+    if (message.length < 10) return;
+
+    const apiKey = process.env.XAI_API_KEY;
+    if (!apiKey) return;
+
+    try {
+      // Use AI to extract facts from the message
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'grok-3-mini',
+          messages: [{
+            role: 'user',
+            content: `Extract personal facts from this fan message. Only extract clear, specific facts - not assumptions.
+
+Message: "${message}"
+
+Categories:
+- name: Their name (e.g., "Fan's name is Jake")
+- location: Where they live or are visiting (e.g., "Lives in Miami", "Visiting Tokyo")
+- preference: Content preferences (e.g., "Prefers video content", "Likes spicy pics")
+- life_event: Life events (e.g., "Just got married", "Started new job", "Got a promotion")
+- personal: Personal details (e.g., "Has a dog named Max", "Loves coffee", "Works in tech")
+- interaction: Nothing for this category - we track it separately
+
+Return ONLY valid JSON, nothing else:
+{"facts": [{"category": "name|location|preference|life_event|personal", "fact": "description"}]}
+
+If no facts found, return: {"facts": []}`
+          }],
+          max_tokens: 200,
+          temperature: 0.3, // Lower temperature for more consistent extraction
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('[AI Text] Fact extraction API error:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) return;
+
+      // Parse the JSON response
+      let extractedFacts: ExtractedFact[] = [];
+      try {
+        const parsed = JSON.parse(content);
+        extractedFacts = parsed.facts || [];
+      } catch {
+        // Try to extract JSON from the response if it's wrapped in other text
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            extractedFacts = parsed.facts || [];
+          } catch {
+            console.error('[AI Text] Could not parse fact extraction response');
+            return;
+          }
+        }
+      }
+
+      if (extractedFacts.length === 0) return;
+
+      console.log(`[AI Text] Extracted ${extractedFacts.length} facts from fan message`);
+
+      // Save each fact to the database
+      for (const fact of extractedFacts) {
+        // Check if we already have this fact (or similar)
+        const existingFact = await db.query.fanMemories.findFirst({
+          where: and(
+            eq(fanMemories.creatorId, creatorId),
+            eq(fanMemories.fanId, fanId),
+            eq(fanMemories.category, fact.category)
+          ),
+        });
+
+        if (existingFact) {
+          // Update existing fact if it's the same category
+          // For name/location, update the fact; for others, might want different logic
+          if (fact.category === 'name' || fact.category === 'location') {
+            await db
+              .update(fanMemories)
+              .set({
+                fact: fact.fact,
+                lastMentionedAt: new Date(),
+                mentionCount: sql`${fanMemories.mentionCount} + 1`,
+                updatedAt: new Date(),
+              })
+              .where(eq(fanMemories.id, existingFact.id));
+          } else {
+            // For other categories, just update mention time if fact is similar
+            await db
+              .update(fanMemories)
+              .set({
+                lastMentionedAt: new Date(),
+                mentionCount: sql`${fanMemories.mentionCount} + 1`,
+                updatedAt: new Date(),
+              })
+              .where(eq(fanMemories.id, existingFact.id));
+          }
+        } else {
+          // Insert new fact
+          await db.insert(fanMemories).values({
+            creatorId,
+            fanId,
+            category: fact.category,
+            fact: fact.fact,
+          });
+          console.log(`[AI Text] Saved new fact: ${fact.category} - ${fact.fact}`);
+        }
+      }
+    } catch (error) {
+      console.error('[AI Text] Error in fact extraction:', error);
+    }
   }
 }

@@ -105,6 +105,42 @@ export const aiSessions = pgTable('ai_sessions', {
   creatorStatusIdx: index('ai_sessions_creator_status_idx').on(table.creatorId, table.status),
 }));
 
+// Fan memory categories for AI to remember facts about fans
+export const fanMemoryCategoryEnum = pgEnum('fan_memory_category', [
+  'name',        // Fan's name
+  'location',    // Where they live
+  'preference',  // Content preferences
+  'life_event',  // Trips, job changes, relationships
+  'personal',    // Pets, hobbies, interests
+  'interaction', // Tipping behavior, subscription info
+]);
+
+// Long-term memory storage for AI Twin to remember facts about each fan
+export const fanMemories = pgTable('fan_memories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Who this memory belongs to
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  fanId: uuid('fan_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // The memory itself
+  category: fanMemoryCategoryEnum('category').notNull(),
+  fact: text('fact').notNull(), // "Fan's name is Jake", "Lives in Miami"
+
+  // Metadata
+  confidence: integer('confidence').default(100).notNull(), // 0-100 how sure we are
+  mentionCount: integer('mention_count').default(1).notNull(), // How many times this came up
+  lastMentionedAt: timestamp('last_mentioned_at').defaultNow().notNull(),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Index for quick lookups when fan messages creator
+  creatorFanIdx: index('fan_memories_creator_fan_idx').on(table.creatorId, table.fanId),
+  // Index for finding all memories for a creator (analytics)
+  creatorIdx: index('fan_memories_creator_idx').on(table.creatorId),
+}));
+
 // Relations
 export const aiTwinSettingsRelations = relations(aiTwinSettings, ({ one }) => ({
   creator: one(users, {
@@ -126,8 +162,23 @@ export const aiSessionsRelations = relations(aiSessions, ({ one }) => ({
   }),
 }));
 
+export const fanMemoriesRelations = relations(fanMemories, ({ one }) => ({
+  creator: one(users, {
+    fields: [fanMemories.creatorId],
+    references: [users.id],
+    relationName: 'fanMemoryCreator',
+  }),
+  fan: one(users, {
+    fields: [fanMemories.fanId],
+    references: [users.id],
+    relationName: 'fanMemoryFan',
+  }),
+}));
+
 // Types
 export type AiTwinSettings = typeof aiTwinSettings.$inferSelect;
 export type NewAiTwinSettings = typeof aiTwinSettings.$inferInsert;
 export type AiSession = typeof aiSessions.$inferSelect;
 export type NewAiSession = typeof aiSessions.$inferInsert;
+export type FanMemory = typeof fanMemories.$inferSelect;
+export type NewFanMemory = typeof fanMemories.$inferInsert;
