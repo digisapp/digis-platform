@@ -13,7 +13,13 @@ interface UseAiVoiceChatOptions {
   onAiResponse?: (text: string) => void;
   onError?: (error: string) => void;
   onStateChange?: (state: ConnectionState) => void;
+  onBalanceUpdate?: (balance: number, minutesRemaining: number, totalCharged: number) => void;
+  onLowBalance?: (minutesRemaining: number) => void;
+  onBalanceDepleted?: () => void;
 }
+
+// Billing interval in milliseconds (1 minute)
+const BILLING_INTERVAL_MS = 60 * 1000;
 
 interface SessionConfig {
   voice: string;
@@ -32,6 +38,11 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Billing state
+  const [remainingBalance, setRemainingBalance] = useState<number | null>(null);
+  const [minutesRemaining, setMinutesRemaining] = useState<number | null>(null);
+  const [totalCharged, setTotalCharged] = useState(0);
+
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -41,6 +52,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const sessionIdRef = useRef<string | null>(null);
   const connectingRef = useRef(false); // Prevent concurrent connection attempts
   const connectionStateRef = useRef<ConnectionState>('disconnected'); // Stable ref for guards
+  const billingIntervalRef = useRef<NodeJS.Timeout | null>(null); // Billing tick interval
 
   // Store callbacks in refs to avoid re-render dependency issues
   const optionsRef = useRef(options);
@@ -52,6 +64,83 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     connectionStateRef.current = state;
     setConnectionState(state);
     optionsRef.current.onStateChange?.(state);
+  }, []);
+
+  // Process billing tick
+  const processBillingTick = useCallback(async () => {
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || connectionStateRef.current !== 'connected') {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/ai/session/${sessionId}/tick`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        console.error('[AI Voice] Billing tick failed:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('[AI Voice] Billing tick:', data);
+
+      // Update state
+      setRemainingBalance(data.remainingBalance);
+      setMinutesRemaining(data.minutesRemaining);
+      setTotalCharged(data.totalCharged);
+
+      // Notify callbacks
+      optionsRef.current.onBalanceUpdate?.(
+        data.remainingBalance,
+        data.minutesRemaining,
+        data.totalCharged
+      );
+
+      // Check for low balance warning (2 minutes or less)
+      if (data.minutesRemaining <= 2 && data.minutesRemaining > 0) {
+        optionsRef.current.onLowBalance?.(data.minutesRemaining);
+      }
+
+      // Check if we should disconnect due to depleted balance
+      if (!data.shouldContinue) {
+        console.log('[AI Voice] Balance depleted, disconnecting...');
+        optionsRef.current.onBalanceDepleted?.();
+        // Don't auto-disconnect - let the UI handle it with a proper message
+      }
+    } catch (err) {
+      console.error('[AI Voice] Billing tick error:', err);
+    }
+  }, []);
+
+  // Start billing interval
+  const startBillingInterval = useCallback(() => {
+    // Clear any existing interval
+    if (billingIntervalRef.current) {
+      clearInterval(billingIntervalRef.current);
+    }
+
+    // Do an initial tick after a short delay (let connection stabilize)
+    setTimeout(() => {
+      processBillingTick();
+    }, 5000);
+
+    // Then tick every minute
+    billingIntervalRef.current = setInterval(() => {
+      processBillingTick();
+    }, BILLING_INTERVAL_MS);
+
+    console.log('[AI Voice] Billing interval started');
+  }, [processBillingTick]);
+
+  // Stop billing interval
+  const stopBillingInterval = useCallback(() => {
+    if (billingIntervalRef.current) {
+      clearInterval(billingIntervalRef.current);
+      billingIntervalRef.current = null;
+      console.log('[AI Voice] Billing interval stopped');
+    }
   }, []);
 
   // Convert base64 to Float32Array (PCM 16-bit to float)
@@ -427,6 +516,9 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           updateState('connected');
           setSpeakingState('listening');
           connectingRef.current = false; // Connection complete
+
+          // Start billing interval
+          startBillingInterval();
         };
 
         ws.onmessage = handleMessage;
@@ -438,6 +530,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           setError('Connection error - WebSocket failed to connect');
           updateState('error');
           connectingRef.current = false;
+          stopBillingInterval();
         };
 
         ws.onclose = (event) => {
@@ -449,6 +542,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           updateState('disconnected');
           setSpeakingState('idle');
           connectingRef.current = false;
+          stopBillingInterval();
         };
 
         wsRef.current = ws;
@@ -460,11 +554,14 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         connectingRef.current = false; // Reset on error
       }
     },
-    [updateState, setupAudioCapture, handleMessage]
+    [updateState, setupAudioCapture, handleMessage, startBillingInterval, stopBillingInterval]
   );
 
   // Disconnect
   const disconnect = useCallback(async () => {
+    // Stop billing interval
+    stopBillingInterval();
+
     // Reset connecting state
     connectingRef.current = false;
 
@@ -508,9 +605,14 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     audioQueueRef.current = [];
     isPlayingRef.current = false;
 
+    // Reset billing state
+    setRemainingBalance(null);
+    setMinutesRemaining(null);
+    setTotalCharged(0);
+
     updateState('disconnected');
     setSpeakingState('idle');
-  }, [updateState]);
+  }, [updateState, stopBillingInterval]);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
@@ -521,6 +623,12 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   useEffect(() => {
     return () => {
       console.log('[AI Voice] Cleanup running, sessionId:', sessionIdRef.current);
+
+      // Stop billing interval
+      if (billingIntervalRef.current) {
+        clearInterval(billingIntervalRef.current);
+        billingIntervalRef.current = null;
+      }
 
       // Reset connecting state
       connectingRef.current = false;
@@ -577,5 +685,9 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     disconnect,
     toggleMute,
     sessionId: sessionIdRef.current,
+    // Billing state
+    remainingBalance,
+    minutesRemaining,
+    totalCharged,
   };
 }

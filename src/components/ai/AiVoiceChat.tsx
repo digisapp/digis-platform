@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
-import { Mic, MicOff, PhoneOff, Bot, Volume2, Sparkles } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Bot, Volume2, Sparkles, Coins, AlertTriangle } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 import { useAiVoiceChat, ConnectionState, SpeakingState } from './useAiVoiceChat';
 
@@ -16,7 +16,7 @@ interface AiVoiceChatProps {
 
 export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: AiVoiceChatProps) {
   const router = useRouter();
-  const { showError, showSuccess } = useToastContext();
+  const { showError, showSuccess, showInfo } = useToastContext();
   const [startTime, setStartTime] = useState<number | null>(null);
   const [duration, setDuration] = useState(0);
   const [transcript, setTranscript] = useState('');
@@ -24,7 +24,10 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
   const [ending, setEnding] = useState(false);
   const [rating, setRating] = useState(0);
   const [showRating, setShowRating] = useState(false);
+  const [lowBalanceWarning, setLowBalanceWarning] = useState(false);
+  const [balanceDepleted, setBalanceDepleted] = useState(false);
   const hasInitiatedRef = useRef(false);
+  const lowBalanceShownRef = useRef(false);
 
   const {
     connectionState,
@@ -34,6 +37,9 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     connect,
     disconnect,
     toggleMute,
+    remainingBalance,
+    minutesRemaining,
+    totalCharged,
   } = useAiVoiceChat({
     onTranscript: (text, isFinal) => {
       if (isFinal) {
@@ -45,6 +51,21 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     },
     onError: (err) => {
       showError(err);
+    },
+    onLowBalance: (mins) => {
+      if (!lowBalanceShownRef.current) {
+        lowBalanceShownRef.current = true;
+        setLowBalanceWarning(true);
+        showInfo(`Low balance! Only ${mins} minute${mins !== 1 ? 's' : ''} remaining.`);
+      }
+    },
+    onBalanceDepleted: () => {
+      setBalanceDepleted(true);
+      showError('Your balance has run out. The chat will end.');
+      // Auto-end chat after a brief moment
+      setTimeout(() => {
+        handleEndChat();
+      }, 2000);
     },
   });
 
@@ -288,11 +309,47 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
         <h2 className="text-2xl font-bold text-white mb-1">{creatorName}&apos;s AI Twin</h2>
         <p className={`mb-4 ${getStatusColor()}`}>{getStatusText()}</p>
 
-        {/* Duration */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/20">
-          <Volume2 className="w-4 h-4 text-cyan-400" />
-          <span className="text-white font-mono text-lg">{formatDuration(duration)}</span>
+        {/* Duration and Balance */}
+        <div className="flex items-center gap-3">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/20">
+            <Volume2 className="w-4 h-4 text-cyan-400" />
+            <span className="text-white font-mono text-lg">{formatDuration(duration)}</span>
+          </div>
+
+          {/* Balance indicator */}
+          {remainingBalance !== null && (
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${
+              lowBalanceWarning
+                ? 'bg-yellow-500/20 border-yellow-500/50'
+                : 'bg-white/10 border-white/20'
+            }`}>
+              <Coins className={`w-4 h-4 ${lowBalanceWarning ? 'text-yellow-400' : 'text-cyan-400'}`} />
+              <span className={`font-mono text-lg ${lowBalanceWarning ? 'text-yellow-400' : 'text-white'}`}>
+                {remainingBalance.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Low balance warning banner */}
+        {lowBalanceWarning && !balanceDepleted && (
+          <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            <span className="text-yellow-400 text-sm">
+              Low balance! ~{minutesRemaining} minute{minutesRemaining !== 1 ? 's' : ''} remaining
+            </span>
+          </div>
+        )}
+
+        {/* Balance depleted warning */}
+        {balanceDepleted && (
+          <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-red-500/20 rounded-lg border border-red-500/30">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400 text-sm">
+              Balance depleted - chat ending...
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Transcription Display */}
@@ -348,9 +405,18 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
       )}
 
       {/* Cost indicator */}
-      <p className="mt-8 text-gray-500 text-sm">
-        Coins are charged per minute of conversation
-      </p>
+      <div className="mt-8 text-center">
+        {totalCharged > 0 ? (
+          <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
+            <Coins className="w-4 h-4" />
+            <span>{totalCharged.toLocaleString()} coins used this session</span>
+          </p>
+        ) : (
+          <p className="text-gray-500 text-sm">
+            Coins are charged per minute of conversation
+          </p>
+        )}
+      </div>
     </div>
   );
 }

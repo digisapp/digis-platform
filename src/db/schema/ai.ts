@@ -66,10 +66,12 @@ export const aiSessions = pgTable('ai_sessions', {
   startedAt: timestamp('started_at').defaultNow().notNull(),
   endedAt: timestamp('ended_at'),
   durationSeconds: integer('duration_seconds'), // Actual duration
+  lastBilledAt: timestamp('last_billed_at'), // For incremental billing
 
   // Billing
   pricePerMinute: integer('price_per_minute').notNull(), // Rate at time of session
-  coinsSpent: integer('coins_spent'), // Total fan paid
+  minutesBilled: integer('minutes_billed').default(0).notNull(), // Minutes already charged
+  coinsSpent: integer('coins_spent').default(0).notNull(), // Total fan paid so far
   creatorEarnings: integer('creator_earnings'), // Creator's cut
   platformFee: integer('platform_fee'), // Platform's cut
   apiCost: integer('api_cost'), // xAI API cost (internal tracking)

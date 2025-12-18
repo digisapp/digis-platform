@@ -303,6 +303,227 @@ export class AiSessionService {
   }
 
   /**
+   * Process a billing tick for an active session
+   * Called every minute to charge incrementally
+   *
+   * Returns:
+   * - success: whether billing succeeded
+   * - shouldContinue: whether session can continue (has balance)
+   * - remainingBalance: fan's remaining balance
+   * - minutesRemaining: estimated minutes left based on balance
+   * - totalCharged: total coins charged this session
+   */
+  static async tickSession(sessionId: string, userId: string): Promise<{
+    success: boolean;
+    shouldContinue: boolean;
+    remainingBalance: number;
+    minutesRemaining: number;
+    totalCharged: number;
+    message?: string;
+  }> {
+    const session = await db.query.aiSessions.findFirst({
+      where: eq(aiSessions.id, sessionId),
+    });
+
+    if (!session) {
+      return { success: false, shouldContinue: false, remainingBalance: 0, minutesRemaining: 0, totalCharged: 0, message: 'Session not found' };
+    }
+
+    if (session.fanId !== userId) {
+      return { success: false, shouldContinue: false, remainingBalance: 0, minutesRemaining: 0, totalCharged: 0, message: 'Unauthorized' };
+    }
+
+    if (session.status !== 'active') {
+      return { success: false, shouldContinue: false, remainingBalance: 0, minutesRemaining: 0, totalCharged: session.coinsSpent || 0, message: 'Session not active' };
+    }
+
+    const now = new Date();
+    const elapsedSeconds = Math.floor((now.getTime() - session.startedAt.getTime()) / 1000);
+    const totalMinutes = Math.ceil(elapsedSeconds / 60);
+    const minutesBilled = session.minutesBilled || 0;
+    const minutesToBill = totalMinutes - minutesBilled;
+
+    // Nothing to bill yet
+    if (minutesToBill <= 0) {
+      const wallet = await db.query.wallets.findFirst({
+        where: eq(wallets.userId, userId),
+      });
+      const balance = wallet?.balance || 0;
+      const minutesRemaining = Math.floor(balance / session.pricePerMinute);
+
+      return {
+        success: true,
+        shouldContinue: balance >= session.pricePerMinute,
+        remainingBalance: balance,
+        minutesRemaining,
+        totalCharged: session.coinsSpent || 0,
+      };
+    }
+
+    const amountToCharge = minutesToBill * session.pricePerMinute;
+    const platformFee = Math.floor(amountToCharge * PLATFORM_FEE_PERCENT / 100);
+    const creatorEarnings = amountToCharge - platformFee;
+
+    // Process billing in a transaction
+    const result = await db.transaction(async (tx) => {
+      // Lock fan's wallet
+      const [fanWallet] = await tx
+        .select()
+        .from(wallets)
+        .where(eq(wallets.userId, session.fanId))
+        .for('update');
+
+      if (!fanWallet || fanWallet.balance < amountToCharge) {
+        // Not enough balance - charge what we can and end session
+        const availableBalance = fanWallet?.balance || 0;
+        const affordableMinutes = Math.floor(availableBalance / session.pricePerMinute);
+
+        if (affordableMinutes <= 0) {
+          return {
+            success: false,
+            shouldContinue: false,
+            remainingBalance: availableBalance,
+            minutesRemaining: 0,
+            totalCharged: session.coinsSpent || 0,
+            message: 'Insufficient balance',
+          };
+        }
+
+        // Charge what they can afford
+        const partialCharge = affordableMinutes * session.pricePerMinute;
+        const partialPlatformFee = Math.floor(partialCharge * PLATFORM_FEE_PERCENT / 100);
+        const partialCreatorEarnings = partialCharge - partialPlatformFee;
+
+        // Create transactions
+        const idempotencyKey = `ai-tick-${sessionId}-${minutesBilled + affordableMinutes}`;
+
+        await tx.insert(walletTransactions).values({
+          userId: session.fanId,
+          amount: -partialCharge,
+          type: 'ai_session_charge',
+          status: 'completed',
+          description: `AI Twin chat (${affordableMinutes} min)`,
+          idempotencyKey,
+        });
+
+        await tx.insert(walletTransactions).values({
+          userId: session.creatorId,
+          amount: partialCreatorEarnings,
+          type: 'ai_session_earnings',
+          status: 'completed',
+          description: `AI Twin earnings (${affordableMinutes} min)`,
+          idempotencyKey: `${idempotencyKey}-creator`,
+        });
+
+        // Update wallets
+        await tx.update(wallets)
+          .set({ balance: sql`${wallets.balance} - ${partialCharge}`, updatedAt: new Date() })
+          .where(eq(wallets.userId, session.fanId));
+
+        await tx.update(wallets)
+          .set({ balance: sql`${wallets.balance} + ${partialCreatorEarnings}`, updatedAt: new Date() })
+          .where(eq(wallets.userId, session.creatorId));
+
+        // Update session
+        const newTotalCharged = (session.coinsSpent || 0) + partialCharge;
+        await tx.update(aiSessions)
+          .set({
+            minutesBilled: minutesBilled + affordableMinutes,
+            coinsSpent: newTotalCharged,
+            lastBilledAt: now,
+            updatedAt: now,
+          })
+          .where(eq(aiSessions.id, sessionId));
+
+        return {
+          success: true,
+          shouldContinue: false, // Out of balance
+          remainingBalance: availableBalance - partialCharge,
+          minutesRemaining: 0,
+          totalCharged: newTotalCharged,
+          message: 'Balance depleted',
+        };
+      }
+
+      // Full charge
+      const idempotencyKey = `ai-tick-${sessionId}-${minutesBilled + minutesToBill}`;
+
+      // Check idempotency
+      const existingTx = await tx.query.walletTransactions.findFirst({
+        where: eq(walletTransactions.idempotencyKey, idempotencyKey),
+      });
+
+      if (existingTx) {
+        // Already processed
+        const newBalance = fanWallet.balance;
+        return {
+          success: true,
+          shouldContinue: newBalance >= session.pricePerMinute,
+          remainingBalance: newBalance,
+          minutesRemaining: Math.floor(newBalance / session.pricePerMinute),
+          totalCharged: session.coinsSpent || 0,
+        };
+      }
+
+      // Create transactions
+      await tx.insert(walletTransactions).values({
+        userId: session.fanId,
+        amount: -amountToCharge,
+        type: 'ai_session_charge',
+        status: 'completed',
+        description: `AI Twin chat (${minutesToBill} min)`,
+        idempotencyKey,
+      });
+
+      await tx.insert(walletTransactions).values({
+        userId: session.creatorId,
+        amount: creatorEarnings,
+        type: 'ai_session_earnings',
+        status: 'completed',
+        description: `AI Twin earnings (${minutesToBill} min)`,
+        idempotencyKey: `${idempotencyKey}-creator`,
+      });
+
+      // Update wallets
+      await tx.update(wallets)
+        .set({ balance: sql`${wallets.balance} - ${amountToCharge}`, updatedAt: new Date() })
+        .where(eq(wallets.userId, session.fanId));
+
+      await tx.update(wallets)
+        .set({ balance: sql`${wallets.balance} + ${creatorEarnings}`, updatedAt: new Date() })
+        .where(eq(wallets.userId, session.creatorId));
+
+      // Update session
+      const newTotalCharged = (session.coinsSpent || 0) + amountToCharge;
+      await tx.update(aiSessions)
+        .set({
+          minutesBilled: minutesBilled + minutesToBill,
+          coinsSpent: newTotalCharged,
+          lastBilledAt: now,
+          updatedAt: now,
+        })
+        .where(eq(aiSessions.id, sessionId));
+
+      const newBalance = fanWallet.balance - amountToCharge;
+      const minutesRemaining = Math.floor(newBalance / session.pricePerMinute);
+
+      return {
+        success: true,
+        shouldContinue: newBalance >= session.pricePerMinute,
+        remainingBalance: newBalance,
+        minutesRemaining,
+        totalCharged: newTotalCharged,
+      };
+    });
+
+    // Invalidate caches
+    invalidateBalanceCache(session.fanId).catch(console.error);
+    invalidateBalanceCache(session.creatorId).catch(console.error);
+
+    return result;
+  }
+
+  /**
    * Mark a session as failed
    */
   static async failSession(sessionId: string, errorMessage: string) {
