@@ -152,13 +152,14 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           }
           break;
 
-        case 'response.audio_transcript.delta':
+        // xAI uses "output_audio" in message types
+        case 'response.output_audio_transcript.delta':
           if (message.delta) {
             optionsRef.current.onAiResponse?.(message.delta);
           }
           break;
 
-        case 'response.audio.delta':
+        case 'response.output_audio.delta':
           if (message.delta) {
             setSpeakingState('speaking');
             const audioData = base64ToFloat32(message.delta);
@@ -167,10 +168,36 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           }
           break;
 
-        case 'response.audio.done':
+        case 'response.output_audio.done':
           if (audioQueueRef.current.length === 0) {
             setSpeakingState('listening');
           }
+          break;
+
+        case 'response.output_audio_transcript.done':
+          // Final transcript is complete
+          break;
+
+        // Response lifecycle events (informational)
+        case 'response.created':
+        case 'response.done':
+        case 'response.output_item.added':
+        case 'response.output_item.done':
+        case 'response.content_part.added':
+        case 'response.content_part.done':
+          // These are informational events, no action needed
+          break;
+
+        // Conversation events
+        case 'conversation.created':
+        case 'conversation.item.added':
+        case 'input_audio_buffer.committed':
+          // Informational events
+          break;
+
+        // Ping/pong for keepalive
+        case 'ping':
+          // Server keepalive ping
           break;
 
         case 'response.function_call_arguments.done':
