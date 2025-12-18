@@ -100,7 +100,6 @@ export default function AiTwinPage() {
           boundaryPrompt: settings.boundaryPrompt,
           pricePerMinute: settings.pricePerMinute,
           minimumMinutes: settings.minimumMinutes,
-          maxSessionMinutes: settings.maxSessionMinutes,
         }),
       });
 
@@ -318,7 +317,7 @@ export default function AiTwinPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-400 mb-1">
                       Rate per minute
@@ -338,7 +337,7 @@ export default function AiTwinPage() {
                       <span className="text-xs text-gray-400">coins</span>
                     </div>
                     <p className="text-xs text-green-400 mt-1">
-                      {formatCoinsToUSD(settings.pricePerMinute)}/min
+                      You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
                     </p>
                   </div>
 
@@ -360,26 +359,9 @@ export default function AiTwinPage() {
                       />
                       <span className="text-xs text-gray-400">mins</span>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
-                      Maximum duration
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="5"
-                        max="120"
-                        value={settings.maxSessionMinutes || ''}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/^0+/, '') || '5';
-                          setSettings({ ...settings, maxSessionMinutes: Math.min(120, Math.max(5, parseInt(val) || 5)) });
-                        }}
-                        className="w-full px-3 py-2 bg-black/40 border border-yellow-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-yellow-500"
-                      />
-                      <span className="text-xs text-gray-400">mins</span>
-                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Fan must have enough coins to start
+                    </p>
                   </div>
                 </div>
 
@@ -406,7 +388,7 @@ export default function AiTwinPage() {
                   <li>• Fans can voice chat with your AI 24/7, even when you&apos;re offline</li>
                   <li>• Your AI speaks in your chosen voice with your personality</li>
                   <li>• Supports 100+ languages - your AI auto-translates!</li>
-                  <li>• You earn 80% of all AI chat revenue</li>
+                  <li>• You earn $0.10 for every coin spent on your AI Twin</li>
                 </ul>
               </div>
 
