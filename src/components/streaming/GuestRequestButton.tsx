@@ -96,9 +96,19 @@ export function GuestRequestButton({
     }
   };
 
-  // Don't show for host or if guest requests are disabled
-  if (isHost || !guestRequestsEnabled) {
+  // Don't show for host
+  if (isHost) {
     return null;
+  }
+
+  // Show disabled state if guest requests are not enabled
+  if (!guestRequestsEnabled) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-500/20 border border-gray-500/30 rounded-xl opacity-50 cursor-not-allowed">
+        <Video className="w-4 h-4 text-gray-400" />
+        <span className="text-sm text-gray-400 font-medium hidden sm:inline">Join Closed</span>
+      </div>
+    );
   }
 
   // Show status based on current request state
