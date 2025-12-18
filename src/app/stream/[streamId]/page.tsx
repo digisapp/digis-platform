@@ -1148,9 +1148,9 @@ export default function StreamViewerPage() {
             {stream?.creator?.username && (
               <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
                 <span
-                  className="text-xl sm:text-2xl font-black tracking-wide whitespace-nowrap text-white"
+                  className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white"
                   style={{
-                    fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
+                    fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
                     WebkitTextStroke: '1px #ff1493',
                     textShadow: '1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493, 0 1.5px 0 #ff1493, 0 -1.5px 0 #ff1493, 1.5px 0 0 #ff1493, -1.5px 0 0 #ff1493',
                   }}
