@@ -1148,17 +1148,13 @@ export default function StreamViewerPage() {
 
             {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
             {stream?.creator?.username && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
                 <span
-                  className="text-sm sm:text-base font-black tracking-wider whitespace-nowrap"
+                  className="text-base sm:text-lg font-black tracking-wide whitespace-nowrap text-white"
                   style={{
                     fontFamily: '"SF Pro Display", "Inter", system-ui, sans-serif',
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(200,230,255,0.9) 50%, rgba(150,220,255,0.85) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    filter: 'drop-shadow(0 0 8px rgba(0,255,255,0.6)) drop-shadow(0 0 20px rgba(0,200,255,0.4)) drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
-                    textShadow: '0 0 30px rgba(0,255,255,0.3)',
+                    WebkitTextStroke: '1px rgba(0,0,0,0.8)',
+                    textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 2px 0 0 #000, -2px 0 0 #000',
                   }}
                 >
                   digis.cc/{stream.creator.username}
