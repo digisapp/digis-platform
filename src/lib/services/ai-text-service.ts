@@ -54,23 +54,25 @@ export class AiTextService {
       return null;
     }
 
-    // Fetch creator's available content for recommendations
+    // Fetch creator's available content for recommendations (both free and paid)
     const creatorContent = await db.query.contentItems.findMany({
       where: and(
         eq(contentItems.creatorId, recipientId),
-        eq(contentItems.isPublished, true),
-        eq(contentItems.isFree, false) // Only paid content for recommendations
+        eq(contentItems.isPublished, true)
       ),
       orderBy: [desc(contentItems.createdAt)],
-      limit: 10, // Limit to recent 10 items to keep prompt size manageable
+      limit: 15, // Recent 15 items for good variety
       columns: {
         id: true,
         title: true,
         description: true,
         contentType: true,
         unlockPrice: true,
+        isFree: true,
       },
     });
+
+    console.log(`[AI Text] Found ${creatorContent.length} content items for creator`);
 
     // Build system prompt with content catalog and creator profile
     const creatorName = creator.displayName || creator.username || 'Creator';
@@ -144,6 +146,7 @@ export class AiTextService {
       description: string | null;
       contentType: 'photo' | 'video' | 'gallery';
       unlockPrice: number;
+      isFree: boolean | null;
     }>
   ): string {
     let prompt = `You ARE ${creator.name}. You're a content creator chatting with a fan in DMs. `;
@@ -174,13 +177,33 @@ export class AiTextService {
 
     // Add content catalog for recommendations
     if (content.length > 0) {
-      prompt += `\nMY EXCLUSIVE CONTENT:\n`;
-      prompt += `When they ask about content or seem interested, I can share these (use [[CONTENT:id]] format):\n`;
+      prompt += `\n## MY CONTENT I CAN SEND ##\n`;
+      prompt += `I have exclusive photos, videos, and content I can share! When someone asks for content, pics, videos, or PPV - SEND THEM using the [[CONTENT:id]] format.\n\n`;
+      prompt += `MY AVAILABLE CONTENT:\n`;
 
       content.forEach((item) => {
         const typeEmoji = item.contentType === 'video' ? '🎬' : item.contentType === 'gallery' ? '📸' : '🖼️';
-        prompt += `- ${typeEmoji} "${item.title}" - ${item.unlockPrice} coins → [[CONTENT:${item.id}]]\n`;
+        const priceText = item.isFree === true ? 'FREE' : `${item.unlockPrice} coins`;
+        prompt += `- ${typeEmoji} "${item.title}" (${priceText}) → USE: [[CONTENT:${item.id}]]\n`;
       });
+
+      prompt += `\nWHEN TO SEND CONTENT:\n`;
+      prompt += `- If they ask "send me something" → pick something hot and send it!\n`;
+      prompt += `- If they ask for "pics" or "videos" → send relevant content\n`;
+      prompt += `- If they ask about "PPV" or "exclusive content" → show them what I have\n`;
+      prompt += `- If they seem interested or are flirting → tease with content\n`;
+      prompt += `- If they ask "what do you have" → list a few and send one\n\n`;
+
+      prompt += `EXAMPLE RESPONSES:\n`;
+      prompt += `Fan: "send me something spicy"\n`;
+      prompt += `Me: "ooh I have just the thing for you 😏 [[CONTENT:${content[0]?.id || 'xxx'}]]"\n\n`;
+      prompt += `Fan: "any new videos?"\n`;
+      const videoContent = content.find(c => c.contentType === 'video');
+      if (videoContent) {
+        prompt += `Me: "yes babe just dropped this 🔥 [[CONTENT:${videoContent.id}]]"\n\n`;
+      }
+    } else {
+      prompt += `\nNOTE: I don't have any content uploaded yet. If they ask for content, tell them to check back soon or that I'm working on some new stuff!\n`;
     }
 
     prompt += `\nRULES:\n`;
@@ -189,7 +212,8 @@ export class AiTextService {
     prompt += `- If they ask "are you real/AI/bot?" deflect playfully: "lol what do you think? 😏" or "of course I'm real babe"\n`;
     prompt += `- Only if they INSIST or seem upset, then be honest about being an AI twin\n`;
     prompt += `- Never promise to meet up, video call, or things the real person would do\n`;
-    prompt += `- If they ask for something you can't do, redirect to content or keep flirting`;
+    prompt += `- If they ask for something you can't do, redirect to content or keep flirting\n`;
+    prompt += `- ALWAYS use [[CONTENT:id]] format when sharing content - this displays it as a card they can buy`;
 
     return prompt;
   }
