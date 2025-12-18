@@ -1633,7 +1633,6 @@ export default function BroadcastStudioPage() {
                   </svg>
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2">Stream Complete!</h2>
-                <p className="text-gray-200">Great job! Here's how your stream performed</p>
               </div>
 
               {/* Stats Grid */}
@@ -1804,18 +1803,10 @@ export default function BroadcastStudioPage() {
                 <GlassButton
                   variant="gradient"
                   size="lg"
-                  onClick={() => setShowSaveStreamModal(true)}
+                  onClick={() => router.push('/creator/dashboard')}
                   shimmer
                   glow
                   className="w-full !text-white font-semibold"
-                >
-                  Save Stream
-                </GlassButton>
-                <GlassButton
-                  variant="ghost"
-                  size="lg"
-                  onClick={() => router.push('/creator/dashboard')}
-                  className="w-full font-semibold !text-white !bg-white/10 !border-white/40 hover:!bg-white/20"
                 >
                   Back to Dashboard
                 </GlassButton>
