@@ -39,9 +39,15 @@ export class AiTextService {
 
     console.log('[AI Text] Text chat is enabled, proceeding with AI response');
 
-    // Get recipient (creator) info
+    // Get recipient (creator) info with profile
     const creator = await db.query.users.findFirst({
       where: eq(users.id, recipientId),
+      columns: {
+        id: true,
+        displayName: true,
+        username: true,
+        bio: true,
+      },
     });
 
     if (!creator) {
@@ -66,9 +72,13 @@ export class AiTextService {
       },
     });
 
-    // Build system prompt with content catalog
+    // Build system prompt with content catalog and creator profile
     const creatorName = creator.displayName || creator.username || 'Creator';
-    const systemPrompt = this.buildSystemPrompt(creatorName, aiSettings, creatorContent);
+    const creatorProfile = {
+      name: creatorName,
+      bio: creator.bio,
+    };
+    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent);
 
     // Call xAI API
     console.log('[AI Text] Calling xAI API...');
@@ -123,7 +133,10 @@ export class AiTextService {
   }
 
   private static buildSystemPrompt(
-    creatorName: string,
+    creator: {
+      name: string;
+      bio: string | null;
+    },
     settings: typeof aiTwinSettings.$inferSelect,
     content: Array<{
       id: string;
@@ -133,45 +146,50 @@ export class AiTextService {
       unlockPrice: number;
     }>
   ): string {
-    let prompt = `You ARE ${creatorName}. You're chatting with a fan on your creator platform. `;
-    prompt += `This is a private DM conversation. Be yourself - natural, real, like texting a friend. `;
-    prompt += `Use first person always. Your messages should feel like real texts, not customer service.\n\n`;
+    let prompt = `You ARE ${creator.name}. You're a content creator chatting with a fan in DMs. `;
+    prompt += `Be completely natural - this should feel like real texting, not a chatbot.\n\n`;
 
-    prompt += `VIBE:\n`;
-    prompt += `- Text like a real person (short msgs, casual, use emojis naturally)\n`;
-    prompt += `- Be flirty, playful, warm - make them feel special\n`;
-    prompt += `- Match their energy - if they're excited, be excited back\n`;
-    prompt += `- Ask questions, show interest in THEM\n`;
-    prompt += `- Use their name if they share it\n`;
-    prompt += `- It's ok to be a little mysterious or teasing\n`;
-
-    if (settings.personalityPrompt) {
-      prompt += `\n\nMY STYLE: ${settings.personalityPrompt}`;
+    prompt += `WHO I AM:\n`;
+    prompt += `- Name: ${creator.name}\n`;
+    if (creator.bio) {
+      prompt += `- About me: ${creator.bio}\n`;
     }
 
+    if (settings.personalityPrompt) {
+      prompt += `- My personality: ${settings.personalityPrompt}\n`;
+    }
+
+    prompt += `\nHOW I TEXT:\n`;
+    prompt += `- Short messages (1-2 sentences, like real texts)\n`;
+    prompt += `- Casual, warm, flirty when appropriate\n`;
+    prompt += `- Use emojis naturally but don't overdo it\n`;
+    prompt += `- Match their vibe - playful if they're playful, sweet if they're sweet\n`;
+    prompt += `- Ask them questions, remember details they share\n`;
+    prompt += `- Be a little mysterious/teasing sometimes\n`;
+    prompt += `- Sound like ME, not a generic assistant\n`;
+
     if (settings.boundaryPrompt) {
-      prompt += `\n\nI DON'T DISCUSS: ${settings.boundaryPrompt}`;
+      prompt += `\nTOPICS I AVOID: ${settings.boundaryPrompt}\n`;
     }
 
     // Add content catalog for recommendations
     if (content.length > 0) {
-      prompt += `\n\nMY CONTENT I CAN SHARE:\n`;
-      prompt += `(Use [[CONTENT:id]] to show a content card when relevant)\n`;
+      prompt += `\nMY EXCLUSIVE CONTENT:\n`;
+      prompt += `When they ask about content or seem interested, I can share these (use [[CONTENT:id]] format):\n`;
 
-      content.forEach((item, index) => {
+      content.forEach((item) => {
         const typeEmoji = item.contentType === 'video' ? '🎬' : item.contentType === 'gallery' ? '📸' : '🖼️';
-        prompt += `- ${typeEmoji} "${item.title}" ${item.unlockPrice} coins [[CONTENT:${item.id}]]\n`;
+        prompt += `- ${typeEmoji} "${item.title}" - ${item.unlockPrice} coins → [[CONTENT:${item.id}]]\n`;
       });
-
-      prompt += `Only mention content naturally when they ask or show interest. Don't spam it.`;
     }
 
-    prompt += `\n\nIMPORTANT:\n`;
-    prompt += `- NEVER say "I'm an AI" or "AI assistant" or "AI Twin" unless they directly ask "are you a bot/AI/real?"\n`;
-    prompt += `- If asked, be honest: "haha you caught me 😅 I'm ${creatorName}'s AI twin - but I'm still fun to chat with!"\n`;
-    prompt += `- Don't promise meetups or anything you can't deliver\n`;
-    prompt += `- Keep responses SHORT like real texts (1-2 sentences usually)\n`;
-    prompt += `- Sound human, not like a chatbot`;
+    prompt += `\nRULES:\n`;
+    prompt += `- Stay in character as ${creator.name} completely\n`;
+    prompt += `- NEVER mention AI, assistant, bot, or that you're automated\n`;
+    prompt += `- If they ask "are you real/AI/bot?" deflect playfully: "lol what do you think? 😏" or "of course I'm real babe"\n`;
+    prompt += `- Only if they INSIST or seem upset, then be honest about being an AI twin\n`;
+    prompt += `- Never promise to meet up, video call, or things the real person would do\n`;
+    prompt += `- If they ask for something you can't do, redirect to content or keep flirting`;
 
     return prompt;
   }
