@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { rateLimit } from '@/lib/rate-limit';
 import { MessageService } from '@/lib/messages/message-service';
 import { sendMessageSchema, validateBody } from '@/lib/validation/schemas';
+import { AiTextService } from '@/lib/services/ai-text-service';
 
 // POST /api/messages/send - Send a message
 export async function POST(request: NextRequest) {
@@ -52,9 +53,27 @@ export async function POST(request: NextRequest) {
       mediaType
     );
 
+    // Check if recipient has AI text chat enabled and auto-respond
+    let aiResponse = null;
+    try {
+      aiResponse = await AiTextService.tryAutoRespond(
+        user.id,
+        recipientId,
+        content,
+        conversation.id
+      );
+    } catch (aiError) {
+      // Don't fail the whole request if AI fails - just log it
+      console.error('[AI Text] Auto-respond error:', aiError);
+    }
+
     return NextResponse.json({
       message,
       conversationId: conversation.id,
+      aiResponse: aiResponse ? {
+        message: aiResponse.aiMessage,
+        coinsCharged: aiResponse.coinsCharged,
+      } : null,
     });
   } catch (error) {
     // Log full error server-side, return generic message to client
