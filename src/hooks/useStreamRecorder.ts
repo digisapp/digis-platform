@@ -140,10 +140,12 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
         return false;
       }
 
-      // Create MediaRecorder
+      // Create MediaRecorder with high quality settings
+      // 8 Mbps for crisp 1080p that holds up when cropped to portrait for Instagram/TikTok
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: selectedMimeType,
-        videoBitsPerSecond: 2500000, // 2.5 Mbps
+        videoBitsPerSecond: 8000000, // 8 Mbps for high quality
+        audioBitsPerSecond: 192000, // 192 kbps audio
       });
 
       chunksRef.current = [];
