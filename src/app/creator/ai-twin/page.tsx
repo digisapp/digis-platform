@@ -388,7 +388,6 @@ export default function AiTwinPage() {
                   <li>• Fans can voice chat with your AI 24/7, even when you&apos;re offline</li>
                   <li>• Your AI speaks in your chosen voice with your personality</li>
                   <li>• Supports 100+ languages - your AI auto-translates!</li>
-                  <li>• You earn $0.10 for every coin spent on your AI Twin</li>
                 </ul>
               </div>
 
