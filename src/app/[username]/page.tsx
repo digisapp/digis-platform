@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart, Scissors, Eye, ThumbsUp } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart, Scissors, Eye, ThumbsUp, Bot } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -97,6 +97,7 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [showTipSuccessModal, setShowTipSuccessModal] = useState(false);
   const [tipSuccessAmount, setTipSuccessAmount] = useState(0);
+  const [aiTwinEnabled, setAiTwinEnabled] = useState(false);
 
   // Set mounted state for portal
   useEffect(() => {
@@ -180,11 +181,12 @@ export default function ProfilePage() {
         setContent(bentaContent);
       }
 
-      // Check subscription status if creator (parallel, non-blocking)
+      // Check subscription status and AI Twin if creator (parallel, non-blocking)
       if (data.user.role === 'creator') {
         Promise.all([
           checkSubscription(data.user.id),
-          fetchSubscriptionTier(data.user.id)
+          fetchSubscriptionTier(data.user.id),
+          checkAiTwin(data.user.id)
         ]);
       }
     } catch (err: any) {
@@ -217,6 +219,18 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error('Error fetching subscription tier:', err);
+    }
+  };
+
+  const checkAiTwin = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/ai/check/${creatorId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAiTwinEnabled(data.enabled);
+      }
+    } catch (err) {
+      console.error('Error checking AI Twin:', err);
     }
   };
 
@@ -853,6 +867,25 @@ export default function ProfilePage() {
               <MessageCircle className="w-4 h-4" />
               <span>Chat</span>
             </button>
+
+            {/* AI Twin Button - Only show if enabled and not own profile */}
+            {user.role === 'creator' && aiTwinEnabled && currentUserId !== user.id && (
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setSignUpAction('chat with AI Twin');
+                    setShowSignUpModal(true);
+                    return;
+                  }
+                  router.push(`/ai-chat/${user.username}`);
+                }}
+                className="group px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/50 hover:border-cyan-400 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
+              >
+                <Bot className="w-4 h-4 text-cyan-400" />
+                <span>AI Twin</span>
+                <Sparkles className="w-3 h-3 text-purple-400" />
+              </button>
+            )}
 
             {/* Tip Button */}
             {user.role === 'creator' && (
