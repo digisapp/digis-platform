@@ -336,19 +336,6 @@ export default function AiTwinPage() {
                 </div>
               </GlassCard>
 
-              {/* Info Box */}
-              <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl">
-                <h4 className="text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  How AI Twin Works
-                </h4>
-                <ul className="text-sm text-gray-300 space-y-1">
-                  <li>• Fans can voice chat with your AI 24/7, even when you&apos;re offline</li>
-                  <li>• Your AI speaks in your chosen voice with your personality</li>
-                  <li>• Supports 100+ languages - your AI auto-translates!</li>
-                </ul>
-              </div>
-
               {/* Save Button */}
               <GlassButton
                 variant="gradient"
