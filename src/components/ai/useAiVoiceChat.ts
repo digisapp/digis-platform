@@ -367,10 +367,15 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           throw new Error('Failed to setup audio');
         }
 
-        // 4. Connect to xAI WebSocket with token in URL (required for browser WebSocket auth)
-        const wsUrl = `${XAI_WEBSOCKET_URL}?model=grok-2-public&authorization=${encodeURIComponent(token)}`;
-        console.log('[AI Voice] Connecting to WebSocket...');
-        const ws = new WebSocket(wsUrl);
+        // 4. Connect to xAI WebSocket using subprotocols for browser auth
+        // Browser WebSocket API cannot set custom headers, so we use subprotocols
+        // Following similar pattern to OpenAI's realtime API
+        const wsUrl = `${XAI_WEBSOCKET_URL}?model=grok-2-public`;
+        console.log('[AI Voice] Connecting to WebSocket with subprotocol auth...');
+        const ws = new WebSocket(wsUrl, [
+          'realtime',
+          `openai-insecure-api-key.${token}`, // xAI uses OpenAI-compatible format
+        ]);
 
         ws.onopen = () => {
           console.log('[AI Voice] WebSocket connected');
@@ -395,13 +400,19 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
         ws.onerror = (event) => {
           console.error('[AI Voice] WebSocket error:', event);
-          setError('Connection error');
+          console.error('[AI Voice] WebSocket readyState:', ws.readyState);
+          console.error('[AI Voice] WebSocket URL:', wsUrl);
+          setError('Connection error - WebSocket failed to connect');
           updateState('error');
           connectingRef.current = false;
         };
 
-        ws.onclose = () => {
-          console.log('[AI Voice] WebSocket closed');
+        ws.onclose = (event) => {
+          console.log('[AI Voice] WebSocket closed:', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+          });
           updateState('disconnected');
           setSpeakingState('idle');
           connectingRef.current = false;
