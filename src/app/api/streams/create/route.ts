@@ -6,6 +6,7 @@ import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { db, users } from '@/lib/data/system';
+import { aiTwinSettings } from '@/db/schema/ai';
 import { eq } from 'drizzle-orm';
 import { createStreamSchema, validateBody } from '@/lib/validation/schemas';
 
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration } = validation.data;
+    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration, aiChatModEnabled } = validation.data;
 
     // Parse scheduled date if provided
     const scheduledAt = scheduled_at ? new Date(scheduled_at) : undefined;
@@ -115,6 +116,17 @@ export async function POST(req: NextRequest) {
         streamId: stream.id,
         status: 'new_stream_created'
       });
+
+      // Update AI Chat Mod setting if provided (fire and forget)
+      if (aiChatModEnabled !== undefined) {
+        db.update(aiTwinSettings)
+          .set({ streamChatModEnabled: aiChatModEnabled })
+          .where(eq(aiTwinSettings.creatorId, user.id))
+          .execute()
+          .catch(err => {
+            console.error('[STREAMS/CREATE] Failed to update AI chat mod setting:', err);
+          });
+      }
 
       // Send notifications to followers/subscribers based on privacy level
       // Only send notifications if stream is going live immediately (not scheduled)

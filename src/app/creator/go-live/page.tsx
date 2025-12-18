@@ -66,6 +66,10 @@ export default function GoLivePage() {
   const [goPrivateMinDuration, setGoPrivateMinDuration] = useState<number | null>(null);
   const [defaultCallSettings, setDefaultCallSettings] = useState<{ rate: number; minDuration: number } | null>(null);
 
+  // AI Chat Moderator settings
+  const [aiChatModEnabled, setAiChatModEnabled] = useState(false);
+  const [hasAiTwin, setHasAiTwin] = useState(false);
+
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -169,11 +173,12 @@ export default function GoLivePage() {
         return;
       }
 
-      // Fetch profile, active stream, and call settings in parallel for faster load
-      const [profileRes, activeRes, callSettingsRes] = await Promise.all([
+      // Fetch profile, active stream, call settings, and AI settings in parallel for faster load
+      const [profileRes, activeRes, callSettingsRes, aiSettingsRes] = await Promise.all([
         fetch('/api/user/profile'),
         fetch('/api/streams/active'),
-        fetch('/api/user/call-settings')
+        fetch('/api/user/call-settings'),
+        fetch('/api/ai-twin/settings')
       ]);
 
       // Handle auth failures - redirect to login
@@ -201,6 +206,17 @@ export default function GoLivePage() {
               rate: callData.settings.callRatePerMinute || 50,
               minDuration: callData.settings.minimumCallDuration || 5,
             });
+          }
+        }
+
+        // Load AI Twin settings for AI Chat Moderator toggle
+        if (aiSettingsRes.ok) {
+          const aiData = await aiSettingsRes.json();
+          if (aiData.settings) {
+            // Creator has AI Twin set up
+            setHasAiTwin(true);
+            // Default to their saved preference
+            setAiChatModEnabled(aiData.settings.streamChatModEnabled || false);
           }
         }
 
@@ -402,6 +418,7 @@ export default function GoLivePage() {
           goPrivateEnabled,
           goPrivateRate: goPrivateRate || undefined,
           goPrivateMinDuration: goPrivateMinDuration || undefined,
+          aiChatModEnabled: hasAiTwin ? aiChatModEnabled : undefined,
         }),
       });
 
@@ -1034,6 +1051,55 @@ export default function GoLivePage() {
                   )}
                 </div>
               </div>
+
+              {/* AI Chat Moderator - Only show if creator has AI Twin set up */}
+              {hasAiTwin && (
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-2">
+                    AI Chat Moderator
+                  </label>
+                  <div className="p-4 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm text-white font-medium">Enable AI Chat Mod</span>
+                        <p className="text-xs text-gray-400">Your AI Twin will help moderate chat during your stream</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAiChatModEnabled(!aiChatModEnabled)}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${
+                          aiChatModEnabled ? 'bg-cyan-500' : 'bg-gray-600'
+                        }`}
+                      >
+                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                          aiChatModEnabled ? 'translate-x-7' : 'translate-x-1'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {aiChatModEnabled && (
+                      <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-gray-300">
+                          <span className="text-cyan-400">✓</span>
+                          Greet new viewers automatically
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-300">
+                          <span className="text-cyan-400">✓</span>
+                          Answer common questions in your voice
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-300">
+                          <span className="text-cyan-400">✓</span>
+                          Thank tippers and gifters instantly
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-300">
+                          <span className="text-cyan-400">✓</span>
+                          Keep chat engaged during breaks
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Featured Creators */}
               <FeaturedCreatorSelector

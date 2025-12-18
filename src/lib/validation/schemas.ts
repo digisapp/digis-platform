@@ -196,6 +196,7 @@ export const createStreamSchema = z.object({
   goPrivateEnabled: z.boolean().optional(),
   goPrivateRate: z.number().int().min(0).max(10000).optional(),
   goPrivateMinDuration: z.number().int().min(1).max(120).optional(),
+  aiChatModEnabled: z.boolean().optional(),
 });
 
 // ============================================
