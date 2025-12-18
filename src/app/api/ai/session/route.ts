@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { AiSessionService } from '@/lib/services/ai-session-service';
+import { db } from '@/lib/data/system';
+import { aiSessions } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 
@@ -61,42 +64,30 @@ export async function POST(request: NextRequest) {
         console.log('[AI Session] Cleaning up session:', existingSession.id,
           forceCleanup ? '(force cleanup)' : `(stuck, age: ${Math.floor(sessionAgeMs / 60000)} minutes)`);
 
-        let cleanupSucceeded = false;
+        // Try to clean up the session - use direct DB update for reliability
         try {
-          await AiSessionService.failSession(existingSession.id,
-            forceCleanup ? 'Session force-cleaned by user' : 'Session auto-cleaned due to inactivity');
-          cleanupSucceeded = true;
-        } catch (cleanupError) {
-          console.error('[AI Session] Failed to cleanup session via service:', cleanupError);
+          // Direct database update - more reliable than going through service
+          const updateResult = await db
+            .update(aiSessions)
+            .set({
+              status: 'failed',
+              endedAt: new Date(),
+              errorMessage: forceCleanup ? 'Session force-cleaned by user' : 'Session auto-cleaned due to inactivity',
+              updatedAt: new Date(),
+            })
+            .where(eq(aiSessions.id, existingSession.id))
+            .returning({ id: aiSessions.id, status: aiSessions.status });
 
-          // Fallback: Direct database update to force cleanup
-          try {
-            const { db } = await import('@/lib/data/system');
-            const { aiSessions } = await import('@/db/schema');
-            const { eq } = await import('drizzle-orm');
+          console.log('[AI Session] Cleanup update result:', updateResult);
 
-            await db
-              .update(aiSessions)
-              .set({
-                status: 'failed',
-                endedAt: new Date(),
-                errorMessage: 'Force-cleaned via fallback',
-                updatedAt: new Date(),
-              })
-              .where(eq(aiSessions.id, existingSession.id));
-
-            console.log('[AI Session] Fallback cleanup succeeded for:', existingSession.id);
-            cleanupSucceeded = true;
-          } catch (fallbackError) {
-            console.error('[AI Session] Fallback cleanup also failed:', fallbackError);
-          }
-        }
-
-        // Verify cleanup actually worked
-        if (cleanupSucceeded) {
+          // Verify cleanup worked
           const stillExists = await AiSessionService.getActiveSession(user.id);
           if (stillExists) {
-            console.error('[AI Session] Session still active after cleanup attempt:', stillExists.id);
+            console.error('[AI Session] Session still active after cleanup:', {
+              sessionId: stillExists.id,
+              status: stillExists.status,
+              startedAt: stillExists.startedAt,
+            });
             return NextResponse.json(
               {
                 error: 'Failed to cleanup existing session. Please try again.',
@@ -105,7 +96,10 @@ export async function POST(request: NextRequest) {
               { status: 409 }
             );
           }
-        } else {
+
+          console.log('[AI Session] Session cleaned up successfully:', existingSession.id);
+        } catch (cleanupError) {
+          console.error('[AI Session] Failed to cleanup session:', cleanupError);
           return NextResponse.json(
             {
               error: 'Failed to cleanup existing session',
