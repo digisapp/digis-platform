@@ -924,8 +924,6 @@ export default function StreamViewerPage() {
             {/* Video Overlay - Top Gradient */}
             <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
 
-            {/* Video Overlay - Bottom Gradient */}
-            <div className={`absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
 
             {/* Top Bar - Creator Info & Stats */}
             <div className={`absolute top-0 left-0 right-0 p-4 flex items-start justify-between transition-all duration-300 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
