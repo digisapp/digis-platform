@@ -80,13 +80,31 @@ export class AiTextService {
       name: creatorName,
       bio: creator.bio,
     };
-    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent);
+
+    // Fetch creator's REAL message examples (not AI-generated) to learn their style
+    const creatorRealMessages = await db.query.messages.findMany({
+      where: and(
+        eq(messages.senderId, recipientId),
+        eq(messages.isAiGenerated, false)
+      ),
+      orderBy: [desc(messages.createdAt)],
+      limit: 50, // Get recent 50 real messages to pick examples from
+      columns: {
+        content: true,
+      },
+    });
+
+    // Pick 15 diverse examples (different lengths, styles)
+    const messageExamples = this.pickDiverseExamples(creatorRealMessages.map(m => m.content), 15);
+    console.log(`[AI Text] Found ${creatorRealMessages.length} real messages, using ${messageExamples.length} examples`);
+
+    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent, messageExamples);
 
     // Fetch recent conversation history for context
     const recentMessages = await db.query.messages.findMany({
       where: eq(messages.conversationId, conversationId),
       orderBy: [desc(messages.createdAt)],
-      limit: 10, // Last 10 messages for context
+      limit: 20, // Last 20 messages for context
       columns: {
         content: true,
         senderId: true,
@@ -170,7 +188,8 @@ export class AiTextService {
       contentType: 'photo' | 'video' | 'gallery';
       unlockPrice: number;
       isFree: boolean | null;
-    }>
+    }>,
+    messageExamples: string[] = []
   ): string {
     let prompt = `You ARE ${creator.name}. You're a content creator chatting with a fan in DMs. `;
     prompt += `Be completely natural - this should feel like real texting, not a chatbot.\n\n`;
@@ -183,6 +202,16 @@ export class AiTextService {
 
     if (settings.personalityPrompt) {
       prompt += `- My personality: ${settings.personalityPrompt}\n`;
+    }
+
+    // Add real message examples to learn creator's style
+    if (messageExamples.length > 0) {
+      prompt += `\n## HOW I ACTUALLY TEXT (learn from these real examples!) ##\n`;
+      prompt += `These are REAL messages I've sent. Copy my exact style, slang, emoji usage, and vibe:\n\n`;
+      messageExamples.forEach((msg, i) => {
+        prompt += `${i + 1}. "${msg}"\n`;
+      });
+      prompt += `\nMATCH THIS STYLE EXACTLY - my word choices, my emoji patterns, my energy!\n`;
     }
 
     prompt += `\nHOW I TEXT:\n`;
@@ -307,5 +336,46 @@ export class AiTextService {
       console.error('[AI Text] Error calling xAI:', error);
       return null;
     }
+  }
+
+  /**
+   * Pick diverse message examples from creator's real messages
+   * Selects messages of varying lengths and styles for better AI learning
+   */
+  private static pickDiverseExamples(messages: string[], count: number): string[] {
+    if (messages.length === 0) return [];
+    if (messages.length <= count) return messages;
+
+    // Filter out very short messages (less than 5 chars) and very long ones (over 200 chars)
+    const validMessages = messages.filter(m => m.length >= 5 && m.length <= 200);
+
+    if (validMessages.length === 0) return messages.slice(0, count);
+    if (validMessages.length <= count) return validMessages;
+
+    // Group messages by length category for diversity
+    const short = validMessages.filter(m => m.length < 30);      // Quick replies
+    const medium = validMessages.filter(m => m.length >= 30 && m.length < 80);  // Normal texts
+    const long = validMessages.filter(m => m.length >= 80);      // Longer messages
+
+    const result: string[] = [];
+    const targetPerCategory = Math.ceil(count / 3);
+
+    // Pick from each category
+    const pickRandom = (arr: string[], n: number): string[] => {
+      const shuffled = [...arr].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, n);
+    };
+
+    result.push(...pickRandom(short, Math.min(targetPerCategory, short.length)));
+    result.push(...pickRandom(medium, Math.min(targetPerCategory, medium.length)));
+    result.push(...pickRandom(long, Math.min(targetPerCategory, long.length)));
+
+    // If we don't have enough, fill with random valid messages
+    if (result.length < count) {
+      const remaining = validMessages.filter(m => !result.includes(m));
+      result.push(...pickRandom(remaining, count - result.length));
+    }
+
+    return result.slice(0, count);
   }
 }
