@@ -264,7 +264,7 @@ async function callXaiApi(systemPrompt: string, userMessage: string): Promise<st
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'grok-2-latest',
+        model: 'grok-beta',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },

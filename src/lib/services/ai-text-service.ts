@@ -191,7 +191,7 @@ export class AiTextService {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-2-latest',
+          model: 'grok-beta',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
