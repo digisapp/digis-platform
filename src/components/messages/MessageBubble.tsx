@@ -1,9 +1,182 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Trash2, Check, CheckCheck, SmilePlus, Bot } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 import { useToastContext } from '@/context/ToastContext';
+
+// Content card for AI-recommended content
+interface ContentCardData {
+  id: string;
+  title: string;
+  contentType: 'photo' | 'video' | 'gallery';
+  unlockPrice: number;
+  thumbnailUrl: string;
+  isPurchased: boolean;
+}
+
+function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?: () => void }) {
+  const [content, setContent] = useState<ContentCardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { showSuccess, showError } = useToastContext();
+
+  useEffect(() => {
+    async function fetchContent() {
+      try {
+        const res = await fetch(`/api/content/${contentId}`);
+        if (!res.ok) throw new Error('Content not found');
+        const { content: data } = await res.json();
+        setContent({
+          id: data.id,
+          title: data.title,
+          contentType: data.contentType,
+          unlockPrice: data.unlockPrice,
+          thumbnailUrl: data.thumbnailUrl,
+          isPurchased: data.hasAccess || data.isFree || false,
+        });
+      } catch (err) {
+        setError('Content unavailable');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchContent();
+  }, [contentId]);
+
+  const handlePurchase = async () => {
+    if (!content || content.isPurchased) return;
+
+    setPurchasing(true);
+    try {
+      const res = await fetch(`/api/content/${contentId}/purchase`, {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Purchase failed');
+      }
+
+      setContent(prev => prev ? { ...prev, isPurchased: true } : null);
+      showSuccess('Content unlocked!');
+      onPurchase?.();
+    } catch (err: any) {
+      showError(err.message || 'Failed to purchase');
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="my-2 p-3 bg-white/5 rounded-xl animate-pulse">
+        <div className="h-24 bg-white/10 rounded-lg mb-2" />
+        <div className="h-4 bg-white/10 rounded w-2/3" />
+      </div>
+    );
+  }
+
+  if (error || !content) {
+    return null; // Silently skip invalid content
+  }
+
+  const typeIcon = content.contentType === 'video' ? (
+    <Play className="w-4 h-4" />
+  ) : content.contentType === 'gallery' ? (
+    <Images className="w-4 h-4" />
+  ) : (
+    <ImageIcon className="w-4 h-4" />
+  );
+
+  return (
+    <div className="my-2 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl overflow-hidden">
+      {/* Thumbnail */}
+      <div className="relative h-32 bg-black/20">
+        <img
+          src={content.thumbnailUrl}
+          alt={content.title}
+          className={`w-full h-full object-cover ${!content.isPurchased ? 'blur-sm' : ''}`}
+        />
+        {!content.isPurchased && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <Lock className="w-8 h-8 text-white/80" />
+          </div>
+        )}
+        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-full flex items-center gap-1 text-white text-xs">
+          {typeIcon}
+          <span className="capitalize">{content.contentType}</span>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="p-3">
+        <h4 className="text-white font-medium text-sm mb-2 line-clamp-1">{content.title}</h4>
+
+        {content.isPurchased ? (
+          <a
+            href={`/content/${content.id}`}
+            className="block w-full px-3 py-2 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm font-medium text-center hover:bg-green-500/30 transition-colors"
+          >
+            View Content
+          </a>
+        ) : (
+          <button
+            onClick={handlePurchase}
+            disabled={purchasing}
+            className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {purchasing ? 'Unlocking...' : `Unlock for ${content.unlockPrice} coins`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Parse message content and extract content card IDs
+function parseMessageContent(content: string): Array<{ type: 'text' | 'content'; value: string }> {
+  const parts: Array<{ type: 'text' | 'content'; value: string }> = [];
+  const regex = /\[\[CONTENT:([a-f0-9-]+)\]\]/gi;
+
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: content.slice(lastIndex, match.index) });
+    }
+    // Add the content card
+    parts.push({ type: 'content', value: match[1] });
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push({ type: 'text', value: content.slice(lastIndex) });
+  }
+
+  return parts.length > 0 ? parts : [{ type: 'text', value: content }];
+}
+
+// Render parsed message content with content cards
+function MessageContent({ content }: { content: string }) {
+  const parts = parseMessageContent(content);
+
+  return (
+    <>
+      {parts.map((part, index) => (
+        part.type === 'text' ? (
+          <span key={index} className="break-words whitespace-pre-wrap">{part.value}</span>
+        ) : (
+          <ContentCard key={index} contentId={part.value} />
+        )
+      ))}
+    </>
+  );
+}
 
 type Message = {
   id: string;
@@ -346,7 +519,13 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
                 <span className="text-xs font-medium">AI Twin</span>
               </div>
             )}
-            <p className="break-words">{message.content}</p>
+            <div className="break-words">
+              {message.isAiGenerated ? (
+                <MessageContent content={message.content} />
+              ) : (
+                message.content
+              )}
+            </div>
           </div>
 
           {/* Reactions display */}

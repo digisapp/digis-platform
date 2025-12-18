@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users, conversations, messages } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { aiTwinSettings, users, conversations, messages, contentItems } from '@/db/schema';
+import { eq, sql, and, desc } from 'drizzle-orm';
 
 /**
  * AI Text Chat Service
@@ -39,9 +39,27 @@ export class AiTextService {
       return null;
     }
 
-    // Build system prompt
+    // Fetch creator's available content for recommendations
+    const creatorContent = await db.query.contentItems.findMany({
+      where: and(
+        eq(contentItems.creatorId, recipientId),
+        eq(contentItems.isPublished, true),
+        eq(contentItems.isFree, false) // Only paid content for recommendations
+      ),
+      orderBy: [desc(contentItems.createdAt)],
+      limit: 10, // Limit to recent 10 items to keep prompt size manageable
+      columns: {
+        id: true,
+        title: true,
+        description: true,
+        contentType: true,
+        unlockPrice: true,
+      },
+    });
+
+    // Build system prompt with content catalog
     const creatorName = creator.displayName || creator.username || 'Creator';
-    const systemPrompt = this.buildSystemPrompt(creatorName, aiSettings);
+    const systemPrompt = this.buildSystemPrompt(creatorName, aiSettings, creatorContent);
 
     // Call xAI API
     const aiResponseText = await this.callXaiApi(systemPrompt, messageContent);
@@ -94,7 +112,14 @@ export class AiTextService {
 
   private static buildSystemPrompt(
     creatorName: string,
-    settings: typeof aiTwinSettings.$inferSelect
+    settings: typeof aiTwinSettings.$inferSelect,
+    content: Array<{
+      id: string;
+      title: string;
+      description: string | null;
+      contentType: 'photo' | 'video' | 'gallery';
+      unlockPrice: number;
+    }>
   ): string {
     let prompt = `You are the AI assistant for ${creatorName}, a content creator. `;
     prompt += `You respond to messages on behalf of ${creatorName} when they're not available. `;
@@ -106,6 +131,26 @@ export class AiTextService {
 
     if (settings.boundaryPrompt) {
       prompt += `\n\nBoundaries (topics to avoid or deflect): ${settings.boundaryPrompt}`;
+    }
+
+    // Add content catalog for recommendations
+    if (content.length > 0) {
+      prompt += `\n\n## EXCLUSIVE CONTENT CATALOG\n`;
+      prompt += `You can recommend the following exclusive content to fans. When recommending content, use the exact format [[CONTENT:id]] where id is the content's UUID.\n\n`;
+
+      content.forEach((item, index) => {
+        const typeEmoji = item.contentType === 'video' ? '🎬' : item.contentType === 'gallery' ? '📸' : '🖼️';
+        prompt += `${index + 1}. ${typeEmoji} "${item.title}" - ${item.unlockPrice} coins (ID: ${item.id})`;
+        if (item.description) {
+          prompt += ` - ${item.description.substring(0, 100)}`;
+        }
+        prompt += `\n`;
+      });
+
+      prompt += `\nWhen a fan asks about content, shows interest, or you want to recommend something, include the content card like this:\n`;
+      prompt += `"I think you'd love this! [[CONTENT:${content[0]?.id || 'uuid-here'}]]"\n`;
+      prompt += `The [[CONTENT:id]] tag will be rendered as a purchasable content card in the chat.\n`;
+      prompt += `Be natural about recommendations - don't force them, but mention them when relevant to the conversation.`;
     }
 
     prompt += `\n\nIMPORTANT: You are an AI assistant, not the actual ${creatorName}. `;
