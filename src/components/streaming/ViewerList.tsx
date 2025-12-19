@@ -62,7 +62,6 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
 
   const handleInvite = async (viewerId: string, inviteType: 'video' | 'voice') => {
     setInvitingId(viewerId);
-    setShowInviteOptions(null);
 
     try {
       const response = await fetch(`/api/streams/${streamId}/guest/invite`, {
