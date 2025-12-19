@@ -32,7 +32,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
 
@@ -187,6 +188,7 @@ export default function BroadcastStudioPage() {
   } | null>(null);
   const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
   const [showSaveRecordingsModal, setShowSaveRecordingsModal] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
 
   // Stream recording hook
   const {
@@ -2001,6 +2003,16 @@ export default function BroadcastStudioPage() {
                       <span className="text-sm hidden sm:inline">Timer</span>
                     </button>
 
+                    {/* Monitor on Phone Button - Desktop only */}
+                    <button
+                      onClick={() => setShowQRCode(true)}
+                      className="hidden md:flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-green-500/30 text-white font-semibold text-sm hover:border-green-500/60 hover:bg-black/80 transition-all"
+                      title="Monitor chat on your phone"
+                    >
+                      <Smartphone className="w-4 h-4 text-green-400" />
+                      <span className="text-sm">Phone</span>
+                    </button>
+
                     {/* Announce Ticketed Stream Button */}
                     {!announcedTicketedStream && (
                       <button
@@ -2416,6 +2428,45 @@ export default function BroadcastStudioPage() {
             // The announcement is sent to chat via Ably in the API
           }}
         />
+      )}
+
+      {/* QR Code Modal - Monitor on Phone */}
+      {showQRCode && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowQRCode(false)}
+        >
+          <div
+            className="bg-gray-900 rounded-2xl p-6 max-w-sm mx-4 border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Smartphone className="w-5 h-5 text-green-400" />
+                <h3 className="text-lg font-semibold text-white">Monitor on Phone</h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">
+                Scan with your phone camera to monitor chat while streaming
+              </p>
+              <div className="bg-white p-4 rounded-xl inline-block mb-4">
+                <QRCodeSVG
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/stream/monitor/${streamId}`}
+                  size={180}
+                  level="M"
+                />
+              </div>
+              <p className="text-gray-500 text-xs mb-4">
+                Chat-only view optimized for mobile • Tap messages to moderate
+              </p>
+              <button
+                onClick={() => setShowQRCode(false)}
+                className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Private Tips Button - Floating */}
