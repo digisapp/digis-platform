@@ -241,24 +241,19 @@ export default function StreamViewerPage() {
         const { getAblyClient } = await import('@/lib/ably/client');
         const ably = getAblyClient();
 
-        // Subscribe to user's notification channel
+        // Subscribe to user's notification channel for guest invites
         notificationChannel = ably.channels.get(`user:${currentUserId}:notifications`);
-        notificationChannel.subscribe('notification', (message: any) => {
+        notificationChannel.subscribe('guest_invite', (message: any) => {
           if (!mounted) return;
           const data = message.data;
-          console.log('[User Notifications] Received:', data);
-
-          // Handle guest invite notifications
-          if (data.type === 'guest-invite') {
-            console.log('[Guest Invite] Received direct invite:', data);
-            setGuestInvite({
-              inviteId: data.inviteId,
-              viewerId: data.viewerId,
-              inviteType: data.inviteType,
-              host: data.host,
-              streamTitle: data.streamTitle,
-            });
-          }
+          console.log('[Guest Invite] Received direct invite:', data);
+          setGuestInvite({
+            inviteId: data.inviteId,
+            viewerId: data.viewerId,
+            inviteType: data.inviteType,
+            host: data.host,
+            streamTitle: data.streamTitle,
+          });
         });
 
         console.log('[User Notifications] Subscribed to channel for user:', currentUserId);

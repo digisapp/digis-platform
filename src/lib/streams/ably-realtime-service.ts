@@ -199,6 +199,18 @@ export class AblyRealtimeService {
   }
 
   /**
+   * Broadcast guest invite to a specific viewer
+   * Used when host invites a viewer to join their live stream
+   */
+  static async broadcastGuestInvite(viewerId: string, inviteData: any) {
+    await publishToChannel(
+      CHANNEL_NAMES.userNotifications(viewerId),
+      'guest_invite',
+      inviteData
+    );
+  }
+
+  /**
    * Broadcast call status update
    */
   static async broadcastCallUpdate(callId: string, status: string, data: any) {

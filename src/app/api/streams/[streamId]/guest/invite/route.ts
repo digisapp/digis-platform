@@ -137,11 +137,8 @@ export async function POST(
     let broadcastSuccess = true;
     try {
       // Send invite directly to the viewer's notification channel (more reliable than broadcast)
-      console.log('[Guest Invite] Sending to viewer:', viewerId, 'event: guest-invite', 'data:', inviteData);
-      await AblyRealtimeService.broadcastNotification(viewerId, {
-        type: 'guest-invite',
-        ...inviteData,
-      });
+      console.log('[Guest Invite] Sending to viewer:', viewerId, 'event: guest_invite', 'data:', inviteData);
+      await AblyRealtimeService.broadcastGuestInvite(viewerId, inviteData);
       console.log('[Guest Invite] Notification sent to viewer');
     } catch (broadcastError) {
       console.error('[Guest Invite] Notification failed:', broadcastError);
