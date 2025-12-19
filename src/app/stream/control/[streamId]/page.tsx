@@ -143,16 +143,18 @@ export default function StreamRemoteControlPage() {
     streamId,
     isHost: true, // Don't count as viewer
     onMessage: (message) => {
+      // The Ably message may have 'content' or 'message' field depending on source
+      const msgData = message as any;
       const newMessage = {
-        id: message.id,
+        id: msgData.id,
         streamId,
-        userId: message.userId,
-        username: message.username,
-        message: message.content,
-        messageType: (message.messageType || 'chat') as ChatMessage['messageType'],
-        createdAt: new Date(message.timestamp),
+        userId: msgData.userId,
+        username: msgData.username,
+        message: msgData.message || msgData.content || '', // Handle both field names
+        messageType: (msgData.messageType || 'chat') as ChatMessage['messageType'],
+        createdAt: new Date(msgData.timestamp || Date.now()),
         user: {
-          avatarUrl: message.avatarUrl || undefined,
+          avatarUrl: msgData.avatarUrl || msgData.user?.avatarUrl || undefined,
         },
       };
       setMessages((prev) => [...prev.slice(-200), newMessage]);
