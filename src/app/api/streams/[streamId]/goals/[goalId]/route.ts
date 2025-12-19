@@ -3,6 +3,7 @@ import { db } from '@/lib/data/system';
 import { streamGoals, streams } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -123,13 +124,22 @@ export async function DELETE(
     }
 
     // Set goal as inactive (soft delete)
-    await db
+    const [deletedGoal] = await db
       .update(streamGoals)
       .set({
         isActive: false,
         updatedAt: new Date(),
       })
-      .where(eq(streamGoals.id, goalId));
+      .where(eq(streamGoals.id, goalId))
+      .returning();
+
+    // Broadcast goal deletion to all viewers via Ably
+    try {
+      await AblyRealtimeService.broadcastGoalUpdate(streamId, deletedGoal, 'deleted');
+    } catch (broadcastError) {
+      console.error('[GOAL DELETE BROADCAST ERROR]', broadcastError);
+      // Don't fail the request if broadcast fails
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

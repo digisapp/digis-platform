@@ -2166,9 +2166,9 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Hidden when any modal/popup appears */}
+                  {/* Username Watermark - Lower z-index so it stays behind modals/popups */}
                   {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
-                    <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+                    <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                       <span
                         className="text-lg sm:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                         style={{

@@ -282,9 +282,9 @@ export class RealtimeService {
   }
 
   /**
-   * Broadcast goal update (created, updated, completed)
+   * Broadcast goal update (created, updated, completed, deleted)
    */
-  static async broadcastGoalUpdate(streamId: string, goal: any, action: 'created' | 'updated' | 'completed') {
+  static async broadcastGoalUpdate(streamId: string, goal: any, action: 'created' | 'updated' | 'completed' | 'deleted') {
     const supabase = createClient();
     const channelName = `stream:${streamId}`;
 

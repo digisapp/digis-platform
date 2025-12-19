@@ -173,12 +173,12 @@ export class AblyRealtimeService {
   }
 
   /**
-   * Broadcast goal update (created, updated, completed)
+   * Broadcast goal update (created, updated, completed, deleted)
    */
   static async broadcastGoalUpdate(
     streamId: string,
     goal: any,
-    action: 'created' | 'updated' | 'completed'
+    action: 'created' | 'updated' | 'completed' | 'deleted'
   ) {
     await publishToChannel(
       CHANNEL_NAMES.streamChat(streamId),

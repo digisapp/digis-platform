@@ -115,7 +115,13 @@ export default function ChatMonitorPage() {
         const res = await fetch(`/api/streams/${streamId}/messages?limit=50`);
         if (res.ok) {
           const data = await res.json();
-          setMessages(data.messages || []);
+          // API returns messages in DESC order (newest first), reverse for chat order
+          const normalizedMessages = (data.messages || []).reverse().map((msg: any) => ({
+            ...msg,
+            message: msg.message || msg.content || '', // Ensure message field is set
+            createdAt: new Date(msg.createdAt),
+          }));
+          setMessages(normalizedMessages);
         }
       } catch (err) {
         console.error('Failed to fetch messages:', err);
@@ -139,8 +145,26 @@ export default function ChatMonitorPage() {
 
         chatChannel = ably.channels.get(`stream:${streamId}:chat`);
 
-        chatChannel.subscribe('message', (message) => {
-          const newMessage = message.data as ChatMessage;
+        // Subscribe to 'chat' event (this is what the server broadcasts on)
+        chatChannel.subscribe('chat', (message) => {
+          const msgData = message.data as any;
+          // Normalize message data - server broadcasts 'message' field
+          const newMessage: ChatMessage = {
+            id: msgData.id || `msg-${Date.now()}`,
+            streamId,
+            userId: msgData.userId || '',
+            username: msgData.username || 'Anonymous',
+            message: msgData.message ?? msgData.content ?? '',
+            messageType: (msgData.messageType || 'chat') as ChatMessage['messageType'],
+            createdAt: new Date(msgData.createdAt || Date.now()),
+            user: {
+              avatarUrl: msgData.avatarUrl || msgData.user?.avatarUrl,
+              spendTier: msgData.spendTier || msgData.user?.spendTier,
+            },
+            giftId: msgData.giftId,
+            giftAmount: msgData.giftAmount,
+            tipMessage: msgData.tipMessage,
+          };
           setMessages((prev) => [...prev.slice(-200), newMessage]); // Keep last 200
 
           // Play sound for tips/gifts

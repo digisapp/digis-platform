@@ -143,19 +143,29 @@ export default function StreamRemoteControlPage() {
     streamId,
     isHost: true, // Don't count as viewer
     onMessage: (message) => {
-      // The Ably message may have 'content' or 'message' field depending on source
+      // The Ably message data structure varies - server broadcasts 'message' field,
+      // but useStreamChat types it with 'content'. Handle all cases.
       const msgData = message as any;
-      const newMessage = {
-        id: msgData.id,
+      // Extract message text - try all possible field names
+      const messageText = msgData.message ?? msgData.content ?? '';
+
+      const newMessage: ChatMessage = {
+        id: msgData.id || `msg-${Date.now()}`,
         streamId,
-        userId: msgData.userId,
-        username: msgData.username,
-        message: msgData.message || msgData.content || '', // Handle both field names
+        userId: msgData.userId || '',
+        username: msgData.username || 'Anonymous',
+        message: messageText,
         messageType: (msgData.messageType || 'chat') as ChatMessage['messageType'],
-        createdAt: new Date(msgData.timestamp || Date.now()),
+        createdAt: new Date(msgData.createdAt || msgData.timestamp || Date.now()),
         user: {
           avatarUrl: msgData.avatarUrl || msgData.user?.avatarUrl || undefined,
+          spendTier: msgData.spendTier || msgData.user?.spendTier || undefined,
         },
+        giftId: msgData.giftId,
+        giftAmount: msgData.giftAmount,
+        giftEmoji: msgData.giftEmoji,
+        giftName: msgData.giftName,
+        tipMessage: msgData.tipMessage,
       };
       setMessages((prev) => [...prev.slice(-200), newMessage]);
     },
@@ -296,7 +306,14 @@ export default function StreamRemoteControlPage() {
       const res = await fetch(`/api/streams/${streamId}/messages?limit=50`);
       if (res.ok) {
         const data = await res.json();
-        setMessages(data.messages || []);
+        // API returns messages in DESC order (newest first), reverse for chat order (oldest first)
+        // Also normalize field names from DB (message) to our interface
+        const normalizedMessages = (data.messages || []).reverse().map((msg: any) => ({
+          ...msg,
+          message: msg.message || msg.content || '', // Ensure message field is always set
+          createdAt: new Date(msg.createdAt),
+        }));
+        setMessages(normalizedMessages);
       }
     } catch (err) {
       console.error('Failed to fetch messages:', err);

@@ -95,9 +95,10 @@ export async function POST(
       streamId: streamId,
     }).returning();
 
-    // Publish announcement to the stream chat via Ably
+    // Publish announcement to the stream chat channel via Ably
+    // Note: Client subscribes to `stream:${streamId}:chat` for ticketed-announcement events
     try {
-      await publishToChannel(`stream:${streamId}`, 'ticketed-announcement', {
+      await publishToChannel(`stream:${streamId}:chat`, 'ticketed-announcement', {
         ticketedStreamId: ticketedStream.id,
         title: ticketedStream.title,
         ticketPrice,
@@ -107,14 +108,13 @@ export async function POST(
       });
 
       // Also send a system message to the chat
-      await publishToChannel(`stream:${streamId}`, 'message', {
+      await publishToChannel(`stream:${streamId}:chat`, 'chat', {
         id: `system-${Date.now()}`,
-        content: `🎟️ VIP STREAM ANNOUNCED! "${ticketedStream.title}" starts in ${minutesUntilStart} minutes. Tickets: ${ticketPrice} coins. Tap to get your ticket!`,
-        senderUsername: 'System',
-        senderDisplayName: 'System',
-        isCreator: false,
-        isSystem: true,
-        timestamp: new Date().toISOString(),
+        message: `🎟️ VIP STREAM ANNOUNCED! "${ticketedStream.title}" starts in ${minutesUntilStart} minutes. Tickets: ${ticketPrice} coins. Tap to get your ticket!`,
+        userId: 'system',
+        username: 'System',
+        messageType: 'system',
+        createdAt: new Date().toISOString(),
         ticketedStreamId: ticketedStream.id,
       });
     } catch (ablyError) {

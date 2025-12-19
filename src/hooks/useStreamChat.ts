@@ -55,7 +55,7 @@ interface ReactionEvent {
 
 interface GoalUpdate {
   goal: any;
-  action: 'created' | 'updated' | 'completed';
+  action: 'created' | 'updated' | 'completed' | 'deleted';
 }
 
 interface SpotlightChangedEvent {
