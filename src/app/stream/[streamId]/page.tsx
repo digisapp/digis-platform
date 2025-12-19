@@ -229,6 +229,54 @@ export default function StreamViewerPage() {
     fetchCurrentUser();
   }, []);
 
+  // Subscribe to user notifications for guest invites (direct to this user)
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    let mounted = true;
+    let notificationChannel: any = null;
+
+    const setupNotifications = async () => {
+      try {
+        const { getAblyClient } = await import('@/lib/ably/client');
+        const ably = getAblyClient();
+
+        // Subscribe to user's notification channel
+        notificationChannel = ably.channels.get(`user:${currentUserId}:notifications`);
+        notificationChannel.subscribe('notification', (message: any) => {
+          if (!mounted) return;
+          const data = message.data;
+          console.log('[User Notifications] Received:', data);
+
+          // Handle guest invite notifications
+          if (data.type === 'guest-invite') {
+            console.log('[Guest Invite] Received direct invite:', data);
+            setGuestInvite({
+              inviteId: data.inviteId,
+              viewerId: data.viewerId,
+              inviteType: data.inviteType,
+              host: data.host,
+              streamTitle: data.streamTitle,
+            });
+          }
+        });
+
+        console.log('[User Notifications] Subscribed to channel for user:', currentUserId);
+      } catch (error) {
+        console.error('[User Notifications] Setup error:', error);
+      }
+    };
+
+    setupNotifications();
+
+    return () => {
+      mounted = false;
+      if (notificationChannel) {
+        notificationChannel.unsubscribe();
+      }
+    };
+  }, [currentUserId]);
+
   // Fetch all data
   useEffect(() => {
     fetchStreamDetails();

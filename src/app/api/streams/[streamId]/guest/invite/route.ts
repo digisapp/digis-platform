@@ -136,11 +136,15 @@ export async function POST(
 
     let broadcastSuccess = true;
     try {
-      console.log('[Guest Invite] Broadcasting to stream:', streamId, 'event: guest-invite', 'data:', inviteData);
-      await AblyRealtimeService.broadcastToStream(streamId, 'guest-invite', inviteData);
-      console.log('[Guest Invite] Broadcast complete');
+      // Send invite directly to the viewer's notification channel (more reliable than broadcast)
+      console.log('[Guest Invite] Sending to viewer:', viewerId, 'event: guest-invite', 'data:', inviteData);
+      await AblyRealtimeService.broadcastNotification(viewerId, {
+        type: 'guest-invite',
+        ...inviteData,
+      });
+      console.log('[Guest Invite] Notification sent to viewer');
     } catch (broadcastError) {
-      console.error('[Guest Invite] Broadcast failed:', broadcastError);
+      console.error('[Guest Invite] Notification failed:', broadcastError);
       broadcastSuccess = false;
     }
 
