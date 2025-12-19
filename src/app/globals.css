@@ -282,11 +282,32 @@ body {
 
 /* Hide ALL LiveKit control bars everywhere - we use custom controls */
 .lk-control-bar,
+.lk-control-bar *,
 [data-viewer-mode="true"] .lk-control-bar,
 .lk-focus-layout .lk-control-bar,
-.lk-room-container .lk-control-bar {
+.lk-room-container .lk-control-bar,
+.lk-focus-layout-container .lk-control-bar,
+.lk-participant-tile .lk-control-bar,
+div[class*="lk-control"],
+button[class*="lk-button"],
+.lk-button-group,
+.lk-disconnect-button,
+.lk-chat-toggle,
+.lk-settings-toggle {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Also hide on hover - LiveKit shows controls on hover */
+.lk-room-container:hover .lk-control-bar,
+.lk-focus-layout:hover .lk-control-bar,
+.lk-participant-tile:hover .lk-control-bar,
+*:hover > .lk-control-bar {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }

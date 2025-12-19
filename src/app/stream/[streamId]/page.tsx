@@ -390,7 +390,11 @@ export default function StreamViewerPage() {
     },
     onGuestInvite: (event) => {
       // Show invite popup when host invites this viewer
+      console.log('[Guest Invite] Received invite event:', event);
+      console.log('[Guest Invite] Current user ID:', currentUserId);
+      console.log('[Guest Invite] Match:', event.viewerId === currentUserId);
       if (event.viewerId === currentUserId) {
+        console.log('[Guest Invite] Setting invite popup');
         setGuestInvite(event);
       }
     },

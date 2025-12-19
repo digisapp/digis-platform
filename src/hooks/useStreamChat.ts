@@ -369,6 +369,7 @@ export function useStreamChat({
           callbacksRef.current.onGuestRequestsToggle?.(message.data as GuestRequestsToggleEvent);
         });
         mainChannel.subscribe('guest-invite', (message) => {
+          console.log('[useStreamChat] Received guest-invite event:', message.data);
           callbacksRef.current.onGuestInvite?.(message.data as GuestInviteEvent);
         });
 

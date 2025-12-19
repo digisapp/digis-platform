@@ -120,8 +120,8 @@ export async function POST(
       status: 'invited',
     }).returning();
 
-    // Notify the viewer via Ably (send to their personal channel)
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-invite', {
+    // Notify the viewer via Ably
+    const inviteData = {
       inviteId: invite.id,
       viewerId,
       inviteType,
@@ -132,7 +132,10 @@ export async function POST(
         avatarUrl: hostProfile?.avatarUrl,
       },
       streamTitle: stream.title,
-    });
+    };
+    console.log('[Guest Invite] Broadcasting to stream:', streamId, 'event: guest-invite', 'data:', inviteData);
+    await AblyRealtimeService.broadcastToStream(streamId, 'guest-invite', inviteData);
+    console.log('[Guest Invite] Broadcast complete');
 
     return NextResponse.json({
       success: true,
