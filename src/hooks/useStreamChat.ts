@@ -387,17 +387,7 @@ export function useStreamChat({
           callbacksRef.current.onStreamEnded?.();
         });
 
-        // Use presence for accurate viewer count
-        // Host should not enter presence (they shouldn't count as a viewer)
-        if (!isHost) {
-          await presenceChannel.presence.enter();
-        }
-        const members = await presenceChannel.presence.get();
-        if (mounted) {
-          setViewerCount(members.length);
-        }
-
-        // Subscribe to presence changes
+        // Subscribe to presence changes FIRST to avoid missing events
         presenceChannel.presence.subscribe('enter', () => {
           if (mounted) {
             setViewerCount((prev) => prev + 1);
@@ -407,6 +397,17 @@ export function useStreamChat({
         presenceChannel.presence.subscribe('leave', () => {
           if (mounted) setViewerCount((prev) => Math.max(0, prev - 1));
         });
+
+        // Get current members BEFORE entering to get accurate initial count
+        const members = await presenceChannel.presence.get();
+        if (mounted) {
+          setViewerCount(members.length);
+        }
+
+        // Now enter presence (host shouldn't count as a viewer)
+        if (!isHost) {
+          await presenceChannel.presence.enter();
+        }
 
       } catch (err) {
         console.error('[useStreamChat] Setup error:', err);

@@ -12,12 +12,18 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Check timeout/ban status via internal fetch
-async function checkModerationStatus(streamId: string, userId: string, baseUrl: string): Promise<{ isBanned: boolean; isTimedOut: boolean }> {
+async function checkModerationStatus(streamId: string, userId: string, baseUrl: string): Promise<{ isBanned: boolean; isTimedOut: boolean; checkFailed: boolean }> {
   try {
     const [banResponse, timeoutResponse] = await Promise.all([
       fetch(`${baseUrl}/api/streams/${streamId}/ban?userId=${userId}`),
       fetch(`${baseUrl}/api/streams/${streamId}/timeout?userId=${userId}`),
     ]);
+
+    // Check if both requests succeeded
+    if (!banResponse.ok || !timeoutResponse.ok) {
+      console.error('[Message] Moderation check failed - ban status:', banResponse.status, 'timeout status:', timeoutResponse.status);
+      return { isBanned: false, isTimedOut: false, checkFailed: true };
+    }
 
     const banData = await banResponse.json();
     const timeoutData = await timeoutResponse.json();
@@ -25,10 +31,12 @@ async function checkModerationStatus(streamId: string, userId: string, baseUrl: 
     return {
       isBanned: banData.isBanned || false,
       isTimedOut: timeoutData.isTimedOut || false,
+      checkFailed: false,
     };
   } catch (error) {
     console.error('[Message] Error checking moderation status:', error);
-    return { isBanned: false, isTimedOut: false };
+    // Fail closed - if we can't check, don't allow the message (security)
+    return { isBanned: false, isTimedOut: false, checkFailed: true };
   }
 }
 
@@ -48,7 +56,12 @@ export async function POST(
 
     // Check if user is banned or timed out
     const baseUrl = req.nextUrl.origin;
-    const { isBanned, isTimedOut } = await checkModerationStatus(streamId, user.id, baseUrl);
+    const { isBanned, isTimedOut, checkFailed } = await checkModerationStatus(streamId, user.id, baseUrl);
+
+    // If moderation check failed, block the message for security (fail closed)
+    if (checkFailed) {
+      return NextResponse.json({ error: 'Unable to verify your status. Please try again.' }, { status: 503 });
+    }
 
     if (isBanned) {
       return NextResponse.json({ error: 'You have been banned from this stream' }, { status: 403 });

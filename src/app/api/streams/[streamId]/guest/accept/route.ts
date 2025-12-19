@@ -84,23 +84,28 @@ export async function POST(
       .where(eq(streams.id, streamId));
 
     // Notify the guest via Ably that they've been accepted
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-accepted', {
-      requestId,
-      userId: guestRequest.userId,
-      username: guestRequest.username,
-      displayName: guestRequest.displayName,
-      avatarUrl: guestRequest.avatarUrl,
-      requestType: guestRequest.requestType,
-    });
+    try {
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-accepted', {
+        requestId,
+        userId: guestRequest.userId,
+        username: guestRequest.username,
+        displayName: guestRequest.displayName,
+        avatarUrl: guestRequest.avatarUrl,
+        requestType: guestRequest.requestType,
+      });
 
-    // Also notify all viewers that a guest is joining
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-joining', {
-      userId: guestRequest.userId,
-      username: guestRequest.username,
-      displayName: guestRequest.displayName,
-      avatarUrl: guestRequest.avatarUrl,
-      requestType: guestRequest.requestType,
-    });
+      // Also notify all viewers that a guest is joining
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-joining', {
+        userId: guestRequest.userId,
+        username: guestRequest.username,
+        displayName: guestRequest.displayName,
+        avatarUrl: guestRequest.avatarUrl,
+        requestType: guestRequest.requestType,
+      });
+    } catch (broadcastError) {
+      // Log but don't fail - DB is already updated, guest can still join
+      console.error('[Guest Accept] Broadcast failed (guest can still join):', broadcastError);
+    }
 
     return NextResponse.json({
       success: true,

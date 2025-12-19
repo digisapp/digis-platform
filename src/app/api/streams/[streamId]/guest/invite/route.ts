@@ -133,14 +133,24 @@ export async function POST(
       },
       streamTitle: stream.title,
     };
-    console.log('[Guest Invite] Broadcasting to stream:', streamId, 'event: guest-invite', 'data:', inviteData);
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-invite', inviteData);
-    console.log('[Guest Invite] Broadcast complete');
+
+    let broadcastSuccess = true;
+    try {
+      console.log('[Guest Invite] Broadcasting to stream:', streamId, 'event: guest-invite', 'data:', inviteData);
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-invite', inviteData);
+      console.log('[Guest Invite] Broadcast complete');
+    } catch (broadcastError) {
+      console.error('[Guest Invite] Broadcast failed:', broadcastError);
+      broadcastSuccess = false;
+    }
 
     return NextResponse.json({
       success: true,
       invite,
-      message: 'Invite sent! Waiting for viewer to accept.',
+      message: broadcastSuccess
+        ? 'Invite sent! Waiting for viewer to accept.'
+        : 'Invite created but notification may be delayed. Viewer can still accept from their viewer list.',
+      broadcastSuccess,
     });
   } catch (error: any) {
     console.error('[Guest Invite] Error:', error);

@@ -111,12 +111,17 @@ export async function GET(
       .where(eq(streamGuestRequests.id, guestRequest.id));
 
     // Notify all viewers that guest has joined
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-joined', {
-      userId: user.id,
-      username: userProfile?.username,
-      displayName,
-      requestType: guestRequest.requestType,
-    });
+    try {
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-joined', {
+        userId: user.id,
+        username: userProfile?.username,
+        displayName,
+        requestType: guestRequest.requestType,
+      });
+    } catch (broadcastError) {
+      // Log but don't fail - guest already has token and can join
+      console.error('[Guest Token] Broadcast failed (guest can still join):', broadcastError);
+    }
 
     return NextResponse.json({
       token,
