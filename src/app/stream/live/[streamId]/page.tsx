@@ -2123,17 +2123,17 @@ export default function BroadcastStudioPage() {
                   </div>
 
                   {/* Username Watermark - Hidden when any modal/popup appears */}
-                  {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && (
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
+                  {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
+                    <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
                       <span
-                        className="text-xl sm:text-2xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
+                        className="text-lg sm:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                         style={{
                           color: '#ffffff',
-                          textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.4)',
+                          textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
                           letterSpacing: '0.02em',
                         }}
                       >
-                        digis.cc/{currentUsername || 'loading'}
+                        digis.cc/{currentUsername}
                       </span>
                     </div>
                   )}

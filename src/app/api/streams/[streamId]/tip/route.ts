@@ -128,10 +128,11 @@ export async function POST(
         streamId,
         userId: user.id,
         username,
-        message: message.trim(),
+        message: '', // Required field but we use tipMessage for display
         messageType: 'super_tip',
         createdAt: new Date(),
         // Additional fields for super tip display
+        tipMessage: message.trim(), // Custom message from the tipper
         giftAmount: amount,
         avatarUrl,
       } as any);
