@@ -914,27 +914,27 @@ export default function ProfilePage() {
 
           {/* Action Buttons Row */}
           <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
-            {/* Video Call Button */}
-            {user.role === 'creator' && profile.callSettings && currentUserId !== user.id && (
+            {/* Video Call Button - Only show if video calls are enabled */}
+            {user.role === 'creator' && profile.callSettings?.isAvailableForCalls && currentUserId !== user.id && (
               <RequestCallButton
                 creatorId={user.id}
                 creatorName={user.displayName || user.username}
                 ratePerMinute={profile.callSettings.callRatePerMinute}
                 minimumDuration={profile.callSettings.minimumCallDuration}
-                isAvailable={profile.callSettings.isAvailableForCalls}
+                isAvailable={true}
                 iconOnly={false}
                 callType="video"
               />
             )}
 
-            {/* Voice Call Button */}
-            {user.role === 'creator' && profile.callSettings && currentUserId !== user.id && (
+            {/* Voice Call Button - Only show if voice calls are enabled */}
+            {user.role === 'creator' && profile.callSettings?.isAvailableForVoiceCalls && currentUserId !== user.id && (
               <RequestCallButton
                 creatorId={user.id}
                 creatorName={user.displayName || user.username}
                 ratePerMinute={profile.callSettings.voiceCallRatePerMinute}
                 minimumDuration={profile.callSettings.minimumVoiceCallDuration}
-                isAvailable={profile.callSettings.isAvailableForVoiceCalls}
+                isAvailable={true}
                 iconOnly={false}
                 callType="voice"
               />

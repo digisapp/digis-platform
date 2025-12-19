@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
 import { AuthProvider } from "@/context/AuthContext";
@@ -6,6 +7,13 @@ import { ToastProvider } from "@/context/ToastContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Digis - Creator Economy Platform",
@@ -29,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-black">
+    <html lang="en" className={`bg-black ${poppins.variable}`}>
       <body className="antialiased bg-black min-h-screen">
         <ErrorBoundary>
           <AuthProvider>

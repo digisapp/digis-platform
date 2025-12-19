@@ -1164,13 +1164,11 @@ export default function StreamViewerPage() {
             {!streamEnded && (
               <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
                 <span
-                  className="text-2xl sm:text-3xl font-black tracking-wider whitespace-nowrap uppercase"
+                  className="text-xl sm:text-2xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                   style={{
-                    fontFamily: '"Bebas Neue", "Impact", "Arial Black", sans-serif',
                     color: '#ffffff',
-                    WebkitTextStroke: '2px #ff1493',
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,20,147,0.8), 0 0 40px rgba(255,20,147,0.5)',
-                    letterSpacing: '0.1em',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.4)',
+                    letterSpacing: '0.02em',
                   }}
                 >
                   digis.cc/{stream?.creator?.username || 'loading'}
