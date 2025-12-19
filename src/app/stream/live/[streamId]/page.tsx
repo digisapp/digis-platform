@@ -2116,19 +2116,21 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Always visible, centered */}
-                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
-                    <span
-                      className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
-                      style={{
-                        fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
-                        WebkitTextStroke: '1px #ff1493',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
-                      }}
-                    >
-                      digis.cc/{currentUsername || 'loading'}
-                    </span>
-                  </div>
+                  {/* Username Watermark - Hidden when stream summary/modals appear */}
+                  {!showStreamSummary && !showSaveRecordingsModal && (
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+                      <span
+                        className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
+                        style={{
+                          fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
+                          WebkitTextStroke: '1px #ff1493',
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
+                        }}
+                      >
+                        digis.cc/{currentUsername || 'loading'}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Spotlighted Creator Overlay */}
                   <SpotlightedCreatorOverlay streamId={streamId} isHost={true} />

@@ -234,12 +234,28 @@ body {
   display: none !important;
 }
 
-/* LiveKit focus layout and participant info - hide messy overlays */
+/* LiveKit - Hide ALL default overlays and bars */
 .lk-focus-layout-container .lk-participant-metadata,
 .lk-focus-layout-container .lk-connection-quality-indicator,
 .lk-participant-tile .lk-participant-metadata,
-.lk-participant-tile .lk-connection-quality {
+.lk-participant-tile .lk-connection-quality,
+.lk-participant-tile::after,
+.lk-participant-tile::before,
+.lk-focus-layout::after,
+.lk-focus-layout::before,
+.lk-grid-layout::after,
+.lk-grid-layout::before,
+.lk-participant-name,
+.lk-participant-info-bar,
+.lk-track-info {
   display: none !important;
+}
+
+/* Remove any gradient overlays from LiveKit */
+.lk-participant-tile > div::after,
+.lk-participant-tile > div::before {
+  display: none !important;
+  background: none !important;
 }
 
 /* LiveKit video tile styling - clean look */

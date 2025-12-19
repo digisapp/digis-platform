@@ -134,6 +134,7 @@ export default function StreamViewerPage() {
     ticketPrice?: number;
   } | null>(null);
   const [isPurchasingTicket, setIsPurchasingTicket] = useState(false);
+  const [streamEnded, setStreamEnded] = useState(false);
 
   // User state
   const [userBalance, setUserBalance] = useState(0);
@@ -305,7 +306,7 @@ export default function StreamViewerPage() {
       setPeakViewers(data.peakViewers);
     },
     onStreamEnded: () => {
-      router.push('/live');
+      setStreamEnded(true);
     },
     onGoalUpdate: () => {
       // Refresh goals when host creates, updates, or completes a goal
@@ -1144,19 +1145,21 @@ export default function StreamViewerPage() {
               </div>
             )}
 
-            {/* Username Watermark - Always visible, centered */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
-              <span
-                className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
-                style={{
-                  fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
-                  WebkitTextStroke: '1px #ff1493',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
-                }}
-              >
-                digis.cc/{stream?.creator?.username || 'loading'}
-              </span>
-            </div>
+            {/* Username Watermark - Hidden when stream ends */}
+            {!streamEnded && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+                <span
+                  className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
+                  style={{
+                    fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
+                    WebkitTextStroke: '1px #ff1493',
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
+                  }}
+                >
+                  digis.cc/{stream?.creator?.username || 'loading'}
+                </span>
+              </div>
+            )}
 
             {/* Guest Video Overlay - Shows when a guest is active */}
             {activeGuest && (
@@ -1681,6 +1684,96 @@ export default function StreamViewerPage() {
               </div>
             </div>
           </>
+        )}
+
+        {/* Stream Ended Modal */}
+        {streamEnded && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+
+            {/* Modal Content */}
+            <div className="relative w-full max-w-md animate-in zoom-in-95 duration-300">
+              <div className="bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
+                {/* Stream Ended Icon */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center shadow-lg shadow-red-500/30">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Pulse effect */}
+                    <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <h2 className="text-2xl font-bold text-white text-center mb-2">
+                  Stream Has Ended
+                </h2>
+
+                {/* Creator info */}
+                {stream?.creator && (
+                  <div className="flex items-center justify-center gap-3 mb-6">
+                    {stream.creator.avatarUrl ? (
+                      <img
+                        src={stream.creator.avatarUrl}
+                        alt={stream.creator.username || ''}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-white/20"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-sm font-bold">
+                        {stream.creator.username?.[0]?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <p className="text-gray-400 text-sm">Thanks for watching</p>
+                      <p className="text-white font-semibold">@{stream.creator.username}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="bg-white/5 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{viewerCount}</div>
+                    <div className="text-xs text-gray-400">Viewers</div>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-purple-400">{peakViewers}</div>
+                    <div className="text-xs text-gray-400">Peak Viewers</div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-3">
+                  {/* Visit Profile */}
+                  {stream?.creator?.username && (
+                    <button
+                      onClick={() => router.push(`/${stream.creator?.username}`)}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl font-bold text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    >
+                      <Heart className="w-5 h-5" />
+                      Follow @{stream.creator.username}
+                    </button>
+                  )}
+
+                  {/* Browse Streams */}
+                  <button
+                    onClick={() => router.push('/live')}
+                    className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl font-semibold text-white transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Eye className="w-5 h-5" />
+                    Browse More Streams
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
