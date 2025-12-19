@@ -538,25 +538,25 @@ export default function GoLivePage() {
 
           <p className="text-gray-300 mb-8">
             {isMobile
-              ? 'Monitor your chat from this device or end the stream to start a new one.'
-              : 'Rejoin to continue streaming, monitor chat from this device, or end it to start a new one.'}
+              ? 'Control your stream from this device - chat, goals, polls, and more.'
+              : 'Rejoin to continue streaming, or control from another device.'}
           </p>
 
           {/* Actions */}
           <div className="space-y-3">
-            {/* Show Monitor Chat first on mobile, Rejoin first on desktop */}
+            {/* Show Remote Control first on mobile, Rejoin first on desktop */}
             {isMobile ? (
               <>
                 <GlassButton
                   variant="gradient"
                   size="lg"
-                  onClick={() => router.push(`/stream/monitor/${activeStream.id}`)}
+                  onClick={() => router.push(`/stream/control/${activeStream.id}`)}
                   className="w-full"
                   shimmer
                   glow
                 >
-                  <span className="mr-2">📱</span>
-                  Monitor Chat
+                  <span className="mr-2">🎛️</span>
+                  Remote Control
                 </GlassButton>
                 <button
                   onClick={() => router.push(`/stream/live/${activeStream.id}`)}
@@ -580,11 +580,11 @@ export default function GoLivePage() {
                   Rejoin Stream
                 </GlassButton>
                 <button
-                  onClick={() => router.push(`/stream/monitor/${activeStream.id}`)}
-                  className="w-full py-3 px-6 bg-white/5 border border-white/20 rounded-xl text-gray-300 hover:bg-green-500/20 hover:border-green-500/50 hover:text-green-400 transition-all"
+                  onClick={() => router.push(`/stream/control/${activeStream.id}`)}
+                  className="w-full py-3 px-6 bg-white/5 border border-white/20 rounded-xl text-gray-300 hover:bg-cyan-500/20 hover:border-cyan-500/50 hover:text-cyan-400 transition-all"
                 >
-                  <span className="mr-2">📱</span>
-                  Monitor Chat (Phone)
+                  <span className="mr-2">🎛️</span>
+                  Remote Control (Phone)
                 </button>
               </>
             )}

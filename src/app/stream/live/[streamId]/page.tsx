@@ -2443,20 +2443,20 @@ export default function BroadcastStudioPage() {
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Smartphone className="w-5 h-5 text-green-400" />
-                <h3 className="text-lg font-semibold text-white">Monitor on Phone</h3>
+                <h3 className="text-lg font-semibold text-white">Remote Control</h3>
               </div>
               <p className="text-gray-400 text-sm mb-4">
-                Scan with your phone camera to monitor chat while streaming
+                Scan with your phone to control your stream remotely
               </p>
               <div className="bg-white p-4 rounded-xl inline-block mb-4">
                 <QRCodeSVG
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/stream/monitor/${streamId}`}
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/stream/control/${streamId}`}
                   size={180}
                   level="M"
                 />
               </div>
               <p className="text-gray-500 text-xs mb-4">
-                Chat-only view optimized for mobile • Tap messages to moderate
+                Chat, goals, polls, VIP shows & moderation from your phone
               </p>
               <button
                 onClick={() => setShowQRCode(false)}
