@@ -795,8 +795,9 @@ export class StreamService {
     });
 
     // Transform to include user details at top level
+    // Use userId (not v.id which is the record ID) so host can invite them
     return viewers.map(v => ({
-      id: v.id,
+      id: v.userId || v.id, // userId for invites, fallback to record id
       username: v.user?.username || v.username,
       displayName: v.user?.displayName || null,
       avatarUrl: v.user?.avatarUrl || null,
