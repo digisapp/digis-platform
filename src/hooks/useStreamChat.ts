@@ -139,6 +139,19 @@ interface GuestRequestsToggleEvent {
   enabled: boolean;
 }
 
+interface GuestInviteEvent {
+  inviteId: string;
+  viewerId: string;
+  inviteType: 'video' | 'voice';
+  host: {
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  streamTitle: string;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   isHost?: boolean; // If true, don't count this user in viewer count
@@ -163,6 +176,7 @@ interface UseStreamChatOptions {
   onGuestJoined?: (event: GuestJoinedEvent) => void;
   onGuestRemoved?: (event: GuestRemovedEvent) => void;
   onGuestRequestsToggle?: (event: GuestRequestsToggleEvent) => void;
+  onGuestInvite?: (event: GuestInviteEvent) => void;
 }
 
 interface UseStreamChatReturn {
@@ -199,6 +213,7 @@ export function useStreamChat({
   onGuestJoined,
   onGuestRemoved,
   onGuestRequestsToggle,
+  onGuestInvite,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -227,6 +242,7 @@ export function useStreamChat({
     onGuestJoined,
     onGuestRemoved,
     onGuestRequestsToggle,
+    onGuestInvite,
   });
 
   useEffect(() => {
@@ -251,8 +267,9 @@ export function useStreamChat({
       onGuestJoined,
       onGuestRemoved,
       onGuestRequestsToggle,
+      onGuestInvite,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle, onGuestInvite]);
 
   useEffect(() => {
     let mounted = true;
@@ -349,6 +366,9 @@ export function useStreamChat({
         });
         mainChannel.subscribe('guest-requests-toggle', (message) => {
           callbacksRef.current.onGuestRequestsToggle?.(message.data as GuestRequestsToggleEvent);
+        });
+        mainChannel.subscribe('guest-invite', (message) => {
+          callbacksRef.current.onGuestInvite?.(message.data as GuestInviteEvent);
         });
 
         // Subscribe to presence channel (viewer count, stream ended)

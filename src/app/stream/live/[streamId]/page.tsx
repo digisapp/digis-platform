@@ -1907,7 +1907,7 @@ export default function BroadcastStudioPage() {
 
                     {/* Viewers - Compact on mobile */}
                     <div className="hidden sm:block">
-                      <ViewerList streamId={streamId} currentViewers={viewerCount} />
+                      <ViewerList streamId={streamId} currentViewers={viewerCount} activeGuestId={activeGuest?.userId} />
                     </div>
                     <div className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-cyan-500/20 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                       <Users className="w-4 h-4 text-cyan-400" />

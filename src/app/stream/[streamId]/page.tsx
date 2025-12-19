@@ -12,9 +12,9 @@ import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
-import { GuestRequestButton } from '@/components/streaming/GuestRequestButton';
 import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { GuestStreamView } from '@/components/streaming/GuestStreamView';
+import { GuestInvitePopup } from '@/components/streaming/GuestInvitePopup';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -189,6 +189,18 @@ export default function StreamViewerPage() {
     displayName: string | null;
     avatarUrl: string | null;
     requestType: 'video' | 'voice';
+  } | null>(null);
+  const [guestInvite, setGuestInvite] = useState<{
+    inviteId: string;
+    viewerId: string;
+    inviteType: 'video' | 'voice';
+    host: {
+      id: string;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+    };
+    streamTitle: string;
   } | null>(null);
 
   // Animations
@@ -375,6 +387,12 @@ export default function StreamViewerPage() {
     },
     onGuestRequestsToggle: (event) => {
       setGuestRequestsEnabled(event.enabled);
+    },
+    onGuestInvite: (event) => {
+      // Show invite popup when host invites this viewer
+      if (event.viewerId === currentUserId) {
+        setGuestInvite(event);
+      }
     },
   });
 
@@ -989,13 +1007,6 @@ export default function StreamViewerPage() {
                 >
                   <Share2 className="w-5 h-5" />
                 </button>
-                {/* Guest Request Button */}
-                <GuestRequestButton
-                  streamId={streamId}
-                  guestRequestsEnabled={guestRequestsEnabled}
-                  isHost={false}
-                  onRequestAccepted={() => setIsGuest(true)}
-                />
                 {!isMobile && (
                   <button
                     onClick={() => setShowChat(!showChat)}
@@ -1684,6 +1695,26 @@ export default function StreamViewerPage() {
               </div>
             </div>
           </>
+        )}
+
+        {/* Guest Invite Popup - Shows when host invites viewer to co-host */}
+        {guestInvite && (
+          <GuestInvitePopup
+            streamId={streamId}
+            invite={guestInvite}
+            onAccepted={(inviteType) => {
+              setIsGuest(true);
+              setActiveGuest({
+                userId: currentUserId!,
+                username: '',
+                displayName: null,
+                avatarUrl: null,
+                requestType: inviteType,
+              });
+              setGuestInvite(null);
+            }}
+            onDeclined={() => setGuestInvite(null)}
+          />
         )}
 
         {/* Stream Ended Modal */}

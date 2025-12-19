@@ -447,7 +447,7 @@ export const streamCountdownsRelations = relations(streamCountdowns, ({ one }) =
 }));
 
 // Guest request status enum
-export const guestRequestStatusEnum = pgEnum('guest_request_status', ['pending', 'accepted', 'rejected', 'active', 'ended']);
+export const guestRequestStatusEnum = pgEnum('guest_request_status', ['pending', 'invited', 'accepted', 'rejected', 'active', 'ended']);
 
 // Stream guest requests (viewers requesting to join stream as guest)
 export const streamGuestRequests = pgTable('stream_guest_requests', {
