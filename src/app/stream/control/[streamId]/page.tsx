@@ -669,7 +669,7 @@ export default function StreamRemoteControlPage() {
                 setIsAutoScroll(true);
                 messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-digis-cyan rounded-full flex items-center gap-2 shadow-lg"
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-digis-cyan text-black rounded-full flex items-center gap-2 shadow-lg"
             >
               <ChevronDown className="w-4 h-4" />
               <span className="text-sm font-medium">New messages</span>

@@ -710,6 +710,38 @@ export default function BroadcastStudioPage() {
         setTimeout(() => setCompletedGoal(null), 5000);
       }
     },
+    // Poll updates (from remote control)
+    onPollUpdate: (event) => {
+      if (event.action === 'ended') {
+        setActivePoll(null);
+      } else {
+        fetchPoll();
+      }
+    },
+    // Countdown updates (from remote control)
+    onCountdownUpdate: (event) => {
+      if (event.action === 'ended' || event.action === 'cancelled') {
+        setActiveCountdown(null);
+      } else {
+        fetchCountdown();
+      }
+    },
+    // VIP show announcements (from remote control)
+    onTicketedAnnouncement: (event) => {
+      setAnnouncedTicketedStream({
+        id: event.ticketedStreamId,
+        title: event.title,
+        ticketPrice: event.ticketPrice,
+        startsAt: new Date(event.startsAt),
+      });
+    },
+    // VIP mode changes
+    onVipModeChange: (event) => {
+      setVipModeActive(event.isActive);
+      if (event.isActive) {
+        showSuccess('VIP show started!');
+      }
+    },
     // Guest call-in events (host perspective)
     onGuestJoined: (event) => {
       // Update active guest when guest joins
