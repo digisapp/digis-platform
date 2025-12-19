@@ -103,6 +103,14 @@ export async function POST(
       }, { status: 400 });
     }
 
+    // Limit message length for chat (500 chars max)
+    const MAX_CHAT_LENGTH = 500;
+    if (content.trim().length > MAX_CHAT_LENGTH) {
+      return NextResponse.json({
+        error: `Message too long. Maximum ${MAX_CHAT_LENGTH} characters allowed.`
+      }, { status: 400 });
+    }
+
     // Get user details including spend tier
     const dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.id),

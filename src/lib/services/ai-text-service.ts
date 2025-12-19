@@ -333,6 +333,7 @@ export class AiTextService {
     conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
   ): Promise<string | null> {
     const apiKey = process.env.XAI_API_KEY;
+    const timeoutMs = parseInt(process.env.XAI_API_TIMEOUT_MS || '30000', 10);
 
     if (!apiKey) {
       console.error('[AI Text] XAI_API_KEY not configured');
@@ -340,6 +341,9 @@ export class AiTextService {
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       // Build messages array with system prompt, history, and new message
       const apiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         { role: 'system', content: systemPrompt },
@@ -359,7 +363,10 @@ export class AiTextService {
           max_tokens: 300, // Shorter for natural texts
           temperature: 0.9, // More creative/varied
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -369,8 +376,12 @@ export class AiTextService {
 
       const data = await response.json();
       return data.choices?.[0]?.message?.content || null;
-    } catch (error) {
-      console.error('[AI Text] Error calling xAI:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('[AI Text] xAI API request timed out');
+      } else {
+        console.error('[AI Text] Error calling xAI:', error);
+      }
       return null;
     }
   }
@@ -432,6 +443,9 @@ export class AiTextService {
     if (!apiKey) return;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for fact extraction
+
       // Use AI to extract facts from the message
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
@@ -463,7 +477,10 @@ If no facts found, return: {"facts": []}`
           max_tokens: 200,
           temperature: 0.3, // Lower temperature for more consistent extraction
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         console.error('[AI Text] Fact extraction API error:', response.status);

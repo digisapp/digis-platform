@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';
 
-const PLATFORM_FEE_PERCENT = 0; // No platform fee for now, creator gets 100%
+// Platform fee for AI text chat (configurable, defaults to 0% - creator gets 100%)
+const PLATFORM_FEE_PERCENT = parseInt(process.env.AI_TEXT_PLATFORM_FEE_PERCENT || '0', 10);
 
 /**
  * POST /api/ai/text
@@ -250,6 +251,7 @@ function buildSystemPrompt(creatorName: string, settings: typeof aiTwinSettings.
 
 async function callXaiApi(systemPrompt: string, userMessage: string): Promise<string | null> {
   const apiKey = process.env.XAI_API_KEY;
+  const timeoutMs = parseInt(process.env.XAI_API_TIMEOUT_MS || '30000', 10);
 
   if (!apiKey) {
     console.error('[AI Text Chat] XAI_API_KEY not configured');
@@ -257,6 +259,9 @@ async function callXaiApi(systemPrompt: string, userMessage: string): Promise<st
   }
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -272,7 +277,10 @@ async function callXaiApi(systemPrompt: string, userMessage: string): Promise<st
         max_tokens: 500,
         temperature: 0.8,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -283,7 +291,11 @@ async function callXaiApi(systemPrompt: string, userMessage: string): Promise<st
     const data = await response.json();
     return data.choices?.[0]?.message?.content || null;
 
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.error('[AI Text Chat] xAI API request timed out');
+      throw new Error('AI service timed out');
+    }
     console.error('[AI Text Chat] Error calling xAI:', error);
     throw error;
   }

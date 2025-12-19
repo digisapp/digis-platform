@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
         isFree,
         thumbnailUrl,
         mediaUrl,
-        durationSeconds: contentType === 'video' ? 0 : null, // TODO: Extract video duration
+        durationSeconds: null, // Note: Videos use /api/content/create with client-extracted duration
         isPublished: true,
       }).returning();
 

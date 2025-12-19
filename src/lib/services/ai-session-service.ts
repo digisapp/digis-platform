@@ -4,11 +4,11 @@ import { eq, sql, and, desc, or } from 'drizzle-orm';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { invalidateBalanceCache } from '@/lib/cache';
 
-// Platform fee for AI sessions (20%)
-const PLATFORM_FEE_PERCENT = 20;
+// Platform fee for AI sessions (creators get 100%, platform profits from coin sales)
+const PLATFORM_FEE_PERCENT = parseInt(process.env.PLATFORM_FEE_PERCENT || '0', 10);
 
 // xAI API cost per minute (in coins equivalent - $0.05/min at $0.01 per coin)
-const XAI_API_COST_PER_MINUTE = 5;
+const XAI_API_COST_PER_MINUTE = parseInt(process.env.XAI_API_COST_PER_MINUTE || '5', 10);
 
 export class AiSessionService {
   /**

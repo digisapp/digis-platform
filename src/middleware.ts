@@ -7,7 +7,6 @@ export async function middleware(request: NextRequest) {
   // SECURITY: Block direct access to PostgREST API
   // We use Drizzle through API routes, not PostgREST
   if (path.startsWith('/rest/v1')) {
-    console.log('[Security] Blocked PostgREST access attempt:', path)
     return new NextResponse('Not Found', { status: 404 })
   }
 
@@ -41,29 +40,17 @@ export async function middleware(request: NextRequest) {
 
   // Protect /admin routes - Admin only
   if (path.startsWith('/admin')) {
-    console.log('[Middleware] Admin route accessed:', path)
-    console.log('[Middleware] User:', user ? user.email : 'Not authenticated')
-
     if (!user) {
-      // Not logged in, redirect to home
-      console.log('[Middleware] Redirecting unauthenticated user to home')
       return NextResponse.redirect(new URL('/', request.url))
     }
 
     // SECURITY: Check admin status from app_metadata (synced from DB isAdmin flag)
-    // No hardcoded email lists - DB is the only source of truth
-    // app_metadata is set by server when user.isAdmin changes in DB
     const appMeta = user.app_metadata || {}
     const isAdmin = appMeta.isAdmin === true || appMeta.role === 'admin'
-    console.log('[Middleware] Is admin (from app_metadata):', isAdmin)
 
     if (!isAdmin) {
-      // Not an admin, redirect to dashboard
-      console.log('[Middleware] Redirecting non-admin user to dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-
-    console.log('[Middleware] Admin access granted')
   }
 
   // Protect /creator routes - Creator only (except /creator/apply)

@@ -207,8 +207,12 @@ export class AiStreamChatService {
     if (!apiKey) return null;
 
     const systemPrompt = this.buildStreamChatPrompt(creatorName, settings, responseType);
+    const timeoutMs = parseInt(process.env.XAI_API_TIMEOUT_MS || '15000', 10); // 15s for stream chat
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -224,7 +228,10 @@ export class AiStreamChatService {
           max_tokens: 100, // Short for stream chat
           temperature: 0.9,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         console.error('[AI Stream Chat] API error:', response.status);
@@ -250,8 +257,12 @@ export class AiStreamChatService {
       recentResponses.set(streamId, recent);
 
       return aiResponse;
-    } catch (error) {
-      console.error('[AI Stream Chat] Error:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('[AI Stream Chat] API request timed out');
+      } else {
+        console.error('[AI Stream Chat] Error:', error);
+      }
       return null;
     }
   }
@@ -270,6 +281,7 @@ export class AiStreamChatService {
     if (!apiKey) return null;
 
     const giftText = giftName ? `sent a ${giftName}` : `tipped ${amount} coins`;
+    const timeoutMs = parseInt(process.env.XAI_API_TIMEOUT_MS || '15000', 10);
 
     const systemPrompt = `You ARE ${creatorName}, a content creator live streaming. Someone just ${giftText}!
 
@@ -283,6 +295,9 @@ Examples:
 - "@username!! you're the best 😍"`;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
       const response = await fetch('https://api.x.ai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -298,7 +313,10 @@ Examples:
           max_tokens: 50,
           temperature: 0.9,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) return null;
 

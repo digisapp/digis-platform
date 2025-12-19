@@ -62,7 +62,6 @@ function RemoteParticipantMonitor({
   useEffect(() => {
     // If we had a remote participant and now they're gone, and call has started
     if (hadRemoteParticipant && remoteParticipants.length === 0 && hasStarted && connectionState === ConnectionState.Connected) {
-      console.log('Remote participant left the call');
       // Small delay to avoid false positives during reconnection
       const timeout = setTimeout(() => {
         if (remoteParticipants.length === 0) {
