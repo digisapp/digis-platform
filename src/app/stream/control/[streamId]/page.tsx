@@ -327,11 +327,13 @@ export default function StreamRemoteControlPage() {
 
   const fetchPoll = async () => {
     try {
-      const res = await fetch(`/api/streams/${streamId}/poll`);
+      const res = await fetch(`/api/streams/${streamId}/polls`);
       if (res.ok) {
         const data = await res.json();
         if (data.poll?.isActive) {
           setActivePoll(data.poll);
+        } else {
+          setActivePoll(null);
         }
       }
     } catch (err) {
@@ -360,16 +362,17 @@ export default function StreamRemoteControlPage() {
 
     setIsSending(true);
     try {
-      const res = await fetch(`/api/streams/${streamId}/messages`, {
+      const res = await fetch(`/api/streams/${streamId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: chatMessage.trim() }),
+        body: JSON.stringify({ content: chatMessage.trim() }),
       });
 
       if (res.ok) {
         setChatMessage('');
       } else {
-        showError('Failed to send message');
+        const data = await res.json();
+        showError(data.error || 'Failed to send message');
       }
     } catch (err) {
       showError('Failed to send message');
@@ -499,12 +502,15 @@ export default function StreamRemoteControlPage() {
   const endPoll = async () => {
     if (!activePoll) return;
     try {
-      const res = await fetch(`/api/streams/${streamId}/poll/${activePoll.id}/end`, {
+      const res = await fetch(`/api/streams/${streamId}/polls/${activePoll.id}/end`, {
         method: 'POST',
       });
       if (res.ok) {
         setActivePoll(null);
         showSuccess('Poll ended');
+      } else {
+        const data = await res.json();
+        showError(data.error || 'Failed to end poll');
       }
     } catch (err) {
       showError('Failed to end poll');
@@ -521,12 +527,15 @@ export default function StreamRemoteControlPage() {
   const cancelCountdown = async () => {
     if (!activeCountdown) return;
     try {
-      const res = await fetch(`/api/streams/${streamId}/countdown/${activeCountdown.id}/cancel`, {
-        method: 'POST',
+      const res = await fetch(`/api/streams/${streamId}/countdown`, {
+        method: 'DELETE',
       });
       if (res.ok) {
         setActiveCountdown(null);
         showSuccess('Countdown cancelled');
+      } else {
+        const data = await res.json();
+        showError(data.error || 'Failed to cancel countdown');
       }
     } catch (err) {
       showError('Failed to cancel countdown');
