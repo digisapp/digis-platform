@@ -181,6 +181,7 @@ export default function StreamViewerPage() {
 
   // Guest call-in state
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const currentUserIdRef = useRef<string | null>(null); // Ref to avoid stale closures
   const [guestRequestsEnabled, setGuestRequestsEnabled] = useState(false);
   const [isGuest, setIsGuest] = useState(false); // Am I the active guest?
   const [activeGuest, setActiveGuest] = useState<{
@@ -222,6 +223,7 @@ export default function StreamViewerPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
+        currentUserIdRef.current = user.id; // Keep ref in sync
       }
     };
     fetchCurrentUser();
@@ -390,10 +392,12 @@ export default function StreamViewerPage() {
     },
     onGuestInvite: (event) => {
       // Show invite popup when host invites this viewer
+      // Use ref to get current value (avoids stale closure issue)
+      const userId = currentUserIdRef.current;
       console.log('[Guest Invite] Received invite event:', event);
-      console.log('[Guest Invite] Current user ID:', currentUserId);
-      console.log('[Guest Invite] Match:', event.viewerId === currentUserId);
-      if (event.viewerId === currentUserId) {
+      console.log('[Guest Invite] Current user ID (ref):', userId);
+      console.log('[Guest Invite] Match:', event.viewerId === userId);
+      if (event.viewerId === userId) {
         console.log('[Guest Invite] Setting invite popup');
         setGuestInvite(event);
       }

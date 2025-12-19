@@ -121,6 +121,22 @@ export async function POST(
       message: message?.trim() || null,
     });
 
+    // If tip has a message, also broadcast as a "super tip" chat message
+    if (message?.trim()) {
+      await AblyRealtimeService.broadcastChatMessage(streamId, {
+        id: `super-tip-${Date.now()}-${user.id}`,
+        streamId,
+        userId: user.id,
+        username,
+        message: message.trim(),
+        messageType: 'super_tip',
+        createdAt: new Date(),
+        // Additional fields for super tip display
+        giftAmount: amount,
+        avatarUrl,
+      } as any);
+    }
+
     // AI Chat Mod: Thank the tipper (async, don't block)
     if (result.recipientCreatorId) {
       AiStreamChatService.processTip(
