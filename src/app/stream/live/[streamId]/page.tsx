@@ -2118,7 +2118,7 @@ export default function BroadcastStudioPage() {
 
                   {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
                   {currentUsername && (
-                    <div className="absolute bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+                    <div className="absolute bottom-10 sm:bottom-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
                       <span
                         className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white"
                         style={{
