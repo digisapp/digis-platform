@@ -24,7 +24,6 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
   const [loading, setLoading] = useState(false);
   const [invitingId, setInvitingId] = useState<string | null>(null);
   const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
-  const [showInviteOptions, setShowInviteOptions] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
