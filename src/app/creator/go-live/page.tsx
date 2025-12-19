@@ -537,22 +537,57 @@ export default function GoLivePage() {
           </div>
 
           <p className="text-gray-300 mb-8">
-            Your stream is still active. Rejoin to continue streaming or end it to start a new one.
+            {isMobile
+              ? 'Monitor your chat from this device or end the stream to start a new one.'
+              : 'Rejoin to continue streaming, monitor chat from this device, or end it to start a new one.'}
           </p>
 
           {/* Actions */}
           <div className="space-y-3">
-            <GlassButton
-              variant="gradient"
-              size="lg"
-              onClick={() => router.push(`/stream/live/${activeStream.id}`)}
-              className="w-full"
-              shimmer
-              glow
-            >
-              <span className="mr-2">🔴</span>
-              Rejoin Stream
-            </GlassButton>
+            {/* Show Monitor Chat first on mobile, Rejoin first on desktop */}
+            {isMobile ? (
+              <>
+                <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => router.push(`/stream/monitor/${activeStream.id}`)}
+                  className="w-full"
+                  shimmer
+                  glow
+                >
+                  <span className="mr-2">📱</span>
+                  Monitor Chat
+                </GlassButton>
+                <button
+                  onClick={() => router.push(`/stream/live/${activeStream.id}`)}
+                  className="w-full py-3 px-6 bg-white/5 border border-white/20 rounded-xl text-gray-300 hover:bg-white/10 transition-all"
+                >
+                  <span className="mr-2">🔴</span>
+                  Rejoin as Host
+                </button>
+              </>
+            ) : (
+              <>
+                <GlassButton
+                  variant="gradient"
+                  size="lg"
+                  onClick={() => router.push(`/stream/live/${activeStream.id}`)}
+                  className="w-full"
+                  shimmer
+                  glow
+                >
+                  <span className="mr-2">🔴</span>
+                  Rejoin Stream
+                </GlassButton>
+                <button
+                  onClick={() => router.push(`/stream/monitor/${activeStream.id}`)}
+                  className="w-full py-3 px-6 bg-white/5 border border-white/20 rounded-xl text-gray-300 hover:bg-green-500/20 hover:border-green-500/50 hover:text-green-400 transition-all"
+                >
+                  <span className="mr-2">📱</span>
+                  Monitor Chat (Phone)
+                </button>
+              </>
+            )}
 
             <button
               onClick={async () => {
