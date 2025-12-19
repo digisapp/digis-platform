@@ -873,63 +873,57 @@ export default function GoLivePage() {
                   {/* Rate and Duration - Only show if enabled */}
                   {goPrivateEnabled && (
                     <>
-                      <div className="border-t border-white/10 pt-4">
-                        <label className="block text-sm text-gray-300 mb-2">
-                          Rate per minute
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="number"
-                            value={goPrivateRate ?? ''}
-                            onChange={(e) => setGoPrivateRate(e.target.value ? parseInt(e.target.value) : null)}
-                            placeholder={defaultCallSettings ? `${defaultCallSettings.rate} (default)` : '50'}
-                            min={1}
-                            className="flex-1 px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
-                          />
-                          <span className="text-gray-400 text-sm">coins</span>
+                      <div className="border-t border-white/10 pt-4 grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Rate per minute
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={goPrivateRate ?? ''}
+                              onChange={(e) => setGoPrivateRate(e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder={defaultCallSettings ? `${defaultCallSettings.rate}` : '50'}
+                              min={1}
+                              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 text-sm"
+                            />
+                            <span className="text-gray-400 text-xs whitespace-nowrap">coins</span>
+                          </div>
                         </div>
-                        {defaultCallSettings && !goPrivateRate && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Uses your default call rate of {defaultCallSettings.rate} coins/min
-                          </p>
-                        )}
-                      </div>
 
-                      <div>
-                        <label className="block text-sm text-gray-300 mb-2">
-                          Minimum duration
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="number"
-                            value={goPrivateMinDuration ?? ''}
-                            onChange={(e) => setGoPrivateMinDuration(e.target.value ? parseInt(e.target.value) : null)}
-                            placeholder={defaultCallSettings ? `${defaultCallSettings.minDuration} (default)` : '5'}
-                            min={1}
-                            max={60}
-                            className="flex-1 px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
-                          />
-                          <span className="text-gray-400 text-sm">minutes</span>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">
+                            Min duration
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={goPrivateMinDuration ?? ''}
+                              onChange={(e) => setGoPrivateMinDuration(e.target.value ? parseInt(e.target.value) : null)}
+                              placeholder={defaultCallSettings ? `${defaultCallSettings.minDuration}` : '5'}
+                              min={1}
+                              max={60}
+                              className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 text-sm"
+                            />
+                            <span className="text-gray-400 text-xs whitespace-nowrap">mins</span>
+                          </div>
                         </div>
-                        {defaultCallSettings && !goPrivateMinDuration && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Uses your default minimum of {defaultCallSettings.minDuration} minutes
-                          </p>
-                        )}
                       </div>
 
                       {/* Preview */}
-                      <div className="bg-black/30 rounded-lg p-3 mt-2">
+                      <div className="bg-black/30 rounded-lg p-3">
                         <p className="text-xs text-gray-400">
-                          Viewers will pay{' '}
                           <span className="text-green-400 font-semibold">
                             {goPrivateRate || defaultCallSettings?.rate || 50} coins/min
                           </span>
-                          {' '}with a minimum of{' '}
+                          {' × '}
                           <span className="text-green-400 font-semibold">
-                            {goPrivateMinDuration || defaultCallSettings?.minDuration || 5} minutes
+                            {goPrivateMinDuration || defaultCallSettings?.minDuration || 5} min
                           </span>
-                          {' '}({(goPrivateRate || defaultCallSettings?.rate || 50) * (goPrivateMinDuration || defaultCallSettings?.minDuration || 5)} coins min)
+                          {' = '}
+                          <span className="text-white font-semibold">
+                            {(goPrivateRate || defaultCallSettings?.rate || 50) * (goPrivateMinDuration || defaultCallSettings?.minDuration || 5)} coins min
+                          </span>
                         </p>
                       </div>
                     </>
