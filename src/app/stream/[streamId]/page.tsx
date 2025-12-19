@@ -241,6 +241,24 @@ export default function StreamViewerPage() {
         const { getAblyClient } = await import('@/lib/ably/client');
         const ably = getAblyClient();
 
+        // Wait for Ably connection (like IncomingCallPopup does)
+        if (ably.connection.state !== 'connected') {
+          console.log('[Guest Invite] Waiting for Ably connection...');
+          await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            ably.connection.once('connected', () => {
+              clearTimeout(timeout);
+              resolve();
+            });
+            ably.connection.once('failed', () => {
+              clearTimeout(timeout);
+              reject(new Error('Connection failed'));
+            });
+          });
+        }
+
+        if (!mounted) return;
+
         // Subscribe to user's notification channel for guest invites
         notificationChannel = ably.channels.get(`user:${currentUserId}:notifications`);
         notificationChannel.subscribe('guest_invite', (message: any) => {
@@ -256,9 +274,9 @@ export default function StreamViewerPage() {
           });
         });
 
-        console.log('[User Notifications] Subscribed to channel for user:', currentUserId);
+        console.log('[Guest Invite] Subscribed to notifications channel for user:', currentUserId);
       } catch (error) {
-        console.error('[User Notifications] Setup error:', error);
+        console.error('[Guest Invite] Setup error:', error);
       }
     };
 
@@ -1208,17 +1226,17 @@ export default function StreamViewerPage() {
             )}
 
             {/* Username Watermark - Hidden when stream ends */}
-            {!streamEnded && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
+            {!streamEnded && stream?.creator?.username && (
+              <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
                 <span
-                  className="text-xl sm:text-2xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
+                  className="text-lg sm:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                   style={{
                     color: '#ffffff',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.4)',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
                     letterSpacing: '0.02em',
                   }}
                 >
-                  digis.cc/{stream?.creator?.username || 'loading'}
+                  digis.cc/{stream.creator.username}
                 </span>
               </div>
             )}
