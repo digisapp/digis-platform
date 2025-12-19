@@ -16,7 +16,7 @@ type SpotlightedCreator = {
 type GiftSelectorProps = {
   streamId: string;
   onSendGift: (giftId: string, quantity: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
-  onSendTip?: (amount: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
+  onSendTip?: (amount: number, recipientCreatorId?: string, recipientUsername?: string, message?: string) => Promise<void>;
   userBalance: number;
   spotlightedCreator?: SpotlightedCreator | null;
   hostName?: string; // Stream host's display name
@@ -31,6 +31,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [tipAmount, setTipAmount] = useState<number | null>(null);
   const [customTipAmount, setCustomTipAmount] = useState('');
+  const [tipMessage, setTipMessage] = useState('');
   // Track who receives the gift/tip: 'host' or 'spotlighted'
   const [recipient, setRecipient] = useState<'host' | 'spotlighted'>(spotlightedCreator ? 'spotlighted' : 'host');
 
@@ -148,13 +149,15 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
     setIsSending(true);
     try {
       // If recipient is spotlighted creator, pass their info
+      const message = tipMessage.trim() || undefined;
       if (recipient === 'spotlighted' && spotlightedCreator) {
-        await onSendTip(amount, spotlightedCreator.creatorId, spotlightedCreator.username);
+        await onSendTip(amount, spotlightedCreator.creatorId, spotlightedCreator.username, message);
       } else {
-        await onSendTip(amount);
+        await onSendTip(amount, undefined, undefined, message);
       }
       setTipAmount(null);
       setCustomTipAmount('');
+      setTipMessage('');
     } catch (error: any) {
       showError(error.message || 'Failed to send tip');
     } finally {
@@ -247,6 +250,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
               setSelectedGift(null);
               setTipAmount(null);
               setCustomTipAmount('');
+              setTipMessage('');
             }}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
               activeCategory === cat
@@ -310,6 +314,26 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
               placeholder="Custom amount..."
               className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
             />
+          </div>
+
+          {/* Optional Message */}
+          <div className="space-y-2">
+            <label className="text-xs text-gray-400 uppercase tracking-wide flex items-center gap-1">
+              💬 Add a message <span className="text-gray-500">(optional)</span>
+            </label>
+            <textarea
+              value={tipMessage}
+              onChange={(e) => setTipMessage(e.target.value)}
+              placeholder="Say something to the creator..."
+              maxLength={200}
+              rows={2}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none"
+            />
+            {tipMessage && (
+              <div className="text-xs text-amber-400 flex items-center gap-1">
+                ✨ Your message will be highlighted in chat!
+              </div>
+            )}
           </div>
 
           {/* Send Tip Button */}

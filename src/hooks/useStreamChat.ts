@@ -25,6 +25,7 @@ interface TipEvent {
   menuItemLabel?: string | null;
   itemCategory?: string | null;
   fulfillmentType?: string | null;
+  message?: string | null;
 }
 
 interface GiftEvent {

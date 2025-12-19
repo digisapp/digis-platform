@@ -37,7 +37,7 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { amount, recipientCreatorId, recipientUsername, tipMenuItemId, tipMenuItemLabel } = await req.json();
+    const { amount, recipientCreatorId, recipientUsername, tipMenuItemId, tipMenuItemLabel, message } = await req.json();
 
     if (!amount || amount < 1) {
       return NextResponse.json({ error: 'Tip amount is required (minimum 1 coin)' }, { status: 400 });
@@ -117,6 +117,8 @@ export async function POST(
       menuItemLabel: tipMenuItemLabel,
       itemCategory: menuItem ? itemCategory : null,
       fulfillmentType: menuItem ? fulfillmentType : null,
+      // Include custom message if provided
+      message: message?.trim() || null,
     });
 
     // AI Chat Mod: Thank the tipper (async, don't block)

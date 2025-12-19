@@ -660,11 +660,11 @@ export default function StreamViewerPage() {
     fetchUserBalance();
   };
 
-  const handleSendTip = async (amount: number, recipientCreatorId?: string, recipientUsername?: string) => {
+  const handleSendTip = async (amount: number, recipientCreatorId?: string, recipientUsername?: string, message?: string) => {
     const response = await fetch(`/api/streams/${streamId}/tip`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, recipientCreatorId, recipientUsername }),
+      body: JSON.stringify({ amount, recipientCreatorId, recipientUsername, message }),
     });
     if (!response.ok) {
       const data = await response.json();
@@ -1550,8 +1550,8 @@ export default function StreamViewerPage() {
                     await handleSendGift(giftId, qty, recipientCreatorId, recipientUsername);
                     setShowGiftPanel(false);
                   }}
-                  onSendTip={async (amount, recipientCreatorId, recipientUsername) => {
-                    await handleSendTip(amount, recipientCreatorId, recipientUsername);
+                  onSendTip={async (amount, recipientCreatorId, recipientUsername, message) => {
+                    await handleSendTip(amount, recipientCreatorId, recipientUsername, message);
                     setShowGiftPanel(false);
                   }}
                   userBalance={userBalance}

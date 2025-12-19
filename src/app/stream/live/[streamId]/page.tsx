@@ -634,7 +634,7 @@ export default function BroadcastStudioPage() {
 
       // Generate message content based on item type
       let content = `tipped ${tipData.amount} coins!`;
-      let messageType: 'tip' | 'menu_purchase' | 'menu_order' | 'menu_tip' = 'tip';
+      let messageType: 'tip' | 'menu_purchase' | 'menu_order' | 'menu_tip' | 'super_tip' = 'tip';
       let emoji = '💰';
 
       if (tipData.menuItemLabel) {
@@ -653,6 +653,12 @@ export default function BroadcastStudioPage() {
         }
       }
 
+      // If tip includes a custom message, use super_tip type for highlighted display
+      if (tipData.message) {
+        messageType = 'super_tip';
+        emoji = '💬';
+      }
+
       // Add tip message to chat so host can see it
       // Map Ably event fields to StreamMessage fields expected by StreamChat component
       const tipMessage = {
@@ -663,6 +669,7 @@ export default function BroadcastStudioPage() {
         message: content,
         messageType: messageType as any,
         giftAmount: tipData.amount,
+        tipMessage: tipData.message || null, // Custom message from viewer
         createdAt: new Date(),
         // Include user object for avatar display
         user: {

@@ -243,6 +243,48 @@ const ChatMessage = memo(function ChatMessage({
     );
   }
 
+  // Super Tip - Tip with custom message (highlighted like YouTube Super Chat)
+  if ((msg as any).messageType === 'super_tip') {
+    return (
+      <div className="p-3 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 rounded-xl border-2 border-amber-400/50 shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+        {/* Header with avatar, name, and amount */}
+        <div className="flex items-center gap-3 mb-2">
+          {(msg as any).user?.avatarUrl || (msg as any).avatarUrl ? (
+            <img
+              src={(msg as any).user?.avatarUrl || (msg as any).avatarUrl}
+              alt={msg.username}
+              className={`w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-amber-400 ${tierStyle.glowClass}`}
+            />
+          ) : (
+            <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-bold text-black flex-shrink-0 ring-2 ring-amber-400 ${tierStyle.glowClass}`}>
+              {msg.username?.[0]?.toUpperCase() || '?'}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-amber-300">{msg.username}</span>
+              <span className="text-xs text-amber-200/60">{formatTimestamp(msg.createdAt)}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl">💬</span>
+              <span className="text-sm font-bold text-amber-400">
+                {(msg as any).giftAmount} coins
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* Custom message from viewer */}
+        {(msg as any).tipMessage && (
+          <div className="mt-2 p-3 bg-black/30 rounded-lg border border-amber-400/30">
+            <p className="text-white font-medium text-base leading-relaxed">
+              "{(msg as any).tipMessage}"
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Regular message
   return (
     <div className="flex items-start gap-3 py-1 hover:bg-white/5 rounded-lg px-2 -mx-2 transition-colors">
