@@ -1144,21 +1144,19 @@ export default function StreamViewerPage() {
               </div>
             )}
 
-            {/* Username Watermark - Centered with spacing for portrait crop (Instagram/TikTok) */}
-            {stream?.creator?.username && (
-              <div className="absolute bottom-10 sm:bottom-14 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
-                <span
-                  className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white"
-                  style={{
-                    fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
-                    WebkitTextStroke: '1px #ff1493',
-                    textShadow: '1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493, 0 1.5px 0 #ff1493, 0 -1.5px 0 #ff1493, 1.5px 0 0 #ff1493, -1.5px 0 0 #ff1493',
-                  }}
-                >
-                  digis.cc/{stream.creator.username}
-                </span>
-              </div>
-            )}
+            {/* Username Watermark - Always visible, centered */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[999] pointer-events-none">
+              <span
+                className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
+                style={{
+                  fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
+                  WebkitTextStroke: '1px #ff1493',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
+                }}
+              >
+                digis.cc/{stream?.creator?.username || 'loading'}
+              </span>
+            </div>
 
             {/* Guest Video Overlay - Shows when a guest is active */}
             {activeGuest && (
