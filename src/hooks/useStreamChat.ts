@@ -338,7 +338,8 @@ export function useStreamChat({
         });
 
         // Subscribe to main stream channel (ticketed announcements, stream events, guest events)
-        mainChannel = ably.channels.get(`stream:${streamId}`);
+        // Must match CHANNEL_NAMES.streamChat from server
+        mainChannel = ably.channels.get(`stream:${streamId}:chat`);
         mainChannel.subscribe('ticketed-announcement', (message) => {
           callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
         });
