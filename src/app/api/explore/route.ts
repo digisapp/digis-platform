@@ -239,7 +239,11 @@ export async function GET(request: NextRequest) {
         categories: categoryNames,
         pagination: { limit, offset, hasMore },
       }, requestId),
-      { headers: { 'x-request-id': requestId } }
+      { headers: {
+        'x-request-id': requestId,
+        // Private cache - results exclude current user
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      } }
     );
   } catch (error: any) {
     console.error('[EXPLORE]', { requestId, error: error?.message });

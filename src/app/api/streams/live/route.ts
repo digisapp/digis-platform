@@ -27,7 +27,10 @@ export async function GET() {
 
       return NextResponse.json(
         success({ streams: liveStreams }, requestId),
-        { headers: { 'x-request-id': requestId } }
+        { headers: {
+          'x-request-id': requestId,
+          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+        } }
       );
     } catch (dbError) {
       console.error('[STREAMS_LIVE]', {

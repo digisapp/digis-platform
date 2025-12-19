@@ -29,6 +29,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       content,
       count: content.length,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      },
     });
   } catch (error: any) {
     console.error('[CONTENT/FEED]', { requestId, error: error?.message });

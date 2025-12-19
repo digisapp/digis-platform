@@ -181,6 +181,11 @@ export async function GET(request: NextRequest) {
         creator: content.creator,
       })),
       suggestedCreators: suggestedWithLive,
+    }, {
+      headers: {
+        // Private cache - personalized based on user's follows
+        'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
+      },
     });
   } catch (error: any) {
     console.error('Error fetching feed:', error);
