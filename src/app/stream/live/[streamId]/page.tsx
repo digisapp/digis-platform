@@ -16,7 +16,6 @@ import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { FeaturedCreatorsPanel } from '@/components/streaming/FeaturedCreatorsPanel';
-import { GuestRequestPanel } from '@/components/streaming/GuestRequestPanel';
 import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCreatorOverlay';
 import { AnnounceTicketedStreamModal } from '@/components/streaming/AnnounceTicketedStreamModal';
@@ -2116,15 +2115,17 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Hidden when stream summary/modals appear */}
-                  {!showStreamSummary && !showSaveRecordingsModal && (
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+                  {/* Username Watermark - Hidden when any modal/popup appears */}
+                  {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && (
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
                       <span
-                        className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
+                        className="text-2xl sm:text-3xl font-black tracking-wider whitespace-nowrap uppercase"
                         style={{
-                          fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
-                          WebkitTextStroke: '1px #ff1493',
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
+                          fontFamily: '"Bebas Neue", "Impact", "Arial Black", sans-serif',
+                          color: '#ffffff',
+                          WebkitTextStroke: '2px #ff1493',
+                          textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,20,147,0.8), 0 0 40px rgba(255,20,147,0.5)',
+                          letterSpacing: '0.1em',
                         }}
                       >
                         digis.cc/{currentUsername || 'loading'}
@@ -2242,21 +2243,6 @@ export default function BroadcastStudioPage() {
               <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
             </div>
 
-            {/* Guest Request Panel - Desktop only */}
-            <div className="hidden lg:block">
-              <GuestRequestPanel
-                streamId={streamId}
-                onGuestAccepted={(guest) => setActiveGuest({
-                  userId: guest.userId,
-                  username: guest.username,
-                  displayName: guest.displayName,
-                  avatarUrl: guest.avatarUrl,
-                  requestType: guest.requestType as 'video' | 'voice',
-                })}
-                onGuestRemoved={() => setActiveGuest(null)}
-              />
-            </div>
-
             {/* Top Gifters Leaderboard - Desktop only */}
             <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
               <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
@@ -2320,21 +2306,6 @@ export default function BroadcastStudioPage() {
         {/* Featured Creators Panel - Mobile only (collapsed by default) */}
         <div className="lg:hidden mt-4">
           <FeaturedCreatorsPanel streamId={streamId} isHost={true} />
-        </div>
-
-        {/* Guest Request Panel - Mobile only */}
-        <div className="lg:hidden mt-4">
-          <GuestRequestPanel
-            streamId={streamId}
-            onGuestAccepted={(guest) => setActiveGuest({
-              userId: guest.userId,
-              username: guest.username,
-              displayName: guest.displayName,
-              avatarUrl: guest.avatarUrl,
-              requestType: guest.requestType as 'video' | 'voice',
-            })}
-            onGuestRemoved={() => setActiveGuest(null)}
-          />
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}

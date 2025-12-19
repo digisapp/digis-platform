@@ -1158,13 +1158,15 @@ export default function StreamViewerPage() {
 
             {/* Username Watermark - Hidden when stream ends */}
             {!streamEnded && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[50] pointer-events-none">
                 <span
-                  className="text-xl sm:text-2xl font-extrabold tracking-wide whitespace-nowrap text-white drop-shadow-lg"
+                  className="text-2xl sm:text-3xl font-black tracking-wider whitespace-nowrap uppercase"
                   style={{
-                    fontFamily: 'Poppins, "SF Pro Display", system-ui, sans-serif',
-                    WebkitTextStroke: '1px #ff1493',
-                    textShadow: '2px 2px 4px rgba(0,0,0,0.8), 1.5px 1.5px 0 #ff1493, -1.5px -1.5px 0 #ff1493, 1.5px -1.5px 0 #ff1493, -1.5px 1.5px 0 #ff1493',
+                    fontFamily: '"Bebas Neue", "Impact", "Arial Black", sans-serif',
+                    color: '#ffffff',
+                    WebkitTextStroke: '2px #ff1493',
+                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 20px rgba(255,20,147,0.8), 0 0 40px rgba(255,20,147,0.5)',
+                    letterSpacing: '0.1em',
                   }}
                 >
                   digis.cc/{stream?.creator?.username || 'loading'}
@@ -1799,7 +1801,15 @@ export default function StreamViewerPage() {
                     className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl font-semibold text-white transition-colors flex items-center justify-center gap-2"
                   >
                     <Eye className="w-5 h-5" />
-                    Browse More Streams
+                    Browse Streams
+                  </button>
+
+                  {/* Homepage */}
+                  <button
+                    onClick={() => router.push('/')}
+                    className="w-full py-2.5 px-4 text-gray-400 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Homepage
                   </button>
                 </div>
               </div>
