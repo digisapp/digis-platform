@@ -2038,116 +2038,203 @@ export default function BroadcastStudioPage() {
                     )}
                   </div>
 
-                  {/* Top Right Overlay - Coins + Goal + Camera Flip */}
-                  <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
-                    {/* Coins Earned */}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
-                      <Coins className="w-4 h-4 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                  {/* Top Right Overlay - Desktop: All buttons, Mobile: Just coins + camera flip */}
+                  <div className="absolute top-3 right-3 z-10">
+                    {/* Desktop Layout - Single Row */}
+                    <div className="hidden md:flex items-center gap-2">
+                      {/* Coins Earned */}
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                        <Coins className="w-4 h-4 text-yellow-400" />
+                        <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                      </div>
+
+                      {/* Set Goal Button */}
+                      {(() => {
+                        const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                        return (
+                          <button
+                            onClick={() => {
+                              if (hasActiveGoal) return;
+                              setEditingGoal(null);
+                              setShowGoalModal(true);
+                            }}
+                            disabled={hasActiveGoal}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                              hasActiveGoal
+                                ? 'bg-black/40 border-gray-600/30 text-gray-500 cursor-not-allowed opacity-50'
+                                : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
+                            }`}
+                          >
+                            <Target className={`w-4 h-4 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                            <span className="text-sm">GOAL</span>
+                          </button>
+                        );
+                      })()}
+
+                      {/* Menu Toggle Button */}
+                      <button
+                        onClick={handleToggleMenu}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                          menuEnabled
+                            ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
+                            : 'bg-black/60 border-white/20 text-white/60 hover:border-white/40 hover:bg-black/80'
+                        }`}
+                      >
+                        <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
+                        <span className="text-sm">Menu</span>
+                      </button>
+
+                      {/* Poll Button */}
+                      <button
+                        onClick={() => setShowCreatePollModal(true)}
+                        disabled={!!activePoll?.isActive}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                          activePoll?.isActive
+                            ? 'bg-purple-500/20 border-purple-500/50 text-purple-400 cursor-not-allowed'
+                            : 'bg-black/60 border-purple-500/30 text-white hover:border-purple-500/60 hover:bg-black/80'
+                        }`}
+                      >
+                        <BarChart2 className="w-4 h-4 text-purple-400" />
+                        <span className="text-sm">Poll</span>
+                      </button>
+
+                      {/* Countdown Button */}
+                      <button
+                        onClick={() => setShowCreateCountdownModal(true)}
+                        disabled={!!activeCountdown?.isActive}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+                          activeCountdown?.isActive
+                            ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 cursor-not-allowed'
+                            : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
+                        }`}
+                      >
+                        <Clock className="w-4 h-4 text-cyan-400" />
+                        <span className="text-sm">Timer</span>
+                      </button>
+
+                      {/* Monitor on Phone Button */}
+                      <button
+                        onClick={() => setShowQRCode(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-green-500/30 text-white font-semibold text-sm hover:border-green-500/60 hover:bg-black/80 transition-all"
+                      >
+                        <Smartphone className="w-4 h-4 text-green-400" />
+                        <span className="text-sm">Phone</span>
+                      </button>
+
+                      {/* Announce Ticketed Stream Button */}
+                      {!announcedTicketedStream && (
+                        <button
+                          onClick={() => setShowAnnounceModal(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-amber-500/30 text-white font-semibold text-sm hover:border-amber-500/60 hover:bg-black/80 transition-all"
+                        >
+                          <Ticket className="w-4 h-4 text-amber-400" />
+                          <span className="text-sm">VIP</span>
+                        </button>
+                      )}
                     </div>
 
-                    {/* Set Goal Button - disabled when active goal exists */}
-                    {(() => {
-                      const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                      return (
-                        <button
-                          onClick={() => {
-                            if (hasActiveGoal) return;
-                            setEditingGoal(null);
-                            setShowGoalModal(true);
-                          }}
-                          disabled={hasActiveGoal}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                            hasActiveGoal
-                              ? 'bg-black/40 border-gray-600/30 text-gray-500 cursor-not-allowed opacity-50'
-                              : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
-                          }`}
-                        >
-                          <Target className={`w-4 h-4 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
-                          <span className="text-sm">GOAL</span>
-                        </button>
-                      );
-                    })()}
+                    {/* Mobile Layout - Just coins + camera flip */}
+                    <div className="flex md:hidden items-center gap-2">
+                      {/* Coins Earned */}
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                        <Coins className="w-4 h-4 text-yellow-400" />
+                        <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                      </div>
 
-                    {/* Menu Toggle Button */}
-                    <button
-                      onClick={handleToggleMenu}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                        menuEnabled
-                          ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
-                          : 'bg-black/60 border-white/20 text-white/60 hover:border-white/40 hover:bg-black/80'
-                      }`}
-                      title={menuEnabled ? 'Menu is ON - click to hide' : 'Menu is OFF - click to show'}
-                    >
-                      <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
-                      <span className="text-sm hidden sm:inline">Menu</span>
-                    </button>
-
-                    {/* Poll Button */}
-                    <button
-                      onClick={() => setShowCreatePollModal(true)}
-                      disabled={!!activePoll?.isActive}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                        activePoll?.isActive
-                          ? 'bg-purple-500/20 border-purple-500/50 text-purple-400 cursor-not-allowed'
-                          : 'bg-black/60 border-purple-500/30 text-white hover:border-purple-500/60 hover:bg-black/80'
-                      }`}
-                      title={activePoll?.isActive ? 'Poll is active' : 'Create Poll'}
-                    >
-                      <BarChart2 className="w-4 h-4 text-purple-400" />
-                      <span className="text-sm hidden sm:inline">Poll</span>
-                    </button>
-
-                    {/* Countdown Button */}
-                    <button
-                      onClick={() => setShowCreateCountdownModal(true)}
-                      disabled={!!activeCountdown?.isActive}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                        activeCountdown?.isActive
-                          ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400 cursor-not-allowed'
-                          : 'bg-black/60 border-cyan-500/30 text-white hover:border-cyan-500/60 hover:bg-black/80'
-                      }`}
-                      title={activeCountdown?.isActive ? 'Countdown is active' : 'Start Countdown'}
-                    >
-                      <Clock className="w-4 h-4 text-cyan-400" />
-                      <span className="text-sm hidden sm:inline">Timer</span>
-                    </button>
-
-                    {/* Monitor on Phone Button - Desktop only */}
-                    <button
-                      onClick={() => setShowQRCode(true)}
-                      className="hidden md:flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-green-500/30 text-white font-semibold text-sm hover:border-green-500/60 hover:bg-black/80 transition-all"
-                      title="Monitor chat on your phone"
-                    >
-                      <Smartphone className="w-4 h-4 text-green-400" />
-                      <span className="text-sm">Phone</span>
-                    </button>
-
-                    {/* Announce Ticketed Stream Button */}
-                    {!announcedTicketedStream && (
+                      {/* Camera Flip Button */}
                       <button
-                        onClick={() => setShowAnnounceModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-amber-500/30 text-white font-semibold text-sm hover:border-amber-500/60 hover:bg-black/80 transition-all"
-                        title="Announce Ticketed Stream"
+                        onClick={handleFlipCamera}
+                        disabled={isFlippingCamera}
+                        className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+                        title="Flip Camera"
                       >
-                        <Ticket className="w-4 h-4 text-amber-400" />
-                        <span className="text-sm hidden sm:inline">Ticketed</span>
+                        <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
                       </button>
-                    )}
+                    </div>
+                  </div>
 
-                    {/* Camera Flip Button - Mobile only */}
-                    <button
-                      onClick={handleFlipCamera}
-                      disabled={isFlippingCamera}
-                      className="md:hidden p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
-                      title="Flip Camera"
-                    >
-                      <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
-                    </button>
+                  {/* Mobile Bottom Toolbar - Stream Controls */}
+                  <div className="absolute bottom-3 left-3 right-3 z-20 md:hidden">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {/* Goal Button */}
+                      {(() => {
+                        const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                        return (
+                          <button
+                            onClick={() => {
+                              if (hasActiveGoal) return;
+                              setEditingGoal(null);
+                              setShowGoalModal(true);
+                            }}
+                            disabled={hasActiveGoal}
+                            className={`flex items-center gap-1 px-3 py-2 backdrop-blur-xl rounded-full border text-xs font-semibold transition-all ${
+                              hasActiveGoal
+                                ? 'bg-black/40 border-gray-600/30 text-gray-500 opacity-50'
+                                : 'bg-black/70 border-cyan-500/40 text-white'
+                            }`}
+                          >
+                            <Target className={`w-4 h-4 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                            Goal
+                          </button>
+                        );
+                      })()}
+
+                      {/* Menu Toggle */}
+                      <button
+                        onClick={handleToggleMenu}
+                        className={`flex items-center gap-1 px-3 py-2 backdrop-blur-xl rounded-full border text-xs font-semibold transition-all ${
+                          menuEnabled
+                            ? 'bg-yellow-500/30 border-yellow-500/50 text-yellow-400'
+                            : 'bg-black/70 border-white/20 text-white/70'
+                        }`}
+                      >
+                        <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/70'}`} />
+                        Menu
+                      </button>
+
+                      {/* Poll Button */}
+                      <button
+                        onClick={() => setShowCreatePollModal(true)}
+                        disabled={!!activePoll?.isActive}
+                        className={`flex items-center gap-1 px-3 py-2 backdrop-blur-xl rounded-full border text-xs font-semibold transition-all ${
+                          activePoll?.isActive
+                            ? 'bg-purple-500/30 border-purple-500/50 text-purple-400'
+                            : 'bg-black/70 border-purple-500/40 text-white'
+                        }`}
+                      >
+                        <BarChart2 className="w-4 h-4 text-purple-400" />
+                        Poll
+                      </button>
+
+                      {/* Timer Button */}
+                      <button
+                        onClick={() => setShowCreateCountdownModal(true)}
+                        disabled={!!activeCountdown?.isActive}
+                        className={`flex items-center gap-1 px-3 py-2 backdrop-blur-xl rounded-full border text-xs font-semibold transition-all ${
+                          activeCountdown?.isActive
+                            ? 'bg-cyan-500/30 border-cyan-500/50 text-cyan-400'
+                            : 'bg-black/70 border-cyan-500/40 text-white'
+                        }`}
+                      >
+                        <Clock className="w-4 h-4 text-cyan-400" />
+                        Timer
+                      </button>
+
+                      {/* VIP Button */}
+                      {!announcedTicketedStream && (
+                        <button
+                          onClick={() => setShowAnnounceModal(true)}
+                          className="flex items-center gap-1 px-3 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-amber-500/40 text-white text-xs font-semibold transition-all"
+                        >
+                          <Ticket className="w-4 h-4 text-amber-400" />
+                          VIP
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Bottom Left - Record + End Stream Buttons */}
-                  <div className="absolute bottom-14 sm:bottom-3 left-3 z-20 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                  <div className="absolute bottom-16 md:bottom-3 left-3 z-20 flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
                     {/* Ticketed Stream Indicator - Shows when announced or active */}
                     {announcedTicketedStream && (
                       <>
@@ -2244,11 +2331,11 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Lower z-index so it stays behind modals/popups */}
+                  {/* Username Watermark - Hidden on mobile to avoid clutter, shown on desktop */}
                   {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
-                    <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none hidden md:block">
                       <span
-                        className="text-lg sm:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
+                        className="text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                         style={{
                           color: '#ffffff',
                           textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
