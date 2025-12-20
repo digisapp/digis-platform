@@ -755,7 +755,7 @@ export default function AdminDashboard() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-8">
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
               onClick={() => {
@@ -997,11 +997,11 @@ export default function AdminDashboard() {
                 </GlassCard>
               ) : (
                 applications.map((app) => (
-                  <GlassCard key={app.id} className="p-6">
-                    <div className="flex items-start justify-between gap-6">
-                      <div className="flex items-start gap-4 flex-1">
+                  <GlassCard key={app.id} className="p-4 md:p-6">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
+                      <div className="flex items-start gap-3 md:gap-4 flex-1">
                         {/* Avatar */}
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-2xl font-bold shrink-0">
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-2xl font-bold shrink-0">
                           {app.user.avatarUrl ? (
                             <img src={app.user.avatarUrl} alt={app.user.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
@@ -1009,12 +1009,12 @@ export default function AdminDashboard() {
                           )}
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold">{app.user.displayName || app.user.username}</h3>
+                            <h3 className="text-lg md:text-xl font-semibold truncate">{app.user.displayName || app.user.username}</h3>
                           </div>
 
-                          <p className="text-sm text-gray-400 mb-3">
+                          <p className="text-xs md:text-sm text-gray-400 mb-3 truncate">
                             @{app.user.username} • {app.user.email}
                           </p>
 
@@ -1065,11 +1065,11 @@ export default function AdminDashboard() {
 
                       {/* Actions */}
                       {selectedStatus === 'pending' && (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
                           <button
                             onClick={() => handleApprove(app.id)}
                             disabled={processingId === app.id}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors disabled:opacity-50"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors disabled:opacity-50 text-sm md:text-base"
                           >
                             <CheckCircle className="w-4 h-4" />
                             Approve
@@ -1077,7 +1077,7 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => handleReject(app.id)}
                             disabled={processingId === app.id}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50 text-sm md:text-base"
                           >
                             <XCircle className="w-4 h-4" />
                             Reject
@@ -1154,12 +1154,12 @@ export default function AdminDashboard() {
               {/* Account Status Filter */}
               <div>
                 <p className="text-sm text-gray-400 mb-2">Filter by Status:</p>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-2 md:gap-4">
                   {(['active', 'suspended', 'banned', 'all'] as const).map((status) => (
                     <button
                       key={status}
                       onClick={() => setSelectedAccountStatus(status)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
                         selectedAccountStatus === status
                           ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
                           : 'bg-white/5 hover:bg-white/10'
@@ -1185,11 +1185,11 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-4">
                 {users.map((user) => (
-                  <GlassCard key={user.id} className="p-6">
-                    <div className="flex items-start justify-between gap-6">
-                      <div className="flex items-start gap-4 flex-1">
+                  <GlassCard key={user.id} className="p-4 md:p-6 overflow-hidden">
+                    <div className="flex flex-col gap-4 md:gap-6">
+                      <div className="flex items-start gap-3 md:gap-4">
                         {/* Avatar */}
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-2xl font-bold shrink-0">
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-2xl font-bold shrink-0">
                           {user.avatarUrl ? (
                             <img src={user.avatarUrl} alt={user.username} className="w-full h-full rounded-full object-cover" />
                           ) : (
@@ -1198,9 +1198,9 @@ export default function AdminDashboard() {
                         </div>
 
                         {/* User Info */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-xl font-semibold">{user.displayName || user.username}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="text-lg md:text-xl font-semibold truncate">{user.displayName || user.username}</h3>
                             {user.role === 'admin' && (
                               <span title="Admin">
                                 <Shield className="w-4 h-4 text-red-500" />
@@ -1214,16 +1214,16 @@ export default function AdminDashboard() {
                           </div>
 
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <p className="text-sm text-gray-400">
+                            <p className="text-xs md:text-sm text-gray-400 truncate max-w-[200px] md:max-w-none">
                               @{user.username} • {user.email}
                             </p>
                             {/* Change Username Button */}
                             <button
                               onClick={() => handleChangeUsername(user.id, user.username)}
-                              className="px-2 py-0.5 bg-digis-cyan/20 text-digis-cyan text-xs rounded hover:bg-digis-cyan/30 transition-colors"
+                              className="px-2 py-0.5 bg-digis-cyan/20 text-digis-cyan text-xs rounded hover:bg-digis-cyan/30 transition-colors hidden md:inline-block"
                               title="Change username (including reserved names)"
                             >
-                              Edit Username
+                              Edit
                             </button>
                             {/* Account Status Badge */}
                             {user.accountStatus === 'suspended' && (
@@ -1250,14 +1250,14 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col gap-2 min-w-[160px]">
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10 md:border-0 md:pt-0">
                         {/* Make Creator Button (for fans) */}
                         {user.role === 'fan' && user.accountStatus !== 'banned' && (
                           <button
                             onClick={() => handleRoleChange(user.id, 'creator')}
-                            className="px-3 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink hover:opacity-90 rounded-lg text-sm font-medium transition-all flex items-center gap-2 justify-center"
+                            className="px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-pink hover:opacity-90 rounded-lg text-xs font-medium transition-all flex items-center gap-1 justify-center"
                           >
-                            <UserPlus className="w-4 h-4" />
+                            <UserPlus className="w-3 h-3" />
                             Make Creator
                           </button>
                         )}
@@ -1266,7 +1266,7 @@ export default function AdminDashboard() {
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                          className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm font-medium"
+                          className="px-2 py-1.5 bg-white/10 border border-white/20 rounded-lg text-xs font-medium"
                           disabled={user.accountStatus === 'banned'}
                         >
                           <option value="fan">Fan</option>
@@ -1278,7 +1278,7 @@ export default function AdminDashboard() {
                         {user.role === 'creator' && user.accountStatus !== 'banned' && (
                           <button
                             onClick={() => handleToggleVerification(user.id)}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                               user.isCreatorVerified
                                 ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50'
                                 : 'bg-white/5 text-gray-400 border border-white/20'
@@ -1292,14 +1292,14 @@ export default function AdminDashboard() {
                         {user.accountStatus !== 'banned' && (
                           <button
                             onClick={() => handleSuspendUser(user.id, user.accountStatus === 'suspended' ? 'unsuspend' : 'suspend')}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 justify-center ${
+                            className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 justify-center ${
                               user.accountStatus === 'suspended'
                                 ? 'bg-green-500/20 text-green-500 border border-green-500/50 hover:bg-green-500/30'
                                 : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500/30'
                             }`}
                           >
                             <Pause className="w-3 h-3" />
-                            {user.accountStatus === 'suspended' ? 'Unsuspend' : 'Suspend'}
+                            {user.accountStatus === 'suspended' ? 'Restore' : 'Suspend'}
                           </button>
                         )}
 
@@ -1307,7 +1307,7 @@ export default function AdminDashboard() {
                         {user.accountStatus !== 'banned' && (
                           <button
                             onClick={() => handleDeleteUser(user.id)}
-                            className="px-3 py-2 bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 justify-center"
+                            className="px-2 py-1.5 bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 justify-center"
                           >
                             <Trash2 className="w-3 h-3" />
                             Delete
@@ -1317,9 +1317,9 @@ export default function AdminDashboard() {
                         {/* View Profile */}
                         <button
                           onClick={() => router.push(`/${user.username}`)}
-                          className="px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                          className="px-2 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs transition-colors"
                         >
-                          View Profile
+                          Profile
                         </button>
                       </div>
                     </div>
@@ -1923,7 +1923,7 @@ export default function AdminDashboard() {
             ) : creatorActivity ? (
               <div className="space-y-6">
                 {/* Activity Summary Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
                   <GlassCard className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 bg-blue-500/20 rounded-lg">
@@ -2024,7 +2024,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Creator List */}
-                <GlassCard className="p-6">
+                <GlassCard className="p-4 md:p-6">
                   <h3 className="text-lg font-bold text-white mb-4">Creator Activity</h3>
                   <div className="space-y-3">
                     {creatorActivity.creators
@@ -2032,47 +2032,47 @@ export default function AdminDashboard() {
                       .map((creator) => (
                         <div
                           key={creator.id}
-                          className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                          className="flex flex-col md:flex-row md:items-center md:justify-between p-3 md:p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer gap-3 md:gap-4"
                           onClick={() => router.push(`/${creator.username}`)}
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold shrink-0">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-base md:text-lg font-bold shrink-0">
                               {creator.avatarUrl ? (
                                 <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
                               ) : (
                                 creator.username?.[0]?.toUpperCase() || '?'
                               )}
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-semibold text-white">{creator.displayName || creator.username}</p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-semibold text-white text-sm md:text-base truncate">{creator.displayName || creator.username}</p>
                                 {creator.isCreatorVerified && (
-                                  <Star className="w-4 h-4 text-yellow-500" />
+                                  <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 shrink-0" />
                                 )}
-                                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                <span className={`px-2 py-0.5 text-[10px] md:text-xs rounded-full shrink-0 ${
                                   creator.activityStatus === 'active_today' ? 'bg-green-500/20 text-green-400' :
                                   creator.activityStatus === 'active_week' ? 'bg-cyan-500/20 text-cyan-400' :
                                   creator.activityStatus === 'active_month' ? 'bg-purple-500/20 text-purple-400' :
                                   'bg-red-500/20 text-red-400'
                                 }`}>
-                                  {creator.activityStatus === 'active_today' ? 'Active Today' :
-                                   creator.activityStatus === 'active_week' ? 'This Week' :
-                                   creator.activityStatus === 'active_month' ? 'This Month' :
+                                  {creator.activityStatus === 'active_today' ? 'Today' :
+                                   creator.activityStatus === 'active_week' ? 'Week' :
+                                   creator.activityStatus === 'active_month' ? 'Month' :
                                    'Inactive'}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-400">@{creator.username}</p>
+                              <p className="text-xs md:text-sm text-gray-400">@{creator.username}</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-300">
+                          <div className="text-left md:text-right pl-13 md:pl-0">
+                            <p className="text-xs md:text-sm text-gray-300">
                               {creator.lastSeenAt
-                                ? `Last seen ${creator.daysSinceLastSeen === 0 ? 'today' :
-                                    creator.daysSinceLastSeen === 1 ? 'yesterday' :
-                                    `${creator.daysSinceLastSeen} days ago`}`
-                                : 'Never seen'}
+                                ? `${creator.daysSinceLastSeen === 0 ? 'Today' :
+                                    creator.daysSinceLastSeen === 1 ? 'Yesterday' :
+                                    `${creator.daysSinceLastSeen}d ago`}`
+                                : 'Never'}
                             </p>
-                            <p className="text-xs text-gray-500">{creator.followerCount.toLocaleString()} followers</p>
+                            <p className="text-[10px] md:text-xs text-gray-500">{creator.followerCount.toLocaleString()} followers</p>
                           </div>
                         </div>
                       ))}
