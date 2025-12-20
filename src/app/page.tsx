@@ -167,7 +167,7 @@ export default function Home() {
                 onClick={() => router.push('/creators')}
                 className="px-10 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
-                Become a Creator
+                Apply as Creator
               </button>
             </div>
 
