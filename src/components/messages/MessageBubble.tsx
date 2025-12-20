@@ -12,6 +12,7 @@ interface ContentCardData {
   contentType: 'photo' | 'video' | 'gallery';
   unlockPrice: number;
   thumbnailUrl: string;
+  mediaUrl?: string;
   isPurchased: boolean;
 }
 
@@ -34,6 +35,7 @@ function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?
           contentType: data.contentType,
           unlockPrice: data.unlockPrice,
           thumbnailUrl: data.thumbnailUrl,
+          mediaUrl: data.mediaUrl,
           isPurchased: data.hasAccess || data.isFree || false,
         });
       } catch (err) {
@@ -59,7 +61,20 @@ function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?
         throw new Error(data.error || 'Purchase failed');
       }
 
-      setContent(prev => prev ? { ...prev, isPurchased: true } : null);
+      // Refetch content to get media URL
+      const refetch = await fetch(`/api/content/${contentId}`);
+      if (refetch.ok) {
+        const { content: data } = await refetch.json();
+        setContent({
+          id: data.id,
+          title: data.title,
+          contentType: data.contentType,
+          unlockPrice: data.unlockPrice,
+          thumbnailUrl: data.thumbnailUrl,
+          mediaUrl: data.mediaUrl,
+          isPurchased: true,
+        });
+      }
       showSuccess('Content unlocked!');
       onPurchase?.();
     } catch (err: any) {
@@ -82,6 +97,27 @@ function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?
     return null; // Silently skip invalid content
   }
 
+  // If purchased, show content directly
+  if (content.isPurchased) {
+    const mediaToShow = content.mediaUrl || content.thumbnailUrl;
+    return (
+      <div className="my-2 rounded-2xl overflow-hidden">
+        {content.contentType === 'video' ? (
+          <video controls className="w-full max-h-80 rounded-2xl">
+            <source src={mediaToShow} type="video/mp4" />
+          </video>
+        ) : (
+          <img
+            src={mediaToShow}
+            alt={content.title}
+            className="w-full max-h-80 object-contain rounded-2xl"
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Locked content - show preview with unlock button
   const typeIcon = content.contentType === 'video' ? (
     <Play className="w-4 h-4" />
   ) : content.contentType === 'gallery' ? (
@@ -97,39 +133,26 @@ function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?
         <img
           src={content.thumbnailUrl}
           alt={content.title}
-          className={`w-full h-full object-cover ${!content.isPurchased ? 'blur-sm' : ''}`}
+          className="w-full h-full object-cover blur-sm"
         />
-        {!content.isPurchased && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-white/80" />
-          </div>
-        )}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <Lock className="w-8 h-8 text-white/80" />
+        </div>
         <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-full flex items-center gap-1 text-white text-xs">
           {typeIcon}
           <span className="capitalize">{content.contentType}</span>
         </div>
       </div>
 
-      {/* Info */}
+      {/* Unlock button */}
       <div className="p-3">
-        <h4 className="text-white font-medium text-sm mb-2 line-clamp-1">{content.title}</h4>
-
-        {content.isPurchased ? (
-          <a
-            href={`/content/${content.id}`}
-            className="block w-full px-3 py-2 bg-green-500/20 border border-green-500/30 text-green-400 rounded-lg text-sm font-medium text-center hover:bg-green-500/30 transition-colors"
-          >
-            View Content
-          </a>
-        ) : (
-          <button
-            onClick={handlePurchase}
-            disabled={purchasing}
-            className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {purchasing ? 'Unlocking...' : `Unlock for ${content.unlockPrice} coins`}
-          </button>
-        )}
+        <button
+          onClick={handlePurchase}
+          disabled={purchasing}
+          className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {purchasing ? 'Unlocking...' : `Unlock for ${content.unlockPrice} coins`}
+        </button>
       </div>
     </div>
   );
@@ -396,43 +419,44 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
       );
     }
 
-    // Unlocked locked message
+    // Unlocked locked message - show media directly without verbose wrapper
     return (
       <>
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {isOwnMessage && <DeleteButton />}
           <div className="max-w-[70%]">
-            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🔓</span>
-                <span className="text-purple-400 text-sm font-medium">Unlocked</span>
-              </div>
-
-              {message.mediaUrl && (
-                <div className="mb-3 rounded-lg overflow-hidden">
-                  {message.mediaType === 'image' || message.mediaType === 'photo' ? (
-                    <img
-                      src={message.mediaUrl}
-                      alt="Unlocked content"
-                      className="w-full max-h-64 object-contain"
-                    />
-                  ) : message.mediaType === 'video' ? (
-                    <video controls className="w-full max-h-64">
-                      <source src={message.mediaUrl} type="video/mp4" />
-                    </video>
-                  ) : message.mediaType === 'audio' ? (
+            {/* Show media directly */}
+            {message.mediaUrl && (
+              <div className="rounded-2xl overflow-hidden">
+                {message.mediaType === 'image' || message.mediaType === 'photo' ? (
+                  <img
+                    src={message.mediaUrl}
+                    alt="Content"
+                    className="w-full max-h-80 object-contain rounded-2xl"
+                  />
+                ) : message.mediaType === 'video' ? (
+                  <video controls className="w-full max-h-80 rounded-2xl">
+                    <source src={message.mediaUrl} type="video/mp4" />
+                  </video>
+                ) : message.mediaType === 'audio' ? (
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
                     <audio controls className="w-full">
                       <source src={message.mediaUrl} type="audio/webm" />
                       <source src={message.mediaUrl} type="audio/ogg" />
-                      Your browser does not support audio playback.
                     </audio>
-                  ) : null}
-                </div>
-              )}
+                  </div>
+                ) : null}
+              </div>
+            )}
 
-              <p className="text-white break-words">{message.content}</p>
-            </div>
+            {/* Show caption if present */}
+            {message.content && (
+              <div className={`mt-2 px-4 py-2 rounded-2xl ${isOwnMessage ? 'bg-gradient-to-r from-cyan-500 to-purple-500' : 'bg-white/5'}`}>
+                <p className="text-white text-sm break-words">{message.content}</p>
+              </div>
+            )}
+
             <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               {formatTime(message.createdAt)}
               <ReadReceipt />

@@ -1,0 +1,183 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { db, walletTransactions, users, wallets } from '@/lib/data/system';
+import { eq, sql, desc, and, gte } from 'drizzle-orm';
+import { isAdminUser } from '@/lib/admin/check-admin';
+
+// GET /api/admin/revenue - Get revenue stats and creator leaderboard
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!await isAdminUser(user)) {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    }
+
+    // Get time ranges
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Run all queries in parallel
+    const [
+      totalCoinsPurchased,
+      todayCoinsPurchased,
+      weekCoinsPurchased,
+      monthCoinsPurchased,
+      totalTips,
+      topEarners,
+      topFollowed,
+      mostActiveStreamers,
+    ] = await Promise.all([
+      // Total coins purchased (all time)
+      db.select({
+        total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int`,
+      })
+        .from(walletTransactions)
+        .where(and(
+          eq(walletTransactions.type, 'purchase'),
+          eq(walletTransactions.status, 'completed')
+        )),
+
+      // Today's coins purchased
+      db.select({
+        total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int`,
+      })
+        .from(walletTransactions)
+        .where(and(
+          eq(walletTransactions.type, 'purchase'),
+          eq(walletTransactions.status, 'completed'),
+          gte(walletTransactions.createdAt, today)
+        )),
+
+      // This week's coins purchased
+      db.select({
+        total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int`,
+      })
+        .from(walletTransactions)
+        .where(and(
+          eq(walletTransactions.type, 'purchase'),
+          eq(walletTransactions.status, 'completed'),
+          gte(walletTransactions.createdAt, thisWeek)
+        )),
+
+      // This month's coins purchased
+      db.select({
+        total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int`,
+      })
+        .from(walletTransactions)
+        .where(and(
+          eq(walletTransactions.type, 'purchase'),
+          eq(walletTransactions.status, 'completed'),
+          gte(walletTransactions.createdAt, thisMonth)
+        )),
+
+      // Total tips/gifts sent (stream_tip, dm_tip, gift types)
+      db.select({
+        total: sql<number>`COALESCE(SUM(ABS(${walletTransactions.amount})), 0)::int`,
+      })
+        .from(walletTransactions)
+        .where(and(
+          sql`${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift')`,
+          eq(walletTransactions.status, 'completed'),
+          sql`${walletTransactions.amount} < 0` // Outgoing transactions (tips sent)
+        )),
+
+      // Top earners (creators with highest balance)
+      db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        isCreatorVerified: users.isCreatorVerified,
+        balance: wallets.balance,
+        followerCount: users.followerCount,
+      })
+        .from(users)
+        .innerJoin(wallets, eq(users.id, wallets.userId))
+        .where(eq(users.role, 'creator'))
+        .orderBy(desc(wallets.balance))
+        .limit(10),
+
+      // Most followed creators
+      db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        isCreatorVerified: users.isCreatorVerified,
+        followerCount: users.followerCount,
+      })
+        .from(users)
+        .where(eq(users.role, 'creator'))
+        .orderBy(desc(users.followerCount))
+        .limit(10),
+
+      // Most active streamers (by recent streams) - using lastSeenAt as a proxy
+      db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        isCreatorVerified: users.isCreatorVerified,
+        lastSeenAt: users.lastSeenAt,
+        followerCount: users.followerCount,
+      })
+        .from(users)
+        .where(and(
+          eq(users.role, 'creator'),
+          sql`${users.lastSeenAt} IS NOT NULL`
+        ))
+        .orderBy(desc(users.lastSeenAt))
+        .limit(10),
+    ]);
+
+    // Calculate platform revenue (assuming ~40% margin on average)
+    // 1 coin = ~$0.15 average purchase price, creator gets $0.10 = ~33% margin
+    const AVERAGE_COIN_PRICE = 0.15; // $0.15 per coin average
+    const CREATOR_PAYOUT_RATE = 0.10; // $0.10 per coin to creator
+    const PLATFORM_MARGIN = AVERAGE_COIN_PRICE - CREATOR_PAYOUT_RATE;
+
+    const totalCoins = totalCoinsPurchased[0]?.total || 0;
+    const todayCoins = todayCoinsPurchased[0]?.total || 0;
+    const weekCoins = weekCoinsPurchased[0]?.total || 0;
+    const monthCoins = monthCoinsPurchased[0]?.total || 0;
+    const tipsTotal = totalTips[0]?.total || 0;
+
+    return NextResponse.json({
+      revenue: {
+        totalCoinsSold: totalCoins,
+        todayCoinsSold: todayCoins,
+        weekCoinsSold: weekCoins,
+        monthCoinsSold: monthCoins,
+        totalTips: tipsTotal,
+        // Revenue estimates
+        totalRevenue: Math.round(totalCoins * AVERAGE_COIN_PRICE * 100) / 100,
+        todayRevenue: Math.round(todayCoins * AVERAGE_COIN_PRICE * 100) / 100,
+        weekRevenue: Math.round(weekCoins * AVERAGE_COIN_PRICE * 100) / 100,
+        monthRevenue: Math.round(monthCoins * AVERAGE_COIN_PRICE * 100) / 100,
+        platformProfit: Math.round(totalCoins * PLATFORM_MARGIN * 100) / 100,
+      },
+      leaderboard: {
+        topEarners: topEarners.map(c => ({
+          ...c,
+          earnings: c.balance || 0,
+        })),
+        topFollowed,
+        mostActive: mostActiveStreamers,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error fetching revenue data:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch revenue data' },
+      { status: 500 }
+    );
+  }
+}

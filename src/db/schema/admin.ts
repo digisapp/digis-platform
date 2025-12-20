@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, pgEnum, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, pgEnum, boolean, index } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { relations } from 'drizzle-orm';
 
@@ -37,3 +37,23 @@ export const creatorApplicationsRelations = relations(creatorApplications, ({ on
 
 export type CreatorApplication = typeof creatorApplications.$inferSelect;
 export type NewCreatorApplication = typeof creatorApplications.$inferInsert;
+
+// User login/activity tracking
+export const userActivityLogs = pgTable('user_activity_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  activityType: text('activity_type').notNull(), // 'login', 'stream_start', 'content_upload', 'payout_request'
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  metadata: text('metadata'), // JSON for additional data
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('user_activity_logs_user_id_idx').on(table.userId),
+  activityTypeIdx: index('user_activity_logs_type_idx').on(table.activityType),
+  createdAtIdx: index('user_activity_logs_created_at_idx').on(table.createdAt),
+  // Compound index for user + activity type queries
+  userActivityIdx: index('user_activity_logs_user_activity_idx').on(table.userId, table.activityType, table.createdAt),
+}));
+
+export type UserActivityLog = typeof userActivityLogs.$inferSelect;
+export type NewUserActivityLog = typeof userActivityLogs.$inferInsert;

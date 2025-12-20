@@ -69,7 +69,75 @@ interface Analytics {
   lastWeekSignups: number;
 }
 
-type MainTab = 'applications' | 'users' | 'analytics' | 'payouts' | 'moderation';
+type MainTab = 'applications' | 'users' | 'analytics' | 'payouts' | 'moderation' | 'revenue' | 'activity';
+
+interface RevenueData {
+  revenue: {
+    totalCoinsSold: number;
+    todayCoinsSold: number;
+    weekCoinsSold: number;
+    monthCoinsSold: number;
+    totalTips: number;
+    totalRevenue: number;
+    todayRevenue: number;
+    weekRevenue: number;
+    monthRevenue: number;
+    platformProfit: number;
+  };
+  leaderboard: {
+    topEarners: Array<{
+      id: string;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+      isCreatorVerified: boolean;
+      earnings: number;
+      followerCount: number;
+    }>;
+    topFollowed: Array<{
+      id: string;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+      isCreatorVerified: boolean;
+      followerCount: number;
+    }>;
+    mostActive: Array<{
+      id: string;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+      isCreatorVerified: boolean;
+      lastSeenAt: string | null;
+      followerCount: number;
+    }>;
+  };
+}
+
+interface CreatorActivityData {
+  summary: {
+    totalCreators: number;
+    activeToday: number;
+    activeThisWeek: number;
+    activeThisMonth: number;
+    inactive: number;
+  };
+  creators: Array<{
+    id: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    isCreatorVerified: boolean;
+    lastSeenAt: string | null;
+    followerCount: number;
+    createdAt: string;
+    activityStatus: 'active_today' | 'active_week' | 'active_month' | 'inactive';
+    loginsToday: number;
+    loginsThisWeek: number;
+    loginsThisMonth: number;
+    daysSinceLastSeen: number | null;
+  }>;
+}
 
 interface MostBlockedUser {
   blockedId: string;
@@ -147,11 +215,20 @@ export default function AdminDashboard() {
   const [moderation, setModeration] = useState<ModerationData | null>(null);
   const [moderationTab, setModerationTab] = useState<'blocked' | 'bans'>('blocked');
 
+  // Revenue state
+  const [revenue, setRevenue] = useState<RevenueData | null>(null);
+
+  // Creator Activity state
+  const [creatorActivity, setCreatorActivity] = useState<CreatorActivityData | null>(null);
+  const [activityFilter, setActivityFilter] = useState<'all' | 'active_today' | 'active_week' | 'active_month' | 'inactive'>('all');
+
   // Cache flags to avoid refetching
   const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
   const [hasFetchedUsers, setHasFetchedUsers] = useState(false);
   const [hasFetchedAnalytics, setHasFetchedAnalytics] = useState(false);
   const [hasFetchedModeration, setHasFetchedModeration] = useState(false);
+  const [hasFetchedRevenue, setHasFetchedRevenue] = useState(false);
+  const [hasFetchedActivity, setHasFetchedActivity] = useState(false);
 
   // Modal state
   const [modal, setModal] = useState<{
@@ -216,6 +293,10 @@ export default function AdminDashboard() {
       fetchAnalytics();
     } else if (mainTab === 'moderation' && !hasFetchedModeration) {
       fetchModeration();
+    } else if (mainTab === 'revenue' && !hasFetchedRevenue) {
+      fetchRevenue();
+    } else if (mainTab === 'activity' && !hasFetchedActivity) {
+      fetchCreatorActivity();
     }
   }, [mainTab]);
 
@@ -308,6 +389,8 @@ export default function AdminDashboard() {
         mainTab === 'users' && fetchUsers(usersPage),
         mainTab === 'analytics' && fetchAnalytics(),
         mainTab === 'moderation' && fetchModeration(),
+        mainTab === 'revenue' && fetchRevenue(),
+        mainTab === 'activity' && fetchCreatorActivity(),
       ]);
     } finally {
       setRefreshing(false);
@@ -351,6 +434,48 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Error fetching moderation:', err);
       showToast('Failed to load moderation data', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRevenue = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/revenue');
+      const data = await response.json();
+
+      if (response.ok) {
+        setRevenue(data);
+        setHasFetchedRevenue(true);
+      } else {
+        console.error('Revenue API error:', data.error);
+        showToast(data.error || 'Failed to load revenue data', 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching revenue:', err);
+      showToast('Failed to load revenue data', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCreatorActivity = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/creator-activity');
+      const data = await response.json();
+
+      if (response.ok) {
+        setCreatorActivity(data);
+        setHasFetchedActivity(true);
+      } else {
+        console.error('Creator Activity API error:', data.error);
+        showToast(data.error || 'Failed to load creator activity', 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching creator activity:', err);
+      showToast('Failed to load creator activity', 'error');
     } finally {
       setLoading(false);
     }
@@ -804,6 +929,37 @@ export default function AdminDashboard() {
               </span>
             ) : null}
             {mainTab === 'moderation' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('revenue')}
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
+              mainTab === 'revenue'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Revenue
+            {mainTab === 'revenue' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('activity')}
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
+              mainTab === 'activity'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Activity
+            {creatorActivity?.summary && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                {creatorActivity.summary.activeToday}
+              </span>
+            )}
+            {mainTab === 'activity' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
@@ -1528,6 +1684,412 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setHasFetchedModeration(false);
                     fetchModeration();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  Retry
+                </button>
+              </GlassCard>
+            )}
+          </>
+        )}
+
+        {/* Revenue Tab Content */}
+        {mainTab === 'revenue' && (
+          <>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : revenue ? (
+              <div className="space-y-6">
+                {/* Revenue Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <GlassCard className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-green-500/20 rounded-lg">
+                        <Coins className="w-5 h-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Total Coins Sold</p>
+                        <p className="text-xl font-bold">{revenue.revenue.totalCoinsSold.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-blue-500/20 rounded-lg">
+                        <DollarSign className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Total Revenue</p>
+                        <p className="text-xl font-bold">${revenue.revenue.totalRevenue.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-purple-500/20 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">This Month</p>
+                        <p className="text-xl font-bold">${revenue.revenue.monthRevenue.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-cyan-500/20 rounded-lg">
+                        <DollarSign className="w-5 h-5 text-cyan-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Platform Profit</p>
+                        <p className="text-xl font-bold">${revenue.revenue.platformProfit.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Time-Based Revenue */}
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Revenue Breakdown</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-white/5 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">Today</p>
+                      <p className="text-2xl font-bold text-green-400">${revenue.revenue.todayRevenue.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">{revenue.revenue.todayCoinsSold.toLocaleString()} coins</p>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">This Week</p>
+                      <p className="text-2xl font-bold text-blue-400">${revenue.revenue.weekRevenue.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">{revenue.revenue.weekCoinsSold.toLocaleString()} coins</p>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg">
+                      <p className="text-sm text-gray-400 mb-1">This Month</p>
+                      <p className="text-2xl font-bold text-purple-400">${revenue.revenue.monthRevenue.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">{revenue.revenue.monthCoinsSold.toLocaleString()} coins</p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                {/* Creator Leaderboards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Top Earners */}
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-green-500" />
+                      Top Earners
+                    </h3>
+                    <div className="space-y-3">
+                      {revenue.leaderboard.topEarners.map((creator, index) => (
+                        <div
+                          key={creator.id}
+                          className="flex items-center gap-3 p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                          onClick={() => router.push(`/${creator.username}`)}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-black' :
+                            index === 1 ? 'bg-gray-300 text-black' :
+                            index === 2 ? 'bg-amber-600 text-white' :
+                            'bg-white/10 text-gray-400'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                            {creator.avatarUrl ? (
+                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              creator.username?.[0]?.toUpperCase() || '?'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{creator.displayName || creator.username}</p>
+                            <p className="text-xs text-gray-400">@{creator.username}</p>
+                          </div>
+                          <p className="text-sm font-bold text-green-400">{creator.earnings.toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+
+                  {/* Most Followed */}
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-blue-500" />
+                      Most Followed
+                    </h3>
+                    <div className="space-y-3">
+                      {revenue.leaderboard.topFollowed.map((creator, index) => (
+                        <div
+                          key={creator.id}
+                          className="flex items-center gap-3 p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                          onClick={() => router.push(`/${creator.username}`)}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-black' :
+                            index === 1 ? 'bg-gray-300 text-black' :
+                            index === 2 ? 'bg-amber-600 text-white' :
+                            'bg-white/10 text-gray-400'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                            {creator.avatarUrl ? (
+                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              creator.username?.[0]?.toUpperCase() || '?'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{creator.displayName || creator.username}</p>
+                            <p className="text-xs text-gray-400">@{creator.username}</p>
+                          </div>
+                          <p className="text-sm font-bold text-blue-400">{creator.followerCount.toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+
+                  {/* Most Active */}
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-purple-500" />
+                      Most Active
+                    </h3>
+                    <div className="space-y-3">
+                      {revenue.leaderboard.mostActive.map((creator, index) => (
+                        <div
+                          key={creator.id}
+                          className="flex items-center gap-3 p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                          onClick={() => router.push(`/${creator.username}`)}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-black' :
+                            index === 1 ? 'bg-gray-300 text-black' :
+                            index === 2 ? 'bg-amber-600 text-white' :
+                            'bg-white/10 text-gray-400'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                            {creator.avatarUrl ? (
+                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              creator.username?.[0]?.toUpperCase() || '?'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{creator.displayName || creator.username}</p>
+                            <p className="text-xs text-gray-400">@{creator.username}</p>
+                          </div>
+                          <p className="text-xs text-purple-400">
+                            {creator.lastSeenAt ? new Date(creator.lastSeenAt).toLocaleDateString() : 'Never'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </GlassCard>
+                </div>
+              </div>
+            ) : (
+              <GlassCard className="p-12 text-center">
+                <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400 mb-4">No revenue data available</p>
+                <button
+                  onClick={() => {
+                    setHasFetchedRevenue(false);
+                    fetchRevenue();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  Retry
+                </button>
+              </GlassCard>
+            )}
+          </>
+        )}
+
+        {/* Creator Activity Tab Content */}
+        {mainTab === 'activity' && (
+          <>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : creatorActivity ? (
+              <div className="space-y-6">
+                {/* Activity Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <GlassCard className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-blue-500/20 rounded-lg">
+                        <Users className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Total Creators</p>
+                        <p className="text-xl font-bold">{creatorActivity.summary.totalCreators}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard
+                    className="p-4 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setActivityFilter('active_today')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-green-500/20 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Active Today</p>
+                        <p className="text-xl font-bold text-green-400">{creatorActivity.summary.activeToday}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard
+                    className="p-4 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setActivityFilter('active_week')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-cyan-500/20 rounded-lg">
+                        <Clock className="w-5 h-5 text-cyan-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Active This Week</p>
+                        <p className="text-xl font-bold text-cyan-400">{creatorActivity.summary.activeThisWeek}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard
+                    className="p-4 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setActivityFilter('active_month')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-purple-500/20 rounded-lg">
+                        <Clock className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Active This Month</p>
+                        <p className="text-xl font-bold text-purple-400">{creatorActivity.summary.activeThisMonth}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard
+                    className="p-4 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setActivityFilter('inactive')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 bg-red-500/20 rounded-lg">
+                        <XCircle className="w-5 h-5 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400">Inactive</p>
+                        <p className="text-xl font-bold text-red-400">{creatorActivity.summary.inactive}</p>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Filter Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  {(['all', 'active_today', 'active_week', 'active_month', 'inactive'] as const).map((filter) => {
+                    const labels: Record<typeof filter, string> = {
+                      all: 'All Creators',
+                      active_today: 'Active Today',
+                      active_week: 'Active This Week',
+                      active_month: 'Active This Month',
+                      inactive: 'Inactive (30+ days)',
+                    };
+                    return (
+                      <button
+                        key={filter}
+                        onClick={() => setActivityFilter(filter)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          activityFilter === filter
+                            ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
+                            : 'bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        {labels[filter]}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Creator List */}
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Creator Activity</h3>
+                  <div className="space-y-3">
+                    {creatorActivity.creators
+                      .filter(c => activityFilter === 'all' || c.activityStatus === activityFilter)
+                      .map((creator) => (
+                        <div
+                          key={creator.id}
+                          className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                          onClick={() => router.push(`/${creator.username}`)}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold shrink-0">
+                              {creator.avatarUrl ? (
+                                <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                creator.username?.[0]?.toUpperCase() || '?'
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-white">{creator.displayName || creator.username}</p>
+                                {creator.isCreatorVerified && (
+                                  <Star className="w-4 h-4 text-yellow-500" />
+                                )}
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                  creator.activityStatus === 'active_today' ? 'bg-green-500/20 text-green-400' :
+                                  creator.activityStatus === 'active_week' ? 'bg-cyan-500/20 text-cyan-400' :
+                                  creator.activityStatus === 'active_month' ? 'bg-purple-500/20 text-purple-400' :
+                                  'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {creator.activityStatus === 'active_today' ? 'Active Today' :
+                                   creator.activityStatus === 'active_week' ? 'This Week' :
+                                   creator.activityStatus === 'active_month' ? 'This Month' :
+                                   'Inactive'}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-400">@{creator.username}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-300">
+                              {creator.lastSeenAt
+                                ? `Last seen ${creator.daysSinceLastSeen === 0 ? 'today' :
+                                    creator.daysSinceLastSeen === 1 ? 'yesterday' :
+                                    `${creator.daysSinceLastSeen} days ago`}`
+                                : 'Never seen'}
+                            </p>
+                            <p className="text-xs text-gray-500">{creator.followerCount.toLocaleString()} followers</p>
+                          </div>
+                        </div>
+                      ))}
+                    {creatorActivity.creators.filter(c => activityFilter === 'all' || c.activityStatus === activityFilter).length === 0 && (
+                      <p className="text-gray-400 text-center py-8">No creators match this filter</p>
+                    )}
+                  </div>
+                </GlassCard>
+              </div>
+            ) : (
+              <GlassCard className="p-12 text-center">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400 mb-4">No activity data available</p>
+                <button
+                  onClick={() => {
+                    setHasFetchedActivity(false);
+                    fetchCreatorActivity();
                   }}
                   className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
                 >
