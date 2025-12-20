@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/admin/admin-service';
 import { isAdminUser } from '@/lib/admin/check-admin';
+import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email/creator-notifications';
 
 // POST /api/admin/applications/[id]/approve - Approve application
 export async function POST(
@@ -22,7 +23,24 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
-    await AdminService.approveApplication(id, user.id);
+    const result = await AdminService.approveApplication(id, user.id);
+
+    // Send approval email and add to creators audience (don't block on these)
+    if (result.user?.email) {
+      // Send approval email
+      sendCreatorApprovalEmail({
+        email: result.user.email,
+        name: result.user.name,
+        username: result.user.username,
+      }).catch(err => console.error('Failed to send approval email:', err));
+
+      // Add to creators audience for weekly emails
+      addCreatorToAudience({
+        email: result.user.email,
+        name: result.user.name,
+        username: result.user.username,
+      }).catch(err => console.error('Failed to add to audience:', err));
+    }
 
     return NextResponse.json({
       success: true,

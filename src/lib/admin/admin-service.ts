@@ -120,9 +120,19 @@ export class AdminService {
 
   // Approve creator application
   static async approveApplication(applicationId: string, adminId: string) {
-    // Get the application
+    // Get the application with user data
     const application = await db.query.creatorApplications.findFirst({
       where: eq(creatorApplications.id, applicationId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            username: true,
+            displayName: true,
+          },
+        },
+      },
     });
 
     if (!application) {
@@ -191,7 +201,15 @@ export class AdminService {
       // Don't throw - DB update succeeded
     }
 
-    return { success: true };
+    // Return user info for email notification
+    return {
+      success: true,
+      user: {
+        email: application.user?.email || '',
+        name: application.user?.displayName || application.user?.username || '',
+        username: application.user?.username || '',
+      },
+    };
   }
 
   // Reject creator application
