@@ -56,6 +56,8 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
+  const isInitialLoadRef = useRef(true);
+  const lastMessageCountRef = useRef(0);
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -197,10 +199,29 @@ export default function ChatPage() {
     };
   }, [conversationId, currentUserId]);
 
-  // Only auto-scroll if user is near bottom (not reading older messages)
+  // Smart auto-scroll: only scroll on initial load or when new messages arrive and user is near bottom
   useEffect(() => {
-    if (isNearBottomRef.current) {
-      scrollToBottom();
+    const messageCount = messages.length;
+    const hasNewMessages = messageCount > lastMessageCountRef.current;
+
+    // Always scroll on initial load
+    if (isInitialLoadRef.current && messageCount > 0) {
+      isInitialLoadRef.current = false;
+      lastMessageCountRef.current = messageCount;
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 100);
+      return;
+    }
+
+    // Only scroll if there are NEW messages AND user is near bottom
+    if (hasNewMessages && isNearBottomRef.current) {
+      lastMessageCountRef.current = messageCount;
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Just update the count without scrolling
+      lastMessageCountRef.current = messageCount;
     }
   }, [messages]);
 
@@ -347,8 +368,8 @@ export default function ChatPage() {
         }
         // Refresh balance after sending paid message
         fetchUserBalance();
-        // Force scroll to bottom after sending
-        isNearBottomRef.current = true;
+        // Force scroll to bottom after sending own message
+        scrollToBottom(true);
         fetchMessages();
       } else {
         const data = await response.json();
@@ -510,19 +531,21 @@ export default function ChatPage() {
   };
 
   const scrollToBottom = (force = false) => {
-    if (force || isNearBottomRef.current) {
+    if (force) {
+      isNearBottomRef.current = true;
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   // Check if user is near the bottom of the messages container
+  // Using a larger threshold for mobile touch scrolling
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
 
-    const threshold = 150; // pixels from bottom
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
-    isNearBottomRef.current = isNearBottom;
+    const threshold = 200; // pixels from bottom - larger for mobile
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    isNearBottomRef.current = distanceFromBottom < threshold;
   }, []);
 
   const handleBlockUser = async () => {
@@ -716,7 +739,8 @@ export default function ChatPage() {
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto"
+          onTouchMove={handleScroll}
+          className="flex-1 overflow-y-auto overscroll-contain"
         >
           <div className="container mx-auto px-4 py-6 max-w-2xl">
             <div className="space-y-4">
