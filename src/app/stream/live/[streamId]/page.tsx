@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, VideoTrack } from '@livekit/components-react';
-import { VideoPresets, Room, Track } from 'livekit-client';
+import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, useRoomContext, VideoTrack } from '@livekit/components-react';
+import { VideoPresets, Room, Track, LocalParticipant } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
 // GiftAnimationManager removed - gifts now show in chat messages
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
@@ -32,37 +32,99 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
 
-// Component to show only the local camera preview (no participant tiles/placeholders)
+// Component to show local video preview (camera or screen share)
 function LocalCameraPreview({ isPortrait = false }: { isPortrait?: boolean }) {
   const { localParticipant } = useLocalParticipant();
 
+  // Check for screen share first (takes priority when active)
+  const screenShareTrack = localParticipant.getTrackPublication(Track.Source.ScreenShare);
   const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
 
-  if (!cameraTrack || !cameraTrack.track) {
+  // Show screen share if active
+  if (screenShareTrack?.track) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-black">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-            <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <p className="text-white/60 text-sm">Starting camera...</p>
-        </div>
-      </div>
+      <VideoTrack
+        trackRef={{ participant: localParticipant, source: Track.Source.ScreenShare, publication: screenShareTrack }}
+        className="h-full w-full object-contain"
+      />
     );
   }
 
+  // Show camera
+  if (cameraTrack?.track) {
+    return (
+      <VideoTrack
+        trackRef={{ participant: localParticipant, source: Track.Source.Camera, publication: cameraTrack }}
+        className={`h-full w-full ${isPortrait ? 'object-cover' : 'object-contain'}`}
+      />
+    );
+  }
+
+  // Loading state
   return (
-    <VideoTrack
-      trackRef={{ participant: localParticipant, source: Track.Source.Camera, publication: cameraTrack }}
-      className={`h-full w-full ${isPortrait ? 'object-cover' : 'object-contain'}`}
-    />
+    <div className="h-full w-full flex items-center justify-center bg-black">
+      <div className="text-center">
+        <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+          <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <p className="text-white/60 text-sm">Starting camera...</p>
+      </div>
+    </div>
+  );
+}
+
+// Component to control screen sharing (must be inside LiveKitRoom)
+function ScreenShareControl({
+  isScreenSharing,
+  onScreenShareChange
+}: {
+  isScreenSharing: boolean;
+  onScreenShareChange: (sharing: boolean) => void;
+}) {
+  const { localParticipant } = useLocalParticipant();
+  const [isToggling, setIsToggling] = useState(false);
+
+  const toggleScreenShare = async () => {
+    if (isToggling) return;
+    setIsToggling(true);
+
+    try {
+      const newState = !isScreenSharing;
+      await localParticipant.setScreenShareEnabled(newState);
+      onScreenShareChange(newState);
+    } catch (error) {
+      console.error('Failed to toggle screen share:', error);
+      // User may have cancelled the screen share picker
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={toggleScreenShare}
+      disabled={isToggling}
+      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
+        isScreenSharing
+          ? 'bg-green-500/30 border-green-500/60 text-green-400 hover:bg-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
+          : 'bg-black/60 border-white/20 text-white hover:border-green-500/60 hover:bg-black/80'
+      } ${isToggling ? 'opacity-50 cursor-wait' : ''}`}
+      title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
+    >
+      {isScreenSharing ? (
+        <MonitorOff className="w-4 h-4 text-green-400" />
+      ) : (
+        <Monitor className="w-4 h-4 text-white" />
+      )}
+      <span className="text-sm hidden sm:inline">{isScreenSharing ? 'Stop Share' : 'Screen'}</span>
+    </button>
   );
 }
 
@@ -143,6 +205,7 @@ export default function BroadcastStudioPage() {
   const [isSafari, setIsSafari] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
   const [privateTips, setPrivateTips] = useState<Array<{
     id: string;
@@ -1936,6 +1999,13 @@ export default function BroadcastStudioPage() {
                   >
                     <LocalCameraPreview isPortrait={streamOrientation === 'portrait'} />
                     <RoomAudioRenderer />
+                    {/* Screen Share Control - Desktop only, positioned in bottom right of video */}
+                    <div className="absolute bottom-3 right-3 z-20 hidden md:block">
+                      <ScreenShareControl
+                        isScreenSharing={isScreenSharing}
+                        onScreenShareChange={setIsScreenSharing}
+                      />
+                    </div>
                   </LiveKitRoom>
                   {/* Top Left Overlay - Live Indicator + Timer */}
                   <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
@@ -1958,6 +2028,14 @@ export default function BroadcastStudioPage() {
                     <div className="hidden md:block">
                       <StreamHealthIndicator streamId={streamId} />
                     </div>
+
+                    {/* Screen Share Active Indicator */}
+                    {isScreenSharing && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-green-500/20 rounded-full border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+                        <Monitor className="w-4 h-4 text-green-400" />
+                        <span className="text-green-400 text-sm font-bold">Sharing Screen</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Top Right Overlay - Coins + Goal + Camera Flip */}

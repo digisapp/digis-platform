@@ -12,16 +12,23 @@ interface LivePlayerProps {
   previewMode?: boolean; // Hide controls for embed previews
 }
 
-// Component to display only the broadcaster's video
+// Component to display the broadcaster's video (camera or screen share)
 function BroadcasterVideoPreview({ onConnectionChange }: { onConnectionChange: (connected: boolean) => void }) {
   const participants = useRemoteParticipants();
   const hasNotifiedRef = useRef(false);
 
-  // Find the first participant with a camera track (the broadcaster)
-  const broadcaster = participants.find(p => {
-    const cameraTrack = p.getTrackPublication(Track.Source.Camera);
-    return cameraTrack && cameraTrack.track;
+  // Find broadcaster - prioritize screen share over camera
+  const broadcasterWithScreenShare = participants.find(p => {
+    const screenTrack = p.getTrackPublication(Track.Source.ScreenShare);
+    return screenTrack?.track;
   });
+
+  const broadcasterWithCamera = participants.find(p => {
+    const cameraTrack = p.getTrackPublication(Track.Source.Camera);
+    return cameraTrack?.track;
+  });
+
+  const broadcaster = broadcasterWithScreenShare || broadcasterWithCamera;
 
   // Notify parent about connection state
   useEffect(() => {
@@ -46,28 +53,39 @@ function BroadcasterVideoPreview({ onConnectionChange }: { onConnectionChange: (
     );
   }
 
-  const cameraTrack = broadcaster.getTrackPublication(Track.Source.Camera);
-
-  if (!cameraTrack || !cameraTrack.track) {
+  // Check for screen share first (takes priority)
+  const screenShareTrack = broadcaster.getTrackPublication(Track.Source.ScreenShare);
+  if (screenShareTrack?.track) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-black">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <p className="text-white/60 text-sm">Waiting for video...</p>
-        </div>
-      </div>
+      <VideoTrack
+        trackRef={{ participant: broadcaster, source: Track.Source.ScreenShare, publication: screenShareTrack }}
+        className="h-full w-full object-cover"
+      />
+    );
+  }
+
+  // Fall back to camera
+  const cameraTrack = broadcaster.getTrackPublication(Track.Source.Camera);
+  if (cameraTrack?.track) {
+    return (
+      <VideoTrack
+        trackRef={{ participant: broadcaster, source: Track.Source.Camera, publication: cameraTrack }}
+        className="h-full w-full object-cover"
+      />
     );
   }
 
   return (
-    <VideoTrack
-      trackRef={{ participant: broadcaster, source: Track.Source.Camera, publication: cameraTrack }}
-      className="h-full w-full object-cover"
-    />
+    <div className="h-full w-full flex items-center justify-center bg-black">
+      <div className="text-center">
+        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+          <svg className="w-6 h-6 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <p className="text-white/60 text-sm">Waiting for video...</p>
+      </div>
+    </div>
   );
 }
 
