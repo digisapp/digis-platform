@@ -10,6 +10,7 @@ import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSel
 import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
+import { HelpCircle, X, Monitor, Video, Play, CheckCircle2, ExternalLink } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -73,6 +74,9 @@ export default function GoLivePage() {
   // Animation states
   const [showParticles, setShowParticles] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Help modal state
+  const [showStreamingTipsModal, setShowStreamingTipsModal] = useState(false);
 
   // Device preview state
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
@@ -1021,9 +1025,19 @@ export default function GoLivePage() {
               <div className="space-y-4">
                 {/* Camera */}
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    📹 Camera
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-white">
+                      📹 Camera
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowStreamingTipsModal(true)}
+                      className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                      <span>Pro Tips</span>
+                    </button>
+                  </div>
                   <select
                     value={selectedVideoDevice}
                     onChange={(e) => setSelectedVideoDevice(e.target.value)}
@@ -1198,6 +1212,156 @@ export default function GoLivePage() {
           </div>
         </form>
       </div>
+
+      {/* Streaming Tips Modal */}
+      {showStreamingTipsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowStreamingTipsModal(false)}
+          />
+
+          {/* Modal */}
+          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-white/10 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 border-b border-white/10 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                  <Video className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Pro Streaming Tips</h2>
+                  <p className="text-xs text-gray-400">Level up your streams</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowStreamingTipsModal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-6">
+              {/* OBS Virtual Camera Section */}
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Monitor className="w-5 h-5 text-green-400" />
+                  <h3 className="font-bold text-white">Stream Pre-Recorded Videos</h3>
+                </div>
+                <p className="text-sm text-gray-300 mb-4">
+                  Use OBS Virtual Camera to stream pre-recorded content, add overlays, or combine multiple sources.
+                </p>
+
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">1</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white font-medium">Download OBS Studio (free)</p>
+                      <a
+                        href="https://obsproject.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                      >
+                        obsproject.com <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">2</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white font-medium">Add your video</p>
+                      <p className="text-xs text-gray-400">Sources → + → Media Source → Select video file</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">3</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white font-medium">Start Virtual Camera</p>
+                      <p className="text-xs text-gray-400">Click "Start Virtual Camera" in OBS</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">4</span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-white font-medium">Select "OBS Virtual Camera" here</p>
+                      <p className="text-xs text-gray-400">It will appear in the camera dropdown above</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-black/30 rounded-lg">
+                  <p className="text-xs text-gray-400">
+                    <span className="text-green-400 font-semibold">Pro tip:</span> Check "Loop" in OBS to repeat your video, and add Image sources for logos/watermarks.
+                  </p>
+                </div>
+              </div>
+
+              {/* Screen Share Section */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Play className="w-5 h-5 text-purple-400" />
+                  <h3 className="font-bold text-white">Quick Screen Share</h3>
+                </div>
+                <p className="text-sm text-gray-300 mb-3">
+                  During your stream, click the <span className="text-green-400 font-semibold">"Screen"</span> button to share your screen instantly. Perfect for showing websites, apps, or videos playing in your browser.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-gray-400">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400" />
+                  <span>Available on desktop during live streams</span>
+                </div>
+              </div>
+
+              {/* Quick Tips */}
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <h3 className="font-bold text-white mb-3">💡 Quick Tips</h3>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-cyan-400">•</span>
+                    <span>Test your audio levels before going live</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span>Good lighting makes a huge difference</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-pink-400">•</span>
+                    <span>Engage with chat - viewers love interaction</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-400">•</span>
+                    <span>Use polls and countdowns to boost engagement</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-neutral-900/95 border-t border-white/10 p-4">
+              <button
+                onClick={() => setShowStreamingTipsModal(false)}
+                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white font-bold rounded-xl transition-all"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes shake {
