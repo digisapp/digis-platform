@@ -100,10 +100,7 @@ export function MobileHeader() {
 
       {/* Content */}
       <div className="relative flex items-center justify-between h-16 px-4 pb-3 pt-1">
-        {/* Left spacer for balance */}
-        <div className="w-28" />
-
-        {/* Center Logo */}
+        {/* Left - Logo */}
         <div className="relative">
           {/* Logo glow effect */}
           <div className="absolute inset-0 blur-lg bg-cyan-400/30 scale-150" />
@@ -173,9 +170,7 @@ export function MobileHeader() {
             <LogIn className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
             <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-blue-300">Sign In</span>
           </button>
-        ) : (
-          <div className="w-28" />
-        )}
+        ) : null}
       </div>
 
       {/* Buy Coins Modal */}
