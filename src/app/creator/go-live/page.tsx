@@ -10,7 +10,7 @@ import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSel
 import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
-import { HelpCircle, X, Monitor, Video, Play, CheckCircle2, ExternalLink } from 'lucide-react';
+import { HelpCircle, X, Monitor, Video } from 'lucide-react';
 
 interface FeaturedCreator {
   id: string;
@@ -1213,89 +1213,8 @@ export default function GoLivePage() {
             </div>
 
             {/* Content */}
-            <div className="p-5 space-y-6">
-              {/* OBS Virtual Camera Section */}
-              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Monitor className="w-5 h-5 text-green-400" />
-                  <h3 className="font-bold text-white">Stream Pre-Recorded Videos</h3>
-                </div>
-                <p className="text-sm text-gray-300 mb-4">
-                  Use OBS Virtual Camera to stream pre-recorded content, add overlays, or combine multiple sources.
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-green-400 text-xs font-bold">1</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-white font-medium">Download OBS Studio (free)</p>
-                      <a
-                        href="https://obsproject.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
-                      >
-                        obsproject.com <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-green-400 text-xs font-bold">2</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-white font-medium">Add your video</p>
-                      <p className="text-xs text-gray-400">Sources → + → Media Source → Select video file</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-green-400 text-xs font-bold">3</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-white font-medium">Start Virtual Camera</p>
-                      <p className="text-xs text-gray-400">Click "Start Virtual Camera" in OBS</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-green-400 text-xs font-bold">4</span>
-                    </div>
-                    <div>
-                      <p className="text-sm text-white font-medium">Select "OBS Virtual Camera" here</p>
-                      <p className="text-xs text-gray-400">It will appear in the camera dropdown above</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 p-3 bg-black/30 rounded-lg">
-                  <p className="text-xs text-gray-400">
-                    <span className="text-green-400 font-semibold">Pro tip:</span> Check "Loop" in OBS to repeat your video, and add Image sources for logos/watermarks.
-                  </p>
-                </div>
-              </div>
-
-              {/* Screen Share Section */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Play className="w-5 h-5 text-purple-400" />
-                  <h3 className="font-bold text-white">Quick Screen Share</h3>
-                </div>
-                <p className="text-sm text-gray-300 mb-3">
-                  During your stream, click the <span className="text-green-400 font-semibold">"Screen"</span> button to share your screen instantly. Perfect for showing websites, apps, or videos playing in your browser.
-                </p>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <CheckCircle2 className="w-4 h-4 text-purple-400" />
-                  <span>Available on desktop during live streams</span>
-                </div>
-              </div>
-
-              {/* Quick Tips */}
+            <div className="p-5 space-y-5">
+              {/* Quick Tips - Most relevant for most creators */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <h3 className="font-bold text-white mb-3">💡 Quick Tips</h3>
                 <ul className="space-y-2 text-sm text-gray-300">
@@ -1316,6 +1235,28 @@ export default function GoLivePage() {
                     <span>Use polls and countdowns to boost engagement</span>
                   </li>
                 </ul>
+              </div>
+
+              {/* Screen Share Section */}
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Monitor className="w-5 h-5 text-purple-400" />
+                  <h3 className="font-bold text-white">Screen Share</h3>
+                </div>
+                <p className="text-sm text-gray-300">
+                  During your stream, click the <span className="text-green-400 font-semibold">"Screen"</span> button to share your screen. Perfect for showing videos, websites, or apps.
+                </p>
+              </div>
+
+              {/* OBS Section - Simplified, at bottom for power users */}
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Video className="w-5 h-5 text-gray-400" />
+                  <h3 className="font-semibold text-white">Pre-Recorded Videos</h3>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Use OBS Virtual Camera to stream pre-recorded content, add overlays, or combine multiple sources.
+                </p>
               </div>
             </div>
 
