@@ -23,7 +23,7 @@ export async function GET(
     }
 
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
     const messages = await MessageService.getMessages(conversationId, user.id, limit, offset);

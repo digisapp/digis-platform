@@ -75,6 +75,8 @@ export default function ChatPage() {
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [isBlocking, setIsBlocking] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingSentRef = useRef<number>(0);
 
@@ -278,16 +280,46 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`/api/messages/conversations/${conversationId}`);
+      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100`);
       const data = await response.json();
 
       if (response.ok) {
-        setMessages(data.messages.reverse());
+        const fetchedMessages = data.messages.reverse();
+        setMessages(fetchedMessages);
+        // If we got less than 100, there are no more older messages
+        setHasMoreMessages(data.messages.length >= 100);
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (loadingMore || !hasMoreMessages) return;
+
+    setLoadingMore(true);
+    try {
+      const offset = messages.length;
+      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&offset=${offset}`);
+      const data = await response.json();
+
+      if (response.ok && data.messages.length > 0) {
+        // Prepend older messages to the beginning
+        const olderMessages = data.messages.reverse();
+        setMessages(prev => [...olderMessages, ...prev]);
+        // Update lastMessageCountRef to prevent scroll
+        lastMessageCountRef.current = messages.length + olderMessages.length;
+        // Check if there are more
+        setHasMoreMessages(data.messages.length >= 100);
+      } else {
+        setHasMoreMessages(false);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -744,6 +776,19 @@ export default function ChatPage() {
         >
           <div className="container mx-auto px-4 py-6 max-w-2xl">
             <div className="space-y-4">
+              {/* Load older messages button */}
+              {messages.length > 0 && hasMoreMessages && (
+                <div className="text-center py-2">
+                  <button
+                    onClick={loadMoreMessages}
+                    disabled={loadingMore}
+                    className="px-4 py-2 text-sm text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? 'Loading...' : 'Load older messages'}
+                  </button>
+                </div>
+              )}
+
               {messages.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">👋</div>
