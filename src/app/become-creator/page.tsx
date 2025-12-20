@@ -1,13 +1,59 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { createClient } from '@/lib/supabase/client';
+import { SignupModal } from '@/components/auth/SignupModal';
+import { LoginModal } from '@/components/auth/LoginModal';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+  }, []);
+
+  const handleApplyClick = () => {
+    if (isLoggedIn) {
+      // User is logged in, go directly to apply page
+      router.push('/creator/apply');
+    } else {
+      // User is not logged in, show signup modal
+      setShowSignup(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black">
+      {/* Auth Modals */}
+      <SignupModal
+        isOpen={showSignup}
+        onClose={() => setShowSignup(false)}
+        onSwitchToLogin={() => {
+          setShowSignup(false);
+          setShowLogin(true);
+        }}
+        redirectTo="/creator/apply"
+      />
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSwitchToSignup={() => {
+          setShowLogin(false);
+          setShowSignup(true);
+        }}
+      />
+
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-[600px] h-[600px] -top-40 -left-40 bg-digis-cyan opacity-15 rounded-full blur-[120px]" />
@@ -28,7 +74,7 @@ export default function BecomeCreatorPage() {
             priority
           />
           <button
-            onClick={() => router.push('/creator/apply')}
+            onClick={handleApplyClick}
             className="px-6 py-2.5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
           >
             Apply Now
@@ -80,7 +126,7 @@ export default function BecomeCreatorPage() {
 
           {/* CTA */}
           <button
-            onClick={() => router.push('/creator/apply')}
+            onClick={handleApplyClick}
             className="group px-12 py-5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] transition-all duration-300"
           >
             Apply Now

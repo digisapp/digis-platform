@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
@@ -12,6 +11,7 @@ export default function Home() {
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [signupRedirectTo, setSignupRedirectTo] = useState('/explore');
   const [loading, setLoading] = useState(true);
 
   // Check if user is already logged in
@@ -89,6 +89,7 @@ export default function Home() {
           setShowSignup(false);
           setShowLogin(true);
         }}
+        redirectTo={signupRedirectTo}
       />
 
       {/* Full-screen Hero Section */}
@@ -136,7 +137,10 @@ export default function Home() {
                 Sign In
               </button>
               <button
-                onClick={() => setShowSignup(true)}
+                onClick={() => {
+                  setSignupRedirectTo('/explore');
+                  setShowSignup(true);
+                }}
                 className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm md:text-base hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
               >
                 Sign Up
@@ -167,18 +171,24 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
               <button
-                onClick={() => setShowSignup(true)}
+                onClick={() => {
+                  setSignupRedirectTo('/explore');
+                  setShowSignup(true);
+                }}
                 className="group px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
               >
                 Start Exploring
                 <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </button>
-              <Link
-                href="/become-creator"
+              <button
+                onClick={() => {
+                  setSignupRedirectTo('/creator/apply');
+                  setShowSignup(true);
+                }}
                 className="px-10 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
                 Become a Creator
-              </Link>
+              </button>
             </div>
 
             {/* Feature Pills */}

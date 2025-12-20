@@ -12,9 +12,10 @@ interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToLogin: () => void;
+  redirectTo?: string; // Where to redirect after signup (default: /explore)
 }
 
-export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
+export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/explore' }: SignupModalProps) {
   const { showSuccess, showError } = useToastContext();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -97,7 +98,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         type: 'signup',
         email: signupEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}${redirectTo}`,
         },
       });
 
@@ -139,7 +140,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}${redirectTo}`,
           data: {
             username: username.toLowerCase(),
             display_name: username,
@@ -192,7 +193,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
       setPassword('');
       setUsername('');
       onClose();
-      router.push('/dashboard');
+      router.push(redirectTo);
 
     } catch (err: any) {
       console.error('Signup error:', err);
