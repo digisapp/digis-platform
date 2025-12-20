@@ -148,7 +148,16 @@ export default function Home() {
         {/* Centered Hero Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 pb-2 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent leading-normal drop-shadow-2xl">
+            <h1
+              className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
+              style={{
+                background: 'linear-gradient(135deg, #00D4FF 0%, #FF006E 50%, #9D4EDD 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 60px rgba(255, 0, 110, 0.3))',
+              }}
+            >
               what's your digis?
             </h1>
             <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
