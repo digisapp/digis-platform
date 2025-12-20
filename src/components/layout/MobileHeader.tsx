@@ -101,15 +101,13 @@ export function MobileHeader() {
       {/* Content */}
       <div className="relative flex items-center justify-between h-12 px-4">
         {/* Left - Logo */}
-        <div className="relative">
-          {/* Logo glow effect */}
-          <div className="absolute inset-0 blur-lg bg-cyan-400/30 scale-150" />
+        <div>
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
-            width={80}
-            height={28}
-            className="relative h-7 w-auto drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+            width={100}
+            height={36}
+            className="h-9 w-auto"
             priority
             unoptimized
           />
