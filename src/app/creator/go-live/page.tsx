@@ -886,9 +886,18 @@ export default function GoLivePage() {
 
               {/* Go Private Settings */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-2">
-                  Go Private Settings
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-semibold text-white">
+                    🔒 Go Private
+                  </label>
+                  <div className="group relative">
+                    <HelpCircle className="w-4 h-4 text-gray-400 hover:text-green-400 cursor-help" />
+                    <div className="absolute right-0 bottom-full mb-2 w-56 p-3 bg-black/95 border border-white/10 rounded-lg text-xs text-gray-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                      <p className="font-semibold text-white mb-1">How Go Private works:</p>
+                      <p>Viewers can request a paid 1-on-1 video call with you during your stream. You set the rate and minimum duration. Accept or decline requests as they come in.</p>
+                    </div>
+                  </div>
+                </div>
                 <div className="p-4 rounded-xl border-2 border-green-500/30 bg-green-500/5 space-y-4">
                   {/* Enable/Disable Toggle */}
                   <div className="flex items-center justify-between">
