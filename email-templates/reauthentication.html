@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Email Change - Digis</title>
+    <title>Confirm Your Identity - Digis</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);">
     <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%); padding: 40px 20px;">
@@ -15,12 +15,12 @@
                     <!-- Header with Gradient -->
                     <tr>
                         <td align="center" style="background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); padding: 50px 40px 40px;">
-                            <p style="margin: 0 0 12px; font-size: 48px;">📧</p>
+                            <p style="margin: 0 0 12px; font-size: 48px;">🛡️</p>
                             <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3); letter-spacing: -0.5px;">
-                                Confirm Email Change
+                                Confirm Your Identity
                             </h1>
                             <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
-                                Verify your new email address
+                                Security verification required
                             </p>
                         </td>
                     </tr>
@@ -32,13 +32,7 @@
                                 <tr>
                                     <td style="color: #ffffff; font-size: 17px; line-height: 1.7; padding-bottom: 24px;">
                                         <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
-                                            You requested to change your email address to:
-                                        </p>
-                                        <p style="margin: 0 0 20px; padding: 16px 20px; background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 12px; color: #00D4FF; font-size: 18px; font-weight: 600; text-align: center;">
-                                            {{ .Email }}
-                                        </p>
-                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.9);">
-                                            Click the button below to confirm this change.
+                                            You're trying to perform a sensitive action on your account. For your security, please confirm your identity.
                                         </p>
                                     </td>
                                 </tr>
@@ -47,48 +41,22 @@
                                 <tr>
                                     <td align="center" style="padding: 10px 0 35px;">
                                         <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); color: #ffffff; text-decoration: none; padding: 20px 56px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 8px 32px rgba(157, 78, 221, 0.5), 0 0 0 1px rgba(255,255,255,0.1) inset; letter-spacing: 0.3px;">
-                                            Confirm Email Change
+                                            Confirm Identity
                                         </a>
                                     </td>
                                 </tr>
 
-                                <!-- What Happens Next -->
+                                <!-- Why This Is Needed -->
                                 <tr>
-                                    <td style="padding: 24px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; margin-bottom: 16px;">
-                                        <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
-                                            What happens next
-                                        </p>
-                                        <table width="100%" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td style="padding: 8px 0; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
-                                                    ✓ &nbsp; Your new email becomes your login
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
-                                                    ✓ &nbsp; All notifications sent to new address
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 8px 0; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
-                                                    ✓ &nbsp; Your account data stays the same
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-
-                                <!-- Security Warning -->
-                                <tr>
-                                    <td style="padding: 20px 24px; background: rgba(255, 0, 110, 0.08); border: 1px solid rgba(255, 0, 110, 0.2); border-radius: 12px; margin-top: 16px;">
+                                    <td style="padding: 24px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td style="width: 40px; vertical-align: top;">
-                                                    <span style="font-size: 20px;">⚠️</span>
+                                                    <span style="font-size: 20px;">ℹ️</span>
                                                 </td>
                                                 <td>
-                                                    <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5;">
-                                                        <strong style="color: #FF006E;">Didn't request this?</strong> Contact security@digis.cc immediately.
+                                                    <p style="margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 14px; line-height: 1.5;">
+                                                        <strong style="color: #ffffff;">Why am I seeing this?</strong> We require verification for actions like changing your email, password, or accessing sensitive settings.
                                                     </p>
                                                 </td>
                                             </tr>
@@ -112,8 +80,26 @@
                                 <tr>
                                     <td style="padding-top: 24px; text-align: center;">
                                         <span style="display: inline-block; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 8px 16px; color: rgba(255, 255, 255, 0.5); font-size: 12px;">
-                                            ⏱️ Link expires in 24 hours
+                                            ⏱️ Link expires in 10 minutes
                                         </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Security Warning -->
+                                <tr>
+                                    <td style="padding: 20px 24px; background: rgba(255, 0, 110, 0.08); border: 1px solid rgba(255, 0, 110, 0.2); border-radius: 12px; margin-top: 24px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="width: 40px; vertical-align: top;">
+                                                    <span style="font-size: 20px;">⚠️</span>
+                                                </td>
+                                                <td>
+                                                    <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.5;">
+                                                        <strong style="color: #FF006E;">Didn't request this?</strong> Someone may have access to your account. Change your password immediately.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                 </tr>
                             </table>
