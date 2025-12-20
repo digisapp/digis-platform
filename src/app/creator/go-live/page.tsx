@@ -44,7 +44,6 @@ export default function GoLivePage() {
   const router = useRouter();
   const { showError } = useToastContext();
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
@@ -417,7 +416,6 @@ export default function GoLivePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          description: description.trim() || undefined,
           category: category || undefined,
           tags: tags.length > 0 ? tags : undefined,
           privacy,
@@ -671,25 +669,6 @@ export default function GoLivePage() {
                 />
                 <div className="mt-2 text-xs text-gray-500 text-right">
                   {title.length}/100
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label htmlFor="description" className="block text-sm font-semibold text-white mb-2">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell viewers what to expect..."
-                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300 resize-none"
-                  rows={2}
-                  maxLength={500}
-                />
-                <div className="mt-2 text-xs text-gray-500 text-right">
-                  {description.length}/500
                 </div>
               </div>
 
