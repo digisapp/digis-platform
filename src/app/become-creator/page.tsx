@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-export default function CreatorsPage() {
+export default function BecomeCreatorPage() {
   const router = useRouter();
 
   return (
