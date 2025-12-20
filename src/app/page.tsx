@@ -149,7 +149,7 @@ export default function Home() {
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1
-              className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
+              className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
               style={{
                 background: 'linear-gradient(135deg, #00D4FF 0%, #FF006E 50%, #9D4EDD 100%)',
                 WebkitBackgroundClip: 'text',
