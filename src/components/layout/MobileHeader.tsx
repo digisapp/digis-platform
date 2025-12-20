@@ -118,13 +118,29 @@ export function MobileHeader() {
         {/* Right - Wallet Button (logged in) or Sign In Button (logged out) */}
         {isLoggedIn && balance !== null ? (
           <div className="relative">
-            <button
-              onClick={handleWalletClick}
-              className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-black/60 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)] touch-manipulation active:scale-95 transition-transform"
-            >
-              <Coins className="w-6 h-6 text-green-400" />
-              <span className="text-lg font-bold text-green-400">{formatCoinBalance(balance)}</span>
-            </button>
+            {/* Fan wallet - more prominent with + indicator */}
+            {isFan ? (
+              <button
+                onClick={handleWalletClick}
+                className="group flex items-center gap-2 pl-4 pr-3 py-2 rounded-full bg-gradient-to-r from-green-600/90 to-emerald-600/90 border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.4)] touch-manipulation active:scale-95 transition-all"
+              >
+                <Coins className="w-5 h-5 text-white" />
+                <span className="text-base font-bold text-white">{formatCoinBalance(balance)}</span>
+                {/* Plus indicator */}
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 group-active:bg-white/30">
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+              </button>
+            ) : (
+              /* Creator wallet - simple style, links to wallet page */
+              <button
+                onClick={handleWalletClick}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)] touch-manipulation active:scale-95 transition-transform"
+              >
+                <Coins className="w-5 h-5 text-green-400" />
+                <span className="text-base font-bold text-green-400">{formatCoinBalance(balance)}</span>
+              </button>
+            )}
 
             {/* Fan Dropdown - Buy Coins */}
             {isFan && showDropdown && (
@@ -136,26 +152,27 @@ export function MobileHeader() {
                 />
 
                 {/* Dropdown Content */}
-                <div className="absolute top-full right-0 mt-2 z-50 backdrop-blur-xl bg-black/90 rounded-2xl border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)] overflow-hidden min-w-[160px]">
+                <div className="absolute top-full right-0 mt-2 z-50 backdrop-blur-xl bg-black/95 rounded-2xl border border-green-500/40 shadow-[0_0_30px_rgba(34,197,94,0.3)] overflow-hidden min-w-[180px]">
                   {/* Balance Header */}
-                  <div className="px-4 py-3 border-b border-green-500/20">
+                  <div className="px-5 py-4 border-b border-green-500/20 bg-gradient-to-br from-green-500/10 to-emerald-500/5">
                     <div className="text-center">
-                      <div className="text-2xl font-black text-green-400">
+                      <div className="text-3xl font-black text-green-400">
                         {balance.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">Coins</div>
+                      <div className="text-xs text-gray-400 mt-1">Digis Coins</div>
                     </div>
                   </div>
 
                   <button
                     onClick={handleBuyCoins}
-                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
+                    className="w-full px-4 py-4 flex items-center gap-3 hover:bg-green-500/10 active:bg-green-500/20 transition-colors"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
                       <Plus className="w-5 h-5 text-white" />
                     </div>
-                    <div className="text-left">
+                    <div className="text-left flex-1">
                       <div className="font-bold text-white">Buy Coins</div>
+                      <div className="text-xs text-gray-400">Add more to tip creators</div>
                     </div>
                   </button>
                 </div>
