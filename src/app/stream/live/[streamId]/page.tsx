@@ -2333,11 +2333,11 @@ export default function BroadcastStudioPage() {
                     </button>
                   </div>
 
-                  {/* Username Watermark - Hidden on mobile to avoid clutter, shown on desktop */}
+                  {/* Username Watermark - Shown on both mobile and desktop */}
                   {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
-                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none hidden md:block">
+                    <div className="absolute bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                       <span
-                        className="text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
+                        className="text-sm md:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                         style={{
                           color: '#ffffff',
                           textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
