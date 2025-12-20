@@ -440,12 +440,16 @@ export class AdminService {
   // Get platform statistics - optimized with COUNT queries
   static async getStatistics() {
     // Run all counts in parallel for speed
-    const [totalUsersResult, totalCreatorsResult, pendingAppsResult, pendingPayoutsResult] = await withTimeoutAndRetry(
+    const [totalUsersResult, totalCreatorsResult, totalFansResult, totalAdminsResult, pendingAppsResult, pendingPayoutsResult] = await withTimeoutAndRetry(
       () => Promise.all([
         // Count total users
         db.select({ count: count() }).from(users),
         // Count creators only
         db.select({ count: count() }).from(users).where(eq(users.role, 'creator')),
+        // Count fans only
+        db.select({ count: count() }).from(users).where(eq(users.role, 'fan')),
+        // Count admins only
+        db.select({ count: count() }).from(users).where(eq(users.role, 'admin')),
         // Count pending applications
         db.select({ count: count() }).from(creatorApplications).where(eq(creatorApplications.status, 'pending')),
         // Count pending payouts and total amount
@@ -460,6 +464,8 @@ export class AdminService {
     return {
       totalUsers: totalUsersResult[0]?.count || 0,
       totalCreators: totalCreatorsResult[0]?.count || 0,
+      totalFans: totalFansResult[0]?.count || 0,
+      totalAdmins: totalAdminsResult[0]?.count || 0,
       pendingApplications: pendingAppsResult[0]?.count || 0,
       pendingPayouts: pendingPayoutsResult[0]?.count || 0,
       pendingPayoutAmount: Number(pendingPayoutsResult[0]?.totalAmount) || 0,

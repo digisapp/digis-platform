@@ -50,6 +50,8 @@ interface User {
 interface Stats {
   totalUsers: number;
   totalCreators: number;
+  totalFans: number;
+  totalAdmins: number;
   pendingApplications: number;
   pendingPayouts?: number;
   pendingPayoutAmount?: number;
@@ -628,7 +630,7 @@ export default function AdminDashboard() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
               onClick={() => {
@@ -643,6 +645,24 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-xs text-gray-400">Total Users</p>
                   <p className="text-xl font-bold">{stats.totalUsers}</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard
+              className="p-4 cursor-pointer hover:scale-105 transition-transform"
+              onClick={() => {
+                setMainTab('users');
+                setSelectedRole('fan');
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-cyan-500/20 rounded-lg">
+                  <Users className="w-5 h-5 text-cyan-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Fans</p>
+                  <p className="text-xl font-bold">{stats.totalFans}</p>
                 </div>
               </div>
             </GlassCard>
@@ -729,6 +749,11 @@ export default function AdminDashboard() {
             }`}
           >
             Users
+            {stats && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full">
+                {stats.totalUsers}
+              </span>
+            )}
             {mainTab === 'users' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
@@ -931,20 +956,42 @@ export default function AdminDashboard() {
               {/* Role Filter */}
               <div>
                 <p className="text-sm text-gray-400 mb-2">Filter by Role:</p>
-                <div className="flex gap-4">
-                  {(['all', 'fan', 'creator', 'admin'] as const).map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => setSelectedRole(role)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        selectedRole === role
-                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
-                          : 'bg-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-2 md:gap-4">
+                  {(['all', 'fan', 'creator', 'admin'] as const).map((role) => {
+                    const getRoleCount = () => {
+                      if (!stats) return null;
+                      switch (role) {
+                        case 'all': return stats.totalUsers;
+                        case 'fan': return stats.totalFans;
+                        case 'creator': return stats.totalCreators;
+                        case 'admin': return stats.totalAdmins;
+                        default: return null;
+                      }
+                    };
+                    const count = getRoleCount();
+                    return (
+                      <button
+                        key={role}
+                        onClick={() => setSelectedRole(role)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                          selectedRole === role
+                            ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
+                            : 'bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1)}s
+                        {count !== null && (
+                          <span className={`px-1.5 py-0.5 text-xs rounded-full ${
+                            selectedRole === role
+                              ? 'bg-white/20'
+                              : 'bg-white/10'
+                          }`}>
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
