@@ -159,7 +159,7 @@ export function MobileHeader() {
                       <div className="text-3xl font-black text-green-400">
                         {balance.toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">Digis Coins</div>
+                      <div className="text-xs text-gray-400 mt-1">Coins</div>
                     </div>
                   </div>
 
@@ -170,10 +170,7 @@ export function MobileHeader() {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
                       <Plus className="w-5 h-5 text-white" />
                     </div>
-                    <div className="text-left flex-1">
-                      <div className="font-bold text-white">Buy Coins</div>
-                      <div className="text-xs text-gray-400">Add more to tip creators</div>
-                    </div>
+                    <div className="font-bold text-white">Buy Coins</div>
                   </button>
                 </div>
               </>
