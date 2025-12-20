@@ -56,6 +56,10 @@ export function Navigation() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  // Content availability - controls whether to show Explore/Streams tabs
+  const [showExplore, setShowExplore] = useState(true);
+  const [showStreams, setShowStreams] = useState(true);
+
   // Derive userRole from AuthContext (trusts JWT first) - don't rely solely on profile
   const userRole = isAdmin ? 'admin' : isCreator ? 'creator' : 'fan';
 
@@ -75,12 +79,13 @@ export function Navigation() {
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        // Fetch profile, balance, unread count, and live status in parallel with timeout
-        const [profileRes, balanceRes, unreadRes, liveRes] = await Promise.all([
+        // Fetch profile, balance, unread count, live status, and content availability in parallel
+        const [profileRes, balanceRes, unreadRes, liveRes, availabilityRes] = await Promise.all([
           fetch('/api/user/profile', { cache: 'no-store', signal: controller.signal }),
           fetch('/api/wallet/balance', { signal: controller.signal }),
           fetch('/api/messages/unread-count', { signal: controller.signal }),
-          fetch('/api/streams/status', { signal: controller.signal }).catch(() => null)
+          fetch('/api/streams/status', { signal: controller.signal }).catch(() => null),
+          fetch('/api/content/availability', { signal: controller.signal }).catch(() => null)
         ]);
 
         clearTimeout(timeoutId);
@@ -111,6 +116,13 @@ export function Navigation() {
           const liveData = await liveRes.json();
           setIsLive(liveData.isLive || false);
           setLiveStreamId(liveData.streamId || null);
+        }
+
+        // Process content availability (for fans - controls Explore/Streams tabs)
+        if (availabilityRes?.ok) {
+          const availabilityData = await availabilityRes.json();
+          setShowExplore(availabilityData.showExplore ?? true);
+          setShowStreams(availabilityData.showStreams ?? true);
         }
       } catch (error: any) {
         clearTimeout(timeoutId);
@@ -293,7 +305,7 @@ export function Navigation() {
 
   // Define arrays before early return
   // Creators: Home, Go Live, Upload, Chats (focused on creating and earning)
-  // Fans: Home, Explore, Streams, Chats (full discovery experience)
+  // Fans: Home, [Explore], [Streams], Chats (discovery items shown based on content availability)
   const navItems = userRole === 'creator' ? [
     {
       label: 'Home',
@@ -320,24 +332,28 @@ export function Navigation() {
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
   ] : [
+    // Home is always shown
     {
       label: 'Home',
       icon: Home,
       path: userRole === 'admin' ? '/admin' : '/dashboard',
       active: isActive('/dashboard') || isActive('/admin'),
     },
-    {
+    // Explore: Only show if we have enough creators (10+)
+    ...(showExplore ? [{
       label: 'Explore',
       icon: Search,
       path: '/explore',
       active: isActive('/explore') || pathname?.startsWith('/profile'),
-    },
-    {
+    }] : []),
+    // Streams: Only show if there are live streams
+    ...(showStreams ? [{
       label: 'Streams',
       icon: Video,
       path: '/live',
       active: isActive('/live') || isActive('/streams'),
-    },
+    }] : []),
+    // Chats is always shown
     {
       label: 'Chats',
       icon: MessageCircle,
