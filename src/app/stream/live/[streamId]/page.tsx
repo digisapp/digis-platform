@@ -2027,6 +2027,12 @@ export default function BroadcastStudioPage() {
                       <span className="text-cyan-400 text-sm font-bold">{viewerCount}</span>
                     </div>
 
+                    {/* Coins Earned - Desktop only (next to viewers) */}
+                    <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
+                    </div>
+
                     {/* Connection Status - Desktop only */}
                     <div className="hidden md:block">
                       <StreamHealthIndicator streamId={streamId} />
@@ -2045,12 +2051,7 @@ export default function BroadcastStudioPage() {
                   <div className="absolute top-3 right-3 z-10">
                     {/* Desktop Layout - Single Row */}
                     <div className="hidden md:flex items-center gap-2">
-                      {/* Coins Earned */}
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
-                        <Coins className="w-4 h-4 text-yellow-400" />
-                        <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
-                      </div>
-
+                      {/* Main action buttons first (left side) */}
                       {/* Set Goal Button */}
                       {(() => {
                         const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
@@ -2073,19 +2074,6 @@ export default function BroadcastStudioPage() {
                           </button>
                         );
                       })()}
-
-                      {/* Menu Toggle Button */}
-                      <button
-                        onClick={handleToggleMenu}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-                          menuEnabled
-                            ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30'
-                            : 'bg-black/60 border-white/20 text-white/60 hover:border-white/40 hover:bg-black/80'
-                        }`}
-                      >
-                        <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
-                        <span className="text-sm">Menu</span>
-                      </button>
 
                       {/* Poll Button */}
                       <button
@@ -2115,15 +2103,6 @@ export default function BroadcastStudioPage() {
                         <span className="text-sm">Timer</span>
                       </button>
 
-                      {/* Monitor on Phone Button */}
-                      <button
-                        onClick={() => setShowQRCode(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-green-500/30 text-white font-semibold text-sm hover:border-green-500/60 hover:bg-black/80 transition-all"
-                      >
-                        <Smartphone className="w-4 h-4 text-green-400" />
-                        <span className="text-sm">Phone</span>
-                      </button>
-
                       {/* Announce Ticketed Stream Button */}
                       {!announcedTicketedStream && (
                         <button
@@ -2134,6 +2113,32 @@ export default function BroadcastStudioPage() {
                           <span className="text-sm">VIP</span>
                         </button>
                       )}
+
+                      {/* Divider */}
+                      <div className="w-px h-6 bg-white/20" />
+
+                      {/* Less used buttons (right side): Menu, Phone - Icon only */}
+                      {/* Menu Toggle Button - Icon only */}
+                      <button
+                        onClick={handleToggleMenu}
+                        className={`p-2 backdrop-blur-xl rounded-full border transition-all ${
+                          menuEnabled
+                            ? 'bg-yellow-500/20 border-yellow-500/50 hover:bg-yellow-500/30'
+                            : 'bg-black/60 border-white/20 hover:border-white/40 hover:bg-black/80'
+                        }`}
+                        title={menuEnabled ? 'Hide Tip Menu' : 'Show Tip Menu'}
+                      >
+                        <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
+                      </button>
+
+                      {/* Phone Button - Icon only */}
+                      <button
+                        onClick={() => setShowQRCode(true)}
+                        className="p-2 backdrop-blur-xl bg-black/60 rounded-full border border-green-500/30 text-white hover:border-green-500/60 hover:bg-black/80 transition-all"
+                        title="Remote Control"
+                      >
+                        <Smartphone className="w-4 h-4 text-green-400" />
+                      </button>
                     </div>
 
                     {/* Mobile Layout - Just coins + camera flip */}
