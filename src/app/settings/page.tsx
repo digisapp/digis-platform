@@ -691,7 +691,7 @@ export default function SettingsPage() {
                   )}
                 </div>
                 {email !== currentUser?.email && (
-                  <p className="text-xs text-yellow-400 mt-1">Changing email requires verification</p>
+                  <p className="text-xs text-yellow-400 mt-1">Click "Save Profile" below to receive a verification email</p>
                 )}
               </div>
 
