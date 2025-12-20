@@ -223,6 +223,7 @@ export default function BroadcastStudioPage() {
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
+  const [showMobileToolbar, setShowMobileToolbar] = useState(true); // Show controls by default
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Poll and Countdown state
@@ -2157,6 +2158,21 @@ export default function BroadcastStudioPage() {
 
                   {/* Mobile Bottom Toolbar - Stream Controls */}
                   <div className="absolute bottom-3 left-3 right-3 z-20 md:hidden">
+                    {/* Toggle Button - Always visible */}
+                    <button
+                      onClick={() => setShowMobileToolbar(!showMobileToolbar)}
+                      className={`absolute -top-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border text-xs font-semibold transition-all ${
+                        showMobileToolbar
+                          ? 'bg-white/20 border-white/30 text-white'
+                          : 'bg-cyan-500/30 border-cyan-500/50 text-cyan-400'
+                      }`}
+                    >
+                      <List className="w-4 h-4" />
+                      {showMobileToolbar ? 'Hide' : 'Menu'}
+                    </button>
+
+                    {/* Controls - Visible when showMobileToolbar is true */}
+                    {showMobileToolbar && (
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       {/* Goal Button */}
                       {(() => {
@@ -2233,6 +2249,7 @@ export default function BroadcastStudioPage() {
                         </button>
                       )}
                     </div>
+                    )}
                   </div>
 
                   {/* Bottom Left - Record + End Stream Buttons */}
