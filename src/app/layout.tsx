@@ -16,7 +16,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Digis - Creator Economy Platform",
+  title: "Digis - Live Creator Platform",
   description: "Connect with your favorite creators through video calls, live streams, and exclusive content",
   icons: {
     icon: "/images/digis-logo-white.png",
