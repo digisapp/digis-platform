@@ -80,7 +80,7 @@ export function SetGoalModal({ isOpen, onClose, streamId, onGoalCreated, existin
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title={existingGoal ? "Edit Stream Goal" : "Set Stream Goal"} size="sm">
+    <GlassModal isOpen={isOpen} onClose={onClose} title={existingGoal ? "Edit Stream Goal" : "Set Stream Goal"} size="sm" transparentBackdrop>
       <form onSubmit={handleSubmit} className="flex flex-col">
         <div className="space-y-4">
           <GlassInput

@@ -8,9 +8,10 @@ interface GlassModalProps {
   title?: string;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg';
+  transparentBackdrop?: boolean; // For streaming - keeps background visible
 }
 
-export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: GlassModalProps) {
+export function GlassModal({ isOpen, onClose, title, children, size = 'md', transparentBackdrop = false }: GlassModalProps) {
   useEffect(() => {
     if (isOpen) {
       // Prevent body scroll and fix position to prevent jump on mobile
@@ -48,9 +49,13 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 overflow-y-auto">
-      {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
+      {/* Backdrop - covers ENTIRE screen including sidebar */}
       <div
-        className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md"
+        className={`absolute top-0 left-0 right-0 bottom-0 ${
+          transparentBackdrop
+            ? 'bg-black/30 backdrop-blur-sm'
+            : 'bg-black/70 backdrop-blur-md'
+        }`}
         onClick={onClose}
       />
 

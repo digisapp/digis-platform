@@ -90,7 +90,7 @@ export function CreatePollModal({ isOpen, onClose, streamId, onPollCreated }: Cr
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={handleClose} />
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={handleClose} />
       <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-purple-500/30 shadow-[0_0_30px_rgba(168,85,247,0.2)] p-6 max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

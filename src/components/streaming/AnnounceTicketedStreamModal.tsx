@@ -91,7 +91,7 @@ export function AnnounceTicketedStreamModal({
   const startsAt = new Date(Date.now() + minutesUntilStart * 60 * 1000);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
       <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-3xl border-2 border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)] max-w-md w-full">
         <div className="p-6">
           {/* Header */}

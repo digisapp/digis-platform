@@ -119,7 +119,7 @@ export function SaveRecordingsModal({
   if (recordings.length === 0) {
     return (
       <div
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       >
         <div
@@ -143,7 +143,7 @@ export function SaveRecordingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
