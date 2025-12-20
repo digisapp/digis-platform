@@ -36,21 +36,16 @@ export async function GET(request: NextRequest) {
     // Transform snake_case to camelCase for frontend
     const transformedApplications = applications.map((app: any) => ({
       id: app.id,
-      displayName: app.display_name,
-      bio: app.bio,
-      contentType: app.content_type,
-      whyCreator: app.why_creator,
       status: app.status,
       createdAt: app.created_at,
       instagramHandle: app.instagram_handle,
-      twitterHandle: app.twitter_handle,
-      website: app.website,
+      tiktokHandle: app.tiktok_handle,
       user: {
         id: app.user?.id,
         email: app.user?.email,
         username: app.user?.username,
+        displayName: app.user?.display_name,
         avatarUrl: app.user?.avatar_url,
-        createdAt: app.user?.created_at,
       },
     }));
 
