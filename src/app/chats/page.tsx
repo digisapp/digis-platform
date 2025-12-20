@@ -210,14 +210,14 @@ export default function MessagesPage() {
       <MobileHeader />
 
       {/* Spacer for fixed mobile header */}
-      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-top, 0px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto max-w-7xl relative z-10">
         <div className="px-4 pt-2 md:pt-10">
         {/* Two-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(320px,400px)_1fr] gap-6">
           {/* Left Column: Conversations Sidebar */}
-          <div className="flex flex-col h-[calc(100vh-180px)]">
+          <div className="flex flex-col h-[calc(100dvh-140px)] md:h-[calc(100vh-140px)]">
             {/* Search Bar */}
             <div className="relative mb-4">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400" />
@@ -242,20 +242,20 @@ export default function MessagesPage() {
             <div className="flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 ${
+                className={`px-4 py-2.5 min-h-[44px] rounded-full font-semibold text-sm transition-all duration-200 ${
                   filter === 'all'
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('unread')}
-                className={`px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 min-h-[44px] rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
                   filter === 'unread'
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 hover:border-digis-cyan hover:bg-white hover:scale-105'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
               >
                 Unread
@@ -270,9 +270,9 @@ export default function MessagesPage() {
               {userRole === 'creator' && (
                 <button
                   onClick={() => router.push('/creator/chats/broadcast')}
-                  className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-xs transition-all duration-200 flex items-center gap-1.5 hover:scale-105"
+                  className="px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2"
                 >
-                  <Users className="w-3.5 h-3.5" strokeWidth={2} />
+                  <Users className="w-4 h-4" strokeWidth={2} />
                   Mass
                 </button>
               )}

@@ -99,7 +99,7 @@ export function MobileHeader() {
       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)]" />
 
       {/* Content */}
-      <div className="relative flex items-center justify-between h-16 px-4 pb-3 pt-1">
+      <div className="relative flex items-center justify-between h-12 px-4">
         {/* Left - Logo */}
         <div className="relative">
           {/* Logo glow effect */}
@@ -184,5 +184,6 @@ export function MobileHeader() {
 }
 
 // Height constant for consistent spacing across app
-// Use: pt-[calc(64px+env(safe-area-inset-top))] or this value
-export const MOBILE_HEADER_HEIGHT = 64; // h-16 = 64px
+// The header is h-12 (48px) to be more compact on mobile
+// Use with spacer div: style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }}
+export const MOBILE_HEADER_HEIGHT = 48; // h-12 = 48px

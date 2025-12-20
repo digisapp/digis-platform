@@ -221,7 +221,7 @@ export default function LiveStreamsPage() {
 
       {/* Mobile Header */}
       <MobileHeader />
-      <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-top, 0px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
         {/* Header */}
@@ -250,7 +250,7 @@ export default function LiveStreamsPage() {
               <button
                 key={key}
                 onClick={() => setFilterType(key as any)}
-                className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
+                className={`px-4 py-2.5 min-h-[44px] rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
                   filterType === key
                     ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
                     : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
@@ -285,8 +285,16 @@ export default function LiveStreamsPage() {
                 <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
               </button>
 
+              {/* Backdrop for mobile dropdown */}
               {showCategoryDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 max-h-80 overflow-y-auto bg-gray-900 border border-white/20 rounded-xl shadow-xl z-50">
+                <div
+                  className="fixed inset-0 z-40 sm:hidden"
+                  onClick={() => setShowCategoryDropdown(false)}
+                />
+              )}
+
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 w-full sm:w-56 max-h-80 overflow-y-auto bg-gray-900 border border-white/20 rounded-xl shadow-xl z-50">
                   <button
                     onClick={() => {
                       setFilterCategory('');

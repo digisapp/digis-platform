@@ -47,7 +47,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-24 sm:pb-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 overflow-y-auto">
       {/* Backdrop - Darker with more blur - covers ENTIRE screen including sidebar */}
       <div
         className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 backdrop-blur-md"
@@ -55,7 +55,7 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md' }: Gl
       />
 
       {/* Modal - Futuristic Glass Dark Theme */}
-      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[85vh] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
+      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[calc(100dvh-160px)] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
         {/* Header */}
         {title && (
           <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative flex-shrink-0">

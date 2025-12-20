@@ -426,10 +426,10 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-6">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-bold text-green-400">{earnings.toLocaleString()}</span>
-                    <span className="text-2xl text-gray-300">coins</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+                  <div className="flex items-baseline gap-2 sm:gap-3">
+                    <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-400">{earnings.toLocaleString()}</span>
+                    <span className="text-lg sm:text-xl md:text-2xl text-gray-300">coins</span>
                   </div>
 
                   <GlassButton
@@ -463,15 +463,15 @@ export default function WalletPage() {
                         </div>
 
                         <div>
-                          <div className="flex items-baseline gap-3 mb-1">
-                            <p className="text-6xl md:text-7xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 bg-clip-text text-transparent">
+                          <div className="flex items-baseline gap-2 sm:gap-3 mb-1">
+                            <p className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black bg-gradient-to-r from-green-600 via-emerald-600 to-green-700 bg-clip-text text-transparent">
                               {balance.toLocaleString()}
                             </p>
                             {balance > 0 && (
-                              <TrendingUp className="w-8 h-8 text-green-600" />
+                              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                             )}
                           </div>
-                          <p className="text-xl font-bold text-white">Digis Coins</p>
+                          <p className="text-lg sm:text-xl font-bold text-white">Digis Coins</p>
                           {balance > 0 && (
                             <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                               <Sparkles className="w-4 h-4 text-green-600" />
