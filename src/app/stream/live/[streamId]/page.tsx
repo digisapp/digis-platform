@@ -130,6 +130,65 @@ function ScreenShareControl({
   );
 }
 
+// Component to flip camera between front and back (must be inside LiveKitRoom)
+function CameraFlipControl({
+  facingMode,
+  onFacingModeChange,
+  isPortrait
+}: {
+  facingMode: 'user' | 'environment';
+  onFacingModeChange: (mode: 'user' | 'environment') => void;
+  isPortrait: boolean;
+}) {
+  const { localParticipant } = useLocalParticipant();
+  const [isFlipping, setIsFlipping] = useState(false);
+
+  const flipCamera = async () => {
+    if (isFlipping) return;
+    setIsFlipping(true);
+
+    try {
+      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+
+      // Get the camera track
+      const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
+
+      if (cameraTrack?.track) {
+        // Stop current camera
+        await localParticipant.setCameraEnabled(false);
+
+        // Small delay for camera release
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Restart camera with new facing mode
+        await localParticipant.setCameraEnabled(true, {
+          facingMode: newFacingMode,
+          resolution: isPortrait
+            ? { width: 1080, height: 1920, frameRate: 30 }
+            : { width: 1920, height: 1080, frameRate: 30 }
+        });
+
+        onFacingModeChange(newFacingMode);
+      }
+    } catch (error) {
+      console.error('Failed to flip camera:', error);
+    } finally {
+      setIsFlipping(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={flipCamera}
+      disabled={isFlipping}
+      className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+      title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
+    >
+      <RefreshCw className={`w-5 h-5 ${isFlipping ? 'animate-spin' : ''}`} />
+    </button>
+  );
+}
+
 export default function BroadcastStudioPage() {
   const params = useParams() as { streamId: string };
   const router = useRouter();
@@ -1949,7 +2008,7 @@ export default function BroadcastStudioPage() {
       )}
 
 
-      <div className="container mx-auto px-2 sm:px-4 pt-2 md:pt-4 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-6">
+      <div className={`container mx-auto px-2 sm:px-4 pt-2 md:pt-4 md:pb-6 ${isLandscape ? 'pb-2' : 'pb-[calc(80px+env(safe-area-inset-bottom))]'}`}>
         {/* Stream Title - Desktop */}
         <div className="hidden lg:block mb-4">
           <h1 className="text-xl font-bold text-white truncate">{stream?.title || 'Live Stream'}</h1>
@@ -1962,7 +2021,9 @@ export default function BroadcastStudioPage() {
             <div
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
                 streamOrientation === 'portrait'
-                  ? 'aspect-[9/16] max-h-[80vh] sm:max-h-[70vh]'
+                  ? isLandscape
+                    ? 'h-[calc(100vh-120px)] w-auto mx-auto aspect-[9/16]' // Landscape device viewing portrait stream
+                    : 'aspect-[9/16] max-h-[80vh] sm:max-h-[70vh]' // Portrait device viewing portrait stream
                   : 'aspect-video'
               }`}
               data-lk-video-container
@@ -2007,6 +2068,14 @@ export default function BroadcastStudioPage() {
                       <ScreenShareControl
                         isScreenSharing={isScreenSharing}
                         onScreenShareChange={setIsScreenSharing}
+                      />
+                    </div>
+                    {/* Camera Flip Control - Mobile only, positioned in top right */}
+                    <div className="absolute top-3 right-3 z-30 md:hidden">
+                      <CameraFlipControl
+                        facingMode={facingMode}
+                        onFacingModeChange={setFacingMode}
+                        isPortrait={streamOrientation === 'portrait'}
                       />
                     </div>
                   </LiveKitRoom>
@@ -2141,23 +2210,13 @@ export default function BroadcastStudioPage() {
                       </button>
                     </div>
 
-                    {/* Mobile Layout - Just coins + camera flip */}
+                    {/* Mobile Layout - Just coins (camera flip is inside LiveKitRoom) */}
                     <div className="flex md:hidden items-center gap-2">
                       {/* Coins Earned */}
                       <div className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
                         <Coins className="w-4 h-4 text-yellow-400" />
                         <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                       </div>
-
-                      {/* Camera Flip Button */}
-                      <button
-                        onClick={handleFlipCamera}
-                        disabled={isFlippingCamera}
-                        className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
-                        title="Flip Camera"
-                      >
-                        <RefreshCw className={`w-5 h-5 ${isFlippingCamera ? 'animate-spin' : ''}`} />
-                      </button>
                     </div>
                   </div>
 
@@ -2257,8 +2316,8 @@ export default function BroadcastStudioPage() {
                     )}
                   </div>
 
-                  {/* Bottom Left - Record + End Stream Buttons */}
-                  <div className="absolute bottom-16 md:bottom-3 left-3 z-20 flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                  {/* Record + End Stream Buttons - Top on mobile, Bottom on desktop */}
+                  <div className="absolute top-14 md:top-auto md:bottom-3 left-3 z-20 flex flex-row items-center gap-2">
                     {/* Ticketed Stream Indicator - Shows when announced or active */}
                     {announcedTicketedStream && (
                       <>
@@ -2345,13 +2404,13 @@ export default function BroadcastStudioPage() {
                         setIsLeaveAttempt(false);
                         setShowEndConfirm(true);
                       }}
-                      className="flex items-center gap-2 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all flex-shrink-0"
+                      className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all flex-shrink-0"
                     >
                       <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                       </svg>
-                      <span className="text-red-400 text-sm font-semibold">End Stream</span>
+                      <span className="text-red-400 text-xs md:text-sm font-semibold">End</span>
                     </button>
                   </div>
 
