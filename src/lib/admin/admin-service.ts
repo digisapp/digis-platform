@@ -164,15 +164,15 @@ export class AdminService {
       })
       .where(eq(users.id, application.userId));
 
-    // Create default creator settings with 25 coin message rate
+    // Create default creator settings
     await db.insert(creatorSettings)
       .values({
         userId: application.userId,
-        messageRate: 25, // Default 25 coins per message
-        callRatePerMinute: 100,
+        messageRate: 25, // 25 coins = $2.50 per message
+        callRatePerMinute: 25, // 25 coins/min = $2.50/min
         minimumCallDuration: 5,
         isAvailableForCalls: false,
-        voiceCallRatePerMinute: 50,
+        voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min
         minimumVoiceCallDuration: 5,
         isAvailableForVoiceCalls: false,
       })
@@ -337,11 +337,11 @@ export class AdminService {
       await db.insert(creatorSettings)
         .values({
           userId,
-          messageRate: 25, // Default 25 coins per message
-          callRatePerMinute: 100,
+          messageRate: 25, // 25 coins = $2.50 per message
+          callRatePerMinute: 25, // 25 coins/min = $2.50/min
           minimumCallDuration: 5,
           isAvailableForCalls: false,
-          voiceCallRatePerMinute: 50,
+          voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min
           minimumVoiceCallDuration: 5,
           isAvailableForVoiceCalls: false,
         })

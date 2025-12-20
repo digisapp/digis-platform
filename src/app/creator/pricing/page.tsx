@@ -59,13 +59,13 @@ function PricingPageContent() {
     ['calls', 'messages', 'subscriptions', 'menu'].includes(initialTab) ? initialTab : 'calls'
   );
 
-  // Call settings
+  // Call settings - defaults: 1 coin = $0.10 for creator
   const [callSettings, setCallSettings] = useState({
-    callRatePerMinute: 10,
+    callRatePerMinute: 25, // $2.50/min
     minimumCallDuration: 5,
-    voiceCallRatePerMinute: 5,
+    voiceCallRatePerMinute: 15, // $1.50/min
     minimumVoiceCallDuration: 5,
-    messageRate: 0,
+    messageRate: 25, // $2.50/message
     isAvailableForCalls: true,
     isAvailableForVoiceCalls: true,
   });
@@ -104,11 +104,11 @@ function PricingPageContent() {
         const data = await response.json();
         if (data.settings) {
           setCallSettings({
-            callRatePerMinute: data.settings.callRatePerMinute || 10,
+            callRatePerMinute: data.settings.callRatePerMinute || 25,
             minimumCallDuration: data.settings.minimumCallDuration || 5,
-            voiceCallRatePerMinute: data.settings.voiceCallRatePerMinute || 5,
+            voiceCallRatePerMinute: data.settings.voiceCallRatePerMinute || 15,
             minimumVoiceCallDuration: data.settings.minimumVoiceCallDuration || 5,
-            messageRate: data.settings.messageRate || 0,
+            messageRate: data.settings.messageRate ?? 25,
             isAvailableForCalls: data.settings.isAvailableForCalls ?? true,
             isAvailableForVoiceCalls: data.settings.isAvailableForVoiceCalls ?? true,
           });
