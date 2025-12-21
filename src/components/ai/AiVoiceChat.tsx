@@ -22,8 +22,7 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
   const [transcript, setTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [ending, setEnding] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [showRating, setShowRating] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [lowBalanceWarning, setLowBalanceWarning] = useState(false);
   const [balanceDepleted, setBalanceDepleted] = useState(false);
   const hasInitiatedRef = useRef(false);
@@ -115,25 +114,18 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     } catch (err) {
       console.error('Error disconnecting:', err);
     }
-    // Then show rating popup
-    setShowRating(true);
+    // Show summary
+    setShowSummary(true);
+    setEnding(false);
   }, [disconnect]);
 
-  const handleSubmitRating = useCallback(async () => {
-    try {
-      showSuccess('Thanks for your feedback!');
-      onEnd?.();
-    } catch (err) {
-      console.error('Error ending chat:', err);
-      showError('Failed to end chat properly');
-    } finally {
-      setEnding(false);
+  const handleCloseSummary = useCallback(() => {
+    if (onEnd) {
+      onEnd();
+    } else {
+      router.push('/');
     }
-  }, [showSuccess, showError, onEnd]);
-
-  const handleSkipRating = useCallback(async () => {
-    onEnd?.();
-  }, [onEnd]);
+  }, [onEnd, router]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -170,44 +162,40 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     return 'text-gray-400';
   };
 
-  // Rating dialog
-  if (showRating) {
+  // Call summary
+  if (showSummary) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-8">
         <GlassCard glow="cyan" padding="lg" className="max-w-md w-full">
           <div className="text-center">
-            <Bot className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Rate Your Chat</h2>
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-cyan-500/20 border-2 border-green-500/30 flex items-center justify-center">
+              <Bot className="w-10 h-10 text-green-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Chat Ended</h2>
             <p className="text-gray-400 mb-6">
-              How was your experience with {creatorName}&apos;s AI Twin?
+              Thanks for chatting with {creatorName}&apos;s AI Twin!
             </p>
 
-            <div className="flex justify-center gap-2 mb-6">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => setRating(star)}
-                  className={`text-3xl transition-transform hover:scale-110 ${
-                    star <= rating ? 'text-yellow-400' : 'text-gray-600'
-                  }`}
-                >
-                  {star <= rating ? '★' : '☆'}
-                </button>
-              ))}
+            {/* Summary stats */}
+            <div className="bg-white/5 rounded-xl p-4 mb-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Duration</span>
+                <span className="text-white font-mono">{formatDuration(duration)}</span>
+              </div>
+              {totalCharged > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Coins Used</span>
+                  <span className="text-cyan-400 font-mono flex items-center gap-1">
+                    <Coins className="w-4 h-4" />
+                    {totalCharged.toLocaleString()}
+                  </span>
+                </div>
+              )}
             </div>
 
-            <div className="flex gap-4">
-              <GlassButton variant="ghost" onClick={handleSkipRating} className="flex-1">
-                Skip
-              </GlassButton>
-              <GlassButton variant="cyan" onClick={handleSubmitRating} className="flex-1">
-                Submit
-              </GlassButton>
-            </div>
-
-            <p className="text-gray-500 text-sm mt-4">
-              Session: {formatDuration(duration)}
-            </p>
+            <GlassButton variant="cyan" onClick={handleCloseSummary} className="w-full">
+              Done
+            </GlassButton>
           </div>
         </GlassCard>
       </div>
