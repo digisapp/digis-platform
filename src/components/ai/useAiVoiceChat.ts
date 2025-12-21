@@ -31,6 +31,7 @@ function getErrorMessage(code: string | undefined, fallback: string): string {
     // Session management errors
     'SESSION_CONFLICT': 'You already have an active session. Please wait a moment and try again.',
     'SESSION_START_FAILED': 'Failed to start the session. Please try again.',
+    'WALLET_ERROR': 'Unable to process payment. Please try again.',
 
     // Generic errors
     'INVALID_REQUEST': 'Invalid request. Please try again.',

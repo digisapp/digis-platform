@@ -152,19 +152,51 @@ export async function POST(request: NextRequest) {
 
     // Start session
     console.log('[AI Session] Starting new session for creator:', creatorId);
-    const result = await AiSessionService.startSession(
-      user.id,
-      creatorId,
-      voice as 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
-    );
+    try {
+      const result = await AiSessionService.startSession(
+        user.id,
+        creatorId,
+        voice as 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
+      );
 
-    const elapsed = Date.now() - startTime;
-    console.log('[AI Session] Session started successfully in', elapsed, 'ms:', {
-      sessionId: result.session.id,
-      holdId: result.holdId,
-    });
+      const elapsed = Date.now() - startTime;
+      console.log('[AI Session] Session started successfully in', elapsed, 'ms:', {
+        sessionId: result.session.id,
+        holdId: result.holdId,
+      });
 
-    return NextResponse.json(result);
+      return NextResponse.json(result);
+    } catch (sessionError: any) {
+      const elapsed = Date.now() - startTime;
+      console.error('[AI Session] Session start error after', elapsed, 'ms:', {
+        message: sessionError.message,
+        stack: sessionError.stack,
+        userId: user.id,
+        creatorId,
+      });
+
+      // Map specific errors to appropriate codes
+      if (sessionError.message?.includes('Insufficient balance')) {
+        return NextResponse.json(
+          { error: sessionError.message, code: 'INSUFFICIENT_BALANCE' },
+          { status: 402 }
+        );
+      }
+      if (sessionError.message?.includes('not available')) {
+        return NextResponse.json(
+          { error: 'AI Twin is not available for this creator', code: 'AI_NOT_AVAILABLE' },
+          { status: 404 }
+        );
+      }
+      if (sessionError.message?.includes('Wallet')) {
+        return NextResponse.json(
+          { error: 'Unable to process payment. Please try again.', code: 'WALLET_ERROR' },
+          { status: 500 }
+        );
+      }
+
+      throw sessionError; // Re-throw for general error handler
+    }
 
   } catch (error: any) {
     const elapsed = Date.now() - startTime;

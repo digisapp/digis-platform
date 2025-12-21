@@ -254,10 +254,46 @@ export class WalletService {
         balance: number;
         held_balance: number
       }>;
-      const wallet = walletRows[0];
+      let wallet = walletRows[0];
 
+      // Create wallet if it doesn't exist
       if (!wallet) {
-        throw new Error('Wallet not found');
+        console.log('[WalletService] Creating wallet for user:', userId);
+        const [newWallet] = await tx
+          .insert(wallets)
+          .values({
+            userId,
+            balance: 0,
+            heldBalance: 0,
+          })
+          .onConflictDoNothing()
+          .returning();
+
+        if (newWallet) {
+          wallet = {
+            id: newWallet.id,
+            user_id: newWallet.userId,
+            balance: newWallet.balance,
+            held_balance: newWallet.heldBalance,
+          };
+        } else {
+          // Wallet was created by another concurrent request, fetch it
+          const [existingWallet] = await tx
+            .select()
+            .from(wallets)
+            .where(eq(wallets.userId, userId));
+
+          if (!existingWallet) {
+            throw new Error('Failed to create or find wallet');
+          }
+
+          wallet = {
+            id: existingWallet.id,
+            user_id: existingWallet.userId,
+            balance: existingWallet.balance,
+            held_balance: existingWallet.heldBalance,
+          };
+        }
       }
 
       // Balance check is now safe because we hold the row lock
