@@ -109,13 +109,19 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
 
   const handleEndChat = useCallback(async () => {
     setEnding(true);
+    // End the call immediately
+    try {
+      await disconnect();
+    } catch (err) {
+      console.error('Error disconnecting:', err);
+    }
+    // Then show rating popup
     setShowRating(true);
-  }, []);
+  }, [disconnect]);
 
   const handleSubmitRating = useCallback(async () => {
     try {
-      await disconnect();
-      showSuccess('Chat ended. Thanks for using AI Twin!');
+      showSuccess('Thanks for your feedback!');
       onEnd?.();
     } catch (err) {
       console.error('Error ending chat:', err);
@@ -123,16 +129,11 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     } finally {
       setEnding(false);
     }
-  }, [disconnect, showSuccess, showError, onEnd]);
+  }, [showSuccess, showError, onEnd]);
 
   const handleSkipRating = useCallback(async () => {
-    try {
-      await disconnect();
-      onEnd?.();
-    } catch (err) {
-      console.error('Error ending chat:', err);
-    }
-  }, [disconnect, onEnd]);
+    onEnd?.();
+  }, [onEnd]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
