@@ -23,22 +23,41 @@ export const runtime = 'nodejs';
  * - holdId: string - The hold ID for tracking
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  console.log('[AI Session] POST request started');
+
   try {
     // Authenticate user
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError) {
+      console.error('[AI Session] Auth error:', authError.message);
+      return NextResponse.json({ error: 'Authentication failed', code: 'AUTH_ERROR' }, { status: 401 });
     }
 
+    if (!user) {
+      console.log('[AI Session] No authenticated user');
+      return NextResponse.json({ error: 'Please sign in to use AI Twin', code: 'NOT_AUTHENTICATED' }, { status: 401 });
+    }
+
+    console.log('[AI Session] User authenticated:', user.id);
+
     // Parse request
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('[AI Session] Failed to parse request body:', parseError);
+      return NextResponse.json({ error: 'Invalid request body', code: 'INVALID_REQUEST' }, { status: 400 });
+    }
+
     const { creatorId, voice = 'ara', forceCleanup = false } = body;
+    console.log('[AI Session] Request params:', { creatorId, voice, forceCleanup });
 
     if (!creatorId) {
       return NextResponse.json(
-        { error: 'creatorId is required' },
+        { error: 'Creator ID is required', code: 'MISSING_CREATOR_ID' },
         { status: 400 }
       );
     }
@@ -46,23 +65,33 @@ export async function POST(request: NextRequest) {
     // Validate voice option
     const validVoices = ['ara', 'eve', 'leo', 'rex', 'sal'];
     if (!validVoices.includes(voice)) {
+      console.log('[AI Session] Invalid voice option:', voice);
       return NextResponse.json(
-        { error: 'Invalid voice option' },
+        { error: 'Invalid voice option', code: 'INVALID_VOICE', validVoices },
         { status: 400 }
       );
     }
 
     // Check if user already has an active session
+    console.log('[AI Session] Checking for existing active session...');
     const existingSession = await AiSessionService.getActiveSession(user.id);
     if (existingSession) {
       // Check if the existing session is stuck (older than 30 minutes) or forceCleanup is requested
       const sessionAgeMs = Date.now() - new Date(existingSession.startedAt).getTime();
       const maxSessionAgeMs = 30 * 60 * 1000; // 30 minutes
+      const sessionAgeMinutes = Math.floor(sessionAgeMs / 60000);
+
+      console.log('[AI Session] Found existing session:', {
+        id: existingSession.id,
+        ageMinutes: sessionAgeMinutes,
+        creatorId: existingSession.creatorId,
+        forceCleanup,
+      });
 
       if (sessionAgeMs > maxSessionAgeMs || forceCleanup) {
         // Auto-cleanup stuck session or force cleanup requested
         console.log('[AI Session] Cleaning up session:', existingSession.id,
-          forceCleanup ? '(force cleanup)' : `(stuck, age: ${Math.floor(sessionAgeMs / 60000)} minutes)`);
+          forceCleanup ? '(force cleanup requested)' : `(stuck, age: ${sessionAgeMinutes} minutes)`);
 
         // Try to clean up the session - use direct DB update for reliability
         try {
@@ -122,19 +151,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Start session
+    console.log('[AI Session] Starting new session for creator:', creatorId);
     const result = await AiSessionService.startSession(
       user.id,
       creatorId,
       voice as 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
     );
 
+    const elapsed = Date.now() - startTime;
+    console.log('[AI Session] Session started successfully in', elapsed, 'ms:', {
+      sessionId: result.session.id,
+      holdId: result.holdId,
+    });
+
     return NextResponse.json(result);
 
   } catch (error: any) {
-    console.error('[AI Session] Start error:', error);
+    const elapsed = Date.now() - startTime;
+    console.error('[AI Session] Start error after', elapsed, 'ms:', {
+      message: error.message,
+      stack: error.stack,
+    });
+
+    // Determine appropriate error code and status
+    let code = 'SESSION_START_FAILED';
+    let status = 500;
+
+    if (error.message?.includes('Insufficient')) {
+      code = 'INSUFFICIENT_BALANCE';
+      status = 402;
+    } else if (error.message?.includes('not available')) {
+      code = 'AI_NOT_AVAILABLE';
+      status = 404;
+    }
+
     return NextResponse.json(
-      { error: error.message || 'Failed to start session' },
-      { status: error.message?.includes('Insufficient') ? 402 : 500 }
+      { error: error.message || 'Failed to start session', code },
+      { status }
     );
   }
 }

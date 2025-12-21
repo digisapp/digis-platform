@@ -235,20 +235,78 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
 
   // Error state
   if (connectionState === 'error') {
+    // Determine if the error is retriable
+    const isBalanceError = error?.toLowerCase().includes('coins') || error?.toLowerCase().includes('balance');
+    const isAuthError = error?.toLowerCase().includes('sign in') || error?.toLowerCase().includes('authentication');
+    const isSetupError = error?.toLowerCase().includes('not set up') || error?.toLowerCase().includes('disabled');
+    const isMicError = error?.toLowerCase().includes('microphone');
+
+    // Get helpful suggestion based on error type
+    const getSuggestion = () => {
+      if (isBalanceError) {
+        return 'You can add more coins from your profile page.';
+      }
+      if (isAuthError) {
+        return 'Please sign in and try again.';
+      }
+      if (isSetupError) {
+        return 'The creator needs to configure their AI Twin before you can chat.';
+      }
+      if (isMicError) {
+        return 'Check that your microphone is connected and browser has permission to use it.';
+      }
+      return 'Please check your internet connection and try again.';
+    };
+
+    const canRetry = !isBalanceError && !isAuthError && !isSetupError;
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <GlassCard glow="pink" padding="lg">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
+        <GlassCard glow="pink" padding="lg" className="max-w-md w-full">
           <div className="text-center">
-            <div className="text-6xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-white mb-4">Connection Failed</h2>
-            <p className="text-gray-300 mb-6">{error}</p>
-            <div className="flex gap-4">
+            {/* Error icon with appropriate color */}
+            <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center ${
+              isBalanceError ? 'bg-yellow-500/20 border-2 border-yellow-500/30' :
+              isSetupError ? 'bg-blue-500/20 border-2 border-blue-500/30' :
+              'bg-red-500/20 border-2 border-red-500/30'
+            }`}>
+              {isBalanceError ? (
+                <Coins className="w-10 h-10 text-yellow-400" />
+              ) : isMicError ? (
+                <MicOff className="w-10 h-10 text-red-400" />
+              ) : (
+                <AlertTriangle className="w-10 h-10 text-red-400" />
+              )}
+            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-3">
+              {isBalanceError ? 'Insufficient Balance' :
+               isAuthError ? 'Sign In Required' :
+               isSetupError ? 'AI Twin Not Available' :
+               'Connection Failed'}
+            </h2>
+
+            <p className="text-gray-300 mb-4">{error}</p>
+
+            {/* Helpful suggestion */}
+            <p className="text-gray-500 text-sm mb-6 px-4">
+              {getSuggestion()}
+            </p>
+
+            <div className="flex gap-4 justify-center">
               <GlassButton variant="ghost" onClick={() => router.back()}>
                 Go Back
               </GlassButton>
-              <GlassButton variant="cyan" onClick={() => connect(creatorId)}>
-                Try Again
-              </GlassButton>
+              {canRetry && (
+                <GlassButton variant="cyan" onClick={() => connect(creatorId)}>
+                  Try Again
+                </GlassButton>
+              )}
+              {isBalanceError && (
+                <GlassButton variant="cyan" onClick={() => router.push('/coins')}>
+                  Add Coins
+                </GlassButton>
+              )}
             </div>
           </div>
         </GlassCard>

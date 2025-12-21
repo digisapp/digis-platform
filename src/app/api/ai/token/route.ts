@@ -24,12 +24,15 @@ const XAI_CLIENT_SECRETS_URL = 'https://api.x.ai/v1/realtime/client_secrets';
  * - sessionConfig: object - Pre-configured session settings for the client
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  console.log('[AI Token] Request started');
+
   try {
     // Check for xAI API key
     if (!XAI_API_KEY) {
-      console.error('[AI Token] XAI_API_KEY not configured');
+      console.error('[AI Token] ERROR: XAI_API_KEY environment variable not configured');
       return NextResponse.json(
-        { error: 'AI service not configured' },
+        { error: 'AI service not configured. Please contact support.', code: 'XAI_KEY_MISSING' },
         { status: 503 }
       );
     }
@@ -38,32 +41,64 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError) {
+      console.error('[AI Token] Auth error:', authError.message);
+      return NextResponse.json({ error: 'Authentication failed', code: 'AUTH_ERROR', details: authError.message }, { status: 401 });
     }
 
-    // Parse request
-    const body = await request.json();
-    const { creatorId } = body;
+    if (!user) {
+      console.log('[AI Token] No authenticated user');
+      return NextResponse.json({ error: 'Please sign in to use AI Twin', code: 'NOT_AUTHENTICATED' }, { status: 401 });
+    }
 
-    if (!creatorId) {
+    console.log('[AI Token] User authenticated:', user.id);
+
+    // Parse request
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('[AI Token] Failed to parse request body:', parseError);
       return NextResponse.json(
-        { error: 'creatorId is required' },
+        { error: 'Invalid request body', code: 'INVALID_REQUEST' },
         { status: 400 }
       );
     }
+
+    const { creatorId } = body;
+
+    if (!creatorId) {
+      console.log('[AI Token] Missing creatorId in request');
+      return NextResponse.json(
+        { error: 'Creator ID is required', code: 'MISSING_CREATOR_ID' },
+        { status: 400 }
+      );
+    }
+
+    console.log('[AI Token] Looking up AI Twin settings for creator:', creatorId);
 
     // Get creator's AI Twin settings
     const settings = await db.query.aiTwinSettings.findFirst({
       where: eq(aiTwinSettings.creatorId, creatorId),
     });
 
-    if (!settings || !settings.enabled) {
+    if (!settings) {
+      console.log('[AI Token] No AI Twin settings found for creator:', creatorId);
       return NextResponse.json(
-        { error: 'AI Twin not available for this creator' },
+        { error: 'This creator has not set up their AI Twin yet', code: 'NO_AI_SETTINGS' },
         { status: 404 }
       );
     }
+
+    if (!settings.enabled) {
+      console.log('[AI Token] AI Twin is disabled for creator:', creatorId);
+      return NextResponse.json(
+        { error: 'This creator has disabled their AI Twin', code: 'AI_DISABLED' },
+        { status: 404 }
+      );
+    }
+
+    console.log('[AI Token] AI Twin enabled, checking balance. Price:', settings.pricePerMinute, 'coins/min, Min:', settings.minimumMinutes, 'min');
 
     // Check if fan has enough coins for minimum session
     const minCost = settings.pricePerMinute * settings.minimumMinutes;
@@ -71,12 +106,17 @@ export async function POST(request: NextRequest) {
       where: eq(wallets.userId, user.id),
     });
 
-    if (!wallet || wallet.balance < minCost) {
+    const currentBalance = wallet?.balance || 0;
+    console.log('[AI Token] User balance:', currentBalance, 'Required:', minCost);
+
+    if (currentBalance < minCost) {
+      console.log('[AI Token] Insufficient balance for user:', user.id);
       return NextResponse.json(
         {
-          error: 'Insufficient coins',
+          error: 'Insufficient coins for minimum session',
+          code: 'INSUFFICIENT_BALANCE',
           required: minCost,
-          balance: wallet?.balance || 0,
+          balance: currentBalance,
           minimumMinutes: settings.minimumMinutes,
           pricePerMinute: settings.pricePerMinute,
         },
@@ -84,35 +124,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch ephemeral token from xAI
-    const tokenResponse = await fetch(XAI_CLIENT_SECRETS_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${XAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        expires_after: { seconds: 300 }, // 5 minute token
-      }),
-    });
+    console.log('[AI Token] Balance check passed, fetching xAI ephemeral token...');
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('[AI Token] xAI API error:', tokenResponse.status, errorText);
+    // Fetch ephemeral token from xAI
+    let tokenResponse;
+    try {
+      tokenResponse = await fetch(XAI_CLIENT_SECRETS_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${XAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          expires_after: { seconds: 300 }, // 5 minute token
+        }),
+      });
+    } catch (fetchError: any) {
+      console.error('[AI Token] Network error calling xAI API:', fetchError.message);
       return NextResponse.json(
-        { error: 'Failed to initialize AI session', details: errorText },
+        { error: 'Could not connect to AI service. Please try again.', code: 'XAI_NETWORK_ERROR', details: fetchError.message },
         { status: 502 }
       );
     }
 
-    const tokenData = await tokenResponse.json();
-    console.log('[AI Token] xAI response:', JSON.stringify(tokenData, null, 2));
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error('[AI Token] xAI API error:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        body: errorText,
+      });
+      return NextResponse.json(
+        {
+          error: 'AI service temporarily unavailable. Please try again.',
+          code: 'XAI_API_ERROR',
+          status: tokenResponse.status,
+          details: errorText.substring(0, 200) // Limit error details length
+        },
+        { status: 502 }
+      );
+    }
+
+    let tokenData;
+    try {
+      tokenData = await tokenResponse.json();
+    } catch (jsonError) {
+      console.error('[AI Token] Failed to parse xAI response:', jsonError);
+      return NextResponse.json(
+        { error: 'Invalid response from AI service', code: 'XAI_INVALID_RESPONSE' },
+        { status: 502 }
+      );
+    }
+
+    console.log('[AI Token] xAI response received:', {
+      hasValue: !!tokenData.value,
+      expiresAt: tokenData.expires_at,
+    });
 
     // xAI returns { value: "token...", expires_at: ... } directly
     if (!tokenData.value) {
-      console.error('[AI Token] No token value in response:', tokenData);
+      console.error('[AI Token] No token value in response:', JSON.stringify(tokenData));
       return NextResponse.json(
-        { error: 'Invalid token from AI service' },
+        { error: 'AI service returned invalid token', code: 'XAI_NO_TOKEN', responseKeys: Object.keys(tokenData) },
         { status: 502 }
       );
     }
@@ -151,6 +224,9 @@ export async function POST(request: NextRequest) {
       ],
     };
 
+    const elapsed = Date.now() - startTime;
+    console.log('[AI Token] Success! Token generated in', elapsed, 'ms');
+
     return NextResponse.json({
       // Normalize the token structure for the client
       client_secret: {
@@ -167,10 +243,14 @@ export async function POST(request: NextRequest) {
       sessionConfig,
     });
 
-  } catch (error) {
-    console.error('[AI Token] Error:', error);
+  } catch (error: any) {
+    const elapsed = Date.now() - startTime;
+    console.error('[AI Token] Unhandled error after', elapsed, 'ms:', {
+      message: error.message,
+      stack: error.stack,
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Something went wrong. Please try again.', code: 'INTERNAL_ERROR', details: error.message },
       { status: 500 }
     );
   }

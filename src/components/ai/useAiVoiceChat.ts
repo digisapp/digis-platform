@@ -5,6 +5,41 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 const XAI_WEBSOCKET_URL = 'wss://api.x.ai/v1/realtime';
 const SAMPLE_RATE = 24000;
 
+// Map API error codes to user-friendly messages
+function getErrorMessage(code: string | undefined, fallback: string): string {
+  const errorMessages: Record<string, string> = {
+    // Auth errors
+    'AUTH_ERROR': 'Authentication failed. Please sign in again.',
+    'NOT_AUTHENTICATED': 'Please sign in to use AI Twin.',
+
+    // Token errors
+    'XAI_KEY_MISSING': 'AI service is not configured. Please contact support.',
+    'XAI_NETWORK_ERROR': 'Could not connect to AI service. Please check your internet connection.',
+    'XAI_API_ERROR': 'AI service is temporarily unavailable. Please try again later.',
+    'XAI_INVALID_RESPONSE': 'AI service returned an invalid response. Please try again.',
+    'XAI_NO_TOKEN': 'Failed to get AI access token. Please try again.',
+
+    // Session errors
+    'MISSING_CREATOR_ID': 'Creator ID is missing. Please try again.',
+    'NO_AI_SETTINGS': 'This creator has not set up their AI Twin yet.',
+    'AI_DISABLED': 'This creator has disabled their AI Twin.',
+    'AI_NOT_AVAILABLE': 'AI Twin is not available for this creator.',
+
+    // Balance errors
+    'INSUFFICIENT_BALANCE': 'You don\'t have enough coins for this session. Please add more coins.',
+
+    // Session management errors
+    'SESSION_CONFLICT': 'You already have an active session. Please wait a moment and try again.',
+    'SESSION_START_FAILED': 'Failed to start the session. Please try again.',
+
+    // Generic errors
+    'INVALID_REQUEST': 'Invalid request. Please try again.',
+    'INTERNAL_ERROR': 'Something went wrong. Please try again.',
+  };
+
+  return errorMessages[code || ''] || fallback || 'An unexpected error occurred. Please try again.';
+}
+
 export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 export type SpeakingState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -393,9 +428,22 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
       source.connect(workletNodeRef.current);
 
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('[AI Voice] Failed to setup audio:', err);
-      setError('Failed to access microphone');
+      // Provide more specific error messages for common microphone issues
+      let errorMessage = 'Failed to access microphone. ';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Microphone access denied. Please allow microphone access in your browser settings.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'No microphone found. Please connect a microphone and try again.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = 'Microphone is in use by another app. Please close other apps and try again.';
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = 'Microphone does not support the required settings.';
+      } else {
+        errorMessage += 'Please check your microphone and try again.';
+      }
+      setError(errorMessage);
       return false;
     }
   }, [float32ToBase64, isMuted]);
@@ -423,7 +471,15 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
 
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json();
-          throw new Error(errorData.error || 'Failed to get token');
+          console.error('[AI Voice] Token request failed:', {
+            status: tokenResponse.status,
+            code: errorData.code,
+            error: errorData.error,
+          });
+
+          // Map error codes to user-friendly messages
+          const errorMessage = getErrorMessage(errorData.code, errorData.error);
+          throw new Error(errorMessage);
         }
 
         const tokenData = await tokenResponse.json();
@@ -463,6 +519,12 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           }
 
           const errorData = await sessionResponse.json();
+          console.error('[AI Voice] Session start failed:', {
+            status: sessionResponse.status,
+            code: errorData.code,
+            error: errorData.error,
+            attempt: retryCount + 1,
+          });
 
           // If there's an existing session conflict, retry with forceCleanup
           if (sessionResponse.status === 409) {
@@ -473,11 +535,12 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
               return startSession(retryCount + 1);
             } else {
               console.error('[AI Voice] Session conflict persists after retries:', errorData.sessionId);
-              throw new Error('Unable to start session - please wait a moment and try again');
+              throw new Error('You have an active session. Please wait a moment and try again.');
             }
           }
 
-          throw new Error(errorData.error || 'Failed to start session');
+          // Map error codes to user-friendly messages
+          throw new Error(getErrorMessage(errorData.code, errorData.error));
         };
 
         sessionId = await startSession();
@@ -527,7 +590,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
           console.error('[AI Voice] WebSocket error:', event);
           console.error('[AI Voice] WebSocket readyState:', ws.readyState);
           console.error('[AI Voice] WebSocket URL:', wsUrl);
-          setError('Connection error - WebSocket failed to connect');
+          setError('Failed to connect to AI service. Please check your internet connection and try again.');
           updateState('error');
           connectingRef.current = false;
           stopBillingInterval();
@@ -539,6 +602,15 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
             reason: event.reason,
             wasClean: event.wasClean,
           });
+
+          // If connection was not clean and we were still connecting/connected, show an error
+          if (!event.wasClean && connectionStateRef.current === 'connected') {
+            setError('Connection to AI was lost. Please try again.');
+          } else if (event.code === 1006) {
+            // Abnormal closure - usually network issue
+            setError('Connection lost unexpectedly. Please check your internet and try again.');
+          }
+
           updateState('disconnected');
           setSpeakingState('idle');
           connectingRef.current = false;
