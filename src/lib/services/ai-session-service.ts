@@ -20,10 +20,24 @@ export class AiSessionService {
     creatorId: string,
     voice: 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
   ) {
+    console.log('[AiSessionService] Starting session:', { fanId, creatorId, voice });
+
     // Get creator's AI Twin settings
-    const settings = await db.query.aiTwinSettings.findFirst({
-      where: eq(aiTwinSettings.creatorId, creatorId),
-    });
+    let settings;
+    try {
+      settings = await db.query.aiTwinSettings.findFirst({
+        where: eq(aiTwinSettings.creatorId, creatorId),
+      });
+      console.log('[AiSessionService] Settings found:', {
+        hasSettings: !!settings,
+        enabled: settings?.enabled,
+        pricePerMinute: settings?.pricePerMinute,
+        minimumMinutes: settings?.minimumMinutes,
+      });
+    } catch (dbError: any) {
+      console.error('[AiSessionService] Failed to fetch settings:', dbError.message);
+      throw new Error('Failed to load AI Twin settings');
+    }
 
     if (!settings || !settings.enabled) {
       throw new Error('AI Twin not available for this creator');
@@ -31,6 +45,7 @@ export class AiSessionService {
 
     // Calculate hold amount for minimum session duration
     const holdAmount = settings.pricePerMinute * settings.minimumMinutes;
+    console.log('[AiSessionService] Hold amount:', holdAmount);
 
     // Create hold using WalletService (has proper FOR UPDATE locking)
     let hold;
@@ -41,7 +56,9 @@ export class AiSessionService {
         purpose: 'ai_session',
         relatedId: undefined, // Will be set after session is created
       });
+      console.log('[AiSessionService] Hold created:', hold.id);
     } catch (error: any) {
+      console.error('[AiSessionService] Hold creation failed:', error.message);
       if (error.message === 'Insufficient balance for hold') {
         const availableBalance = await WalletService.getAvailableBalance(fanId);
         throw new Error(
@@ -52,23 +69,43 @@ export class AiSessionService {
     }
 
     // Create session record
-    const [session] = await db
-      .insert(aiSessions)
-      .values({
-        creatorId,
-        fanId,
-        voice,
-        status: 'active',
-        pricePerMinute: settings.pricePerMinute,
-        startedAt: new Date(),
-      })
-      .returning();
+    let session;
+    try {
+      const [newSession] = await db
+        .insert(aiSessions)
+        .values({
+          creatorId,
+          fanId,
+          voice,
+          status: 'active',
+          pricePerMinute: settings.pricePerMinute,
+          startedAt: new Date(),
+        })
+        .returning();
+      session = newSession;
+      console.log('[AiSessionService] Session created:', session.id);
+    } catch (insertError: any) {
+      console.error('[AiSessionService] Session insert failed:', insertError.message, insertError.stack);
+      // Release the hold since session creation failed
+      try {
+        await WalletService.releaseHold(hold.id);
+      } catch (releaseError) {
+        console.error('[AiSessionService] Failed to release hold after session insert failure:', releaseError);
+      }
+      throw new Error('Failed to create session record');
+    }
 
     // Link the hold to the session
-    await db
-      .update(spendHolds)
-      .set({ relatedId: session.id })
-      .where(eq(spendHolds.id, hold.id));
+    try {
+      await db
+        .update(spendHolds)
+        .set({ relatedId: session.id })
+        .where(eq(spendHolds.id, hold.id));
+      console.log('[AiSessionService] Hold linked to session');
+    } catch (linkError: any) {
+      console.error('[AiSessionService] Failed to link hold to session:', linkError.message);
+      // Continue anyway - the session is created, hold linking is not critical
+    }
 
     return {
       session,
