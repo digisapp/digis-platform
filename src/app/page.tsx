@@ -338,11 +338,6 @@ function FanDashboard() {
 
           {/* Discover Creators Section (Full Explore) */}
           <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-purple-400" />
-              <h2 className="text-xl font-bold text-white">Discover Creators</h2>
-            </div>
-
             {/* Search Bar */}
             <div className="mb-4">
               <div className="relative">
