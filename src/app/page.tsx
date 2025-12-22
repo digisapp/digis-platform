@@ -614,7 +614,7 @@ function MarketingPage({
           </div>
         </nav>
 
-        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
+        <div className="relative z-10 h-full flex flex-col items-center justify-start pt-24 md:justify-center md:pt-0 px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1
               className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
