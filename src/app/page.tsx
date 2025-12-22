@@ -172,10 +172,9 @@ export default function Home() {
                   setSignupRedirectTo('/explore');
                   setShowSignup(true);
                 }}
-                className="group px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
+                className="px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
               >
                 Start Exploring
-                <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </button>
               <button
                 onClick={() => {
