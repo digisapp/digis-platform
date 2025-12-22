@@ -200,8 +200,8 @@ function FanDashboard() {
       <MobileHeader />
       <Navigation />
 
-      <main className="pt-20 pb-24 md:pt-16 md:pb-8 md:pl-20">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <main className="pt-24 pb-24 md:pt-16 md:pb-8 md:pl-20">
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
           {/* Live Now Section */}
           {hasLiveStreams && (
             <section className="mb-8">
@@ -291,7 +291,7 @@ function FanDashboard() {
 
           {/* Creators You Follow */}
           {hasFollowedCreators && (
-            <section className="mb-8">
+            <section className="mb-4">
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {dashboardData!.followedCreators.map((creator) => (
                   <Link
