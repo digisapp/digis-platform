@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown } from 'lucide-react';
+import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown, Users, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import type { Stream } from '@/db/schema';
 import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
@@ -45,11 +46,25 @@ interface PaidShow {
 // Combined type for display
 type CombinedStream = (LiveStream & { type: 'free' }) | (PaidShow & { type: 'paid' });
 
+// Suggested creator type
+interface SuggestedCreator {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  isCreatorVerified: boolean;
+  isOnline: boolean;
+  primaryCategory: string | null;
+  followerCount: number;
+}
+
 export default function LiveStreamsPage() {
   const router = useRouter();
   const { isCreator } = useAuth();
   const [freeStreams, setFreeStreams] = useState<LiveStream[]>([]);
   const [paidShows, setPaidShows] = useState<PaidShow[]>([]);
+  const [followedCreators, setFollowedCreators] = useState<SuggestedCreator[]>([]);
+  const [topCreators, setTopCreators] = useState<SuggestedCreator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,13 +92,17 @@ export default function LiveStreamsPage() {
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     try {
-      // Fetch both free streams and paid shows in parallel with timeout
-      const [freeRes, paidRes] = await Promise.all([
+      // Fetch streams, paid shows, and suggested creators in parallel
+      const [freeRes, paidRes, suggestedRes] = await Promise.all([
         fetch(bustCache ? `/api/streams/live?t=${Date.now()}` : '/api/streams/live', {
           cache: 'no-store',
           signal: controller.signal,
         }).catch(() => null),
         fetch(bustCache ? `/api/shows/upcoming?t=${Date.now()}` : '/api/shows/upcoming', {
+          cache: 'no-store',
+          signal: controller.signal,
+        }).catch(() => null),
+        fetch('/api/streams/suggested-creators', {
           cache: 'no-store',
           signal: controller.signal,
         }).catch(() => null),
@@ -100,6 +119,12 @@ export default function LiveStreamsPage() {
         const paidData = await paidRes.json();
         setPaidShows((paidData.shows || []).map((s: any) => ({ ...s, isFree: false })));
       }
+
+      if (suggestedRes?.ok) {
+        const suggestedData = await suggestedRes.json();
+        setFollowedCreators(suggestedData.followedCreators || []);
+        setTopCreators(suggestedData.topCreators || []);
+      }
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (err.name !== 'AbortError') {
@@ -110,63 +135,45 @@ export default function LiveStreamsPage() {
     }
   };
 
-  // Combine and filter streams
-  const getCombinedStreams = (): CombinedStream[] => {
-    let liveNow: CombinedStream[] = [];
+  // Get filtered streams - separate free and paid
+  const getFilteredStreams = () => {
+    const query = searchQuery.trim().toLowerCase();
 
-    // Add free streams (they're always live)
-    freeStreams.forEach(stream => {
-      liveNow.push({ ...stream, type: 'free' as const });
-    });
-
-    // Add paid shows that are currently live
-    paidShows.forEach(show => {
-      if (show.status === 'live') {
-        liveNow.push({ ...show, type: 'paid' as const });
-      }
-    });
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      liveNow = liveNow.filter(s =>
+    // Filter paid shows (only live ones)
+    let filteredPaid = paidShows.filter(show => show.status === 'live');
+    if (query) {
+      filteredPaid = filteredPaid.filter(s =>
         s.title.toLowerCase().includes(query) ||
         s.description?.toLowerCase().includes(query) ||
         s.creator.displayName?.toLowerCase().includes(query) ||
         s.creator.username?.toLowerCase().includes(query)
       );
     }
+    // Sort by ticket sales
+    filteredPaid.sort((a, b) => b.ticketsSold - a.ticketsSold);
 
-    // Apply type filter
-    if (filterType === 'free') {
-      liveNow = liveNow.filter(s => s.type === 'free');
-    } else if (filterType === 'paid') {
-      liveNow = liveNow.filter(s => s.type === 'paid');
-    }
-
-    // Apply category filter (only for free streams which have category)
-    if (filterCategory) {
-      liveNow = liveNow.filter(s =>
-        s.type === 'free' && (s as LiveStream).category === filterCategory
+    // Filter free streams
+    let filteredFree = [...freeStreams];
+    if (query) {
+      filteredFree = filteredFree.filter(s =>
+        s.title.toLowerCase().includes(query) ||
+        s.description?.toLowerCase().includes(query) ||
+        s.creator.displayName?.toLowerCase().includes(query) ||
+        s.creator.username?.toLowerCase().includes(query)
       );
     }
+    // Apply category filter
+    if (filterCategory) {
+      filteredFree = filteredFree.filter(s => s.category === filterCategory);
+    }
+    // Sort by viewers
+    filteredFree.sort((a, b) => b.currentViewers - a.currentViewers);
 
-    // Sort live streams by viewers (free) or ticket sales (paid)
-    liveNow.sort((a, b) => {
-      if (a.type === 'free' && b.type === 'free') {
-        return b.currentViewers - a.currentViewers;
-      }
-      if (a.type === 'paid' && b.type === 'paid') {
-        return b.ticketsSold - a.ticketsSold;
-      }
-      // Show paid first, then free
-      return a.type === 'paid' ? -1 : 1;
-    });
-
-    return liveNow;
+    return { paidStreams: filteredPaid, freeStreamsFiltered: filteredFree };
   };
 
-  const liveNow = getCombinedStreams();
+  const { paidStreams, freeStreamsFiltered } = getFilteredStreams();
+  const hasAnyStreams = paidStreams.length > 0 || freeStreamsFiltered.length > 0;
 
   const formatStartTime = (date: Date | string) => {
     const now = new Date();
@@ -211,105 +218,17 @@ export default function LiveStreamsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container max-w-7xl mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
-        {/* Header */}
+        {/* Header - Search Only */}
         <div className="mb-6">
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search streams, creators..."
-                className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { key: 'all', label: 'All', icon: null },
-              { key: 'free', label: 'Free', icon: Unlock },
-              { key: 'paid', label: 'Paid', icon: Lock },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setFilterType(key as any)}
-                className={`px-4 py-2.5 min-h-[44px] rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
-                  filterType === key
-                    ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                {Icon && <Icon className="w-4 h-4" />}
-                {label}
-              </button>
-            ))}
-
-            {/* Category Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className={`px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${
-                  filterCategory
-                    ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-white'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
-                }`}
-              >
-                {filterCategory ? (
-                  <>
-                    <span>{getCategoryIcon(filterCategory)}</span>
-                    <span>{getCategoryById(filterCategory)?.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <Hash className="w-4 h-4" />
-                    <span>Category</span>
-                  </>
-                )}
-                <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Backdrop for mobile dropdown */}
-              {showCategoryDropdown && (
-                <div
-                  className="fixed inset-0 z-40 sm:hidden"
-                  onClick={() => setShowCategoryDropdown(false)}
-                />
-              )}
-
-              {showCategoryDropdown && (
-                <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 w-full sm:w-56 max-h-80 overflow-y-auto bg-gray-900 border border-white/20 rounded-xl shadow-xl z-50">
-                  <button
-                    onClick={() => {
-                      setFilterCategory('');
-                      setShowCategoryDropdown(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
-                  >
-                    <span className="text-lg">🎬</span>
-                    <span>All Categories</span>
-                  </button>
-                  {STREAM_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => {
-                        setFilterCategory(cat.id);
-                        setShowCategoryDropdown(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 flex items-center gap-2 ${
-                        filterCategory === cat.id ? 'text-cyan-400 bg-white/5' : 'text-gray-300'
-                      }`}
-                    >
-                      <span className="text-lg">{cat.icon}</span>
-                      <span>{cat.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search streams, creators..."
+              className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
+            />
           </div>
         </div>
 
@@ -320,38 +239,39 @@ export default function LiveStreamsPage() {
           </div>
         )}
 
-        {/* Live Now Section */}
-        {liveNow.length > 0 && (
+        {/* Paid Shows Section - First for visibility */}
+        {paidStreams.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                <span className="text-xl">🎟️</span>
+                <h2 className="text-xl md:text-2xl font-bold text-white">Paid Shows</h2>
+                <span className="relative flex h-2.5 w-2.5 ml-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
                 </span>
-                <h2 className="text-xl md:text-2xl font-bold text-white">Live Now</h2>
               </div>
-              <span className="text-sm text-gray-400">({liveNow.length})</span>
+              <span className="text-sm text-gray-400">({paidStreams.length})</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {liveNow.map((stream) => (
+              {paidStreams.map((show) => (
                 <div
-                  key={stream.id}
+                  key={show.id}
                   className="group cursor-pointer"
-                  onClick={() => router.push(stream.type === 'free' ? `/live/${stream.id}` : `/streams/${stream.id}`)}
+                  onClick={() => router.push(`/streams/${show.id}`)}
                 >
                   <div className="relative">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
 
-                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-red-500/50">
+                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border-2 border-amber-500/30 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-amber-500/60">
                       {/* Thumbnail */}
-                      <div className="aspect-video bg-gradient-to-br from-red-900/40 via-purple-900/40 to-slate-900 relative overflow-hidden">
-                        {stream.type === 'paid' && stream.coverImageUrl ? (
-                          <img src={stream.coverImageUrl} alt={stream.title} className="w-full h-full object-cover" />
+                      <div className="aspect-video bg-gradient-to-br from-amber-900/40 via-purple-900/40 to-slate-900 relative overflow-hidden">
+                        {show.coverImageUrl ? (
+                          <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-6xl opacity-50">{stream.creator.displayName?.[0] || '🎥'}</div>
+                            <div className="text-6xl opacity-50">{show.creator.displayName?.[0] || '🎥'}</div>
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
@@ -363,18 +283,145 @@ export default function LiveStreamsPage() {
                         </div>
 
                         {/* Price Badge */}
-                        <div className="absolute top-3 right-3">
-                          {stream.type === 'free' ? (
-                            <div className="px-3 py-1.5 bg-green-500 rounded-lg text-white text-xs font-bold flex items-center gap-1">
-                              <Unlock className="w-3 h-3" />
-                              FREE
-                            </div>
+                        <div className="absolute top-3 right-3 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg text-black text-xs font-bold flex items-center gap-1 shadow-lg shadow-amber-500/30">
+                          <Coins className="w-3 h-3" />
+                          {show.ticketPrice} coins
+                        </div>
+
+                        {/* Tickets Sold */}
+                        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
+                          <Lock className="w-3 h-3" />
+                          {show.ticketsSold} watching
+                        </div>
+                      </div>
+
+                      {/* Show Info */}
+                      <div className="p-4">
+                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-amber-400 transition-colors">
+                          {show.title}
+                        </h3>
+
+                        <div className="flex items-center gap-2">
+                          {show.creator.avatarUrl ? (
+                            <img
+                              src={show.creator.avatarUrl}
+                              alt={show.creator.displayName || ''}
+                              className="w-6 h-6 rounded-full object-cover border border-amber-500/30"
+                            />
                           ) : (
-                            <div className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg text-black text-xs font-bold flex items-center gap-1">
-                              <Coins className="w-3 h-3" />
-                              {stream.ticketPrice}
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-xs font-bold text-black">
+                              {show.creator.displayName?.[0] || show.creator.username?.[0] || '?'}
                             </div>
                           )}
+                          <span className="text-sm text-gray-300 truncate">
+                            {show.creator.displayName || show.creator.username}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Free Streams Section */}
+        {freeStreamsFiltered.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  <h2 className="text-xl md:text-2xl font-bold text-white">Free Streams</h2>
+                </div>
+                <span className="text-sm text-gray-400">({freeStreamsFiltered.length})</span>
+              </div>
+
+              {/* Category Filter */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold text-xs flex items-center gap-1.5 transition-all ${
+                    filterCategory
+                      ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-white'
+                      : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  {filterCategory ? (
+                    <>
+                      <span>{getCategoryIcon(filterCategory)}</span>
+                      <span>{getCategoryById(filterCategory)?.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Hash className="w-3 h-3" />
+                      <span>Category</span>
+                    </>
+                  )}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showCategoryDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowCategoryDropdown(false)} />
+                    <div className="absolute top-full right-0 mt-2 w-56 max-h-80 overflow-y-auto bg-gray-900 border border-white/20 rounded-xl shadow-xl z-50">
+                      <button
+                        onClick={() => { setFilterCategory(''); setShowCategoryDropdown(false); }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                      >
+                        <span className="text-lg">🎬</span>
+                        <span>All Categories</span>
+                      </button>
+                      {STREAM_CATEGORIES.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => { setFilterCategory(cat.id); setShowCategoryDropdown(false); }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-white/10 flex items-center gap-2 ${
+                            filterCategory === cat.id ? 'text-cyan-400 bg-white/5' : 'text-gray-300'
+                          }`}
+                        >
+                          <span className="text-lg">{cat.icon}</span>
+                          <span>{cat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {freeStreamsFiltered.map((stream) => (
+                <div
+                  key={stream.id}
+                  className="group cursor-pointer"
+                  onClick={() => router.push(`/live/${stream.id}`)}
+                >
+                  <div className="relative">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-75 blur transition duration-500"></div>
+
+                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-green-500/50">
+                      {/* Thumbnail */}
+                      <div className="aspect-video bg-gradient-to-br from-green-900/40 via-cyan-900/40 to-slate-900 relative overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-6xl opacity-50">{stream.creator.displayName?.[0] || '🎥'}</div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
+
+                        {/* Live Badge */}
+                        <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-lg shadow-lg shadow-red-500/50">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          <span className="text-white text-xs font-bold">LIVE</span>
+                        </div>
+
+                        {/* Free Badge */}
+                        <div className="absolute top-3 right-3 px-3 py-1.5 bg-green-500 rounded-lg text-white text-xs font-bold flex items-center gap-1">
+                          <Unlock className="w-3 h-3" />
+                          FREE
                         </div>
 
                         {/* Viewer Count */}
@@ -383,30 +430,27 @@ export default function LiveStreamsPage() {
                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                             <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
                           </svg>
-                          {stream.type === 'free' ? stream.currentViewers : stream.ticketsSold}
+                          {stream.currentViewers}
                         </div>
                       </div>
 
                       {/* Stream Info */}
                       <div className="p-4">
-                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-red-400 transition-colors">
+                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-green-400 transition-colors">
                           {stream.title}
                         </h3>
 
                         {/* Category & Tags */}
-                        {stream.type === 'free' && ((stream as LiveStream).category || ((stream as LiveStream).tags && (stream as LiveStream).tags!.length > 0)) && (
+                        {(stream.category || (stream.tags && stream.tags.length > 0)) && (
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            {(stream as LiveStream).category && (
+                            {stream.category && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30 rounded-full text-xs text-cyan-300">
-                                <span>{getCategoryIcon((stream as LiveStream).category!)}</span>
-                                <span>{getCategoryById((stream as LiveStream).category!)?.name || (stream as LiveStream).category}</span>
+                                <span>{getCategoryIcon(stream.category)}</span>
+                                <span>{getCategoryById(stream.category)?.name || stream.category}</span>
                               </span>
                             )}
-                            {(stream as LiveStream).tags?.slice(0, 2).map((tag: string) => (
-                              <span
-                                key={tag}
-                                className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400"
-                              >
+                            {stream.tags?.slice(0, 2).map((tag: string) => (
+                              <span key={tag} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400">
                                 #{tag}
                               </span>
                             ))}
@@ -422,7 +466,7 @@ export default function LiveStreamsPage() {
                                 className="w-6 h-6 rounded-full object-cover border border-white/20"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-cyan-500 flex items-center justify-center text-xs font-bold text-white">
                                 {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
                               </div>
                             )}
@@ -432,7 +476,7 @@ export default function LiveStreamsPage() {
                           </div>
 
                           <span className="text-xs text-gray-400">
-                            {stream.type === 'free' && stream.startedAt && formatStartTime(stream.startedAt)}
+                            {stream.startedAt && formatStartTime(stream.startedAt)}
                           </span>
                         </div>
                       </div>
@@ -444,17 +488,132 @@ export default function LiveStreamsPage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {liveNow.length === 0 && (
-          <div className="text-center py-16">
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
-              <Tv className="relative w-24 h-24 text-white mx-auto" strokeWidth={1.5} />
+        {/* Empty State - Show Suggested Creators */}
+        {!hasAnyStreams && (
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="text-center py-8">
+              <div className="relative inline-block mb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-2xl opacity-40"></div>
+                <Tv className="relative w-16 h-16 text-gray-400 mx-auto" strokeWidth={1.5} />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">No one is live right now</h2>
+              <p className="text-gray-400 text-sm">
+                Check out these creators while you wait
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Waiting for streams</h2>
-            <p className="text-gray-400 max-w-md mx-auto">
-              Check back soon for live streams from your favorite creators!
-            </p>
+
+            {/* Creators You Follow */}
+            {followedCreators.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-5 h-5 text-cyan-400" />
+                  <h3 className="text-lg font-bold text-white">Creators You Follow</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {followedCreators.map((creator) => (
+                    <button
+                      key={creator.id}
+                      onClick={() => router.push(`/${creator.username}`)}
+                      className="group p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all text-center"
+                    >
+                      <div className="relative inline-block mb-3">
+                        {creator.avatarUrl ? (
+                          <Image
+                            src={creator.avatarUrl}
+                            alt={creator.displayName || creator.username}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-full object-cover mx-auto"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl font-bold text-white mx-auto">
+                            {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        {creator.isOnline && (
+                          <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full" />
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-white truncate group-hover:text-cyan-400 transition-colors">
+                        {creator.displayName || creator.username}
+                      </h4>
+                      <p className="text-sm text-gray-500 truncate">
+                        @{creator.username}
+                        {creator.isCreatorVerified && (
+                          <span className="ml-1 text-cyan-400">✓</span>
+                        )}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Top Creators */}
+            {topCreators.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-lg font-bold text-white">Top Creators</h3>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {topCreators.map((creator) => (
+                    <button
+                      key={creator.id}
+                      onClick={() => router.push(`/${creator.username}`)}
+                      className="group p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all text-center"
+                    >
+                      <div className="relative inline-block mb-3">
+                        {creator.avatarUrl ? (
+                          <Image
+                            src={creator.avatarUrl}
+                            alt={creator.displayName || creator.username}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-full object-cover mx-auto"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold text-white mx-auto">
+                            {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        {creator.isOnline && (
+                          <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full" />
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-white truncate group-hover:text-purple-400 transition-colors">
+                        {creator.displayName || creator.username}
+                      </h4>
+                      <p className="text-sm text-gray-500 truncate">
+                        @{creator.username}
+                        {creator.isCreatorVerified && (
+                          <span className="ml-1 text-cyan-400">✓</span>
+                        )}
+                      </p>
+                      {creator.followerCount > 0 && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          {creator.followerCount.toLocaleString()} followers
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Fallback if no creators */}
+            {followedCreators.length === 0 && topCreators.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-400 mb-4">No creators to show yet</p>
+                <button
+                  onClick={() => router.push('/explore')}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-xl hover:scale-105 transition-transform"
+                >
+                  Explore Creators
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

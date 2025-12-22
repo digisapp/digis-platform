@@ -5,7 +5,7 @@ import { eq, and, count } from 'drizzle-orm';
 
 // Thresholds for showing discovery features
 const MIN_CREATORS_FOR_EXPLORE = 10;
-const MIN_LIVE_STREAMS_FOR_STREAMS_TAB = 1;
+// Streams tab is always shown - when empty, it shows suggested creators
 
 // Cache the result for 60 seconds to avoid hammering the DB
 let cachedResult: { data: any; timestamp: number } | null = null;
@@ -15,11 +15,10 @@ const CACHE_TTL_MS = 60 * 1000; // 60 seconds
  * GET /api/content/availability
  *
  * Returns whether to show Explore and Streams tabs based on content availability.
- * This is used to hide empty pages on a new platform.
  *
  * Response:
  * - showExplore: boolean - Show if >= 10 creators
- * - showStreams: boolean - Show if >= 1 live stream
+ * - showStreams: boolean - Always true (shows suggested creators when no one is live)
  * - creatorsCount: number
  * - liveStreamsCount: number
  */
@@ -53,7 +52,7 @@ export async function GET() {
 
     const data = {
       showExplore: creatorsCount >= MIN_CREATORS_FOR_EXPLORE,
-      showStreams: liveStreamsCount >= MIN_LIVE_STREAMS_FOR_STREAMS_TAB,
+      showStreams: true, // Always show - displays suggested creators when no one is live
       creatorsCount,
       liveStreamsCount,
     };
