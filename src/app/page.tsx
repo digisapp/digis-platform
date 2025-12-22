@@ -200,7 +200,7 @@ function FanDashboard() {
       <MobileHeader />
       <Navigation />
 
-      <main className="pt-16 pb-24 md:pb-8 md:pl-20">
+      <main className="pt-20 pb-24 md:pt-16 md:pb-8 md:pl-20">
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Live Now Section */}
           {hasLiveStreams && (
