@@ -12,7 +12,6 @@ import { Navigation } from '@/components/layout/Navigation';
 import { LoadingSpinner } from '@/components/ui';
 import {
   Play,
-  Users,
   Sparkles,
   ChevronRight,
   Radio,
@@ -293,19 +292,6 @@ function FanDashboard() {
           {/* Creators You Follow */}
           {hasFollowedCreators && (
             <section className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-cyan-400" />
-                  <h2 className="text-xl font-bold text-white">Following</h2>
-                </div>
-                <Link
-                  href="/connections"
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                  See All <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {dashboardData!.followedCreators.map((creator) => (
                   <Link
@@ -342,7 +328,7 @@ function FanDashboard() {
                       )}
                     </div>
                     <span className="text-xs text-gray-400 group-hover:text-white transition-colors truncate max-w-[72px]">
-                      @{creator.username}
+                      {creator.username}
                     </span>
                   </Link>
                 ))}
