@@ -142,7 +142,7 @@ export default function CreatorContentStudioPage() {
       {/* Mobile Header */}
       <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-7xl">
+      <div className="container mx-auto px-4 pt-20 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Content List */}
         {content.length === 0 ? (
           <GlassCard className="p-16 text-center">
