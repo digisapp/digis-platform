@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
-  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package
+  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package, GraduationCap
 } from 'lucide-react';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 import { formatDistanceToNow } from 'date-fns';
@@ -567,6 +567,16 @@ export default function CreatorDashboard() {
                   )}
                 </button>
               </div>
+
+              {/* Read Digis 101 */}
+              <button
+                onClick={() => router.push('/creator/learn')}
+                className="w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 hover:border-yellow-500/50 transition-all"
+              >
+                <GraduationCap className="w-5 h-5 text-yellow-400" />
+                <span className="text-sm font-semibold text-yellow-400">Read Digis 101</span>
+                <span className="text-xs text-gray-400">— Learn all the features</span>
+              </button>
 
               <p className="text-xs text-gray-500 mt-3 text-center">
                 Let fans know they can watch you Stream and send gifts 🎁
