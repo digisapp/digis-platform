@@ -4,6 +4,7 @@ import { relations } from 'drizzle-orm';
 export const userRoleEnum = pgEnum('user_role', ['fan', 'creator', 'admin']);
 export const spendTierEnum = pgEnum('spend_tier', ['none', 'bronze', 'silver', 'gold', 'platinum', 'diamond']);
 export const accountStatusEnum = pgEnum('account_status', ['active', 'suspended', 'banned']);
+export const verificationStatusEnum = pgEnum('verification_status', ['none', 'grandfathered', 'pending', 'verified', 'failed']);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(), // Supabase auth user ID
@@ -22,6 +23,7 @@ export const users = pgTable('users', {
   primaryCategory: text('primary_category'), // Main category e.g., "Gaming", "Music"
   secondaryCategory: text('secondary_category'), // Optional second category
   isCreatorVerified: boolean('is_creator_verified').default(false),
+  verificationStatus: verificationStatusEnum('verification_status').default('none').notNull(), // Age/ID verification status
   isTrending: boolean('is_trending').default(false),
   isOnline: boolean('is_online').default(false),
   lastSeenAt: timestamp('last_seen_at'),
