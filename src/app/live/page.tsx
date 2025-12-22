@@ -498,44 +498,49 @@ export default function LiveStreamsPage() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {topCreators.map((creator) => (
-                    <button
+                    <div
                       key={creator.id}
+                      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all"
                       onClick={() => router.push(`/${creator.username}`)}
-                      className="group p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 transition-all text-center"
                     >
-                      <div className="relative inline-block mb-3">
+                      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
                         {creator.avatarUrl ? (
                           <Image
                             src={creator.avatarUrl}
-                            alt={creator.displayName || creator.username}
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 rounded-full object-cover mx-auto"
+                            alt={creator.username}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xl font-bold text-white mx-auto">
-                            {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
+                          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white">
+                              {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
+                            </div>
                           </div>
                         )}
-                        {creator.isOnline && (
-                          <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full" />
-                        )}
+
+                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                          {creator.isOnline && (
+                            <span className="px-2 py-0.5 bg-green-500/80 rounded-full text-xs font-medium text-white">
+                              Online
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       </div>
-                      <h4 className="font-semibold text-white truncate group-hover:text-purple-400 transition-colors">
-                        {creator.displayName || creator.username}
-                      </h4>
-                      <p className="text-sm text-gray-500 truncate">
-                        @{creator.username}
-                        {creator.isCreatorVerified && (
-                          <span className="ml-1 text-cyan-400">✓</span>
-                        )}
-                      </p>
-                      {creator.followerCount > 0 && (
-                        <p className="text-xs text-gray-600 mt-1">
-                          {creator.followerCount.toLocaleString()} followers
-                        </p>
-                      )}
-                    </button>
+
+                      <div className="p-3">
+                        <div className="flex items-center gap-1">
+                          <p className="font-semibold text-white truncate">{creator.username}</p>
+                          {creator.isCreatorVerified && (
+                            <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </section>
