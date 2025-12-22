@@ -308,11 +308,14 @@ export class AblyRealtimeService {
     poll: any,
     action: 'created' | 'updated' | 'ended'
   ) {
+    const channelName = CHANNEL_NAMES.streamChat(streamId);
+    console.log('[AblyRealtimeService] Broadcasting poll_update:', { channelName, action, pollId: poll?.id });
     await publishToChannel(
-      CHANNEL_NAMES.streamChat(streamId),
+      channelName,
       'poll_update',
       { poll, action, timestamp: Date.now() }
     );
+    console.log('[AblyRealtimeService] Poll update broadcast complete');
   }
 
   /**
@@ -323,10 +326,13 @@ export class AblyRealtimeService {
     countdown: any,
     action: 'created' | 'cancelled' | 'ended'
   ) {
+    const channelName = CHANNEL_NAMES.streamChat(streamId);
+    console.log('[AblyRealtimeService] Broadcasting countdown_update:', { channelName, action, countdownId: countdown?.id });
     await publishToChannel(
-      CHANNEL_NAMES.streamChat(streamId),
+      channelName,
       'countdown_update',
       { countdown, action, timestamp: Date.now() }
     );
+    console.log('[AblyRealtimeService] Countdown update broadcast complete');
   }
 }

@@ -323,9 +323,11 @@ export function useStreamChat({
           callbacksRef.current.onVipModeChange?.(message.data as VipModeChangeEvent);
         });
         chatChannel.subscribe('poll_update', (message) => {
+          console.log('[useStreamChat] Received poll_update:', message.data);
           callbacksRef.current.onPollUpdate?.(message.data as PollUpdateEvent);
         });
         chatChannel.subscribe('countdown_update', (message) => {
+          console.log('[useStreamChat] Received countdown_update:', message.data);
           callbacksRef.current.onCountdownUpdate?.(message.data as CountdownUpdateEvent);
         });
 
