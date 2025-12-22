@@ -438,15 +438,7 @@ function FanDashboard() {
 
                 {/* Load more trigger */}
                 <div ref={loadMoreRef} className="py-8 flex justify-center">
-                  {loadingMore && (
-                    <div className="flex items-center gap-2">
-                      <LoadingSpinner size="sm" />
-                      <span className="text-gray-400 text-sm">Loading more...</span>
-                    </div>
-                  )}
-                  {!hasMore && creators.length > 0 && (
-                    <p className="text-gray-500 text-sm">You've seen all creators</p>
-                  )}
+                  {loadingMore && <LoadingSpinner size="sm" />}
                 </div>
               </>
             )}
