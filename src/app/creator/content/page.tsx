@@ -143,20 +143,6 @@ export default function CreatorContentStudioPage() {
       <MobileHeader />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-7xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-end">
-          <GlassButton
-            variant="gradient"
-            size="lg"
-            onClick={() => router.push('/creator/content/new')}
-            className="flex items-center gap-2"
-            shimmer
-          >
-            <Plus className="w-5 h-5" />
-            Upload Content
-          </GlassButton>
-        </div>
-
         {/* Content List */}
         {content.length === 0 ? (
           <GlassCard className="p-16 text-center">
