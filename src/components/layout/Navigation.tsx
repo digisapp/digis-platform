@@ -306,7 +306,7 @@ export function Navigation() {
 
   // Define arrays before early return
   // Creators: Home, Go Live, Upload, Chats (focused on creating and earning)
-  // Fans: Home, [Explore], [Streams], Chats (discovery items shown based on content availability)
+  // Fans: Home, Streams, Chats (Home now includes Explore/Discovery)
   const navItems = userRole === 'creator' ? [
     {
       label: 'Home',
@@ -333,21 +333,14 @@ export function Navigation() {
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
   ] : [
-    // Home is always shown
+    // Home (now includes Explore/Discovery functionality)
     {
       label: 'Home',
       icon: Home,
-      path: userRole === 'admin' ? '/admin' : '/dashboard',
-      active: isActive('/dashboard') || isActive('/admin'),
+      path: userRole === 'admin' ? '/admin' : '/',
+      active: isActive('/') || isActive('/dashboard') || isActive('/admin'),
     },
-    // Explore: Only show if we have enough creators (10+)
-    ...(showExplore ? [{
-      label: 'Explore',
-      icon: Search,
-      path: '/explore',
-      active: isActive('/explore') || pathname?.startsWith('/profile'),
-    }] : []),
-    // Streams: Only show if there are live streams
+    // Streams: Always shown (shows suggested creators when no one is live)
     ...(showStreams ? [{
       label: 'Streams',
       icon: Video,
