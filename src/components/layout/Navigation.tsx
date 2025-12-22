@@ -20,7 +20,8 @@ import {
   Upload,
   Camera,
   DollarSign,
-  GraduationCap
+  GraduationCap,
+  User
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -354,6 +355,14 @@ export function Navigation() {
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
+    // Profile for fans (shown as regular nav item)
+    {
+      label: 'Profile',
+      icon: User,
+      path: '/settings',
+      active: isActive('/settings'),
+      isProfile: true,
+    },
   ];
 
   // Don't show navigation while loading or if no user
@@ -592,167 +601,208 @@ export function Navigation() {
 
         {/* Navigation content */}
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
-          {/* First nav item (Home) */}
-          <button
-            onClick={() => router.push(navItems[0].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[0].active
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            {(() => {
-              const Icon = navItems[0].icon;
-              return (
-                <div className={`relative transition-transform ${navItems[0].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-6 h-6" strokeWidth={navItems[0].active ? 2.5 : 2} />
-                  {navItems[0].active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+          {userRole === 'creator' ? (
+            <>
+              {/* Creator Navigation: Home, Go Live, [Profile Center], Upload, Chats */}
+              {/* First nav item (Home) */}
+              <button
+                onClick={() => router.push(navItems[0].path)}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                  navItems[0].active ? 'text-cyan-400' : 'text-gray-300'
+                }`}
+                style={{ minHeight: '48px' }}
+              >
+                {(() => {
+                  const Icon = navItems[0].icon;
+                  return (
+                    <div className={`relative transition-transform ${navItems[0].active ? 'scale-110' : ''}`}>
+                      <Icon className="w-6 h-6" strokeWidth={navItems[0].active ? 2.5 : 2} />
+                      {navItems[0].active && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                      )}
+                    </div>
+                  );
+                })()}
+                <span className={`text-[11px] font-semibold mt-0.5 ${navItems[0].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                  {navItems[0].label}
+                </span>
+              </button>
+
+              {/* Second nav item (Go Live) */}
+              <button
+                onClick={() => router.push(navItems[1].path)}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                  navItems[1].active ? 'text-cyan-400' : 'text-gray-300'
+                }`}
+                style={{ minHeight: '48px' }}
+              >
+                {(() => {
+                  const Icon = navItems[1].icon;
+                  return (
+                    <div className={`relative transition-transform ${navItems[1].active ? 'scale-110' : ''}`}>
+                      <Icon className="w-6 h-6" strokeWidth={navItems[1].active ? 2.5 : 2} />
+                      {navItems[1].active && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                      )}
+                    </div>
+                  );
+                })()}
+                <span className={`text-[11px] font-semibold mt-0.5 ${navItems[1].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                  {navItems[1].label}
+                </span>
+              </button>
+
+              {/* Center Button - Profile for creators (prominent style) */}
+              <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mt-4">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="relative touch-manipulation"
+                  style={{ minHeight: '56px', minWidth: '56px' }}
+                >
+                  {/* Enhanced glow effect */}
+                  {(isActive('/settings') || showProfileMenu) && (
+                    <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse pointer-events-none" />
                   )}
-                </div>
-              );
-            })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[0].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[0].label}
-            </span>
-          </button>
 
-          {/* Second nav item (Calls for creators, Explore for fans) */}
-          <button
-            onClick={() => router.push(navItems[1].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[1].active
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            {(() => {
-              const Icon = navItems[1].icon;
-              return (
-                <div className={`relative transition-transform ${navItems[1].active ? 'scale-110' : ''}`}>
-                  <Icon className="w-6 h-6" strokeWidth={navItems[1].active ? 2.5 : 2} />
-                  {navItems[1].active && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                  {/* Live indicator ring for creators who are live */}
+                  {isLive && (
+                    <div className="absolute -inset-1 rounded-full bg-red-500 blur-md opacity-70 animate-pulse pointer-events-none" />
                   )}
-                </div>
-              );
-            })()}
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[1].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[1].label}
-            </span>
-          </button>
 
-          {/* Center Button - Profile for all users */}
-          <div className="flex flex-col items-center justify-center flex-1 min-w-[60px] -mt-4">
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="relative touch-manipulation"
-              style={{ minHeight: '56px', minWidth: '56px' }}
-            >
-              {/* Enhanced glow effect */}
-              {(isActive('/settings') || showProfileMenu) && (
-                <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink blur-lg opacity-60 animate-pulse pointer-events-none" />
-              )}
+                  {/* Gradient border ring */}
+                  <div className={`relative rounded-full p-[3px] shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all ${
+                    isLive
+                      ? 'bg-red-500 animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.7)]'
+                      : 'bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink'
+                  } ${isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''}`}>
+                    <div className="rounded-full bg-gray-900 p-[2px]">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt="Your avatar"
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
+                          {displayName?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Live indicator ring for creators who are live */}
-              {userRole === 'creator' && isLive && (
-                <div className="absolute -inset-1 rounded-full bg-red-500 blur-md opacity-70 animate-pulse pointer-events-none" />
-              )}
+                  {/* LIVE badge for creators who are live */}
+                  {isLive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
+                      LIVE
+                    </div>
+                  )}
+                </button>
+              </div>
 
-              {/* Gradient border ring */}
-              <div className={`relative rounded-full p-[3px] shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all ${
-                userRole === 'creator' && isLive
-                  ? 'bg-red-500 animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.7)]'
-                  : 'bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink'
-              } ${isActive('/settings') || showProfileMenu ? 'scale-110 shadow-[0_0_30px_rgba(34,211,238,0.7)]' : ''}`}>
-                <div className="rounded-full bg-gray-900 p-[2px]">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt="Your avatar"
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-lg">
-                      {displayName?.[0]?.toUpperCase() || 'U'}
+              {/* Third nav item (Upload) */}
+              <button
+                onClick={() => router.push(navItems[2].path)}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                  navItems[2].active ? 'text-cyan-400' : 'text-gray-300'
+                }`}
+                style={{ minHeight: '48px' }}
+              >
+                {(() => {
+                  const Icon = navItems[2].icon;
+                  return (
+                    <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
+                      <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
+                      {navItems[2].active && (
+                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                      )}
+                    </div>
+                  );
+                })()}
+                <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                  {navItems[2].label}
+                </span>
+              </button>
+
+              {/* Fourth nav item (Chats) */}
+              <button
+                onClick={() => router.push(navItems[3].path)}
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                  navItems[3].active ? 'text-cyan-400' : 'text-gray-300'
+                }`}
+                style={{ minHeight: '48px' }}
+              >
+                <div className="relative">
+                  {(() => {
+                    const Icon = navItems[3].icon;
+                    return (
+                      <div className={`relative transition-transform ${navItems[3].active ? 'scale-110' : ''}`}>
+                        <Icon className="w-6 h-6" strokeWidth={navItems[3].active ? 2.5 : 2} />
+                        {navItems[3].active && (
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {unreadCount > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-black/40">
+                      <span className="text-[10px] font-bold text-white leading-none">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
                     </div>
                   )}
                 </div>
-              </div>
+                <span className={`text-[11px] font-semibold mt-0.5 ${navItems[3].active ? 'text-cyan-400' : 'text-gray-300'}`}>
+                  {navItems[3].label}
+                </span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Fan Navigation: All items equal styling - Home, Streams, Chats, Profile */}
+              {navItems.map((item, index) => {
+                const Icon = item.icon;
+                const isChats = item.label === 'Chats';
+                const isProfile = (item as any).isProfile;
 
-              {/* LIVE badge for creators who are live */}
-              {userRole === 'creator' && isLive && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
-                  LIVE
-                </div>
-              )}
-            </button>
-          </div>
-
-          {/* Third nav item (Streams for fans only - 4 items) */}
-          {navItems.length > 3 && (
-            <button
-              onClick={() => router.push(navItems[2].path)}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-                navItems[2].active
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
-              }`}
-              style={{ minHeight: '48px' }}
-            >
-              {(() => {
-                const Icon = navItems[2].icon;
                 return (
-                  <div className={`relative transition-transform ${navItems[2].active ? 'scale-110' : ''}`}>
-                    <Icon className="w-6 h-6" strokeWidth={navItems[2].active ? 2.5 : 2} />
-                    {navItems[2].active && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                    )}
-                  </div>
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      if (isProfile) {
+                        setShowProfileMenu(!showProfileMenu);
+                      } else {
+                        router.push(item.path);
+                      }
+                    }}
+                    className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
+                      item.active || (isProfile && showProfileMenu) ? 'text-cyan-400' : 'text-gray-300'
+                    }`}
+                    style={{ minHeight: '48px' }}
+                  >
+                    <div className="relative">
+                      <div className={`relative transition-transform ${item.active || (isProfile && showProfileMenu) ? 'scale-110' : ''}`}>
+                        <Icon className="w-6 h-6" strokeWidth={item.active || (isProfile && showProfileMenu) ? 2.5 : 2} />
+                        {(item.active || (isProfile && showProfileMenu)) && (
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                        )}
+                      </div>
+                      {/* Unread badge for Chats */}
+                      {isChats && unreadCount > 0 && (
+                        <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-black/40">
+                          <span className="text-[10px] font-bold text-white leading-none">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <span className={`text-[11px] font-semibold mt-0.5 ${item.active || (isProfile && showProfileMenu) ? 'text-cyan-400' : 'text-gray-300'}`}>
+                      {item.label}
+                    </span>
+                  </button>
                 );
-              })()}
-              <span className={`text-[11px] font-semibold mt-0.5 ${navItems[2].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-                {navItems[2].label}
-              </span>
-            </button>
+              })}
+            </>
           )}
-
-          {/* Last nav item (Chats) - index 2 for creators, index 3 for fans */}
-          <button
-            onClick={() => router.push(navItems[navItems.length - 1].path)}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
-              navItems[navItems.length - 1].active
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-            }`}
-            style={{ minHeight: '48px' }}
-          >
-            <div className="relative">
-              {(() => {
-                const Icon = navItems[navItems.length - 1].icon;
-                return (
-                  <div className={`relative transition-transform ${navItems[navItems.length - 1].active ? 'scale-110' : ''}`}>
-                    <Icon className="w-6 h-6" strokeWidth={navItems[navItems.length - 1].active ? 2.5 : 2} />
-                    {navItems[navItems.length - 1].active && (
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                    )}
-                  </div>
-                );
-              })()}
-              {unreadCount > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border-2 border-black/40">
-                  <span className="text-[10px] font-bold text-white leading-none">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                </div>
-              )}
-            </div>
-            <span className={`text-[11px] font-semibold mt-0.5 ${navItems[navItems.length - 1].active ? 'text-cyan-400' : 'text-gray-300'}`}>
-              {navItems[navItems.length - 1].label}
-            </span>
-          </button>
         </div>
       </nav>
 
