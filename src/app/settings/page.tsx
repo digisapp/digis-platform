@@ -1156,17 +1156,6 @@ export default function SettingsPage() {
           </GlassCard>
         )}
 
-        {/* Support */}
-        <div className="text-center py-4">
-          <span className="text-gray-400">Contact Support: </span>
-          <a
-            href="mailto:support@digis.cc?subject=Digis Support Request"
-            className="text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            support@digis.cc
-          </a>
-        </div>
-
         {/* Sign Out Section */}
         <div className="border-t border-cyan-500/30 pt-8 mt-4">
           <button
@@ -1189,6 +1178,17 @@ export default function SettingsPage() {
             </svg>
             Sign Out
           </button>
+        </div>
+
+        {/* Support - Always last */}
+        <div className="text-center py-4">
+          <span className="text-gray-400">Contact Support: </span>
+          <a
+            href="mailto:support@digis.cc?subject=Digis Support Request"
+            className="text-cyan-400 hover:text-cyan-300 transition-colors"
+          >
+            support@digis.cc
+          </a>
         </div>
       </div>
     </div>
