@@ -164,9 +164,6 @@ export default function Home() {
             >
               what's your digis?
             </h1>
-            <p className="text-xl md:text-2xl lg:text-3xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-              Live Streams, Calls, Digis, Chats with Creators
-            </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
@@ -200,10 +197,16 @@ export default function Home() {
                 Video Calls
               </span>
               <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Direct Messages
+                Chats
               </span>
               <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
                 Exclusive Events
+              </span>
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Virtual Gifts
+              </span>
+              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
+                Digitals
               </span>
             </div>
           </div>
