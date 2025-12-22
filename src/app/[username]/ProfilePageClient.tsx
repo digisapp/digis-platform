@@ -849,7 +849,7 @@ export default function ProfilePageClient() {
                     href={`https://instagram.com/${profile.socialLinks.instagram}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-pink-500/30"
+                    className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:scale-110 hover:bg-white/20 transition-all"
                     title={`@${profile.socialLinks.instagram}`}
                   >
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -862,7 +862,7 @@ export default function ProfilePageClient() {
                     href={`https://tiktok.com/@${profile.socialLinks.tiktok}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-black flex items-center justify-center hover:scale-110 transition-transform shadow-lg border border-white/20"
+                    className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:scale-110 hover:bg-white/20 transition-all"
                     title={`@${profile.socialLinks.tiktok}`}
                   >
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -875,7 +875,7 @@ export default function ProfilePageClient() {
                     href={`https://x.com/${profile.socialLinks.twitter}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-black flex items-center justify-center hover:scale-110 transition-transform shadow-lg border border-white/20"
+                    className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:scale-110 hover:bg-white/20 transition-all"
                     title={`@${profile.socialLinks.twitter}`}
                   >
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -888,10 +888,10 @@ export default function ProfilePageClient() {
                     href={`https://snapchat.com/add/${profile.socialLinks.snapchat}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-yellow-500/30"
+                    className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:scale-110 hover:bg-white/20 transition-all"
                     title={`@${profile.socialLinks.snapchat}`}
                   >
-                    <svg className="w-4 h-4 text-black" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-.809-.329-1.224-.72-1.227-1.153-.015-.36.27-.69.72-.854.149-.06.314-.09.494-.09.12 0 .284.015.435.09.375.18.72.3 1.034.3.21 0 .314-.044.389-.074-.007-.18-.022-.345-.029-.525l-.006-.061c-.105-1.627-.225-3.654.3-4.848C7.849 1.069 11.205.793 12.191.793h.03z"/>
                     </svg>
                   </a>
@@ -901,7 +901,7 @@ export default function ProfilePageClient() {
                     href={`https://youtube.com/@${profile.socialLinks.youtube}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center hover:scale-110 transition-transform shadow-lg shadow-red-500/30"
+                    className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center hover:scale-110 hover:bg-white/20 transition-all"
                     title={`@${profile.socialLinks.youtube}`}
                   >
                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
