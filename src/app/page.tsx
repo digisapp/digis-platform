@@ -13,12 +13,9 @@ import { LoadingSpinner } from '@/components/ui';
 import {
   Play,
   Users,
-  Calendar,
   Sparkles,
   ChevronRight,
   Radio,
-  Ticket,
-  Clock,
   Eye,
 } from 'lucide-react';
 
@@ -45,28 +42,13 @@ interface Stream {
   creator: Creator;
 }
 
-interface Show {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnailUrl: string | null;
-  ticketPrice: number;
-  scheduledFor: string;
-  ticketsSold: number;
-  maxTickets: number | null;
-  status: string;
-  creator: Creator;
-}
-
 interface HomepageData {
   liveStreams: Stream[];
   followedCreators: (Creator & { isLive: boolean })[];
-  upcomingShows: Show[];
   discoverCreators: Creator[];
   counts: {
     liveStreams: number;
     followedCreators: number;
-    upcomingShows: number;
     discoverCreators: number;
   };
 }
@@ -107,7 +89,6 @@ function FanDashboard() {
 
   const hasLiveStreams = data && data.liveStreams.length > 0;
   const hasFollowedCreators = data && data.followedCreators.length > 0;
-  const hasUpcomingShows = data && data.upcomingShows.length > 0;
   const hasDiscoverCreators = data && data.discoverCreators.length > 0;
 
   return (
@@ -269,73 +250,6 @@ function FanDashboard() {
             </section>
           )}
 
-          {/* Upcoming Shows */}
-          {hasUpcomingShows && (
-            <section className="mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Ticket className="w-5 h-5 text-yellow-400" />
-                  <h2 className="text-xl font-bold text-white">Upcoming Shows</h2>
-                </div>
-                <Link
-                  href="/live"
-                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                  See All <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {data.upcomingShows.map((show) => (
-                  <Link
-                    key={show.id}
-                    href={`/streams/${show.id}`}
-                    className="group flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-500/50 transition-all"
-                  >
-                    {/* Thumbnail */}
-                    <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden relative">
-                      {show.thumbnailUrl ? (
-                        <Image
-                          src={show.thumbnailUrl}
-                          alt={show.title}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
-                          <Calendar className="w-8 h-8 text-yellow-400/40" />
-                        </div>
-                      )}
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white truncate group-hover:text-yellow-400 transition-colors">
-                        {show.title}
-                      </h3>
-                      <p className="text-sm text-gray-400 truncate">
-                        @{show.creator.username}
-                      </p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="flex items-center gap-1 text-xs text-gray-400">
-                          <Clock className="w-3 h-3" />
-                          {new Date(show.scheduledFor).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                        <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs font-bold rounded">
-                          {show.ticketPrice} coins
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* Discover Creators */}
           {hasDiscoverCreators && (
             <section className="mb-8">
@@ -398,7 +312,7 @@ function FanDashboard() {
           )}
 
           {/* Empty State */}
-          {!hasLiveStreams && !hasFollowedCreators && !hasUpcomingShows && !hasDiscoverCreators && (
+          {!hasLiveStreams && !hasFollowedCreators && !hasDiscoverCreators && (
             <div className="text-center py-16">
               <Sparkles className="w-16 h-16 text-purple-400/40 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-white mb-2">Welcome to Digis!</h2>

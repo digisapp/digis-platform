@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, streams, follows, shows } from '@/db/schema';
-import { eq, desc, and, sql, inArray, or, gte, isNotNull } from 'drizzle-orm';
+import { users, streams, follows } from '@/db/schema';
+import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/fan/homepage
  * Aggregated data for the fan homepage dashboard
- * Returns: live streams, followed creators, upcoming shows, discover creators
+ * Returns: live streams, followed creators, discover creators
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
     const [
       liveStreamsResult,
       followedCreatorsResult,
-      upcomingShowsResult,
       discoverCreatorsResult,
     ] = await Promise.all([
       // 1. Live Streams (max 6)
@@ -68,42 +67,7 @@ export async function GET(request: NextRequest) {
         .orderBy(desc(users.isOnline), desc(users.lastSeenAt))
         .limit(12),
 
-      // 3. Upcoming Paid Shows (max 4)
-      db
-        .select({
-          id: shows.id,
-          title: shows.title,
-          description: shows.description,
-          coverImageUrl: shows.coverImageUrl,
-          ticketPrice: shows.ticketPrice,
-          scheduledStart: shows.scheduledStart,
-          ticketsSold: shows.ticketsSold,
-          maxTickets: shows.maxTickets,
-          status: shows.status,
-          showType: shows.showType,
-          creator: {
-            id: users.id,
-            username: users.username,
-            displayName: users.displayName,
-            avatarUrl: users.avatarUrl,
-            isCreatorVerified: users.isCreatorVerified,
-          },
-        })
-        .from(shows)
-        .innerJoin(users, eq(shows.creatorId, users.id))
-        .where(
-          and(
-            or(
-              eq(shows.status, 'scheduled'),
-              eq(shows.status, 'live')
-            ),
-            gte(shows.scheduledStart, new Date())
-          )
-        )
-        .orderBy(shows.scheduledStart)
-        .limit(4),
-
-      // 4. Discover Creators (max 8, excluding already followed)
+      // 3. Discover Creators (max 8, excluding already followed)
       db
         .select({
           id: users.id,
@@ -178,12 +142,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       liveStreams: liveStreamsResult,
       followedCreators: followedCreatorsWithLive,
-      upcomingShows: upcomingShowsResult,
       discoverCreators: discoverCreatorsResult,
       counts: {
         liveStreams: liveStreamsResult.length,
         followedCreators: followedCreatorsResult.length,
-        upcomingShows: upcomingShowsResult.length,
         discoverCreators: discoverCreatorsResult.length,
       },
     });
