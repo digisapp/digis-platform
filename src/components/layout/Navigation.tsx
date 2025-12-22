@@ -575,19 +575,6 @@ export function Navigation() {
                 <span className="text-base md:text-sm text-white font-semibold">Settings</span>
               </button>
 
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setShowProfileMenu(false);
-                }}
-                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-red-500/10 active:bg-red-500/20 transition-all text-left border-t border-cyan-500/20 active:scale-98"
-                style={{ minHeight: '56px' }}
-              >
-                <svg className="w-6 h-6 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="text-base md:text-sm text-red-400 font-bold">Sign Out</span>
-              </button>
             </div>
           </div>
         </>

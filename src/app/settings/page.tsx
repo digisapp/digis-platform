@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Ban, UserX, Share2, Instagram, Youtube } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -20,19 +20,6 @@ interface UsernameStatus {
   maxChanges: number;
   currentUsername: string;
   lastChangedAt: string | null;
-}
-
-interface BlockedUser {
-  id: string;
-  blockedId: string;
-  reason: string | null;
-  createdAt: string;
-  blockedUser: {
-    id: string;
-    username: string | null;
-    displayName: string | null;
-    avatarUrl: string | null;
-  };
 }
 
 export default function SettingsPage() {
@@ -82,21 +69,15 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Blocked users
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loadingBlocked, setLoadingBlocked] = useState(true);
-
   // Category dropdown states
   const [showPrimaryCategoryDropdown, setShowPrimaryCategoryDropdown] = useState(false);
   const [showSecondaryCategoryDropdown, setShowSecondaryCategoryDropdown] = useState(false);
-  const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch all data in parallel to avoid waterfall
     Promise.all([
       fetchCurrentUser(),
       fetchUsernameCooldown(),
-      fetchBlockedUsers(),
     ]);
   }, []);
 
@@ -156,47 +137,6 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Error fetching username cooldown:', err);
-    }
-  };
-
-  const fetchBlockedUsers = async () => {
-    try {
-      const response = await fetch('/api/users/block');
-      const data = await response.json();
-
-      if (response.ok) {
-        setBlockedUsers(data.blockedUsers || []);
-      }
-    } catch (err) {
-      console.error('Error fetching blocked users:', err);
-    } finally {
-      setLoadingBlocked(false);
-    }
-  };
-
-  const handleUnblockUser = async (blockedId: string) => {
-    if (!confirm('Are you sure you want to unblock this user?')) return;
-
-    setUnblockingId(blockedId);
-    try {
-      const response = await fetch('/api/users/block', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blockedId }),
-      });
-
-      if (response.ok) {
-        setBlockedUsers(prev => prev.filter(u => u.blockedId !== blockedId));
-        setMessage('User unblocked successfully');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to unblock user');
-      }
-    } catch (err) {
-      setError('Failed to unblock user');
-    } finally {
-      setUnblockingId(null);
     }
   };
 
@@ -1194,74 +1134,6 @@ export default function SettingsPage() {
           </form>
         </GlassCard>
 
-        {/* Blocked Users Section */}
-        <GlassCard className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Ban className="w-5 h-5 text-red-400" />
-            <h2 className="text-xl font-semibold text-white">Blocked Users</h2>
-          </div>
-
-          {loadingBlocked ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner size="sm" />
-            </div>
-          ) : blockedUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <UserX className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400">You haven't blocked anyone</p>
-              <p className="text-sm text-gray-500 mt-1">
-                Blocked users cannot view your streams, send messages, gifts, or call requests
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-gray-400 mb-4">
-                {blockedUsers.length} blocked user{blockedUsers.length !== 1 ? 's' : ''}
-              </p>
-              {blockedUsers.map((block) => (
-                <div
-                  key={block.id}
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
-                >
-                  <div className="flex items-center gap-3">
-                    {block.blockedUser.avatarUrl ? (
-                      <img
-                        src={block.blockedUser.avatarUrl}
-                        alt={block.blockedUser.username || 'User'}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center text-white text-sm font-bold">
-                        {block.blockedUser.username?.[0]?.toUpperCase() || '?'}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-white font-medium">
-                        {block.blockedUser.displayName || block.blockedUser.username || 'Unknown'}
-                      </p>
-                      {block.blockedUser.username && (
-                        <p className="text-sm text-gray-400">@{block.blockedUser.username}</p>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleUnblockUser(block.blockedId)}
-                    disabled={unblockingId === block.blockedId}
-                    className="px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {unblockingId === block.blockedId ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      'Unblock'
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
-
         {/* Become Creator Section - Only for Fans */}
         {currentUser?.role === 'fan' && (
           <GlassCard className="p-6 border-digis-cyan/20">
@@ -1293,6 +1165,30 @@ export default function SettingsPage() {
           >
             support@digis.cc
           </a>
+        </div>
+
+        {/* Sign Out Section */}
+        <div className="border-t border-cyan-500/30 pt-8 mt-4">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                if (response.ok) {
+                  router.push('/');
+                  router.refresh();
+                }
+              } catch (err) {
+                console.error('Logout error:', err);
+              }
+            }}
+            className="w-full px-6 py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 font-semibold flex items-center justify-center gap-3 transition-all"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
