@@ -606,7 +606,7 @@ export function Navigation() {
               {/* Creator Navigation: Home, Go Live, [Profile Center], Upload, Chats */}
               {/* First nav item (Home) */}
               <button
-                onClick={() => router.push(navItems[0].path)}
+                onClick={() => { setShowProfileMenu(false); router.push(navItems[0].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
                   navItems[0].active ? 'text-cyan-400' : 'text-gray-300'
                 }`}
@@ -630,7 +630,7 @@ export function Navigation() {
 
               {/* Second nav item (Go Live) */}
               <button
-                onClick={() => router.push(navItems[1].path)}
+                onClick={() => { setShowProfileMenu(false); router.push(navItems[1].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
                   navItems[1].active ? 'text-cyan-400' : 'text-gray-300'
                 }`}
@@ -701,7 +701,7 @@ export function Navigation() {
 
               {/* Third nav item (Upload) */}
               <button
-                onClick={() => router.push(navItems[2].path)}
+                onClick={() => { setShowProfileMenu(false); router.push(navItems[2].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
                   navItems[2].active ? 'text-cyan-400' : 'text-gray-300'
                 }`}
@@ -725,7 +725,7 @@ export function Navigation() {
 
               {/* Fourth nav item (Chats) */}
               <button
-                onClick={() => router.push(navItems[3].path)}
+                onClick={() => { setShowProfileMenu(false); router.push(navItems[3].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
                   navItems[3].active ? 'text-cyan-400' : 'text-gray-300'
                 }`}
@@ -771,6 +771,7 @@ export function Navigation() {
                       if (isProfile) {
                         setShowProfileMenu(!showProfileMenu);
                       } else {
+                        setShowProfileMenu(false);
                         router.push(item.path);
                       }
                     }}
