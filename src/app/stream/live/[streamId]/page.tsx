@@ -1145,6 +1145,9 @@ export default function BroadcastStudioPage() {
     setIsEnding(true);
     setHasManuallyEnded(true); // Prevent auto-end from triggering
 
+    // Disconnect from LiveKit immediately by clearing token
+    setToken('');
+
     try {
       const response = await fetch(`/api/streams/${streamId}/end`, {
         method: 'POST',
@@ -1185,6 +1188,9 @@ export default function BroadcastStudioPage() {
     setIsEnding(true);
     setHasManuallyEnded(true);
 
+    // Disconnect from LiveKit immediately by clearing token
+    setToken('');
+
     try {
       const response = await fetch(`/api/streams/${streamId}/end`, {
         method: 'POST',
@@ -1213,6 +1219,9 @@ export default function BroadcastStudioPage() {
     setShowVipEndChoice(false);
     setIsEnding(true);
     setHasManuallyEnded(true);
+
+    // Disconnect from LiveKit immediately by clearing token
+    setToken('');
 
     try {
       // First cancel the VIP show (this will refund tickets)
