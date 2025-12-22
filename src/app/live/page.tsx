@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown, Users, Sparkles } from 'lucide-react';
+import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import type { Stream } from '@/db/schema';
 import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
@@ -63,7 +63,6 @@ export default function LiveStreamsPage() {
   const { isCreator } = useAuth();
   const [freeStreams, setFreeStreams] = useState<LiveStream[]>([]);
   const [paidShows, setPaidShows] = useState<PaidShow[]>([]);
-  const [followedCreators, setFollowedCreators] = useState<SuggestedCreator[]>([]);
   const [topCreators, setTopCreators] = useState<SuggestedCreator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -122,7 +121,6 @@ export default function LiveStreamsPage() {
 
       if (suggestedRes?.ok) {
         const suggestedData = await suggestedRes.json();
-        setFollowedCreators(suggestedData.followedCreators || []);
         setTopCreators(suggestedData.topCreators || []);
       }
     } catch (err: any) {
@@ -503,53 +501,6 @@ export default function LiveStreamsPage() {
               </p>
             </div>
 
-            {/* Creators You Follow */}
-            {followedCreators.length > 0 && (
-              <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="w-5 h-5 text-cyan-400" />
-                  <h3 className="text-lg font-bold text-white">Creators You Follow</h3>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {followedCreators.map((creator) => (
-                    <button
-                      key={creator.id}
-                      onClick={() => router.push(`/${creator.username}`)}
-                      className="group p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all text-center"
-                    >
-                      <div className="relative inline-block mb-3">
-                        {creator.avatarUrl ? (
-                          <Image
-                            src={creator.avatarUrl}
-                            alt={creator.displayName || creator.username}
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 rounded-full object-cover mx-auto"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl font-bold text-white mx-auto">
-                            {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
-                          </div>
-                        )}
-                        {creator.isOnline && (
-                          <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full" />
-                        )}
-                      </div>
-                      <h4 className="font-semibold text-white truncate group-hover:text-cyan-400 transition-colors">
-                        {creator.displayName || creator.username}
-                      </h4>
-                      <p className="text-sm text-gray-500 truncate">
-                        @{creator.username}
-                        {creator.isCreatorVerified && (
-                          <span className="ml-1 text-cyan-400">✓</span>
-                        )}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            )}
-
             {/* Top Creators */}
             {topCreators.length > 0 && (
               <section>
@@ -603,7 +554,7 @@ export default function LiveStreamsPage() {
             )}
 
             {/* Fallback if no creators */}
-            {followedCreators.length === 0 && topCreators.length === 0 && (
+            {topCreators.length === 0 && (
               <div className="text-center py-8">
                 <p className="text-gray-400 mb-4">No creators to show yet</p>
                 <button
