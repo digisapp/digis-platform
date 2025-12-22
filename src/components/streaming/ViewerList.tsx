@@ -89,11 +89,11 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-cyan-500/20 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)] hover:bg-cyan-500/30 transition-all"
+        className="flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 shadow-lg hover:bg-black/80 transition-all"
         title="View Viewers"
       >
-        <Users className="w-4 h-4 text-cyan-400" />
-        <span className="text-cyan-400 font-bold text-sm">{currentViewers}</span>
+        <Users className="w-4 h-4 text-white" />
+        <span className="text-white font-bold text-sm">{currentViewers}</span>
       </button>
 
       {/* Viewer List Panel */}

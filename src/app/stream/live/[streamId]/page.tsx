@@ -2100,9 +2100,9 @@ export default function BroadcastStudioPage() {
                     <div className="hidden sm:block">
                       <ViewerList streamId={streamId} currentViewers={viewerCount} activeGuestId={activeGuest?.userId} />
                     </div>
-                    <div className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 backdrop-blur-xl bg-cyan-500/20 rounded-full border border-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-                      <Users className="w-3 h-3 text-cyan-400" />
-                      <span className="text-cyan-400 text-xs font-bold">{viewerCount}</span>
+                    <div className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 shadow-lg">
+                      <Users className="w-3 h-3 text-white" />
+                      <span className="text-white text-xs font-bold">{viewerCount}</span>
                     </div>
 
                     {/* Coins Earned - All screens (next to viewers) */}
