@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   GraduationCap, Video, Target, BarChart2, Clock, Mic, DollarSign,
   MessageSquare, Sparkles, Gift, Ticket, Radio, Camera,
   ChevronDown, ChevronUp, Play, CheckCircle, Star, Phone,
-  Upload, Image, Coins, ArrowLeft
+  Upload, Image, Coins
 } from 'lucide-react';
 
 interface FeatureGuide {
@@ -286,7 +285,6 @@ const featureGuides: FeatureGuide[] = [
 ];
 
 export default function LearnPage() {
-  const router = useRouter();
   const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
 
   const toggleGuide = (id: string) => {
@@ -295,19 +293,6 @@ export default function LearnPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-          <h1 className="text-lg font-bold text-white">Digis 101</h1>
-        </div>
-      </div>
-
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         {/* Header */}
         <div className="text-center mb-8">
