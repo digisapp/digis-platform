@@ -10,7 +10,7 @@ import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
-import { VideoControls } from '@/components/streaming/VideoControls';
+// VideoControls import removed - not needed for broadcaster view
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
@@ -2462,15 +2462,7 @@ export default function BroadcastStudioPage() {
                     </div>
                   )}
 
-                  <VideoControls
-                    onToggleMute={handleToggleMute}
-                    onToggleFullscreen={handleToggleFullscreen}
-                    onToggleTheater={handleToggleTheater}
-                    isMuted={isMuted}
-                    isFullscreen={isFullscreen}
-                    isTheaterMode={isTheaterMode}
-                    showTheaterMode={false}
-                  />
+{/* VideoControls removed - host doesn't need volume control for their own broadcast */}
                 </>
               ) : (
                 <div className="h-full flex items-center justify-center">
