@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown, Sparkles } from 'lucide-react';
+import { Search, Coins, Lock, Unlock, Hash, ChevronDown, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import type { Stream } from '@/db/schema';
 import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
@@ -489,18 +489,6 @@ export default function LiveStreamsPage() {
         {/* Empty State - Show Suggested Creators */}
         {!hasAnyStreams && (
           <div className="space-y-8">
-            {/* Header */}
-            <div className="text-center py-8">
-              <div className="relative inline-block mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-2xl opacity-40"></div>
-                <Tv className="relative w-16 h-16 text-gray-400 mx-auto" strokeWidth={1.5} />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">No one is live right now</h2>
-              <p className="text-gray-400 text-sm">
-                Check out these creators while you wait
-              </p>
-            </div>
-
             {/* Top Creators */}
             {topCreators.length > 0 && (
               <section>
