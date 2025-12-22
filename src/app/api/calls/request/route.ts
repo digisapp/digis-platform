@@ -7,6 +7,9 @@ import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { BlockService } from '@/lib/services/block-service';
 import { callRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { callLogger, extractError } from '@/lib/logging/logger';
+import { rateLimitCallRequest } from '@/lib/rate-limit';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   let userId: string | undefined;
@@ -23,6 +26,23 @@ export async function POST(request: NextRequest) {
     }
 
     userId = user.id;
+
+    // Rate limit call requests (3/min, 50/day)
+    const rateLimitResult = await rateLimitCallRequest(user.id);
+    if (!rateLimitResult.ok) {
+      callLogger.warn('Call request rate limited', {
+        userId: user.id,
+        action: 'call_request_rate_limited',
+        retryAfter: rateLimitResult.retryAfter,
+      });
+      return NextResponse.json(
+        { error: rateLimitResult.error },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateLimitResult.retryAfter) },
+        }
+      );
+    }
 
     // Validate input with Zod
     const validation = await validateBody(request, callRequestSchema);

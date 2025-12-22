@@ -367,6 +367,20 @@ export class StreamService {
   }
 
   /**
+   * Update peak viewers if current count exceeds it
+   * Used by Redis HyperLogLog-based viewer counting
+   */
+  static async updatePeakViewers(streamId: string, currentCount: number) {
+    await db
+      .update(streams)
+      .set({
+        peakViewers: sql`GREATEST(${streams.peakViewers}, ${currentCount})`,
+        updatedAt: new Date(),
+      })
+      .where(eq(streams.id, streamId));
+  }
+
+  /**
    * Get viewer count - uses Redis cache for performance
    */
   static async getViewerCount(streamId: string): Promise<number> {

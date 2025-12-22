@@ -15,7 +15,8 @@ if (ENCRYPTION_KEY.length !== 64) {
 }
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 16;
+// NIST recommends 12 bytes (96 bits) for GCM IV - provides optimal security
+const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
 // Convert key to buffer once at initialization

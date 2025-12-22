@@ -423,7 +423,7 @@ export class MessageService {
   }
 
   /**
-   * Get messages for a conversation
+   * Get messages for a conversation (DEPRECATED - use getMessagesCursor instead)
    * Requires userId to verify participation
    */
   static async getMessages(conversationId: string, userId: string, limit: number = 50, offset: number = 0) {
@@ -456,6 +456,88 @@ export class MessageService {
         },
       },
     });
+  }
+
+  /**
+   * Get messages with cursor-based pagination (recommended)
+   * More efficient than offset pagination at scale
+   *
+   * @param conversationId - The conversation to get messages from
+   * @param userId - The user requesting (for auth check)
+   * @param limit - Number of messages to return
+   * @param cursor - The createdAt timestamp to start from (exclusive)
+   * @param direction - 'older' for messages before cursor, 'newer' for after
+   */
+  static async getMessagesCursor(
+    conversationId: string,
+    userId: string,
+    limit: number = 50,
+    cursor?: string,
+    direction: 'older' | 'newer' = 'older'
+  ) {
+    // Verify user is a participant in this conversation
+    const conversation = await db.query.conversations.findFirst({
+      where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+
+    if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
+      throw new Error('Unauthorized: You are not a participant in this conversation');
+    }
+
+    // Build the query conditions
+    let whereCondition = eq(messages.conversationId, conversationId);
+
+    if (cursor) {
+      const cursorDate = new Date(cursor);
+      if (direction === 'older') {
+        // Get messages older than cursor (for scrolling up)
+        whereCondition = and(
+          eq(messages.conversationId, conversationId),
+          sql`${messages.createdAt} < ${cursorDate}`
+        )!;
+      } else {
+        // Get messages newer than cursor (for new messages)
+        whereCondition = and(
+          eq(messages.conversationId, conversationId),
+          sql`${messages.createdAt} > ${cursorDate}`
+        )!;
+      }
+    }
+
+    const result = await db.query.messages.findMany({
+      where: whereCondition,
+      orderBy: direction === 'older' ? [desc(messages.createdAt)] : [messages.createdAt],
+      limit: limit + 1, // Fetch one extra to check if there are more
+      with: {
+        sender: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    // Check if there are more messages
+    const hasMore = result.length > limit;
+    const messageList = hasMore ? result.slice(0, limit) : result;
+
+    // Get the next cursor (the createdAt of the last message)
+    const nextCursor = messageList.length > 0
+      ? messageList[messageList.length - 1].createdAt.toISOString()
+      : null;
+
+    return {
+      messages: messageList,
+      nextCursor,
+      hasMore,
+    };
   }
 
   /**
