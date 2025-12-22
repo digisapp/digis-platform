@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/context/AuthContext';
-import { Tv, Search, Radio, Ticket, Coins, Lock, Unlock, Hash, ChevronDown } from 'lucide-react';
+import { Tv, Search, Coins, Lock, Unlock, Hash, ChevronDown } from 'lucide-react';
 import type { Stream } from '@/db/schema';
 import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
@@ -111,21 +111,18 @@ export default function LiveStreamsPage() {
   };
 
   // Combine and filter streams
-  const getCombinedStreams = (): { liveNow: CombinedStream[], upcoming: PaidShow[] } => {
+  const getCombinedStreams = (): CombinedStream[] => {
     let liveNow: CombinedStream[] = [];
-    let upcoming: PaidShow[] = [];
 
     // Add free streams (they're always live)
     freeStreams.forEach(stream => {
       liveNow.push({ ...stream, type: 'free' as const });
     });
 
-    // Add paid shows based on status
+    // Add paid shows that are currently live
     paidShows.forEach(show => {
       if (show.status === 'live') {
         liveNow.push({ ...show, type: 'paid' as const });
-      } else if (show.status === 'scheduled') {
-        upcoming.push(show);
       }
     });
 
@@ -138,18 +135,11 @@ export default function LiveStreamsPage() {
         s.creator.displayName?.toLowerCase().includes(query) ||
         s.creator.username?.toLowerCase().includes(query)
       );
-      upcoming = upcoming.filter(s =>
-        s.title.toLowerCase().includes(query) ||
-        s.description?.toLowerCase().includes(query) ||
-        s.creator.displayName?.toLowerCase().includes(query) ||
-        s.creator.username?.toLowerCase().includes(query)
-      );
     }
 
     // Apply type filter
     if (filterType === 'free') {
       liveNow = liveNow.filter(s => s.type === 'free');
-      upcoming = [];
     } else if (filterType === 'paid') {
       liveNow = liveNow.filter(s => s.type === 'paid');
     }
@@ -173,13 +163,10 @@ export default function LiveStreamsPage() {
       return a.type === 'paid' ? -1 : 1;
     });
 
-    // Sort upcoming by start time
-    upcoming.sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
-
-    return { liveNow, upcoming };
+    return liveNow;
   };
 
-  const { liveNow, upcoming } = getCombinedStreams();
+  const liveNow = getCombinedStreams();
 
   const formatStartTime = (date: Date | string) => {
     const now = new Date();
@@ -457,88 +444,8 @@ export default function LiveStreamsPage() {
           </div>
         )}
 
-        {/* Tickets Available Section */}
-        {upcoming.length > 0 && filterType !== 'free' && (
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <Ticket className="w-5 h-5 text-yellow-400" />
-              <h2 className="text-xl font-bold text-white">Tickets Available</h2>
-              <span className="text-sm text-gray-400">({upcoming.length})</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcoming.map((show) => (
-                <div
-                  key={show.id}
-                  className="group cursor-pointer"
-                  onClick={() => router.push(`/streams/${show.id}`)}
-                >
-                  <div className="relative">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500 to-amber-500 rounded-2xl opacity-0 group-hover:opacity-50 blur transition duration-500"></div>
-
-                    <div className="relative backdrop-blur-xl bg-white/10 rounded-2xl border border-white/20 overflow-hidden transition-all duration-300 group-hover:scale-[1.02] group-hover:border-yellow-500/50">
-                      {/* Thumbnail */}
-                      <div className="aspect-video bg-gradient-to-br from-yellow-900/30 via-purple-900/30 to-slate-900 relative overflow-hidden">
-                        {show.coverImageUrl ? (
-                          <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Ticket className="w-16 h-16 text-yellow-400/50" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60"></div>
-
-                        {/* Scheduled Badge */}
-                        <div className="absolute top-3 left-3 px-3 py-1.5 bg-purple-500/80 backdrop-blur-sm rounded-lg text-white text-xs font-bold">
-                          {formatStartTime(show.scheduledStart)}
-                        </div>
-
-                        {/* Price Badge */}
-                        <div className="absolute top-3 right-3 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg text-black text-xs font-bold flex items-center gap-1">
-                          <Coins className="w-3 h-3" />
-                          {show.ticketPrice}
-                        </div>
-
-                        {/* Tickets Sold */}
-                        <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
-                          <Ticket className="w-3.5 h-3.5" />
-                          {show.ticketsSold}{show.maxTickets && `/${show.maxTickets}`}
-                        </div>
-                      </div>
-
-                      {/* Show Info */}
-                      <div className="p-4">
-                        <h3 className="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-yellow-400 transition-colors">
-                          {show.title}
-                        </h3>
-
-                        <div className="flex items-center gap-2">
-                          {show.creator.avatarUrl ? (
-                            <img
-                              src={show.creator.avatarUrl}
-                              alt={show.creator.displayName || ''}
-                              className="w-6 h-6 rounded-full object-cover border border-white/20"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center text-xs font-bold text-white">
-                              {show.creator.displayName?.[0] || show.creator.username?.[0] || '?'}
-                            </div>
-                          )}
-                          <span className="text-sm text-gray-300 truncate">
-                            {show.creator.displayName || show.creator.username}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Empty State */}
-        {liveNow.length === 0 && upcoming.length === 0 && (
+        {liveNow.length === 0 && (
           <div className="text-center py-16">
             <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 rounded-full blur-2xl opacity-50"></div>
