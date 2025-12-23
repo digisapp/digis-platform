@@ -201,7 +201,7 @@ function FanDashboard() {
       <Navigation />
 
       {/* Spacer for fixed mobile header + safe area on notched devices */}
-      <div className="md:hidden pt-safe-area" style={{ height: '96px', paddingTop: 'env(safe-area-inset-top, 0px)' }} />
+      <div className="md:hidden pt-safe-area" style={{ height: '64px', paddingTop: 'env(safe-area-inset-top, 0px)' }} />
 
       <main className="pb-24 md:pt-6 md:pb-8 md:pl-20">
         <div className="max-w-7xl mx-auto px-4 pb-4 md:py-4">
