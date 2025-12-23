@@ -174,6 +174,7 @@ export default function TheaterModePage() {
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [streamEnded, setStreamEnded] = useState(false);
   const [showBRB, setShowBRB] = useState(false);
+  const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
 
   // UI state
   const [showChat, setShowChat] = useState(true);
@@ -866,6 +867,13 @@ export default function TheaterModePage() {
       const streamData = data.stream || data; // Handle both { stream } and direct stream object
       setStream(streamData);
 
+      // Set stream orientation from database (default to landscape for backwards compatibility)
+      if (streamData.orientation === 'portrait') {
+        setStreamOrientation('portrait');
+      } else {
+        setStreamOrientation('landscape');
+      }
+
       // Set menu enabled state from stream data (database column is tipMenuEnabled)
       // Only update if we get a definitive boolean value to avoid race conditions
       if (typeof streamData.tipMenuEnabled === 'boolean') {
@@ -1256,9 +1264,13 @@ export default function TheaterModePage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area - centered on desktop when chat is hidden */}
-        <div className="flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1 lg:mx-auto">
-          {/* Video - limit height in landscape to leave room for chat */}
-          <div className="relative aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1 lg:min-h-[75vh]">
+        <div className={`flex flex-col bg-gradient-to-b from-black via-gray-900 to-black min-h-0 lg:flex-1 ${streamOrientation === 'portrait' ? 'items-center' : ''}`}>
+          {/* Video - use portrait or landscape aspect ratio based on stream orientation */}
+          <div className={`relative ${
+            streamOrientation === 'portrait'
+              ? 'aspect-[9/16] max-h-[85vh] w-auto mx-auto'
+              : 'aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1 lg:min-h-[75vh] w-full'
+          }`}>
             {streamEnded ? (
               /* Stream Ended State */
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900">

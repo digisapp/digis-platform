@@ -39,7 +39,7 @@ import { useToastContext } from '@/context/ToastContext';
 
 // Component to show local video preview (camera or screen share)
 // isMirrored: true for front camera to match iPhone camera app behavior
-function LocalCameraPreview({ isPortrait = false, isMirrored = true }: { isPortrait?: boolean; isMirrored?: boolean }) {
+function LocalCameraPreview({ isMirrored = true }: { isMirrored?: boolean }) {
   const { localParticipant } = useLocalParticipant();
 
   // Check for screen share first (takes priority when active)
@@ -61,7 +61,7 @@ function LocalCameraPreview({ isPortrait = false, isMirrored = true }: { isPortr
     return (
       <VideoTrack
         trackRef={{ participant: localParticipant, source: Track.Source.Camera, publication: cameraTrack }}
-        className={`h-full w-full ${isPortrait ? 'object-cover' : 'object-contain'}`}
+        className="h-full w-full object-contain"
         style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
       />
     );
@@ -2072,7 +2072,7 @@ export default function BroadcastStudioPage() {
                       },
                     }}
                   >
-                    <LocalCameraPreview isPortrait={streamOrientation === 'portrait'} isMirrored={facingMode === 'user'} />
+                    <LocalCameraPreview isMirrored={facingMode === 'user'} />
                     <RoomAudioRenderer />
                     {/* Screen Share Control - Desktop only, positioned in bottom right of video */}
                     <div className="absolute bottom-3 right-3 z-20 hidden md:block">

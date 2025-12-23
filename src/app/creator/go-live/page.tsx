@@ -320,30 +320,26 @@ export default function GoLivePage() {
       }
 
       // Set video constraints
-      // On mobile: use minimal constraints for widest field of view (like FaceTime/selfie)
-      // iPhone crops/zooms when high resolutions are requested
-      // On desktop: use higher resolution
-      const videoConstraints = isMobile
+      // For portrait mode (mobile/tablet): use 9:16 aspect ratio like FaceTime
+      // Use moderate resolution (720x1280) to avoid iOS zoom/crop issues
+      // For landscape: use 16:9 aspect ratio
+      const videoConstraints = orientation === 'portrait'
         ? {
             deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
             facingMode: 'user',
+            width: { ideal: 720 },
+            height: { ideal: 1280 },
+            aspectRatio: { ideal: 9 / 16 },
             frameRate: { ideal: 30 },
           }
-        : orientation === 'portrait'
-          ? {
-              deviceId: selectedVideoDevice,
-              width: { ideal: 1080 },
-              height: { ideal: 1920 },
-              frameRate: { ideal: 30 },
-              facingMode: 'user',
-            }
-          : {
-              deviceId: selectedVideoDevice,
-              width: { ideal: 1920 },
-              height: { ideal: 1080 },
-              frameRate: { ideal: 30 },
-              facingMode: 'user',
-            };
+        : {
+            deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            aspectRatio: { ideal: 16 / 9 },
+            frameRate: { ideal: 30 },
+          };
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
@@ -355,7 +351,7 @@ export default function GoLivePage() {
         },
       });
 
-      // Check actual video track dimensions to see if rotation is needed
+      // Check actual video track dimensions and reset zoom if available
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         const settings = videoTrack.getSettings();
@@ -364,6 +360,23 @@ export default function GoLivePage() {
 
         // If we want portrait but camera outputs landscape, we need to rotate
         setNeedsRotation(wantPortrait && isVideoLandscape && isMobile);
+
+        // Reset zoom to minimum if device supports it (fixes "zoomed in" issue on some devices)
+        try {
+          const capabilities = videoTrack.getCapabilities?.() as MediaTrackCapabilities & { zoom?: { min?: number; max?: number } | number[] };
+          if (capabilities?.zoom) {
+            const zoomCap = capabilities.zoom;
+            const minZoom = typeof zoomCap === 'object' && !Array.isArray(zoomCap) && 'min' in zoomCap
+              ? zoomCap.min
+              : Array.isArray(zoomCap) ? zoomCap[0] : 1;
+            await videoTrack.applyConstraints({
+              // @ts-expect-error - zoom is a valid constraint on some devices but not in standard typings
+              advanced: [{ zoom: minZoom }],
+            });
+          }
+        } catch (zoomError) {
+          // Zoom not supported - ignore
+        }
       }
 
       setMediaStream(stream);
@@ -990,7 +1003,7 @@ export default function GoLivePage() {
                     playsInline
                     muted
                     className="absolute inset-0 w-full h-full -scale-x-100"
-                    style={{ objectFit: 'cover' }}
+                    style={{ objectFit: 'contain' }}
                   />
                   {/* Live indicator */}
                   <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
