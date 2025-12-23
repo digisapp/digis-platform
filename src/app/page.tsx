@@ -301,7 +301,7 @@ function FanDashboard() {
                   >
                     <div className={`relative p-0.5 rounded-full ${
                       creator.isLive
-                        ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                        ? 'bg-gradient-to-br from-red-500 to-orange-500 animate-breathe'
                         : creator.isOnline
                         ? 'bg-gradient-to-br from-green-500 to-emerald-500'
                         : 'bg-white/20'

@@ -219,12 +219,9 @@ export default function AiChatPage() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-white mb-2">
+        <h1 className="text-2xl font-bold text-white mb-6">
           {creator.displayName || creator.username}&apos;s AI Twin
         </h1>
-        <p className="text-gray-400 mb-6">
-          Voice chat with an AI version that sounds just like them!
-        </p>
 
         {/* Pricing info */}
         {creator.pricePerMinute && (
@@ -233,9 +230,6 @@ export default function AiChatPage() {
               <Coins className="w-5 h-5" />
               <span>{creator.pricePerMinute} coins/minute</span>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
-              {creator.minimumMinutes} minute minimum
-            </p>
           </div>
         )}
 
