@@ -91,9 +91,6 @@ export default function GoLivePage() {
   // Track actual device orientation (portrait = phone held upright)
   const [deviceOrientation, setDeviceOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
-  // Track if video needs rotation (camera outputs landscape but we want portrait)
-  const [needsRotation, setNeedsRotation] = useState(false);
-
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -156,12 +153,13 @@ export default function GoLivePage() {
     };
   }, []);
 
-  // Start media stream when devices or orientation change
+  // Start media stream when devices change
+  // Note: orientation only affects display (via CSS object-cover), not capture
   useEffect(() => {
     if (selectedVideoDevice && selectedAudioDevice) {
       startMediaStream();
     }
-  }, [selectedVideoDevice, selectedAudioDevice, orientation]);
+  }, [selectedVideoDevice, selectedAudioDevice]);
 
   // Removed auto-sync - orientation is now a manual choice
 
@@ -312,27 +310,17 @@ export default function GoLivePage() {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
 
-      // Set video constraints
-      // For portrait mode (mobile/tablet): use 9:16 aspect ratio like FaceTime
-      // Use moderate resolution (720x1280) to avoid iOS zoom/crop issues
-      // For landscape: use 16:9 aspect ratio
-      const videoConstraints = orientation === 'portrait'
-        ? {
-            deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
-            facingMode: 'user',
-            width: { ideal: 720 },
-            height: { ideal: 1280 },
-            aspectRatio: { ideal: 9 / 16 },
-            frameRate: { ideal: 30 },
-          }
-        : {
-            deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
-            facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            aspectRatio: { ideal: 16 / 9 },
-            frameRate: { ideal: 30 },
-          };
+      // Always capture in landscape 1080p (same as live stream)
+      // Portrait display is achieved with object-cover CSS (like video calls)
+      // This ensures the preview matches exactly what viewers will see
+      const videoConstraints = {
+        deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
+        facingMode: 'user',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        aspectRatio: { ideal: 16 / 9 },
+        frameRate: { ideal: 30 },
+      };
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
@@ -347,13 +335,6 @@ export default function GoLivePage() {
       // Check actual video track dimensions and reset zoom if available
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        const settings = videoTrack.getSettings();
-        const isVideoLandscape = (settings.width || 0) > (settings.height || 0);
-        const wantPortrait = orientation === 'portrait';
-
-        // If we want portrait but camera outputs landscape, we need to rotate
-        setNeedsRotation(wantPortrait && isVideoLandscape && isMobile);
-
         // Reset zoom to minimum if device supports it (fixes "zoomed in" issue on some devices)
         try {
           const capabilities = videoTrack.getCapabilities?.() as MediaTrackCapabilities & { zoom?: { min?: number; max?: number } | number[] };
