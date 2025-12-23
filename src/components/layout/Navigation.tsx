@@ -446,22 +446,6 @@ export function Navigation() {
                   >
                     digis.cc/{username}
                   </button>
-                  <button
-                    onClick={() => {
-                      router.push(userRole === 'creator' ? '/creator/community' : '/connections');
-                      setShowProfileMenu(false);
-                    }}
-                    className="flex items-center gap-1 text-base md:text-xs text-gray-400 hover:text-cyan-400 transition-colors mt-1"
-                  >
-                    <span className="font-medium">
-                      {userRole === 'creator'
-                        ? followerCount !== null
-                          ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
-                          : '— Followers'
-                        : 'Following'
-                      }
-                    </span>
-                  </button>
                 </div>
               </div>
             </div>
