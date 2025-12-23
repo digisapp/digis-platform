@@ -18,7 +18,7 @@ interface CreatorLink {
 }
 
 // Common emojis for link buttons
-const EMOJI_OPTIONS = ['🛍️', '💄', '👗', '📸', '🎁', '💰', '🔗', '✨', '💅', '👠', '🎵', '📱', '💻', '🎮', '📚', '🍗'];
+const EMOJI_OPTIONS = ['🛍️', '💄', '👗', '📸', '🎁', '💰', '🔗', '✨', '💅', '👠', '🎵', '📱', '💻', '🎮', '📚', '🪽'];
 
 export default function CreatorLinksPage() {
   const router = useRouter();
