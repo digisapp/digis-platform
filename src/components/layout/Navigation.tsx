@@ -407,7 +407,7 @@ export function Navigation() {
                   className="relative flex-shrink-0 group"
                   title="Change profile picture"
                 >
-                  <div className="w-16 h-16 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[2px]">
+                  <div className="w-20 h-20 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] md:p-[2px]">
                     <div className="w-full h-full rounded-full bg-white p-[2px]">
                       {avatarUrl ? (
                         <img
@@ -416,7 +416,7 @@ export function Navigation() {
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-xl md:text-lg">
+                        <div className="w-full h-full rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-white font-bold text-2xl md:text-lg">
                           {displayName?.[0]?.toUpperCase() || 'U'}
                         </div>
                       )}
@@ -425,16 +425,16 @@ export function Navigation() {
                   {/* Camera overlay on hover */}
                   <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     {uploadingAvatar ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Camera className="w-5 h-5 text-white" />
+                      <Camera className="w-6 h-6 md:w-5 md:h-5 text-white" />
                     )}
                   </div>
                 </button>
 
                 {/* Username & Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-xl md:text-lg truncate leading-tight">
+                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-lg truncate leading-tight">
                     {username}
                   </h3>
                   <button
@@ -442,7 +442,7 @@ export function Navigation() {
                       router.push(`/${username}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full"
+                    className="text-base md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full mt-0.5"
                   >
                     digis.cc/{username}
                   </button>
@@ -451,9 +451,9 @@ export function Navigation() {
                       router.push(userRole === 'creator' ? '/creator/community' : '/connections');
                       setShowProfileMenu(false);
                     }}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-cyan-400 transition-colors"
+                    className="flex items-center gap-1 text-base md:text-xs text-gray-400 hover:text-cyan-400 transition-colors mt-1"
                   >
-                    <span>
+                    <span className="font-medium">
                       {userRole === 'creator'
                         ? followerCount !== null
                           ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
