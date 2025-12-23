@@ -56,6 +56,12 @@ interface ProfileData {
     snapchat?: string | null;
     youtube?: string | null;
   } | null;
+  links?: {
+    id: string;
+    title: string;
+    url: string;
+    emoji: string | null;
+  }[] | null;
 }
 
 export default function ProfilePageClient() {
@@ -1014,6 +1020,28 @@ export default function ProfilePageClient() {
         {user.role === 'creator' && goals.length > 0 && (
           <div className="mb-6">
             <ProfileGoalsWidget goals={goals} maxDisplay={3} onGoalUpdate={fetchGoals} />
+          </div>
+        )}
+
+        {/* Creator Links Section - Linktree-style */}
+        {user.role === 'creator' && profile.links && profile.links.length > 0 && (
+          <div className="mb-6">
+            <div className="grid grid-cols-2 gap-2">
+              {profile.links.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-white/5 to-white/10 hover:from-cyan-500/20 hover:to-purple-500/20 border border-white/10 hover:border-cyan-500/40 rounded-xl transition-all duration-300"
+                >
+                  <span className="text-lg">{link.emoji || '🔗'}</span>
+                  <span className="flex-1 text-sm font-medium text-white truncate group-hover:text-cyan-300 transition-colors">
+                    {link.title}
+                  </span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

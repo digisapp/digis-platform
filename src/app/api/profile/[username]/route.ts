@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, profiles, creatorGoals, contentItems, contentLikes, contentPurchases } from '@/lib/data/system';
-import { eq, and, desc, sql, inArray } from 'drizzle-orm';
+import { users, profiles, creatorGoals, contentItems, contentLikes, contentPurchases, creatorLinks } from '@/lib/data/system';
+import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -65,7 +65,7 @@ export async function GET(
       ]);
 
     // Batch all queries in parallel with timeouts - non-essential queries fail gracefully
-    const [followCounts, isFollowing, creatorSettings, goals, content, userProfile] = await Promise.all([
+    const [followCounts, isFollowing, creatorSettings, goals, content, userProfile, links] = await Promise.all([
       // 1. Get follow counts (essential - use cached fallback)
       withTimeout(
         FollowService.getFollowCounts(user.id),
@@ -128,6 +128,26 @@ export async function GET(
             null
           )
         : Promise.resolve(null),
+
+      // 7. Get creator links (affiliate/promo links) if creator
+      user.role === 'creator'
+        ? withTimeout(
+            db.query.creatorLinks.findMany({
+              where: and(
+                eq(creatorLinks.creatorId, user.id),
+                eq(creatorLinks.isActive, true)
+              ),
+              orderBy: [asc(creatorLinks.displayOrder)],
+              columns: {
+                id: true,
+                title: true,
+                url: true,
+                emoji: true,
+              },
+            }).catch(() => []),
+            []
+          )
+        : Promise.resolve([]),
     ]);
 
     // Build call settings from result
@@ -213,6 +233,7 @@ export async function GET(
       goals,
       content: contentWithStatus,
       socialLinks,
+      links: links.length > 0 ? links : null, // Only include if creator has links
     });
   } catch (error: any) {
     console.error('[PROFILE]', {

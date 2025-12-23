@@ -130,3 +130,35 @@ export const menuPurchasesRelations = relations(menuPurchases, ({ one }) => ({
     references: [tipMenuItems.id],
   }),
 }));
+
+// Creator Links - Linktree-style links for affiliate deals and promotions
+export const creatorLinks = pgTable('creator_links', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Link configuration
+  title: text('title').notNull(), // e.g., "Shop My Favorites", "Discount Code"
+  url: text('url').notNull(), // Full URL to the destination
+  emoji: text('emoji'), // Optional emoji icon (e.g., "🛍️", "💄")
+
+  // Status and ordering
+  isActive: boolean('is_active').default(true).notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+
+  // Analytics (optional, for future use)
+  clickCount: integer('click_count').default(0).notNull(),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  creatorIdIdx: index('creator_links_creator_id_idx').on(table.creatorId, table.isActive),
+  displayOrderIdx: index('creator_links_display_order_idx').on(table.creatorId, table.displayOrder),
+}));
+
+// Creator Links Relations
+export const creatorLinksRelations = relations(creatorLinks, ({ one }) => ({
+  creator: one(users, {
+    fields: [creatorLinks.creatorId],
+    references: [users.id],
+  }),
+}));
