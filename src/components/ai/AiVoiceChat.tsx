@@ -90,14 +90,15 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
   }, [connectionState, startTime]);
 
   useEffect(() => {
-    if (!startTime) return;
+    // Stop timer if chat ended (showSummary) or no start time
+    if (!startTime || showSummary) return;
 
     const interval = setInterval(() => {
       setDuration(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [startTime]);
+  }, [startTime, showSummary]);
 
   // Clear AI response when user starts speaking
   useEffect(() => {
@@ -171,10 +172,7 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-cyan-500/20 border-2 border-green-500/30 flex items-center justify-center">
               <Bot className="w-10 h-10 text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Chat Ended</h2>
-            <p className="text-gray-400 mb-6">
-              Thanks for chatting with {creatorName}&apos;s AI Twin!
-            </p>
+            <h2 className="text-2xl font-bold text-white mb-6">Chat Ended</h2>
 
             {/* Summary stats */}
             <div className="bg-white/5 rounded-xl p-4 mb-6 space-y-3">
