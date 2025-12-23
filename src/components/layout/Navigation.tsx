@@ -400,7 +400,7 @@ export function Navigation() {
               />
 
               {/* Avatar - Clickable to change */}
-              <div className="flex items-start gap-4 mb-5 md:mb-4">
+              <div className="flex items-start gap-4 mb-2 md:mb-4">
                 <button
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
@@ -442,7 +442,7 @@ export function Navigation() {
                       router.push(`/${username}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-base md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full mt-0.5"
+                    className="text-base md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full mt-2 md:mt-0.5"
                   >
                     digis.cc/{username}
                   </button>
