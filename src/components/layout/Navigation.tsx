@@ -434,7 +434,7 @@ export function Navigation() {
 
                 {/* Username & Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-lg truncate leading-tight">
+                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-xl truncate leading-tight">
                     {username}
                   </h3>
                   <button
@@ -442,7 +442,7 @@ export function Navigation() {
                       router.push(`/${username}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-base md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full mt-2 md:mt-0.5"
+                    className="text-base md:text-sm text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full mt-2 md:mt-1"
                   >
                     digis.cc/{username}
                   </button>
