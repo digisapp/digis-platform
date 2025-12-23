@@ -2262,14 +2262,14 @@ export default function BroadcastStudioPage() {
                   <div className="absolute bottom-3 left-3 z-50 md:hidden">
                     {showMobileTools ? (
                       /* Expanded tools menu */
-                      <div className="flex flex-col gap-2 p-3 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">
+                      <div className="flex flex-col gap-3 p-4 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">
                         {/* Close button */}
                         <button
                           onClick={() => setShowMobileTools(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
                         >
-                          <X className="w-5 h-5 text-white" />
-                          <span className="text-white text-sm font-medium">Close</span>
+                          <X className="w-6 h-6 text-white" />
+                          <span className="text-white text-base font-medium">Close</span>
                         </button>
 
                         {/* Goal Button */}
@@ -2284,14 +2284,14 @@ export default function BroadcastStudioPage() {
                                 setShowMobileTools(false);
                               }}
                               disabled={hasActiveGoal}
-                              className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
+                              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                                 hasActiveGoal
                                   ? 'bg-gray-600/30 opacity-50'
                                   : 'bg-cyan-500/20 hover:bg-cyan-500/30'
                               }`}
                             >
-                              <Target className={`w-5 h-5 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
-                              <span className={`text-sm font-medium ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`}>Goal</span>
+                              <Target className={`w-6 h-6 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                              <span className={`text-base font-medium ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`}>Goal</span>
                             </button>
                           );
                         })()}
@@ -2303,14 +2303,14 @@ export default function BroadcastStudioPage() {
                             setShowMobileTools(false);
                           }}
                           disabled={!!activePoll?.isActive}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                             activePoll?.isActive
                               ? 'bg-purple-500/30'
                               : 'bg-purple-500/20 hover:bg-purple-500/30'
                           }`}
                         >
-                          <BarChart2 className="w-5 h-5 text-purple-400" />
-                          <span className="text-sm font-medium text-purple-400">Poll</span>
+                          <BarChart2 className="w-6 h-6 text-purple-400" />
+                          <span className="text-base font-medium text-purple-400">Poll</span>
                         </button>
 
                         {/* Timer Button */}
@@ -2320,14 +2320,14 @@ export default function BroadcastStudioPage() {
                             setShowMobileTools(false);
                           }}
                           disabled={!!activeCountdown?.isActive}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                             activeCountdown?.isActive
                               ? 'bg-cyan-500/30'
                               : 'bg-cyan-500/20 hover:bg-cyan-500/30'
                           }`}
                         >
-                          <Clock className="w-5 h-5 text-cyan-400" />
-                          <span className="text-sm font-medium text-cyan-400">Timer</span>
+                          <Clock className="w-6 h-6 text-cyan-400" />
+                          <span className="text-base font-medium text-cyan-400">Timer</span>
                         </button>
 
                         {/* VIP Button */}
@@ -2337,10 +2337,10 @@ export default function BroadcastStudioPage() {
                               setShowAnnounceModal(true);
                               setShowMobileTools(false);
                             }}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 transition-all"
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 transition-all"
                           >
-                            <Ticket className="w-5 h-5 text-amber-400" />
-                            <span className="text-sm font-medium text-amber-400">VIP</span>
+                            <Ticket className="w-6 h-6 text-amber-400" />
+                            <span className="text-base font-medium text-amber-400">VIP</span>
                           </button>
                         )}
                       </div>
