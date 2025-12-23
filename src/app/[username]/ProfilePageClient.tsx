@@ -284,9 +284,18 @@ export default function ProfilePageClient() {
       if (showsRes.ok) {
         const showsData = await showsRes.json();
         const showsList = Array.isArray(showsData.data) ? showsData.data : [];
-        // Only show upcoming and live shows
+        // Only show upcoming and live shows (filter out scheduled shows more than 4 hours past)
+        const now = new Date();
+        const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
         const upcomingShows = showsList
-          .filter((s: any) => ['scheduled', 'live'].includes(s.status))
+          .filter((s: any) => {
+            if (s.status === 'live') return true;
+            if (s.status === 'scheduled') {
+              const scheduledTime = new Date(s.scheduledStart);
+              return scheduledTime > fourHoursAgo;
+            }
+            return false;
+          })
           .map((show: any) => ({
             id: show.id,
             title: show.title,

@@ -319,12 +319,16 @@ export class ShowService {
     const conditions = [];
 
     // Filter by status - either scheduled only, or live + scheduled
+    // Also filter out scheduled shows that are more than 4 hours past their start time
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
+
     if (upcoming) {
       conditions.push(eq(shows.status, 'scheduled'));
       conditions.push(gte(shows.scheduledStart, new Date()));
     } else {
       // Get both live and scheduled shows (not ended or cancelled)
-      conditions.push(sql`${shows.status} IN ('live', 'scheduled')`);
+      // But exclude scheduled shows that are more than 4 hours past their start time
+      conditions.push(sql`(${shows.status} = 'live' OR (${shows.status} = 'scheduled' AND ${shows.scheduledStart} > ${fourHoursAgo}))`);
     }
 
     if (creatorId) {
