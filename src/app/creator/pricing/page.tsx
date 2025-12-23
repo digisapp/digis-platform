@@ -663,23 +663,16 @@ function PricingPageContent() {
                   {menuItems.map((item) => (
                     <GlassCard
                       key={item.id}
-                      className={`p-4 ${!item.isActive ? 'opacity-50' : ''}`}
+                      className="p-4"
                     >
                       <div className="flex items-center gap-3">
                         <div className="text-2xl w-10 text-center">
                           {item.emoji || '🎁'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white truncate">
-                              {item.label}
-                            </span>
-                            {!item.isActive && (
-                              <span className="text-xs text-gray-500 px-2 py-0.5 bg-gray-800 rounded">
-                                Hidden
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-semibold text-white truncate block">
+                            {item.label}
+                          </span>
                           {item.description && (
                             <p className="text-sm text-gray-400 truncate">{item.description}</p>
                           )}
@@ -689,16 +682,6 @@ function PricingPageContent() {
                           {item.price}
                         </div>
                         <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => toggleItemActive(item)}
-                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
-                              item.isActive
-                                ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                                : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                            }`}
-                          >
-                            {item.isActive ? 'Active' : 'Enable'}
-                          </button>
                           <button
                             onClick={() => openEditModal(item)}
                             className="p-2 text-gray-400 hover:text-white transition-colors"
