@@ -592,10 +592,22 @@ export default function AdminOnboardingPage() {
                   </thead>
                   <tbody>
                     {invites.map((invite) => (
-                      <tr key={invite.id} className="border-t border-white/5 hover:bg-white/5">
+                      <tr
+                        key={invite.id}
+                        className={`border-t border-white/5 hover:bg-white/5 ${
+                          invite.status === 'claimed'
+                            ? 'bg-green-500/10 border-l-4 border-l-green-500'
+                            : ''
+                        }`}
+                      >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-white font-medium">@{invite.instagramHandle}</span>
+                            {invite.status === 'claimed' && (
+                              <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            )}
+                            <span className={`font-medium ${invite.status === 'claimed' ? 'text-green-400' : 'text-white'}`}>
+                              @{invite.instagramHandle}
+                            </span>
                             {invite.displayName && invite.displayName !== invite.instagramHandle && (
                               <span className="text-gray-500 text-xs">({invite.displayName})</span>
                             )}
