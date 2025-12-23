@@ -25,6 +25,7 @@ type StreamChatProps = {
   menuEnabled?: boolean;
   menuItems?: MenuItem[];
   onMenuClick?: () => void;
+  onMenuClose?: () => void;
 };
 
 // Quick emojis for chat
@@ -329,7 +330,7 @@ const ChatMessage = memo(function ChatMessage({
   );
 });
 
-export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick }: StreamChatProps) {
+export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick, onMenuClose }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -404,9 +405,22 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
       {menuEnabled && menuItems.length > 0 && (
         <div className="p-3 flex-shrink-0 border-b border-pink-400/20">
           <div
-            className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
+            className="relative p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
             onClick={onMenuClick}
           >
+            {/* Close button */}
+            {onMenuClose && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMenuClose();
+                }}
+                className="absolute top-2 right-2 p-1 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                title="Hide Menu"
+              >
+                <X className="w-3.5 h-3.5 text-white/70" />
+              </button>
+            )}
             <div className="flex items-center gap-2 mb-2">
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
                 <List className="w-3 h-3 text-white" />

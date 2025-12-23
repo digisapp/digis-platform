@@ -32,7 +32,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
 import { getAblyClient } from '@/lib/ably/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff, Plus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
@@ -283,7 +283,7 @@ export default function BroadcastStudioPage() {
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
-  const [showMobileToolbar, setShowMobileToolbar] = useState(true); // Show controls by default
+  const [showMobileTools, setShowMobileTools] = useState(false); // Collapsed by default, tap + to expand
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Poll and Countdown state
@@ -2107,10 +2107,10 @@ export default function BroadcastStudioPage() {
                       <span className="text-white text-xs font-bold">{viewerCount}</span>
                     </div>
 
-                    {/* Coins Earned - All screens (next to viewers) */}
-                    <div className="flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
-                      <Coins className="w-3 h-3 md:w-4 md:h-4 text-yellow-400" />
-                      <span className="text-yellow-400 font-bold text-xs md:text-sm">{totalEarnings.toLocaleString()}</span>
+                    {/* Coins Earned - Desktop only (mobile shows in second row) */}
+                    <div className="hidden md:flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                     </div>
 
                     {/* Connection Status - Desktop only */}
@@ -2125,6 +2125,50 @@ export default function BroadcastStudioPage() {
                         <span className="text-green-400 text-sm font-bold">Sharing Screen</span>
                       </div>
                     )}
+                  </div>
+
+                  {/* Mobile Second Row - Coins, Record, End Stream */}
+                  <div className="absolute top-14 left-3 right-3 z-20 md:hidden">
+                    <div className="flex items-center justify-between">
+                      {/* Left side: Coins + Record */}
+                      <div className="flex items-center gap-2">
+                        {/* Coins Earned */}
+                        <div className="flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                          <Coins className="w-3 h-3 text-yellow-400" />
+                          <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
+                        </div>
+
+                        {/* Record Button */}
+                        <StreamRecordButton
+                          isRecording={isRecording}
+                          currentDuration={formattedDuration}
+                          maxDuration={maxDuration}
+                          recordingsCount={recordings.length}
+                          maxRecordings={maxRecordings}
+                          onStartRecording={startRecording}
+                          onStopRecording={stopRecording}
+                          compact={true}
+                        />
+                      </div>
+
+                      {/* Right side: End Stream */}
+                      <button
+                        onClick={() => {
+                          if (isRecording) {
+                            stopRecording();
+                          }
+                          setIsLeaveAttempt(false);
+                          setShowEndConfirm(true);
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
+                      >
+                        <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                        </svg>
+                        <span className="text-red-400 text-xs font-semibold">End</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Top Right Overlay - Desktop: All buttons, Mobile: Just coins + camera flip */}
@@ -2224,151 +2268,170 @@ export default function BroadcastStudioPage() {
                     {/* Mobile Layout - empty, coins moved to top-left with viewers */}
                   </div>
 
-                  {/* Mobile Bottom Toolbar - Stream Controls (always visible, single row) */}
-                  <div className="absolute bottom-3 left-0 right-0 z-20 md:hidden flex items-center justify-center gap-3 px-3">
-                    {/* Goal Button - Icon only */}
-                    {(() => {
-                      const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                      return (
+                  {/* Mobile Bottom Tools - Collapsible + button */}
+                  <div className="absolute bottom-3 left-3 z-20 md:hidden">
+                    {showMobileTools ? (
+                      /* Expanded tools menu */
+                      <div className="flex items-center gap-2 p-2 backdrop-blur-xl bg-black/80 rounded-2xl border border-white/20">
+                        {/* Close button */}
+                        <button
+                          onClick={() => setShowMobileTools(false)}
+                          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                        >
+                          <X className="w-5 h-5 text-white" />
+                        </button>
+
+                        {/* Goal Button */}
+                        {(() => {
+                          const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
+                          return (
+                            <button
+                              onClick={() => {
+                                if (hasActiveGoal) return;
+                                setEditingGoal(null);
+                                setShowGoalModal(true);
+                                setShowMobileTools(false);
+                              }}
+                              disabled={hasActiveGoal}
+                              className={`p-2 rounded-full transition-all ${
+                                hasActiveGoal
+                                  ? 'bg-gray-600/30 opacity-50'
+                                  : 'bg-cyan-500/20 hover:bg-cyan-500/30'
+                              }`}
+                              title="Goal"
+                            >
+                              <Target className={`w-5 h-5 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                            </button>
+                          );
+                        })()}
+
+                        {/* Poll Button */}
                         <button
                           onClick={() => {
-                            if (hasActiveGoal) return;
-                            setEditingGoal(null);
-                            setShowGoalModal(true);
+                            setShowCreatePollModal(true);
+                            setShowMobileTools(false);
                           }}
-                          disabled={hasActiveGoal}
-                          className={`p-2.5 backdrop-blur-xl rounded-full border transition-all ${
-                            hasActiveGoal
-                              ? 'bg-black/40 border-gray-600/30 opacity-50'
-                              : 'bg-black/70 border-cyan-500/40'
+                          disabled={!!activePoll?.isActive}
+                          className={`p-2 rounded-full transition-all ${
+                            activePoll?.isActive
+                              ? 'bg-purple-500/30'
+                              : 'bg-purple-500/20 hover:bg-purple-500/30'
                           }`}
-                          title="Goal"
+                          title="Poll"
                         >
-                          <Target className={`w-5 h-5 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                          <BarChart2 className="w-5 h-5 text-purple-400" />
                         </button>
-                      );
-                    })()}
 
-                    {/* Menu Toggle - Icon only */}
-                    <button
-                      onClick={handleToggleMenu}
-                      className={`p-2.5 backdrop-blur-xl rounded-full border transition-all ${
-                        menuEnabled
-                          ? 'bg-yellow-500/30 border-yellow-500/50'
-                          : 'bg-black/70 border-white/20'
-                      }`}
-                      title="Tip Menu"
-                    >
-                      <List className={`w-5 h-5 ${menuEnabled ? 'text-yellow-400' : 'text-white/70'}`} />
-                    </button>
+                        {/* Timer Button */}
+                        <button
+                          onClick={() => {
+                            setShowCreateCountdownModal(true);
+                            setShowMobileTools(false);
+                          }}
+                          disabled={!!activeCountdown?.isActive}
+                          className={`p-2 rounded-full transition-all ${
+                            activeCountdown?.isActive
+                              ? 'bg-cyan-500/30'
+                              : 'bg-cyan-500/20 hover:bg-cyan-500/30'
+                          }`}
+                          title="Timer"
+                        >
+                          <Clock className="w-5 h-5 text-cyan-400" />
+                        </button>
 
-                    {/* Poll Button - Icon only */}
-                    <button
-                      onClick={() => setShowCreatePollModal(true)}
-                      disabled={!!activePoll?.isActive}
-                      className={`p-2.5 backdrop-blur-xl rounded-full border transition-all ${
-                        activePoll?.isActive
-                          ? 'bg-purple-500/30 border-purple-500/50'
-                          : 'bg-black/70 border-purple-500/40'
-                      }`}
-                      title="Poll"
-                    >
-                      <BarChart2 className="w-5 h-5 text-purple-400" />
-                    </button>
-
-                    {/* Timer Button - Icon only */}
-                    <button
-                      onClick={() => setShowCreateCountdownModal(true)}
-                      disabled={!!activeCountdown?.isActive}
-                      className={`p-2.5 backdrop-blur-xl rounded-full border transition-all ${
-                        activeCountdown?.isActive
-                          ? 'bg-cyan-500/30 border-cyan-500/50'
-                          : 'bg-black/70 border-cyan-500/40'
-                      }`}
-                      title="Timer"
-                    >
-                      <Clock className="w-5 h-5 text-cyan-400" />
-                    </button>
-
-                    {/* VIP Button - Icon only */}
-                    {!announcedTicketedStream && (
+                        {/* VIP Button */}
+                        {!announcedTicketedStream && (
+                          <button
+                            onClick={() => {
+                              setShowAnnounceModal(true);
+                              setShowMobileTools(false);
+                            }}
+                            className="p-2 rounded-full bg-amber-500/20 hover:bg-amber-500/30 transition-all"
+                            title="VIP Stream"
+                          >
+                            <Ticket className="w-5 h-5 text-amber-400" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      /* Collapsed + button */
                       <button
-                        onClick={() => setShowAnnounceModal(true)}
-                        className="p-2.5 backdrop-blur-xl bg-black/70 rounded-full border border-amber-500/40 transition-all"
-                        title="VIP Stream"
+                        onClick={() => setShowMobileTools(true)}
+                        className="p-3 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 hover:border-cyan-500/50 hover:bg-black/80 transition-all shadow-lg"
+                        title="Stream Tools"
                       >
-                        <Ticket className="w-5 h-5 text-amber-400" />
+                        <Plus className="w-5 h-5 text-white" />
                       </button>
                     )}
                   </div>
 
-                  {/* Record + End Stream Buttons - Top on mobile, Bottom on desktop */}
-                  <div className="absolute top-14 md:top-auto md:bottom-3 left-3 z-20 flex flex-row items-center gap-2">
-                    {/* Ticketed Stream Indicator - Shows when announced or active */}
-                    {announcedTicketedStream && (
-                      <>
-                        {vipModeActive ? (
-                          // Ticketed Mode Active
-                          <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
-                            <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                            <div className="text-left min-w-0">
-                              <div className="text-red-400 font-bold text-xs uppercase">LIVE</div>
-                              <div className="text-white text-xs truncate max-w-[120px] sm:max-w-[180px]">
-                                {announcedTicketedStream.title}
-                              </div>
+                  {/* Ticketed Stream Indicator - Shows on both mobile and desktop */}
+                  {announcedTicketedStream && (
+                    <div className="absolute top-24 md:top-auto md:bottom-14 left-3 z-20">
+                      {vipModeActive ? (
+                        // Ticketed Mode Active
+                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
+                          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+                          <div className="text-left min-w-0">
+                            <div className="text-red-400 font-bold text-xs uppercase">LIVE</div>
+                            <div className="text-white text-xs truncate max-w-[120px] sm:max-w-[180px]">
+                              {announcedTicketedStream.title}
                             </div>
-                            <button
-                              onClick={handleEndVipStream}
-                              className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-red-500/80 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg flex-shrink-0"
-                            >
-                              <Square className="w-3 h-3" />
-                              End
-                            </button>
                           </div>
-                        ) : (
-                          // Ticketed Mode Not Started Yet - with countdown
-                          <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-                            <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                            <div className="text-left min-w-0">
-                              <div className="text-white text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
-                                {announcedTicketedStream.title}
-                              </div>
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className="text-amber-400/80">
-                                  <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
+                          <button
+                            onClick={handleEndVipStream}
+                            className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-red-500/80 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg flex-shrink-0"
+                          >
+                            <Square className="w-3 h-3" />
+                            End
+                          </button>
+                        </div>
+                      ) : (
+                        // Ticketed Mode Not Started Yet - with countdown
+                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                          <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                          <div className="text-left min-w-0">
+                            <div className="text-white text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
+                              {announcedTicketedStream.title}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px]">
+                              <span className="text-amber-400/80">
+                                <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
+                              </span>
+                              {vipTicketCount > 0 && (
+                                <span className="text-green-400 font-medium">
+                                  {vipTicketCount} sold
                                 </span>
-                                {vipTicketCount > 0 && (
-                                  <span className="text-green-400 font-medium">
-                                    {vipTicketCount} sold
-                                  </span>
-                                )}
-                              </div>
-                              {/* Countdown Timer */}
-                              {ticketedCountdown && (
-                                <div className="text-cyan-400 text-[10px] font-mono font-semibold mt-0.5">
-                                  ⏱ {ticketedCountdown}
-                                </div>
                               )}
                             </div>
-                            <button
-                              onClick={handleStartVipStream}
-                              disabled={startingVipStream}
-                              className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg flex-shrink-0"
-                            >
-                              {startingVipStream ? (
-                                <LoadingSpinner size="sm" />
-                              ) : (
-                                <>
-                                  <Play className="w-3 h-3" />
-                                  <span className="hidden sm:inline">Start</span>
-                                </>
-                              )}
-                            </button>
+                            {/* Countdown Timer */}
+                            {ticketedCountdown && (
+                              <div className="text-cyan-400 text-[10px] font-mono font-semibold mt-0.5">
+                                ⏱ {ticketedCountdown}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </>
-                    )}
+                          <button
+                            onClick={handleStartVipStream}
+                            disabled={startingVipStream}
+                            className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg flex-shrink-0"
+                          >
+                            {startingVipStream ? (
+                              <LoadingSpinner size="sm" />
+                            ) : (
+                              <>
+                                <Play className="w-3 h-3" />
+                                <span className="hidden sm:inline">Start</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
+                  {/* Desktop Record + End Stream Buttons */}
+                  <div className="absolute bottom-3 left-3 z-20 hidden md:flex flex-row items-center gap-2">
                     {/* Record Button */}
                     <StreamRecordButton
                       isRecording={isRecording}
@@ -2396,7 +2459,7 @@ export default function BroadcastStudioPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                       </svg>
-                      <span className="text-red-400 text-xs md:text-sm font-semibold">End</span>
+                      <span className="text-red-400 text-sm font-semibold">End</span>
                     </button>
                   </div>
 
@@ -2510,6 +2573,15 @@ export default function BroadcastStudioPage() {
                 onPinMessage={handlePinMessage}
                 menuEnabled={menuEnabled}
                 menuItems={menuItems}
+                onMenuClose={() => {
+                  // Hide menu when X is clicked
+                  setMenuEnabled(false);
+                  fetch(`/api/streams/${streamId}/tip-menu`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: false }),
+                  }).catch(console.error);
+                }}
               />
             </div>
 
