@@ -78,8 +78,16 @@ export default function CreatorStreamsPage() {
   }
 
   // Separate live, scheduled, and past streams
+  // Filter out scheduled streams that are more than 4 hours past their time
+  const now = new Date();
+  const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+
   const liveStreams = shows.filter(s => s.status === 'live');
-  const scheduledStreams = shows.filter(s => s.status === 'scheduled');
+  const scheduledStreams = shows.filter(s => {
+    if (s.status !== 'scheduled') return false;
+    const scheduledTime = new Date(s.scheduledStart);
+    return scheduledTime > fourHoursAgo;
+  });
   const pastStreams = shows.filter(s => s.status === 'ended' || s.status === 'cancelled');
 
   const stats = {

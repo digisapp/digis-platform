@@ -354,8 +354,20 @@ export default function CreatorDashboard() {
       if (showsRes?.ok) {
         try {
           const showsData = await showsRes.json();
+          const now = new Date();
+          const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+
           (showsData.shows || showsData.data || showsData || [])
-            .filter((show: any) => ['scheduled', 'live'].includes(show.status))
+            .filter((show: any) => {
+              // Include live shows
+              if (show.status === 'live') return true;
+              // For scheduled shows, only include if not more than 4 hours past
+              if (show.status === 'scheduled') {
+                const scheduledTime = new Date(show.scheduledStart || show.scheduledFor);
+                return scheduledTime > fourHoursAgo;
+              }
+              return false;
+            })
             .forEach((show: any) => {
               events.push({
                 id: `show-${show.id}`,

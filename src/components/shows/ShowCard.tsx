@@ -1,8 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
-import { Coins } from 'lucide-react';
+import { Coins, X } from 'lucide-react';
 
 type ShowType = 'hangout' | 'fitness' | 'grwm' | 'try_on_haul' | 'qna' | 'classes' | 'tutorial' | 'music' | 'virtual_date' | 'gaming' | 'other';
 
@@ -68,10 +69,37 @@ const statusColors = {
 
 export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
   const router = useRouter();
+  const [cancelling, setCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handleClick = () => {
     // Both creator and fan go to the same stream detail page
     router.push(`/streams/${show.id}`);
+  };
+
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cancelling) return;
+
+    setCancelling(true);
+    try {
+      const response = await fetch(`/api/shows/${show.id}/cancel`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to cancel stream');
+      }
+
+      setShowCancelConfirm(false);
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error cancelling show:', error);
+      alert(error instanceof Error ? error.message : 'Failed to cancel stream');
+    } finally {
+      setCancelling(false);
+    }
   };
 
   const isFree = show.ticketPrice === 0;
@@ -114,6 +142,20 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
         <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[show.status]}`}>
           {show.status === 'live' && '🔴 '}{show.status.toUpperCase()}
         </div>
+
+        {/* Cancel Button (for creator on scheduled shows) */}
+        {isCreator && show.status === 'scheduled' && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCancelConfirm(true);
+            }}
+            className="absolute bottom-3 right-3 p-2 rounded-full bg-red-500/80 hover:bg-red-500 text-white transition-colors z-10"
+            title="Cancel stream"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Price Badge - Only show for paid streams */}
         {!isFree && (
@@ -206,6 +248,47 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
           )}
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCancelConfirm(false);
+          }}
+        >
+          <div
+            className="bg-gray-900 rounded-2xl p-6 max-w-sm w-full border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-2">Cancel Stream?</h3>
+            <p className="text-gray-400 mb-4">
+              {show.ticketsSold > 0
+                ? `This will refund ${show.ticketsSold} ticket holder${show.ticketsSold > 1 ? 's' : ''} and remove the stream.`
+                : 'This will permanently remove the scheduled stream.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCancelConfirm(false);
+                }}
+                className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-colors"
+              >
+                Keep
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors disabled:opacity-50"
+              >
+                {cancelling ? 'Cancelling...' : 'Cancel Stream'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
