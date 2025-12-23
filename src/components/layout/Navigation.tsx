@@ -432,9 +432,9 @@ export function Navigation() {
                   </div>
                 </button>
 
-                {/* Username */}
-                <div className="flex-1 min-w-0 pt-1">
-                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-2xl md:text-xl mb-2 truncate">
+                {/* Username & Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-black bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent text-xl md:text-lg truncate leading-tight">
                     {username}
                   </h3>
                   <button
@@ -442,33 +442,28 @@ export function Navigation() {
                       router.push(`/${username}`);
                       setShowProfileMenu(false);
                     }}
-                    className="text-sm md:text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full"
+                    className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors text-left truncate max-w-full"
                   >
                     digis.cc/{username}
                   </button>
+                  <button
+                    onClick={() => {
+                      router.push(userRole === 'creator' ? '/creator/community' : '/connections');
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-cyan-400 transition-colors"
+                  >
+                    <span>
+                      {userRole === 'creator'
+                        ? followerCount !== null
+                          ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
+                          : '— Followers'
+                        : 'Following'
+                      }
+                    </span>
+                  </button>
                 </div>
               </div>
-
-              {/* Follower Count - Creators go to /creator/community, Fans go to /connections */}
-              <button
-                onClick={() => {
-                  router.push(userRole === 'creator' ? '/creator/community' : '/connections');
-                  setShowProfileMenu(false);
-                }}
-                className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-cyan-400 transition-colors mt-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span>
-                  {userRole === 'creator'
-                    ? followerCount !== null
-                      ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
-                      : '— Followers'
-                    : 'Following'
-                  }
-                </span>
-              </button>
             </div>
 
             {/* Menu Items */}
