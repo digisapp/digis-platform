@@ -455,13 +455,12 @@ export function Navigation() {
                   router.push(userRole === 'creator' ? '/creator/community' : '/connections');
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-4 py-3 md:px-3 md:py-2 bg-white/5 hover:bg-white/10 active:bg-white/15 border border-cyan-500/20 rounded-xl md:rounded-lg transition-all active:scale-98"
-                style={{ minHeight: '48px' }}
+                className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-cyan-400 transition-colors mt-1"
               >
-                <svg className="w-5 h-5 md:w-4 md:h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="text-sm font-semibold text-white">
+                <span>
                   {userRole === 'creator'
                     ? followerCount !== null
                       ? `${followerCount.toLocaleString()} ${followerCount === 1 ? 'Follower' : 'Followers'}`
