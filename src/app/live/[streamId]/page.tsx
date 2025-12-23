@@ -113,7 +113,7 @@ function isValidDownloadUrl(url: string | undefined | null): boolean {
 }
 
 // Component to render the remote video from broadcaster
-function ViewerVideo({ onBroadcasterLeft }: { onBroadcasterLeft?: () => void }) {
+function ViewerVideo({ onBroadcasterLeft, isPortrait }: { onBroadcasterLeft?: () => void; isPortrait?: boolean }) {
   const participants = useRemoteParticipants();
   const broadcaster = participants[0]; // First participant is the broadcaster
   const prevBroadcasterRef = React.useRef(broadcaster);
@@ -154,7 +154,7 @@ function ViewerVideo({ onBroadcasterLeft }: { onBroadcasterLeft?: () => void }) 
   return (
     <VideoTrack
       trackRef={{ participant: broadcaster, publication: videoPublication, source: videoPublication.source }}
-      className="w-full h-full object-contain"
+      className={`w-full h-full ${isPortrait ? 'object-cover' : 'object-contain'}`}
     />
   );
 }
@@ -1430,7 +1430,7 @@ export default function TheaterModePage() {
                     dynacast: true,
                   }}
                 >
-                  <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
+                  <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} isPortrait={streamOrientation === 'portrait'} />
                   <RoomAudioRenderer muted={muted} />
                 </LiveKitRoom>
                 {/* BRB Overlay - shown when creator disconnects */}

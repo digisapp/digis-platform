@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, useRoomContext, VideoTrack } from '@livekit/components-react';
-import { VideoPresets, Room, Track, LocalParticipant } from 'livekit-client';
+import { VideoPresets, Room, Track, LocalParticipant, createLocalVideoTrack } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
 // GiftAnimationManager removed - gifts now show in chat messages
 import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
@@ -128,6 +128,74 @@ function ScreenShareControl({
       <span className="text-sm hidden sm:inline">{isScreenSharing ? 'Stop Share' : 'Screen'}</span>
     </button>
   );
+}
+
+// Component to republish camera in portrait mode (must be inside LiveKitRoom)
+// This is necessary because videoCaptureDefaults don't reliably recreate an already-published track
+function PortraitCameraPublisher({ isPortrait }: { isPortrait: boolean }) {
+  const room = useRoomContext();
+  const [hasRepublished, setHasRepublished] = useState(false);
+
+  useEffect(() => {
+    if (!isPortrait || hasRepublished) return;
+    if (!room || room.state !== 'connected') return;
+
+    const republishPortraitCamera = async () => {
+      try {
+        console.log('[Portrait Camera] Starting portrait camera republish...');
+
+        // 1) Unpublish existing camera
+        const existing = room.localParticipant.getTrackPublication(Track.Source.Camera);
+        if (existing?.track) {
+          console.log('[Portrait Camera] Unpublishing existing camera track');
+          await room.localParticipant.unpublishTrack(existing.track);
+          existing.track.stop();
+        }
+
+        // Small delay for camera release
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // 2) Create a NEW portrait track (FaceTime-style 9:16)
+        const portraitTrack = await createLocalVideoTrack({
+          facingMode: 'user',
+          resolution: {
+            width: 720,
+            height: 1280,
+            frameRate: 30,
+          },
+        });
+
+        // Log actual track settings for debugging
+        const settings = portraitTrack.mediaStreamTrack.getSettings();
+        console.log('[Portrait Camera] New track settings:', {
+          width: settings.width,
+          height: settings.height,
+          aspectRatio: settings.aspectRatio,
+          facingMode: settings.facingMode,
+        });
+
+        // 3) Publish without simulcast (simulcast layers would force landscape)
+        await room.localParticipant.publishTrack(portraitTrack, {
+          simulcast: false,
+          videoEncoding: {
+            maxBitrate: 2_500_000,
+            maxFramerate: 30,
+          },
+        });
+
+        console.log('[Portrait Camera] Successfully republished in portrait mode');
+        setHasRepublished(true);
+      } catch (error) {
+        console.error('[Portrait Camera] Failed to republish:', error);
+      }
+    };
+
+    // Wait a bit for the room to fully initialize before republishing
+    const timeout = setTimeout(republishPortraitCamera, 1000);
+    return () => clearTimeout(timeout);
+  }, [room, room?.state, isPortrait, hasRepublished]);
+
+  return null; // This component doesn't render anything
 }
 
 // Component to flip camera between front and back (must be inside LiveKitRoom)
@@ -2086,6 +2154,8 @@ export default function BroadcastStudioPage() {
                   >
                     <LocalCameraPreview isMirrored={facingMode === 'user'} />
                     <RoomAudioRenderer />
+                    {/* Portrait camera republisher - unpublishes landscape track and publishes portrait */}
+                    <PortraitCameraPublisher isPortrait={streamOrientation === 'portrait'} />
                     {/* Screen Share Control - Desktop only, positioned in bottom right of video */}
                     <div className="absolute bottom-3 right-3 z-20 hidden md:block">
                       <ScreenShareControl
