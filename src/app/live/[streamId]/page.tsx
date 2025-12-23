@@ -1428,7 +1428,7 @@ export default function TheaterModePage() {
                   serverUrl={serverUrl}
                   className="h-full"
                   options={{
-                    adaptiveStream: true,
+                    adaptiveStream: { pixelDensity: 'screen' },
                     dynacast: true,
                   }}
                 >

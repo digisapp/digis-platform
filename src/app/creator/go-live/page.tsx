@@ -1207,9 +1207,36 @@ export default function GoLivePage() {
 
             {/* Content */}
             <div className="p-5 space-y-5">
-              {/* Quick Tips - Most relevant for most creators */}
+              {/* Video Quality Tips - Most important for new streamers */}
+              <div className="bg-gradient-to-br from-green-500/10 to-cyan-500/5 border border-green-500/20 rounded-xl p-4">
+                <h3 className="font-bold text-white mb-3">📹 Best Video Quality</h3>
+                <ul className="space-y-2.5 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span><strong className="text-white">Use WiFi</strong> - Cellular data causes blurry streams</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span><strong className="text-white">Rear camera</strong> - Much higher quality than front camera</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span><strong className="text-white">Good lighting</strong> - Face a window or use a ring light</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span><strong className="text-white">Stable phone</strong> - Use a tripod or phone stand</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span><strong className="text-white">Desktop streaming</strong> - Best quality with webcam or DSLR</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Quick Engagement Tips */}
               <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <h3 className="font-bold text-white mb-3">💡 Quick Tips</h3>
+                <h3 className="font-bold text-white mb-3">💬 Engagement Tips</h3>
                 <ul className="space-y-2 text-sm text-gray-300">
                   <li className="flex items-start gap-2">
                     <span className="text-cyan-400">•</span>
@@ -1217,39 +1244,31 @@ export default function GoLivePage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-purple-400">•</span>
-                    <span>Good lighting makes a huge difference</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-pink-400">•</span>
                     <span>Engage with chat - viewers love interaction</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-yellow-400">•</span>
-                    <span>Use polls and countdowns to boost engagement</span>
+                    <span className="text-pink-400">•</span>
+                    <span>Use polls, goals, and countdowns to boost tips</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Screen Share Section */}
+              {/* Screen Share & OBS Section */}
               <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Monitor className="w-5 h-5 text-purple-400" />
-                  <h3 className="font-bold text-white">Screen Share</h3>
+                  <h3 className="font-bold text-white">Advanced Features</h3>
                 </div>
-                <p className="text-sm text-gray-300">
-                  During your stream, click the <span className="text-green-400 font-semibold">"Screen"</span> button to share your screen. Perfect for showing videos, websites, or apps.
-                </p>
-              </div>
-
-              {/* OBS Section - Simplified, at bottom for power users */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Video className="w-5 h-5 text-gray-400" />
-                  <h3 className="font-semibold text-white">Pre-Recorded Videos</h3>
-                </div>
-                <p className="text-sm text-gray-400">
-                  Use OBS Virtual Camera to stream pre-recorded content, add overlays, or combine multiple sources.
-                </p>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong className="text-white">Screen Share</strong> - Click "Screen" button during stream</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span><strong className="text-white">OBS Virtual Camera</strong> - For overlays and pre-recorded content</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
