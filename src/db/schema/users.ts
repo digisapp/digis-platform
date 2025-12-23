@@ -57,6 +57,9 @@ export const profiles = pgTable('profiles', {
   tiktokHandle: text('tiktok_handle'),
   snapchatHandle: text('snapchat_handle'),
   youtubeHandle: text('youtube_handle'),
+  twitchHandle: text('twitch_handle'),
+  amazonHandle: text('amazon_handle'), // Amazon wishlist URL
+  contactEmail: text('contact_email'), // Business/contact email
   showSocialLinks: boolean('show_social_links').default(true), // Toggle to show/hide on public profile
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

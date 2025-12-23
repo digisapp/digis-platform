@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const {
       displayName, bio, avatarUrl, bannerUrl, city, state, phoneNumber, primaryCategory, secondaryCategory,
       // Social media fields
-      twitterHandle, instagramHandle, tiktokHandle, snapchatHandle, youtubeHandle, showSocialLinks
+      twitterHandle, instagramHandle, tiktokHandle, snapchatHandle, youtubeHandle, twitchHandle, amazonHandle, contactEmail, showSocialLinks
     } = await request.json();
 
     const supabase = await createClient();
@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
     // Update or create profile with city, state, phone number, and social media handles using Drizzle
     const hasProfileFields = city !== undefined || state !== undefined || phoneNumber !== undefined ||
       twitterHandle !== undefined || instagramHandle !== undefined || tiktokHandle !== undefined ||
-      snapchatHandle !== undefined || youtubeHandle !== undefined || showSocialLinks !== undefined;
+      snapchatHandle !== undefined || youtubeHandle !== undefined || twitchHandle !== undefined ||
+      amazonHandle !== undefined || contactEmail !== undefined || showSocialLinks !== undefined;
 
     if (hasProfileFields) {
       const existingProfile = await db.query.profiles.findFirst({
@@ -92,6 +93,9 @@ export async function POST(request: NextRequest) {
       if (tiktokHandle !== undefined) profileData.tiktokHandle = tiktokHandle;
       if (snapchatHandle !== undefined) profileData.snapchatHandle = snapchatHandle;
       if (youtubeHandle !== undefined) profileData.youtubeHandle = youtubeHandle;
+      if (twitchHandle !== undefined) profileData.twitchHandle = twitchHandle;
+      if (amazonHandle !== undefined) profileData.amazonHandle = amazonHandle;
+      if (contactEmail !== undefined) profileData.contactEmail = contactEmail;
       if (showSocialLinks !== undefined) profileData.showSocialLinks = showSocialLinks;
 
       if (existingProfile) {
@@ -114,6 +118,9 @@ export async function POST(request: NextRequest) {
             tiktokHandle: tiktokHandle || null,
             snapchatHandle: snapchatHandle || null,
             youtubeHandle: youtubeHandle || null,
+            twitchHandle: twitchHandle || null,
+            amazonHandle: amazonHandle || null,
+            contactEmail: contactEmail || null,
             showSocialLinks: showSocialLinks ?? true,
           });
       }

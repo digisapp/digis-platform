@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -46,6 +46,9 @@ export default function SettingsPage() {
   const [twitterHandle, setTwitterHandle] = useState('');
   const [snapchatHandle, setSnapchatHandle] = useState('');
   const [youtubeHandle, setYoutubeHandle] = useState('');
+  const [twitchHandle, setTwitchHandle] = useState('');
+  const [amazonHandle, setAmazonHandle] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [showSocialLinks, setShowSocialLinks] = useState(true);
 
   // Email change
@@ -117,6 +120,9 @@ export default function SettingsPage() {
       setTwitterHandle(data.profile?.twitterHandle || '');
       setSnapchatHandle(data.profile?.snapchatHandle || '');
       setYoutubeHandle(data.profile?.youtubeHandle || '');
+      setTwitchHandle(data.profile?.twitchHandle || '');
+      setAmazonHandle(data.profile?.amazonHandle || '');
+      setContactEmail(data.profile?.contactEmail || '');
       setShowSocialLinks(data.profile?.showSocialLinks ?? true);
     } catch (err: any) {
       console.error('Error fetching user:', err);
@@ -242,6 +248,9 @@ export default function SettingsPage() {
           twitterHandle: twitterHandle || null,
           snapchatHandle: snapchatHandle || null,
           youtubeHandle: youtubeHandle || null,
+          twitchHandle: twitchHandle || null,
+          amazonHandle: amazonHandle || null,
+          contactEmail: contactEmail || null,
           showSocialLinks,
         }),
       });
@@ -1104,7 +1113,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* YouTube */}
-                  <div className="relative md:col-span-2">
+                  <div className="relative">
                     <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
                       <Youtube className="w-4 h-4 text-red-500" />
                       YouTube
@@ -1119,6 +1128,54 @@ export default function SettingsPage() {
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50"
                       />
                     </div>
+                  </div>
+
+                  {/* Twitch */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <Twitch className="w-4 h-4 text-purple-500" />
+                      Twitch
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
+                      <input
+                        type="text"
+                        placeholder="username"
+                        value={twitchHandle}
+                        onChange={(e) => setTwitchHandle(e.target.value.replace(/^@/, ''))}
+                        className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amazon Wishlist */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-orange-500" />
+                      Amazon Wishlist
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://amazon.com/hz/wishlist/..."
+                      value={amazonHandle}
+                      onChange={(e) => setAmazonHandle(e.target.value)}
+                      className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    />
+                  </div>
+
+                  {/* Contact Email */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-cyan-400" />
+                      Business Email
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="business@example.com"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                    />
                   </div>
                 </div>
               </div>
