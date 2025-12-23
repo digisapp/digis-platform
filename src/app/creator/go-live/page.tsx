@@ -318,27 +318,31 @@ export default function GoLivePage() {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
 
-      // Set video dimensions based on orientation
-      // Use lower resolution on mobile for wider field of view (less zoom)
-      // iPhone cameras crop/zoom at high resolutions
-      // Use aspectRatio constraint which is more reliable on iOS
-      const videoConstraints = orientation === 'portrait'
+      // Set video constraints
+      // On mobile: use minimal constraints for widest field of view (like FaceTime/selfie)
+      // iPhone crops/zooms when high resolutions are requested
+      // On desktop: use higher resolution
+      const videoConstraints = isMobile
         ? {
-            deviceId: selectedVideoDevice,
-            width: { ideal: isMobile ? 720 : 1080 },
-            height: { ideal: isMobile ? 1280 : 1920 },
-            aspectRatio: { ideal: 9/16 },
-            frameRate: { ideal: 30 },
+            deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
             facingMode: 'user',
+            frameRate: { ideal: 30 },
           }
-        : {
-            deviceId: selectedVideoDevice,
-            width: { ideal: isMobile ? 1280 : 1920 },
-            height: { ideal: isMobile ? 720 : 1080 },
-            aspectRatio: { ideal: 16/9 },
-            frameRate: { ideal: 30 },
-            facingMode: 'user',
-          };
+        : orientation === 'portrait'
+          ? {
+              deviceId: selectedVideoDevice,
+              width: { ideal: 1080 },
+              height: { ideal: 1920 },
+              frameRate: { ideal: 30 },
+              facingMode: 'user',
+            }
+          : {
+              deviceId: selectedVideoDevice,
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              frameRate: { ideal: 30 },
+              facingMode: 'user',
+            };
 
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
