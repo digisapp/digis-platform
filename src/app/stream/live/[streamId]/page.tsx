@@ -2138,7 +2138,7 @@ export default function BroadcastStudioPage() {
                           <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
                         </div>
 
-                        {/* Record Button */}
+                        {/* Record Button - Shows "Record" text */}
                         <StreamRecordButton
                           isRecording={isRecording}
                           currentDuration={formattedDuration}
@@ -2147,7 +2147,6 @@ export default function BroadcastStudioPage() {
                           maxRecordings={maxRecordings}
                           onStartRecording={startRecording}
                           onStopRecording={stopRecording}
-                          compact={true}
                         />
                       </div>
 
@@ -2272,13 +2271,14 @@ export default function BroadcastStudioPage() {
                   <div className="absolute bottom-3 left-3 z-20 md:hidden">
                     {showMobileTools ? (
                       /* Expanded tools menu */
-                      <div className="flex items-center gap-2 p-2 backdrop-blur-xl bg-black/80 rounded-2xl border border-white/20">
+                      <div className="flex flex-col gap-2 p-3 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">
                         {/* Close button */}
                         <button
                           onClick={() => setShowMobileTools(false)}
-                          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
                         >
                           <X className="w-5 h-5 text-white" />
+                          <span className="text-white text-sm font-medium">Close</span>
                         </button>
 
                         {/* Goal Button */}
@@ -2293,14 +2293,14 @@ export default function BroadcastStudioPage() {
                                 setShowMobileTools(false);
                               }}
                               disabled={hasActiveGoal}
-                              className={`p-2 rounded-full transition-all ${
+                              className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                                 hasActiveGoal
                                   ? 'bg-gray-600/30 opacity-50'
                                   : 'bg-cyan-500/20 hover:bg-cyan-500/30'
                               }`}
-                              title="Goal"
                             >
                               <Target className={`w-5 h-5 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
+                              <span className={`text-sm font-medium ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`}>Goal</span>
                             </button>
                           );
                         })()}
@@ -2312,14 +2312,14 @@ export default function BroadcastStudioPage() {
                             setShowMobileTools(false);
                           }}
                           disabled={!!activePoll?.isActive}
-                          className={`p-2 rounded-full transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                             activePoll?.isActive
                               ? 'bg-purple-500/30'
                               : 'bg-purple-500/20 hover:bg-purple-500/30'
                           }`}
-                          title="Poll"
                         >
                           <BarChart2 className="w-5 h-5 text-purple-400" />
+                          <span className="text-sm font-medium text-purple-400">Poll</span>
                         </button>
 
                         {/* Timer Button */}
@@ -2329,14 +2329,14 @@ export default function BroadcastStudioPage() {
                             setShowMobileTools(false);
                           }}
                           disabled={!!activeCountdown?.isActive}
-                          className={`p-2 rounded-full transition-all ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                             activeCountdown?.isActive
                               ? 'bg-cyan-500/30'
                               : 'bg-cyan-500/20 hover:bg-cyan-500/30'
                           }`}
-                          title="Timer"
                         >
                           <Clock className="w-5 h-5 text-cyan-400" />
+                          <span className="text-sm font-medium text-cyan-400">Timer</span>
                         </button>
 
                         {/* VIP Button */}
@@ -2346,21 +2346,21 @@ export default function BroadcastStudioPage() {
                               setShowAnnounceModal(true);
                               setShowMobileTools(false);
                             }}
-                            className="p-2 rounded-full bg-amber-500/20 hover:bg-amber-500/30 transition-all"
-                            title="VIP Stream"
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 transition-all"
                           >
                             <Ticket className="w-5 h-5 text-amber-400" />
+                            <span className="text-sm font-medium text-amber-400">VIP</span>
                           </button>
                         )}
                       </div>
                     ) : (
-                      /* Collapsed + button */
+                      /* Collapsed + button - Larger */
                       <button
                         onClick={() => setShowMobileTools(true)}
-                        className="p-3 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 hover:border-cyan-500/50 hover:bg-black/80 transition-all shadow-lg"
+                        className="p-4 backdrop-blur-xl bg-black/70 rounded-full border-2 border-white/40 hover:border-cyan-500/50 hover:bg-black/80 transition-all shadow-xl"
                         title="Stream Tools"
                       >
-                        <Plus className="w-5 h-5 text-white" />
+                        <Plus className="w-7 h-7 text-white" />
                       </button>
                     )}
                   </div>
@@ -2467,7 +2467,7 @@ export default function BroadcastStudioPage() {
                   {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
                     <div className="absolute bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                       <span
-                        className="text-sm md:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
+                        className="text-lg md:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                         style={{
                           color: '#ffffff',
                           textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
