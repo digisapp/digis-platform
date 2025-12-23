@@ -18,9 +18,15 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Digis - Live Creator Platform",
   description: "Connect with your favorite creators through video calls, live streams, and exclusive content",
+  manifest: "/manifest.json",
   icons: {
     icon: "/images/digis-logo-white.png",
     apple: "/images/digis-logo-white.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Digis",
   },
   viewport: {
     width: "device-width",
