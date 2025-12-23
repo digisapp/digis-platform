@@ -1823,9 +1823,10 @@ export default function BroadcastStudioPage() {
 
       {/* Stream Summary Modal */}
       {showStreamSummary && streamSummary && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
-          <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 md:p-8 max-w-2xl w-full">
+        <div className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => router.push('/creator/dashboard')} />
+          <div className="min-h-full flex items-start justify-center p-4 py-8">
+            <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 md:p-8 max-w-2xl w-full">
               {/* Header */}
               <div className="text-center mb-6">
                 <div className="mb-4">
@@ -2014,6 +2015,7 @@ export default function BroadcastStudioPage() {
               </div>
             </div>
           </div>
+        </div>
       )}
 
 

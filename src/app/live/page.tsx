@@ -69,6 +69,7 @@ export default function LiveStreamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'free' | 'paid'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('');
+  const [filterTag, setFilterTag] = useState<string>('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   // Use AuthContext instead of separate API call
@@ -136,6 +137,9 @@ export default function LiveStreamsPage() {
   // Get filtered streams - separate free and paid
   const getFilteredStreams = () => {
     const query = searchQuery.trim().toLowerCase();
+    // Check if searching for a hashtag
+    const isTagSearch = query.startsWith('#');
+    const tagQuery = isTagSearch ? query.slice(1) : query;
 
     // Filter paid shows (only live ones)
     let filteredPaid = paidShows.filter(show => show.status === 'live');
@@ -144,7 +148,9 @@ export default function LiveStreamsPage() {
         s.title.toLowerCase().includes(query) ||
         s.description?.toLowerCase().includes(query) ||
         s.creator.displayName?.toLowerCase().includes(query) ||
-        s.creator.username?.toLowerCase().includes(query)
+        s.creator.username?.toLowerCase().includes(query) ||
+        // Search in tags
+        (s as any).tags?.some((tag: string) => tag.toLowerCase().includes(tagQuery))
       );
     }
     // Sort by ticket sales
@@ -157,12 +163,23 @@ export default function LiveStreamsPage() {
         s.title.toLowerCase().includes(query) ||
         s.description?.toLowerCase().includes(query) ||
         s.creator.displayName?.toLowerCase().includes(query) ||
-        s.creator.username?.toLowerCase().includes(query)
+        s.creator.username?.toLowerCase().includes(query) ||
+        // Search in tags
+        s.tags?.some((tag: string) => tag.toLowerCase().includes(tagQuery))
       );
     }
     // Apply category filter
     if (filterCategory) {
       filteredFree = filteredFree.filter(s => s.category === filterCategory);
+    }
+    // Apply tag filter (when clicking on a tag)
+    if (filterTag) {
+      filteredFree = filteredFree.filter(s =>
+        s.tags?.some((tag: string) => tag.toLowerCase() === filterTag.toLowerCase())
+      );
+      filteredPaid = filteredPaid.filter(s =>
+        (s as any).tags?.some((tag: string) => tag.toLowerCase() === filterTag.toLowerCase())
+      );
     }
     // Sort by viewers
     filteredFree.sort((a, b) => b.currentViewers - a.currentViewers);
@@ -224,10 +241,26 @@ export default function LiveStreamsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search streams, creators..."
+              placeholder="Search streams, creators, #tags..."
               className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
             />
           </div>
+
+          {/* Active Tag Filter */}
+          {filterTag && (
+            <div className="flex items-center gap-2 mt-3">
+              <span className="text-sm text-gray-400">Filtering by:</span>
+              <button
+                onClick={() => setFilterTag('')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500/20 border border-cyan-500/40 rounded-full text-sm text-cyan-300 hover:bg-cyan-500/30 transition-colors"
+              >
+                #{filterTag}
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Error State */}
@@ -448,9 +481,20 @@ export default function LiveStreamsPage() {
                               </span>
                             )}
                             {stream.tags?.slice(0, 2).map((tag: string) => (
-                              <span key={tag} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400">
+                              <button
+                                key={tag}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFilterTag(filterTag === tag ? '' : tag);
+                                }}
+                                className={`px-2 py-0.5 rounded-full text-xs transition-colors ${
+                                  filterTag === tag
+                                    ? 'bg-cyan-500/30 border border-cyan-500/50 text-cyan-300'
+                                    : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-cyan-500/20 hover:border-cyan-500/30 hover:text-cyan-400'
+                                }`}
+                              >
                                 #{tag}
-                              </span>
+                              </button>
                             ))}
                           </div>
                         )}
