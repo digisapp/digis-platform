@@ -993,11 +993,18 @@ export default function GoLivePage() {
                     autoPlay
                     playsInline
                     muted
-                    className={`transition-transform duration-300 -scale-x-100 ${
-                      needsRotation
-                        ? 'absolute inset-0 w-[177.78%] h-[56.25%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 object-cover'
-                        : 'w-full h-full object-contain'
-                    }`}
+                    className="w-full h-full object-cover -scale-x-100"
+                    style={isMobile && orientation === 'portrait' ? {
+                      transform: 'scaleX(-1) rotate(90deg)',
+                      transformOrigin: 'center center',
+                      width: '177.78%',
+                      height: '56.25%',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      marginTop: '-28.125%',
+                      marginLeft: '-88.89%',
+                    } : undefined}
                   />
                   {/* Live indicator */}
                   <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
