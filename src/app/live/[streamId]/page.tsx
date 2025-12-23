@@ -18,6 +18,8 @@ import { SpotlightedCreatorOverlay } from '@/components/streaming/SpotlightedCre
 import { BRBOverlay } from '@/components/live/BRBOverlay';
 import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
+import { StreamPoll } from '@/components/streaming/StreamPoll';
+import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
@@ -270,6 +272,23 @@ export default function TheaterModePage() {
   } | null>(null);
   const [purchasingTicket, setPurchasingTicket] = useState(false);
 
+  // Poll and Countdown state (shared with broadcaster)
+  const [activePoll, setActivePoll] = useState<{
+    id: string;
+    question: string;
+    options: string[];
+    voteCounts: number[];
+    totalVotes: number;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
+  const [activeCountdown, setActiveCountdown] = useState<{
+    id: string;
+    label: string;
+    endsAt: string;
+    isActive: boolean;
+  } | null>(null);
+
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -464,6 +483,26 @@ export default function TheaterModePage() {
             console.error('[Menu] Error fetching menu items on toggle:', err);
           }
         }
+      }
+    },
+    // Poll updates from broadcaster
+    onPollUpdate: (event) => {
+      console.log('[Viewer] Poll update received:', event);
+      if (event.action === 'ended') {
+        setActivePoll(null);
+      } else {
+        // Fetch the latest poll data
+        fetchPoll();
+      }
+    },
+    // Countdown updates from broadcaster
+    onCountdownUpdate: (event) => {
+      console.log('[Viewer] Countdown update received:', event);
+      if (event.action === 'ended' || event.action === 'cancelled') {
+        setActiveCountdown(null);
+      } else {
+        // Fetch the latest countdown data
+        fetchCountdown();
       }
     },
   });
@@ -662,7 +701,17 @@ export default function TheaterModePage() {
     loadStream();
     loadCurrentUser();
     checkTicketAccess(); // Check if ticketed stream mode is active
+    fetchPoll(); // Fetch active poll for late-joining viewers
+    fetchCountdown(); // Fetch active countdown for late-joining viewers
   }, [streamId]);
+
+  // Poll for active poll vote updates (every 5 seconds) to keep vote counts in sync
+  useEffect(() => {
+    if (!activePoll?.isActive) return;
+
+    const interval = setInterval(fetchPoll, 5000);
+    return () => clearInterval(interval);
+  }, [activePoll?.isActive, streamId]);
 
   // Join stream when viewer loads (adds to database for viewer list)
   useEffect(() => {
@@ -909,6 +958,38 @@ export default function TheaterModePage() {
       console.error('[TheaterMode] Error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch active poll for late-joining viewers
+  const fetchPoll = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/polls`);
+      const data = await response.json();
+      if (response.ok && data.poll) {
+        console.log('[Viewer] Poll fetched:', data.poll);
+        setActivePoll(data.poll);
+      } else {
+        setActivePoll(null);
+      }
+    } catch (err) {
+      console.error('[Viewer] Error fetching poll:', err);
+    }
+  };
+
+  // Fetch active countdown for late-joining viewers
+  const fetchCountdown = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/countdown`);
+      const data = await response.json();
+      if (response.ok && data.countdown) {
+        console.log('[Viewer] Countdown fetched:', data.countdown);
+        setActiveCountdown(data.countdown);
+      } else {
+        setActiveCountdown(null);
+      }
+    } catch (err) {
+      console.error('[Viewer] Error fetching countdown:', err);
     }
   };
 
@@ -1322,6 +1403,31 @@ export default function TheaterModePage() {
                 )}
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
+
+                {/* Active Poll Overlay */}
+                {activePoll && activePoll.isActive && (
+                  <div className="absolute bottom-20 left-3 z-40 w-[220px] sm:w-[260px]">
+                    <StreamPoll
+                      poll={activePoll}
+                      isBroadcaster={false}
+                      streamId={streamId}
+                      onPollEnded={() => setActivePoll(null)}
+                      onVoted={fetchPoll}
+                    />
+                  </div>
+                )}
+
+                {/* Active Countdown Overlay */}
+                {activeCountdown && activeCountdown.isActive && (
+                  <div className="absolute bottom-20 right-3 z-40 w-[180px]">
+                    <StreamCountdown
+                      countdown={activeCountdown}
+                      isBroadcaster={false}
+                      streamId={streamId}
+                      onCountdownEnded={() => setActiveCountdown(null)}
+                    />
+                  </div>
+                )}
 
                 {/* Ticketed Stream Blocked Screen - compact overlay for non-ticket holders */}
                 {ticketedModeActive && !hasTicket && ticketedShowInfo && (
