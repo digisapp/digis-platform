@@ -200,8 +200,11 @@ function FanDashboard() {
       <MobileHeader />
       <Navigation />
 
-      <main className="pt-40 pb-24 md:pt-16 md:pb-8 md:pl-20">
-        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
+      {/* Spacer for fixed mobile header + safe area on notched devices */}
+      <div className="md:hidden pt-safe-area" style={{ height: '96px', paddingTop: 'env(safe-area-inset-top, 0px)' }} />
+
+      <main className="pb-24 md:pt-6 md:pb-8 md:pl-20">
+        <div className="max-w-7xl mx-auto px-4 pb-4 md:py-4">
           {/* Live Now Section */}
           {hasLiveStreams && (
             <section className="mb-8">
@@ -311,12 +314,12 @@ function FanDashboard() {
                           <Image
                             src={creator.avatarUrl}
                             alt={creator.displayName || creator.username}
-                            width={64}
-                            height={64}
-                            className="w-16 h-16 rounded-full object-cover"
+                            width={96}
+                            height={96}
+                            className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl font-bold text-white">
+                          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xl md:text-2xl font-bold text-white">
                             {(creator.displayName || creator.username)?.[0]?.toUpperCase()}
                           </div>
                         )}
@@ -327,7 +330,7 @@ function FanDashboard() {
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-gray-400 group-hover:text-white transition-colors truncate max-w-[72px]">
+                    <span className="text-xs md:text-sm text-gray-400 group-hover:text-white transition-colors truncate max-w-[72px] md:max-w-[88px]">
                       {creator.username}
                     </span>
                   </Link>

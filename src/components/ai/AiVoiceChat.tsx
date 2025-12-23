@@ -399,24 +399,6 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
         )}
       </div>
 
-      {/* Transcription Display */}
-      {(transcript || aiResponse) && (
-        <div className="w-full max-w-md mb-8">
-          {transcript && (
-            <div className="mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
-              <p className="text-xs text-gray-500 mb-1">You said:</p>
-              <p className="text-gray-300">{transcript}</p>
-            </div>
-          )}
-          {aiResponse && (
-            <div className="p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-              <p className="text-xs text-cyan-500 mb-1">AI Twin:</p>
-              <p className="text-white">{aiResponse}</p>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Controls */}
       <div className="flex items-center gap-4">
         {/* Mute Button */}

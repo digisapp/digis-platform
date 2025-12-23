@@ -536,10 +536,6 @@ export default function LiveStreamsPage() {
             {/* Top Creators */}
             {topCreators.length > 0 && (
               <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
-                  <h3 className="text-lg font-bold text-white">Top Creators</h3>
-                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {topCreators.map((creator) => (
                     <div
