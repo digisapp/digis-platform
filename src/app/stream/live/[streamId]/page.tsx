@@ -2102,13 +2102,13 @@ export default function BroadcastStudioPage() {
                     <div className="hidden sm:block">
                       <ViewerList streamId={streamId} currentViewers={viewerCount} activeGuestId={activeGuest?.userId} />
                     </div>
-                    <div className="sm:hidden flex items-center gap-1.5 px-2 py-1.5 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 shadow-lg">
-                      <Users className="w-3 h-3 text-white" />
-                      <span className="text-white text-xs font-bold">{viewerCount}</span>
+                    <div className="sm:hidden flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 shadow-lg">
+                      <Users className="w-4 h-4 text-white" />
+                      <span className="text-white text-sm font-bold">{viewerCount}</span>
                     </div>
 
-                    {/* Coins Earned - Desktop only (mobile shows in second row) */}
-                    <div className="hidden md:flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
+                    {/* Coins Earned - Show on mobile too, next to viewers */}
+                    <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
                       <Coins className="w-4 h-4 text-yellow-400" />
                       <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                     </div>
@@ -2127,30 +2127,21 @@ export default function BroadcastStudioPage() {
                     )}
                   </div>
 
-                  {/* Mobile Second Row - Coins, Record, End Stream */}
+                  {/* Mobile Second Row - Record, End Stream */}
                   <div className="absolute top-14 left-3 right-3 z-20 md:hidden">
                     <div className="flex items-center justify-between">
-                      {/* Left side: Coins + Record */}
-                      <div className="flex items-center gap-2">
-                        {/* Coins Earned */}
-                        <div className="flex items-center gap-1 px-2 py-1.5 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">
-                          <Coins className="w-3 h-3 text-yellow-400" />
-                          <span className="text-yellow-400 font-bold text-xs">{totalEarnings.toLocaleString()}</span>
-                        </div>
+                      {/* Left side: Record */}
+                      <StreamRecordButton
+                        isRecording={isRecording}
+                        currentDuration={formattedDuration}
+                        maxDuration={maxDuration}
+                        recordingsCount={recordings.length}
+                        maxRecordings={maxRecordings}
+                        onStartRecording={startRecording}
+                        onStopRecording={stopRecording}
+                      />
 
-                        {/* Record Button - Shows "Record" text */}
-                        <StreamRecordButton
-                          isRecording={isRecording}
-                          currentDuration={formattedDuration}
-                          maxDuration={maxDuration}
-                          recordingsCount={recordings.length}
-                          maxRecordings={maxRecordings}
-                          onStartRecording={startRecording}
-                          onStopRecording={stopRecording}
-                        />
-                      </div>
-
-                      {/* Right side: End Stream */}
+                      {/* Right side: End Stream - Larger */}
                       <button
                         onClick={() => {
                           if (isRecording) {
@@ -2159,13 +2150,13 @@ export default function BroadcastStudioPage() {
                           setIsLeaveAttempt(false);
                           setShowEndConfirm(true);
                         }}
-                        className="flex items-center gap-1 px-2.5 py-1.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
+                        className="flex items-center gap-1.5 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
                       >
-                        <svg className="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                         </svg>
-                        <span className="text-red-400 text-xs font-semibold">End</span>
+                        <span className="text-red-400 text-sm font-semibold">End</span>
                       </button>
                     </div>
                   </div>
@@ -2268,7 +2259,7 @@ export default function BroadcastStudioPage() {
                   </div>
 
                   {/* Mobile Bottom Tools - Collapsible + button */}
-                  <div className="absolute bottom-3 left-3 z-20 md:hidden">
+                  <div className="absolute bottom-3 left-3 z-50 md:hidden">
                     {showMobileTools ? (
                       /* Expanded tools menu */
                       <div className="flex flex-col gap-2 p-3 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">

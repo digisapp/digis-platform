@@ -95,6 +95,7 @@ export default function GoLivePage() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number>();
+  const initialDeviceSetupDone = useRef(false);
 
   // Detect actual device orientation
   useEffect(() => {
@@ -153,10 +154,16 @@ export default function GoLivePage() {
     };
   }, []);
 
-  // Start media stream when devices change
+  // Start media stream when devices change (but not on initial setup)
   // Note: orientation only affects display (via CSS object-cover), not capture
   useEffect(() => {
     if (selectedVideoDevice && selectedAudioDevice) {
+      // Skip the first run - initializeDevices already set up the stream
+      if (!initialDeviceSetupDone.current) {
+        initialDeviceSetupDone.current = true;
+        return;
+      }
+      // Only restart stream when user changes device selection
       startMediaStream();
     }
   }, [selectedVideoDevice, selectedAudioDevice]);
@@ -271,13 +278,23 @@ export default function GoLivePage() {
     try {
       setDevicesLoading(true);
 
-      // Request permissions first
-      const tempStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
+      // Request permissions and start stream in one call to avoid multiple popups
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          aspectRatio: { ideal: 16 / 9 },
+          frameRate: { ideal: 30 },
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
 
-      // Get available devices
+      // Get available devices (now we have permission)
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === 'videoinput');
       const audioInputs = devices.filter((d) => d.kind === 'audioinput');
@@ -285,16 +302,26 @@ export default function GoLivePage() {
       setVideoDevices(videoInputs);
       setAudioDevices(audioInputs);
 
-      // Set default devices
-      if (videoInputs.length > 0) {
-        setSelectedVideoDevice(videoInputs[0].deviceId);
-      }
-      if (audioInputs.length > 0) {
-        setSelectedAudioDevice(audioInputs[0].deviceId);
+      // Get current track device IDs
+      const videoTrack = stream.getVideoTracks()[0];
+      const audioTrack = stream.getAudioTracks()[0];
+      const currentVideoDevice = videoTrack?.getSettings()?.deviceId || (videoInputs[0]?.deviceId ?? '');
+      const currentAudioDevice = audioTrack?.getSettings()?.deviceId || (audioInputs[0]?.deviceId ?? '');
+
+      // Use the already-running stream for preview (no second getUserMedia call)
+      setMediaStream(stream);
+      setPreviewError('');
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
 
-      // Stop temp stream
-      tempStream.getTracks().forEach((track) => track.stop());
+      // Setup audio monitoring with the existing stream
+      setupAudioMonitoring(stream);
+
+      // Set selected devices AFTER setting up the stream to avoid triggering startMediaStream
+      setSelectedVideoDevice(currentVideoDevice);
+      setSelectedAudioDevice(currentAudioDevice);
     } catch (err: any) {
       console.error('Error initializing devices:', err);
       setPreviewError('Unable to access camera/microphone. Please grant permissions.');
