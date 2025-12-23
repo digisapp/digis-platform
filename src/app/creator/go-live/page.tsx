@@ -10,7 +10,7 @@ import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSel
 import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
-import { HelpCircle, X, Monitor, Video } from 'lucide-react';
+import { HelpCircle, X, Video } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface FeaturedCreator {
@@ -673,7 +673,7 @@ export default function GoLivePage() {
             </div>
             <div className="text-left">
               <div className="font-bold text-white text-lg">New to Streaming?</div>
-              <div className="text-sm text-gray-300">Tap here for pro tips on video quality and engagement</div>
+              <div className="text-sm text-gray-300">Tap here for pro tips on video quality</div>
             </div>
             <div className="text-cyan-400 text-2xl animate-pulse">→</div>
           </div>
@@ -1254,7 +1254,7 @@ export default function GoLivePage() {
             <div className="p-5 space-y-5">
               {/* Video Quality Tips - Most important for new streamers */}
               <div className="bg-gradient-to-br from-green-500/10 to-cyan-500/5 border border-green-500/20 rounded-xl p-4">
-                <h3 className="font-bold text-white mb-3">📹 Best Video Quality</h3>
+                <h3 className="font-bold text-white mb-3">Best Video Quality</h3>
                 <ul className="space-y-2.5 text-sm text-gray-300">
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 font-bold">✓</span>
@@ -1274,47 +1274,11 @@ export default function GoLivePage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 font-bold">✓</span>
-                    <span><strong className="text-white">Desktop streaming</strong> - Best quality with webcam or DSLR</span>
+                    <span><strong className="text-white">Desktop or Laptop streaming</strong> - Best Quality with an external WebCam or DSLR Camera</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Quick Engagement Tips */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <h3 className="font-bold text-white mb-3">💬 Engagement Tips</h3>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-cyan-400">•</span>
-                    <span>Test your audio levels before going live</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400">•</span>
-                    <span>Engage with chat - viewers love interaction</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-pink-400">•</span>
-                    <span>Use polls, goals, and countdowns to boost tips</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Screen Share & OBS Section */}
-              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/20 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Monitor className="w-5 h-5 text-purple-400" />
-                  <h3 className="font-bold text-white">Advanced Features</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400">•</span>
-                    <span><strong className="text-white">Screen Share</strong> - Click "Screen" button during stream</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400">•</span>
-                    <span><strong className="text-white">OBS Virtual Camera</strong> - For overlays and pre-recorded content</span>
-                  </li>
-                </ul>
-              </div>
             </div>
 
             {/* Footer */}
