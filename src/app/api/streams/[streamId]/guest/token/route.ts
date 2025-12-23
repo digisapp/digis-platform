@@ -57,12 +57,13 @@ export async function GET(
       return NextResponse.json({ error: 'No accepted guest request found' }, { status: 403 });
     }
 
-    // Get user profile for display name
+    // Get user profile for display name and avatar
     const userProfile = await db.query.users.findFirst({
       where: eq(users.id, user.id),
       columns: {
         username: true,
         displayName: true,
+        avatarUrl: true,
       },
     });
 
@@ -116,6 +117,7 @@ export async function GET(
         userId: user.id,
         username: userProfile?.username,
         displayName,
+        avatarUrl: userProfile?.avatarUrl,
         requestType: guestRequest.requestType,
       });
     } catch (broadcastError) {

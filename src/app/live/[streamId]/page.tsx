@@ -20,6 +20,7 @@ import { GiftFloatingEmojis } from '@/components/streaming/GiftFloatingEmojis';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
+import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
@@ -289,6 +290,15 @@ export default function TheaterModePage() {
     isActive: boolean;
   } | null>(null);
 
+  // Guest call-in state (when host brings a viewer on stream)
+  const [activeGuest, setActiveGuest] = useState<{
+    userId: string;
+    username: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
+    requestType: 'video' | 'voice';
+  } | null>(null);
+
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
@@ -505,6 +515,22 @@ export default function TheaterModePage() {
         fetchCountdown();
       }
     },
+    // Guest joined the stream (viewer can see guest's video)
+    onGuestJoined: (event) => {
+      console.log('[Viewer] Guest joined:', event);
+      setActiveGuest({
+        userId: event.userId,
+        username: event.username,
+        displayName: event.displayName,
+        avatarUrl: event.avatarUrl,
+        requestType: event.requestType || 'video',
+      });
+    },
+    // Guest removed from stream
+    onGuestRemoved: (event) => {
+      console.log('[Viewer] Guest removed:', event);
+      setActiveGuest(null);
+    },
   });
 
   // Check ticketed stream access for current user
@@ -703,6 +729,7 @@ export default function TheaterModePage() {
     checkTicketAccess(); // Check if ticketed stream mode is active
     fetchPoll(); // Fetch active poll for late-joining viewers
     fetchCountdown(); // Fetch active countdown for late-joining viewers
+    fetchActiveGuest(); // Fetch active guest for late-joining viewers
   }, [streamId]);
 
   // Poll for active poll vote updates (every 5 seconds) to keep vote counts in sync
@@ -990,6 +1017,20 @@ export default function TheaterModePage() {
       }
     } catch (err) {
       console.error('[Viewer] Error fetching countdown:', err);
+    }
+  };
+
+  // Fetch active guest for late-joining viewers
+  const fetchActiveGuest = async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/guest`);
+      const data = await response.json();
+      if (response.ok && data.activeGuest) {
+        console.log('[Viewer] Active guest fetched:', data.activeGuest);
+        setActiveGuest(data.activeGuest);
+      }
+    } catch (err) {
+      console.error('[Viewer] Error fetching active guest:', err);
     }
   };
 
@@ -1403,6 +1444,18 @@ export default function TheaterModePage() {
                 )}
                 {/* Spotlighted Creator Overlay for Viewers */}
                 <SpotlightedCreatorOverlay streamId={streamId} isHost={false} />
+
+                {/* Guest Video Overlay - when host brings a viewer on stream */}
+                {activeGuest && (
+                  <GuestVideoOverlay
+                    guestUserId={activeGuest.userId}
+                    guestUsername={activeGuest.username}
+                    guestDisplayName={activeGuest.displayName}
+                    guestAvatarUrl={activeGuest.avatarUrl}
+                    requestType={activeGuest.requestType}
+                    isHost={false}
+                  />
+                )}
 
                 {/* Active Poll Overlay */}
                 {activePoll && activePoll.isActive && (

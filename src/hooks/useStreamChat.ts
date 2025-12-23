@@ -128,6 +128,7 @@ interface GuestJoinedEvent {
   userId: string;
   username: string;
   displayName: string | null;
+  avatarUrl?: string | null;
   requestType: 'video' | 'voice';
 }
 
