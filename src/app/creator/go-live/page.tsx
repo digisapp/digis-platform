@@ -652,7 +652,7 @@ export default function GoLivePage() {
         <form onSubmit={handleStartStream} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left Column: Form */}
-            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 md:p-8 space-y-4 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+            <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 md:p-8 space-y-3 md:space-y-4 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
               {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-semibold text-white mb-2">
@@ -668,7 +668,7 @@ export default function GoLivePage() {
                   maxLength={100}
                   required
                 />
-                <div className="mt-2 text-xs text-gray-500 text-right">
+                <div className="mt-1 text-xs text-gray-500 text-right">
                   {title.length}/100
                 </div>
               </div>
