@@ -11,6 +11,7 @@ import { useToastContext } from '@/context/ToastContext';
 import { createClient } from '@/lib/supabase/client';
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
 import { HelpCircle, X, Monitor, Video } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface FeaturedCreator {
   id: string;
@@ -642,19 +643,10 @@ export default function GoLivePage() {
       <ParticleEffect trigger={showParticles} />
       <SuccessAnimation show={showSuccess} />
 
-      {/* Mobile Logo Header - extends to top edge with safe area padding */}
-      <div
-        className="md:hidden flex items-end justify-start px-4 pb-3 border-b border-white/10 bg-gradient-to-br from-gray-900 via-black to-gray-900"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)', minHeight: 'calc(48px + env(safe-area-inset-top, 0px))' }}
-      >
-        <img
-          src="/images/digis-logo-white.png"
-          alt="Digis"
-          className="h-9"
-        />
-      </div>
+      {/* Mobile Header */}
+      <MobileHeader />
 
-      <div className="container mx-auto px-4 pt-4 md:pt-10 pb-32 md:pb-10">
+      <div className="container mx-auto px-4 pt-20 md:pt-10 pb-32 md:pb-10">
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
