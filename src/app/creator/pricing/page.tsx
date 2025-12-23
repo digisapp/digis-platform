@@ -28,7 +28,7 @@ interface MenuItem {
   fulfillmentType?: string;
 }
 
-const EMOJI_OPTIONS = ['🎵', '🎤', '💋', '🔥', '💃', '🎮', '❓', '💪', '🎭', '⭐', '💬', '🎁'];
+const EMOJI_OPTIONS = ['🎵', '🎤', '💋', '🔥', '💃', '🎮', '❓', '💪', '📚', '⭐', '💬', '🎁', '👜', '👙'];
 
 type ActiveTab = 'calls' | 'messages' | 'subscriptions' | 'menu';
 
