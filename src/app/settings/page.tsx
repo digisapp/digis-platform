@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -1121,6 +1121,29 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* My Links Section - Creators Only */}
+            {currentUser?.role === 'creator' && (
+              <div className="pt-6 border-t border-cyan-500/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Link2 className="w-5 h-5 text-cyan-400" />
+                    My Links
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/creator/links')}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-500/40 rounded-lg text-cyan-400 text-sm font-medium transition-all"
+                  >
+                    <span>Manage Links</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Add affiliate deals, discount codes, wishlists, and promo links to your profile. Perfect for monetizing your audience with brand partnerships.
+                </p>
               </div>
             )}
 
