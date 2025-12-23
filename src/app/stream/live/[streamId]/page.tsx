@@ -2051,22 +2051,34 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        // Default to 1080p for all streams
+                        // Portrait: 9:16 aspect ratio, Landscape: 16:9
                         resolution: streamOrientation === 'portrait'
-                          ? { width: 1080, height: 1920, frameRate: 30 } // 1080p portrait
+                          ? { width: 720, height: 1280, frameRate: 30 } // 720p portrait (9:16)
                           : VideoPresets.h1080, // 1080p landscape
                         facingMode: 'user',
                       },
                       publishDefaults: {
-                        videoSimulcastLayers: [
-                          VideoPresets.h1080, // 1080p - default max quality
-                          VideoPresets.h720,  // 720p for medium quality
-                          VideoPresets.h360,  // 360p for low bandwidth
-                        ],
-                        videoEncoding: {
-                          maxBitrate: 4_000_000, // 4 Mbps for 1080p quality
-                          maxFramerate: 30,
-                        },
+                        // IMPORTANT: Disable simulcast for portrait mode
+                        // Simulcast layers use landscape presets which force landscape encoding
+                        simulcast: streamOrientation !== 'portrait',
+                        ...(streamOrientation === 'portrait' ? {
+                          // Single portrait encoding without simulcast
+                          videoEncoding: {
+                            maxBitrate: 2_500_000, // 2.5 Mbps for 720p portrait
+                            maxFramerate: 30,
+                          },
+                        } : {
+                          // Landscape with simulcast layers
+                          videoSimulcastLayers: [
+                            VideoPresets.h1080,
+                            VideoPresets.h720,
+                            VideoPresets.h360,
+                          ],
+                          videoEncoding: {
+                            maxBitrate: 4_000_000, // 4 Mbps for 1080p quality
+                            maxFramerate: 30,
+                          },
+                        }),
                         dtx: true,
                         red: true,
                       },
