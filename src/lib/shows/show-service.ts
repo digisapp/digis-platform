@@ -686,7 +686,7 @@ The Digis Team
   }
 
   /**
-   * Cancel a show (with refunds)
+   * Cancel a show (no automatic refunds - creator handles it manually)
    */
   static async cancelShow(showId: string, creatorId: string) {
     return await db.transaction(async (tx) => {
@@ -706,23 +706,13 @@ The Digis Team
         throw new Error('Can only cancel scheduled streams');
       }
 
-      // Get all tickets for refunds
+      // Get ticket count for return info
       const tickets = await tx.query.showTickets.findMany({
         where: eq(showTickets.showId, showId),
       });
 
-      // Issue refunds
+      // Invalidate tickets (no refunds - creator keeps earnings and handles it manually)
       for (const ticket of tickets) {
-        await WalletService.createTransaction({
-          userId: ticket.userId,
-          amount: ticket.coinsPaid,
-          type: 'refund',
-          description: `Refund for cancelled show "${show.title}"`,
-          metadata: { showId, ticketId: ticket.id },
-          idempotencyKey: `refund_${ticket.id}`,
-        });
-
-        // Invalidate ticket
         await tx
           .update(showTickets)
           .set({ isValid: false })
@@ -738,7 +728,7 @@ The Digis Team
         })
         .where(eq(shows.id, showId));
 
-      return { refundedTickets: tickets.length };
+      return { cancelledTickets: tickets.length };
     });
   }
 

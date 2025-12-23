@@ -108,8 +108,8 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: `Show cancelled and ${result.refundedTickets} tickets refunded`,
-      refundedTickets: result.refundedTickets,
+      message: `Show cancelled successfully`,
+      cancelledTickets: result.cancelledTickets,
     });
   } catch (error) {
     console.error('Error cancelling show:', error);

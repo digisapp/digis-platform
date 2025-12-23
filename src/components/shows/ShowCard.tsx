@@ -265,7 +265,7 @@ export function ShowCard({ show, isCreator, onUpdate }: ShowCardProps) {
             <h3 className="text-xl font-bold text-white mb-2">Cancel Stream?</h3>
             <p className="text-gray-400 mb-4">
               {show.ticketsSold > 0
-                ? `This will refund ${show.ticketsSold} ticket holder${show.ticketsSold > 1 ? 's' : ''} and remove the stream.`
+                ? `This will cancel the stream. ${show.ticketsSold} ticket holder${show.ticketsSold > 1 ? 's' : ''} won't be refunded automatically - you can make it up to them however you'd like.`
                 : 'This will permanently remove the scheduled stream.'}
             </p>
             <div className="flex gap-3">

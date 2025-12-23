@@ -27,8 +27,8 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      refundedTickets: result.refundedTickets,
-      message: `Stream cancelled. ${result.refundedTickets} ticket(s) refunded.`,
+      cancelledTickets: result.cancelledTickets,
+      message: `Stream cancelled successfully.`,
     });
   } catch (error) {
     console.error('Error cancelling show:', error);
