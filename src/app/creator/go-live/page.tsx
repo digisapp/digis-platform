@@ -90,6 +90,9 @@ export default function GoLivePage() {
   // Track actual device orientation (portrait = phone held upright)
   const [deviceOrientation, setDeviceOrientation] = useState<'portrait' | 'landscape'>('portrait');
 
+  // Track if video needs rotation (camera outputs landscape but we want portrait)
+  const [needsRotation, setNeedsRotation] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -163,6 +166,8 @@ export default function GoLivePage() {
   useEffect(() => {
     if (isMobile) {
       setOrientation(deviceOrientation);
+      // Reset rotation flag when orientation changes - will be recalculated when stream restarts
+      setNeedsRotation(false);
     }
   }, [deviceOrientation, isMobile]);
 
@@ -316,21 +321,23 @@ export default function GoLivePage() {
       // Set video dimensions based on orientation
       // Use lower resolution on mobile for wider field of view (less zoom)
       // iPhone cameras crop/zoom at high resolutions
+      // Use aspectRatio constraint which is more reliable on iOS
       const videoConstraints = orientation === 'portrait'
         ? {
             deviceId: selectedVideoDevice,
             width: { ideal: isMobile ? 720 : 1080 },
             height: { ideal: isMobile ? 1280 : 1920 },
+            aspectRatio: { ideal: 9/16 },
             frameRate: { ideal: 30 },
-            // Prevent camera from cropping to achieve resolution
-            resizeMode: 'none' as const,
+            facingMode: 'user',
           }
         : {
             deviceId: selectedVideoDevice,
             width: { ideal: isMobile ? 1280 : 1920 },
             height: { ideal: isMobile ? 720 : 1080 },
+            aspectRatio: { ideal: 16/9 },
             frameRate: { ideal: 30 },
-            resizeMode: 'none' as const,
+            facingMode: 'user',
           };
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -342,6 +349,17 @@ export default function GoLivePage() {
           autoGainControl: true,
         },
       });
+
+      // Check actual video track dimensions to see if rotation is needed
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        const settings = videoTrack.getSettings();
+        const isVideoLandscape = (settings.width || 0) > (settings.height || 0);
+        const wantPortrait = orientation === 'portrait';
+
+        // If we want portrait but camera outputs landscape, we need to rotate
+        setNeedsRotation(wantPortrait && isVideoLandscape && isMobile);
+      }
 
       setMediaStream(stream);
       setPreviewError('');
@@ -975,7 +993,11 @@ export default function GoLivePage() {
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full transition-transform duration-300 -scale-x-100 object-contain"
+                    className={`transition-transform duration-300 -scale-x-100 ${
+                      needsRotation
+                        ? 'absolute inset-0 w-[177.78%] h-[56.25%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 object-cover'
+                        : 'w-full h-full object-contain'
+                    }`}
                   />
                   {/* Live indicator */}
                   <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">

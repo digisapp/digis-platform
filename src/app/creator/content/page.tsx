@@ -148,7 +148,7 @@ export default function CreatorContentStudioPage() {
           <GlassCard className="p-16 text-center">
             <div className="text-6xl mb-4">📸</div>
             <h3 className="text-2xl font-bold text-white mb-2">No content yet</h3>
-            <p className="text-gray-400 text-lg mb-6">Upload your first exclusive content to start earning!</p>
+            <p className="text-gray-400 text-lg mb-6">Create your first exclusive content to start earning!</p>
             <GlassButton
               variant="gradient"
               size="lg"
@@ -157,7 +157,7 @@ export default function CreatorContentStudioPage() {
               shimmer
             >
               <Plus className="w-5 h-5" />
-              Upload Content
+              New Post
             </GlassButton>
           </GlassCard>
         ) : (

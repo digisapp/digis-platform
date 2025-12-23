@@ -598,7 +598,7 @@ export default function CreatorDashboard() {
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Upload className="w-6 h-6 text-cyan-400" />
-              <span className="text-lg font-semibold text-white">Upload</span>
+              <span className="text-lg font-semibold text-white">New Post</span>
             </button>
           </div>
 
@@ -799,7 +799,7 @@ export default function CreatorDashboard() {
                     onClick={() => router.push('/creator/content/new')}
                     className="mt-2 text-sm text-cyan-400 hover:text-cyan-300"
                   >
-                    Upload your first post
+                    Create your first post
                   </button>
                 </div>
               )}

@@ -386,15 +386,15 @@ export default function CreateContentPage() {
                 </div>
               </div>
             ) : (
-              /* Upload Prompt */
+              /* Add Content */
               <label className="block cursor-pointer">
                 <div className="border-2 border-dashed border-white/30 rounded-xl p-8 text-center hover:border-digis-cyan hover:bg-white/5 transition-all">
                   <Upload className="w-10 h-10 mx-auto mb-3 text-gray-300" />
                   <p className="text-white font-medium mb-1">
-                    Upload Photos or Videos
+                    Add Photos or Videos
                   </p>
                   <p className="text-sm text-gray-400">
-                    Uploads will be displayed on your Profile Page
+                    Posts will be displayed on your Profile Page
                   </p>
                 </div>
                 <input
@@ -505,7 +505,7 @@ export default function CreateContentPage() {
               size="lg"
             >
               <span className="text-white font-semibold">
-                {uploading ? 'Uploading...' : 'Publish Content'}
+                {uploading ? 'Publishing...' : 'Publish'}
               </span>
             </GlassButton>
           </div>

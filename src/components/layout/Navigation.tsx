@@ -306,7 +306,7 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  // Creators: Home, Go Live, Upload, Chats (focused on creating and earning)
+  // Creators: Home, Go Live, Post, Chats (focused on creating and earning)
   // Fans: Home, Streams, Chats (Home now includes Explore/Discovery)
   const navItems = userRole === 'creator' ? [
     {
@@ -322,7 +322,7 @@ export function Navigation() {
       active: isActive('/creator/go-live'),
     },
     {
-      label: 'Upload',
+      label: 'Post',
       icon: Upload,
       path: '/creator/content/new',
       active: isActive('/creator/content/new') || isActive('/creator/content'),
@@ -499,9 +499,9 @@ export function Navigation() {
                     style={{ minHeight: '56px' }}
                   >
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold">Upload</span>
+                    <span className="text-base md:text-sm text-white font-semibold">New Post</span>
                   </button>
 
                   <button
@@ -603,7 +603,7 @@ export function Navigation() {
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
           {userRole === 'creator' ? (
             <>
-              {/* Creator Navigation: Home, Go Live, [Profile Center], Upload, Chats */}
+              {/* Creator Navigation: Home, Go Live, [Profile Center], Post, Chats */}
               {/* First nav item (Home) */}
               <button
                 onClick={() => { setShowProfileMenu(false); router.push(navItems[0].path); }}
@@ -699,7 +699,7 @@ export function Navigation() {
                 </button>
               </div>
 
-              {/* Third nav item (Upload) */}
+              {/* Third nav item (Post) */}
               <button
                 onClick={() => { setShowProfileMenu(false); router.push(navItems[2].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${
