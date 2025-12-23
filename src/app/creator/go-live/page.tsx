@@ -661,6 +661,24 @@ export default function GoLivePage() {
       <MobileHeader />
 
       <div className="container mx-auto px-4 pt-20 md:pt-10 pb-32 md:pb-10">
+        {/* Streaming Tips Banner - Prominent for new creators */}
+        <button
+          type="button"
+          onClick={() => setShowStreamingTipsModal(true)}
+          className="w-full mb-6 p-4 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 hover:from-cyan-500/30 hover:via-purple-500/30 hover:to-pink-500/30 border-2 border-cyan-500/40 hover:border-cyan-500/60 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(34,211,238,0.15)] hover:shadow-[0_0_30px_rgba(34,211,238,0.25)] group"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Video className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-white text-lg">New to Streaming?</div>
+              <div className="text-sm text-gray-300">Tap here for pro tips on video quality and engagement</div>
+            </div>
+            <div className="text-cyan-400 text-2xl animate-pulse">→</div>
+          </div>
+        </button>
+
         {/* Stats */}
         {recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
