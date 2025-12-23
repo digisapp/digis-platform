@@ -489,7 +489,10 @@ export default function ChatPage() {
   };
 
   const handleSendMedia = async (data: {
-    file: File;
+    file?: File;
+    contentId?: string;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
     caption: string;
     isLocked: boolean;
     unlockPrice: number;
@@ -497,18 +500,39 @@ export default function ChatPage() {
     if (!conversation) return;
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('file', data.file);
-      formData.append('recipientId', conversation.otherUser.id);
-      formData.append('caption', data.caption);
-      formData.append('isLocked', data.isLocked.toString());
-      formData.append('unlockPrice', data.unlockPrice.toString());
+      let response;
 
-      const response = await fetch('/api/messages/send-media', {
-        method: 'POST',
-        body: formData,
-      });
+      if (data.file) {
+        // New file upload
+        const formData = new FormData();
+        formData.append('file', data.file);
+        formData.append('recipientId', conversation.otherUser.id);
+        formData.append('caption', data.caption);
+        formData.append('isLocked', data.isLocked.toString());
+        formData.append('unlockPrice', data.unlockPrice.toString());
+
+        response = await fetch('/api/messages/send-media', {
+          method: 'POST',
+          body: formData,
+        });
+      } else if (data.mediaUrl) {
+        // Send from library (existing content)
+        response = await fetch('/api/messages/send-media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientId: conversation.otherUser.id,
+            mediaUrl: data.mediaUrl,
+            mediaType: data.mediaType,
+            contentId: data.contentId,
+            caption: data.caption,
+            isLocked: data.isLocked,
+            unlockPrice: data.unlockPrice,
+          }),
+        });
+      } else {
+        throw new Error('No media provided');
+      }
 
       // Handle non-JSON responses (e.g., timeout errors, body size limits)
       const contentType = response.headers.get('content-type');
