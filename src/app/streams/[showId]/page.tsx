@@ -164,8 +164,8 @@ export default function StreamDetailPage() {
         throw new Error(data.error || 'Failed to cancel stream');
       }
 
-      showSuccess(`Stream cancelled. ${data.refundedTickets} ticket(s) refunded.`);
-      router.push('/creator/streams');
+      showSuccess('Stream cancelled successfully.');
+      router.push('/creator/dashboard');
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to cancel stream');
       setShowCancelConfirm(false);
@@ -416,7 +416,9 @@ export default function StreamDetailPage() {
                     ) : (
                       <div className="bg-red-500/20 border border-red-500 rounded-lg p-4">
                         <p className="text-red-200 text-sm mb-3 text-center">
-                          Are you sure? All {show.ticketsSold} ticket(s) will be refunded.
+                          {show.ticketsSold > 0
+                            ? `This will cancel the stream. ${show.ticketsSold} ticket holder${show.ticketsSold > 1 ? 's' : ''} won't be refunded automatically.`
+                            : 'Are you sure you want to cancel this stream?'}
                         </p>
                         <div className="flex gap-2">
                           <button
