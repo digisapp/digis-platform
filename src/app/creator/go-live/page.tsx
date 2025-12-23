@@ -163,14 +163,7 @@ export default function GoLivePage() {
     }
   }, [selectedVideoDevice, selectedAudioDevice, orientation]);
 
-  // On mobile, auto-sync orientation selection with actual device orientation
-  useEffect(() => {
-    if (isMobile) {
-      setOrientation(deviceOrientation);
-      // Reset rotation flag when orientation changes - will be recalculated when stream restarts
-      setNeedsRotation(false);
-    }
-  }, [deviceOrientation, isMobile]);
+  // Removed auto-sync - orientation is now a manual choice
 
   const checkCreatorStatus = async () => {
     try {
@@ -861,34 +854,40 @@ export default function GoLivePage() {
                 </div>
               </div>
 
-              {/* Orientation - Only show on mobile where it auto-follows device rotation */}
-              {isMobile && (
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">
-                    Screen Orientation
-                  </label>
-                  <div className="p-4 rounded-xl border-2 border-cyan-500/50 bg-cyan-500/10">
-                    <div className="flex items-center gap-3">
-                      <div className={`text-2xl transition-transform duration-300 ${
-                        orientation === 'portrait' ? '' : 'rotate-90'
-                      }`}>
-                        📱
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-white text-sm">
-                          {orientation === 'portrait' ? 'Portrait Mode' : 'Landscape Mode'}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          Auto-follows your phone rotation
-                        </div>
-                      </div>
-                      <div className="text-cyan-400 text-xs font-medium">
-                        AUTO
-                      </div>
-                    </div>
-                  </div>
+              {/* Orientation Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-2">
+                  Stream Orientation
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setOrientation('portrait')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      orientation === 'portrait'
+                        ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
+                        : 'border-white/20 bg-white/5 hover:border-white/40'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2">📱</div>
+                    <div className="font-semibold text-white text-sm">Portrait</div>
+                    <div className="text-xs text-gray-400">9:16 vertical</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOrientation('landscape')}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      orientation === 'landscape'
+                        ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
+                        : 'border-white/20 bg-white/5 hover:border-white/40'
+                    }`}
+                  >
+                    <div className="text-3xl mb-2 rotate-90">📱</div>
+                    <div className="font-semibold text-white text-sm">Landscape</div>
+                    <div className="text-xs text-gray-400">16:9 horizontal</div>
+                  </button>
                 </div>
-              )}
+              </div>
 
               {/* Go Private Settings */}
               <div>
@@ -1013,7 +1012,6 @@ export default function GoLivePage() {
                   {/* Orientation badge */}
                   <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
                     {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
-                    {isMobile && <span className="text-cyan-400 ml-1">(auto)</span>}
                   </div>
                 </div>
               )}
