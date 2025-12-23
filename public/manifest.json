@@ -9,14 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/images/digis-logo-white.png",
-      "sizes": "192x192",
+      "src": "/icons/iphone-logo.png",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/digis-logo-white.png",
-      "sizes": "512x512",
+      "src": "/icons/iphone-logo.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     }

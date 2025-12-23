@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   description: "Connect with your favorite creators through video calls, live streams, and exclusive content",
   manifest: "/manifest.json",
   icons: {
-    icon: "/images/digis-logo-white.png",
-    apple: "/images/digis-logo-white.png",
+    icon: "/icons/iphone-logo.png",
+    apple: "/icons/iphone-logo.png",
   },
   appleWebApp: {
     capable: true,
