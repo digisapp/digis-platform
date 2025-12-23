@@ -1,6 +1,6 @@
 'use client';
 
-import { Target, Pencil, Gift } from 'lucide-react';
+import { Target, Pencil, Gift, X } from 'lucide-react';
 
 interface Goal {
   id: string;
@@ -15,10 +15,11 @@ interface TronGoalBarProps {
   goals: Goal[];
   className?: string;
   onEdit?: (goalId: string) => void; // Optional edit callback for host
+  onCancel?: (goalId: string) => void; // Optional cancel callback for host
   vertical?: boolean; // If true, renders as vertical bar on the side
 }
 
-export function TronGoalBar({ goals, className = '', onEdit, vertical = false }: TronGoalBarProps) {
+export function TronGoalBar({ goals, className = '', onEdit, onCancel, vertical = false }: TronGoalBarProps) {
   if (!goals || goals.length === 0) return null;
 
   // Vertical layout - shows progress bar going up/down
@@ -171,8 +172,19 @@ export function TronGoalBar({ goals, className = '', onEdit, vertical = false }:
                   <button
                     onClick={() => onEdit(goal.id)}
                     className="p-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/40 transition-colors border border-cyan-500/30"
+                    title="Edit goal"
                   >
                     <Pencil className="w-3 h-3 text-cyan-400" />
+                  </button>
+                )}
+                {/* Cancel button - only shown for host */}
+                {onCancel && (
+                  <button
+                    onClick={() => onCancel(goal.id)}
+                    className="p-1 rounded-lg bg-red-500/20 hover:bg-red-500/40 transition-colors border border-red-500/30"
+                    title="Cancel goal"
+                  >
+                    <X className="w-3 h-3 text-red-400" />
                   </button>
                 )}
               </div>

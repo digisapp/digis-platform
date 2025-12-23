@@ -2367,7 +2367,7 @@ export default function BroadcastStudioPage() {
 
                   {/* Ticketed Stream Indicator - Shows on both mobile and desktop */}
                   {announcedTicketedStream && (
-                    <div className="absolute top-24 md:top-auto md:bottom-14 left-3 z-20">
+                    <div className="absolute top-52 md:top-auto md:bottom-14 left-3 z-20">
                       {vipModeActive ? (
                         // Ticketed Mode Active
                         <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
@@ -2504,7 +2504,7 @@ export default function BroadcastStudioPage() {
 
                   {/* Active Poll Overlay */}
                   {activePoll && activePoll.isActive && (
-                    <div className="absolute bottom-20 left-3 z-40 w-[220px] sm:w-[260px]">
+                    <div className="absolute bottom-36 md:bottom-20 left-3 z-40 w-[180px] sm:w-[260px]">
                       <StreamPoll
                         poll={activePoll}
                         isBroadcaster={true}
@@ -2919,7 +2919,7 @@ export default function BroadcastStudioPage() {
 
       {/* Floating Tron Goal Bar - mobile only (desktop shows inline below video) */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
-        <div className="lg:hidden fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[55%] max-w-[220px]">
+        <div className="lg:hidden fixed top-28 left-3 z-40 w-[50%] max-w-[200px]">
           <TronGoalBar
             goals={goals.filter(g => g.isActive && !g.isCompleted).map(g => ({
               id: g.id,
@@ -2934,6 +2934,18 @@ export default function BroadcastStudioPage() {
               if (goalToEdit) {
                 setEditingGoal(goalToEdit);
                 setShowGoalModal(true);
+              }
+            }}
+            onCancel={async (goalId) => {
+              try {
+                await fetch(`/api/streams/${streamId}/goals`, {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ goalId }),
+                });
+                setGoals(prev => prev.filter(g => g.id !== goalId));
+              } catch (err) {
+                console.error('Failed to cancel goal:', err);
               }
             }}
           />
