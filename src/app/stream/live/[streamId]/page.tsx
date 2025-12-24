@@ -283,7 +283,7 @@ export default function BroadcastStudioPage() {
   const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
-  const [showMobileTools, setShowMobileTools] = useState(false); // Collapsed by default, tap + to expand
+  const [showMobileTools, setShowMobileTools] = useState(true); // Expanded by default for host
   const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
 
   // Poll and Countdown state
