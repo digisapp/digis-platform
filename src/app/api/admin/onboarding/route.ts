@@ -155,12 +155,13 @@ export async function POST(request: NextRequest) {
       : null;
 
     // Check for existing invites with same Instagram handles
+    const handlesList = validCreators.map((c: any) => c.instagramHandle.toLowerCase().replace('@', ''));
     const existingHandles = await db
       .select({ instagramHandle: creatorInvites.instagramHandle })
       .from(creatorInvites)
       .where(
         and(
-          sql`${creatorInvites.instagramHandle} = ANY(${validCreators.map((c: any) => c.instagramHandle.toLowerCase().replace('@', ''))})`,
+          sql`LOWER(${creatorInvites.instagramHandle}) = ANY(ARRAY[${sql.raw(handlesList.map((h: string) => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[])`,
           eq(creatorInvites.status, 'pending')
         )
       );
