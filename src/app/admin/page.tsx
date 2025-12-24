@@ -1033,6 +1033,12 @@ export default function AdminDashboard() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
+          <button
+            onClick={() => router.push('/admin/onboarding')}
+            className="px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base text-gray-400 hover:text-white"
+          >
+            Onboarding
+          </button>
         </div>
 
         {/* Applications Tab Content */}
