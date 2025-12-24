@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, GripVertical, X } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -21,6 +21,18 @@ interface UsernameStatus {
   currentUsername: string;
   lastChangedAt: string | null;
 }
+
+interface CreatorLink {
+  id: string;
+  title: string;
+  url: string;
+  emoji: string | null;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+// Common emojis for link buttons
+const LINK_EMOJI_OPTIONS = ['🛍️', '💄', '👗', '📸', '🎁', '💰', '🔗', '✨', '💅', '👠', '🎵', '📱', '💻', '🎮', '📚', '🪽'];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -76,6 +88,15 @@ export default function SettingsPage() {
   const [showPrimaryCategoryDropdown, setShowPrimaryCategoryDropdown] = useState(false);
   const [showSecondaryCategoryDropdown, setShowSecondaryCategoryDropdown] = useState(false);
 
+  // Creator Links state
+  const [creatorLinks, setCreatorLinks] = useState<CreatorLink[]>([]);
+  const [linksLoading, setLinksLoading] = useState(false);
+  const [linksSaving, setLinksSaving] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [editingLink, setEditingLink] = useState<CreatorLink | null>(null);
+  const [linkFormData, setLinkFormData] = useState({ title: '', url: '', emoji: '' });
+  const [draggedLinkId, setDraggedLinkId] = useState<string | null>(null);
+
   useEffect(() => {
     // Fetch all data in parallel to avoid waterfall
     Promise.all([
@@ -83,6 +104,13 @@ export default function SettingsPage() {
       fetchUsernameCooldown(),
     ]);
   }, []);
+
+  // Fetch creator links when user data is loaded
+  useEffect(() => {
+    if (currentUser?.role === 'creator') {
+      fetchCreatorLinks();
+    }
+  }, [currentUser?.role]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -143,6 +171,165 @@ export default function SettingsPage() {
       }
     } catch (err) {
       console.error('Error fetching username cooldown:', err);
+    }
+  };
+
+  // Creator Links Functions
+  const fetchCreatorLinks = async () => {
+    setLinksLoading(true);
+    try {
+      const response = await fetch('/api/creator/links');
+      if (response.ok) {
+        const data = await response.json();
+        setCreatorLinks(data.links || []);
+      }
+    } catch (err) {
+      console.error('Error fetching creator links:', err);
+    } finally {
+      setLinksLoading(false);
+    }
+  };
+
+  const handleOpenLinkModal = (link?: CreatorLink) => {
+    if (link) {
+      setEditingLink(link);
+      setLinkFormData({
+        title: link.title,
+        url: link.url,
+        emoji: link.emoji || '',
+      });
+    } else {
+      setEditingLink(null);
+      setLinkFormData({ title: '', url: '', emoji: '' });
+    }
+    setShowLinkModal(true);
+  };
+
+  const handleCloseLinkModal = () => {
+    setShowLinkModal(false);
+    setEditingLink(null);
+    setLinkFormData({ title: '', url: '', emoji: '' });
+  };
+
+  const handleSaveLink = async () => {
+    if (!linkFormData.title.trim() || !linkFormData.url.trim()) {
+      setError('Title and URL are required');
+      return;
+    }
+
+    // Validate URL
+    try {
+      new URL(linkFormData.url);
+    } catch {
+      setError('Please enter a valid URL (include https://)');
+      return;
+    }
+
+    setLinksSaving(true);
+    try {
+      const url = editingLink
+        ? `/api/creator/links/${editingLink.id}`
+        : '/api/creator/links';
+      const method = editingLink ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: linkFormData.title.trim(),
+          url: linkFormData.url.trim(),
+          emoji: linkFormData.emoji || null,
+        }),
+      });
+
+      if (response.ok) {
+        setMessage(editingLink ? 'Link updated!' : 'Link added!');
+        setTimeout(() => setMessage(''), 3000);
+        handleCloseLinkModal();
+        fetchCreatorLinks();
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to save link');
+      }
+    } catch (err) {
+      setError('Failed to save link');
+    } finally {
+      setLinksSaving(false);
+    }
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    if (!confirm('Are you sure you want to delete this link?')) return;
+
+    try {
+      const response = await fetch(`/api/creator/links/${linkId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setMessage('Link deleted');
+        setTimeout(() => setMessage(''), 3000);
+        setCreatorLinks(creatorLinks.filter(l => l.id !== linkId));
+      } else {
+        setError('Failed to delete link');
+      }
+    } catch (err) {
+      setError('Failed to delete link');
+    }
+  };
+
+  const handleToggleLinkActive = async (link: CreatorLink) => {
+    try {
+      const response = await fetch(`/api/creator/links/${link.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !link.isActive }),
+      });
+
+      if (response.ok) {
+        setCreatorLinks(creatorLinks.map(l =>
+          l.id === link.id ? { ...l, isActive: !l.isActive } : l
+        ));
+      }
+    } catch (err) {
+      setError('Failed to update link');
+    }
+  };
+
+  // Link Drag and Drop
+  const handleLinkDragStart = (e: React.DragEvent, linkId: string) => {
+    setDraggedLinkId(linkId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleLinkDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleLinkDrop = async (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedLinkId || draggedLinkId === targetId) return;
+
+    const draggedIndex = creatorLinks.findIndex(l => l.id === draggedLinkId);
+    const targetIndex = creatorLinks.findIndex(l => l.id === targetId);
+
+    const newLinks = [...creatorLinks];
+    const [draggedItem] = newLinks.splice(draggedIndex, 1);
+    newLinks.splice(targetIndex, 0, draggedItem);
+
+    setCreatorLinks(newLinks);
+    setDraggedLinkId(null);
+
+    // Save new order
+    try {
+      await fetch('/api/creator/links/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkIds: newLinks.map(l => l.id) }),
+      });
+    } catch (err) {
+      console.error('Failed to save order:', err);
     }
   };
 
@@ -1189,18 +1376,115 @@ export default function SettingsPage() {
                     <Link2 className="w-5 h-5 text-cyan-400" />
                     My Links
                   </h3>
+                  {creatorLinks.length > 0 && (
+                    <span className="text-sm text-gray-400">{creatorLinks.length}/8 links</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-400 mb-4">
+                  Add affiliate deals, discount codes, wishlists, and promo links to your profile.
+                </p>
+
+                {/* Add Link Button */}
+                {creatorLinks.length < 8 && (
                   <button
                     type="button"
-                    onClick={() => router.push('/creator/links')}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-500/40 rounded-lg text-cyan-400 text-sm font-medium transition-all"
+                    onClick={() => handleOpenLinkModal()}
+                    className="w-full mb-4 p-3 border-2 border-dashed border-white/20 hover:border-cyan-500/50 rounded-xl text-gray-400 hover:text-cyan-400 transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Manage Links</span>
-                    <ExternalLink className="w-4 h-4" />
+                    <Plus className="w-5 h-5" />
+                    <span className="font-medium">Add New Link</span>
                   </button>
-                </div>
-                <p className="text-sm text-gray-400">
-                  Add affiliate deals, discount codes, wishlists, and promo links to your profile. Perfect for monetizing your audience with brand partnerships.
-                </p>
+                )}
+
+                {/* Links List */}
+                {linksLoading ? (
+                  <div className="flex justify-center py-8">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                ) : creatorLinks.length === 0 ? (
+                  <div className="text-center py-6 bg-white/5 rounded-xl border border-white/10">
+                    <Link2 className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">No links yet</p>
+                    <p className="text-gray-500 text-xs mt-1">Add your first link above</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {creatorLinks.map((link) => (
+                      <div
+                        key={link.id}
+                        draggable
+                        onDragStart={(e) => handleLinkDragStart(e, link.id)}
+                        onDragOver={handleLinkDragOver}
+                        onDrop={(e) => handleLinkDrop(e, link.id)}
+                        className={`group p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all ${
+                          draggedLinkId === link.id ? 'opacity-50' : ''
+                        } ${!link.isActive ? 'opacity-60' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Drag Handle */}
+                          <div className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300">
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+
+                          {/* Emoji */}
+                          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-lg flex-shrink-0">
+                            {link.emoji || '🔗'}
+                          </div>
+
+                          {/* Title & URL */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-white text-sm truncate">{link.title}</h4>
+                            <p className="text-xs text-gray-400 truncate">{link.url}</p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1.5">
+                            {/* Active Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleLinkActive(link)}
+                              className={`w-9 h-5 rounded-full transition-colors flex-shrink-0 ${
+                                link.isActive ? 'bg-green-500' : 'bg-gray-600'
+                              }`}
+                            >
+                              <div className={`w-3.5 h-3.5 rounded-full bg-white transition-transform mx-0.5 ${
+                                link.isActive ? 'translate-x-4' : ''
+                              }`} />
+                            </button>
+
+                            {/* Edit */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenLinkModal(link)}
+                              className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-white/10 rounded-lg transition-all"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteLink(link.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-all"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Preview Link */}
+                            <a
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1260,6 +1544,112 @@ export default function SettingsPage() {
           </a>
         </div>
       </div>
+
+      {/* Add/Edit Link Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={handleCloseLinkModal}
+          />
+
+          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-white/10 rounded-2xl max-w-md w-full shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h2 className="text-lg font-bold text-white">
+                {editingLink ? 'Edit Link' : 'Add New Link'}
+              </h2>
+              <button
+                onClick={handleCloseLinkModal}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 space-y-4">
+              {/* Emoji Picker */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Icon (optional)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {LINK_EMOJI_OPTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setLinkFormData({ ...linkFormData, emoji })}
+                      className={`w-10 h-10 rounded-lg text-xl transition-all ${
+                        linkFormData.emoji === emoji
+                          ? 'bg-cyan-500/30 border-2 border-cyan-500'
+                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                  {linkFormData.emoji && !LINK_EMOJI_OPTIONS.includes(linkFormData.emoji) && (
+                    <button
+                      type="button"
+                      className="w-10 h-10 rounded-lg text-xl bg-cyan-500/30 border-2 border-cyan-500"
+                    >
+                      {linkFormData.emoji}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={linkFormData.title}
+                  onChange={(e) => setLinkFormData({ ...linkFormData, title: e.target.value })}
+                  placeholder="e.g., Shop My Favorites"
+                  maxLength={50}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                />
+              </div>
+
+              {/* URL */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">
+                  URL <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="url"
+                  value={linkFormData.url}
+                  onChange={(e) => setLinkFormData({ ...linkFormData, url: e.target.value })}
+                  placeholder="https://example.com/my-link"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/10 flex gap-3">
+              <button
+                onClick={handleCloseLinkModal}
+                className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <GlassButton
+                onClick={handleSaveLink}
+                disabled={linksSaving || !linkFormData.title.trim() || !linkFormData.url.trim()}
+                variant="gradient"
+                className="flex-1"
+              >
+                {linksSaving ? <LoadingSpinner size="sm" /> : (editingLink ? 'Save Changes' : 'Add Link')}
+              </GlassButton>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
