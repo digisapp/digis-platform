@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { db } from '@/lib/data/system';
 import { users, creatorInvites } from '@/db/schema';
-import { sql, or, eq } from 'drizzle-orm';
+import { sql, or, eq, inArray } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 
@@ -116,23 +116,34 @@ export async function POST(request: NextRequest) {
 
     // Check existing usernames in database
     if (instagramHandles.length > 0) {
-      // Check for existing users with same username
-      const existingUsers = await db
-        .select({ username: users.username })
-        .from(users)
-        .where(sql`LOWER(${users.username}) = ANY(${instagramHandles})`);
+      // Check for existing users with same username (batch in chunks to avoid query limits)
+      const CHUNK_SIZE = 500;
+      const existingUsernames = new Set<string>();
+      const existingInviteHandles = new Set<string>();
 
-      const existingUsernames = new Set(existingUsers.map(u => u.username?.toLowerCase()));
+      for (let i = 0; i < instagramHandles.length; i += CHUNK_SIZE) {
+        const chunk = instagramHandles.slice(i, i + CHUNK_SIZE);
 
-      // Check for existing pending invites
-      const existingInvites = await db
-        .select({ instagramHandle: creatorInvites.instagramHandle })
-        .from(creatorInvites)
-        .where(
-          sql`LOWER(${creatorInvites.instagramHandle}) = ANY(${instagramHandles}) AND ${creatorInvites.status} = 'pending'`
-        );
+        // Check for existing users with same username
+        const existingUsers = await db
+          .select({ username: users.username })
+          .from(users)
+          .where(sql`LOWER(${users.username}) = ANY(ARRAY[${sql.raw(chunk.map(h => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[])`);
 
-      const existingInviteHandles = new Set(existingInvites.map(i => i.instagramHandle.toLowerCase()));
+        existingUsers.forEach(u => {
+          if (u.username) existingUsernames.add(u.username.toLowerCase());
+        });
+
+        // Check for existing pending invites
+        const existingInvites = await db
+          .select({ instagramHandle: creatorInvites.instagramHandle })
+          .from(creatorInvites)
+          .where(sql`LOWER(${creatorInvites.instagramHandle}) = ANY(ARRAY[${sql.raw(chunk.map(h => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[]) AND ${creatorInvites.status} = 'pending'`);
+
+        existingInvites.forEach(inv => {
+          existingInviteHandles.add(inv.instagramHandle.toLowerCase());
+        });
+      }
 
       // Update status for each creator
       parsedCreators.forEach(creator => {
