@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/config';
-import { inngest } from '@/lib/inngest/client';
+import { WalletService } from '@/lib/wallet/wallet-service';
+import { db } from '@/lib/data/system';
+import { users } from '@/lib/data/system';
+import { eq } from 'drizzle-orm';
+import { sendCoinPurchaseEmail } from '@/lib/email/payout-notifications';
 import * as Sentry from '@sentry/nextjs';
 import type Stripe from 'stripe';
 
@@ -112,15 +116,76 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // Send to Inngest for reliable processing
-        await inngest.send({
-          name: 'stripe/checkout.completed',
-          data: {
-            session,
-          },
-        });
+        // Validate session metadata
+        if (!session.metadata?.userId || !session.metadata?.coins) {
+          console.error('[Stripe Webhook] Invalid session metadata:', session.id);
+          break;
+        }
 
-        console.log(`Checkout completed: ${session.id}`);
+        if (session.payment_status !== 'paid') {
+          console.error('[Stripe Webhook] Payment not completed:', session.id);
+          break;
+        }
+
+        const userId = session.metadata.userId;
+        const coins = parseInt(session.metadata.coins);
+        const packageId = session.metadata.packageId;
+
+        console.log(`[Stripe Webhook] Processing coin purchase: ${coins} coins for user ${userId}`);
+
+        // Credit user's wallet directly (with idempotency)
+        try {
+          const transaction = await WalletService.createTransaction({
+            userId,
+            amount: coins,
+            type: 'purchase',
+            description: `Purchased ${coins} coins`,
+            metadata: {
+              stripeSessionId: session.id,
+              packageId,
+            },
+            idempotencyKey: `stripe_${session.id}`,
+          });
+
+          console.log(`[Stripe Webhook] Wallet credited successfully: ${transaction.id}`);
+
+          // Send confirmation email
+          try {
+            const user = await db.query.users.findFirst({
+              where: eq(users.id, userId),
+            });
+
+            if (user?.email) {
+              const amountPaid = session.amount_total
+                ? `$${(session.amount_total / 100).toFixed(2)}`
+                : 'N/A';
+
+              await sendCoinPurchaseEmail(
+                user.email,
+                user.displayName || user.username || 'User',
+                coins,
+                amountPaid
+              );
+              console.log(`[Stripe Webhook] Confirmation email sent to ${user.email}`);
+            }
+          } catch (emailError) {
+            console.error('[Stripe Webhook] Failed to send confirmation email:', emailError);
+            // Don't fail the webhook for email errors
+          }
+        } catch (walletError) {
+          console.error('[Stripe Webhook] Failed to credit wallet:', walletError);
+          Sentry.captureException(walletError, {
+            tags: { payment: 'wallet_credit_failed' },
+            extra: { userId, coins, sessionId: session.id },
+          });
+          // Return 500 so Stripe will retry
+          return NextResponse.json(
+            { error: 'Failed to credit wallet' },
+            { status: 500 }
+          );
+        }
+
+        console.log(`[Stripe Webhook] Checkout completed: ${session.id}`);
         break;
       }
 
