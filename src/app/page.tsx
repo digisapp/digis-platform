@@ -617,10 +617,10 @@ function MarketingPage({
           </div>
         </nav>
 
-        <div className="relative z-10 h-full flex flex-col items-center justify-start pt-36 md:justify-center md:pt-0 px-4">
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1
-              className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
+              className="text-3xl md:text-5xl lg:text-6xl font-black mb-8 md:mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
               style={{
                 background: 'linear-gradient(135deg, #00D4FF 0%, #FF006E 50%, #9D4EDD 100%)',
                 WebkitBackgroundClip: 'text',
@@ -632,16 +632,16 @@ function MarketingPage({
               what's your digis?
             </h1>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 md:gap-4 my-10 md:mb-12 md:mt-0">
               <button
                 onClick={() => onSignup('/')}
-                className="px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
+                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
               >
                 Start Exploring
               </button>
               <button
                 onClick={() => onSignup('/creator/apply')}
-                className="px-10 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
               >
                 Become a Creator
               </button>
