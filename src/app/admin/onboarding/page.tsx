@@ -439,7 +439,16 @@ export default function AdminOnboardingPage() {
                       {parsedCreators.map((creator, idx) => (
                         <tr key={idx} className="border-t border-white/5">
                           <td className="px-3 py-2 text-gray-400">{creator.row}</td>
-                          <td className="px-3 py-2 text-white">@{creator.instagramHandle}</td>
+                          <td className="px-3 py-2">
+                            <a
+                              href={`https://www.instagram.com/${creator.instagramHandle}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-cyan-400 hover:text-cyan-300 hover:underline"
+                            >
+                              @{creator.instagramHandle}
+                            </a>
+                          </td>
                           <td className="px-3 py-2 text-gray-400">{creator.email || '-'}</td>
                           <td className="px-3 py-2">
                             {creator.status === 'valid' ? (
@@ -605,9 +614,14 @@ export default function AdminOnboardingPage() {
                             {invite.status === 'claimed' && (
                               <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                             )}
-                            <span className={`font-medium ${invite.status === 'claimed' ? 'text-green-400' : 'text-white'}`}>
+                            <a
+                              href={`https://www.instagram.com/${invite.instagramHandle}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`font-medium hover:underline ${invite.status === 'claimed' ? 'text-green-400 hover:text-green-300' : 'text-cyan-400 hover:text-cyan-300'}`}
+                            >
                               @{invite.instagramHandle}
-                            </span>
+                            </a>
                             {invite.displayName && invite.displayName !== invite.instagramHandle && (
                               <span className="text-gray-500 text-xs">({invite.displayName})</span>
                             )}
