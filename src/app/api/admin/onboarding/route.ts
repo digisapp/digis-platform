@@ -45,23 +45,14 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(creatorInvites.batchId, batchId));
     }
 
-    // Get invites
-    const invites = await db.query.creatorInvites.findMany({
-      where: conditions.length > 0 ? and(...conditions) : undefined,
-      orderBy: (invites, { desc }) => [desc(invites.createdAt)],
-      limit,
-      offset,
-      with: {
-        claimedByUser: {
-          columns: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatarUrl: true,
-          },
-        },
-      },
-    });
+    // Get invites (using simple select to avoid relation issues)
+    const invites = await db
+      .select()
+      .from(creatorInvites)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(sql`${creatorInvites.createdAt} DESC`)
+      .limit(limit)
+      .offset(offset);
 
     // Get stats
     const stats = await db
