@@ -251,8 +251,8 @@ export function Navigation() {
     setLastAuthUserId(null);
 
     await supabase.auth.signOut();
-    router.push('/');
-    router.refresh(); // Force re-render with cleared auth state
+    // Full page reload to clear all client-side state
+    window.location.href = '/';
   };
 
   const isActive = (path: string) => {
