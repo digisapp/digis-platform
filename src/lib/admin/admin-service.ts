@@ -38,17 +38,17 @@ export class AdminService {
 
     // PRIMARY CHECK: isAdmin flag in DB (ONLY source of truth)
     if (user.isAdmin === true) {
-      console.log('[AdminService] Admin access granted by isAdmin flag:', user.email);
+      console.log('[AdminService] Admin access granted by isAdmin flag, userId:', userId);
       return true;
     }
 
     // LEGACY: Check if role is 'admin' (for backwards compatibility)
     if (user.role === 'admin') {
-      console.log('[AdminService] Admin access granted by legacy role:', user.email);
+      console.log('[AdminService] Admin access granted by legacy role, userId:', userId);
       return true;
     }
 
-    console.log('[AdminService] Admin access DENIED for:', user.email, { isAdmin: user.isAdmin, role: user.role });
+    console.log('[AdminService] Admin access DENIED, userId:', userId, { isAdmin: user.isAdmin, role: user.role });
     return false;
   }
 

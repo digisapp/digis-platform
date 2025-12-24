@@ -15,6 +15,37 @@ export const maxDuration = 60; // 60 seconds timeout for large uploads
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
 const MAX_VIDEO_SIZE = 5 * 1024 * 1024; // 5MB for videos
 
+// Magic number validation to prevent MIME type spoofing
+function validateFileMagicNumbers(bytes: Uint8Array, expectedType: 'image' | 'video'): boolean {
+  if (bytes.length < 12) return false;
+
+  if (expectedType === 'image') {
+    // JPEG: FF D8 FF
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return true;
+    // PNG: 89 50 4E 47
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return true;
+    // GIF: 47 49 46 38
+    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return true;
+    // WebP: 52 49 46 46 ... 57 45 42 50
+    if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return true;
+    return false;
+  }
+
+  if (expectedType === 'video') {
+    // MP4/MOV: ftyp at offset 4
+    if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return true;
+    // WebM: 1A 45 DF A3
+    if (bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3) return true;
+    // AVI: 52 49 46 46 ... 41 56 49
+    if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x41 && bytes[9] === 0x56 && bytes[10] === 0x49) return true;
+    return false;
+  }
+
+  return false;
+}
+
 // POST - Send media message (photo/video)
 export async function POST(req: NextRequest) {
   try {
@@ -113,6 +144,14 @@ export async function POST(req: NextRequest) {
       }
 
       const fileBuffer = new Uint8Array(arrayBuffer);
+
+      // Validate file content matches declared MIME type (prevent spoofing)
+      if (!validateFileMagicNumbers(fileBuffer, mediaType)) {
+        console.warn(`[send-media] Magic number mismatch for declared type: ${file.type}`);
+        return NextResponse.json({
+          error: 'Invalid file content. File does not match declared type.'
+        }, { status: 400 });
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('message-media')

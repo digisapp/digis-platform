@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -10,6 +11,15 @@ export const dynamic = 'force-dynamic';
 // POST /api/auth/reserve-username - Reserve username during signup
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 3 requests/min per IP (prevents username enumeration/bot spam)
+    const rl = await rateLimit(request, 'auth:signup');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     const { userId, email, username } = await request.json();
 
     if (!userId || !email || !username) {

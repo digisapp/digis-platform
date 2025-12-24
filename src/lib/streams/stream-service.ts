@@ -195,8 +195,9 @@ export class StreamService {
           where: eq(showTickets.showId, show.id),
         });
 
-        // Issue refunds
-        for (const ticket of tickets) {
+        // Issue refunds in parallel with concurrency limit (10 at a time)
+        const CONCURRENCY_LIMIT = 10;
+        const processRefund = async (ticket: typeof tickets[0]) => {
           try {
             await WalletService.createTransaction({
               userId: ticket.userId,
@@ -215,6 +216,12 @@ export class StreamService {
           } catch (refundError) {
             console.error(`[StreamService] Failed to refund ticket ${ticket.id}:`, refundError);
           }
+        };
+
+        // Process in batches to avoid spiking DB connections
+        for (let i = 0; i < tickets.length; i += CONCURRENCY_LIMIT) {
+          const batch = tickets.slice(i, i + CONCURRENCY_LIMIT);
+          await Promise.all(batch.map(processRefund));
         }
 
         // Mark show as cancelled
