@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (pendingInvite) {
+            // Mark invite as claimed
             await adminClient
               .from('creator_invites')
               .update({
@@ -116,7 +117,14 @@ export async function POST(request: NextRequest) {
                 claimed_at: new Date().toISOString(),
               })
               .eq('id', pendingInvite.id);
-            console.log(`[Signup] Auto-claimed invite for email: ${email}`);
+
+            // Auto-upgrade user to creator
+            await adminClient
+              .from('users')
+              .update({ role: 'creator' })
+              .eq('id', authData.user.id);
+
+            console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
           }
         } catch {
           // No matching invite or error - ignore silently
