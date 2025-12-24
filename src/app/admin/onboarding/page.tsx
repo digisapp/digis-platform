@@ -446,7 +446,7 @@ export default function AdminOnboardingPage() {
                               rel="noopener noreferrer"
                               className="text-cyan-400 hover:text-cyan-300 hover:underline"
                             >
-                              @{creator.instagramHandle}
+                              {creator.instagramHandle}
                             </a>
                           </td>
                           <td className="px-3 py-2 text-gray-400">{creator.email || '-'}</td>
@@ -620,7 +620,7 @@ export default function AdminOnboardingPage() {
                               rel="noopener noreferrer"
                               className={`font-medium hover:underline ${invite.status === 'claimed' ? 'text-green-400 hover:text-green-300' : 'text-cyan-400 hover:text-cyan-300'}`}
                             >
-                              @{invite.instagramHandle}
+                              {invite.instagramHandle}
                             </a>
                             {invite.displayName && invite.displayName !== invite.instagramHandle && (
                               <span className="text-gray-500 text-xs">({invite.displayName})</span>
