@@ -19,6 +19,8 @@ import {
   Check,
   AlertCircle,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Filter,
   ArrowLeft,
 } from 'lucide-react';
@@ -91,6 +93,9 @@ export default function AdminOnboardingPage() {
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterBatch, setFilterBatch] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [invitesPage, setInvitesPage] = useState(0);
+  const [totalInvites, setTotalInvites] = useState(0);
+  const INVITES_PER_PAGE = 100;
 
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -115,12 +120,14 @@ export default function AdminOnboardingPage() {
   }, [router]);
 
   // Fetch invites
-  const fetchInvites = useCallback(async () => {
+  const fetchInvites = useCallback(async (page: number = invitesPage) => {
     setInvitesLoading(true);
     try {
       const params = new URLSearchParams();
       if (filterStatus) params.set('status', filterStatus);
       if (filterBatch) params.set('batchId', filterBatch);
+      params.set('limit', INVITES_PER_PAGE.toString());
+      params.set('offset', (page * INVITES_PER_PAGE).toString());
 
       const res = await fetch(`/api/admin/onboarding?${params.toString()}`);
       if (res.ok) {
@@ -128,19 +135,21 @@ export default function AdminOnboardingPage() {
         setInvites(data.invites);
         setStats(data.stats);
         setBatches(data.batches);
+        setTotalInvites(data.total);
+        setInvitesPage(page);
       }
     } catch (error) {
       console.error('Error fetching invites:', error);
     } finally {
       setInvitesLoading(false);
     }
-  }, [filterStatus, filterBatch]);
+  }, [filterStatus, filterBatch, invitesPage]);
 
   useEffect(() => {
     if (isAdmin && activeTab === 'invites') {
-      fetchInvites();
+      fetchInvites(0);
     }
-  }, [isAdmin, activeTab, fetchInvites]);
+  }, [isAdmin, activeTab, filterStatus, filterBatch]);
 
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -698,6 +707,34 @@ export default function AdminOnboardingPage() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Pagination */}
+                {totalInvites > INVITES_PER_PAGE && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                    <div className="text-sm text-gray-400">
+                      Showing {invitesPage * INVITES_PER_PAGE + 1} - {Math.min((invitesPage + 1) * INVITES_PER_PAGE, totalInvites)} of {totalInvites.toLocaleString()}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => fetchInvites(invitesPage - 1)}
+                        disabled={invitesPage === 0 || invitesLoading}
+                        className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <span className="text-sm text-gray-300 min-w-[100px] text-center">
+                        Page {invitesPage + 1} of {Math.ceil(totalInvites / INVITES_PER_PAGE)}
+                      </span>
+                      <button
+                        onClick={() => fetchInvites(invitesPage + 1)}
+                        disabled={(invitesPage + 1) * INVITES_PER_PAGE >= totalInvites || invitesLoading}
+                        className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </GlassCard>
