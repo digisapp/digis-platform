@@ -97,6 +97,30 @@ export async function POST(request: NextRequest) {
           console.error('Error creating user in database:', insertError);
           // User is created in auth, this is okay - will be handled on login
         }
+
+        // Check if this email matches a pending creator invite (auto-claim)
+        try {
+          const { data: pendingInvite } = await adminClient
+            .from('creator_invites')
+            .select('id')
+            .eq('status', 'pending')
+            .ilike('email', email)
+            .single();
+
+          if (pendingInvite) {
+            await adminClient
+              .from('creator_invites')
+              .update({
+                status: 'claimed',
+                claimed_by: authData.user.id,
+                claimed_at: new Date().toISOString(),
+              })
+              .eq('id', pendingInvite.id);
+            console.log(`[Signup] Auto-claimed invite for email: ${email}`);
+          }
+        } catch {
+          // No matching invite or error - ignore silently
+        }
       } catch (dbError) {
         console.error('Error creating user in database:', dbError);
         // User is created in auth, this is okay - will be handled on login
