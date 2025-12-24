@@ -569,7 +569,7 @@ export default function AdminOnboardingPage() {
 
                 {/* Refresh */}
                 <button
-                  onClick={fetchInvites}
+                  onClick={() => fetchInvites(invitesPage)}
                   className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                   title="Refresh"
                 >
