@@ -29,7 +29,6 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "html-to-image": "^1.11.13",
-    "inngest": "^3.24.3",
     "livekit-client": "^2.15.14",
     "livekit-server-sdk": "^2.14.0",
     "lucide-react": "^0.552.0",
