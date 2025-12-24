@@ -252,6 +252,7 @@ export function Navigation() {
 
     await supabase.auth.signOut();
     router.push('/');
+    router.refresh(); // Force re-render with cleared auth state
   };
 
   const isActive = (path: string) => {
