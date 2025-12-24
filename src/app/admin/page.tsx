@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import dynamic from 'next/dynamic';
 
@@ -69,7 +69,22 @@ interface Analytics {
   lastWeekSignups: number;
 }
 
-type MainTab = 'applications' | 'users' | 'analytics' | 'payouts' | 'moderation' | 'revenue' | 'activity';
+type MainTab = 'applications' | 'users' | 'analytics' | 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
+
+interface TrafficData {
+  summary: {
+    totalViews: number;
+    uniqueVisitors: number;
+    viewsGrowth: number;
+    visitorsGrowth: number;
+  };
+  viewsByPageType: Array<{ pageType: string; views: number }>;
+  viewsByDevice: Array<{ device: string; views: number }>;
+  topPages: Array<{ path: string; views: number }>;
+  topCreatorProfiles: Array<{ username: string; views: number }>;
+  viewsTimeline: Array<{ date: string; views: number }>;
+  range: string;
+}
 
 interface RevenueData {
   revenue: {
@@ -211,6 +226,10 @@ export default function AdminDashboard() {
   // Analytics state
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
+  // Traffic state
+  const [traffic, setTraffic] = useState<TrafficData | null>(null);
+  const [trafficRange, setTrafficRange] = useState<'24h' | '7d' | '30d'>('7d');
+
   // Moderation state
   const [moderation, setModeration] = useState<ModerationData | null>(null);
   const [moderationTab, setModerationTab] = useState<'blocked' | 'bans'>('blocked');
@@ -226,6 +245,7 @@ export default function AdminDashboard() {
   const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
   const [hasFetchedUsers, setHasFetchedUsers] = useState(false);
   const [hasFetchedAnalytics, setHasFetchedAnalytics] = useState(false);
+  const [hasFetchedTraffic, setHasFetchedTraffic] = useState(false);
   const [hasFetchedModeration, setHasFetchedModeration] = useState(false);
   const [hasFetchedRevenue, setHasFetchedRevenue] = useState(false);
   const [hasFetchedActivity, setHasFetchedActivity] = useState(false);
@@ -291,6 +311,8 @@ export default function AdminDashboard() {
       fetchUsers();
     } else if (mainTab === 'analytics' && !hasFetchedAnalytics) {
       fetchAnalytics();
+    } else if (mainTab === 'traffic' && !hasFetchedTraffic) {
+      fetchTraffic();
     } else if (mainTab === 'moderation' && !hasFetchedModeration) {
       fetchModeration();
     } else if (mainTab === 'revenue' && !hasFetchedRevenue) {
@@ -313,6 +335,13 @@ export default function AdminDashboard() {
       fetchUsers();
     }
   }, [selectedRole, selectedAccountStatus, debouncedSearch]);
+
+  // Refetch traffic when range changes
+  useEffect(() => {
+    if (mainTab === 'traffic' && hasFetchedTraffic) {
+      fetchTraffic(trafficRange);
+    }
+  }, [trafficRange]);
 
   const checkAdminAccess = async () => {
     try {
@@ -388,6 +417,7 @@ export default function AdminDashboard() {
         mainTab === 'applications' && fetchApplications(),
         mainTab === 'users' && fetchUsers(usersPage),
         mainTab === 'analytics' && fetchAnalytics(),
+        mainTab === 'traffic' && fetchTraffic(),
         mainTab === 'moderation' && fetchModeration(),
         mainTab === 'revenue' && fetchRevenue(),
         mainTab === 'activity' && fetchCreatorActivity(),
@@ -476,6 +506,27 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Error fetching creator activity:', err);
       showToast('Failed to load creator activity', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTraffic = async (range: '24h' | '7d' | '30d' = trafficRange) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/traffic?range=${range}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setTraffic(data);
+        setHasFetchedTraffic(true);
+      } else {
+        console.error('Traffic API error:', data.error);
+        showToast(data.error || 'Failed to load traffic data', 'error');
+      }
+    } catch (err) {
+      console.error('Error fetching traffic:', err);
+      showToast('Failed to load traffic data', 'error');
     } finally {
       setLoading(false);
     }
@@ -911,6 +962,24 @@ export default function AdminDashboard() {
           >
             Analytics
             {mainTab === 'analytics' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
+            )}
+          </button>
+          <button
+            onClick={() => setMainTab('traffic')}
+            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
+              mainTab === 'traffic'
+                ? 'text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Traffic
+            {traffic?.summary && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 text-xs rounded-full">
+                {traffic.summary.totalViews.toLocaleString()}
+              </span>
+            )}
+            {mainTab === 'traffic' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
@@ -1408,6 +1477,265 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setHasFetchedAnalytics(false);
                     fetchAnalytics();
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  Retry
+                </button>
+              </GlassCard>
+            )}
+          </>
+        )}
+
+        {/* Traffic Tab Content */}
+        {mainTab === 'traffic' && (
+          <>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : traffic ? (
+              <div className="space-y-6">
+                {/* Time Range Filter */}
+                <div className="flex gap-2">
+                  {(['24h', '7d', '30d'] as const).map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setTrafficRange(range)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        trafficRange === range
+                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
+                          : 'bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      {range === '24h' ? 'Last 24h' : range === '7d' ? 'Last 7 days' : 'Last 30 days'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Key Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <GlassCard className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Total Page Views</p>
+                        <p className="text-2xl font-bold">{traffic.summary.totalViews.toLocaleString()}</p>
+                      </div>
+                      <div className="p-3 bg-cyan-500/20 rounded-lg">
+                        <Eye className="w-6 h-6 text-cyan-400" />
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-sm">
+                      {traffic.summary.viewsGrowth >= 0 ? (
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                      <span className={traffic.summary.viewsGrowth >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {traffic.summary.viewsGrowth >= 0 ? '+' : ''}{traffic.summary.viewsGrowth}%
+                      </span>
+                      <span className="text-gray-500">vs previous period</span>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Unique Visitors</p>
+                        <p className="text-2xl font-bold">{traffic.summary.uniqueVisitors.toLocaleString()}</p>
+                      </div>
+                      <div className="p-3 bg-purple-500/20 rounded-lg">
+                        <Users className="w-6 h-6 text-purple-400" />
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1 text-sm">
+                      {traffic.summary.visitorsGrowth >= 0 ? (
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                      <span className={traffic.summary.visitorsGrowth >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {traffic.summary.visitorsGrowth >= 0 ? '+' : ''}{traffic.summary.visitorsGrowth}%
+                      </span>
+                      <span className="text-gray-500">vs previous period</span>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Views per Visitor</p>
+                        <p className="text-2xl font-bold">
+                          {traffic.summary.uniqueVisitors > 0
+                            ? (traffic.summary.totalViews / traffic.summary.uniqueVisitors).toFixed(1)
+                            : '0'}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-pink-500/20 rounded-lg">
+                        <BarChart3 className="w-6 h-6 text-pink-400" />
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">Pages per session</p>
+                  </GlassCard>
+
+                  <GlassCard className="p-5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-400">Top Device</p>
+                        <p className="text-2xl font-bold capitalize">
+                          {traffic.viewsByDevice[0]?.device || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-500/20 rounded-lg">
+                        {traffic.viewsByDevice[0]?.device === 'mobile' ? (
+                          <Smartphone className="w-6 h-6 text-blue-400" />
+                        ) : traffic.viewsByDevice[0]?.device === 'tablet' ? (
+                          <Tablet className="w-6 h-6 text-blue-400" />
+                        ) : (
+                          <Monitor className="w-6 h-6 text-blue-400" />
+                        )}
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      {traffic.viewsByDevice[0]?.views.toLocaleString() || 0} views
+                    </p>
+                  </GlassCard>
+                </div>
+
+                {/* Views by Page Type */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Views by Page Type</h3>
+                    <div className="space-y-3">
+                      {traffic.viewsByPageType.map((item, i) => {
+                        const maxViews = traffic.viewsByPageType[0]?.views || 1;
+                        const percentage = (item.views / maxViews) * 100;
+                        return (
+                          <div key={i} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="capitalize">{item.pageType}</span>
+                              <span className="text-gray-400">{item.views.toLocaleString()}</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Views by Device</h3>
+                    <div className="space-y-3">
+                      {traffic.viewsByDevice.map((item, i) => {
+                        const maxViews = traffic.viewsByDevice[0]?.views || 1;
+                        const percentage = (item.views / maxViews) * 100;
+                        return (
+                          <div key={i} className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="capitalize flex items-center gap-2">
+                                {item.device === 'mobile' ? (
+                                  <Smartphone className="w-4 h-4" />
+                                ) : item.device === 'tablet' ? (
+                                  <Tablet className="w-4 h-4" />
+                                ) : (
+                                  <Monitor className="w-4 h-4" />
+                                )}
+                                {item.device}
+                              </span>
+                              <span className="text-gray-400">{item.views.toLocaleString()}</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Top Pages and Top Creator Profiles */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Top Pages</h3>
+                    <div className="space-y-2">
+                      {traffic.topPages.length === 0 ? (
+                        <p className="text-gray-500 text-center py-4">No page views yet</p>
+                      ) : (
+                        traffic.topPages.map((page, i) => (
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-500 text-sm w-5">{i + 1}.</span>
+                              <span className="font-mono text-sm truncate max-w-[200px]">{page.path}</span>
+                            </div>
+                            <span className="text-gray-400 text-sm">{page.views.toLocaleString()}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Top Creator Profiles</h3>
+                    <div className="space-y-2">
+                      {traffic.topCreatorProfiles.length === 0 ? (
+                        <p className="text-gray-500 text-center py-4">No profile views yet</p>
+                      ) : (
+                        traffic.topCreatorProfiles.map((creator, i) => (
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-500 text-sm w-5">{i + 1}.</span>
+                              <span className="font-medium">@{creator.username}</span>
+                            </div>
+                            <span className="text-gray-400 text-sm">{creator.views.toLocaleString()} views</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </GlassCard>
+                </div>
+
+                {/* Views Timeline */}
+                {traffic.viewsTimeline.length > 0 && (
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Views Over Time</h3>
+                    <div className="h-64 flex items-end gap-1">
+                      {traffic.viewsTimeline.map((day, i) => {
+                        const maxViews = Math.max(...traffic.viewsTimeline.map(d => d.views));
+                        const height = maxViews > 0 ? (day.views / maxViews) * 100 : 0;
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <div
+                              className="w-full bg-gradient-to-t from-digis-cyan to-digis-pink rounded-t transition-all hover:opacity-80"
+                              style={{ height: `${Math.max(height, 2)}%` }}
+                              title={`${day.date}: ${day.views.toLocaleString()} views`}
+                            />
+                            <span className="text-[10px] text-gray-500 rotate-45 origin-left whitespace-nowrap">
+                              {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+                )}
+              </div>
+            ) : (
+              <GlassCard className="p-12 text-center">
+                <Eye className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400 mb-4">No traffic data available</p>
+                <button
+                  onClick={() => {
+                    setHasFetchedTraffic(false);
+                    fetchTraffic();
                   }}
                   className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
                 >

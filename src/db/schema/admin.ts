@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, pgEnum, boolean, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, pgEnum, boolean, index, integer } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { relations } from 'drizzle-orm';
 
@@ -57,3 +57,61 @@ export const userActivityLogs = pgTable('user_activity_logs', {
 
 export type UserActivityLog = typeof userActivityLogs.$inferSelect;
 export type NewUserActivityLog = typeof userActivityLogs.$inferInsert;
+
+// Page view tracking for traffic analytics
+export const pageViews = pgTable('page_views', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  // Page info
+  path: text('path').notNull(), // e.g., '/explore', '/username', '/stream/123'
+  pageType: text('page_type').notNull(), // 'home', 'explore', 'profile', 'stream', 'settings', 'other'
+  // For profile pages, track which creator
+  creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'set null' }),
+  creatorUsername: text('creator_username'), // Denormalized for fast queries
+  // Visitor info (anonymous tracking)
+  visitorId: text('visitor_id'), // Anonymous session ID from cookie
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }), // If logged in
+  // Request metadata
+  referrer: text('referrer'),
+  userAgent: text('user_agent'),
+  country: text('country'), // From IP geolocation if available
+  device: text('device'), // 'mobile', 'tablet', 'desktop'
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  pathIdx: index('page_views_path_idx').on(table.path),
+  pageTypeIdx: index('page_views_page_type_idx').on(table.pageType),
+  creatorIdIdx: index('page_views_creator_id_idx').on(table.creatorId),
+  createdAtIdx: index('page_views_created_at_idx').on(table.createdAt),
+  // Compound indexes for common queries
+  pageTypeCreatedIdx: index('page_views_type_created_idx').on(table.pageType, table.createdAt),
+  creatorCreatedIdx: index('page_views_creator_created_idx').on(table.creatorId, table.createdAt),
+}));
+
+export type PageView = typeof pageViews.$inferSelect;
+export type NewPageView = typeof pageViews.$inferInsert;
+
+// Daily aggregated stats for faster dashboard queries
+export const dailyTrafficStats = pgTable('daily_traffic_stats', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  date: timestamp('date').notNull(),
+  // Totals
+  totalViews: integer('total_views').default(0).notNull(),
+  uniqueVisitors: integer('unique_visitors').default(0).notNull(),
+  // By page type
+  homeViews: integer('home_views').default(0).notNull(),
+  exploreViews: integer('explore_views').default(0).notNull(),
+  profileViews: integer('profile_views').default(0).notNull(),
+  streamViews: integer('stream_views').default(0).notNull(),
+  otherViews: integer('other_views').default(0).notNull(),
+  // By device
+  mobileViews: integer('mobile_views').default(0).notNull(),
+  desktopViews: integer('desktop_views').default(0).notNull(),
+  // Metadata
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  dateIdx: index('daily_traffic_stats_date_idx').on(table.date),
+}));
+
+export type DailyTrafficStats = typeof dailyTrafficStats.$inferSelect;
+export type NewDailyTrafficStats = typeof dailyTrafficStats.$inferInsert;

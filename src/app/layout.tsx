@@ -7,6 +7,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next";
+import { PageTracker } from "@/components/analytics/PageTracker";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <ToastProvider>
+              <PageTracker />
               <Navigation />
               <IncomingCallPopup />
               {children}
