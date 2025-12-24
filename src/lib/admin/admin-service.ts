@@ -293,6 +293,7 @@ export class AdminService {
               followingCount: true,
               createdAt: true,
               accountStatus: true,
+              storageUsed: true,
             },
           }),
           db.select({ count: count() }).from(users).where(whereClause),

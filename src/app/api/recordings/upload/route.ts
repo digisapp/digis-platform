@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, vods, users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -98,6 +98,14 @@ export async function POST(request: NextRequest) {
       priceCoins: price,
       subscribersOnly: false,
     }).returning();
+
+    // Update creator's storage usage
+    await db.update(users)
+      .set({
+        storageUsed: sql`${users.storageUsed} + ${videoFile.size}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id));
 
     return NextResponse.json({
       recording: {

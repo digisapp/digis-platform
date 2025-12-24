@@ -39,6 +39,9 @@ export const users = pgTable('users', {
   // Stripe integration
   stripeCustomerId: text('stripe_customer_id').unique(), // For saved payment methods
 
+  // Storage tracking (in bytes)
+  storageUsed: integer('storage_used').default(0).notNull(), // Total storage used by creator
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

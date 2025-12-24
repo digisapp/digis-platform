@@ -45,6 +45,7 @@ interface User {
   followingCount: number;
   createdAt: string;
   accountStatus: 'active' | 'suspended' | 'banned';
+  storageUsed: number;
 }
 
 interface Stats {
@@ -1310,6 +1311,18 @@ export default function AdminDashboard() {
                           <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
                             <span>{user.followerCount} followers</span>
                             <span>{user.followingCount} following</span>
+                            {user.role === 'creator' && (
+                              <span className="text-digis-cyan">
+                                {user.storageUsed > 0
+                                  ? user.storageUsed >= 1073741824
+                                    ? `${(user.storageUsed / 1073741824).toFixed(2)} GB`
+                                    : user.storageUsed >= 1048576
+                                      ? `${(user.storageUsed / 1048576).toFixed(1)} MB`
+                                      : `${(user.storageUsed / 1024).toFixed(0)} KB`
+                                  : '0 KB'
+                                } storage
+                              </span>
+                            )}
                           </div>
 
                           <p className="text-xs text-gray-500">

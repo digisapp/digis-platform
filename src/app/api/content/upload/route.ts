@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, contentItems, users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -185,6 +185,11 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
+    // Calculate total file size for storage tracking
+    const totalFileSize = isGallery
+      ? files.reduce((sum, f) => sum + f.size, 0)
+      : file!.size;
+
     // Create content item in database
     try {
       const [content] = await db.insert(contentItems).values({
@@ -199,6 +204,14 @@ export async function POST(request: NextRequest) {
         durationSeconds: null, // Note: Videos use /api/content/create with client-extracted duration
         isPublished: true,
       }).returning();
+
+      // Update creator's storage usage
+      await db.update(users)
+        .set({
+          storageUsed: sql`${users.storageUsed} + ${totalFileSize}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
 
       return NextResponse.json({ content }, { status: 201 });
     } catch (dbError: any) {
