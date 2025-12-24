@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '100mb',
     },
   },
+  // Redirects
+  async redirects() {
+    return [
+      {
+        source: '/username',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   // Security headers
   async headers() {
     return [
