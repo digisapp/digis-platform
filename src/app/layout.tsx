@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/layout/Navigation";
+import { AuthNavGate } from "@/components/layout/AuthNavGate";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
@@ -50,7 +50,7 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <PageTracker />
-              <Navigation />
+              <AuthNavGate />
               <IncomingCallPopup />
               {children}
             </ToastProvider>

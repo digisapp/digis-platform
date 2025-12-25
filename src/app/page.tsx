@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Navigation } from '@/components/layout/Navigation';
 import { LoadingSpinner } from '@/components/ui';
 import {
   Play,
@@ -198,7 +197,6 @@ function FanDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f]">
       <MobileHeader />
-      <Navigation />
 
       {/* Spacer for fixed mobile header + safe area on notched devices */}
       <div className="md:hidden pt-safe-area" style={{ height: '64px', paddingTop: 'env(safe-area-inset-top, 0px)' }} />
