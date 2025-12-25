@@ -17,11 +17,11 @@ const formatCoinsToUSD = (coins: number): string => {
 
 // Voice options from xAI
 const VOICE_OPTIONS = [
-  { id: 'ara', name: 'Ara', description: 'Warm & friendly (Female)', color: 'pink' },
-  { id: 'eve', name: 'Eve', description: 'Energetic & upbeat (Female)', color: 'purple' },
-  { id: 'leo', name: 'Leo', description: 'Authoritative & strong (Male)', color: 'blue' },
-  { id: 'rex', name: 'Rex', description: 'Confident & clear (Male)', color: 'cyan' },
-  { id: 'sal', name: 'Sal', description: 'Smooth & balanced (Neutral)', color: 'green' },
+  { id: 'ara', name: 'Luna', description: 'Warm & friendly (Female)', color: 'pink' },
+  { id: 'eve', name: 'Zara', description: 'Energetic & upbeat (Female)', color: 'purple' },
+  { id: 'leo', name: 'Max', description: 'Authoritative & strong (Male)', color: 'blue' },
+  { id: 'rex', name: 'Kai', description: 'Confident & clear (Male)', color: 'cyan' },
+  { id: 'sal', name: 'Sage', description: 'Smooth & balanced (Neutral)', color: 'green' },
 ];
 
 interface AiSettings {
