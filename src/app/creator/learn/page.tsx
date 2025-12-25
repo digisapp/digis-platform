@@ -157,18 +157,23 @@ const featureGuides: FeatureGuide[] = [
     title: 'AI Twin',
     icon: <Sparkles className="w-6 h-6" />,
     color: 'text-cyan-400',
-    description: 'Create an AI version of yourself that fans can chat with 24/7, even when you\'re offline.',
+    description: 'Create an AI version of yourself that fans can chat with via voice or text 24/7, even when you\'re offline.',
     tips: [
-      'Train your AI Twin with your personality and interests',
-      'Set your per-minute rate for AI conversations',
-      'Fans love being able to chat anytime',
-      'Review conversations to improve your AI Twin'
+      'Pick a Vibe Preset (The Bestie, The Tease, etc.) for quick setup',
+      'Fine-tune with trait chips like Flirty, Playful, or Sassy',
+      'Set your boundaries from PG to Spicy',
+      'Choose a voice that matches your style (Luna, Zara, Max, Kai, or Sage)',
+      'Enable both Voice Chat and Text Chat to maximize earnings',
+      'Fans love being able to connect anytime you\'re offline'
     ],
     steps: [
       'Go to AI Twin from your profile menu',
-      'Complete the personality questionnaire',
-      'Choose a voice that matches your style',
-      'Set your pricing and enable your AI Twin'
+      'Toggle on Voice Chat, Text Chat, or both',
+      'Pick a Vibe Preset or select individual traits',
+      'Set your boundary comfort level',
+      'Choose your AI\'s voice',
+      'Write a welcome message',
+      'Set your pricing and save!'
     ]
   },
   {
