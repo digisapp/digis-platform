@@ -23,6 +23,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
   const [username, setUsername] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [usernameError, setUsernameError] = useState('');
+  const [website, setWebsite] = useState(''); // Honeypot field - should stay empty
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -164,6 +165,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
           userId: data.user.id,
           email,
           username: username.toLowerCase(),
+          website, // Honeypot field
         }),
       });
 
@@ -346,6 +348,20 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
             autoComplete="new-password"
           />
           <p className="text-xs text-gray-500 -mt-2">At least 6 characters</p>
+
+          {/* Honeypot field - hidden from real users, bots will fill it */}
+          <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
+            <label htmlFor="website">Website</label>
+            <input
+              type="text"
+              id="website"
+              name="website"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
 
           {error && (
             <div className="p-4 rounded-xl bg-red-500/20 border-2 border-red-500 text-red-400 text-sm font-semibold">

@@ -3,6 +3,7 @@ import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
+import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -20,11 +21,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { userId, email, username } = await request.json();
+    const { userId, email, username, website } = await request.json();
 
     if (!userId || !email || !username) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Spam protection: Check honeypot field
+    if (isHoneypotTriggered(website)) {
+      console.log('[SPAM] Honeypot triggered for:', email);
+      // Return success to not alert bots, but don't create account
+      return NextResponse.json({ success: true, username: username.toLowerCase() });
+    }
+
+    // Spam protection: Check email domain blocklist
+    const domainCheck = isBlockedDomain(email);
+    if (domainCheck.blocked) {
+      console.log('[SPAM] Blocked domain for:', email, '-', domainCheck.reason);
+      return NextResponse.json(
+        { error: domainCheck.reason || 'This email provider is not allowed' },
         { status: 400 }
       );
     }
