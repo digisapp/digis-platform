@@ -24,6 +24,78 @@ const VOICE_OPTIONS = [
   { id: 'sal', name: 'Sage', description: 'Smooth & balanced (Neutral)', color: 'green' },
 ];
 
+// Vibe presets - one-click personality templates
+const VIBE_PRESETS = [
+  { id: 'bestie', name: 'The Bestie', emoji: '💕', description: 'Supportive, fun, like chatting with your BFF', traits: ['friendly', 'supportive', 'fun', 'encouraging'] },
+  { id: 'tease', name: 'The Tease', emoji: '😏', description: 'Playful, flirty, keeps them coming back', traits: ['flirty', 'playful', 'witty', 'confident'] },
+  { id: 'pro', name: 'The Pro', emoji: '💼', description: 'Professional, helpful, knowledgeable', traits: ['professional', 'helpful', 'smart', 'polite'] },
+  { id: 'sweetheart', name: 'The Sweetheart', emoji: '🥰', description: 'Sweet, caring, makes everyone feel special', traits: ['sweet', 'caring', 'warm', 'gentle'] },
+  { id: 'baddie', name: 'The Baddie', emoji: '🔥', description: 'Confident, bold, takes no BS', traits: ['confident', 'bold', 'sassy', 'direct'] },
+  { id: 'mysterious', name: 'The Mystery', emoji: '🌙', description: 'Intriguing, deep, leaves them curious', traits: ['mysterious', 'deep', 'thoughtful', 'alluring'] },
+];
+
+// Personality trait chips
+const PERSONALITY_TRAITS = [
+  { id: 'friendly', label: 'Friendly', emoji: '😊' },
+  { id: 'flirty', label: 'Flirty', emoji: '😘' },
+  { id: 'playful', label: 'Playful', emoji: '😜' },
+  { id: 'sassy', label: 'Sassy', emoji: '💅' },
+  { id: 'sweet', label: 'Sweet', emoji: '🍬' },
+  { id: 'witty', label: 'Witty', emoji: '😏' },
+  { id: 'caring', label: 'Caring', emoji: '💗' },
+  { id: 'confident', label: 'Confident', emoji: '💪' },
+  { id: 'mysterious', label: 'Mysterious', emoji: '🌙' },
+  { id: 'energetic', label: 'Energetic', emoji: '⚡' },
+  { id: 'chill', label: 'Chill', emoji: '😎' },
+  { id: 'supportive', label: 'Supportive', emoji: '🤗' },
+  { id: 'bold', label: 'Bold', emoji: '🔥' },
+  { id: 'gentle', label: 'Gentle', emoji: '🌸' },
+  { id: 'funny', label: 'Funny', emoji: '😂' },
+  { id: 'smart', label: 'Smart', emoji: '🧠' },
+];
+
+// Boundaries options
+const BOUNDARY_OPTIONS = [
+  { id: 'pg', label: 'Keep it PG', emoji: '😇', description: 'Family-friendly, no flirting', prompt: 'Keep all conversations family-friendly and professional. No flirting, romantic talk, or suggestive content.' },
+  { id: 'light', label: 'Light Flirting OK', emoji: '😊', description: 'Playful banter allowed', prompt: 'Light flirting and playful banter is okay, but keep it tasteful. No explicit or overly suggestive content.' },
+  { id: 'flirty', label: 'Flirty & Fun', emoji: '😘', description: 'Flirty vibes welcome', prompt: 'Flirty conversation is welcome. Be playful and suggestive but avoid explicit sexual content.' },
+  { id: 'spicy', label: 'Spicy Allowed', emoji: '🔥', description: 'Adult conversations OK', prompt: 'Adult and suggestive conversations are allowed. Be flirty and spicy while staying within platform guidelines.' },
+];
+
+// Generate personality prompt from selections
+const generatePersonalityPrompt = (
+  vibePreset: string | null,
+  selectedTraits: string[],
+  customAdditions: string
+): string => {
+  const parts: string[] = [];
+
+  // Add vibe preset description
+  const preset = VIBE_PRESETS.find(p => p.id === vibePreset);
+  if (preset) {
+    parts.push(`I have a "${preset.name}" personality - ${preset.description.toLowerCase()}.`);
+  }
+
+  // Add selected traits
+  if (selectedTraits.length > 0) {
+    const traitLabels = selectedTraits.map(id => {
+      const trait = PERSONALITY_TRAITS.find(t => t.id === id);
+      return trait?.label.toLowerCase();
+    }).filter(Boolean);
+
+    if (traitLabels.length > 0) {
+      parts.push(`I'm ${traitLabels.join(', ')}.`);
+    }
+  }
+
+  // Add custom additions
+  if (customAdditions.trim()) {
+    parts.push(customAdditions.trim());
+  }
+
+  return parts.join(' ');
+};
+
 interface AiSettings {
   enabled: boolean;
   textChatEnabled: boolean;
@@ -63,6 +135,34 @@ export default function AiTwinPage() {
     totalTextEarnings: 0,
   });
 
+  // Personality builder state
+  const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [selectedBoundary, setSelectedBoundary] = useState<string>('light');
+  const [customAdditions, setCustomAdditions] = useState<string>('');
+
+  // Toggle a trait on/off
+  const toggleTrait = (traitId: string) => {
+    setSelectedTraits(prev =>
+      prev.includes(traitId)
+        ? prev.filter(id => id !== traitId)
+        : [...prev, traitId]
+    );
+  };
+
+  // Select a vibe preset and auto-select its traits
+  const selectVibePreset = (vibeId: string) => {
+    const preset = VIBE_PRESETS.find(p => p.id === vibeId);
+    if (preset) {
+      setSelectedVibe(vibeId);
+      // Add preset traits to selected traits (without duplicates)
+      setSelectedTraits(prev => {
+        const newTraits = new Set([...prev, ...preset.traits]);
+        return Array.from(newTraits);
+      });
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -92,6 +192,13 @@ export default function AiTwinPage() {
     setMessage('');
     setError('');
 
+    // Generate personality prompt from selections
+    const generatedPersonality = generatePersonalityPrompt(selectedVibe, selectedTraits, customAdditions);
+
+    // Get boundary prompt from selection
+    const boundaryOption = BOUNDARY_OPTIONS.find(b => b.id === selectedBoundary);
+    const generatedBoundary = boundaryOption?.prompt || '';
+
     try {
       const response = await fetch('/api/ai/settings', {
         method: 'PUT',
@@ -100,9 +207,9 @@ export default function AiTwinPage() {
           enabled: settings.enabled,
           textChatEnabled: settings.textChatEnabled,
           voice: settings.voice,
-          personalityPrompt: settings.personalityPrompt,
+          personalityPrompt: generatedPersonality || settings.personalityPrompt,
           welcomeMessage: settings.welcomeMessage,
-          boundaryPrompt: settings.boundaryPrompt,
+          boundaryPrompt: generatedBoundary || settings.boundaryPrompt,
           pricePerMinute: settings.pricePerMinute,
           textPricePerMessage: settings.textPricePerMessage,
         }),
@@ -278,27 +385,83 @@ export default function AiTwinPage() {
                 </GlassCard>
               )}
 
-              {/* Personality Prompt */}
+              {/* Personality Builder */}
               <GlassCard className="p-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-pink-500/20 rounded-lg">
-                    <MessageSquare className="w-5 h-5 text-pink-400" />
+                    <Sparkles className="w-5 h-5 text-pink-400" />
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Personality</h3>
-                    <p className="text-xs text-gray-400">Describe how your AI should behave</p>
+                    <p className="text-xs text-gray-400">Choose your AI&apos;s vibe</p>
                   </div>
                 </div>
 
-                <textarea
-                  value={settings.personalityPrompt || ''}
-                  onChange={(e) => setSettings({ ...settings, personalityPrompt: e.target.value })}
-                  placeholder="Example: I'm bubbly and energetic. I love talking about fitness, fashion, and helping my fans feel confident. I use lots of encouragement and sometimes say 'babe' or 'sweetie'."
-                  className="w-full px-4 py-3 bg-black/40 border border-pink-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 h-32 resize-none"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  This helps your AI Twin match your vibe and communication style
-                </p>
+                {/* Vibe Presets */}
+                <div className="mb-5">
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Quick Vibe Presets</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {VIBE_PRESETS.map((vibe) => (
+                      <button
+                        key={vibe.id}
+                        onClick={() => selectVibePreset(vibe.id)}
+                        className={`p-3 rounded-xl border transition-all text-left ${
+                          selectedVibe === vibe.id
+                            ? 'border-pink-500 bg-pink-500/20'
+                            : 'border-white/10 hover:border-white/30 bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{vibe.emoji}</span>
+                          <span className="font-semibold text-white text-sm">{vibe.name}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">{vibe.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Trait Chips */}
+                <div className="mb-5">
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Fine-tune with Traits</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PERSONALITY_TRAITS.map((trait) => (
+                      <button
+                        key={trait.id}
+                        onClick={() => toggleTrait(trait.id)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1 ${
+                          selectedTraits.includes(trait.id)
+                            ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
+                            : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                        }`}
+                      >
+                        <span>{trait.emoji}</span>
+                        <span>{trait.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Additions */}
+                <div>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Add Custom Details (optional)</p>
+                  <textarea
+                    value={customAdditions}
+                    onChange={(e) => setCustomAdditions(e.target.value)}
+                    placeholder="E.g., I love talking about fitness and fashion. I sometimes say 'babe' or 'sweetie'."
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 h-20 resize-none text-sm"
+                  />
+                </div>
+
+                {/* Preview */}
+                {(selectedVibe || selectedTraits.length > 0 || customAdditions) && (
+                  <div className="mt-4 p-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                    <p className="text-xs text-pink-400 font-medium mb-1">Preview:</p>
+                    <p className="text-sm text-gray-300">
+                      {generatePersonalityPrompt(selectedVibe, selectedTraits, customAdditions) || 'Select a vibe or traits to see preview'}
+                    </p>
+                  </div>
+                )}
               </GlassCard>
 
               {/* Welcome Message */}
@@ -329,18 +492,30 @@ export default function AiTwinPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white">Boundaries</h3>
-                    <p className="text-xs text-gray-400">Topics your AI should avoid</p>
+                    <p className="text-xs text-gray-400">Set your comfort level</p>
                   </div>
                 </div>
 
-                <textarea
-                  value={settings.boundaryPrompt || ''}
-                  onChange={(e) => setSettings({ ...settings, boundaryPrompt: e.target.value })}
-                  placeholder="Example: Don't discuss my personal relationships, my address, or specific travel plans. Don't make promises about meeting in person."
-                  className="w-full px-4 py-3 bg-black/40 border border-red-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500 h-24 resize-none"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  These are strict limits - your AI will politely deflect these topics
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {BOUNDARY_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => setSelectedBoundary(option.id)}
+                      className={`p-3 rounded-xl border transition-all text-center ${
+                        selectedBoundary === option.id
+                          ? 'border-red-500 bg-red-500/20'
+                          : 'border-white/10 hover:border-white/30 bg-white/5'
+                      }`}
+                    >
+                      <span className="text-2xl block mb-1">{option.emoji}</span>
+                      <span className="font-semibold text-white text-sm block">{option.label}</span>
+                      <span className="text-xs text-gray-400">{option.description}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-xs text-gray-500 mt-3">
+                  Your AI will stay within these boundaries during conversations
                 </p>
               </GlassCard>
 
