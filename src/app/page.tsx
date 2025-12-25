@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, memo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -683,6 +683,7 @@ function MarketingPage({
 // Main Page Component
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [signupRedirectTo, setSignupRedirectTo] = useState('/');
@@ -691,6 +692,15 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // If logout param is present, user just logged out - show marketing page
+      const isLogout = searchParams.get('logout') === '1';
+      if (isLogout) {
+        // Clean up the URL without the logout param
+        window.history.replaceState({}, '', '/');
+        setLoading(false);
+        return;
+      }
+
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -725,7 +735,7 @@ export default function Home() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, searchParams]);
 
   if (loading) {
     return (
