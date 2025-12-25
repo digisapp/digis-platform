@@ -45,7 +45,7 @@ export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { showError } = useToastContext();
-  const { user: authUser, session, loading: authLoading, isCreator, isAdmin } = useAuth();
+  const { user: authUser, session, loading: authLoading, isCreator, isAdmin, signOut } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -243,34 +243,18 @@ export function Navigation() {
   };
 
   const handleLogout = async () => {
-    console.log('[Navigation] Logout initiated - clearing all caches');
-    const supabase = createClient();
+    console.log('[Navigation] Logout initiated');
 
-    // Clear all app caches before signing out
+    // Clear app caches
     clearAppCaches();
     setLastAuthUserId(null);
 
-    // Clear any remaining auth storage first
-    if (typeof window !== 'undefined') {
-      // Clear all Supabase-related storage
-      const keysToRemove = Object.keys(localStorage).filter(key =>
-        key.includes('supabase') || key.includes('sb-')
-      );
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      sessionStorage.clear();
-    }
+    // Use context's signOut - this immediately sets user to null
+    await signOut();
 
-    // Sign out from all tabs/windows
-    const { error } = await supabase.auth.signOut({ scope: 'global' });
-    if (error) {
-      console.error('[Navigation] Logout error:', error);
-    }
-
-    // Small delay to ensure signOut completes before redirect
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Full page reload to clear all client-side state
-    window.location.href = '/?logout=1';
+    // Navigate to home
+    router.replace('/');
+    router.refresh();
   };
 
   const isActive = (path: string) => {

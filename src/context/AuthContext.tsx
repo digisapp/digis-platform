@@ -24,6 +24,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isFan: boolean;
   refresh: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -154,6 +155,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signOut = async () => {
+    console.log('[AuthContext] signOut called - clearing state immediately');
+
+    // 1) Immediately clear local state so UI updates NOW
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+
+    // 2) Close real-time connections
+    closeAblyClient();
+
+    // 3) Clear any Supabase storage
+    if (typeof window !== 'undefined') {
+      const keysToRemove = Object.keys(localStorage).filter(key =>
+        key.includes('supabase') || key.includes('sb-')
+      );
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      sessionStorage.clear();
+    }
+
+    // 4) Tell Supabase to sign out
+    const supabase = createClient();
+    await supabase.auth.signOut({ scope: 'global' });
+
+    console.log('[AuthContext] signOut complete');
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -162,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin: user?.isAdmin || false, // Use the isAdmin flag, not role
     isFan: user?.role === 'fan' || (!user?.role && !!user),
     refresh,
+    signOut,
   };
 
   return (

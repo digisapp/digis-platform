@@ -9,6 +9,8 @@ export function AuthNavGate() {
   // While loading, render nothing to avoid flicker
   if (loading) return null;
 
-  // Only render Navigation when user is logged in
-  return user ? <Navigation /> : null;
+  // Paranoid check: only render if user exists AND has an id
+  if (!user?.id) return null;
+
+  return <Navigation />;
 }
