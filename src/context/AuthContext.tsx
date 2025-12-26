@@ -70,14 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 1. Initial fetch from storage
     const initAuth = async () => {
       try {
-        // Check for logout flag - if set, skip auth and clear it
-        if (typeof window !== 'undefined' && localStorage.getItem('digis:logout') === 'true') {
-          console.log('[AuthContext] Logout flag detected - skipping auth');
-          localStorage.removeItem('digis:logout');
-          setLoading(false);
-          return;
-        }
-
         const { data, error } = await supabase.auth.getSession();
 
         if (!mounted) return;
@@ -164,36 +156,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    console.log('[AuthContext] signOut called - clearing state immediately');
+    console.log('[AuthContext] signOut called');
 
-    // 1) Immediately clear local state so UI updates NOW
+    // 1) Close real-time connections first
+    closeAblyClient();
+
+    // 2) Tell Supabase to sign out FIRST (clears cookies)
+    const supabase = createClient();
+    await supabase.auth.signOut({ scope: 'global' });
+
+    // 3) Wait a moment for cookies to be cleared
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // 4) Clear all storage
+    if (typeof window !== 'undefined') {
+      // Clear ALL localStorage (nuclear option)
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Also try to clear cookies manually
+      document.cookie.split(';').forEach(c => {
+        const cookie = c.trim();
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      });
+    }
+
+    // 5) Clear local state
     setUser(null);
     setSession(null);
     setLoading(false);
 
-    // 2) Close real-time connections
-    closeAblyClient();
-
-    // 3) Clear any Supabase storage
-    if (typeof window !== 'undefined') {
-      const keysToRemove = Object.keys(localStorage).filter(key =>
-        key.includes('supabase') || key.includes('sb-')
-      );
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      sessionStorage.clear();
-
-      // Set logout flag for page reload
-      localStorage.setItem('digis:logout', 'true');
-    }
-
-    // 4) Tell Supabase to sign out
-    const supabase = createClient();
-    await supabase.auth.signOut({ scope: 'global' });
-
     console.log('[AuthContext] signOut complete - forcing page reload');
 
-    // 5) Force full page reload to guarantee clean state
-    window.location.href = '/';
+    // 6) Force full page reload
+    window.location.replace('/');
   };
 
   const value: AuthContextType = {
