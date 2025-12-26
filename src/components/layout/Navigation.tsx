@@ -249,12 +249,9 @@ export function Navigation() {
     clearAppCaches();
     setLastAuthUserId(null);
 
-    // Use context's signOut - this immediately sets user to null
+    // Use context's signOut - this clears state and does full page reload
     await signOut();
-
-    // Navigate to home
-    router.replace('/');
-    router.refresh();
+    // signOut handles the redirect via window.location.href
   };
 
   const isActive = (path: string) => {

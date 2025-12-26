@@ -70,6 +70,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 1. Initial fetch from storage
     const initAuth = async () => {
       try {
+        // Check for logout flag - if set, skip auth and clear it
+        if (typeof window !== 'undefined' && localStorage.getItem('digis:logout') === 'true') {
+          console.log('[AuthContext] Logout flag detected - skipping auth');
+          localStorage.removeItem('digis:logout');
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.auth.getSession();
 
         if (!mounted) return;
@@ -173,13 +181,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       keysToRemove.forEach(key => localStorage.removeItem(key));
       sessionStorage.clear();
+
+      // Set logout flag for page reload
+      localStorage.setItem('digis:logout', 'true');
     }
 
     // 4) Tell Supabase to sign out
     const supabase = createClient();
     await supabase.auth.signOut({ scope: 'global' });
 
-    console.log('[AuthContext] signOut complete');
+    console.log('[AuthContext] signOut complete - forcing page reload');
+
+    // 5) Force full page reload to guarantee clean state
+    window.location.href = '/';
   };
 
   const value: AuthContextType = {
