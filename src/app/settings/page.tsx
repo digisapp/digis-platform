@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, GripVertical, X } from 'lucide-react';
@@ -36,6 +37,7 @@ const LINK_EMOJI_OPTIONS = ['🛍️', '💄', '👗', '📸', '🎁', '💰', '
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { signOut } = useAuth();
 
   // User data
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -1503,15 +1505,9 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={async () => {
-              try {
-                const response = await fetch('/api/auth/logout', { method: 'POST' });
-                if (response.ok) {
-                  router.push('/');
-                  router.refresh();
-                }
-              } catch (err) {
-                console.error('Logout error:', err);
-              }
+              console.log('[Settings] Sign out clicked');
+              await signOut();
+              router.push('/');
             }}
             className="w-full px-6 py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 font-semibold flex items-center justify-center gap-3 transition-all"
           >
