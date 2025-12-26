@@ -158,23 +158,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     console.log('[AuthContext] signOut called');
 
-    // 1) Close real-time connections first
+    // 1) IMMEDIATELY clear local state so UI hides navigation right away
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+
+    // 2) Close real-time connections
     closeAblyClient();
 
-    // 2) Tell Supabase to sign out FIRST (clears cookies)
+    // 3) Tell Supabase to sign out (clears server-side session)
     const supabase = createClient();
     await supabase.auth.signOut({ scope: 'global' });
 
-    // 3) Wait a moment for cookies to be cleared
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // 4) Clear all storage
+    // 4) Clear all client-side storage
     if (typeof window !== 'undefined') {
-      // Clear ALL localStorage (nuclear option)
       localStorage.clear();
       sessionStorage.clear();
 
-      // Also try to clear cookies manually
+      // Clear cookies manually
       document.cookie.split(';').forEach(c => {
         const cookie = c.trim();
         const eqPos = cookie.indexOf('=');
@@ -183,15 +184,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // 5) Clear local state
-    setUser(null);
-    setSession(null);
-    setLoading(false);
-
     console.log('[AuthContext] signOut complete - forcing page reload');
 
-    // 6) Force full page reload
-    window.location.replace('/');
+    // 5) Force navigation to home with cache-busting query param
+    window.location.href = '/?signout=' + Date.now();
   };
 
   const value: AuthContextType = {

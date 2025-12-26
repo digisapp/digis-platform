@@ -690,10 +690,10 @@ function HomeContent() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // If logout param is present, user just logged out - show marketing page
-      const isLogout = searchParams.get('logout') === '1';
-      if (isLogout) {
-        // Clean up the URL without the logout param
+      // If signout/logout param is present, user just logged out - show marketing page
+      const isSignout = searchParams.get('signout') || searchParams.get('logout') === '1';
+      if (isSignout) {
+        // Clean up the URL without the signout param
         window.history.replaceState({}, '', '/');
         setLoading(false);
         return;
