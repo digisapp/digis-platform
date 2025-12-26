@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
 import { clearAppCaches, setLastAuthUserId } from '@/lib/cache-utils';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, authSupabase } from '@/context/AuthContext';
 import {
   Home,
   Search,
@@ -165,8 +164,8 @@ export function Navigation() {
   useEffect(() => {
     if (!authUser) return;
 
-    const supabase = createClient();
-    const messagesChannel = supabase
+    // Use the same supabase instance as AuthContext
+    const messagesChannel = authSupabase
       .channel('navigation-unread')
       .on(
         'postgres_changes',
@@ -182,7 +181,7 @@ export function Navigation() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(messagesChannel);
+      authSupabase.removeChannel(messagesChannel);
     };
   }, [authUser]);
 

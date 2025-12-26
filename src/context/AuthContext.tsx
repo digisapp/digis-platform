@@ -10,6 +10,9 @@ import type { Session } from '@supabase/supabase-js';
 // so onAuthStateChange events are received properly
 const supabase = createClient();
 
+// Export for components that need real-time subscriptions (like Navigation)
+export { supabase as authSupabase };
+
 interface AuthUser {
   id: string;
   email: string | undefined;
