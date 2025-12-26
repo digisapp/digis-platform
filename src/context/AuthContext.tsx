@@ -129,11 +129,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     console.log('[AuthContext] signOut called');
 
-    // Sign out using the SAME supabase instance that AuthProvider is subscribed to
-    // This will trigger onAuthStateChange with SIGNED_OUT event, which will:
-    // 1. Set user/session to null
-    // 2. Close Ably connections
-    // The UI will update automatically via the subscription
+    // IMPORTANT: Clear state IMMEDIATELY for instant UI update
+    setUser(null);
+    setSession(null);
+
+    // Close real-time connections
+    closeAblyClient();
+
+    // Sign out from Supabase (uses same singleton instance)
     await supabase.auth.signOut();
 
     console.log('[AuthContext] signOut complete');
