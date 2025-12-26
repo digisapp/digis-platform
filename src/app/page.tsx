@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, memo, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, memo } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -678,10 +678,9 @@ function MarketingPage({
   );
 }
 
-// Main Page Content Component (uses useSearchParams which requires Suspense)
+// Main Page Content Component
 function HomeContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [signupRedirectTo, setSignupRedirectTo] = useState('/');
@@ -690,15 +689,6 @@ function HomeContent() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // If signout/logout param is present, user just logged out - show marketing page
-      const isSignout = searchParams.get('signout') || searchParams.get('logout') === '1';
-      if (isSignout) {
-        // Clean up the URL without the signout param
-        window.history.replaceState({}, '', '/');
-        setLoading(false);
-        return;
-      }
-
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -733,7 +723,7 @@ function HomeContent() {
     };
 
     checkAuth();
-  }, [router, searchParams]);
+  }, [router]);
 
   if (loading) {
     return (
@@ -790,32 +780,7 @@ function HomeContent() {
   );
 }
 
-// Loading fallback for Suspense
-function HomeLoading() {
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative">
-          <div className="absolute inset-0 blur-xl bg-cyan-400/40 scale-150" />
-          <Image
-            src="/images/digis-logo-white.png"
-            alt="Digis"
-            width={120}
-            height={40}
-            className="relative animate-pulse drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]"
-            priority
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main Page Component with Suspense boundary for useSearchParams
+// Main Page Component
 export default function Home() {
-  return (
-    <Suspense fallback={<HomeLoading />}>
-      <HomeContent />
-    </Suspense>
-  );
+  return <HomeContent />;
 }

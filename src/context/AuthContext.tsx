@@ -1,9 +1,14 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { closeAblyClient } from '@/lib/ably/client';
 import type { Session } from '@supabase/supabase-js';
+
+// CRITICAL: Create a single shared Supabase client instance at module level
+// This ensures AuthProvider and all other components use the SAME client
+// so onAuthStateChange events are received properly
+const supabase = createClient();
 
 interface AuthUser {
   id: string;
@@ -64,74 +69,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initial session load and auth state management
   useEffect(() => {
-    const supabase = createClient();
     let mounted = true;
 
     // 1. Initial fetch from storage
-    const initAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
 
-        if (!mounted) return;
-
-        if (error) {
-          console.error('[AuthContext] getSession error:', error);
-          setLoading(false);
-          return;
-        }
-
-        const currentSession = data.session;
-        if (currentSession) {
-          setSession(currentSession);
-          setUser(extractUserFromSession(currentSession));
-        }
-      } catch (error) {
-        console.error('[AuthContext] Error getting session:', error);
-      } finally {
-        if (mounted) setLoading(false);
+      if (error) {
+        console.error('[AuthContext] getSession error:', error);
+        setLoading(false);
+        return;
       }
-    };
 
-    initAuth();
+      const currentSession = data.session;
+      setSession(currentSession);
+      setUser(currentSession ? extractUserFromSession(currentSession) : null);
+      setLoading(false);
+    });
 
-    // 2. Listen for auth changes - handle events properly
+    // 2. Listen for auth changes on the SAME supabase instance
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (!mounted) return;
 
-        console.log('[AuthContext] Auth event:', event);
+        // Debug logging - should see SIGNED_OUT when logout happens
+        console.log('[AuthContext] Auth event:', event, '| Has user:', !!newSession?.user);
 
-        // INITIAL_SESSION: sync current state, don't treat as logout
-        if (event === 'INITIAL_SESSION') {
-          setSession(newSession);
-          setUser(extractUserFromSession(newSession));
-          setLoading(false);
-          return;
-        }
-
-        // SIGNED_IN or TOKEN_REFRESHED: update with new session
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setSession(newSession);
-          setUser(extractUserFromSession(newSession));
-          setLoading(false);
-          return;
-        }
-
-        // SIGNED_OUT: clear everything and cleanup connections
-        if (event === 'SIGNED_OUT') {
-          closeAblyClient(); // Close real-time connection on logout
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        // Any other event: just sync state without clearing
-        if (newSession) {
-          setSession(newSession);
-          setUser(extractUserFromSession(newSession));
-        }
+        // Update state based on new session
+        setSession(newSession);
+        setUser(newSession ? extractUserFromSession(newSession) : null);
         setLoading(false);
+
+        // Close real-time connections on logout
+        if (event === 'SIGNED_OUT') {
+          closeAblyClient();
+        }
       }
     );
 
@@ -144,10 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
       const { data: { session: newSession } } = await supabase.auth.getSession();
       setSession(newSession);
-      setUser(extractUserFromSession(newSession));
+      setUser(newSession ? extractUserFromSession(newSession) : null);
     } catch (error) {
       console.error('[AuthContext] Error refreshing:', error);
     } finally {
@@ -158,36 +129,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     console.log('[AuthContext] signOut called');
 
-    // 1) IMMEDIATELY clear local state so UI hides navigation right away
-    setUser(null);
-    setSession(null);
-    setLoading(false);
+    // Sign out using the SAME supabase instance that AuthProvider is subscribed to
+    // This will trigger onAuthStateChange with SIGNED_OUT event, which will:
+    // 1. Set user/session to null
+    // 2. Close Ably connections
+    // The UI will update automatically via the subscription
+    await supabase.auth.signOut();
 
-    // 2) Close real-time connections
-    closeAblyClient();
-
-    // 3) Tell Supabase to sign out (clears server-side session)
-    const supabase = createClient();
-    await supabase.auth.signOut({ scope: 'global' });
-
-    // 4) Clear all client-side storage
-    if (typeof window !== 'undefined') {
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Clear cookies manually
-      document.cookie.split(';').forEach(c => {
-        const cookie = c.trim();
-        const eqPos = cookie.indexOf('=');
-        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
-        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-      });
-    }
-
-    console.log('[AuthContext] signOut complete - forcing page reload');
-
-    // 5) Force navigation to home with cache-busting query param
-    window.location.href = '/?signout=' + Date.now();
+    console.log('[AuthContext] signOut complete');
   };
 
   const value: AuthContextType = {

@@ -145,9 +145,8 @@ export function Navigation() {
     router.prefetch('/creator/go-live');
   }, [authUser?.id, router]);
 
-  // Heartbeat and auth state listener for cache clearing
+  // Heartbeat to keep session alive
   useEffect(() => {
-    // Heartbeat to keep session alive (every 60 seconds)
     const heartbeatInterval = setInterval(() => {
       fetch('/api/auth/heartbeat', {
         method: 'POST',
@@ -157,20 +156,8 @@ export function Navigation() {
       });
     }, 60000);
 
-    // Listen for auth state changes for cache clearing
-    const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        console.log('[Navigation] User signed out - clearing all caches');
-        setBalance(0);
-        clearAppCaches();
-        setLastAuthUserId(null);
-      }
-    });
-
     return () => {
       clearInterval(heartbeatInterval);
-      subscription.unsubscribe();
     };
   }, []);
 
@@ -249,9 +236,11 @@ export function Navigation() {
     clearAppCaches();
     setLastAuthUserId(null);
 
-    // Use context's signOut - this clears state and does full page reload
+    // Use context's signOut - this triggers onAuthStateChange which clears state
     await signOut();
-    // signOut handles the redirect via window.location.href
+
+    // Navigate to home after signout
+    router.replace('/');
   };
 
   const isActive = (path: string) => {
