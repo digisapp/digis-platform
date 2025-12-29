@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart, Scissors, Eye, ThumbsUp, Bot, Share2 } from 'lucide-react';
+import { UserCircle, Calendar, ShieldCheck, MessageCircle, Video, Ticket, Gift, Clock, Phone, Star, Sparkles, Image, Film, Mic, CheckCircle, Lock, Play, Coins, AlertCircle, Heart, Scissors, Eye, ThumbsUp, Bot } from 'lucide-react';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import ProfileLiveSection from '@/components/profile/ProfileLiveSection';
 import { TipModal } from '@/components/messages/TipModal';
@@ -466,36 +466,6 @@ export default function ProfilePageClient() {
     }
   };
 
-  const handleShare = async () => {
-    const shareUrl = `https://digis.cc/${username}`;
-    const shareTitle = profile?.user.displayName || profile?.user.username || username;
-    const shareText = `Check out ${shareTitle} on Digis`;
-
-    // Try native share API first (works on mobile)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: shareUrl,
-        });
-        return;
-      } catch (err) {
-        // User cancelled or share failed, fall back to clipboard
-        if ((err as Error).name === 'AbortError') return;
-      }
-    }
-
-    // Fall back to clipboard copy
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      showInfo('Link copied to clipboard!');
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      showError('Failed to copy link');
-    }
-  };
-
   const handleSubscribe = async () => {
     if (subscribeLoading || !profile?.user.id) return;
 
@@ -797,16 +767,7 @@ export default function ProfilePageClient() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Avatar and Header Section - Modern Glass Card */}
         <div className="relative -mt-24 sm:-mt-28 mb-8">
-          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8 relative">
-            {/* Share Button - Top Right Corner */}
-            <button
-              onClick={handleShare}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 border border-white/20 text-white/70 hover:text-white hover:bg-white/20 hover:border-white/30 transition-all"
-              title="Share profile"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
-
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
             {/* Top Row: Avatar, Name, Follow Button */}
             <div className="flex items-start gap-4 sm:gap-6">
               {/* Animated Avatar with Neon Glow */}
