@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Coins, LogIn, Plus } from 'lucide-react';
+import { Coins, Plus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 
@@ -174,14 +174,6 @@ export function MobileHeader() {
               </>
             )}
           </div>
-        ) : !isLoggedIn && !authLoading ? (
-          <button
-            onClick={() => router.push('/')}
-            className="group relative flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 border border-cyan-500/70 shadow-[0_0_20px_rgba(34,211,238,0.5),inset_0_0_20px_rgba(34,211,238,0.1)] hover:shadow-[0_0_30px_rgba(34,211,238,0.7),inset_0_0_25px_rgba(34,211,238,0.2)] touch-manipulation active:scale-95 transition-all duration-300"
-          >
-            <LogIn className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-            <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-blue-300">Sign In</span>
-          </button>
         ) : null}
       </div>
 
