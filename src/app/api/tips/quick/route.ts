@@ -166,7 +166,7 @@ export async function POST(req: NextRequest) {
         amount: -amount,
         type: 'stream_tip',
         status: 'completed',
-        description: `Tip to ${creator.displayName || creator.username} on stream`,
+        description: `Gift to ${creator.displayName || creator.username} on stream`,
         idempotencyKey,
         metadata: JSON.stringify({
           streamId: stream.id,
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
         amount: amount,
         type: 'stream_tip',
         status: 'completed',
-        description: `Tip received from @${sender?.username || 'anonymous'} on stream`,
+        description: `Gift received from @${sender?.username || 'anonymous'} on stream`,
         relatedTransactionId: senderTransaction.id,
         metadata: JSON.stringify({
           streamId: stream.id,

@@ -1107,7 +1107,7 @@ export class MessageService {
           status: 'completed',
           description: giftLabel
             ? `Sent ${giftLabel} via DM${tipMessage ? ': ' + tipMessage : ''}`
-            : tipMessage || 'Tip sent via DM',
+            : tipMessage || 'Gift sent via DM',
           idempotencyKey,
           metadata: JSON.stringify({
             giftId: giftId || null,
@@ -1126,7 +1126,7 @@ export class MessageService {
         status: 'completed',
         description: giftLabel
           ? `Received ${giftLabel} via DM${tipMessage ? ': ' + tipMessage : ''}`
-          : tipMessage || 'Tip received via DM',
+          : tipMessage || 'Gift received via DM',
         relatedTransactionId: senderTransaction.id,
         idempotencyKey: `${idempotencyKey}_credit`,
         metadata: JSON.stringify({

@@ -1088,7 +1088,7 @@ function VoiceCallUI({
                 <>
                   <Coins className="w-5 h-5 text-yellow-400" />
                   <span className="text-white font-semibold">
-                    Sent {sentNotification.amount} coins tip!
+                    Sent {sentNotification.amount} coins gift!
                   </span>
                 </>
               ) : (

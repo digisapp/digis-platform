@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         description: giftLabel
           ? `Sent ${giftLabel} to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`
-          : `Tip to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`,
+          : `Gift to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`,
         idempotencyKey,
         metadata: JSON.stringify({
           recipientId: receiver.id,
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
         status: 'completed',
         description: giftLabel
           ? `Received ${giftLabel} from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`
-          : `Tip received from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`,
+          : `Gift received from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`,
         relatedTransactionId: senderTransaction.id,
         metadata: JSON.stringify({
           senderId: authUser.id,
