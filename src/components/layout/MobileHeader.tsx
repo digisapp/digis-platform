@@ -100,8 +100,11 @@ export function MobileHeader() {
 
       {/* Content */}
       <div className="relative flex items-center justify-between h-12 px-4">
-        {/* Left - Logo */}
-        <div>
+        {/* Left - Logo (links to home) */}
+        <button
+          onClick={() => router.push('/')}
+          className="touch-manipulation active:scale-95 transition-transform"
+        >
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
@@ -111,7 +114,7 @@ export function MobileHeader() {
             priority
             unoptimized
           />
-        </div>
+        </button>
 
         {/* Right - Wallet Button (logged in) or Sign In Button (logged out) */}
         {isLoggedIn && balance !== null ? (
