@@ -193,9 +193,9 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             <span className="text-sm font-bold text-yellow-500">{balance.toLocaleString()}</span>
           </div>
 
-          {/* Custom Gift Amount Input */}
+          {/* Coin Gift Input */}
           <div className="mb-4">
-            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Custom Gift Amount</label>
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">🪙 Coin Gift</label>
             <div className="relative">
               <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500/70" />
               <input
@@ -216,7 +216,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
 
           {/* Virtual Gifts Section */}
           <div className="mb-4 flex-1 min-h-0 flex flex-col">
-            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Or Send a Virtual Gift</label>
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">🎁 Virtual Gifts</label>
 
             {loadingGifts ? (
               <div className="flex items-center justify-center py-8">
