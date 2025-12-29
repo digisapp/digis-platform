@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, users, notifications } from '@/lib/data/system';
-import { eq, sql } from 'drizzle-orm';
+import { wallets, walletTransactions, users, notifications, conversations, messages } from '@/lib/data/system';
+import { eq, sql, or, and } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { validateBody, uuidSchema, coinAmountSchema } from '@/lib/validation/schemas';
@@ -13,6 +13,9 @@ const tipSendSchema = z.object({
   amount: coinAmountSchema,
   receiverId: uuidSchema,
   message: z.string().max(500, 'Message too long').optional(),
+  giftId: uuidSchema.optional(),
+  giftEmoji: z.string().max(10).optional(),
+  giftName: z.string().max(100).optional(),
 });
 
 export const runtime = 'nodejs';
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { amount, receiverId, message } = validation.data;
+    const { amount, receiverId, message, giftId, giftEmoji, giftName } = validation.data;
 
     // Cannot tip yourself
     if (authUser.id === receiverId) {
@@ -149,17 +152,23 @@ export async function POST(req: NextRequest) {
       }
 
       // 4. Create wallet transactions for both parties
+      const giftLabel = giftEmoji && giftName ? `${giftEmoji} ${giftName}` : null;
       const [senderTransaction] = await tx.insert(walletTransactions).values({
         userId: authUser.id,
         amount: -amount,
         type: 'dm_tip',
         status: 'completed',
-        description: `Tip to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`,
+        description: giftLabel
+          ? `Sent ${giftLabel} to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`
+          : `Tip to ${receiver.displayName || receiver.username}${message ? ': ' + message : ''}`,
         idempotencyKey,
         metadata: JSON.stringify({
           recipientId: receiver.id,
           recipientUsername: receiver.username,
           message: message || null,
+          giftId: giftId || null,
+          giftEmoji: giftEmoji || null,
+          giftName: giftName || null,
         }),
       }).returning();
 
@@ -168,12 +177,17 @@ export async function POST(req: NextRequest) {
         amount: amount,
         type: 'dm_tip',
         status: 'completed',
-        description: `Tip received from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`,
+        description: giftLabel
+          ? `Received ${giftLabel} from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`
+          : `Tip received from ${sender?.displayName || sender?.username || 'a fan'}${message ? ': ' + message : ''}`,
         relatedTransactionId: senderTransaction.id,
         metadata: JSON.stringify({
           senderId: authUser.id,
           senderUsername: sender?.username,
           message: message || null,
+          giftId: giftId || null,
+          giftEmoji: giftEmoji || null,
+          giftName: giftName || null,
         }),
       });
 
@@ -181,19 +195,90 @@ export async function POST(req: NextRequest) {
       await tx.insert(notifications).values({
         userId: receiver.id,
         type: 'tip_received',
-        title: 'New Tip!',
-        message: `${sender?.displayName || sender?.username || 'Someone'} sent you ${amount} coins!${message ? ' "' + message + '"' : ''}`,
+        title: giftLabel ? `New Gift! ${giftEmoji}` : 'New Tip!',
+        message: giftLabel
+          ? `${sender?.displayName || sender?.username || 'Someone'} sent you ${giftLabel} (${amount} coins)!${message ? ' "' + message + '"' : ''}`
+          : `${sender?.displayName || sender?.username || 'Someone'} sent you ${amount} coins!${message ? ' "' + message + '"' : ''}`,
         metadata: JSON.stringify({
           amount,
           senderId: authUser.id,
           senderUsername: sender?.username,
           message: message || null,
+          giftId: giftId || null,
+          giftEmoji: giftEmoji || null,
+          giftName: giftName || null,
         }),
       });
+
+      // 6. Create or find conversation and add tip message so creator can see it in DMs
+      // Order IDs consistently to find existing conversation
+      const [smallerId, largerId] = [authUser.id, receiver.id].sort();
+
+      // Try to find existing conversation
+      let conversation = await tx.query.conversations.findFirst({
+        where: or(
+          and(
+            eq(conversations.user1Id, smallerId),
+            eq(conversations.user2Id, largerId)
+          ),
+          and(
+            eq(conversations.user1Id, largerId),
+            eq(conversations.user2Id, smallerId)
+          )
+        ),
+      });
+
+      // Create conversation if it doesn't exist
+      if (!conversation) {
+        const [newConversation] = await tx
+          .insert(conversations)
+          .values({
+            user1Id: smallerId,
+            user2Id: largerId,
+          })
+          .returning();
+        conversation = newConversation;
+      }
+
+      // Create tip message in the conversation
+      const messageContent = giftLabel
+        ? `Sent ${giftLabel}${message ? ': ' + message : ''}`
+        : message || `Sent ${amount} coins`;
+
+      await tx.insert(messages).values({
+        conversationId: conversation.id,
+        senderId: authUser.id,
+        content: messageContent,
+        messageType: 'tip',
+        tipAmount: amount,
+        tipTransactionId: senderTransaction.id,
+      });
+
+      // Update conversation's last message and unread count
+      const lastMessageText = giftLabel
+        ? `${giftEmoji} Sent ${giftName}`
+        : `💰 Sent ${amount} coins`;
+
+      // Determine which unread count to increment (the receiver's)
+      const isReceiverUser1 = conversation.user1Id === receiver.id;
+
+      await tx
+        .update(conversations)
+        .set({
+          lastMessageText,
+          lastMessageAt: new Date(),
+          lastMessageSenderId: authUser.id,
+          ...(isReceiverUser1
+            ? { user1UnreadCount: sql`${conversations.user1UnreadCount} + 1` }
+            : { user2UnreadCount: sql`${conversations.user2UnreadCount} + 1` }),
+          updatedAt: new Date(),
+        })
+        .where(eq(conversations.id, conversation.id));
 
       return {
         transactionId: senderTransaction.id,
         newBalance: senderWallet.balance - amount,
+        conversationId: conversation.id,
       };
     });
 

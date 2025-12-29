@@ -460,7 +460,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleSendTip = async (amount: number, tipMessage: string) => {
+  const handleSendTip = async (amount: number, tipMessage: string, giftId?: string, giftEmoji?: string, giftName?: string) => {
     if (!conversation) return;
 
     try {
@@ -472,6 +472,9 @@ export default function ChatPage() {
           receiverId: conversation.otherUser.id,
           amount,
           tipMessage,
+          giftId,
+          giftEmoji,
+          giftName,
         }),
       });
 

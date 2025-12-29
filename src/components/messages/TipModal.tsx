@@ -2,28 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Gift } from 'lucide-react';
+import { Gift, Coins, Sparkles, Zap, Crown, Star } from 'lucide-react';
+
+interface VirtualGift {
+  id: string;
+  name: string;
+  emoji: string;
+  coinCost: number;
+  animationType: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+}
 
 interface TipModalProps {
   onClose: () => void;
-  onSend: (amount: number, message: string) => Promise<void>;
+  onSend: (amount: number, message: string, giftId?: string, giftEmoji?: string, giftName?: string) => Promise<void>;
   receiverName: string;
 }
 
-const PRESET_AMOUNTS = [10, 25, 50, 100, 200, 500];
-
 export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
-  const [amount, setAmount] = useState(25);
   const [customAmount, setCustomAmount] = useState('');
+  const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);
   const [message, setMessage] = useState('');
   const [balance, setBalance] = useState(0);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [gifts, setGifts] = useState<VirtualGift[]>([]);
+  const [loadingGifts, setLoadingGifts] = useState(true);
 
   useEffect(() => {
     setMounted(true);
     fetchBalance();
+    fetchGifts();
   }, []);
 
   const fetchBalance = async () => {
@@ -38,11 +48,73 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
     }
   };
 
+  const fetchGifts = async () => {
+    try {
+      const response = await fetch('/api/gifts');
+      const data = await response.json();
+      setGifts(data.gifts || []);
+    } catch (error) {
+      console.error('Error fetching gifts:', error);
+    } finally {
+      setLoadingGifts(false);
+    }
+  };
+
+  const getRarityStyles = (rarity: string) => {
+    switch (rarity) {
+      case 'common':
+        return {
+          border: 'border-gray-500/50',
+          bg: 'bg-gray-500/10',
+          glow: '',
+          badge: 'bg-gray-500/20 text-gray-300'
+        };
+      case 'rare':
+        return {
+          border: 'border-blue-500/50',
+          bg: 'bg-blue-500/10',
+          glow: 'hover:shadow-blue-500/20',
+          badge: 'bg-blue-500/20 text-blue-300'
+        };
+      case 'epic':
+        return {
+          border: 'border-purple-500/50',
+          bg: 'bg-purple-500/10',
+          glow: 'hover:shadow-purple-500/30',
+          badge: 'bg-purple-500/20 text-purple-300'
+        };
+      case 'legendary':
+        return {
+          border: 'border-yellow-500/50',
+          bg: 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20',
+          glow: 'hover:shadow-yellow-500/40 shadow-lg shadow-yellow-500/20',
+          badge: 'bg-gradient-to-r from-yellow-500/30 to-orange-500/30 text-yellow-200'
+        };
+      default:
+        return {
+          border: 'border-gray-500/50',
+          bg: 'bg-gray-500/10',
+          glow: '',
+          badge: 'bg-gray-500/20 text-gray-300'
+        };
+    }
+  };
+
+  const getRarityIcon = (rarity: string) => {
+    switch (rarity) {
+      case 'rare': return <Zap className="w-2.5 h-2.5" />;
+      case 'epic': return <Sparkles className="w-2.5 h-2.5" />;
+      case 'legendary': return <Crown className="w-2.5 h-2.5" />;
+      default: return <Star className="w-2.5 h-2.5" />;
+    }
+  };
+
   const handleSend = async () => {
-    const finalAmount = customAmount ? parseInt(customAmount) : amount;
+    // Determine the amount: if gift selected use gift cost, otherwise use custom amount
+    const finalAmount = selectedGift ? selectedGift.coinCost : parseInt(customAmount) || 0;
 
     if (finalAmount < 1) {
-      setError('Tip amount must be at least 1 coin');
+      setError('Please enter an amount or select a gift');
       return;
     }
 
@@ -55,7 +127,13 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
     setError('');
 
     try {
-      await onSend(finalAmount, message);
+      await onSend(
+        finalAmount,
+        message,
+        selectedGift?.id,
+        selectedGift?.emoji,
+        selectedGift?.name
+      );
       onClose();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to send tip');
@@ -63,6 +141,9 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
       setSending(false);
     }
   };
+
+  const finalAmount = selectedGift ? selectedGift.coinCost : parseInt(customAmount) || 0;
+  const canAfford = finalAmount > 0 && finalAmount <= balance;
 
   if (!mounted) return null;
 
@@ -72,7 +153,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
       onClick={onClose}
     >
       <div
-        className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-8 max-w-sm w-full border-2 border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.3)] animate-in zoom-in-95 duration-200 mx-auto"
+        className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-6 max-w-md w-full border-2 border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.3)] animate-in zoom-in-95 duration-200 mx-auto max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Animated gradient border effect */}
@@ -80,7 +161,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/0 via-yellow-500/20 to-yellow-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
         </div>
 
-        <div className="relative">
+        <div className="relative flex flex-col flex-1 min-h-0">
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -91,62 +172,112 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             </svg>
           </button>
 
-          {/* Icon and Title */}
-          <div className="text-center mb-6">
-            <div className="relative inline-block mb-4">
+          {/* Header - Send Tip to Username */}
+          <div className="text-center mb-4">
+            <div className="relative inline-block mb-3">
               <div className="absolute -inset-2 bg-yellow-500/30 rounded-full blur-xl"></div>
-              <div className="relative w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.4)]">
-                <Gift className="w-8 h-8 text-white" />
+              <div className="relative w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.4)]">
+                <Gift className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent mb-1">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
               Send Tip
             </h3>
             <p className="text-gray-400 text-sm">to {receiverName}</p>
           </div>
 
-          {/* Preset Amounts - Tron Style */}
+          {/* Balance Display */}
+          <div className="flex items-center justify-center gap-2 mb-4 py-2 px-4 bg-white/5 rounded-xl border border-white/10">
+            <Coins className="w-4 h-4 text-yellow-500" />
+            <span className="text-sm text-gray-400">Balance:</span>
+            <span className="text-sm font-bold text-yellow-500">{balance.toLocaleString()}</span>
+          </div>
+
+          {/* Custom Tip Amount Input */}
           <div className="mb-4">
-            <div className="grid grid-cols-3 gap-2">
-              {PRESET_AMOUNTS.map((preset) => (
-                <button
-                  key={preset}
-                  onClick={() => {
-                    setAmount(preset);
-                    setCustomAmount('');
-                  }}
-                  className={`py-3 rounded-xl font-semibold text-sm transition-all ${
-                    amount === preset && !customAmount
-                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_15px_rgba(234,179,8,0.4)]'
-                      : 'bg-white/5 text-white border border-white/10 hover:border-yellow-500/50'
-                  }`}
-                >
-                  {preset}
-                </button>
-              ))}
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Custom Tip Amount</label>
+            <div className="relative">
+              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500/70" />
+              <input
+                type="number"
+                value={customAmount}
+                onChange={(e) => {
+                  setCustomAmount(e.target.value);
+                  setSelectedGift(null); // Clear gift selection when typing custom amount
+                }}
+                placeholder="Enter any amount..."
+                className={`w-full bg-white/5 border rounded-xl pl-10 pr-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none transition-colors ${
+                  selectedGift ? 'border-white/10' : 'border-yellow-500/50'
+                }`}
+                min="1"
+              />
             </div>
           </div>
 
-          {/* Custom Amount */}
-          <div className="mb-4">
-            <input
-              type="number"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder="Custom amount..."
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 transition-colors"
-              min="1"
-            />
+          {/* Virtual Gifts Section */}
+          <div className="mb-4 flex-1 min-h-0 flex flex-col">
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Or Send a Virtual Gift</label>
+
+            {loadingGifts ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2 overflow-y-auto max-h-[180px] pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                {gifts.map((gift) => {
+                  const styles = getRarityStyles(gift.rarity);
+                  const isSelected = selectedGift?.id === gift.id;
+                  const canAffordGift = gift.coinCost <= balance;
+
+                  return (
+                    <button
+                      key={gift.id}
+                      onClick={() => {
+                        if (canAffordGift) {
+                          setSelectedGift(gift);
+                          setCustomAmount(''); // Clear custom amount when selecting gift
+                        }
+                      }}
+                      disabled={!canAffordGift}
+                      className={`relative p-2 rounded-xl border-2 transition-all duration-200 ${
+                        isSelected
+                          ? 'border-yellow-500 bg-yellow-500/20 scale-105 shadow-lg shadow-yellow-500/30'
+                          : `${styles.border} ${styles.bg} ${canAffordGift ? `hover:scale-105 ${styles.glow}` : 'opacity-40 cursor-not-allowed'}`
+                      }`}
+                    >
+                      {/* Rarity Badge */}
+                      <div className={`absolute -top-1 -right-1 px-1 py-0.5 rounded-full text-[8px] font-bold flex items-center ${styles.badge}`}>
+                        {getRarityIcon(gift.rarity)}
+                      </div>
+
+                      {/* Emoji */}
+                      <div className="text-2xl mb-1">{gift.emoji}</div>
+
+                      {/* Name */}
+                      <div className="text-[10px] font-medium text-white truncate mb-0.5">
+                        {gift.name}
+                      </div>
+
+                      {/* Price */}
+                      <div className={`text-[10px] font-bold ${canAffordGift ? 'text-yellow-500' : 'text-red-400'}`}>
+                        {gift.coinCost.toLocaleString()}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Optional Message */}
+          {/* Add Message (smaller) */}
           <div className="mb-4">
-            <textarea
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">Add Message (optional)</label>
+            <input
+              type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Add a message (optional)"
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 transition-colors resize-none"
-              rows={2}
+              placeholder="Say something nice..."
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 transition-colors"
               maxLength={200}
             />
           </div>
@@ -158,29 +289,28 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             </div>
           )}
 
-          {/* Action Buttons - Tron Style */}
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-all border border-gray-600"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSend}
-              disabled={sending || (!customAmount && !amount) || (!!customAmount && parseInt(customAmount) < 1)}
-              className="flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {sending ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                  <span>Sending...</span>
-                </div>
-              ) : (
-                `Send ${customAmount || amount}`
-              )}
-            </button>
-          </div>
+          {/* Send Gift Button (no cancel button) */}
+          <button
+            onClick={handleSend}
+            disabled={sending || !canAfford}
+            className="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:scale-[1.02] transition-all shadow-lg shadow-yellow-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+          >
+            {sending ? (
+              <>
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <span>Sending...</span>
+              </>
+            ) : !canAfford ? (
+              finalAmount > balance ? 'Insufficient Balance' : 'Select Gift or Enter Amount'
+            ) : (
+              <>
+                <Gift className="w-5 h-5" />
+                <span>
+                  Send {selectedGift ? `${selectedGift.emoji} ${selectedGift.name}` : `${finalAmount.toLocaleString()} Coins`}
+                </span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

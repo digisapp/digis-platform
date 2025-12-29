@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { conversationId, receiverId, amount, tipMessage } = body;
+    const { conversationId, receiverId, amount, tipMessage, giftId, giftEmoji, giftName } = body;
 
     if (!conversationId || !receiverId || !amount) {
       return NextResponse.json(
@@ -82,7 +82,10 @@ export async function POST(request: NextRequest) {
       user.id,
       receiverId,
       amount,
-      tipMessage
+      tipMessage,
+      giftId,
+      giftEmoji,
+      giftName
     );
 
     return NextResponse.json({ message });

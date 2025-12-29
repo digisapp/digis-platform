@@ -1063,7 +1063,10 @@ export class MessageService {
     senderId: string,
     receiverId: string,
     amount: number,
-    tipMessage?: string
+    tipMessage?: string,
+    giftId?: string,
+    giftEmoji?: string,
+    giftName?: string
   ) {
     // SECURITY: Verify sender is a participant in this conversation
     const conversation = await db.query.conversations.findFirst({
@@ -1094,6 +1097,7 @@ export class MessageService {
       const idempotencyKey = `dm_tip_${senderId}_${receiverId}_${amount}_${Math.floor(Date.now() / 1000)}`;
 
       // Deduct from sender
+      const giftLabel = giftEmoji && giftName ? `${giftEmoji} ${giftName}` : null;
       const [senderTransaction] = await tx
         .insert(walletTransactions)
         .values({
@@ -1101,8 +1105,16 @@ export class MessageService {
           amount: -amount,
           type: 'dm_tip',
           status: 'completed',
-          description: tipMessage || 'Tip sent via DM',
+          description: giftLabel
+            ? `Sent ${giftLabel} via DM${tipMessage ? ': ' + tipMessage : ''}`
+            : tipMessage || 'Tip sent via DM',
           idempotencyKey,
+          metadata: JSON.stringify({
+            giftId: giftId || null,
+            giftEmoji: giftEmoji || null,
+            giftName: giftName || null,
+            message: tipMessage || null,
+          }),
         })
         .returning();
 
@@ -1112,9 +1124,17 @@ export class MessageService {
         amount,
         type: 'dm_tip',
         status: 'completed',
-        description: tipMessage || 'Tip received via DM',
+        description: giftLabel
+          ? `Received ${giftLabel} via DM${tipMessage ? ': ' + tipMessage : ''}`
+          : tipMessage || 'Tip received via DM',
         relatedTransactionId: senderTransaction.id,
         idempotencyKey: `${idempotencyKey}_credit`,
+        metadata: JSON.stringify({
+          giftId: giftId || null,
+          giftEmoji: giftEmoji || null,
+          giftName: giftName || null,
+          message: tipMessage || null,
+        }),
       });
 
       // Update wallet balances
@@ -1133,12 +1153,15 @@ export class MessageService {
         .where(eq(wallets.userId, receiverId));
 
       // Create tip message
+      const messageContent = giftLabel
+        ? `Sent ${giftLabel}${tipMessage ? ': ' + tipMessage : ''}`
+        : tipMessage || `Sent ${amount} coins`;
       const [message] = await tx
         .insert(messages)
         .values({
           conversationId,
           senderId,
-          content: tipMessage || `Sent ${amount} coins`,
+          content: messageContent,
           messageType: 'tip',
           tipAmount: amount,
           tipTransactionId: senderTransaction.id,
@@ -1146,10 +1169,13 @@ export class MessageService {
         .returning();
 
       // Update conversation's last message
+      const lastMessageText = giftLabel
+        ? `${giftEmoji} Sent ${giftName}`
+        : `💰 Sent ${amount} coins`;
       await tx
         .update(conversations)
         .set({
-          lastMessageText: `💰 Sent ${amount} coins`,
+          lastMessageText,
           lastMessageAt: new Date(),
           lastMessageSenderId: senderId,
           updatedAt: new Date(),

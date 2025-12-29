@@ -678,7 +678,7 @@ export default function ProfilePageClient() {
     }
   };
 
-  const handleSendTip = async (amount: number, message: string) => {
+  const handleSendTip = async (amount: number, message: string, giftId?: string, giftEmoji?: string, giftName?: string) => {
     if (!profile) return;
 
     try {
@@ -689,6 +689,9 @@ export default function ProfilePageClient() {
           amount,
           receiverId: profile.user.id,
           message,
+          giftId,
+          giftEmoji,
+          giftName,
         }),
       });
 
