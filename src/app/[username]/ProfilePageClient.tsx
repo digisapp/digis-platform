@@ -699,7 +699,7 @@ export default function ProfilePageClient() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send tip');
+        throw new Error(data.error || 'Failed to send gift');
       }
 
       // Success! Show Tron-themed success modal
@@ -987,17 +987,17 @@ export default function ProfilePageClient() {
               </button>
             )}
 
-            {/* Tip Button */}
+            {/* Gift Button */}
             {user.role === 'creator' && (
               <button
                 onClick={() => {
                   if (!isAuthenticated) {
-                    setSignUpAction('send tips');
+                    setSignUpAction('send gifts');
                     setShowSignUpModal(true);
                     return;
                   }
                   if (currentUserId === user.id) {
-                    showInfo("You can't tip yourself");
+                    showInfo("You can't gift yourself");
                     return;
                   }
                   setShowTipModal(true);

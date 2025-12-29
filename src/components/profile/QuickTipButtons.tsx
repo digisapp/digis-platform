@@ -34,7 +34,7 @@ export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipB
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send tip');
+        throw new Error(data.error || 'Failed to send gift');
       }
 
       // Show confetti
@@ -43,7 +43,7 @@ export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipB
 
       onTipSent?.(amount);
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to send tip');
+      showError(error instanceof Error ? error.message : 'Failed to send gift');
     } finally {
       setSending(null);
     }
@@ -51,7 +51,7 @@ export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipB
 
   return (
     <div className="relative">
-      {/* Quick Tip Chips */}
+      {/* Quick Gift Chips */}
       <div className="flex flex-wrap gap-2">
         {PRESET_AMOUNTS.map((amount) => (
           <button

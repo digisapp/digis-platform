@@ -159,7 +159,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
       setCustomTipAmount('');
       setTipMessage('');
     } catch (error: any) {
-      showError(error.message || 'Failed to send tip');
+      showError(error.message || 'Failed to send gift');
     } finally {
       setIsSending(false);
     }
@@ -261,12 +261,12 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
             }`}
           >
             {cat === 'tip' && <Coins className="w-4 h-4" />}
-            {cat === 'tip' ? 'Tip Coins' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {cat === 'tip' ? 'Coin Gift' : cat.charAt(0).toUpperCase() + cat.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Tip Coins UI */}
+      {/* Coin Gift UI */}
       {activeCategory === 'tip' && onSendTip && (
         <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border-2 border-green-500/30 space-y-4">
           <div className="flex items-center gap-3 mb-2">
@@ -275,11 +275,11 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
             </div>
             <div>
               <div className="font-bold text-white">Send Coins</div>
-              <div className="text-sm text-green-400">Tip the creator directly</div>
+              <div className="text-sm text-green-400">Gift the creator directly</div>
             </div>
           </div>
 
-          {/* Quick Tip Amounts */}
+          {/* Quick Gift Amounts */}
           <div className="grid grid-cols-4 gap-2">
             {[10, 50, 100, 500].map(amount => (
               <button
@@ -336,7 +336,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
             )}
           </div>
 
-          {/* Send Tip Button */}
+          {/* Send Gift Button */}
           <button
             onClick={handleSendTip}
             disabled={!canAffordTip || isSending}

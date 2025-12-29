@@ -483,10 +483,10 @@ export default function ChatPage() {
       if (response.ok) {
         fetchMessages();
       } else {
-        throw new Error(data.error || 'Failed to send tip');
+        throw new Error(data.error || 'Failed to send gift');
       }
     } catch (error) {
-      console.error('Error sending tip:', error);
+      console.error('Error sending gift:', error);
       throw error;
     }
   };

@@ -190,7 +190,7 @@ export function StreamAccessModal({
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <span className="text-green-500">✓</span>
-              <span>Send tips and gifts</span>
+              <span>Send gifts</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <span className="text-green-500">✓</span>

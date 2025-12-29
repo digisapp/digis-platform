@@ -198,13 +198,13 @@ export function StreamAnalyticsDashboard({ timeRange = '30d' }: StreamAnalyticsD
           <p className="text-2xl font-bold text-gray-900">{formatDuration(analytics.averageViewDuration)}</p>
         </div>
 
-        {/* Total Tips */}
+        {/* Total Gifts */}
         <div className="bg-white rounded-xl p-6 border border-gray-200">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-green-500" />
             </div>
-            <h3 className="text-sm font-medium text-gray-700">Total Tips</h3>
+            <h3 className="text-sm font-medium text-gray-700">Total Gifts</h3>
           </div>
           <p className="text-2xl font-bold text-gray-900">{formatNumber(analytics.totalTips)}</p>
         </div>
@@ -229,7 +229,7 @@ export function StreamAnalyticsDashboard({ timeRange = '30d' }: StreamAnalyticsD
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
-            <p className="text-sm text-gray-600 mb-1">Tips</p>
+            <p className="text-sm text-gray-600 mb-1">Coin Gifts</p>
             <p className="text-2xl font-bold text-yellow-700">
               {formatCurrency(analytics.earningsBreakdown.tips)}
             </p>
@@ -238,7 +238,7 @@ export function StreamAnalyticsDashboard({ timeRange = '30d' }: StreamAnalyticsD
             </div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg border border-pink-200">
-            <p className="text-sm text-gray-600 mb-1">Gifts</p>
+            <p className="text-sm text-gray-600 mb-1">Virtual Gifts</p>
             <p className="text-2xl font-bold text-pink-700">
               {formatCurrency(analytics.earningsBreakdown.gifts)}
             </p>

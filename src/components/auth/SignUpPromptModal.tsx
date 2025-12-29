@@ -107,7 +107,7 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName, onSign
               <Gift className="w-5 h-5 text-pink-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Send Tips & Gifts</p>
+              <p className="text-white font-medium">Send Gifts</p>
               <p className="text-sm text-gray-400">Support your favorite creators</p>
             </div>
           </div>

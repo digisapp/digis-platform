@@ -70,7 +70,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
 
   const handleSendTip = async () => {
     if (!selectedGoalId || !tipAmount || parseFloat(tipAmount) <= 0) {
-      showToast('Please enter a valid tip amount', 'error');
+      showToast('Please enter a valid gift amount', 'error');
       return;
     }
 
@@ -88,12 +88,12 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send tip');
+        throw new Error(data.error || 'Failed to send gift');
       }
 
       // Show success message
       if (data.goalCompleted) {
-        showToast(`🎉 Amazing! Your ${data.amount} coin tip completed the goal!`, 'success');
+        showToast(`🎉 Amazing! Your ${data.amount} coin gift completed the goal!`, 'success');
       } else {
         showToast(`✨ Successfully sent ${data.amount} coins toward the goal!`, 'success');
       }
@@ -112,8 +112,8 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
         window.location.reload();
       }
     } catch (error: any) {
-      console.error('Tip error:', error);
-      showToast(error.message || 'Failed to send tip', 'error');
+      console.error('Gift error:', error);
+      showToast(error.message || 'Failed to send gift', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -220,13 +220,13 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
                     <span className="text-gray-700 font-medium truncate">{goal.rewardText}</span>
                   </div>
 
-                  {/* Tip Button */}
+                  {/* Gift Button */}
                   <button
                     onClick={() => handleTipClick(goal.id)}
                     className="relative px-4 py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple text-white shadow-lg hover:shadow-xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 active:scale-95 group/btn flex items-center gap-2 flex-shrink-0"
                   >
                     <Zap className="w-4 h-4 group-hover/btn:animate-bounce" />
-                    <span>Tip Goal</span>
+                    <span>Gift</span>
 
                     {/* Glow effect */}
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple rounded-xl blur opacity-50 group-hover/btn:opacity-100 transition-opacity -z-10" />
@@ -318,7 +318,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
       `}</style>
     </div>
 
-    {/* Tip Modal */}
+    {/* Gift Modal */}
     {showTipModal && selectedGoalId && (
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="relative max-w-md w-full bg-gradient-to-br from-white via-purple-50/50 to-cyan-50/50 rounded-2xl shadow-2xl border-2 border-purple-300/50 p-6">
@@ -337,20 +337,20 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent">
-                Tip Toward Goal
+                Gift Toward Goal
               </h2>
             </div>
             <p className="text-sm text-gray-600">
-              Your tip will help the creator reach their goal!
+              Your gift will help the creator reach their goal!
             </p>
           </div>
 
           {/* Form */}
           <div className="space-y-4">
-            {/* Tip Amount */}
+            {/* Gift Amount */}
             <div>
               <label className="block text-sm font-bold text-gray-800 mb-2">
-                Tip Amount (Coins) *
+                Gift Amount (Coins) *
               </label>
               <div className="relative">
                 <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
@@ -407,7 +407,7 @@ export function ProfileGoalsWidget({ goals, maxDisplay = 3, onGoalUpdate }: Prof
                 disabled={submitting || !tipAmount || parseFloat(tipAmount) <= 0}
                 className="relative flex-1 px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple hover:shadow-xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {submitting ? 'Sending...' : 'Send Tip'}
+                {submitting ? 'Sending...' : 'Send Gift'}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple rounded-xl blur opacity-50 -z-10" />
               </button>
             </div>
