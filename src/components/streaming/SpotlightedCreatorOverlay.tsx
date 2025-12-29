@@ -111,11 +111,11 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           setUserBalance(userBalance - amount);
         }
       } else {
-        showError(data.error || 'Failed to send tip');
+        showError(data.error || 'Failed to send gift');
       }
     } catch (err) {
-      console.error('Error sending tip:', err);
-      showError('Failed to send tip');
+      console.error('Error sending gift:', err);
+      showError('Failed to send gift');
     } finally {
       setIsSending(false);
     }
@@ -172,21 +172,21 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
             </a>
           </div>
 
-          {/* Tip Button - Viewers only */}
+          {/* Gift Button - Viewers only */}
           {!isHost && (
             <button
               onClick={() => setShowTipModal(true)}
               className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full text-white hover:scale-105 transition-transform shadow-lg animate-pulse hover:animate-none"
-              title="Send tip to featured creator"
+              title="Send gift to featured creator"
             >
               <Gift className="w-4 h-4" />
-              <span className="text-xs font-bold">TIP</span>
+              <span className="text-xs font-bold">GIFT</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Tip Modal */}
+      {/* Gift Modal */}
       {showTipModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
@@ -196,7 +196,7 @@ export function SpotlightedCreatorOverlay({ streamId, isHost = false, onTipSent 
           <div className="relative bg-black/90 backdrop-blur-xl rounded-2xl border border-pink-500/30 p-5 w-full max-w-sm shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Tip Featured Creator</h3>
+              <h3 className="text-lg font-bold text-white">Gift Featured Creator</h3>
               <button
                 onClick={() => setShowTipModal(false)}
                 className="p-1 hover:bg-white/10 rounded-lg transition-colors"

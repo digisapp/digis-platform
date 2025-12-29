@@ -743,7 +743,7 @@ export default function CreatorDashboard() {
                     <TrendingUp className="w-8 h-8 text-gray-600" />
                   </div>
                   <p className="text-gray-400">No activity yet</p>
-                  <p className="text-sm text-gray-500">Tips, follows, and subscriptions will appear here</p>
+                  <p className="text-sm text-gray-500">Gifts, follows, and subscriptions will appear here</p>
                 </div>
               )}
             </div>

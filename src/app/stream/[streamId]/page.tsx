@@ -769,7 +769,7 @@ export default function StreamViewerPage() {
     });
     if (!response.ok) {
       const data = await response.json();
-      throw new Error(data.error || 'Failed to send tip');
+      throw new Error(data.error || 'Failed to send gift');
     }
     fetchUserBalance();
   };
@@ -1349,7 +1349,7 @@ export default function StreamViewerPage() {
                     className="relative ml-2 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full font-bold text-black hover:scale-105 transition-transform shadow-lg shadow-yellow-500/30"
                   >
                     <Coins className="w-5 h-5" />
-                    <span>Tip</span>
+                    <span>Gift</span>
                   </button>
                 </div>
               </div>

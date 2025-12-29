@@ -13,15 +13,15 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
   const [isVisible, setIsVisible] = useState(true);
 
   // Determine tier based on amount
-  const isMega = amount >= 1000; // 1000+ coins = MEGA tip
-  const isSuper = amount >= 500 && amount < 1000; // 500-999 = super tip
-  const isLarge = amount >= 100 && amount < 500; // 100-499 = large tip
+  const isMega = amount >= 1000; // 1000+ coins = MEGA gift
+  const isSuper = amount >= 500 && amount < 1000; // 500-999 = super gift
+  const isLarge = amount >= 100 && amount < 500; // 100-499 = large gift
 
-  // Display duration scales with tip value
+  // Display duration scales with gift value
   const displayDuration = isMega ? 6000 : isSuper ? 5000 : 4000;
 
   useEffect(() => {
-    // Play big tip fanfare sound for top tipper spotlight
+    // Play big gift fanfare sound for top gifter spotlight
     const audio = new Audio('/sounds/big-tip.mp3');
     audio.volume = 0.5;
     audio.play().catch(() => {});
@@ -53,7 +53,7 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
   const accentColor = isMega ? 'text-yellow-200' : isSuper ? 'text-purple-300' : 'text-yellow-300';
   const amountColor = isMega ? 'text-yellow-300' : isSuper ? 'text-purple-300' : 'text-yellow-400';
 
-  const tierLabel = isMega ? '🔥 MEGA TIP! 🔥' : isSuper ? '💎 SUPER TIP!' : '🌟 Top Supporter!';
+  const tierLabel = isMega ? '🔥 MEGA GIFT! 🔥' : isSuper ? '💎 SUPER GIFT!' : '🌟 Top Gifter!';
   const cardWidth = isMega ? 'w-96' : isSuper ? 'w-88' : 'w-80';
   const amountSize = isMega ? 'text-5xl' : isSuper ? 'text-4xl' : 'text-3xl';
   const scale = isMega ? 'scale-110' : isSuper ? 'scale-105' : '';
@@ -73,10 +73,10 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
 
       {/* Card */}
       <div className={`relative backdrop-blur-xl bg-gradient-to-br ${bgColors} rounded-2xl border-2 ${borderColor} shadow-2xl p-6 ${cardWidth} animate-scaleIn`}>
-        {/* Mega tip badge */}
+        {/* Mega gift badge */}
         {isMega && (
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white text-sm font-bold rounded-full shadow-lg animate-bounce whitespace-nowrap">
-            💰 LEGENDARY TIP! 💰
+            💰 LEGENDARY GIFT! 💰
           </div>
         )}
 
@@ -121,7 +121,7 @@ export function TopTipperSpotlight({ username, amount, avatarUrl, onComplete }: 
 
         {/* Amount */}
         <div className={`text-center ${isMega ? 'py-4' : 'py-3'} bg-black/30 rounded-xl border ${borderColor}/30`}>
-          <div className={`text-sm ${accentColor} mb-1`}>Just Tipped</div>
+          <div className={`text-sm ${accentColor} mb-1`}>Just Gifted</div>
           <div className={`${amountSize} font-bold ${amountColor} animate-pulse ${isMega ? 'drop-shadow-[0_0_15px_rgba(234,179,8,0.8)]' : ''}`}>
             {amount.toLocaleString()} <span className={`${isMega ? 'text-3xl' : 'text-2xl'}`}>coins</span>
           </div>

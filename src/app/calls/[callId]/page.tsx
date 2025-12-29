@@ -1037,7 +1037,7 @@ function VoiceCallUI({
                 ? 'bg-yellow-500 text-white'
                 : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
             }`}
-            title="Send Tip"
+            title="Send Gift"
           >
             <Coins className="w-6 h-6" />
           </button>
@@ -1333,11 +1333,11 @@ export default function VideoCallPage() {
           console.error('[CallPage] Failed to publish tip to Ably:', ablyErr);
         }
       } else {
-        showError(data.error || 'Failed to send tip');
+        showError(data.error || 'Failed to send gift');
       }
     } catch (err) {
-      console.error('Error sending tip:', err);
-      showError('Failed to send tip');
+      console.error('Error sending gift:', err);
+      showError('Failed to send gift');
     } finally {
       setTipSending(false);
     }
@@ -2011,11 +2011,11 @@ export default function VideoCallPage() {
                   <span className="font-bold text-emerald-400">+{finalCallEarnings} coins</span>
                 </div>
 
-                {/* Tips & Gifts */}
+                {/* Gifts */}
                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
                   <div className="flex items-center gap-2">
                     <Gift className="w-4 h-4 text-pink-400" />
-                    <span className="text-gray-400 text-sm">Tips & Gifts</span>
+                    <span className="text-gray-400 text-sm">Gifts</span>
                   </div>
                   <span className="font-bold text-pink-400">+{finalTipEarnings} coins</span>
                 </div>
