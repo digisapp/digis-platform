@@ -15,13 +15,11 @@ const formatCoinsToUSD = (coins: number): string => {
   return usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 };
 
-// Voice options from xAI
+// Voice options from xAI (Female voices only)
 const VOICE_OPTIONS = [
-  { id: 'ara', name: 'Luna', description: 'Warm & friendly (Female)', color: 'pink' },
-  { id: 'eve', name: 'Zara', description: 'Energetic & upbeat (Female)', color: 'purple' },
-  { id: 'leo', name: 'Max', description: 'Authoritative & strong (Male)', color: 'blue' },
-  { id: 'rex', name: 'Kai', description: 'Confident & clear (Male)', color: 'cyan' },
-  { id: 'sal', name: 'Sage', description: 'Smooth & balanced (Neutral)', color: 'green' },
+  { id: 'ara', name: 'Luna', description: 'Warm & friendly', color: 'pink' },
+  { id: 'eve', name: 'Zara', description: 'Energetic & upbeat', color: 'purple' },
+  { id: 'mika', name: 'Mika', description: 'Sweet & playful', color: 'rose' },
 ];
 
 // Vibe presets - one-click personality templates

@@ -18,7 +18,7 @@ export class AiSessionService {
   static async startSession(
     fanId: string,
     creatorId: string,
-    voice: 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
+    voice: 'ara' | 'eve' | 'mika' | 'leo' | 'rex' | 'sal'
   ) {
     console.log('[AiSessionService] Starting session:', { fanId, creatorId, voice });
 

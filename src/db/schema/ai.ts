@@ -2,13 +2,14 @@ import { pgTable, uuid, timestamp, integer, text, pgEnum, index, boolean } from 
 import { users } from './users';
 import { relations } from 'drizzle-orm';
 
-// Voice options from xAI Grok Voice Agent API
+// Voice options from xAI Grok Voice Agent API (Female voices only for now)
 export const aiVoiceEnum = pgEnum('ai_voice', [
   'ara',    // Female - Warm, friendly (default)
   'eve',    // Female - Energetic, upbeat
-  'leo',    // Male - Authoritative, strong
-  'rex',    // Male - Confident, clear
-  'sal'     // Neutral - Smooth, balanced
+  'mika',   // Female - Sweet, playful (companion persona)
+  'leo',    // Male - Authoritative, strong (hidden in UI)
+  'rex',    // Male - Confident, clear (hidden in UI)
+  'sal'     // Neutral - Smooth, balanced (hidden in UI)
 ]);
 
 export const aiSessionStatusEnum = pgEnum('ai_session_status', [

@@ -15,7 +15,7 @@ export const runtime = 'nodejs';
  *
  * Request body:
  * - creatorId: string - The creator whose AI Twin to chat with
- * - voice: 'ara' | 'eve' | 'leo' | 'rex' | 'sal' - Voice to use
+ * - voice: 'ara' | 'eve' | 'mika' | 'leo' | 'rex' | 'sal' - Voice to use
  *
  * Returns:
  * - session: object - The created session record
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate voice option
-    const validVoices = ['ara', 'eve', 'leo', 'rex', 'sal'];
+    const validVoices = ['ara', 'eve', 'mika', 'leo', 'rex', 'sal'];
     if (!validVoices.includes(voice)) {
       console.log('[AI Session] Invalid voice option:', voice);
       return NextResponse.json(
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       const result = await AiSessionService.startSession(
         user.id,
         creatorId,
-        voice as 'ara' | 'eve' | 'leo' | 'rex' | 'sal'
+        voice as 'ara' | 'eve' | 'mika' | 'leo' | 'rex' | 'sal'
       );
 
       const elapsed = Date.now() - startTime;

@@ -106,7 +106,7 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     // Validate voice if provided
-    const validVoices = ['ara', 'eve', 'leo', 'rex', 'sal'];
+    const validVoices = ['ara', 'eve', 'mika', 'leo', 'rex', 'sal'];
     if (voice !== undefined && !validVoices.includes(voice)) {
       return NextResponse.json(
         { error: 'Invalid voice option' },
