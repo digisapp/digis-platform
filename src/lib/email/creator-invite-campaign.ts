@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend only if API key is available (prevents build errors)
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Use examodels.com for better deliverability (established domain)
 const CAMPAIGN_FROM = 'Digis Team <hello@examodels.com>';
@@ -211,6 +213,11 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
   id?: string;
   error?: string;
 }> {
+  if (!resend) {
+    console.log(`[Campaign] [DEV] Would send invite to ${recipient.email}`);
+    return { success: true, id: 'dev-mode' };
+  }
+
   try {
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
