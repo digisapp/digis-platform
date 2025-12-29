@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
       await tx.insert(notifications).values({
         userId: receiver.id,
         type: 'tip_received',
-        title: giftLabel ? `New Gift! ${giftEmoji}` : 'New Tip!',
+        title: giftLabel ? `New Gift! ${giftEmoji}` : 'New Gift! 🪙',
         message: giftLabel
           ? `${sender?.displayName || sender?.username || 'Someone'} sent you ${giftLabel} (${amount} coins)!${message ? ' "' + message + '"' : ''}`
           : `${sender?.displayName || sender?.username || 'Someone'} sent you ${amount} coins!${message ? ' "' + message + '"' : ''}`,

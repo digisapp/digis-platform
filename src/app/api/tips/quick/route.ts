@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
       await tx.insert(notifications).values({
         userId: creator.id,
         type: 'tip_received',
-        title: 'New Tip!',
+        title: 'New Gift! 🪙',
         message: sanitizedNote
           ? `@${sender?.username || 'Someone'} sent you ${amount} coins: "${sanitizedNote}"`
           : `@${sender?.username || 'Someone'} sent you ${amount} coins during your stream!`,
