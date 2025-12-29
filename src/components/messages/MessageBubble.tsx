@@ -342,21 +342,58 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     );
   };
 
-  // Tip message
+  // Tip/Gift message
   if (message.messageType === 'tip' && message.tipAmount) {
+    // Parse gift info from content: "Sent 🎂 Cake: message" or "Sent 🎂 Cake" or just coins
+    const giftMatch = message.content?.match(/^Sent\s+(\p{Emoji})\s+([^:]+)(?::\s*(.*))?$/u);
+    const isVirtualGift = !!giftMatch;
+    const giftEmoji = giftMatch?.[1];
+    const giftName = giftMatch?.[2]?.trim();
+    const giftMessage = giftMatch?.[3]?.trim();
+
+    // For plain coin gifts, check if there's a custom message
+    const plainCoinMessage = !isVirtualGift && message.content && message.content !== `Sent ${message.tipAmount} coins`
+      ? message.content
+      : null;
+
     return (
       <>
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {isOwnMessage && <DeleteButton />}
           <div className={`max-w-[70%]`}>
-            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 rounded-2xl px-4 py-3">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">💰</span>
-                <span className="text-yellow-400 font-bold text-lg">{message.tipAmount} coins</span>
-              </div>
-              {message.content && message.content !== `Sent ${message.tipAmount} coins` && (
-                <p className="text-white text-sm">{message.content}</p>
+            <div className={`rounded-2xl px-4 py-3 ${
+              isVirtualGift
+                ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-2 border-pink-500/50'
+                : 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50'
+            }`}>
+              {isVirtualGift ? (
+                // Virtual Gift Display
+                <>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-4xl">{giftEmoji}</span>
+                    <div>
+                      <span className="text-white font-bold text-lg">{giftName}</span>
+                      <div className="text-yellow-400 text-sm font-medium">{message.tipAmount} coins</div>
+                    </div>
+                  </div>
+                  {giftMessage && (
+                    <p className="text-white/90 text-sm mt-2 pl-1 border-l-2 border-white/20 ml-1">
+                      "{giftMessage}"
+                    </p>
+                  )}
+                </>
+              ) : (
+                // Coin Gift Display
+                <>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-3xl">🪙</span>
+                    <span className="text-yellow-400 font-bold text-xl">{message.tipAmount} coins</span>
+                  </div>
+                  {plainCoinMessage && (
+                    <p className="text-white/90 text-sm mt-1">"{plainCoinMessage}"</p>
+                  )}
+                </>
               )}
             </div>
             <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
