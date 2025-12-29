@@ -110,6 +110,7 @@ export default function ProfilePageClient() {
   const [mounted, setMounted] = useState(false);
   const [showTipSuccessModal, setShowTipSuccessModal] = useState(false);
   const [tipSuccessAmount, setTipSuccessAmount] = useState(0);
+  const [tipSuccessGift, setTipSuccessGift] = useState<{ emoji: string; name: string } | null>(null);
   const [aiTwinEnabled, setAiTwinEnabled] = useState(false);
 
   // Set mounted state for portal
@@ -703,6 +704,7 @@ export default function ProfilePageClient() {
 
       // Success! Show Tron-themed success modal
       setTipSuccessAmount(amount);
+      setTipSuccessGift(giftEmoji && giftName ? { emoji: giftEmoji, name: giftName } : null);
       setShowTipSuccessModal(true);
     } catch (error) {
       throw error; // Re-throw to let the modal handle it
@@ -1629,25 +1631,33 @@ export default function ProfilePageClient() {
             </div>
 
             <div className="relative text-center">
-              {/* Success Icon */}
+              {/* Success Icon - Show gift emoji or coin emoji */}
               <div className="relative inline-block mb-4">
                 <div className="absolute -inset-3 bg-green-500/30 rounded-full blur-xl animate-pulse"></div>
                 <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.5)]">
-                  <Sparkles className="w-10 h-10 text-white" />
+                  <span className="text-4xl">{tipSuccessGift ? tipSuccessGift.emoji : '🪙'}</span>
                 </div>
               </div>
 
               {/* Title */}
               <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent mb-2">
-                Tip Sent!
+                Gift Sent!
               </h3>
 
               {/* Amount */}
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-4 mb-4 border border-green-500/30">
-                <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                  {tipSuccessAmount}
-                </div>
-                <p className="text-gray-400 text-sm mt-1">coins sent to</p>
+                {tipSuccessGift ? (
+                  <>
+                    <div className="text-4xl mb-1">{tipSuccessGift.emoji}</div>
+                    <div className="text-xl font-bold text-white mb-1">{tipSuccessGift.name}</div>
+                    <p className="text-green-400 text-sm">{tipSuccessAmount} coins</p>
+                  </>
+                ) : (
+                  <div className="text-4xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                    {tipSuccessAmount}
+                  </div>
+                )}
+                <p className="text-gray-400 text-sm mt-2">sent to</p>
                 <p className="text-white font-semibold">{profile.user.displayName || profile.user.username}</p>
               </div>
 
