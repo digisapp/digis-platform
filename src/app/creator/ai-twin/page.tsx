@@ -17,9 +17,9 @@ const formatCoinsToUSD = (coins: number): string => {
 
 // Voice options from xAI (Female voices only)
 const VOICE_OPTIONS = [
-  { id: 'ara', name: 'Luna', description: 'Warm & friendly', color: 'pink' },
-  { id: 'eve', name: 'Zara', description: 'Energetic & upbeat', color: 'purple' },
-  { id: 'mika', name: 'Mika', description: 'Sweet & playful', color: 'rose' },
+  { id: 'ara', name: '🌸 Warm & Friendly', description: 'Soft, caring tone', color: 'pink' },
+  { id: 'eve', name: '⚡ Energetic & Upbeat', description: 'Bright, lively tone', color: 'purple' },
+  { id: 'mika', name: '🎀 Sweet & Playful', description: 'Cute, fun tone', color: 'rose' },
 ];
 
 // Vibe presets - one-click personality templates

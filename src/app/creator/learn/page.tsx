@@ -162,7 +162,7 @@ const featureGuides: FeatureGuide[] = [
       'Pick a Vibe Preset (The Bestie, The Tease, etc.) for quick setup',
       'Fine-tune with trait chips like Flirty, Playful, or Sassy',
       'Set your boundaries from PG to Spicy',
-      'Choose a voice that matches your style (Luna, Zara, or Mika)',
+      'Choose a voice tone that matches your style (Warm, Energetic, or Sweet)',
       'Enable both Voice Chat and Text Chat to maximize earnings',
       'Fans love being able to connect anytime you\'re offline'
     ],
