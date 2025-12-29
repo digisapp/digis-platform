@@ -108,9 +108,9 @@ export function MobileHeader() {
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
-            width={100}
-            height={36}
-            className="h-9 w-auto"
+            width={80}
+            height={28}
+            className="h-7 w-auto"
             priority
             unoptimized
           />

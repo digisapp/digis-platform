@@ -797,7 +797,16 @@ export default function ProfilePageClient() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Avatar and Header Section - Modern Glass Card */}
         <div className="relative -mt-24 sm:-mt-28 mb-8">
-          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
+          <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8 relative">
+            {/* Share Button - Top Right Corner */}
+            <button
+              onClick={handleShare}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 border border-white/20 text-white/70 hover:text-white hover:bg-white/20 hover:border-white/30 transition-all"
+              title="Share profile"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+
             {/* Top Row: Avatar, Name, Follow Button */}
             <div className="flex items-start gap-4 sm:gap-6">
               {/* Animated Avatar with Neon Glow */}
@@ -880,15 +889,6 @@ export default function ProfilePageClient() {
                       Subscribed
                     </div>
                   )}
-
-                  {/* Share Button */}
-                  <button
-                    onClick={handleShare}
-                    className="p-2 rounded-full bg-white/10 border border-white/20 text-white/70 hover:text-white hover:bg-white/20 hover:border-white/30 transition-all"
-                    title="Share profile"
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             </div>
