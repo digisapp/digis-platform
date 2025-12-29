@@ -169,8 +169,18 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-8">
         <GlassCard glow="cyan" padding="lg" className="max-w-md w-full">
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-cyan-500/20 border-2 border-green-500/30 flex items-center justify-center">
-              <Bot className="w-10 h-10 text-green-400" />
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-500/20 to-cyan-500/20 border-2 border-green-500/30 flex items-center justify-center overflow-hidden">
+              {creatorAvatar ? (
+                <img
+                  src={creatorAvatar}
+                  alt={creatorName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-bold text-green-400">
+                  {creatorName?.[0]?.toUpperCase() || '?'}
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-bold text-white mb-6">Chat Ended</h2>
 
@@ -207,8 +217,18 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
         <GlassCard glow="cyan" padding="lg">
           <div className="text-center">
             <div className="relative mb-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mx-auto animate-pulse">
-                <Bot className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mx-auto animate-pulse overflow-hidden">
+                {creatorAvatar ? (
+                  <img
+                    src={creatorAvatar}
+                    alt={creatorName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl font-bold text-white">
+                    {creatorName?.[0]?.toUpperCase() || '?'}
+                  </span>
+                )}
               </div>
               <div className="absolute -inset-2 rounded-full border-2 border-cyan-500/30 animate-ping" />
             </div>
