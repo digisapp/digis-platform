@@ -1,0 +1,155 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/db';
+import { creatorInvites } from '@/db/schema';
+import { eq, or, desc } from 'drizzle-orm';
+import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
+
+// Admin emails that can access this endpoint
+const ADMIN_EMAILS = ['admin@digis.cc', 'cto@examodels.com', 'admin@examodels.com'];
+
+async function isAdmin(request: NextRequest): Promise<boolean> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user?.email) return false;
+  return ADMIN_EMAILS.includes(user.email);
+}
+
+// POST: Send invite campaign
+export async function POST(request: NextRequest) {
+  try {
+    // Check admin access
+    if (!await isAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { action, recipients, config, testEmail } = body;
+
+    // Test email
+    if (action === 'test') {
+      if (!testEmail) {
+        return NextResponse.json({ error: 'testEmail required' }, { status: 400 });
+      }
+      const success = await testInviteEmail(testEmail);
+      return NextResponse.json({ success, message: success ? 'Test email sent!' : 'Failed to send test email' });
+    }
+
+    // Send single invite
+    if (action === 'single') {
+      const { email, name, inviteUrl } = body;
+      if (!email || !inviteUrl) {
+        return NextResponse.json({ error: 'email and inviteUrl required' }, { status: 400 });
+      }
+      const result = await sendCreatorInvite({ email, name, inviteUrl });
+      return NextResponse.json(result);
+    }
+
+    // Send batch campaign
+    if (action === 'batch') {
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return NextResponse.json({ error: 'recipients array required' }, { status: 400 });
+      }
+
+      // Validate recipients have required fields
+      for (const r of recipients) {
+        if (!r.email || !r.inviteUrl) {
+          return NextResponse.json({
+            error: 'Each recipient must have email and inviteUrl',
+            invalidRecipient: r
+          }, { status: 400 });
+        }
+      }
+
+      const result = await sendBatchInvites(recipients, config);
+      return NextResponse.json(result);
+    }
+
+    // Generate invite URLs from pending invites
+    if (action === 'generate-from-invites') {
+      // Get all pending invites that haven't been claimed yet
+      const pendingInvites = await db.query.creatorInvites.findMany({
+        where: eq(creatorInvites.status, 'pending'),
+      });
+
+      // Filter to only those with emails
+      const withEmails = pendingInvites.filter(invite => invite.email);
+
+      const recipients = withEmails.map((invite) => ({
+        email: invite.email!,
+        name: invite.displayName || invite.instagramHandle || undefined,
+        inviteUrl: `https://digis.cc/join/${invite.code}`,
+        id: invite.id,
+      }));
+
+      return NextResponse.json({
+        count: recipients.length,
+        recipients,
+      });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    console.error('[Admin Campaign] Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// GET: Get campaign stats / pending invites
+export async function GET(request: NextRequest) {
+  try {
+    if (!await isAdmin(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get all invites
+    const allInvites = await db.query.creatorInvites.findMany({
+      columns: {
+        id: true,
+        status: true,
+        email: true,
+        displayName: true,
+        instagramHandle: true,
+        code: true,
+        createdAt: true,
+      },
+      orderBy: (table, { desc: descFn }) => [descFn(table.createdAt)],
+    });
+
+    const stats = {
+      total: allInvites.length,
+      pending: allInvites.filter((c: typeof allInvites[0]) => c.status === 'pending').length,
+      claimed: allInvites.filter((c: typeof allInvites[0]) => c.status === 'claimed').length,
+      expired: allInvites.filter((c: typeof allInvites[0]) => c.status === 'expired').length,
+      revoked: allInvites.filter((c: typeof allInvites[0]) => c.status === 'revoked').length,
+      withEmail: allInvites.filter((c: typeof allInvites[0]) => c.email).length,
+    };
+
+    // Get pending invites with emails ready to send
+    const readyToInvite = allInvites
+      .filter((c: typeof allInvites[0]) => c.status === 'pending' && c.email)
+      .slice(0, 100)
+      .map((c: typeof allInvites[0]) => ({
+        id: c.id,
+        email: c.email,
+        name: c.displayName || c.instagramHandle,
+        inviteUrl: `https://digis.cc/join/${c.code}`,
+        createdAt: c.createdAt,
+      }));
+
+    return NextResponse.json({
+      stats,
+      readyToInvite,
+    });
+  } catch (error) {
+    console.error('[Admin Campaign] Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
