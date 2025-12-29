@@ -116,7 +116,7 @@ export function MobileHeader() {
           />
         </button>
 
-        {/* Right - Wallet Button (logged in) or Sign In Button (logged out) */}
+        {/* Right - Wallet Button (only shown when logged in) */}
         {isLoggedIn && balance !== null ? (
           <div className="relative">
             {/* Fan wallet - more prominent with + indicator */}
