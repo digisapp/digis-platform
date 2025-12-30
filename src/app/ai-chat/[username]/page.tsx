@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AiVoiceChat } from '@/components/ai';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
-import { Bot, ArrowLeft, Coins } from 'lucide-react';
+import { Bot, ArrowLeft, Coins, Mic, MessageSquare } from 'lucide-react';
 
 interface CreatorInfo {
   id: string;
@@ -12,8 +12,11 @@ interface CreatorInfo {
   displayName: string | null;
   avatarUrl: string | null;
   aiEnabled: boolean;
+  voiceEnabled: boolean;
+  textEnabled: boolean;
   pricePerMinute?: number;
   minimumMinutes?: number;
+  textPricePerMessage?: number;
 }
 
 export default function AiChatPage() {
@@ -25,6 +28,7 @@ export default function AiChatPage() {
   const [error, setError] = useState('');
   const [creator, setCreator] = useState<CreatorInfo | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [chatMode, setChatMode] = useState<'voice' | 'text' | null>(null);
 
   useEffect(() => {
     fetchCreatorInfo();
@@ -32,7 +36,7 @@ export default function AiChatPage() {
 
   const fetchCreatorInfo = async () => {
     try {
-      // Fetch creator profile and AI settings
+      // Fetch creator profile
       const response = await fetch(`/api/profile/${username}`);
       const data = await response.json();
 
@@ -40,51 +44,47 @@ export default function AiChatPage() {
         throw new Error(data.error || 'Creator not found');
       }
 
-      // Check if AI Twin is enabled for this creator
-      const aiResponse = await fetch(`/api/ai/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ creatorId: data.user.id }),
-      });
+      // Check what AI modes are available for this creator
+      const checkResponse = await fetch(`/api/ai/check/${data.user.id}`);
+      const checkData = await checkResponse.json();
 
-      const aiData = await aiResponse.json();
-
-      if (!aiResponse.ok) {
-        // AI Twin might not be available - show appropriate message
-        if (aiResponse.status === 404) {
-          setCreator({
-            id: data.user.id,
-            username: data.user.username,
-            displayName: data.user.displayName,
-            avatarUrl: data.user.avatarUrl,
-            aiEnabled: false,
-          });
-        } else if (aiResponse.status === 402) {
-          // Insufficient coins
-          setCreator({
-            id: data.user.id,
-            username: data.user.username,
-            displayName: data.user.displayName,
-            avatarUrl: data.user.avatarUrl,
-            aiEnabled: true,
-            pricePerMinute: aiData.pricePerMinute,
-            minimumMinutes: aiData.minimumMinutes,
-          });
-          setError(`You need at least ${aiData.required} coins. You have ${aiData.balance} coins.`);
-        } else {
-          throw new Error(aiData.error || 'AI Twin not available');
-        }
-      } else {
+      if (!checkData.enabled) {
         setCreator({
           id: data.user.id,
           username: data.user.username,
           displayName: data.user.displayName,
           avatarUrl: data.user.avatarUrl,
-          aiEnabled: true,
-          pricePerMinute: aiData.settings?.pricePerMinute,
-          minimumMinutes: aiData.settings?.minimumMinutes,
+          aiEnabled: false,
+          voiceEnabled: false,
+          textEnabled: false,
         });
+        setError('This creator has not enabled their AI Twin yet');
+        setLoading(false);
+        return;
       }
+
+      // Set creator info with available modes
+      setCreator({
+        id: data.user.id,
+        username: data.user.username,
+        displayName: data.user.displayName,
+        avatarUrl: data.user.avatarUrl,
+        aiEnabled: true,
+        voiceEnabled: checkData.voiceEnabled || false,
+        textEnabled: checkData.textEnabled || false,
+        pricePerMinute: checkData.pricePerMinute,
+        minimumMinutes: checkData.minimumMinutes,
+        textPricePerMessage: checkData.textPricePerMessage,
+      });
+
+      // Auto-select mode if only one is available
+      if (checkData.voiceEnabled && !checkData.textEnabled) {
+        setChatMode('voice');
+      } else if (checkData.textEnabled && !checkData.voiceEnabled) {
+        setChatMode('text');
+      }
+      // If both available, user will choose
+
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -92,12 +92,18 @@ export default function AiChatPage() {
     }
   };
 
-  const handleStartChat = () => {
+  const handleStartChat = (mode: 'voice' | 'text') => {
+    setChatMode(mode);
     setShowChat(true);
   };
 
   const handleEndChat = () => {
     router.push(`/${username}`);
+  };
+
+  const handleStartTextChat = () => {
+    // Navigate to the DM page with AI mode
+    router.push(`/messages/${creator?.id}?ai=true`);
   };
 
   if (loading) {
@@ -126,38 +132,6 @@ export default function AiChatPage() {
     );
   }
 
-  // Insufficient funds error
-  if (error && creator?.aiEnabled) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
-        <GlassCard className="max-w-md w-full p-8 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 flex items-center justify-center">
-            <Coins className="w-8 h-8 text-yellow-400" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Insufficient Coins</h2>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <p className="text-sm text-gray-500 mb-6">
-            Minimum session: {creator.minimumMinutes} minutes at {creator.pricePerMinute} coins/min
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/${username}`)}
-              className="flex-1 px-4 py-2 bg-white/10 border border-white/20 text-white rounded-lg font-semibold hover:bg-white/20 transition-all"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => router.push('/wallet')}
-              className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black rounded-lg font-semibold hover:scale-105 transition-transform"
-            >
-              Buy Coins
-            </button>
-          </div>
-        </GlassCard>
-      </div>
-    );
-  }
-
   if (!creator) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
@@ -174,8 +148,8 @@ export default function AiChatPage() {
     );
   }
 
-  // Show the actual voice chat if started
-  if (showChat) {
+  // Show the actual voice chat if started (voice mode only)
+  if (showChat && chatMode === 'voice') {
     return (
       <AiVoiceChat
         creatorId={creator.id}
@@ -223,43 +197,73 @@ export default function AiChatPage() {
           {creator.displayName || creator.username}&apos;s AI Twin
         </h1>
 
-        {/* Pricing info */}
-        {creator.pricePerMinute && (
-          <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
+        {/* Pricing info based on available modes */}
+        <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 space-y-2">
+          {creator.voiceEnabled && creator.pricePerMinute && (
             <div className="flex items-center justify-center gap-2 text-yellow-400 font-bold">
-              <Coins className="w-5 h-5" />
-              <span>{creator.pricePerMinute} coins/minute</span>
+              <Mic className="w-4 h-4" />
+              <span>Voice: {creator.pricePerMinute} coins/min</span>
             </div>
-          </div>
-        )}
+          )}
+          {creator.textEnabled && creator.textPricePerMessage && (
+            <div className="flex items-center justify-center gap-2 text-cyan-400 font-bold">
+              <MessageSquare className="w-4 h-4" />
+              <span>Text: {creator.textPricePerMessage} coins/message</span>
+            </div>
+          )}
+        </div>
 
-        {/* Features */}
+        {/* Features based on available modes */}
         <div className="mb-6 text-left space-y-2">
-          <div className="flex items-center gap-2 text-gray-300 text-sm">
-            <span className="text-green-400">✓</span>
-            Real-time voice conversation
-          </div>
           <div className="flex items-center gap-2 text-gray-300 text-sm">
             <span className="text-green-400">✓</span>
             Available 24/7
           </div>
+          {creator.voiceEnabled && (
+            <div className="flex items-center gap-2 text-gray-300 text-sm">
+              <span className="text-green-400">✓</span>
+              Real-time voice conversation
+            </div>
+          )}
+          {creator.textEnabled && (
+            <div className="flex items-center gap-2 text-gray-300 text-sm">
+              <span className="text-green-400">✓</span>
+              Text chat with AI personality
+            </div>
+          )}
           <div className="flex items-center gap-2 text-gray-300 text-sm">
             <span className="text-green-400">✓</span>
             Speaks 100+ languages
           </div>
         </div>
 
-        {/* Start button */}
-        <button
-          onClick={handleStartChat}
-          className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-cyan-500/30"
-        >
-          Start Voice Chat
-        </button>
+        {/* Start buttons based on available modes */}
+        <div className="space-y-3">
+          {creator.voiceEnabled && (
+            <button
+              onClick={() => handleStartChat('voice')}
+              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2"
+            >
+              <Mic className="w-5 h-5" />
+              Start Voice Chat
+            </button>
+          )}
+          {creator.textEnabled && (
+            <button
+              onClick={handleStartTextChat}
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:scale-105 transition-transform shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="w-5 h-5" />
+              Start Text Chat
+            </button>
+          )}
+        </div>
 
-        <p className="text-xs text-gray-500 mt-4">
-          You&apos;ll need to allow microphone access
-        </p>
+        {creator.voiceEnabled && (
+          <p className="text-xs text-gray-500 mt-4">
+            Voice chat requires microphone access
+          </p>
+        )}
       </GlassCard>
     </div>
   );
