@@ -77,8 +77,8 @@ export async function sendCreatorApprovalEmail(data: CreatorApprovalData) {
                   </tr>
                   <tr>
                     <td style="padding: 8px 0;">
-                      <span style="font-size: 20px; margin-right: 12px;">💰</span>
-                      <span style="color: #ffffff; font-size: 15px;">Cash out your earnings anytime</span>
+                      <span style="font-size: 20px; margin-right: 12px;">🤖</span>
+                      <span style="color: #ffffff; font-size: 15px;">Your AI Twin makes money while you sleep</span>
                     </td>
                   </tr>
                 </table>
@@ -130,7 +130,7 @@ What you can do now:
 - Go live and earn gifts from fans
 - Offer paid 1-on-1 video calls
 - Charge for direct messages
-- Cash out your earnings anytime
+- Your AI Twin makes money while you sleep
 
 Go to your Creator Dashboard: https://digis.cc/creator/dashboard
 
