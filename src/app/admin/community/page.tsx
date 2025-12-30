@@ -2,25 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
+import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   Users,
   UserCheck,
   Search,
   Shield,
-  Star,
   ArrowLeft,
   AlertTriangle,
-  Ban,
   CheckCircle,
-  Clock,
   Coins,
   TrendingUp,
-  Eye,
   Heart,
   FileText,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
+  Gift,
+  Calendar,
+  Radio,
+  Clock,
+  Ban,
+  Sparkles,
+  CreditCard,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -30,6 +34,7 @@ interface Creator {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  bio: string | null;
   is_creator_verified: boolean;
   follower_count: number;
   following_count: number;
@@ -37,9 +42,15 @@ interface Creator {
   account_status: 'active' | 'suspended' | 'banned';
   created_at: string;
   is_online: boolean;
+  primary_category: string | null;
   balance: number;
   total_earned: number;
   content_count: number;
+  last_post_at: string | null;
+  total_streams: number;
+  last_stream_at: string | null;
+  active_subscribers: number;
+  profile_completeness: number;
 }
 
 interface Fan {
@@ -57,8 +68,12 @@ interface Fan {
   is_online: boolean;
   balance: number;
   total_spent: number;
-  report_count: number;
-  unique_reporters: number;
+  block_count: number;
+  unique_blockers: number;
+  messages_sent: number;
+  tips_count: number;
+  total_tipped: number;
+  last_purchase_at: string | null;
 }
 
 interface Pagination {
@@ -68,6 +83,26 @@ interface Pagination {
   totalPages: number;
 }
 
+const CREATOR_FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'online', label: 'Online' },
+  { key: 'verified', label: 'Verified' },
+  { key: 'unverified', label: 'Unverified' },
+  { key: 'top_earners', label: 'Top Earners' },
+  { key: 'new', label: 'New (7d)' },
+  { key: 'inactive', label: 'Inactive (30d)' },
+];
+
+const FAN_FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'online', label: 'Online' },
+  { key: 'top_spenders', label: 'Top Spenders' },
+  { key: 'blocked', label: 'Blocked' },
+  { key: 'has_balance', label: 'Has Coins' },
+  { key: 'new', label: 'New (7d)' },
+  { key: 'inactive', label: 'Inactive (30d)' },
+];
+
 export default function AdminCommunityPage() {
   const router = useRouter();
   const [tab, setTab] = useState<'creators' | 'fans'>('creators');
@@ -75,6 +110,7 @@ export default function AdminCommunityPage() {
   const [fans, setFans] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 50,
@@ -83,8 +119,13 @@ export default function AdminCommunityPage() {
   });
 
   useEffect(() => {
+    setFilter('all');
+    setPagination((prev) => ({ ...prev, page: 1 }));
+  }, [tab]);
+
+  useEffect(() => {
     fetchData();
-  }, [tab, pagination.page]);
+  }, [tab, pagination.page, filter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -102,6 +143,7 @@ export default function AdminCommunityPage() {
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
         search,
+        filter,
       });
 
       const response = await fetch(`/api/admin/community?${params}`);
@@ -174,44 +216,32 @@ export default function AdminCommunityPage() {
   };
 
   const getSpendTierBadge = (tier: string) => {
-    const tiers: Record<string, { color: string; label: string }> = {
-      none: { color: 'gray', label: 'None' },
-      bronze: { color: 'orange', label: 'Bronze' },
-      silver: { color: 'gray', label: 'Silver' },
-      gold: { color: 'yellow', label: 'Gold' },
-      platinum: { color: 'cyan', label: 'Platinum' },
-      diamond: { color: 'purple', label: 'Diamond' },
+    const tiers: Record<string, { bg: string; text: string; label: string }> = {
+      none: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'None' },
+      bronze: { bg: 'bg-orange-500/20', text: 'text-orange-400', label: 'Bronze' },
+      silver: { bg: 'bg-gray-400/20', text: 'text-gray-300', label: 'Silver' },
+      gold: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'Gold' },
+      platinum: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', label: 'Platinum' },
+      diamond: { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Diamond' },
     };
     const t = tiers[tier] || tiers.none;
     return (
-      <span
-        className={`px-2 py-0.5 bg-${t.color}-500/20 text-${t.color}-400 rounded-full text-xs font-medium`}
-        style={{
-          backgroundColor:
-            t.color === 'gray'
-              ? 'rgba(156, 163, 175, 0.2)'
-              : t.color === 'orange'
-              ? 'rgba(249, 115, 22, 0.2)'
-              : t.color === 'yellow'
-              ? 'rgba(234, 179, 8, 0.2)'
-              : t.color === 'cyan'
-              ? 'rgba(6, 182, 212, 0.2)'
-              : 'rgba(168, 85, 247, 0.2)',
-          color:
-            t.color === 'gray'
-              ? '#9ca3af'
-              : t.color === 'orange'
-              ? '#f97316'
-              : t.color === 'yellow'
-              ? '#eab308'
-              : t.color === 'cyan'
-              ? '#06b6d4'
-              : '#a855f7',
-        }}
-      >
+      <span className={`px-2 py-0.5 ${t.bg} ${t.text} rounded-full text-xs font-medium`}>
         {t.label}
       </span>
     );
+  };
+
+  const getProfileBadge = (completeness: number) => {
+    if (completeness >= 100) {
+      return <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs">100%</span>;
+    } else if (completeness >= 75) {
+      return <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded-full text-xs">{completeness}%</span>;
+    } else if (completeness >= 50) {
+      return <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">{completeness}%</span>;
+    } else {
+      return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-xs">{completeness}%</span>;
+    }
   };
 
   return (
@@ -244,8 +274,10 @@ export default function AdminCommunityPage() {
                   <UserCheck className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{tab === 'creators' ? pagination.total : creators.length || '--'}</p>
-                  <p className="text-xs text-gray-400">Total Creators</p>
+                  <p className="text-2xl font-bold text-white">
+                    {tab === 'creators' ? pagination.total : '--'}
+                  </p>
+                  <p className="text-xs text-gray-400">Creators</p>
                 </div>
               </div>
             </GlassCard>
@@ -255,8 +287,10 @@ export default function AdminCommunityPage() {
                   <Users className="w-5 h-5 text-cyan-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{tab === 'fans' ? pagination.total : fans.length || '--'}</p>
-                  <p className="text-xs text-gray-400">Total Fans</p>
+                  <p className="text-2xl font-bold text-white">
+                    {tab === 'fans' ? pagination.total : '--'}
+                  </p>
+                  <p className="text-xs text-gray-400">Fans</p>
                 </div>
               </div>
             </GlassCard>
@@ -278,13 +312,13 @@ export default function AdminCommunityPage() {
             <GlassCard className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-red-500/20">
-                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                  <Ban className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {fans.filter((f) => f.report_count > 0).length}
+                    {fans.filter((f) => f.block_count > 0).length}
                   </p>
-                  <p className="text-xs text-gray-400">Reported Users</p>
+                  <p className="text-xs text-gray-400">Blocked Users</p>
                 </div>
               </div>
             </GlassCard>
@@ -293,10 +327,7 @@ export default function AdminCommunityPage() {
           {/* Tabs */}
           <div className="flex gap-2 mb-4">
             <button
-              onClick={() => {
-                setTab('creators');
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
+              onClick={() => setTab('creators')}
               className={`px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 ${
                 tab === 'creators'
                   ? 'bg-purple-500 text-white'
@@ -307,10 +338,7 @@ export default function AdminCommunityPage() {
               Creators
             </button>
             <button
-              onClick={() => {
-                setTab('fans');
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
+              onClick={() => setTab('fans')}
               className={`px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 ${
                 tab === 'fans'
                   ? 'bg-cyan-500 text-white'
@@ -320,6 +348,28 @@ export default function AdminCommunityPage() {
               <Users className="w-4 h-4" />
               Fans
             </button>
+          </div>
+
+          {/* Quick Filters */}
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            {(tab === 'creators' ? CREATOR_FILTERS : FAN_FILTERS).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => {
+                  setFilter(f.key);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                  filter === f.key
+                    ? tab === 'creators'
+                      ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                      : 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50'
+                    : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
 
           {/* Search */}
@@ -351,8 +401,8 @@ export default function AdminCommunityPage() {
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Creator
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Status
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Profile
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Last Seen
@@ -369,8 +419,14 @@ export default function AdminCommunityPage() {
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Content
                       </th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Last Post
+                      </th>
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Joined
+                        Streams
+                      </th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Subs
                       </th>
                     </tr>
                   </thead>
@@ -414,7 +470,9 @@ export default function AdminCommunityPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">{getStatusBadge(creator.account_status)}</td>
+                        <td className="px-4 py-3 text-center">
+                          {getProfileBadge(creator.profile_completeness)}
+                        </td>
                         <td className="px-4 py-3">
                           <span className="text-sm text-gray-400">
                             {formatDate(creator.last_seen_at)}
@@ -448,10 +506,22 @@ export default function AdminCommunityPage() {
                             <span className="text-sm text-white">{creator.content_count}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3">
                           <span className="text-sm text-gray-400">
-                            {new Date(creator.created_at).toLocaleDateString()}
+                            {formatDate(creator.last_post_at)}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Radio className="w-4 h-4 text-red-400" />
+                            <span className="text-sm text-white">{creator.total_streams}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Sparkles className="w-4 h-4 text-purple-400" />
+                            <span className="text-sm text-white">{creator.active_subscribers}</span>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -477,28 +547,31 @@ export default function AdminCommunityPage() {
                         Fan
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Last Seen
                       </th>
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Balance
                       </th>
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Total Spent
+                        Spent
                       </th>
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Following
                       </th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Messages
+                      </th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Tips
+                      </th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Tier
                       </th>
-                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Reports
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Last Buy
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Joined
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Blocked
                       </th>
                     </tr>
                   </thead>
@@ -507,7 +580,7 @@ export default function AdminCommunityPage() {
                       <tr
                         key={fan.id}
                         className={`hover:bg-white/5 transition-colors ${
-                          fan.report_count > 0 ? 'bg-red-500/5' : ''
+                          fan.block_count > 0 ? 'bg-red-500/5' : ''
                         }`}
                       >
                         <td className="px-4 py-3">
@@ -538,7 +611,6 @@ export default function AdminCommunityPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">{getStatusBadge(fan.account_status)}</td>
                         <td className="px-4 py-3">
                           <span className="text-sm text-gray-400">
                             {formatDate(fan.last_seen_at)}
@@ -566,26 +638,35 @@ export default function AdminCommunityPage() {
                             <span className="text-sm text-white">{fan.following_count}</span>
                           </div>
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <MessageSquare className="w-4 h-4 text-blue-400" />
+                            <span className="text-sm text-white">{fan.messages_sent}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Gift className="w-4 h-4 text-purple-400" />
+                            <span className="text-sm text-white">{fan.tips_count}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-3 text-center">{getSpendTierBadge(fan.spend_tier)}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-400">
+                            {formatDate(fan.last_purchase_at)}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-center">
-                          {fan.report_count > 0 ? (
+                          {fan.block_count > 0 ? (
                             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-500/20 border border-red-500/30 rounded-full">
-                              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                              <Ban className="w-3.5 h-3.5 text-red-400" />
                               <span className="text-sm font-bold text-red-400">
-                                {fan.report_count}
-                              </span>
-                              <span className="text-xs text-red-400/70">
-                                ({fan.unique_reporters} creators)
+                                {fan.block_count}
                               </span>
                             </div>
                           ) : (
                             <span className="text-gray-500 text-sm">-</span>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="text-sm text-gray-400">
-                            {new Date(fan.created_at).toLocaleDateString()}
-                          </span>
                         </td>
                       </tr>
                     ))}
