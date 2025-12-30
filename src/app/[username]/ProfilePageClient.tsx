@@ -1729,33 +1729,42 @@ export default function ProfilePageClient() {
       {/* Photo Viewer Modal */}
       {selectedPhoto && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4"
           onClick={() => setSelectedPhoto(null)}
         >
           <div
-            className="relative max-w-5xl w-full"
+            className="relative max-w-5xl w-full max-h-[95vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={() => setSelectedPhoto(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+              className="absolute top-2 right-2 md:top-4 md:right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            {/* Photo */}
-            <img
-              src={selectedPhoto.url}
-              alt={selectedPhoto.title}
-              className="w-full h-auto max-h-[85vh] object-contain rounded-2xl"
-            />
+            {/* Photo with fallback */}
+            <div className="flex-1 flex items-center justify-center min-h-0">
+              <img
+                src={selectedPhoto.url || selectedPhoto.thumbnail}
+                alt={selectedPhoto.title || 'Photo'}
+                className="max-w-full max-h-[70vh] md:max-h-[80vh] object-contain rounded-xl md:rounded-2xl"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  // Try thumbnail as fallback if url fails
+                  if (target.src !== selectedPhoto.thumbnail && selectedPhoto.thumbnail) {
+                    target.src = selectedPhoto.thumbnail;
+                  }
+                }}
+              />
+            </div>
 
             {/* Photo info */}
-            <div className="mt-4 p-6 bg-gray-900 rounded-2xl">
-              <h3 className="text-xl font-bold text-white mb-2">{selectedPhoto.title}</h3>
+            <div className="mt-2 md:mt-4 p-4 md:p-6 bg-gray-900 rounded-xl md:rounded-2xl">
+              <h3 className="text-lg md:text-xl font-bold text-white mb-1 md:mb-2">{selectedPhoto.title}</h3>
               {selectedPhoto.description && (
                 <p className="text-gray-300 text-sm">{selectedPhoto.description}</p>
               )}
