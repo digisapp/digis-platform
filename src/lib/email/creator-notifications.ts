@@ -60,7 +60,7 @@ export async function sendCreatorApprovalEmail(data: CreatorApprovalData) {
                   <tr>
                     <td style="padding: 8px 0;">
                       <span style="font-size: 20px; margin-right: 12px;">🎥</span>
-                      <span style="color: #ffffff; font-size: 15px;">Go live and earn tips from fans</span>
+                      <span style="color: #ffffff; font-size: 15px;">Go live and earn gifts from fans</span>
                     </td>
                   </tr>
                   <tr>
@@ -127,7 +127,7 @@ Hey ${data.name},
 Great news! Your creator application has been approved. You now have full access to all creator features on Digis.
 
 What you can do now:
-- Go live and earn tips from fans
+- Go live and earn gifts from fans
 - Offer paid 1-on-1 video calls
 - Charge for direct messages
 - Cash out your earnings anytime

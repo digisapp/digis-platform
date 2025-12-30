@@ -3,6 +3,8 @@ import { users, creatorApplications, payoutRequests, creatorSettings } from '@/l
 import { eq, and, or, ilike, desc, count, sql, sum } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email/creator-notifications';
+import { NotificationService } from '@/lib/services/notification-service';
 
 export class AdminService {
   /**
@@ -372,6 +374,58 @@ export class AdminService {
     } catch (authError) {
       console.error('Error updating auth metadata:', authError);
       // Don't throw - DB update succeeded
+    }
+
+    // Send notifications when promoting to creator
+    if (newRole === 'creator') {
+      // Get user details for notifications
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          email: true,
+          displayName: true,
+          username: true,
+        },
+      });
+
+      if (user?.email && user?.username) {
+        const name = user.displayName || user.username;
+
+        // Send welcome email (async, don't block)
+        sendCreatorApprovalEmail({
+          email: user.email,
+          name,
+          username: user.username,
+        }).then(() => {
+          console.log(`[Admin] Sent creator welcome email to ${user.email}`);
+        }).catch((err) => {
+          console.error(`[Admin] Failed to send creator welcome email:`, err);
+        });
+
+        // Add to creators audience for weekly emails
+        addCreatorToAudience({
+          email: user.email,
+          name,
+          username: user.username,
+        }).catch((err) => {
+          console.error(`[Admin] Failed to add to creators audience:`, err);
+        });
+
+        // Send in-app notification
+        NotificationService.sendNotification(
+          userId,
+          'system',
+          "You're now a Creator! 🎉",
+          'Welcome to the creator family! You can now go live, offer calls, and start earning.',
+          '/creator/dashboard',
+          undefined,
+          { type: 'creator_approved' }
+        ).then(() => {
+          console.log(`[Admin] Sent creator in-app notification to ${userId}`);
+        }).catch((err) => {
+          console.error(`[Admin] Failed to send in-app notification:`, err);
+        });
+      }
     }
 
     return { success: true };
