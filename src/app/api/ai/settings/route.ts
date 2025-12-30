@@ -17,6 +17,7 @@ export async function GET() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.log('[AI Settings GET] Auth error or no user:', authError?.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,7 +26,15 @@ export async function GET() {
       where: eq(users.id, user.id),
     });
 
+    console.log('[AI Settings GET] User check:', {
+      userId: user.id,
+      email: user.email,
+      dbRole: profile?.role,
+      username: profile?.username
+    });
+
     if (profile?.role !== 'creator') {
+      console.log('[AI Settings GET] Not a creator - access denied:', { userId: user.id, role: profile?.role });
       return NextResponse.json(
         { error: 'Creator access required' },
         { status: 403 }
@@ -76,6 +85,7 @@ export async function PUT(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.log('[AI Settings PUT] Auth error or no user:', authError?.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -84,7 +94,15 @@ export async function PUT(request: NextRequest) {
       where: eq(users.id, user.id),
     });
 
+    console.log('[AI Settings PUT] User check:', {
+      userId: user.id,
+      email: user.email,
+      dbRole: profile?.role,
+      username: profile?.username
+    });
+
     if (profile?.role !== 'creator') {
+      console.log('[AI Settings PUT] Not a creator - access denied:', { userId: user.id, role: profile?.role });
       return NextResponse.json(
         { error: 'Creator access required' },
         { status: 403 }
@@ -194,10 +212,14 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ settings });
 
-  } catch (error) {
-    console.error('[AI Settings] Update error:', error);
+  } catch (error: any) {
+    console.error('[AI Settings PUT] Update error:', {
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack?.slice(0, 500)
+    });
     return NextResponse.json(
-      { error: 'Failed to update AI settings' },
+      { error: 'Failed to update AI settings', details: error?.message },
       { status: 500 }
     );
   }
