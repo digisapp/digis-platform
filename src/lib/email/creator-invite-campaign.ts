@@ -21,10 +21,10 @@ interface BatchConfig {
 }
 
 const DEFAULT_CONFIG: BatchConfig = {
-  batchSize: 5,
-  minDelay: 30000,   // 30 seconds
-  maxDelay: 90000,   // 90 seconds
-  dailyLimit: 50,
+  batchSize: 10,
+  minDelay: 20000,   // 20 seconds
+  maxDelay: 60000,   // 60 seconds
+  dailyLimit: 250,   // Safe limit for established domain (examodels.com)
 };
 
 // Generate random delay between min and max
