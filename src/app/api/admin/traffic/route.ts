@@ -4,7 +4,7 @@ import { pageViews } from '@/db/schema/admin';
 import { users } from '@/db/schema/users';
 import { AdminService } from '@/lib/admin/admin-service';
 import { createClient } from '@/lib/supabase/server';
-import { sql, desc, eq, gte, and, count, countDistinct } from 'drizzle-orm';
+import { sql, desc, eq, gte, lt, and, count, countDistinct } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         .from(pageViews)
         .where(and(
           gte(pageViews.createdAt, previousStartDate),
-          sql`${pageViews.createdAt} < ${previousEndDate}`
+          lt(pageViews.createdAt, previousEndDate)
         )),
 
       // Unique visitors in period
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
         .from(pageViews)
         .where(and(
           gte(pageViews.createdAt, previousStartDate),
-          sql`${pageViews.createdAt} < ${previousEndDate}`
+          lt(pageViews.createdAt, previousEndDate)
         )),
 
       // Views by page type
