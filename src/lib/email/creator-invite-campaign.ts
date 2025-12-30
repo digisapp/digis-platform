@@ -76,22 +76,25 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                             ${greeting}
                                         </p>
                                         <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
-                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong>! A next-gen creator platform built for the new wave of creators.
-                                        </p>
-                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.7);">
-                                            On Digis you can earn through:
+                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong>! A creator platform built for the next wave of creators!
                                         </p>
                                         <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
                                             🎥 <strong>Live Streaming</strong> — go live and earn from gifts
                                         </p>
                                         <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
-                                            🤖 <strong>AI Twin</strong> — earn 24/7 with your AI clone
+                                            🖼️ <strong>Digitals</strong> — sell exclusive content
+                                        </p>
+                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
+                                            🤖 <strong>AI Twin</strong> — earn 24/7 with AI chats and voice
+                                        </p>
+                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
+                                            📱 <strong>Paid Video Calls</strong> — set your rate for calls
                                         </p>
                                         <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
-                                            📱 <strong>Paid Video Calls</strong> — set your rate per minute for 1-on-1 calls
+                                            + <strong>Exclusive Events!</strong>
                                         </p>
                                         <p style="margin: 0; color: rgba(255, 255, 255, 0.7);">
-                                            We're currently invite-only, and we'd love to have you in.
+                                            We're currently invite-only, first come first serve for username, claim today!
                                         </p>
                                     </td>
                                 </tr>
@@ -146,14 +149,15 @@ function generateInvitePlainText(inviteUrl: string, recipientName?: string): str
 
   return `${greeting}
 
-You've been invited to Digis! A next-gen creator platform built for the new wave of creators.
+You've been invited to Digis! A creator platform built for the next wave of creators!
 
-On Digis you can earn through:
 🎥 Live Streaming — go live and earn from gifts
-🤖 AI Twin — earn 24/7 with your AI clone
-📱 Paid Video Calls — set your rate per minute for 1-on-1 calls
+🖼️ Digitals — sell exclusive content
+🤖 AI Twin — earn 24/7 with AI chats and voice
+📱 Paid Video Calls — set your rate for calls
++ Exclusive Events!
 
-We're currently invite-only, and we'd love to have you in.
+We're currently invite-only, first come first serve for username, claim today!
 
 Claim your invite: ${inviteUrl}
 
@@ -177,7 +181,7 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
       to: recipient.email,
-      subject: "Approved! Create on Digis x EXA Models",
+      subject: "You're invited to Digis (invite-only)",
       html: generateInviteHtml(recipient.inviteUrl, recipient.name),
       text: generateInvitePlainText(recipient.inviteUrl, recipient.name),
     });
