@@ -5,7 +5,7 @@ const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Use examodels.com for better deliverability (established domain)
-const CAMPAIGN_FROM = 'Digis Team <hello@examodels.com>';
+const CAMPAIGN_FROM = 'EXA Models <hello@examodels.com>';
 
 interface InviteRecipient {
   email: string;
@@ -222,7 +222,7 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
       to: recipient.email,
-      subject: "✨ You're invited to join Digis",
+      subject: "Approved! Create on Digis x EXA Models",
       html: generateInviteHtml(recipient.inviteUrl, recipient.name),
       text: generateInvitePlainText(recipient.inviteUrl, recipient.name),
     });
