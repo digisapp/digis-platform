@@ -101,9 +101,42 @@ export default function AiChatPage() {
     router.push(`/${username}`);
   };
 
-  const handleStartTextChat = () => {
-    // Navigate to the DM page with AI mode
-    router.push(`/messages/${creator?.id}?ai=true`);
+  const handleStartTextChat = async () => {
+    if (!creator) return;
+
+    try {
+      // Check for existing conversation or create one
+      const response = await fetch('/api/conversations');
+      if (response.ok) {
+        const data = await response.json();
+        const existingConv = data.conversations?.find(
+          (conv: any) => conv.user1Id === creator.id || conv.user2Id === creator.id
+        );
+
+        if (existingConv) {
+          router.push(`/chats/${existingConv.id}`);
+          return;
+        }
+      }
+
+      // No existing conversation - create one
+      const createResponse = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientId: creator.id }),
+      });
+
+      if (createResponse.ok) {
+        const createData = await createResponse.json();
+        router.push(`/chats/${createData.conversationId}`);
+      } else {
+        // Fallback: go to profile and let them use Chat button
+        router.push(`/${creator.username}`);
+      }
+    } catch (err) {
+      // Fallback: go to profile
+      router.push(`/${creator?.username}`);
+    }
   };
 
   if (loading) {
