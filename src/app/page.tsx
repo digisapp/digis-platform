@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -796,5 +796,9 @@ function HomeContent() {
 
 // Main Page Component
 export default function Home() {
-  return <HomeContent />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><LoadingSpinner /></div>}>
+      <HomeContent />
+    </Suspense>
+  );
 }
