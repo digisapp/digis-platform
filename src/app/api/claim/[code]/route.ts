@@ -6,6 +6,7 @@ import { creatorInvites, users, profiles } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
+import { sendWelcomeEmail } from '@/lib/email/welcome';
 
 export const runtime = 'nodejs';
 
@@ -268,6 +269,14 @@ export async function POST(
         updatedAt: new Date(),
       })
       .where(eq(creatorInvites.id, invite.id));
+
+    // Send creator welcome email (fire-and-forget)
+    sendWelcomeEmail({
+      email: userEmail,
+      name: invite.displayName || username,
+      username,
+      isCreator: true,
+    }).catch((err) => console.error('[Claim] Failed to send welcome email:', err));
 
     return NextResponse.json({
       success: true,

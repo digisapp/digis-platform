@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
 import { signupSchema, validateBody } from '@/lib/validation/schemas';
+import { sendWelcomeEmail } from '@/lib/email/welcome';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -149,10 +150,32 @@ export async function POST(request: NextRequest) {
               console.error(`[Signup] Error upgrading to creator: ${upgradeError.message}`);
             } else {
               console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
+              // Send creator welcome email
+              sendWelcomeEmail({
+                email,
+                name: displayName || username,
+                username: username.toLowerCase(),
+                isCreator: true,
+              }).catch((err) => console.error('[Signup] Failed to send creator welcome email:', err));
             }
+          } else {
+            // Send fan welcome email (no invite matched)
+            sendWelcomeEmail({
+              email,
+              name: displayName || username,
+              username: username.toLowerCase(),
+              isCreator: false,
+            }).catch((err) => console.error('[Signup] Failed to send fan welcome email:', err));
           }
         } catch (inviteCheckError) {
           console.error(`[Signup] Error checking for invite:`, inviteCheckError);
+          // Still send welcome email even if invite check failed
+          sendWelcomeEmail({
+            email,
+            name: displayName || username,
+            username: username.toLowerCase(),
+            isCreator: false,
+          }).catch((err) => console.error('[Signup] Failed to send welcome email:', err));
         }
       } catch (dbError) {
         console.error('Error creating user in database:', dbError);
