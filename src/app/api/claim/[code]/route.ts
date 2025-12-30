@@ -225,6 +225,7 @@ export async function POST(
         role: 'creator',
         verificationStatus: 'grandfathered',
         isCreatorVerified: true, // Auto-verify since they were invited
+        lastSeenAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -249,6 +250,7 @@ export async function POST(
           role: 'creator',
           verification_status: 'grandfathered',
           is_creator_verified: true,
+          last_seen_at: new Date().toISOString(),
         });
 
       if (insertError) {

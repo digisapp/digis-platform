@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
             username: username.toLowerCase(),
             display_name: displayName || email.split('@')[0],
             role: 'fan',
+            last_seen_at: new Date().toISOString(),
           });
 
         if (insertError) {
