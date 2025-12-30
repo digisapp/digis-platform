@@ -330,3 +330,154 @@ export async function testInviteEmail(testEmail: string): Promise<{ success: boo
   console.log('[Campaign] Test result:', result);
   return { success: result.success, error: result.error };
 }
+
+// Generate reminder email HTML
+function generateReminderHtml(inviteUrl: string, recipientName?: string): string {
+  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey there!';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't forget to claim your Digis invite!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%);">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%); padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; overflow: hidden;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background: linear-gradient(135deg, #FFB800 0%, #FF6B00 100%); padding: 50px 40px 40px;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                                Your invite is waiting!
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="color: #ffffff; font-size: 17px; line-height: 1.7; padding-bottom: 24px;">
+                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
+                                            ${greeting}
+                                        </p>
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
+                                            Just a friendly reminder — you haven't claimed your <strong style="color: #00D4FF;">Digis</strong> invite yet!
+                                        </p>
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.7);">
+                                            We're still holding your spot, but usernames are first come, first serve. Don't miss out on getting your preferred username!
+                                        </p>
+                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.9);">
+                                            <span style="color: #FFB800;">►</span> Live Streaming<br>
+                                            <span style="color: #FF006E;">◈</span> Digitals<br>
+                                            <span style="color: #9D4EDD;">✧</span> AI Twin<br>
+                                            <span style="color: #00CC88;">▣</span> Paid Video Calls<br>
+                                            <span style="color: #00D4FF;">✦</span> And more!
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- CTA Button -->
+                                <tr>
+                                    <td align="center" style="padding: 10px 0 35px;">
+                                        <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(135deg, #FFB800 0%, #FF6B00 100%); color: #ffffff; text-decoration: none; padding: 20px 56px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 8px 32px rgba(255, 107, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
+                                            Claim My Invite
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <!-- Alternative Link -->
+                                <tr>
+                                    <td style="color: rgba(255, 255, 255, 0.5); font-size: 13px; line-height: 1.6; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                                        <p style="margin: 0 0 8px;">
+                                            Button not working? Copy this link:
+                                        </p>
+                                        <p style="margin: 0; word-break: break-all;">
+                                            <a href="${inviteUrl}" style="color: #00D4FF; text-decoration: none; font-size: 12px;">${inviteUrl}</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: rgba(0, 0, 0, 0.4); padding: 30px 40px; text-align: center;">
+                            <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.5); font-size: 13px;">
+                                Wasn't expecting this? No worries, just ignore this email.
+                            </p>
+                            <p style="margin: 0; color: rgba(255, 255, 255, 0.3); font-size: 11px;">
+                                © 2025 Digis · <a href="https://digis.cc" style="color: rgba(255, 255, 255, 0.4); text-decoration: none;">digis.cc</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+}
+
+// Generate reminder plain text
+function generateReminderPlainText(inviteUrl: string, recipientName?: string): string {
+  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey there!';
+
+  return `${greeting}
+
+Just a friendly reminder — you haven't claimed your Digis invite yet!
+
+We're still holding your spot, but usernames are first come, first serve. Don't miss out on getting your preferred username!
+
+► Live Streaming
+◈ Digitals
+✧ AI Twin
+▣ Paid Video Calls
+✦ And more!
+
+Claim your invite: ${inviteUrl}
+
+Wasn't expecting this? No worries, just ignore this email.
+
+© 2025 Digis · digis.cc`;
+}
+
+// Send invite reminder email
+export async function sendInviteReminder(recipient: InviteRecipient): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  if (!resend) {
+    console.log(`[Campaign] [DEV] Would send reminder to ${recipient.email}`);
+    return { success: true };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: CAMPAIGN_FROM,
+      to: recipient.email,
+      subject: "Don't forget to claim your Digis invite!",
+      html: generateReminderHtml(recipient.inviteUrl, recipient.name),
+      text: generateReminderPlainText(recipient.inviteUrl, recipient.name),
+    });
+
+    if (error) {
+      console.error(`[Campaign] Failed to send reminder to ${recipient.email}:`, error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`[Campaign] Reminder sent to ${recipient.email}, ID: ${data?.id}`);
+    return { success: true };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[Campaign] Error sending reminder to ${recipient.email}:`, errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}

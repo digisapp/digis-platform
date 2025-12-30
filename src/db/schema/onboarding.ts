@@ -31,6 +31,9 @@ export const creatorInvites = pgTable('creator_invites', {
   batchId: text('batch_id'), // Group invites by upload batch for tracking
   notes: text('notes'), // Admin notes
 
+  // Reminder tracking
+  reminderSentAt: timestamp('reminder_sent_at'), // When follow-up reminder was sent
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
