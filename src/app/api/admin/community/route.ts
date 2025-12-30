@@ -125,13 +125,13 @@ export async function GET(req: NextRequest) {
         ) sub_stats ON sub_stats.creator_id = u.id
         LEFT JOIN (
           SELECT
-            creator_id,
+            creator_username,
             COUNT(*) as profile_views,
             COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days') as views_7d
           FROM page_views
-          WHERE page_type = 'profile' AND creator_id IS NOT NULL
-          GROUP BY creator_id
-        ) traffic_stats ON traffic_stats.creator_id = u.id
+          WHERE page_type = 'profile' AND creator_username IS NOT NULL
+          GROUP BY creator_username
+        ) traffic_stats ON traffic_stats.creator_username = u.username
         WHERE u.role = 'creator'
         ${search ? sql`AND (u.username ILIKE ${`%${search}%`} OR u.email ILIKE ${`%${search}%`} OR u.display_name ILIKE ${`%${search}%`})` : sql``}
         ${filterCondition}
