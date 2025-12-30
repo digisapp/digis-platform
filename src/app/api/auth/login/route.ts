@@ -121,12 +121,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Update last_seen_at on login (fire-and-forget)
-    supabase
-      .from('users')
-      .update({ last_seen_at: new Date().toISOString() })
-      .eq('id', authUser.id)
-      .then(() => {})
-      .catch((e) => console.warn('[LOGIN] Failed to update last_seen_at', e));
+    void (async () => {
+      try {
+        await supabase
+          .from('users')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', authUser.id);
+      } catch (e) {
+        console.warn('[LOGIN] Failed to update last_seen_at', e);
+      }
+    })();
 
     return NextResponse.json({
       user: responseUser,
