@@ -98,35 +98,31 @@ export async function POST(request: NextRequest) {
           // User is created in auth, this is okay - will be handled on login
         }
 
-        // Check if this email or Instagram handle matches a pending creator invite (auto-claim)
+        // Check if email OR Instagram handle matches a pending creator invite (auto-claim)
+        // Either match = auto-approve as creator
         try {
-          // First try matching by email
-          let { data: pendingInvite, error: inviteError } = await adminClient
+          // Query for pending invites matching email OR Instagram handle
+          const { data: pendingInvites, error: inviteError } = await adminClient
             .from('creator_invites')
             .select('id, email, instagram_handle, status')
             .eq('status', 'pending')
-            .ilike('email', email)
-            .single();
+            .or(`email.ilike.${email},instagram_handle.ilike.${username}`);
 
-          // If no email match, try matching by Instagram handle (username)
+          if (inviteError) {
+            console.log(`[Signup] Error checking invites: ${inviteError.message}`);
+          }
+
+          const pendingInvite = pendingInvites?.[0];
+
           if (!pendingInvite) {
-            const { data: instagramInvite, error: igError } = await adminClient
-              .from('creator_invites')
-              .select('id, email, instagram_handle, status')
-              .eq('status', 'pending')
-              .ilike('instagram_handle', username)
-              .single();
-
-            if (instagramInvite) {
-              pendingInvite = instagramInvite;
-              console.log(`[Signup] Found pending invite by Instagram handle @${username}`);
-            } else if (igError && inviteError) {
-              console.log(`[Signup] No pending invite found for email ${email} or Instagram @${username}`);
-            }
+            console.log(`[Signup] No pending invite found for email ${email} or Instagram @${username}`);
           }
 
           if (pendingInvite) {
-            console.log(`[Signup] Found pending invite:`, pendingInvite);
+            // Log which field matched
+            const emailMatch = pendingInvite.email?.toLowerCase() === email.toLowerCase();
+            const igMatch = pendingInvite.instagram_handle?.toLowerCase() === username.toLowerCase();
+            console.log(`[Signup] Found pending invite - Email match: ${emailMatch}, Instagram match: ${igMatch}`, pendingInvite);
 
             // Mark invite as claimed
             const { error: claimError } = await adminClient
