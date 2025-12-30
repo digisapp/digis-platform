@@ -17,6 +17,7 @@ interface Stats {
   pendingPayoutAmount?: number;
   totalRevenue?: number;
   todaySignups?: number;
+  weekSignups?: number;
 }
 
 type MainTab = 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
@@ -477,8 +478,8 @@ export default function AdminDashboard() {
                   <UserPlus className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Today's Signups</p>
-                  <p className="text-xl font-bold">{stats.todaySignups || 0}</p>
+                  <p className="text-xs text-gray-400">New Users (7d)</p>
+                  <p className="text-xl font-bold">{stats.weekSignups || 0}</p>
                 </div>
               </div>
             </GlassCard>
@@ -507,9 +508,9 @@ export default function AdminDashboard() {
             className="px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base text-gray-400 hover:text-white"
           >
             New Users
-            {stats?.todaySignups ? (
+            {stats?.weekSignups ? (
               <span className="ml-1.5 px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
-                {stats.todaySignups}
+                {stats.weekSignups}
               </span>
             ) : null}
           </button>

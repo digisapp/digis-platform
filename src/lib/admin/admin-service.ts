@@ -494,12 +494,16 @@ export class AdminService {
 
   // Get platform statistics - optimized with COUNT queries
   static async getStatistics() {
-    // Get today's date at midnight for signup count
+    // Get date ranges for signup counts
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
     // Run all counts in parallel for speed
-    const [totalUsersResult, totalCreatorsResult, totalFansResult, totalAdminsResult, pendingAppsResult, pendingPayoutsResult, todaySignupsResult] = await withTimeoutAndRetry(
+    const [totalUsersResult, totalCreatorsResult, totalFansResult, totalAdminsResult, pendingAppsResult, pendingPayoutsResult, todaySignupsResult, weekSignupsResult] = await withTimeoutAndRetry(
       () => Promise.all([
         // Count total users
         db.select({ count: count() }).from(users),
@@ -518,6 +522,8 @@ export class AdminService {
         }).from(payoutRequests).where(eq(payoutRequests.status, 'pending')),
         // Count today's signups
         db.select({ count: count() }).from(users).where(gte(users.createdAt, today)),
+        // Count last 7 days signups
+        db.select({ count: count() }).from(users).where(gte(users.createdAt, sevenDaysAgo)),
       ]),
       { timeoutMs: 3000, retries: 1, tag: 'adminStats' }
     );
@@ -531,6 +537,7 @@ export class AdminService {
       pendingPayouts: pendingPayoutsResult[0]?.count || 0,
       pendingPayoutAmount: Number(pendingPayoutsResult[0]?.totalAmount) || 0,
       todaySignups: todaySignupsResult[0]?.count || 0,
+      weekSignups: weekSignupsResult[0]?.count || 0,
     };
   }
 }
