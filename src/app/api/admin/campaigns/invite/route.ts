@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { creatorInvites } from '@/db/schema';
 import { eq, or, desc } from 'drizzle-orm';
 import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
+import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
 
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const supabase = await createClient();
@@ -36,6 +37,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: result.success,
         message: result.success ? 'Test email sent!' : `Failed: ${result.error || 'Unknown error'}`,
+        error: result.error
+      });
+    }
+
+    // Test earnings notification email
+    if (action === 'test-earnings') {
+      if (!testEmail) {
+        return NextResponse.json({ error: 'testEmail required' }, { status: 400 });
+      }
+      const eventType = body.eventType || 'purchase';
+      const result = await testCreatorEarningsEmail(testEmail, eventType);
+      return NextResponse.json({
+        success: result.success,
+        message: result.success ? `Test ${eventType} email sent!` : `Failed: ${result.error || 'Unknown error'}`,
         error: result.error
       });
     }

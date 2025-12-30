@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-const FROM_EMAIL = 'Digis <notifications@digis.cc>';
+const FROM_EMAIL = 'Digis <hi@digis.cc>';
 
 interface CreatorEarningsEmailData {
   creatorEmail: string;
@@ -254,5 +254,23 @@ export async function notifyCallRequest(
     amount: estimatedAmount,
     eventType: 'call_request',
     callType,
+  });
+}
+
+// Test function for sending sample earnings emails
+export async function testCreatorEarningsEmail(
+  testEmail: string,
+  eventType: 'purchase' | 'gift' | 'call_request' = 'purchase'
+) {
+  return sendCreatorEarningsEmail({
+    creatorEmail: testEmail,
+    creatorName: 'Test Creator',
+    fanName: 'John Fan',
+    fanUsername: 'johnfan',
+    amount: eventType === 'call_request' ? 125 : 50,
+    eventType,
+    contentTitle: eventType === 'purchase' ? 'Exclusive Photo Set' : undefined,
+    giftName: eventType === 'gift' ? '💎 Diamond' : undefined,
+    callType: eventType === 'call_request' ? 'video' : undefined,
   });
 }
