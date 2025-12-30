@@ -105,8 +105,8 @@ export default function AiChatPage() {
     if (!creator) return;
 
     try {
-      // Check for existing conversation or create one
-      const response = await fetch('/api/conversations');
+      // Check for existing conversation
+      const response = await fetch('/api/messages/conversations');
       if (response.ok) {
         const data = await response.json();
         const existingConv = data.conversations?.find(
@@ -120,7 +120,7 @@ export default function AiChatPage() {
       }
 
       // No existing conversation - create one
-      const createResponse = await fetch('/api/conversations', {
+      const createResponse = await fetch('/api/messages/conversations/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientId: creator.id }),
@@ -130,11 +130,12 @@ export default function AiChatPage() {
         const createData = await createResponse.json();
         router.push(`/chats/${createData.conversationId}`);
       } else {
-        // Fallback: go to profile and let them use Chat button
+        // Check error - might need to show message modal on profile
+        console.error('[AI Text Chat] Failed to create conversation');
         router.push(`/${creator.username}`);
       }
     } catch (err) {
-      // Fallback: go to profile
+      console.error('[AI Text Chat] Error:', err);
       router.push(`/${creator?.username}`);
     }
   };
