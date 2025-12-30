@@ -57,12 +57,11 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                     <!-- Header -->
                     <tr>
                         <td align="center" style="background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); padding: 50px 40px 40px;">
-                            <p style="margin: 0 0 12px; font-size: 48px;">✨</p>
-                            <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-                                You're Invited
+                            <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                                You're Invited — Join Digis
                             </h1>
                             <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
-                                Join the next-gen creator platform
+                                (Invite-Only)
                             </p>
                         </td>
                     </tr>
@@ -76,11 +75,23 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                         <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
                                             ${greeting}
                                         </p>
-                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
-                                            You've been personally invited to join <strong style="color: #00D4FF;">Digis</strong> — the creator platform built for the next generation.
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
+                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong>! A next-gen creator platform built for the new wave of creators.
+                                        </p>
+                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.7);">
+                                            On Digis you can earn through:
+                                        </p>
+                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
+                                            🎥 <strong>Live Streaming</strong> — go live and earn from gifts
+                                        </p>
+                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
+                                            🤖 <strong>AI Twin</strong> — earn 24/7 with your AI clone
+                                        </p>
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
+                                            📱 <strong>Paid Video Calls</strong> — set your rate per minute for 1-on-1 calls
                                         </p>
                                         <p style="margin: 0; color: rgba(255, 255, 255, 0.7);">
-                                            Monetize through live streams, paid video calls, AI twins, and direct fan engagement. We're currently invite-only and would love to have you.
+                                            We're currently invite-only, and we'd love to have you in.
                                         </p>
                                     </td>
                                 </tr>
@@ -94,65 +105,9 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                     </td>
                                 </tr>
 
-                                <!-- Features -->
-                                <tr>
-                                    <td style="padding: 30px 0; border-top: 1px solid rgba(255, 255, 255, 0.08); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.5); font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">
-                                            Ways to earn on Digis
-                                        </p>
-                                        <table width="100%" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td style="padding: 12px 0;">
-                                                    <table cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="width: 44px; vertical-align: top;">
-                                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 212, 255, 0.1) 100%); border-radius: 10px; text-align: center; line-height: 36px; font-size: 18px;">🎥</div>
-                                                            </td>
-                                                            <td style="vertical-align: top;">
-                                                                <p style="margin: 0; color: #ffffff; font-size: 15px; font-weight: 600;">Live Streaming</p>
-                                                                <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.6); font-size: 13px;">Go live and earn from gifts and tickets</p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 12px 0;">
-                                                    <table cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="width: 44px; vertical-align: top;">
-                                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.1) 100%); border-radius: 10px; text-align: center; line-height: 36px; font-size: 18px;">🤖</div>
-                                                            </td>
-                                                            <td style="vertical-align: top;">
-                                                                <p style="margin: 0; color: #ffffff; font-size: 15px; font-weight: 600;">AI Twin</p>
-                                                                <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.6); font-size: 13px;">Earn 24/7 with your AI clone</p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 12px 0;">
-                                                    <table cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="width: 44px; vertical-align: top;">
-                                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, rgba(255, 0, 110, 0.2) 0%, rgba(255, 0, 110, 0.1) 100%); border-radius: 10px; text-align: center; line-height: 36px; font-size: 18px;">📱</div>
-                                                            </td>
-                                                            <td style="vertical-align: top;">
-                                                                <p style="margin: 0; color: #ffffff; font-size: 15px; font-weight: 600;">Paid Video Calls</p>
-                                                                <p style="margin: 4px 0 0; color: rgba(255, 255, 255, 0.6); font-size: 13px;">Set your rate for 1-on-1 fan calls</p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-
                                 <!-- Alternative Link -->
                                 <tr>
-                                    <td style="color: rgba(255, 255, 255, 0.5); font-size: 13px; line-height: 1.6; padding-top: 24px;">
+                                    <td style="color: rgba(255, 255, 255, 0.5); font-size: 13px; line-height: 1.6; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
                                         <p style="margin: 0 0 8px;">
                                             Button not working? Copy this link:
                                         </p>
@@ -191,16 +146,16 @@ function generateInvitePlainText(inviteUrl: string, recipientName?: string): str
 
   return `${greeting}
 
-You've been personally invited to join Digis — the creator platform built for the next generation.
+You've been invited to Digis! A next-gen creator platform built for the new wave of creators.
 
-Monetize through live streams, paid video calls, AI twins, and direct fan engagement. We're currently invite-only and would love to have you.
+On Digis you can earn through:
+🎥 Live Streaming — go live and earn from gifts
+🤖 AI Twin — earn 24/7 with your AI clone
+📱 Paid Video Calls — set your rate per minute for 1-on-1 calls
+
+We're currently invite-only, and we'd love to have you in.
 
 Claim your invite: ${inviteUrl}
-
-Ways to earn on Digis:
-- Live Streaming: Go live and earn from gifts and tickets
-- AI Twin: Earn 24/7 with your AI clone
-- Paid Video Calls: Set your rate for 1-on-1 fan calls
 
 Wasn't expecting this? No worries, just ignore this email.
 
