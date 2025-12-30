@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail, Wrench } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
@@ -221,6 +221,39 @@ export default function AdminDashboard() {
 
   const closeModal = () => {
     setModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // Repair creators state
+  const [repairing, setRepairing] = useState(false);
+  const [repairResult, setRepairResult] = useState<{
+    creatorsWithIssues: number;
+    totalFixed: number;
+  } | null>(null);
+
+  const repairCreators = async () => {
+    setRepairing(true);
+    setRepairResult(null);
+    try {
+      const response = await fetch('/api/admin/repair-creators', { method: 'POST' });
+      const data = await response.json();
+      if (response.ok) {
+        setRepairResult({
+          creatorsWithIssues: data.summary.creatorsWithIssues,
+          totalFixed: data.summary.totalFixed,
+        });
+        if (data.summary.creatorsWithIssues === 0) {
+          showToast('All creators are properly configured!', 'success');
+        } else {
+          showToast(`Fixed ${data.summary.totalFixed} issues for ${data.summary.creatorsWithIssues} creators`, 'success');
+        }
+      } else {
+        showToast(data.error || 'Failed to repair creators', 'error');
+      }
+    } catch (error) {
+      showToast('Failed to repair creators', 'error');
+    } finally {
+      setRepairing(false);
+    }
   };
 
   useEffect(() => {
@@ -495,6 +528,28 @@ export default function AdminDashboard() {
                 <div>
                   <p className="text-xs text-gray-400">Pending Payouts</p>
                   <p className="text-xl font-bold">{stats.pendingPayouts || 0}</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Repair Creators Tool */}
+            <GlassCard
+              className={`p-4 cursor-pointer hover:scale-105 transition-transform ${repairing ? 'opacity-70' : ''}`}
+              onClick={() => !repairing && repairCreators()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-orange-500/20 rounded-lg">
+                  {repairing ? (
+                    <RefreshCw className="w-5 h-5 text-orange-500 animate-spin" />
+                  ) : (
+                    <Wrench className="w-5 h-5 text-orange-500" />
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Repair Creators</p>
+                  <p className="text-sm font-medium">
+                    {repairing ? 'Repairing...' : repairResult ? `${repairResult.totalFixed} fixed` : 'Click to run'}
+                  </p>
                 </div>
               </div>
             </GlassCard>

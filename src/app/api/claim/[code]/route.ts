@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
-import { creatorInvites, users, profiles } from '@/db/schema';
+import { creatorInvites, users, profiles, creatorSettings } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendWelcomeEmail } from '@/lib/email/welcome';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -269,6 +270,42 @@ export async function POST(
         updatedAt: new Date(),
       })
       .where(eq(creatorInvites.id, invite.id));
+
+    // 🔥 CRITICAL: Update Supabase auth metadata to persist role in JWT
+    // This prevents role from reverting during auth sync issues
+    try {
+      const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+        authData.user.id,
+        {
+          app_metadata: { role: 'creator' },
+          user_metadata: { is_creator_verified: true },
+        }
+      );
+      if (authUpdateError) {
+        console.error(`[Claim] Failed to update auth metadata: ${authUpdateError.message}`);
+      } else {
+        console.log(`[Claim] Auth metadata updated for creator: ${userEmail}`);
+      }
+    } catch (authMetaError) {
+      console.error(`[Claim] Error updating auth metadata:`, authMetaError);
+    }
+
+    // Create default creator settings (required for AI Twin, calls, etc.)
+    try {
+      await db.insert(creatorSettings).values({
+        userId: authData.user.id,
+        messageRate: 25,
+        callRatePerMinute: 25,
+        minimumCallDuration: 5,
+        isAvailableForCalls: false,
+        voiceCallRatePerMinute: 15,
+        minimumVoiceCallDuration: 5,
+        isAvailableForVoiceCalls: false,
+      }).onConflictDoNothing();
+      console.log(`[Claim] Creator settings created for: ${userEmail}`);
+    } catch (settingsError) {
+      console.error(`[Claim] Error creating creator settings:`, settingsError);
+    }
 
     // Send creator welcome email (fire-and-forget)
     sendWelcomeEmail({

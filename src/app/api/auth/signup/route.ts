@@ -5,6 +5,7 @@ import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
 import { signupSchema, validateBody } from '@/lib/validation/schemas';
 import { sendWelcomeEmail } from '@/lib/email/welcome';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -150,6 +151,52 @@ export async function POST(request: NextRequest) {
               console.error(`[Signup] Error upgrading to creator: ${upgradeError.message}`);
             } else {
               console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
+
+              // 🔥 CRITICAL: Update Supabase auth metadata to persist role in JWT
+              // This prevents role from reverting during auth sync issues
+              try {
+                const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+                  authData.user.id,
+                  {
+                    app_metadata: { role: 'creator' },
+                    user_metadata: { is_creator_verified: true },
+                  }
+                );
+                if (authUpdateError) {
+                  console.error(`[Signup] Failed to update auth metadata: ${authUpdateError.message}`);
+                } else {
+                  console.log(`[Signup] Auth metadata updated for creator: ${email}`);
+                }
+              } catch (authMetaError) {
+                console.error(`[Signup] Error updating auth metadata:`, authMetaError);
+              }
+
+              // Create default creator settings (required for AI Twin, calls, etc.)
+              try {
+                const { error: settingsError } = await adminClient
+                  .from('creator_settings')
+                  .insert({
+                    user_id: authData.user.id,
+                    message_rate: 25,
+                    call_rate_per_minute: 25,
+                    minimum_call_duration: 5,
+                    is_available_for_calls: false,
+                    voice_call_rate_per_minute: 15,
+                    minimum_voice_call_duration: 5,
+                    is_available_for_voice_calls: false,
+                  })
+                  .select()
+                  .single();
+
+                if (settingsError && !settingsError.message?.includes('duplicate')) {
+                  console.error(`[Signup] Error creating creator settings: ${settingsError.message}`);
+                } else {
+                  console.log(`[Signup] Creator settings created for: ${email}`);
+                }
+              } catch (settingsCreateError) {
+                console.error(`[Signup] Error creating creator settings:`, settingsCreateError);
+              }
+
               // Send creator welcome email
               sendWelcomeEmail({
                 email,
