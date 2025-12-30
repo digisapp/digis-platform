@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
@@ -9,13 +9,21 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup: () => void;
+  initialEmail?: string;
 }
 
-export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) {
-  const [email, setEmail] = useState('');
+export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '' }: LoginModalProps) {
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Update email when initialEmail prop changes
+  useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   // Forgot password state
   const [showForgotPassword, setShowForgotPassword] = useState(false);

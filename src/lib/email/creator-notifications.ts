@@ -88,16 +88,12 @@ export async function sendCreatorApprovalEmail(data: CreatorApprovalData) {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="padding: 24px 0;">
-                    <a href="https://digis.cc/settings/profile" style="display: inline-block; background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-size: 16px; font-weight: 700;">
-                      Complete My Profile
+                    <a href="https://digis.cc/?login=true&email=${encodeURIComponent(data.email)}" style="display: inline-block; background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); color: #ffffff; text-decoration: none; padding: 18px 48px; border-radius: 50px; font-size: 16px; font-weight: 700;">
+                      Sign In & Get Started
                     </a>
                   </td>
                 </tr>
               </table>
-
-              <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; text-align: center; margin: 24px 0 0;">
-                Your profile: <a href="https://digis.cc/${data.username}" style="color: #00D4FF;">digis.cc/${data.username}</a>
-              </p>
             </td>
           </tr>
 
@@ -132,9 +128,7 @@ What you can do now:
 - Charge for direct messages
 - Your AI Twin makes money while you sleep
 
-Complete your profile: https://digis.cc/settings/profile
-
-Your profile: https://digis.cc/${data.username}
+Sign in to get started: https://digis.cc/?login=true&email=${encodeURIComponent(data.email)}
 
 Welcome to the creator family!
 

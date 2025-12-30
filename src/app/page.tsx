@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, memo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -681,11 +681,24 @@ function MarketingPage({
 // Main Page Content Component
 function HomeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [signupRedirectTo, setSignupRedirectTo] = useState('/');
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+
+  // Check URL params for login trigger with pre-filled email
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    const loginParam = searchParams.get('login');
+
+    if (loginParam === 'true' && emailParam) {
+      setLoginEmail(emailParam);
+      setShowLogin(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -758,6 +771,7 @@ function HomeContent() {
           setShowLogin(false);
           setShowSignup(true);
         }}
+        initialEmail={loginEmail}
       />
       <SignupModal
         isOpen={showSignup}
