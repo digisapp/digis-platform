@@ -7,6 +7,7 @@ import { users, tipMenuItems, menuPurchases } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
+import { notifyGiftReceived } from '@/lib/email/creator-earnings';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -149,6 +150,33 @@ export async function POST(
       ).catch(err => {
         console.error('[AI Stream Chat] Error thanking tipper:', err);
       });
+    }
+
+    // Send email notification to creator (non-blocking)
+    if (result.recipientCreatorId) {
+      (async () => {
+        try {
+          const creator = await db.query.users.findFirst({
+            where: eq(users.id, result.recipientCreatorId!),
+            columns: { email: true, displayName: true, username: true },
+          });
+
+          if (creator?.email) {
+            const creatorName = creator.displayName || creator.username || 'Creator';
+            await notifyGiftReceived(
+              creator.email,
+              creatorName,
+              username,
+              dbUser.username || 'user',
+              amount,
+              tipMenuItemLabel || undefined,
+              message?.trim() || undefined
+            );
+          }
+        } catch (err) {
+          console.error('Error sending stream tip email notification:', err);
+        }
+      })();
     }
 
     // Return response with digital content URL if applicable

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ContentService } from '@/lib/content/content-service';
 import { NotificationService } from '@/lib/services/notification-service';
+import { notifyContentPurchase } from '@/lib/email/creator-earnings';
 import { db } from '@/lib/data/system';
 import { users, contentItems } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
@@ -32,7 +33,7 @@ export async function POST(
     if (result.purchase && result.purchase.coinsSpent > 0) {
       (async () => {
         try {
-          // Get content and buyer details
+          // Get content, buyer, and creator details
           const [content, buyer] = await Promise.all([
             db.query.contentItems.findFirst({
               where: eq(contentItems.id, contentId),
@@ -46,6 +47,8 @@ export async function POST(
 
           if (content && buyer) {
             const buyerName = buyer.displayName || buyer.username || 'Someone';
+
+            // Send in-app notification
             await NotificationService.sendNotification(
               content.creatorId,
               'purchase',
@@ -60,6 +63,24 @@ export async function POST(
                 coinsSpent: content.unlockPrice,
               }
             );
+
+            // Send email notification to creator
+            const creator = await db.query.users.findFirst({
+              where: eq(users.id, content.creatorId),
+              columns: { email: true, displayName: true, username: true },
+            });
+
+            if (creator?.email) {
+              const creatorName = creator.displayName || creator.username || 'Creator';
+              notifyContentPurchase(
+                creator.email,
+                creatorName,
+                buyerName,
+                buyer.username || 'user',
+                content.unlockPrice || 0,
+                content.title || undefined
+              ).catch(err => console.error('Error sending purchase email:', err));
+            }
           }
         } catch (err) {
           console.error('Error sending purchase notification:', err);

@@ -8,6 +8,7 @@ import { BlockService } from '@/lib/services/block-service';
 import { callRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { callLogger, extractError } from '@/lib/logging/logger';
 import { rateLimitCallRequest } from '@/lib/rate-limit';
+import { notifyCallRequest } from '@/lib/email/creator-earnings';
 
 export const runtime = 'nodejs';
 
@@ -87,6 +88,31 @@ export async function POST(request: NextRequest) {
       estimatedCoins: call.estimatedCoins,
       fan,
     });
+
+    // Send email notification to creator (non-blocking)
+    (async () => {
+      try {
+        const creator = await db.query.users.findFirst({
+          where: eq(users.id, creatorId),
+          columns: { email: true, displayName: true, username: true },
+        });
+
+        if (creator?.email && fan) {
+          const creatorName = creator.displayName || creator.username || 'Creator';
+          const fanName = fan.displayName || fan.username || 'A fan';
+          await notifyCallRequest(
+            creator.email,
+            creatorName,
+            fanName,
+            fan.username || 'user',
+            call.estimatedCoins || 0,
+            call.callType as 'video' | 'voice'
+          );
+        }
+      } catch (err) {
+        console.error('Error sending call request email notification:', err);
+      }
+    })();
 
     // Log successful call request
     callLogger.info('Call requested successfully', {

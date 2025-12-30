@@ -7,6 +7,7 @@ import { rateLimitFinancial } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { validateBody, uuidSchema, coinAmountSchema } from '@/lib/validation/schemas';
 import { walletLogger, extractError } from '@/lib/logging/logger';
+import { notifyGiftReceived } from '@/lib/email/creator-earnings';
 
 // Tip-specific schema
 const tipSendSchema = z.object({
@@ -290,6 +291,34 @@ export async function POST(req: NextRequest) {
       recipientId: receiver.id,
       transactionId: result.transactionId,
     });
+
+    // Send email notification to creator (non-blocking)
+    (async () => {
+      try {
+        const creatorWithEmail = await db.query.users.findFirst({
+          where: eq(users.id, receiver.id),
+          columns: { email: true, displayName: true, username: true },
+        });
+
+        if (creatorWithEmail?.email) {
+          const creatorName = creatorWithEmail.displayName || creatorWithEmail.username || 'Creator';
+          const senderName = sender?.displayName || sender?.username || 'A fan';
+          const giftLabel = giftEmoji && giftName ? `${giftEmoji} ${giftName}` : undefined;
+
+          await notifyGiftReceived(
+            creatorWithEmail.email,
+            creatorName,
+            senderName,
+            sender?.username || 'user',
+            amount,
+            giftLabel,
+            message
+          );
+        }
+      } catch (err) {
+        console.error('Error sending gift email notification:', err);
+      }
+    })();
 
     return NextResponse.json({
       success: true,
