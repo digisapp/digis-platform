@@ -35,6 +35,7 @@ import {
   X,
   UserCog,
   Star,
+  Eye,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -61,6 +62,8 @@ interface Creator {
   last_stream_at: string | null;
   active_subscribers: number;
   profile_completeness: number;
+  profile_views: number;
+  views_7d: number;
 }
 
 interface Fan {
@@ -587,6 +590,9 @@ function AdminCommunityContent() {
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Subs
                       </th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Traffic
+                      </th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
@@ -683,6 +689,17 @@ function AdminCommunityContent() {
                           <div className="flex items-center justify-end gap-1">
                             <Sparkles className="w-4 h-4 text-purple-400" />
                             <span className="text-sm text-white">{creator.active_subscribers}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-4 h-4 text-cyan-400" />
+                              <span className="text-sm font-medium text-white">{formatCoins(creator.profile_views)}</span>
+                            </div>
+                            {creator.views_7d > 0 && (
+                              <span className="text-xs text-gray-500">+{creator.views_7d} this week</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">

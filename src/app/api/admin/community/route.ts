@@ -75,6 +75,8 @@ export async function GET(req: NextRequest) {
           COALESCE(stream_stats.total_streams, 0) as total_streams,
           stream_stats.last_stream_at,
           COALESCE(sub_stats.active_subscribers, 0) as active_subscribers,
+          COALESCE(traffic_stats.profile_views, 0) as profile_views,
+          COALESCE(traffic_stats.views_7d, 0) as views_7d,
           -- Profile completeness: check key fields
           CASE
             WHEN u.avatar_url IS NOT NULL
@@ -121,6 +123,15 @@ export async function GET(req: NextRequest) {
           WHERE status = 'active'
           GROUP BY creator_id
         ) sub_stats ON sub_stats.creator_id = u.id
+        LEFT JOIN (
+          SELECT
+            creator_id,
+            COUNT(*) as profile_views,
+            COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days') as views_7d
+          FROM page_views
+          WHERE page_type = 'profile' AND creator_id IS NOT NULL
+          GROUP BY creator_id
+        ) traffic_stats ON traffic_stats.creator_id = u.id
         WHERE u.role = 'creator'
         ${search ? sql`AND (u.username ILIKE ${`%${search}%`} OR u.email ILIKE ${`%${search}%`} OR u.display_name ILIKE ${`%${search}%`})` : sql``}
         ${filterCondition}
