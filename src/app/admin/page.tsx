@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
@@ -517,6 +517,13 @@ export default function AdminDashboard() {
             >
               <Users className="w-4 h-4 text-purple-400" />
               <span className="text-sm font-medium text-white">Community</span>
+            </button>
+            <button
+              onClick={() => router.push('/admin/campaigns')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500/20 to-orange-500/20 hover:from-pink-500/30 hover:to-orange-500/30 border border-pink-500/30 rounded-lg transition-colors"
+            >
+              <Mail className="w-4 h-4 text-pink-400" />
+              <span className="text-sm font-medium text-white">Campaigns</span>
             </button>
             <button
               onClick={handleRefresh}
