@@ -100,16 +100,22 @@ export async function POST(request: NextRequest) {
 
         // Check if this email matches a pending creator invite (auto-claim)
         try {
-          const { data: pendingInvite } = await adminClient
+          const { data: pendingInvite, error: inviteError } = await adminClient
             .from('creator_invites')
-            .select('id')
+            .select('id, email, status')
             .eq('status', 'pending')
             .ilike('email', email)
             .single();
 
+          if (inviteError) {
+            console.log(`[Signup] No pending invite found for ${email}: ${inviteError.message}`);
+          }
+
           if (pendingInvite) {
+            console.log(`[Signup] Found pending invite for ${email}:`, pendingInvite);
+
             // Mark invite as claimed
-            await adminClient
+            const { error: claimError } = await adminClient
               .from('creator_invites')
               .update({
                 status: 'claimed',
@@ -118,16 +124,24 @@ export async function POST(request: NextRequest) {
               })
               .eq('id', pendingInvite.id);
 
+            if (claimError) {
+              console.error(`[Signup] Error claiming invite: ${claimError.message}`);
+            }
+
             // Auto-upgrade user to creator
-            await adminClient
+            const { error: upgradeError } = await adminClient
               .from('users')
-              .update({ role: 'creator' })
+              .update({ role: 'creator', is_creator_verified: true })
               .eq('id', authData.user.id);
 
-            console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
+            if (upgradeError) {
+              console.error(`[Signup] Error upgrading to creator: ${upgradeError.message}`);
+            } else {
+              console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
+            }
           }
-        } catch {
-          // No matching invite or error - ignore silently
+        } catch (inviteCheckError) {
+          console.error(`[Signup] Error checking for invite:`, inviteCheckError);
         }
       } catch (dbError) {
         console.error('Error creating user in database:', dbError);
