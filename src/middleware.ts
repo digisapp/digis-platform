@@ -38,6 +38,30 @@ export async function middleware(request: NextRequest) {
   // IMPORTANT: Refresh session if expired - required for Server Components
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Update last_seen_at for authenticated users (rate-limited to every 5 minutes)
+  if (user) {
+    const lastSeenCookie = request.cookies.get('last_seen_updated')?.value
+    const now = Date.now()
+    const fiveMinutes = 5 * 60 * 1000
+
+    // Only update if no cookie or cookie is older than 5 minutes
+    if (!lastSeenCookie || (now - parseInt(lastSeenCookie, 10)) > fiveMinutes) {
+      // Update last_seen_at in database (fire and forget)
+      void supabase
+        .from('users')
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq('id', user.id)
+
+      // Set cookie to track last update time
+      supabaseResponse.cookies.set('last_seen_updated', now.toString(), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: fiveMinutes / 1000, // Cookie expires in 5 minutes
+      })
+    }
+  }
+
   // Protect /admin routes - Admin only
   if (path.startsWith('/admin')) {
     if (!user) {
