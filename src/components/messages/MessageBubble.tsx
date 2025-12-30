@@ -345,11 +345,14 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
   // Tip/Gift message
   if (message.messageType === 'tip' && message.tipAmount) {
     // Parse gift info from content: "Sent 🎂 Cake: message" or "Sent 🎂 Cake" or just coins
-    const giftMatch = message.content?.match(/^Sent\s+(\p{Emoji})\s+([^:]+)(?::\s*(.*))?$/u);
-    const isVirtualGift = !!giftMatch;
-    const giftEmoji = giftMatch?.[1];
-    const giftName = giftMatch?.[2]?.trim();
-    const giftMessage = giftMatch?.[3]?.trim();
+    // Use \S+ instead of \p{Emoji} to capture emoji sequences with variation selectors
+    const giftMatch = message.content?.match(/^Sent\s+(\S+)\s+([^:]+)(?::\s*(.*))?$/u);
+    // Check if first capture looks like an emoji (not a number like "100")
+    const possibleEmoji = giftMatch?.[1];
+    const isVirtualGift = !!giftMatch && possibleEmoji && !/^\d+$/.test(possibleEmoji);
+    const giftEmoji = isVirtualGift ? possibleEmoji : undefined;
+    const giftName = isVirtualGift ? giftMatch?.[2]?.trim() : undefined;
+    const giftMessage = isVirtualGift ? giftMatch?.[3]?.trim() : undefined;
 
     // For plain coin gifts, check if there's a custom message
     const plainCoinMessage = !isVirtualGift && message.content && message.content !== `Sent ${message.tipAmount} coins`
