@@ -76,7 +76,7 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                             ${greeting}
                                         </p>
                                         <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.9);">
-                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong> an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2025!
+                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong> an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2026!
                                         </p>
 
                                         <!-- Feature list with icons -->
@@ -154,7 +154,7 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                         </table>
 
                                         <p style="margin: 0; color: rgba(255, 255, 255, 0.7);">
-                                            We're currently invite-only, first come first serve for username, claim today and <strong style="color: #00D4FF;">Bring in the new year 2025 with Digis!</strong>
+                                            We're currently invite-only, first come first serve for username, claim today and <strong style="color: #00D4FF;">Bring in the new year 2026 with Digis!</strong>
                                         </p>
                                     </td>
                                 </tr>
@@ -209,7 +209,7 @@ function generateInvitePlainText(inviteUrl: string, recipientName?: string): str
 
   return `${greeting}
 
-You've been invited to Digis an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2025!
+You've been invited to Digis an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2026!
 
 ► Live Streaming — go live and earn from gifts
 ◈ Digitals — sell exclusive content
@@ -217,7 +217,7 @@ You've been invited to Digis an invite-only Creator platform built for the next 
 ▣ Paid Video Calls — set your rate for calls
 ✦ Exclusive Events!
 
-We're currently invite-only, first come first serve for username, claim today and Bring in the new year 2025 with Digis!
+We're currently invite-only, first come first serve for username, claim today and Bring in the new year 2026 with Digis!
 
 Claim your invite: ${inviteUrl}
 
