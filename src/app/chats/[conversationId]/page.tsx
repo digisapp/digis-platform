@@ -63,6 +63,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserIsAdmin, setCurrentUserIsAdmin] = useState(false);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -248,12 +249,13 @@ export default function ChatPage() {
 
     setCurrentUserId(user.id);
 
-    // Fetch user role
+    // Fetch user role and admin status
     try {
       const response = await fetch('/api/user/me');
       if (response.ok) {
         const userData = await response.json();
         setCurrentUserRole(userData.role || 'fan');
+        setCurrentUserIsAdmin(userData.role === 'admin' || userData.isAdmin === true);
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
@@ -341,14 +343,15 @@ export default function ChatPage() {
     if (!newMessage.trim() || !conversation) return;
 
     // Messaging cost rules:
+    // - Admin → Anyone: ALWAYS FREE (admins can chat for free)
     // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
     // - Fan → Creator: Fan pays the creator's message rate (if set)
     // - Creator → Creator: Sender pays the receiver's message rate (if set)
     const isSenderCreator = currentUserRole === 'creator';
     const isRecipientCreator = conversation.otherUser.role === 'creator';
-    const shouldCheckCharge = isRecipientCreator; // Only check charge when messaging a creator
+    const shouldCheckCharge = isRecipientCreator && !currentUserIsAdmin; // Admins never pay
 
-    // Check if recipient has message charging enabled (only if they're a creator)
+    // Check if recipient has message charging enabled (only if they're a creator and sender is not admin)
     const messageCharge = conversation.otherUser.messageCharge;
     if (shouldCheckCharge && messageCharge && messageCharge > 0) {
       // If user hasn't acknowledged the charge yet, show warning for first message
