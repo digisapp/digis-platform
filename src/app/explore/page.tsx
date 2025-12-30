@@ -271,9 +271,6 @@ export default function ExplorePage() {
                     <span className="text-gray-400 text-sm">Loading more...</span>
                   </div>
                 )}
-                {!hasMore && creators.length > 0 && (
-                  <p className="text-gray-500 text-sm">You've seen all creators</p>
-                )}
               </div>
             </>
           )}
