@@ -7,21 +7,6 @@ import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, Tr
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
-interface Application {
-  id: string;
-  instagramHandle: string | null;
-  tiktokHandle: string | null;
-  status: string;
-  createdAt: string;
-  user: {
-    id: string;
-    email: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-  };
-}
-
 interface Stats {
   totalUsers: number;
   totalCreators: number;
@@ -34,7 +19,7 @@ interface Stats {
   todaySignups?: number;
 }
 
-type MainTab = 'applications' | 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
+type MainTab = 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
 
 interface TrafficData {
   summary: {
@@ -171,12 +156,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   // Main tab state
-  const [mainTab, setMainTab] = useState<MainTab>('applications');
-
-  // Applications state
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [mainTab, setMainTab] = useState<MainTab>('traffic');
 
   // Refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -197,7 +177,6 @@ export default function AdminDashboard() {
   const [activityFilter, setActivityFilter] = useState<'all' | 'active_today' | 'active_week' | 'active_month' | 'inactive'>('all');
 
   // Cache flags to avoid refetching
-  const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
   const [hasFetchedTraffic, setHasFetchedTraffic] = useState(false);
   const [hasFetchedModeration, setHasFetchedModeration] = useState(false);
   const [hasFetchedRevenue, setHasFetchedRevenue] = useState(false);
@@ -250,9 +229,7 @@ export default function AdminDashboard() {
 
   // Fetch data when tab changes (with caching)
   useEffect(() => {
-    if (mainTab === 'applications' && !hasFetchedApplications) {
-      fetchApplications();
-    } else if (mainTab === 'traffic' && !hasFetchedTraffic) {
+    if (mainTab === 'traffic' && !hasFetchedTraffic) {
       fetchTraffic();
     } else if (mainTab === 'moderation' && !hasFetchedModeration) {
       fetchModeration();
@@ -262,13 +239,6 @@ export default function AdminDashboard() {
       fetchCreatorActivity();
     }
   }, [mainTab]);
-
-  // Refetch applications when status filter changes
-  useEffect(() => {
-    if (mainTab === 'applications') {
-      fetchApplications();
-    }
-  }, [selectedStatus]);
 
   // Refetch traffic when range changes
   useEffect(() => {
@@ -300,29 +270,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchApplications = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/applications?status=${selectedStatus}`);
-      const data = await response.json();
-      if (response.ok) {
-        setApplications(data.applications || []);
-        setHasFetchedApplications(true);
-      }
-    } catch (err) {
-      console.error('Error fetching applications:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Refresh all data
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       await Promise.all([
         fetchStats(),
-        mainTab === 'applications' && fetchApplications(),
         mainTab === 'traffic' && fetchTraffic(),
         mainTab === 'moderation' && fetchModeration(),
         mainTab === 'revenue' && fetchRevenue(),
@@ -415,75 +368,6 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleApprove = (id: string) => {
-    setModal({
-      isOpen: true,
-      title: 'Approve Creator',
-      message: 'Approve this creator application?\n\nThey will gain access to creator features.',
-      type: 'confirm',
-      icon: 'promote',
-      confirmText: 'Approve',
-      onConfirm: async () => {
-        closeModal();
-        setProcessingId(id);
-        try {
-          const response = await fetch(`/api/admin/applications/${id}/approve`, {
-            method: 'POST',
-          });
-          if (response.ok) {
-            showToast('Application approved successfully!', 'success');
-            fetchApplications();
-            fetchStats();
-          } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to approve application', 'error');
-          }
-        } catch (err) {
-          console.error('Error approving:', err);
-          showToast('Failed to approve application', 'error');
-        } finally {
-          setProcessingId(null);
-        }
-      },
-    });
-  };
-
-  const handleReject = (id: string) => {
-    setModal({
-      isOpen: true,
-      title: 'Reject Application',
-      message: 'Enter a reason for rejection (optional):',
-      type: 'prompt',
-      icon: 'warning',
-      confirmText: 'Reject',
-      placeholder: 'Rejection reason...',
-      onConfirm: async (reason?: string) => {
-        closeModal();
-        setProcessingId(id);
-        try {
-          const response = await fetch(`/api/admin/applications/${id}/reject`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reason: reason || '' }),
-          });
-          if (response.ok) {
-            showToast('Application rejected', 'success');
-            fetchApplications();
-            fetchStats();
-          } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to reject application', 'error');
-          }
-        } catch (err) {
-          console.error('Error rejecting:', err);
-          showToast('Failed to reject application', 'error');
-        } finally {
-          setProcessingId(null);
-        }
-      },
-    });
   };
 
   if (loading && !stats) {
@@ -586,18 +470,15 @@ export default function AdminDashboard() {
 
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => {
-                setMainTab('applications');
-                setSelectedStatus('pending');
-              }}
+              onClick={() => router.push('/admin/community?filter=new')}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-yellow-500/20 rounded-lg">
-                  <Clock className="w-5 h-5 text-yellow-500" />
+                <div className="p-2.5 bg-green-500/20 rounded-lg">
+                  <UserPlus className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Pending Apps</p>
-                  <p className="text-xl font-bold">{stats.pendingApplications}</p>
+                  <p className="text-xs text-gray-400">Today's Signups</p>
+                  <p className="text-xl font-bold">{stats.todaySignups || 0}</p>
                 </div>
               </div>
             </GlassCard>
@@ -622,22 +503,15 @@ export default function AdminDashboard() {
         {/* Main Tabs */}
         <div className="flex gap-2 md:gap-4 mb-6 border-b border-white/10 overflow-x-auto pb-px">
           <button
-            onClick={() => setMainTab('applications')}
-            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
-              mainTab === 'applications'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            onClick={() => router.push('/admin/community?filter=new')}
+            className="px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base text-gray-400 hover:text-white"
           >
-            Applications
-            {stats?.pendingApplications ? (
-              <span className="ml-1.5 px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
-                {stats.pendingApplications}
+            New Users
+            {stats?.todaySignups ? (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                {stats.todaySignups}
               </span>
             ) : null}
-            {mainTab === 'applications' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
-            )}
           </button>
           <button
             onClick={() => setMainTab('payouts')}
@@ -731,133 +605,6 @@ export default function AdminDashboard() {
             Onboarding
           </button>
         </div>
-
-        {/* Applications Tab Content */}
-        {mainTab === 'applications' && (
-          <>
-            {/* Status Filter Tabs */}
-            <div className="flex gap-4 mb-6">
-              {(['pending', 'approved', 'rejected'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setSelectedStatus(status)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedStatus === status
-                      ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
-                      : 'bg-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Applications List */}
-            <div className="space-y-4">
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <LoadingSpinner size="lg" />
-                </div>
-              ) : applications.length === 0 ? (
-                <GlassCard className="p-12 text-center">
-                  <p className="text-gray-400">No {selectedStatus} applications</p>
-                </GlassCard>
-              ) : (
-                applications.map((app) => (
-                  <GlassCard key={app.id} className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
-                      <div className="flex items-start gap-3 md:gap-4 flex-1">
-                        {/* Avatar */}
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-2xl font-bold shrink-0">
-                          {app.user.avatarUrl ? (
-                            <img src={app.user.avatarUrl} alt={app.user.username} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            app.user.username?.[0]?.toUpperCase() || '?'
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg md:text-xl font-semibold truncate">{app.user.displayName || app.user.username}</h3>
-                          </div>
-
-                          <p className="text-xs md:text-sm text-gray-400 mb-3 truncate">
-                            @{app.user.username} • {app.user.email}
-                          </p>
-
-                          {/* Social Links */}
-                          <div className="flex flex-wrap gap-3 mb-3">
-                            {app.instagramHandle && (
-                              <a
-                                href={`https://instagram.com/${app.instagramHandle.replace('@', '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 rounded-full text-pink-400 hover:bg-pink-500/30 transition-colors"
-                              >
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                </svg>
-                                {app.instagramHandle}
-                              </a>
-                            )}
-                            {app.tiktokHandle && (
-                              <a
-                                href={`https://tiktok.com/@${app.tiktokHandle.replace('@', '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-500/20 to-pink-500/20 border border-cyan-500/30 rounded-full text-cyan-400 hover:bg-cyan-500/30 transition-colors"
-                              >
-                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                                </svg>
-                                {app.tiktokHandle}
-                              </a>
-                            )}
-                            {!app.instagramHandle && !app.tiktokHandle && (
-                              <span className="text-sm text-gray-500 italic">No social links provided</span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span>Applied {new Date(app.createdAt).toLocaleDateString()}</span>
-                            <button
-                              onClick={() => router.push(`/${app.user.username}`)}
-                              className="text-digis-cyan hover:underline"
-                            >
-                              View Profile
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      {selectedStatus === 'pending' && (
-                        <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
-                          <button
-                            onClick={() => handleApprove(app.id)}
-                            disabled={processingId === app.id}
-                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors disabled:opacity-50 text-sm md:text-base"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(app.id)}
-                            disabled={processingId === app.id}
-                            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50 text-sm md:text-base"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </GlassCard>
-                ))
-              )}
-            </div>
-          </>
-        )}
 
         {/* Traffic Tab Content */}
         {mainTab === 'traffic' && (

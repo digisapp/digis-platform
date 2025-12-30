@@ -120,12 +120,13 @@ function AdminCommunityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'fans' ? 'fans' : 'creators';
+  const initialFilter = searchParams.get('filter') || 'all';
   const [tab, setTab] = useState<'creators' | 'fans'>(initialTab);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [fans, setFans] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(initialFilter);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 50,
@@ -143,9 +144,17 @@ function AdminCommunityContent() {
   } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Track if this is the initial mount (to preserve URL filter param)
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    setFilter('all');
-    setPagination((prev) => ({ ...prev, page: 1 }));
+    if (hasInitialized) {
+      // Only reset filter when user manually switches tabs, not on initial load
+      setFilter('all');
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    } else {
+      setHasInitialized(true);
+    }
   }, [tab]);
 
   useEffect(() => {
@@ -563,6 +572,9 @@ function AdminCommunityContent() {
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Creator
                       </th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Joined
+                      </th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Profile
                       </th>
@@ -637,6 +649,11 @@ function AdminCommunityContent() {
                               <span className="text-xs text-gray-500">{creator.email}</span>
                             </div>
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-400">
+                            {new Date(creator.created_at).toLocaleDateString()}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           {getProfileBadge(creator.profile_completeness)}
@@ -823,6 +840,9 @@ function AdminCommunityContent() {
                         Fan
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Joined
+                      </th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Last Seen
                       </th>
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -889,6 +909,11 @@ function AdminCommunityContent() {
                               <p className="text-xs text-gray-500">{fan.email}</p>
                             </div>
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-400">
+                            {new Date(fan.created_at).toLocaleDateString()}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-sm text-gray-400">
