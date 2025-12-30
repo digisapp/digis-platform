@@ -32,8 +32,12 @@ export async function POST(request: NextRequest) {
       if (!testEmail) {
         return NextResponse.json({ error: 'testEmail required' }, { status: 400 });
       }
-      const success = await testInviteEmail(testEmail);
-      return NextResponse.json({ success, message: success ? 'Test email sent!' : 'Failed to send test email' });
+      const result = await testInviteEmail(testEmail);
+      return NextResponse.json({
+        success: result.success,
+        message: result.success ? 'Test email sent!' : `Failed: ${result.error || 'Unknown error'}`,
+        error: result.error
+      });
     }
 
     // Send single invite

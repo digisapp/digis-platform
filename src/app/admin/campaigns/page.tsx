@@ -74,6 +74,7 @@ export default function CampaignsPage() {
   // Test email
   const [testEmail, setTestEmail] = useState('');
   const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [testError, setTestError] = useState<string | null>(null);
 
   // Custom recipients (paste emails)
   const [customEmails, setCustomEmails] = useState('');
@@ -105,6 +106,7 @@ export default function CampaignsPage() {
   const handleTestEmail = async () => {
     if (!testEmail) return;
     setTestStatus('sending');
+    setTestError(null);
     try {
       const res = await fetch('/api/admin/campaigns/invite', {
         method: 'POST',
@@ -112,11 +114,18 @@ export default function CampaignsPage() {
         body: JSON.stringify({ action: 'test', testEmail }),
       });
       const data = await res.json();
-      setTestStatus(data.success ? 'success' : 'error');
-      setTimeout(() => setTestStatus('idle'), 3000);
-    } catch {
+      if (data.success) {
+        setTestStatus('success');
+        setTestError(null);
+      } else {
+        setTestStatus('error');
+        setTestError(data.error || data.message || 'Unknown error');
+      }
+      setTimeout(() => setTestStatus('idle'), 5000);
+    } catch (err) {
       setTestStatus('error');
-      setTimeout(() => setTestStatus('idle'), 3000);
+      setTestError(err instanceof Error ? err.message : 'Network error');
+      setTimeout(() => setTestStatus('idle'), 5000);
     }
   };
 
@@ -304,6 +313,11 @@ export default function CampaignsPage() {
           <p className="text-xs text-gray-500 mt-2">
             Sends from hello@examodels.com
           </p>
+          {testError && (
+            <div className="mt-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+              <p className="text-sm text-red-400">{testError}</p>
+            </div>
+          )}
         </GlassCard>
 
         {/* Batch Config */}

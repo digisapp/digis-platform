@@ -301,11 +301,16 @@ export async function sendBatchInvites(
 }
 
 // Test the email setup
-export async function testInviteEmail(testEmail: string): Promise<boolean> {
+export async function testInviteEmail(testEmail: string): Promise<{ success: boolean; error?: string }> {
+  console.log('[Campaign] Testing email to:', testEmail);
+  console.log('[Campaign] Resend configured:', !!resend);
+
   const result = await sendCreatorInvite({
     email: testEmail,
     name: 'Test Creator',
-    inviteUrl: 'https://digis.cc/onboarding?invite=test123',
+    inviteUrl: 'https://digis.cc/claim/test123',
   });
-  return result.success;
+
+  console.log('[Campaign] Test result:', result);
+  return { success: result.success, error: result.error };
 }
