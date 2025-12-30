@@ -33,6 +33,8 @@ import {
   Trash2,
   ExternalLink,
   X,
+  UserCog,
+  Star,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -355,6 +357,37 @@ function AdminCommunityContent() {
           }
         } catch {
           showToast('Failed to delete user', 'error');
+        }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleChangeRole = (userId: string, currentRole: string, newRole: 'fan' | 'creator' | 'admin') => {
+    setActiveDropdown(null);
+    const roleLabels = { fan: 'Fan', creator: 'Creator', admin: 'Admin' };
+    setConfirmModal({
+      show: true,
+      title: 'Change Role',
+      message: `Change this user from ${roleLabels[currentRole as keyof typeof roleLabels]} to ${roleLabels[newRole]}?`,
+      type: 'warning',
+      confirmText: `Make ${roleLabels[newRole]}`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/role`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole }),
+          });
+          if (response.ok) {
+            showToast(`User is now a ${roleLabels[newRole]}`, 'success');
+            fetchData();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to change role', 'error');
+          }
+        } catch {
+          showToast('Failed to change role', 'error');
         }
         setConfirmModal(null);
       },
@@ -713,6 +746,28 @@ function AdminCommunityContent() {
                                     </>
                                   )}
                                 </button>
+                                <div className="border-t border-white/10 my-1" />
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChangeRole(creator.id, 'creator', 'fan');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  <Users className="w-4 h-4 text-cyan-400" />
+                                  Change to Fan
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChangeRole(creator.id, 'creator', 'admin');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  <Shield className="w-4 h-4 text-red-400" />
+                                  Make Admin
+                                </button>
+                                <div className="border-t border-white/10 my-1" />
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -907,6 +962,28 @@ function AdminCommunityContent() {
                                     </>
                                   )}
                                 </button>
+                                <div className="border-t border-white/10 my-1" />
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChangeRole(fan.id, 'fan', 'creator');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  <Star className="w-4 h-4 text-purple-400" />
+                                  Make Creator
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChangeRole(fan.id, 'fan', 'admin');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  <Shield className="w-4 h-4 text-red-400" />
+                                  Make Admin
+                                </button>
+                                <div className="border-t border-white/10 my-1" />
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
