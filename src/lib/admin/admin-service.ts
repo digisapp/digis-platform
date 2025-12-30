@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
 import { users, creatorApplications, payoutRequests, creatorSettings } from '@/lib/data/system';
-import { eq, and, or, ilike, desc, count, sql, sum } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, count, sql, sum, gte } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email/creator-notifications';
@@ -517,7 +517,7 @@ export class AdminService {
           totalAmount: sum(payoutRequests.amount),
         }).from(payoutRequests).where(eq(payoutRequests.status, 'pending')),
         // Count today's signups
-        db.select({ count: count() }).from(users).where(sql`${users.createdAt} >= ${today}`),
+        db.select({ count: count() }).from(users).where(gte(users.createdAt, today)),
       ]),
       { timeoutMs: 3000, retries: 1, tag: 'adminStats' }
     );
