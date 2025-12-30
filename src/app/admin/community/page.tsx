@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
@@ -111,7 +111,7 @@ const FAN_FILTERS = [
   { key: 'inactive', label: 'Inactive (30d)' },
 ];
 
-export default function AdminCommunityPage() {
+function AdminCommunityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'fans' ? 'fans' : 'creators';
@@ -1037,5 +1037,17 @@ export default function AdminCommunityPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminCommunityPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <AdminCommunityContent />
+    </Suspense>
   );
 }
