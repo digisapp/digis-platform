@@ -22,6 +22,7 @@ import {
   CachedConversation,
 } from '@/lib/cache';
 import { BlockService } from '@/lib/services/block-service';
+import { NotificationService } from '@/lib/services/notification-service';
 
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
 const COLD_OUTREACH_FEE = 50;
@@ -1081,8 +1082,14 @@ export class MessageService {
       throw new Error('Unauthorized: You are not a participant in this conversation');
     }
 
+    // Get sender info for notification (before transaction)
+    const sender = await db.query.users.findFirst({
+      where: eq(users.id, senderId),
+      columns: { displayName: true, username: true, avatarUrl: true },
+    });
+
     // Use transaction for all financial and message operations
-    return await db.transaction(async (tx) => {
+    const messageWithSender = await db.transaction(async (tx) => {
       // Check if sender has enough balance
       const wallet = await tx.query.wallets.findFirst({
         where: eq(wallets.userId, senderId),
@@ -1171,7 +1178,7 @@ export class MessageService {
       // Update conversation's last message
       const lastMessageText = giftLabel
         ? `${giftEmoji} Sent ${giftName}`
-        : `💰 Sent ${amount} coins`;
+        : `Sent ${amount} coins`;
       await tx
         .update(conversations)
         .set({
@@ -1183,7 +1190,7 @@ export class MessageService {
         .where(eq(conversations.id, conversationId));
 
       // Return message with sender info
-      const messageWithSender = await tx.query.messages.findFirst({
+      const result = await tx.query.messages.findFirst({
         where: eq(messages.id, message.id),
         with: {
           sender: {
@@ -1197,8 +1204,34 @@ export class MessageService {
         },
       });
 
-      return messageWithSender!;
+      return result!;
     });
+
+    // Send notification to receiver (after transaction succeeds)
+    const senderName = sender?.displayName || sender?.username || 'Someone';
+    const giftLabel = giftEmoji && giftName ? `${giftEmoji} ${giftName}` : null;
+    const notifTitle = giftLabel
+      ? `${senderName} sent you ${giftName}!`
+      : `${senderName} sent you ${amount} coins!`;
+    const notifMessage = tipMessage
+      ? `"${tipMessage}"`
+      : giftLabel
+        ? `${amount} coins`
+        : 'Via direct message';
+
+    NotificationService.sendNotification(
+      receiverId,
+      'tip',
+      notifTitle,
+      notifMessage,
+      `/chats/${conversationId}`,
+      sender?.avatarUrl || undefined,
+      { amount, giftId, giftEmoji, giftName }
+    ).catch(err => {
+      console.error('[MessageService.sendTip] Notification failed:', err);
+    });
+
+    return messageWithSender;
   }
 
   /**
