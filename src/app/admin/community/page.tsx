@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   Users,
@@ -25,6 +25,14 @@ import {
   Ban,
   Sparkles,
   CreditCard,
+  MoreVertical,
+  ShieldCheck,
+  ShieldOff,
+  UserX,
+  RefreshCw,
+  Trash2,
+  ExternalLink,
+  X,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -105,7 +113,9 @@ const FAN_FILTERS = [
 
 export default function AdminCommunityPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<'creators' | 'fans'>('creators');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'fans' ? 'fans' : 'creators';
+  const [tab, setTab] = useState<'creators' | 'fans'>(initialTab);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [fans, setFans] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +127,16 @@ export default function AdminCommunityPage() {
     total: 0,
     totalPages: 0,
   });
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'confirm';
+    confirmText: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     setFilter('all');
@@ -243,6 +263,112 @@ export default function AdminCommunityPage() {
       return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-xs">{completeness}%</span>;
     }
   };
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleVerifyCreator = (userId: string, isCurrentlyVerified: boolean) => {
+    setActiveDropdown(null);
+    setConfirmModal({
+      show: true,
+      title: isCurrentlyVerified ? 'Remove Verification' : 'Verify Creator',
+      message: isCurrentlyVerified
+        ? 'Remove verification badge from this creator?'
+        : 'Give this creator a verified badge?',
+      type: 'confirm',
+      confirmText: isCurrentlyVerified ? 'Remove' : 'Verify',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ verified: !isCurrentlyVerified }),
+          });
+          if (response.ok) {
+            showToast(isCurrentlyVerified ? 'Verification removed' : 'Creator verified', 'success');
+            fetchData();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update verification', 'error');
+          }
+        } catch {
+          showToast('Failed to update verification', 'error');
+        }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleSuspendUser = (userId: string, isCurrentlySuspended: boolean) => {
+    setActiveDropdown(null);
+    setConfirmModal({
+      show: true,
+      title: isCurrentlySuspended ? 'Unsuspend User' : 'Suspend User',
+      message: isCurrentlySuspended
+        ? 'Restore access to this user account?'
+        : 'Suspend this user? They will not be able to log in.',
+      type: isCurrentlySuspended ? 'confirm' : 'warning',
+      confirmText: isCurrentlySuspended ? 'Unsuspend' : 'Suspend',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/suspend`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: isCurrentlySuspended ? 'unsuspend' : 'suspend' }),
+          });
+          if (response.ok) {
+            showToast(isCurrentlySuspended ? 'User unsuspended' : 'User suspended', 'success');
+            fetchData();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update user', 'error');
+          }
+        } catch {
+          showToast('Failed to update user', 'error');
+        }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setActiveDropdown(null);
+    setConfirmModal({
+      show: true,
+      title: 'Delete Account',
+      message: 'Permanently ban this user? This action cannot be undone.',
+      type: 'danger',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/delete`, {
+            method: 'POST',
+          });
+          if (response.ok) {
+            showToast('User deleted', 'success');
+            fetchData();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to delete user', 'error');
+          }
+        } catch {
+          showToast('Failed to delete user', 'error');
+        }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveDropdown(null);
+    if (activeDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [activeDropdown]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
@@ -428,6 +554,9 @@ export default function AdminCommunityPage() {
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Subs
                       </th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -523,6 +652,81 @@ export default function AdminCommunityPage() {
                             <span className="text-sm text-white">{creator.active_subscribers}</span>
                           </div>
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdown(activeDropdown === creator.id ? null : creator.id);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                              <MoreVertical className="w-4 h-4 text-gray-400" />
+                            </button>
+                            {activeDropdown === creator.id && (
+                              <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(`/${creator.username}`);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                  View Profile
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleVerifyCreator(creator.id, creator.is_creator_verified);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  {creator.is_creator_verified ? (
+                                    <>
+                                      <ShieldOff className="w-4 h-4 text-yellow-400" />
+                                      Remove Verification
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                                      Verify Creator
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSuspendUser(creator.id, creator.account_status === 'suspended');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  {creator.account_status === 'suspended' ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 text-green-400" />
+                                      Unsuspend
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserX className="w-4 h-4 text-yellow-400" />
+                                      Suspend
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteUser(creator.id);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete Account
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -572,6 +776,9 @@ export default function AdminCommunityPage() {
                       </th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Blocked
+                      </th>
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -668,6 +875,52 @@ export default function AdminCommunityPage() {
                             <span className="text-gray-500 text-sm">-</span>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveDropdown(activeDropdown === fan.id ? null : fan.id);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                              <MoreVertical className="w-4 h-4 text-gray-400" />
+                            </button>
+                            {activeDropdown === fan.id && (
+                              <div className="absolute right-0 top-full mt-1 w-44 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSuspendUser(fan.id, fan.account_status === 'suspended');
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  {fan.account_status === 'suspended' ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 text-green-400" />
+                                      Unsuspend
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserX className="w-4 h-4 text-yellow-400" />
+                                      Suspend
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteUser(fan.id);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete Account
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -713,6 +966,76 @@ export default function AdminCommunityPage() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center gap-3 mb-4">
+              {confirmModal.type === 'danger' && (
+                <div className="p-2 rounded-xl bg-red-500/20">
+                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                </div>
+              )}
+              {confirmModal.type === 'warning' && (
+                <div className="p-2 rounded-xl bg-yellow-500/20">
+                  <AlertTriangle className="w-6 h-6 text-yellow-400" />
+                </div>
+              )}
+              {confirmModal.type === 'confirm' && (
+                <div className="p-2 rounded-xl bg-cyan-500/20">
+                  <CheckCircle className="w-6 h-6 text-cyan-400" />
+                </div>
+              )}
+              <h3 className="text-lg font-semibold text-white">{confirmModal.title}</h3>
+            </div>
+            <p className="text-gray-400 mb-6">{confirmModal.message}</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmModal(null)}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmModal.onConfirm}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  confirmModal.type === 'danger'
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : confirmModal.type === 'warning'
+                    ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                    : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                }`}
+              >
+                {confirmModal.confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div
+            className={`px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 ${
+              toast.type === 'success'
+                ? 'bg-green-500/90 text-white'
+                : 'bg-red-500/90 text-white'
+            }`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <AlertTriangle className="w-5 h-5" />
+            )}
+            <span className="font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 hover:opacity-70">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

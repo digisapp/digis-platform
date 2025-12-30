@@ -819,10 +819,7 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-8">
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => {
-                setMainTab('users');
-                setSelectedRole('all');
-              }}
+              onClick={() => router.push('/admin/community')}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-blue-500/20 rounded-lg">
@@ -837,10 +834,7 @@ export default function AdminDashboard() {
 
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => {
-                setMainTab('users');
-                setSelectedRole('fan');
-              }}
+              onClick={() => router.push('/admin/community?tab=fans')}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-cyan-500/20 rounded-lg">
@@ -855,10 +849,7 @@ export default function AdminDashboard() {
 
             <GlassCard
               className="p-4 cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => {
-                setMainTab('users');
-                setSelectedRole('creator');
-              }}
+              onClick={() => router.push('/admin/community?tab=creators')}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-green-500/20 rounded-lg">
@@ -923,24 +914,6 @@ export default function AdminDashboard() {
               </span>
             ) : null}
             {mainTab === 'applications' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
-            )}
-          </button>
-          <button
-            onClick={() => setMainTab('users')}
-            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
-              mainTab === 'users'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Users
-            {stats && (
-              <span className="ml-1.5 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded-full">
-                {stats.totalUsers}
-              </span>
-            )}
-            {mainTab === 'users' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
@@ -1174,281 +1147,6 @@ export default function AdminDashboard() {
                 ))
               )}
             </div>
-          </>
-        )}
-
-        {/* Users Tab Content */}
-        {mainTab === 'users' && (
-          <>
-            {/* Search and Filters */}
-            <div className="mb-6 space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <GlassInput
-                  type="text"
-                  placeholder="Search by email, username, or display name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12"
-                />
-              </div>
-
-              {/* Role Filter */}
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Filter by Role:</p>
-                <div className="flex flex-wrap gap-2 md:gap-4">
-                  {(['all', 'fan', 'creator', 'admin'] as const).map((role) => {
-                    const getRoleCount = () => {
-                      if (!stats) return null;
-                      switch (role) {
-                        case 'all': return stats.totalUsers;
-                        case 'fan': return stats.totalFans;
-                        case 'creator': return stats.totalCreators;
-                        case 'admin': return stats.totalAdmins;
-                        default: return null;
-                      }
-                    };
-                    const count = getRoleCount();
-                    return (
-                      <button
-                        key={role}
-                        onClick={() => setSelectedRole(role)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                          selectedRole === role
-                            ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
-                            : 'bg-white/5 hover:bg-white/10'
-                        }`}
-                      >
-                        {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1)}s
-                        {count !== null && (
-                          <span className={`px-1.5 py-0.5 text-xs rounded-full ${
-                            selectedRole === role
-                              ? 'bg-white/20'
-                              : 'bg-white/10'
-                          }`}>
-                            {count}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Account Status Filter */}
-              <div>
-                <p className="text-sm text-gray-400 mb-2">Filter by Status:</p>
-                <div className="flex flex-wrap gap-2 md:gap-4">
-                  {(['active', 'suspended', 'banned', 'all'] as const).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setSelectedAccountStatus(status)}
-                      className={`px-3 md:px-4 py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
-                        selectedAccountStatus === status
-                          ? 'bg-gradient-to-r from-digis-cyan to-digis-pink'
-                          : 'bg-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Users List */}
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <LoadingSpinner size="lg" />
-              </div>
-            ) : users.length === 0 ? (
-              <GlassCard className="p-12 text-center">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400">No users found</p>
-              </GlassCard>
-            ) : (
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <GlassCard key={user.id} className="p-4 md:p-6 overflow-hidden">
-                    <div className="flex flex-col gap-4 md:gap-6">
-                      <div className="flex items-start gap-3 md:gap-4">
-                        {/* Avatar */}
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl md:text-2xl font-bold shrink-0">
-                          {user.avatarUrl ? (
-                            <img src={user.avatarUrl} alt={user.username} className="w-full h-full rounded-full object-cover" />
-                          ) : (
-                            user.email?.[0]?.toUpperCase() || '?'
-                          )}
-                        </div>
-
-                        {/* User Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="text-lg md:text-xl font-semibold truncate">{user.displayName || user.username}</h3>
-                            {user.role === 'admin' && (
-                              <span title="Admin">
-                                <Shield className="w-4 h-4 text-red-500" />
-                              </span>
-                            )}
-                            {user.isCreatorVerified && (
-                              <span title="Verified Creator">
-                                <Star className="w-4 h-4 text-yellow-500" />
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <p className="text-xs md:text-sm text-gray-400 truncate max-w-[200px] md:max-w-none">
-                              @{user.username} • {user.email}
-                            </p>
-                            {/* Change Username Button */}
-                            <button
-                              onClick={() => handleChangeUsername(user.id, user.username)}
-                              className="px-2 py-0.5 bg-digis-cyan/20 text-digis-cyan text-xs rounded hover:bg-digis-cyan/30 transition-colors hidden md:inline-block"
-                              title="Change username (including reserved names)"
-                            >
-                              Edit
-                            </button>
-                            {/* Account Status Badge */}
-                            {user.accountStatus === 'suspended' && (
-                              <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-xs rounded-full flex items-center gap-1">
-                                <Pause className="w-3 h-3" /> Suspended
-                              </span>
-                            )}
-                            {user.accountStatus === 'banned' && (
-                              <span className="px-2 py-0.5 bg-red-500/20 text-red-500 text-xs rounded-full flex items-center gap-1">
-                                <Ban className="w-3 h-3" /> Banned
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
-                            <span>{user.followerCount} followers</span>
-                            <span>{user.followingCount} following</span>
-                            {user.role === 'creator' && (
-                              <span className="text-digis-cyan">
-                                {user.storageUsed > 0
-                                  ? user.storageUsed >= 1073741824
-                                    ? `${(user.storageUsed / 1073741824).toFixed(2)} GB`
-                                    : user.storageUsed >= 1048576
-                                      ? `${(user.storageUsed / 1048576).toFixed(1)} MB`
-                                      : `${(user.storageUsed / 1024).toFixed(0)} KB`
-                                  : '0 KB'
-                                } storage
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-xs text-gray-500">
-                            Joined {new Date(user.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10 md:border-0 md:pt-0">
-                        {/* Make Creator Button (for fans) */}
-                        {user.role === 'fan' && user.accountStatus !== 'banned' && (
-                          <button
-                            onClick={() => handleRoleChange(user.id, 'creator')}
-                            className="px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-pink hover:opacity-90 rounded-lg text-xs font-medium transition-all flex items-center gap-1 justify-center"
-                          >
-                            <UserPlus className="w-3 h-3" />
-                            Make Creator
-                          </button>
-                        )}
-
-                        {/* Role Badge & Changer */}
-                        <select
-                          value={user.role}
-                          onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                          className="px-2 py-1.5 bg-white/10 border border-white/20 rounded-lg text-xs font-medium"
-                          disabled={user.accountStatus === 'banned'}
-                        >
-                          <option value="fan">Fan</option>
-                          <option value="creator">Creator</option>
-                          <option value="admin">Admin</option>
-                        </select>
-
-                        {/* Verification Toggle (for creators) */}
-                        {user.role === 'creator' && user.accountStatus !== 'banned' && (
-                          <button
-                            onClick={() => handleToggleVerification(user.id)}
-                            className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                              user.isCreatorVerified
-                                ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50'
-                                : 'bg-white/5 text-gray-400 border border-white/20'
-                            }`}
-                          >
-                            {user.isCreatorVerified ? 'Verified' : 'Unverified'}
-                          </button>
-                        )}
-
-                        {/* Suspend/Unsuspend Button */}
-                        {user.accountStatus !== 'banned' && (
-                          <button
-                            onClick={() => handleSuspendUser(user.id, user.accountStatus === 'suspended' ? 'unsuspend' : 'suspend')}
-                            className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 justify-center ${
-                              user.accountStatus === 'suspended'
-                                ? 'bg-green-500/20 text-green-500 border border-green-500/50 hover:bg-green-500/30'
-                                : 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 hover:bg-yellow-500/30'
-                            }`}
-                          >
-                            <Pause className="w-3 h-3" />
-                            {user.accountStatus === 'suspended' ? 'Restore' : 'Suspend'}
-                          </button>
-                        )}
-
-                        {/* Delete/Ban Button */}
-                        {user.accountStatus !== 'banned' && (
-                          <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="px-2 py-1.5 bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500/30 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 justify-center"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Delete
-                          </button>
-                        )}
-
-                        {/* View Profile */}
-                        <button
-                          onClick={() => router.push(`/${user.username}`)}
-                          className="px-2 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs transition-colors"
-                        >
-                          Profile
-                        </button>
-                      </div>
-                    </div>
-                  </GlassCard>
-                ))}
-
-                {/* Pagination */}
-                {totalUsers > USERS_PER_PAGE && (
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                    <p className="text-sm text-gray-400">
-                      Showing {usersPage * USERS_PER_PAGE + 1} - {Math.min((usersPage + 1) * USERS_PER_PAGE, totalUsers)} of {totalUsers} users
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => fetchUsers(usersPage - 1)}
-                        disabled={usersPage === 0 || loading}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        onClick={() => fetchUsers(usersPage + 1)}
-                        disabled={(usersPage + 1) * USERS_PER_PAGE >= totalUsers || loading}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </>
         )}
 
