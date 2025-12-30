@@ -5,17 +5,6 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import dynamic from 'next/dynamic';
-
-// Dynamic import recharts to reduce bundle size for non-admin pages
-const AdminCharts = dynamic(() => import('@/components/charts/AdminCharts'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-digis-cyan"></div>
-    </div>
-  ),
-});
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
 interface Application {
@@ -33,21 +22,6 @@ interface Application {
   };
 }
 
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  role: 'fan' | 'creator' | 'admin';
-  isCreatorVerified: boolean;
-  followerCount: number;
-  followingCount: number;
-  createdAt: string;
-  accountStatus: 'active' | 'suspended' | 'banned';
-  storageUsed: number;
-}
-
 interface Stats {
   totalUsers: number;
   totalCreators: number;
@@ -60,17 +34,7 @@ interface Stats {
   todaySignups?: number;
 }
 
-interface Analytics {
-  signupsTimeline: Array<{ date: string; signups: number }>;
-  roleDistribution: { fan: number; creator: number; admin: number };
-  applicationStats: { pending: number; approved: number; rejected: number };
-  contentTypes: Array<{ type: string; count: number }>;
-  totalStats: Stats;
-  growthRate: number;
-  lastWeekSignups: number;
-}
-
-type MainTab = 'applications' | 'users' | 'analytics' | 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
+type MainTab = 'applications' | 'traffic' | 'payouts' | 'moderation' | 'revenue' | 'activity';
 
 interface TrafficData {
   summary: {
@@ -78,12 +42,15 @@ interface TrafficData {
     uniqueVisitors: number;
     viewsGrowth: number;
     visitorsGrowth: number;
+    lastWeekSignups: number;
+    signupsGrowth: number;
   };
   viewsByPageType: Array<{ pageType: string; views: number }>;
   viewsByDevice: Array<{ device: string; views: number }>;
   topPages: Array<{ path: string; views: number }>;
   topCreatorProfiles: Array<{ username: string; views: number }>;
   viewsTimeline: Array<{ date: string; views: number }>;
+  combinedTimeline: Array<{ date: string; views: number; signups: number }>;
   range: string;
 }
 
@@ -211,21 +178,8 @@ export default function AdminDashboard() {
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  // Users state
-  const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | 'admin' | 'all'>('all');
-  const [selectedAccountStatus, setSelectedAccountStatus] = useState<'active' | 'suspended' | 'banned' | 'all'>('active');
-  const [usersPage, setUsersPage] = useState(0);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const USERS_PER_PAGE = 50;
-
   // Refresh state
   const [refreshing, setRefreshing] = useState(false);
-
-  // Analytics state
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
   // Traffic state
   const [traffic, setTraffic] = useState<TrafficData | null>(null);
@@ -244,8 +198,6 @@ export default function AdminDashboard() {
 
   // Cache flags to avoid refetching
   const [hasFetchedApplications, setHasFetchedApplications] = useState(false);
-  const [hasFetchedUsers, setHasFetchedUsers] = useState(false);
-  const [hasFetchedAnalytics, setHasFetchedAnalytics] = useState(false);
   const [hasFetchedTraffic, setHasFetchedTraffic] = useState(false);
   const [hasFetchedModeration, setHasFetchedModeration] = useState(false);
   const [hasFetchedRevenue, setHasFetchedRevenue] = useState(false);
@@ -296,22 +248,10 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   // Fetch data when tab changes (with caching)
   useEffect(() => {
     if (mainTab === 'applications' && !hasFetchedApplications) {
       fetchApplications();
-    } else if (mainTab === 'users' && !hasFetchedUsers) {
-      fetchUsers();
-    } else if (mainTab === 'analytics' && !hasFetchedAnalytics) {
-      fetchAnalytics();
     } else if (mainTab === 'traffic' && !hasFetchedTraffic) {
       fetchTraffic();
     } else if (mainTab === 'moderation' && !hasFetchedModeration) {
@@ -329,13 +269,6 @@ export default function AdminDashboard() {
       fetchApplications();
     }
   }, [selectedStatus]);
-
-  // Refetch users when filters change (with debounced search)
-  useEffect(() => {
-    if (mainTab === 'users' && hasFetchedUsers) {
-      fetchUsers();
-    }
-  }, [selectedRole, selectedAccountStatus, debouncedSearch]);
 
   // Refetch traffic when range changes
   useEffect(() => {
@@ -383,32 +316,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchUsers = async (page: number = 0) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (selectedRole !== 'all') params.append('role', selectedRole);
-      if (selectedAccountStatus !== 'all') params.append('status', selectedAccountStatus);
-      if (debouncedSearch) params.append('search', debouncedSearch);
-      params.append('limit', USERS_PER_PAGE.toString());
-      params.append('offset', (page * USERS_PER_PAGE).toString());
-
-      const response = await fetch(`/api/admin/users?${params}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(data.users || []);
-        setTotalUsers(data.total || data.users?.length || 0);
-        setUsersPage(page);
-        setHasFetchedUsers(true);
-      }
-    } catch (err) {
-      console.error('Error fetching users:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Refresh all data
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -416,8 +323,6 @@ export default function AdminDashboard() {
       await Promise.all([
         fetchStats(),
         mainTab === 'applications' && fetchApplications(),
-        mainTab === 'users' && fetchUsers(usersPage),
-        mainTab === 'analytics' && fetchAnalytics(),
         mainTab === 'traffic' && fetchTraffic(),
         mainTab === 'moderation' && fetchModeration(),
         mainTab === 'revenue' && fetchRevenue(),
@@ -425,27 +330,6 @@ export default function AdminDashboard() {
       ]);
     } finally {
       setRefreshing(false);
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/analytics');
-      const data = await response.json();
-
-      if (response.ok) {
-        setAnalytics(data);
-        setHasFetchedAnalytics(true);
-      } else {
-        console.error('Analytics API error:', data.error);
-        showToast(data.error || 'Failed to load analytics', 'error');
-      }
-    } catch (err) {
-      console.error('Error fetching analytics:', err);
-      showToast('Failed to load analytics', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -597,175 +481,6 @@ export default function AdminDashboard() {
           showToast('Failed to reject application', 'error');
         } finally {
           setProcessingId(null);
-        }
-      },
-    });
-  };
-
-  const handleRoleChange = (userId: string, newRole: 'fan' | 'creator' | 'admin') => {
-    const roleIcons: Record<string, 'promote' | 'shield' | 'warning'> = {
-      creator: 'promote',
-      admin: 'shield',
-      fan: 'warning',
-    };
-    setModal({
-      isOpen: true,
-      title: `Change Role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}`,
-      message: `Are you sure you want to change this user's role to ${newRole}?`,
-      type: newRole === 'admin' ? 'danger' : 'confirm',
-      icon: roleIcons[newRole] || 'warning',
-      confirmText: 'Change Role',
-      onConfirm: async () => {
-        closeModal();
-        try {
-          const response = await fetch(`/api/admin/users/${userId}/role`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role: newRole }),
-          });
-          if (response.ok) {
-            showToast('Role updated successfully', 'success');
-            fetchUsers();
-            fetchStats();
-          } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to update role', 'error');
-          }
-        } catch (err) {
-          console.error('Error updating role:', err);
-          showToast('Failed to update role', 'error');
-        }
-      },
-    });
-  };
-
-  const handleToggleVerification = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/admin/users/${userId}/verify`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        showToast('Verification status updated', 'success');
-        fetchUsers();
-      } else {
-        const data = await response.json();
-        showToast(data.error || 'Failed to update verification', 'error');
-      }
-    } catch (err) {
-      console.error('Error updating verification:', err);
-      showToast('Failed to update verification', 'error');
-    }
-  };
-
-  const [pendingUsername, setPendingUsername] = useState<{ userId: string; currentUsername: string } | null>(null);
-
-  const handleChangeUsername = (userId: string, currentUsername: string) => {
-    setPendingUsername({ userId, currentUsername });
-    setModal({
-      isOpen: true,
-      title: 'Change Username',
-      message: `Enter new username for @${currentUsername}\n\nAs an admin, you can assign reserved names (brands, celebrities, etc.)`,
-      type: 'prompt',
-      icon: 'shield',
-      confirmText: 'Change Username',
-      placeholder: currentUsername,
-      onConfirm: async (newUsername?: string) => {
-        closeModal();
-        if (!newUsername || newUsername === currentUsername) return;
-
-        try {
-          const response = await fetch('/api/admin/set-username', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId,
-              username: newUsername,
-              verifyCreator: true,
-            }),
-          });
-          const data = await response.json();
-          if (response.ok) {
-            const wasReserved = data.data?.wasReserved;
-            showToast(
-              wasReserved
-                ? `Username updated to @${newUsername} (reserved name - user verified)`
-                : `Username updated to @${newUsername}`,
-              'success'
-            );
-            fetchUsers();
-          } else {
-            showToast(data.error || 'Failed to update username', 'error');
-          }
-        } catch (err) {
-          console.error('Error updating username:', err);
-          showToast('Failed to update username', 'error');
-        }
-        setPendingUsername(null);
-      },
-    });
-  };
-
-  const handleSuspendUser = (userId: string, action: 'suspend' | 'unsuspend') => {
-    const isSuspend = action === 'suspend';
-    setModal({
-      isOpen: true,
-      title: isSuspend ? 'Suspend User' : 'Unsuspend User',
-      message: isSuspend
-        ? 'Suspend this user account?\n\nThey will not be able to log in until unsuspended.'
-        : 'Unsuspend this user account?\n\nThey will be able to log in again.',
-      type: isSuspend ? 'danger' : 'confirm',
-      icon: 'warning',
-      confirmText: isSuspend ? 'Suspend' : 'Unsuspend',
-      onConfirm: async () => {
-        closeModal();
-        try {
-          const response = await fetch(`/api/admin/users/${userId}/suspend`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action }),
-          });
-          if (response.ok) {
-            showToast(isSuspend ? 'User suspended' : 'User unsuspended', 'success');
-            fetchUsers();
-            fetchStats();
-          } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to update account status', 'error');
-          }
-        } catch (err) {
-          console.error('Error updating account status:', err);
-          showToast('Failed to update account status', 'error');
-        }
-      },
-    });
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    setModal({
-      isOpen: true,
-      title: 'Delete Account',
-      message: 'This will permanently ban this user.\n\nThey will not be able to log in and this action cannot be undone.',
-      type: 'danger',
-      icon: 'delete',
-      confirmText: 'Delete Account',
-      requireInput: 'DELETE',
-      onConfirm: async () => {
-        closeModal();
-        try {
-          const response = await fetch(`/api/admin/users/${userId}/delete`, {
-            method: 'POST',
-          });
-          if (response.ok) {
-            showToast('User account has been banned', 'success');
-            fetchUsers();
-            fetchStats();
-          } else {
-            const data = await response.json();
-            showToast(data.error || 'Failed to delete account', 'error');
-          }
-        } catch (err) {
-          console.error('Error deleting account:', err);
-          showToast('Failed to delete account', 'error');
         }
       },
     });
@@ -932,19 +647,6 @@ export default function AdminDashboard() {
               </span>
             ) : null}
             {mainTab === 'payouts' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
-            )}
-          </button>
-          <button
-            onClick={() => setMainTab('analytics')}
-            className={`px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base ${
-              mainTab === 'analytics'
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Analytics
-            {mainTab === 'analytics' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-digis-cyan to-digis-pink" />
             )}
           </button>
@@ -1150,69 +852,6 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* Analytics Tab Content */}
-        {mainTab === 'analytics' && (
-          <>
-            {loading ? (
-              <div className="flex justify-center py-12">
-                <LoadingSpinner size="lg" />
-              </div>
-            ) : analytics ? (
-              <div className="space-y-6">
-                {/* Key Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <GlassCard className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm text-gray-400">Growth Rate</p>
-                        <p className="text-3xl font-bold">{analytics.growthRate > 0 ? '+' : ''}{analytics.growthRate}%</p>
-                      </div>
-                      <div className={`p-3 rounded-lg ${analytics.growthRate >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
-                        {analytics.growthRate >= 0 ? (
-                          <TrendingUp className="w-8 h-8 text-green-500" />
-                        ) : (
-                          <TrendingDown className="w-8 h-8 text-red-500" />
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-400">vs last 7 days</p>
-                  </GlassCard>
-
-                  <GlassCard className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm text-gray-400">New Users (7 days)</p>
-                        <p className="text-3xl font-bold">{analytics.lastWeekSignups}</p>
-                      </div>
-                      <div className="p-3 bg-blue-500/20 rounded-lg">
-                        <Users className="w-8 h-8 text-blue-500" />
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-400">Recent signups</p>
-                  </GlassCard>
-                </div>
-
-                {/* Charts - Dynamically loaded */}
-                <AdminCharts analytics={analytics} />
-              </div>
-            ) : (
-              <GlassCard className="p-12 text-center">
-                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">No analytics data available</p>
-                <button
-                  onClick={() => {
-                    setHasFetchedAnalytics(false);
-                    fetchAnalytics();
-                  }}
-                  className="px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-medium hover:opacity-90 transition-opacity"
-                >
-                  Retry
-                </button>
-              </GlassCard>
-            )}
-          </>
-        )}
-
         {/* Traffic Tab Content */}
         {mainTab === 'traffic' && (
           <>
@@ -1290,18 +929,24 @@ export default function AdminDashboard() {
                   <GlassCard className="p-5">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-400">Views per Visitor</p>
-                        <p className="text-2xl font-bold">
-                          {traffic.summary.uniqueVisitors > 0
-                            ? (traffic.summary.totalViews / traffic.summary.uniqueVisitors).toFixed(1)
-                            : '0'}
-                        </p>
+                        <p className="text-sm text-gray-400">New Signups (7d)</p>
+                        <p className="text-2xl font-bold">{traffic.summary.lastWeekSignups}</p>
                       </div>
-                      <div className="p-3 bg-pink-500/20 rounded-lg">
-                        <BarChart3 className="w-6 h-6 text-pink-400" />
+                      <div className="p-3 bg-green-500/20 rounded-lg">
+                        <UserPlus className="w-6 h-6 text-green-400" />
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">Pages per session</p>
+                    <div className="mt-2 flex items-center gap-1 text-sm">
+                      {traffic.summary.signupsGrowth >= 0 ? (
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                      <span className={traffic.summary.signupsGrowth >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {traffic.summary.signupsGrowth >= 0 ? '+' : ''}{traffic.summary.signupsGrowth}%
+                      </span>
+                      <span className="text-gray-500">vs last week</span>
+                    </div>
                   </GlassCard>
 
                   <GlassCard className="p-5">
@@ -1429,24 +1074,51 @@ export default function AdminDashboard() {
                   </GlassCard>
                 </div>
 
-                {/* Views Timeline */}
-                {traffic.viewsTimeline.length > 0 && (
+                {/* Combined Timeline - Views & Signups */}
+                {traffic.combinedTimeline && traffic.combinedTimeline.length > 0 && (
                   <GlassCard className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Views Over Time</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">Activity Over Time</h3>
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-digis-cyan to-digis-pink" />
+                          <span className="text-gray-400">Page Views</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500" />
+                          <span className="text-gray-400">Signups</span>
+                        </div>
+                      </div>
+                    </div>
                     <div className="h-64 flex items-end gap-1">
-                      {traffic.viewsTimeline.map((day, i) => {
-                        const maxViews = Math.max(...traffic.viewsTimeline.map(d => d.views));
-                        const height = maxViews > 0 ? (day.views / maxViews) * 100 : 0;
+                      {traffic.combinedTimeline.map((day, i) => {
+                        const maxViews = Math.max(...traffic.combinedTimeline.map(d => d.views));
+                        const maxSignups = Math.max(...traffic.combinedTimeline.map(d => d.signups));
+                        const viewsHeight = maxViews > 0 ? (day.views / maxViews) * 100 : 0;
+                        const signupsHeight = maxSignups > 0 ? (day.signups / maxSignups) * 100 : 0;
                         return (
-                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                            <div
-                              className="w-full bg-gradient-to-t from-digis-cyan to-digis-pink rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${Math.max(height, 2)}%` }}
-                              title={`${day.date}: ${day.views.toLocaleString()} views`}
-                            />
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                            <div className="w-full flex items-end gap-0.5 h-[200px]">
+                              {/* Views bar */}
+                              <div
+                                className="flex-1 bg-gradient-to-t from-digis-cyan to-digis-pink rounded-t transition-all group-hover:opacity-80"
+                                style={{ height: `${Math.max(viewsHeight, 2)}%` }}
+                              />
+                              {/* Signups bar */}
+                              <div
+                                className="flex-1 bg-green-500 rounded-t transition-all group-hover:opacity-80"
+                                style={{ height: `${Math.max(signupsHeight, day.signups > 0 ? 10 : 2)}%` }}
+                              />
+                            </div>
                             <span className="text-[10px] text-gray-500 rotate-45 origin-left whitespace-nowrap">
                               {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 border border-white/10 rounded-lg px-3 py-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                              <p className="text-white font-medium">{new Date(day.date).toLocaleDateString()}</p>
+                              <p className="text-cyan-400">{day.views.toLocaleString()} views</p>
+                              <p className="text-green-400">{day.signups} signups</p>
+                            </div>
                           </div>
                         );
                       })}

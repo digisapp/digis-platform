@@ -5,6 +5,7 @@ import { users } from '@/db/schema/users';
 import { AdminService } from '@/lib/admin/admin-service';
 import { createClient } from '@/lib/supabase/server';
 import { sql, desc, eq, gte, lt, and, count, countDistinct } from 'drizzle-orm';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,18 @@ export async function GET(request: NextRequest) {
         break;
     }
 
+    // Create admin client for signups data
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Calculate signups date ranges
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
     // Fetch all data in parallel
     const [
       totalViewsResult,
@@ -65,6 +78,9 @@ export async function GET(request: NextRequest) {
       topPages,
       topCreatorProfiles,
       viewsTimeline,
+      signupsResult,
+      lastWeekSignupsResult,
+      previousWeekSignupsResult,
     ] = await Promise.all([
       // Total views in period
       db.select({ count: count() })
@@ -147,6 +163,26 @@ export async function GET(request: NextRequest) {
         .where(gte(pageViews.createdAt, startDate))
         .groupBy(sql`DATE(${pageViews.createdAt})`)
         .orderBy(sql`DATE(${pageViews.createdAt})`),
+
+      // User signups in period (for combined timeline)
+      adminClient
+        .from('users')
+        .select('created_at')
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: true }),
+
+      // Last week signups count
+      adminClient
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', sevenDaysAgo.toISOString()),
+
+      // Previous week signups count
+      adminClient
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', fourteenDaysAgo.toISOString())
+        .lt('created_at', sevenDaysAgo.toISOString()),
     ]);
 
     // Calculate growth rates
@@ -162,6 +198,30 @@ export async function GET(request: NextRequest) {
       ? Math.round(((uniqueVisitors - previousUnique) / previousUnique) * 100)
       : 0;
 
+    // Process signups data
+    const signups = signupsResult.data || [];
+    const lastWeekSignups = lastWeekSignupsResult.count || 0;
+    const previousWeekSignups = previousWeekSignupsResult.count || 0;
+
+    // Calculate signups growth rate
+    const signupsGrowth = previousWeekSignups > 0
+      ? Math.round(((lastWeekSignups - previousWeekSignups) / previousWeekSignups) * 100)
+      : 0;
+
+    // Process signups by day
+    const signupsByDay: { [key: string]: number } = {};
+    signups.forEach((user: any) => {
+      const date = new Date(user.created_at).toISOString().split('T')[0];
+      signupsByDay[date] = (signupsByDay[date] || 0) + 1;
+    });
+
+    // Create combined timeline with both views and signups
+    const combinedTimeline = viewsTimeline.map(r => ({
+      date: r.date,
+      views: r.count,
+      signups: signupsByDay[r.date] || 0,
+    }));
+
     return NextResponse.json({
       summary: {
         totalViews,
@@ -170,6 +230,8 @@ export async function GET(request: NextRequest) {
         visitorsGrowth,
         previousViews,
         previousUnique,
+        lastWeekSignups,
+        signupsGrowth,
       },
       viewsByPageType: viewsByPageType.map(r => ({
         pageType: r.pageType,
@@ -191,6 +253,7 @@ export async function GET(request: NextRequest) {
         date: r.date,
         views: r.count,
       })),
+      combinedTimeline,
       range,
     });
   } catch (error) {
