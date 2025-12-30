@@ -5,15 +5,15 @@ import { creatorInvites } from '@/db/schema';
 import { eq, or, desc } from 'drizzle-orm';
 import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
 
-// Admin emails that can access this endpoint
-const ADMIN_EMAILS = ['admin@digis.cc', 'cto@examodels.com', 'admin@examodels.com'];
-
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user?.email) return false;
-  return ADMIN_EMAILS.includes(user.email);
+  if (!user) return false;
+
+  // Check admin status from app_metadata (synced from DB isAdmin flag)
+  const appMeta = user.app_metadata || {};
+  return appMeta.isAdmin === true || appMeta.role === 'admin';
 }
 
 // POST: Send invite campaign
