@@ -71,9 +71,50 @@ export const creatorCategoryAssignmentsRelations = relations(creatorCategoryAssi
   }),
 }));
 
+// User reports - for tracking when creators report fans for bad behavior
+export const userReports = pgTable('user_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  reporterId: uuid('reporter_id').references(() => users.id, { onDelete: 'cascade' }).notNull(), // Creator who reported
+  reportedUserId: uuid('reported_user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(), // Fan being reported
+  reason: text('reason').notNull(), // 'harassment', 'spam', 'inappropriate', 'scam', 'other'
+  description: text('description'), // Optional detailed description
+  status: text('status').default('pending').notNull(), // 'pending', 'reviewed', 'resolved', 'dismissed'
+  reviewedBy: uuid('reviewed_by').references(() => users.id),
+  reviewedAt: timestamp('reviewed_at'),
+  adminNotes: text('admin_notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  reporterIdx: index('user_reports_reporter_id_idx').on(table.reporterId),
+  reportedUserIdx: index('user_reports_reported_user_id_idx').on(table.reportedUserId),
+  statusIdx: index('user_reports_status_idx').on(table.status),
+}));
+
+export const userReportsRelations = relations(userReports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [userReports.reporterId],
+    references: [users.id],
+    relationName: 'reportsSubmitted',
+  }),
+  reportedUser: one(users, {
+    fields: [userReports.reportedUserId],
+    references: [users.id],
+    relationName: 'reportsReceived',
+  }),
+  reviewer: one(users, {
+    fields: [userReports.reviewedBy],
+    references: [users.id],
+    relationName: 'reportsReviewed',
+  }),
+}));
+
+export type UserReport = typeof userReports.$inferSelect;
+export type NewUserReport = typeof userReports.$inferInsert;
+
 // Add relations to users table (extend existing relations)
 export const usersExploreRelations = relations(users, ({ many }) => ({
   followers: many(follows, { relationName: 'following' }),
   following: many(follows, { relationName: 'follower' }),
   categoryAssignments: many(creatorCategoryAssignments),
+  reportsSubmitted: many(userReports, { relationName: 'reportsSubmitted' }),
+  reportsReceived: many(userReports, { relationName: 'reportsReceived' }),
 }));

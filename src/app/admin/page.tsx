@@ -795,14 +795,23 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-gray-400 text-sm md:text-base">Manage creator applications, users, and platform analytics</p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 self-start"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="text-sm">Refresh</span>
-          </button>
+          <div className="flex items-center gap-2 self-start">
+            <button
+              onClick={() => router.push('/admin/community')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 hover:from-purple-500/30 hover:to-cyan-500/30 border border-purple-500/30 rounded-lg transition-colors"
+            >
+              <Users className="w-4 h-4 text-purple-400" />
+              <span className="text-sm font-medium text-white">Community</span>
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="text-sm">Refresh</span>
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
