@@ -27,9 +27,6 @@ import { NotificationService } from '@/lib/services/notification-service';
 // Cold outreach fee - creators pay 50 coins to message fans they don't have a relationship with
 const COLD_OUTREACH_FEE = 50;
 
-// Admin/Support account username - messages to/from this account are always free
-const ADMIN_USERNAME = 'admin';
-
 export class MessageService {
   /**
    * Check if sender has a relationship with recipient
@@ -223,8 +220,10 @@ export class MessageService {
       throw new Error('User not found');
     }
 
-    // Check if this is a support conversation (with admin account) - always free
-    const isSupportConversation = sender.username === ADMIN_USERNAME || receiver.username === ADMIN_USERNAME;
+    // Check if either user is an admin - admins can chat for free
+    const isAdminConversation =
+      sender.role === 'admin' || sender.isAdmin ||
+      receiver.role === 'admin' || receiver.isAdmin;
 
     // Check if either user has blocked the other (includes both DM blocks and global blocks)
     const [dmBlocked, globalBlocked] = await Promise.all([
@@ -247,8 +246,8 @@ export class MessageService {
     return await db.transaction(async (tx) => {
       let messageCost = 0;
 
-      // Skip all fees for support conversations (messages with admin account)
-      if (!isSupportConversation && isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
+      // Skip all fees for admin conversations
+      if (!isAdminConversation && isFirstMessage && sender.role === 'creator' && receiver.role !== 'creator') {
         // Sender is a creator, receiver is a fan - check if they have a relationship
         const hasRelationship = await MessageService.hasRelationship(senderId, receiverId);
 
@@ -292,14 +291,14 @@ export class MessageService {
       // - Subscriber → Creator: FREE (subscribers get free text messages)
       // - Fan → Creator: Fan pays the creator's message rate (if set)
       // - Creator → Creator: Sender pays the receiver's message rate (if set)
-      // - Support conversations: ALWAYS FREE (messages with admin account)
+      // - Admin conversations: ALWAYS FREE (admins can chat with anyone for free)
       //
       // Only charge when the RECEIVER is a creator (fans can't charge for messages)
       // Note: This is for regular text messages only - locked/PPV messages still cost coins
       // Note: AI auto-responses are FREE - included in the message rate
       const receiverIsCreator = receiver.role === 'creator';
 
-      if (!isSupportConversation && receiverIsCreator) {
+      if (!isAdminConversation && receiverIsCreator) {
         // Get creator settings to check message rate
         const settings = await tx.query.creatorSettings.findFirst({
           where: eq(creatorSettings.userId, receiverId),
