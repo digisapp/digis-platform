@@ -60,9 +60,6 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                             <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
                                 You're Invited — Join Digis
                             </h1>
-                            <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
-                                (Invite-Only)
-                            </p>
                         </td>
                     </tr>
 
