@@ -21,10 +21,16 @@ export async function GET(
       where: eq(aiTwinSettings.creatorId, creatorId),
     });
 
+    // AI Twin is enabled if either voice chat OR text chat is enabled
+    const isEnabled = settings?.enabled || settings?.textChatEnabled || false;
+
     return NextResponse.json({
-      enabled: settings?.enabled || false,
+      enabled: isEnabled,
+      voiceEnabled: settings?.enabled || false,
+      textEnabled: settings?.textChatEnabled || false,
       pricePerMinute: settings?.enabled ? settings.pricePerMinute : null,
       minimumMinutes: settings?.enabled ? settings.minimumMinutes : null,
+      textPricePerMessage: settings?.textChatEnabled ? settings.textPricePerMessage : null,
     });
   } catch (error) {
     console.error('[AI Check] Error:', error);
