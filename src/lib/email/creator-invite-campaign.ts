@@ -75,24 +75,97 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                         <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
                                             ${greeting}
                                         </p>
-                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
+                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
+                                            <strong style="color: #00D4FF;">Bring in the new year 2025 with Digis</strong> — the next wave of tools for Creators!
+                                        </p>
+                                        <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.9);">
                                             You've been invited to <strong style="color: #00D4FF;">Digis</strong>! A creator platform built for the next wave of creators!
                                         </p>
-                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
-                                            🎥 <strong>Live Streaming</strong> — go live and earn from gifts
-                                        </p>
-                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
-                                            🖼️ <strong>Digitals</strong> — sell exclusive content
-                                        </p>
-                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
-                                            🤖 <strong>AI Twin</strong> — earn 24/7 with AI chats and voice
-                                        </p>
-                                        <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.9);">
-                                            📱 <strong>Paid Video Calls</strong> — set your rate for calls
-                                        </p>
-                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
-                                            + <strong>Exclusive Events!</strong>
-                                        </p>
+
+                                        <!-- Feature list with icons -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                                            <tr>
+                                                <td style="padding: 10px 0;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%); border-radius: 8px; text-align: center; line-height: 32px;">
+                                                                    <span style="color: white; font-size: 16px;">▶</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Live Streaming</strong> — go live and earn from gifts
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FF006E 0%, #CC0058 100%); border-radius: 8px; text-align: center; line-height: 32px;">
+                                                                    <span style="color: white; font-size: 16px;">◆</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Digitals</strong> — sell exclusive content
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #9D4EDD 0%, #7B3DB5 100%); border-radius: 8px; text-align: center; line-height: 32px;">
+                                                                    <span style="color: white; font-size: 16px;">✦</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>AI Twin</strong> — earn 24/7 with AI chats and voice
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #00CC88 0%, #009966 100%); border-radius: 8px; text-align: center; line-height: 32px;">
+                                                                    <span style="color: white; font-size: 16px;">☎</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Paid Video Calls</strong> — set your rate for calls
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 0;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 40px; vertical-align: middle;">
+                                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FFB800 0%, #CC9300 100%); border-radius: 8px; text-align: center; line-height: 32px;">
+                                                                    <span style="color: white; font-size: 16px;">★</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Exclusive Events!</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+
                                         <p style="margin: 0; color: rgba(255, 255, 255, 0.7);">
                                             We're currently invite-only, first come first serve for username, claim today!
                                         </p>
@@ -149,13 +222,15 @@ function generateInvitePlainText(inviteUrl: string, recipientName?: string): str
 
   return `${greeting}
 
+Bring in the new year 2025 with Digis — the next wave of tools for Creators!
+
 You've been invited to Digis! A creator platform built for the next wave of creators!
 
-🎥 Live Streaming — go live and earn from gifts
-🖼️ Digitals — sell exclusive content
-🤖 AI Twin — earn 24/7 with AI chats and voice
-📱 Paid Video Calls — set your rate for calls
-+ Exclusive Events!
+• Live Streaming — go live and earn from gifts
+• Digitals — sell exclusive content
+• AI Twin — earn 24/7 with AI chats and voice
+• Paid Video Calls — set your rate for calls
+• Exclusive Events!
 
 We're currently invite-only, first come first serve for username, claim today!
 
