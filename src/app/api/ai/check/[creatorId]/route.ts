@@ -21,11 +21,10 @@ export async function GET(
       where: eq(aiTwinSettings.creatorId, creatorId),
     });
 
-    // AI Twin is enabled if either voice chat OR text chat is enabled
-    const isEnabled = settings?.enabled || settings?.textChatEnabled || false;
-
+    // "enabled" = Voice AI Twin (shown as AI Twin button on profile)
+    // Text chat is separate - it auto-responds through regular Chat
     return NextResponse.json({
-      enabled: isEnabled,
+      enabled: settings?.enabled || false,  // Voice only - for AI Twin button
       voiceEnabled: settings?.enabled || false,
       textEnabled: settings?.textChatEnabled || false,
       pricePerMinute: settings?.enabled ? settings.pricePerMinute : null,
