@@ -370,9 +370,6 @@ export default function AiTwinPage() {
                   <p className="text-xs text-gray-400">
                     Real-time voice calls with AI
                   </p>
-                  {settings.enabled && (
-                    <p className="text-xs text-cyan-400 font-medium mt-1">✓ Enabled - AI Twin button will show on profile</p>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -391,6 +388,34 @@ export default function AiTwinPage() {
                   )}
                 </button>
               </div>
+              {/* Voice Chat Pricing - shown when enabled */}
+              {settings.enabled && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-yellow-400" />
+                      <span className="text-sm text-gray-300">Rate per minute</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={settings.pricePerMinute || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/^0+/, '') || '1';
+                          setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
+                        }}
+                        className="w-20 px-2 py-1 bg-black/40 border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-cyan-500 text-sm"
+                      />
+                      <span className="text-xs text-gray-400">coins</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-400 mt-1 text-right">
+                    You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
+                  </p>
+                </div>
+              )}
             </GlassCard>
 
             {/* Text Chat Toggle */}
@@ -411,9 +436,6 @@ export default function AiTwinPage() {
                   <p className="text-xs text-gray-400">
                     AI responds to DMs
                   </p>
-                  {settings.textChatEnabled && (
-                    <p className="text-xs text-purple-400 font-medium mt-1">✓ Enabled - AI auto-responds to messages</p>
-                  )}
                 </div>
                 <button
                   type="button"
@@ -432,6 +454,14 @@ export default function AiTwinPage() {
                   )}
                 </button>
               </div>
+              {/* Text Chat Rate Info - shown when enabled */}
+              {settings.textChatEnabled && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-xs text-purple-300">
+                    Uses your regular message rate from Creator Settings
+                  </p>
+                </div>
+              )}
             </GlassCard>
           </div>
 
@@ -601,56 +631,6 @@ export default function AiTwinPage() {
                 <p className="text-xs text-gray-500 mt-3">
                   Your AI will stay within these boundaries during conversations
                 </p>
-              </GlassCard>
-
-              {/* Pricing */}
-              <GlassCard className="p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-yellow-500/20 rounded-lg">
-                    <Coins className="w-5 h-5 text-yellow-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white">Pricing</h3>
-                    <p className="text-xs text-gray-400">Set your rates for AI chats</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Voice Chat Pricing */}
-                  {settings.enabled && (
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">
-                        Voice Chat (per minute)
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          max="1000"
-                          value={settings.pricePerMinute || ''}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/^0+/, '') || '1';
-                            setSettings({ ...settings, pricePerMinute: Math.min(1000, parseInt(val) || 1) });
-                          }}
-                          className="w-full px-3 py-2 bg-black/40 border border-cyan-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-cyan-500 max-w-[120px]"
-                        />
-                        <span className="text-xs text-gray-400">coins</span>
-                      </div>
-                      <p className="text-xs text-green-400 mt-1">
-                        You earn {formatCoinsToUSD(settings.pricePerMinute)}/min
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Text Chat Info - uses same rate as regular messages */}
-                  {settings.textChatEnabled && (
-                    <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                      <p className="text-sm text-purple-300">
-                        💬 AI text replies use your regular message rate (set in Creator Settings)
-                      </p>
-                    </div>
-                  )}
-                </div>
               </GlassCard>
 
             </div>
