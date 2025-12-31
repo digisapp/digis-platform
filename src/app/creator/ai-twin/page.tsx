@@ -197,34 +197,48 @@ export default function AiTwinPage() {
     const boundaryOption = BOUNDARY_OPTIONS.find(b => b.id === selectedBoundary);
     const generatedBoundary = boundaryOption?.prompt || '';
 
+    const payload = {
+      enabled: settings.enabled,
+      textChatEnabled: settings.textChatEnabled,
+      voice: settings.voice,
+      personalityPrompt: generatedPersonality || settings.personalityPrompt,
+      welcomeMessage: settings.welcomeMessage,
+      boundaryPrompt: generatedBoundary || settings.boundaryPrompt,
+      pricePerMinute: settings.pricePerMinute,
+      textPricePerMessage: settings.textPricePerMessage,
+    };
+
+    console.log('[AI Twin Save] Sending payload:', payload);
+
     try {
       const response = await fetch('/api/ai/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          enabled: settings.enabled,
-          textChatEnabled: settings.textChatEnabled,
-          voice: settings.voice,
-          personalityPrompt: generatedPersonality || settings.personalityPrompt,
-          welcomeMessage: settings.welcomeMessage,
-          boundaryPrompt: generatedBoundary || settings.boundaryPrompt,
-          pricePerMinute: settings.pricePerMinute,
-          textPricePerMessage: settings.textPricePerMessage,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+      console.log('[AI Twin Save] Response:', { ok: response.ok, status: response.status, data });
+
       if (response.ok) {
-        setMessage('AI Twin settings saved!');
-        setTimeout(() => setMessage(''), 3000);
+        // Update local state with the saved settings
+        if (data.settings) {
+          setSettings(prev => ({ ...prev, ...data.settings }));
+        }
+        const savedStatus = [];
+        if (settings.enabled) savedStatus.push('Voice Chat ON');
+        if (settings.textChatEnabled) savedStatus.push('Text Chat ON');
+        setMessage(`AI Twin settings saved! ${savedStatus.join(', ') || 'All features OFF'}`);
+        setTimeout(() => setMessage(''), 5000);
       } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to save settings');
-        setTimeout(() => setError(''), 3000);
+        console.error('[AI Twin Save] Error response:', data);
+        setError(data.error || data.details || 'Failed to save settings');
+        setTimeout(() => setError(''), 5000);
       }
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      setError('Failed to save settings');
-      setTimeout(() => setError(''), 3000);
+    } catch (error: any) {
+      console.error('[AI Twin Save] Exception:', error);
+      setError(`Failed to save: ${error?.message || 'Network error'}`);
+      setTimeout(() => setError(''), 5000);
     } finally {
       setSaving(false);
     }
@@ -299,7 +313,7 @@ export default function AiTwinPage() {
           {/* Enable/Disable Toggles */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {/* Voice Chat Toggle */}
-            <GlassCard className="p-5">
+            <GlassCard className={`p-5 ${settings.enabled ? 'border-2 border-cyan-500/50' : ''}`}>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg">
                   <Mic className="w-6 h-6 text-cyan-400" />
@@ -309,10 +323,17 @@ export default function AiTwinPage() {
                   <p className="text-xs text-gray-400">
                     Real-time voice calls with AI
                   </p>
+                  {settings.enabled && (
+                    <p className="text-xs text-cyan-400 font-medium mt-1">✓ Enabled - AI Twin button will show on profile</p>
+                  )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
+                  onClick={() => {
+                    console.log('[AI Twin] Toggling voice chat:', !settings.enabled);
+                    setSettings({ ...settings, enabled: !settings.enabled });
+                  }}
+                  className="focus:outline-none"
                 >
                   {settings.enabled ? (
                     <ToggleRight className="w-12 h-12 text-cyan-500" />
@@ -324,7 +345,7 @@ export default function AiTwinPage() {
             </GlassCard>
 
             {/* Text Chat Toggle */}
-            <GlassCard className="p-5">
+            <GlassCard className={`p-5 ${settings.textChatEnabled ? 'border-2 border-purple-500/50' : ''}`}>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
                   <MessageSquare className="w-6 h-6 text-purple-400" />
@@ -334,10 +355,17 @@ export default function AiTwinPage() {
                   <p className="text-xs text-gray-400">
                     AI responds to DMs
                   </p>
+                  {settings.textChatEnabled && (
+                    <p className="text-xs text-purple-400 font-medium mt-1">✓ Enabled - AI auto-responds to messages</p>
+                  )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSettings({ ...settings, textChatEnabled: !settings.textChatEnabled })}
+                  onClick={() => {
+                    console.log('[AI Twin] Toggling text chat:', !settings.textChatEnabled);
+                    setSettings({ ...settings, textChatEnabled: !settings.textChatEnabled });
+                  }}
+                  className="focus:outline-none"
                 >
                   {settings.textChatEnabled ? (
                     <ToggleRight className="w-12 h-12 text-purple-500" />
@@ -348,6 +376,16 @@ export default function AiTwinPage() {
               </div>
             </GlassCard>
           </div>
+
+          {/* Quick Save - Always Visible */}
+          <GlassButton
+            variant="gradient"
+            onClick={saveSettings}
+            disabled={saving}
+            className="w-full mb-6"
+          >
+            {saving ? <LoadingSpinner size="sm" /> : 'Save AI Twin Settings'}
+          </GlassButton>
 
           {(settings.enabled || settings.textChatEnabled) && (
             <div className="space-y-6">
@@ -584,15 +622,6 @@ export default function AiTwinPage() {
                 </div>
               </GlassCard>
 
-              {/* Save Button */}
-              <GlassButton
-                variant="gradient"
-                onClick={saveSettings}
-                disabled={saving}
-                className="w-full"
-              >
-                {saving ? <LoadingSpinner size="sm" /> : 'Save AI Twin Settings'}
-              </GlassButton>
             </div>
           )}
 
