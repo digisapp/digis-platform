@@ -61,6 +61,7 @@ export default function ChatPage() {
   const lastMessageCountRef = useRef(0);
   const messageChargeRef = useRef<number>(0); // Persist messageCharge across re-renders
   const rateFetchedRef = useRef<boolean>(false); // Track if rate has been fetched
+  const otherUserRoleRef = useRef<string | null>(null); // Persist role across re-renders
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -258,6 +259,26 @@ export default function ChatPage() {
     }
   }, [messageCharge]);
 
+  // Sync otherUserRole state from ref if state gets reset but ref has value
+  useEffect(() => {
+    if (!otherUserRole && otherUserRoleRef.current) {
+      console.log('[Chat] Restoring otherUserRole from ref:', otherUserRoleRef.current);
+      setOtherUserRole(otherUserRoleRef.current);
+    }
+  }, [otherUserRole]);
+
+  // Debug: log render state
+  useEffect(() => {
+    console.log('[Chat UI State]', {
+      otherUserRole,
+      otherUserRoleRef: otherUserRoleRef.current,
+      messageCharge,
+      messageChargeRef: messageChargeRef.current,
+      currentUserIsAdmin,
+      showPill: otherUserRole === 'creator' && messageCharge > 0 && !currentUserIsAdmin,
+    });
+  }, [otherUserRole, messageCharge, currentUserIsAdmin]);
+
   const checkAuth = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -292,6 +313,13 @@ export default function ChatPage() {
         const conversations = data.data || data.conversations || [];
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
+          console.log('[Chat] fetchConversation - conv.otherUser:', {
+            role: conv.otherUser?.role,
+            messageCharge: conv.otherUser?.messageCharge,
+            currentRoleRef: otherUserRoleRef.current,
+            currentChargeRef: messageChargeRef.current,
+          });
+
           // Merge conversation to preserve existing fields that may be missing in new payload
           setConversation(prev => {
             if (!prev) return conv;
@@ -306,13 +334,16 @@ export default function ChatPage() {
             };
           });
 
-          // Set role in stable state once (don't overwrite with undefined)
-          if (conv.otherUser?.role && !otherUserRole) {
+          // Set role in stable state once using REF to avoid stale closure
+          if (conv.otherUser?.role && !otherUserRoleRef.current) {
+            console.log('[Chat] Setting otherUserRole:', conv.otherUser.role);
+            otherUserRoleRef.current = conv.otherUser.role;
             setOtherUserRole(conv.otherUser.role);
           }
 
           // If other user is a creator, fetch their messageRate directly
-          if (conv.otherUser?.role === 'creator' && conv.otherUser?.id) {
+          const isCreator = conv.otherUser?.role === 'creator' || otherUserRoleRef.current === 'creator';
+          if (isCreator && conv.otherUser?.id) {
             // Only set from conversation data if we haven't fetched the rate yet
             if (!rateFetchedRef.current && conv.otherUser.messageCharge && conv.otherUser.messageCharge > 0) {
               messageChargeRef.current = conv.otherUser.messageCharge;
