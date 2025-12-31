@@ -42,6 +42,7 @@ export default function BecomeCreatorPage() {
           setShowLogin(true);
         }}
         redirectTo="/creator/dashboard"
+        defaultRole="creator"
       />
       <LoginModal
         isOpen={showLogin}

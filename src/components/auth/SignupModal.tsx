@@ -13,9 +13,10 @@ interface SignupModalProps {
   onClose: () => void;
   onSwitchToLogin: () => void;
   redirectTo?: string; // Where to redirect after signup (default: /explore)
+  defaultRole?: 'fan' | 'creator'; // What role to create if not in invite list (default: fan)
 }
 
-export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/explore' }: SignupModalProps) {
+export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/explore', defaultRole = 'fan' }: SignupModalProps) {
   const { showSuccess, showError } = useToastContext();
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -168,6 +169,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
           email,
           username: username.toLowerCase(),
           website, // Honeypot field
+          defaultRole, // Pass the default role (fan or creator)
         }),
       });
 

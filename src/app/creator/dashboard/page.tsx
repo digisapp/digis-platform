@@ -11,7 +11,8 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
-  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package, GraduationCap
+  CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package, GraduationCap,
+  AlertCircle
 } from 'lucide-react';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 import { formatDistanceToNow } from 'date-fns';
@@ -499,6 +500,23 @@ export default function CreatorDashboard() {
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
+
+          {/* Pending Verification Banner - Only for unverified creators */}
+          {userProfile && userProfile.role === 'creator' && userProfile.isCreatorVerified === false && (
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-yellow-500/20">
+                  <AlertCircle className="w-5 h-5 text-yellow-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-yellow-400">Pending Verification</h3>
+                  <p className="text-xs text-gray-400">
+                    Your creator account is under review. You can still set up your profile while we verify your account.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Getting Started Checklist */}
           {userProfile && !dismissedChecklist && (

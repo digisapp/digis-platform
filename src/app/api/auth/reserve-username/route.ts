@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { userId, email, username, website } = await request.json();
+    const { userId, email, username, website, defaultRole } = await request.json();
 
     if (!userId || !email || !username) {
       return NextResponse.json(
@@ -32,9 +32,11 @@ export async function POST(request: NextRequest) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check if this email has a pending creator invite
-    // If so, they become a verified creator automatically
-    let userRole: 'fan' | 'creator' = 'fan';
+    // Determine user role based on:
+    // 1. If email matches a pending creator invite → creator (verified)
+    // 2. If defaultRole is 'creator' (signed up via /become-creator) → creator (pending verification)
+    // 3. Otherwise → fan (no verification needed)
+    let userRole: 'fan' | 'creator' = defaultRole === 'creator' ? 'creator' : 'fan';
     let isCreatorVerified = false;
     let matchedInvite = null;
 
@@ -47,13 +49,17 @@ export async function POST(request: NextRequest) {
       });
 
       if (matchedInvite) {
+        // Email is in invite list - auto-verify as creator
         userRole = 'creator';
         isCreatorVerified = true;
-        console.log(`[Signup] Email ${cleanEmail} matched creator invite, granting creator role`);
+        console.log(`[Signup] Email ${cleanEmail} matched creator invite, granting verified creator role`);
+      } else if (defaultRole === 'creator') {
+        // Signed up as creator but not in invite list - pending verification
+        console.log(`[Signup] Email ${cleanEmail} signed up as creator (pending verification)`);
       }
     } catch (err) {
       console.error('[Signup] Error checking creator invites:', err);
-      // Continue with fan role if check fails
+      // Continue with defaultRole if check fails
     }
 
     // Spam protection: Check honeypot field
