@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { users, creatorApplications, payoutRequests, creatorSettings } from '@/lib/data/system';
+import { users, creatorApplications, payoutRequests, creatorSettings, aiTwinSettings } from '@/lib/data/system';
 import { eq, and, or, ilike, desc, count, sql, sum, gte } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
@@ -180,6 +180,20 @@ export class AdminService {
       })
       .onConflictDoNothing();
 
+    // Create default AI Twin settings
+    await db.insert(aiTwinSettings)
+      .values({
+        creatorId: application.userId,
+        enabled: false,
+        textChatEnabled: false,
+        voice: 'ara',
+        pricePerMinute: 20,
+        minimumMinutes: 5,
+        maxSessionMinutes: 60,
+        textPricePerMessage: 5,
+      })
+      .onConflictDoNothing();
+
     // 🔥 CRITICAL: Update Supabase auth app_metadata to put role in JWT
     // This prevents role from switching back to fan during DB issues
     try {
@@ -335,8 +349,9 @@ export class AdminService {
       .set(updateData)
       .where(eq(users.id, userId));
 
-    // If promoting to creator, create default creator settings
+    // If promoting to creator, create default settings
     if (newRole === 'creator') {
+      // Create default creator settings
       await db.insert(creatorSettings)
         .values({
           userId,
@@ -347,6 +362,20 @@ export class AdminService {
           voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min
           minimumVoiceCallDuration: 5,
           isAvailableForVoiceCalls: false,
+        })
+        .onConflictDoNothing();
+
+      // Create default AI Twin settings
+      await db.insert(aiTwinSettings)
+        .values({
+          creatorId: userId,
+          enabled: false,
+          textChatEnabled: false,
+          voice: 'ara',
+          pricePerMinute: 20,
+          minimumMinutes: 5,
+          maxSessionMinutes: 60,
+          textPricePerMessage: 5,
         })
         .onConflictDoNothing();
     }
