@@ -3,7 +3,7 @@ import { referrals } from '@/db/schema/referrals';
 import { users, wallets } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-const SIGNUP_BONUS = 100;
+const SIGNUP_BONUS = 0; // No signup bonus - only commission to prevent fake account abuse
 const REVENUE_SHARE_PERCENT = 5;
 const COMMISSION_DURATION_MONTHS = 12;
 

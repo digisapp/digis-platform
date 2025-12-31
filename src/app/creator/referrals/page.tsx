@@ -145,7 +145,7 @@ export default function ReferralsPage() {
             Invite & Earn
           </h1>
           <p className="text-gray-400">
-            Earn 100 coins + 5% of their earnings for 12 months
+            Earn 5% of their earnings for 12 months
           </p>
         </div>
 
@@ -176,13 +176,13 @@ export default function ReferralsPage() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="p-4 rounded-xl bg-white/5 border border-white/10">
               <div className="flex items-center gap-2 mb-2">
                 <Users className="w-4 h-4 text-purple-400" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.totalReferrals}</p>
-              <p className="text-xs text-gray-400">Total Referrals</p>
+              <p className="text-xs text-gray-400">Referrals</p>
             </div>
             <div className="p-4 rounded-xl bg-white/5 border border-white/10">
               <div className="flex items-center gap-2 mb-2">
@@ -191,19 +191,12 @@ export default function ReferralsPage() {
               <p className="text-2xl font-bold text-white">{stats.activeReferrals}</p>
               <p className="text-xs text-gray-400">Active</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 mb-2">
-                <Gift className="w-4 h-4 text-yellow-400" />
-              </div>
-              <p className="text-2xl font-bold text-white">{stats.totalBonusEarned}</p>
-              <p className="text-xs text-gray-400">Bonus Coins</p>
-            </div>
             <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
               <div className="flex items-center gap-2 mb-2">
                 <Coins className="w-4 h-4 text-green-400" />
               </div>
-              <p className="text-2xl font-bold text-green-400">{stats.totalEarned}</p>
-              <p className="text-xs text-gray-400">Total Earned</p>
+              <p className="text-2xl font-bold text-green-400">{stats.totalCommissionEarned}</p>
+              <p className="text-xs text-gray-400">Earned</p>
             </div>
           </div>
         )}
@@ -227,7 +220,7 @@ export default function ReferralsPage() {
               </div>
               <div>
                 <p className="text-white font-medium">They become a creator</p>
-                <p className="text-sm text-gray-400">You get 100 coins when they're approved</p>
+                <p className="text-sm text-gray-400">They sign up and get approved as a creator</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
@@ -236,7 +229,7 @@ export default function ReferralsPage() {
               </div>
               <div>
                 <p className="text-white font-medium">Earn 5% of their earnings</p>
-                <p className="text-sm text-gray-400">For 12 months, paid monthly when you hit 100+ coins</p>
+                <p className="text-sm text-gray-400">For 12 months, paid monthly when you reach 100+ coins</p>
               </div>
             </div>
           </div>
@@ -316,25 +309,19 @@ export default function ReferralsPage() {
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-green-400 font-bold">
                       <Coins className="w-4 h-4 text-yellow-400" />
-                      {(referral.signupBonusPaid ? referral.signupBonusAmount : 0) + (referral.totalCommissionEarned || 0)}
+                      {referral.totalCommissionEarned || 0}
                     </div>
                     <p className="text-xs text-gray-500">earned</p>
                   </div>
                 </div>
 
                 {/* Earnings breakdown */}
-                {referral.status === 'active' && (
+                {referral.status === 'active' && (referral.totalCommissionEarned > 0 || referral.pendingCommission > 0) && (
                   <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-4 text-xs text-gray-400">
-                    {referral.signupBonusPaid && (
-                      <span className="flex items-center gap-1">
-                        <Gift className="w-3 h-3 text-yellow-400" />
-                        +{referral.signupBonusAmount} bonus
-                      </span>
-                    )}
                     {referral.totalCommissionEarned > 0 && (
                       <span className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3 text-green-400" />
-                        +{referral.totalCommissionEarned} commissions
+                        +{referral.totalCommissionEarned} earned
                       </span>
                     )}
                     {referral.pendingCommission > 0 && (
