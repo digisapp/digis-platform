@@ -188,16 +188,16 @@ export default function AiChatPage() {
 
   // Pre-chat screen
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4">
       {/* Back button */}
       <button
         onClick={() => router.push(`/${username}`)}
-        className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+        className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
       >
         <ArrowLeft className="w-6 h-6 text-white" />
       </button>
 
-      <GlassCard glow="cyan" className="max-w-md w-full p-8 text-center">
+      <GlassCard glow="cyan" className="max-w-md w-full p-8 text-center mt-4 md:mt-0">
         {/* Avatar */}
         <div className="relative mb-6">
           <div className="absolute -inset-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full blur-xl opacity-50" />
@@ -211,10 +211,6 @@ export default function AiChatPage() {
             ) : (
               <Bot className="w-12 h-12 text-white" />
             )}
-          </div>
-          {/* AI Badge */}
-          <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center border-4 border-gray-900">
-            <Bot className="w-4 h-4 text-white" />
           </div>
         </div>
 
