@@ -541,7 +541,7 @@ export default function CreatorDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Upload Profile Picture */}
                 <button
                   onClick={() => router.push('/settings')}
@@ -578,6 +578,18 @@ export default function CreatorDashboard() {
                   <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
                     Set Pricing rates
                   </span>
+                </button>
+
+                {/* Earn Free Coins */}
+                <button
+                  onClick={() => router.push('/creator/share-rewards')}
+                  className="flex items-center gap-3 p-4 rounded-xl transition-all bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 hover:border-yellow-500/50"
+                >
+                  <Gift className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                  <div className="text-left min-w-0">
+                    <span className="text-sm font-medium text-white block">Earn free coins</span>
+                    <span className="text-xs text-gray-400 block">Share on IG/TikTok for 100 coins</span>
+                  </div>
                 </button>
 
                 {/* Share Link on Instagram */}

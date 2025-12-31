@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
-import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail, Wrench } from 'lucide-react';
+import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail, Wrench, Gift } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
 
@@ -442,6 +442,13 @@ export default function AdminDashboard() {
             >
               <Mail className="w-4 h-4 text-pink-400" />
               <span className="text-sm font-medium text-white">Campaigns</span>
+            </button>
+            <button
+              onClick={() => router.push('/admin/share-rewards')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border border-yellow-500/30 rounded-lg transition-colors"
+            >
+              <Gift className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm font-medium text-white">Share Rewards</span>
             </button>
             <button
               onClick={handleRefresh}
