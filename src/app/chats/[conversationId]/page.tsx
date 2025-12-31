@@ -274,6 +274,11 @@ export default function ChatPage() {
         const conversations = data.data || data.conversations || [];
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
+          console.log('[Chat] Setting conversation:', {
+            otherUser: conv.otherUser?.username,
+            role: conv.otherUser?.role,
+            messageCharge: conv.otherUser?.messageCharge,
+          });
           setConversation(conv);
         }
       }
@@ -952,6 +957,15 @@ export default function ChatPage() {
                     && conversation.otherUser.messageCharge > 0
                     && !currentUserIsAdmin;
                   const cost = conversation?.otherUser.messageCharge || 0;
+
+                  // Debug logging
+                  console.log('[Chat] Send button render:', {
+                    role: conversation?.otherUser?.role,
+                    messageCharge: conversation?.otherUser?.messageCharge,
+                    isAdmin: currentUserIsAdmin,
+                    showCost,
+                    cost,
+                  });
 
                   return (
                     <button
