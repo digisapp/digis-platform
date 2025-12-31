@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
-import { Gift, MoreVertical, Coins, Plus, Camera, Film, Mic, FolderOpen, X } from 'lucide-react';
+import { Gift, MoreVertical, Coins, Plus, Camera, Film, Mic, FolderOpen, X, Send } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
@@ -957,14 +957,13 @@ export default function ChatPage() {
                     <button
                       type="submit"
                       disabled={!newMessage.trim() || sending}
-                      className="px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-1.5"
+                      className="p-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1"
                     >
                       {sending ? '...' : (
                         <>
-                          Send
+                          <Send className="w-5 h-5" />
                           {showCost && (
-                            <span className="flex items-center gap-0.5 text-yellow-300">
-                              <span>·</span>
+                            <span className="flex items-center gap-0.5 text-yellow-300 text-sm font-bold">
                               <span>{cost}</span>
                               <Coins className="w-3.5 h-3.5" />
                             </span>
