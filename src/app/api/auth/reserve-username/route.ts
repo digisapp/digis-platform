@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { users, creatorInvites } from '@/lib/data/system';
+import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';
 
@@ -28,6 +28,32 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Check if this email has a pending creator invite
+    // If so, they become a verified creator automatically
+    let userRole: 'fan' | 'creator' = 'fan';
+    let isCreatorVerified = false;
+    let matchedInvite = null;
+
+    try {
+      matchedInvite = await db.query.creatorInvites.findFirst({
+        where: and(
+          eq(creatorInvites.email, cleanEmail),
+          eq(creatorInvites.status, 'pending')
+        ),
+      });
+
+      if (matchedInvite) {
+        userRole = 'creator';
+        isCreatorVerified = true;
+        console.log(`[Signup] Email ${cleanEmail} matched creator invite, granting creator role`);
+      }
+    } catch (err) {
+      console.error('[Signup] Error checking creator invites:', err);
+      // Continue with fan role if check fails
     }
 
     // Spam protection: Check honeypot field
@@ -74,30 +100,53 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUserRow) {
-      // Update existing row with username
+      // Update existing row with username and role
       await db.update(users)
         .set({
           username: cleanUsername,
           displayName: cleanUsername,
+          role: userRole,
+          isCreatorVerified: isCreatorVerified,
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
     } else {
-      // Create new user row with username
+      // Create new user row with username and role
       await db.insert(users).values({
         id: userId,
-        email: email.toLowerCase(),
+        email: cleanEmail,
         username: cleanUsername,
         displayName: cleanUsername,
-        role: 'fan',
+        role: userRole,
+        isCreatorVerified: isCreatorVerified,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
     }
 
+    // If matched a creator invite, mark it as claimed
+    if (matchedInvite) {
+      try {
+        await db.update(creatorInvites)
+          .set({
+            status: 'claimed',
+            claimedBy: userId,
+            claimedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(creatorInvites.id, matchedInvite.id));
+        console.log(`[Signup] Marked invite ${matchedInvite.id} as claimed by ${userId}`);
+      } catch (err) {
+        console.error('[Signup] Error marking invite as claimed:', err);
+        // Don't fail the signup if this fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       username: cleanUsername,
+      role: userRole,
+      isCreator: userRole === 'creator',
     });
   } catch (error: any) {
     console.error('Error reserving username:', error);
