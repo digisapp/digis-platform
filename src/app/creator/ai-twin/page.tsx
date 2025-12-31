@@ -246,7 +246,6 @@ export default function AiTwinPage() {
       welcomeMessage: settings.welcomeMessage,
       boundaryPrompt: generatedBoundary || settings.boundaryPrompt,
       pricePerMinute: settings.pricePerMinute,
-      textPricePerMessage: settings.textPricePerMessage,
     };
 
     console.log('[AI Twin Save] Sending payload:', payload);
@@ -616,7 +615,7 @@ export default function AiTwinPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   {/* Voice Chat Pricing */}
                   {settings.enabled && (
                     <div>
@@ -643,28 +642,11 @@ export default function AiTwinPage() {
                     </div>
                   )}
 
-                  {/* Text Chat Pricing */}
+                  {/* Text Chat Info - uses same rate as regular messages */}
                   {settings.textChatEnabled && (
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">
-                        Text Chat (per message)
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          max="100"
-                          value={settings.textPricePerMessage || ''}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/^0+/, '') || '1';
-                            setSettings({ ...settings, textPricePerMessage: Math.min(100, parseInt(val) || 1) });
-                          }}
-                          className="w-full px-3 py-2 bg-black/40 border border-purple-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500 max-w-[120px]"
-                        />
-                        <span className="text-xs text-gray-400">coins</span>
-                      </div>
-                      <p className="text-xs text-green-400 mt-1">
-                        You earn {formatCoinsToUSD(settings.textPricePerMessage)}/msg
+                    <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                      <p className="text-sm text-purple-300">
+                        💬 AI text replies use your regular message rate (set in Creator Settings)
                       </p>
                     </div>
                   )}

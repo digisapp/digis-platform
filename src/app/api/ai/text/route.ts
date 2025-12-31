@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users, wallets, walletTransactions, conversations, messages } from '@/db/schema';
+import { aiTwinSettings, users, wallets, walletTransactions, conversations, messages, creatorSettings } from '@/db/schema';
 import { eq, and, or, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -66,12 +66,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get creator's message rate from creatorSettings (same rate as regular messages)
+    const creatorSetting = await db.query.creatorSettings.findFirst({
+      where: eq(creatorSettings.userId, creatorId),
+    });
+
     // Check fan's balance
     const fanWallet = await db.query.wallets.findFirst({
       where: eq(wallets.userId, user.id),
     });
 
-    const pricePerMessage = aiSettings.textPricePerMessage;
+    // Use messageRate from creatorSettings (same as regular messages)
+    const pricePerMessage = creatorSetting?.messageRate || 0;
     const fanBalance = fanWallet?.balance || 0;
 
     if (fanBalance < pricePerMessage) {
