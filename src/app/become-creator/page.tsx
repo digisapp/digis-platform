@@ -236,69 +236,6 @@ export default function BecomeCreatorPage() {
         </div>
       </div>
 
-      {/* Why Digis Section */}
-      <div className="relative z-10 px-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Built for Creators Who Want More
-              </h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-green-400 text-sm">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-semibold">Keep 80% of Earnings</h4>
-                    <p className="text-white/50 text-sm">Industry-leading creator payouts</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-green-400 text-sm">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-semibold">Weekly Payouts</h4>
-                    <p className="text-white/50 text-sm">Get paid fast, no waiting around</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-green-400 text-sm">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-semibold">No Follower Minimum</h4>
-                    <p className="text-white/50 text-sm">Start earning from day one</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-green-400 text-sm">✓</span>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-semibold">Creator-First Support</h4>
-                    <p className="text-white/50 text-sm">Real humans who help you succeed</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 rounded-3xl blur-xl" />
-              <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 text-center">
-                <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent mb-2">
-                  80%
-                </div>
-                <p className="text-white/70 text-lg">
-                  of every dollar goes directly to you
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Final CTA */}
       <div className="relative z-10 px-4 pb-24">
         <div className="max-w-3xl mx-auto text-center">
