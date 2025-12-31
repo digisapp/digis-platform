@@ -60,6 +60,7 @@ export default function ChatPage() {
   const isInitialLoadRef = useRef(true);
   const lastMessageCountRef = useRef(0);
   const messageChargeRef = useRef<number>(0); // Persist messageCharge across re-renders
+  const rateFetchedRef = useRef<boolean>(false); // Track if rate has been fetched
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -248,6 +249,14 @@ export default function ChatPage() {
     }
   }, [currentUserId, messages, conversation]);
 
+  // Sync messageCharge state from ref if state gets reset but ref has value
+  useEffect(() => {
+    if (messageCharge === 0 && messageChargeRef.current > 0) {
+      console.log('[Chat] Restoring messageCharge from ref:', messageChargeRef.current);
+      setMessageCharge(messageChargeRef.current);
+    }
+  }, [messageCharge]);
+
   const checkAuth = async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -286,12 +295,12 @@ export default function ChatPage() {
 
           // If other user is a creator, fetch their messageRate directly
           if (conv.otherUser?.role === 'creator' && conv.otherUser?.id) {
-            // First set from conversation data if available (immediate feedback)
-            if (conv.otherUser.messageCharge && conv.otherUser.messageCharge > 0) {
+            // Only set from conversation data if we haven't fetched the rate yet
+            if (!rateFetchedRef.current && conv.otherUser.messageCharge && conv.otherUser.messageCharge > 0) {
               messageChargeRef.current = conv.otherUser.messageCharge;
               setMessageCharge(conv.otherUser.messageCharge);
             }
-            // Then fetch directly for most accurate data
+            // Fetch directly for most accurate data (will skip if already fetched)
             fetchCreatorMessageRate(conv.otherUser.id);
           }
         }
@@ -303,17 +312,25 @@ export default function ChatPage() {
 
   // Fetch creator's message rate directly - more reliable than conversation data
   const fetchCreatorMessageRate = async (creatorId: string) => {
+    // Skip if we've already fetched successfully
+    if (rateFetchedRef.current && messageChargeRef.current > 0) {
+      console.log('[Chat] Rate already fetched, skipping. Value:', messageChargeRef.current);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/creator/${creatorId}/rate`);
       if (response.ok) {
         const data = await response.json();
         const rate = data.messageRate || 0;
-        console.log('[Chat] Fetched creator rate:', rate, 'Current ref:', messageChargeRef.current);
-        // Only update if we got a valid rate, or if no rate is currently set
-        if (rate > 0 || messageChargeRef.current === 0) {
-          messageChargeRef.current = rate;
-          setMessageCharge(rate);
-        }
+        console.log('[Chat] Fetched creator rate:', rate);
+
+        // Mark as fetched
+        rateFetchedRef.current = true;
+
+        // Update state
+        messageChargeRef.current = rate;
+        setMessageCharge(rate);
       }
     } catch (error) {
       console.error('Error fetching creator message rate:', error);
