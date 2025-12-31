@@ -59,9 +59,11 @@ export default function ChatPage() {
   const isNearBottomRef = useRef(true);
   const isInitialLoadRef = useRef(true);
   const lastMessageCountRef = useRef(0);
-  const messageChargeRef = useRef<number>(0); // Persist messageCharge across re-renders
-  const rateFetchedRef = useRef<boolean>(false); // Track if rate has been fetched
-  const otherUserRoleRef = useRef<string | null>(null); // Persist role across re-renders
+
+  // Cost display - single source of truth, never reset once set
+  const [costPerMessage, setCostPerMessage] = useState<number | null>(null);
+  const [recipientIsCreator, setRecipientIsCreator] = useState<boolean>(false);
+  const costFetchedRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -77,8 +79,6 @@ export default function ChatPage() {
   const [pendingMessage, setPendingMessage] = useState('');
   const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
   const [userBalance, setUserBalance] = useState<number | null>(null);
-  const [messageCharge, setMessageCharge] = useState<number>(0);
-  const [otherUserRole, setOtherUserRole] = useState<string | null>(null); // Stable role state
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
@@ -243,41 +243,13 @@ export default function ChatPage() {
 
   // Auto-acknowledge charge if user has already sent messages in this conversation
   useEffect(() => {
-    if (currentUserId && messages.length > 0 && otherUserRole === 'creator') {
+    if (currentUserId && messages.length > 0 && recipientIsCreator) {
       const hasUserSentMessages = messages.some(m => m.sender.id === currentUserId);
       if (hasUserSentMessages) {
         setHasAcknowledgedCharge(true);
       }
     }
-  }, [currentUserId, messages, otherUserRole]);
-
-  // Sync messageCharge state from ref if state gets reset but ref has value
-  useEffect(() => {
-    if (messageCharge === 0 && messageChargeRef.current > 0) {
-      console.log('[Chat] Restoring messageCharge from ref:', messageChargeRef.current);
-      setMessageCharge(messageChargeRef.current);
-    }
-  }, [messageCharge]);
-
-  // Sync otherUserRole state from ref if state gets reset but ref has value
-  useEffect(() => {
-    if (!otherUserRole && otherUserRoleRef.current) {
-      console.log('[Chat] Restoring otherUserRole from ref:', otherUserRoleRef.current);
-      setOtherUserRole(otherUserRoleRef.current);
-    }
-  }, [otherUserRole]);
-
-  // Debug: log render state
-  useEffect(() => {
-    console.log('[Chat UI State]', {
-      otherUserRole,
-      otherUserRoleRef: otherUserRoleRef.current,
-      messageCharge,
-      messageChargeRef: messageChargeRef.current,
-      currentUserIsAdmin,
-      showPill: otherUserRole === 'creator' && messageCharge > 0 && !currentUserIsAdmin,
-    });
-  }, [otherUserRole, messageCharge, currentUserIsAdmin]);
+  }, [currentUserId, messages, recipientIsCreator]);
 
   const checkAuth = async () => {
     const supabase = createClient();
@@ -309,48 +281,19 @@ export default function ChatPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // API returns { data: conversations[] } wrapper
         const conversations = data.data || data.conversations || [];
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
-          console.log('[Chat] fetchConversation - conv.otherUser:', {
-            role: conv.otherUser?.role,
-            messageCharge: conv.otherUser?.messageCharge,
-            currentRoleRef: otherUserRoleRef.current,
-            currentChargeRef: messageChargeRef.current,
-          });
+          setConversation(conv);
 
-          // Merge conversation to preserve existing fields that may be missing in new payload
-          setConversation(prev => {
-            if (!prev) return conv;
-            return {
-              ...conv,
-              otherUser: {
-                ...conv.otherUser,
-                // Preserve existing messageCharge if new payload lacks it
-                messageCharge: conv.otherUser?.messageCharge ?? prev.otherUser?.messageCharge ?? 0,
-                role: conv.otherUser?.role ?? prev.otherUser?.role,
-              },
-            };
-          });
-
-          // Set role in stable state once using REF to avoid stale closure
-          if (conv.otherUser?.role && !otherUserRoleRef.current) {
-            console.log('[Chat] Setting otherUserRole:', conv.otherUser.role);
-            otherUserRoleRef.current = conv.otherUser.role;
-            setOtherUserRole(conv.otherUser.role);
-          }
-
-          // If other user is a creator, fetch their messageRate directly
-          const isCreator = conv.otherUser?.role === 'creator' || otherUserRoleRef.current === 'creator';
-          if (isCreator && conv.otherUser?.id) {
-            // Only set from conversation data if we haven't fetched the rate yet
-            if (!rateFetchedRef.current && conv.otherUser.messageCharge && conv.otherUser.messageCharge > 0) {
-              messageChargeRef.current = conv.otherUser.messageCharge;
-              setMessageCharge(conv.otherUser.messageCharge);
+          // Only fetch cost info once
+          if (!costFetchedRef.current && conv.otherUser?.id) {
+            const isCreator = conv.otherUser?.role === 'creator';
+            if (isCreator) {
+              setRecipientIsCreator(true);
+              // Fetch the rate directly from the dedicated API
+              fetchCreatorRate(conv.otherUser.id);
             }
-            // Fetch directly for most accurate data (will skip if already fetched)
-            fetchCreatorMessageRate(conv.otherUser.id);
           }
         }
       }
@@ -359,40 +302,24 @@ export default function ChatPage() {
     }
   };
 
-  // Fetch creator's message rate directly - more reliable than conversation data
-  const fetchCreatorMessageRate = async (creatorId: string) => {
-    // Skip if we've already fetched a non-zero rate
-    if (rateFetchedRef.current && messageChargeRef.current > 0) {
-      console.log('[Chat] Rate already fetched, skipping. Value:', messageChargeRef.current);
-      return;
-    }
+  // Simple, dedicated function to fetch creator's rate - only runs once
+  const fetchCreatorRate = async (creatorId: string) => {
+    if (costFetchedRef.current) return; // Already fetched
 
     try {
       const response = await fetch(`/api/creator/${creatorId}/rate`);
       if (response.ok) {
         const data = await response.json();
         const rate = typeof data.messageRate === 'number' ? data.messageRate : 0;
-        console.log('[Chat] Fetched creator rate:', rate);
+        console.log('[Chat] Got creator rate:', rate);
 
-        // Only lock if we got a non-zero rate (allow retries if 0)
-        if (rate > 0) {
-          rateFetchedRef.current = true;
-
-          // If we got a rate > 0, they're definitely a creator - ensure role is set
-          if (!otherUserRoleRef.current) {
-            console.log('[Chat] Setting otherUserRole to creator based on rate');
-            otherUserRoleRef.current = 'creator';
-            setOtherUserRole('creator');
-          }
-        }
-
-        // Update state
-        messageChargeRef.current = rate;
-        setMessageCharge(rate);
+        // Mark as fetched and set the cost
+        costFetchedRef.current = true;
+        setCostPerMessage(rate);
+        setRecipientIsCreator(true);
       }
     } catch (error) {
-      console.error('Error fetching creator message rate:', error);
-      // Don't reset on error - keep existing value
+      console.error('Error fetching creator rate:', error);
     }
   };
 
@@ -463,13 +390,11 @@ export default function ChatPage() {
     // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
     // - Fan → Creator: Fan pays the creator's message rate (if set)
     // - Creator → Creator: Sender pays the receiver's message rate (if set)
-    const isSenderCreator = currentUserRole === 'creator';
-    const isRecipientCreator = conversation.otherUser.role === 'creator';
-    const shouldCheckCharge = isRecipientCreator && !currentUserIsAdmin; // Admins never pay
+    const shouldCheckCharge = recipientIsCreator && !currentUserIsAdmin; // Admins never pay
+    const chargeAmount = costPerMessage || 0;
 
-    // Check if recipient has message charging enabled (only if they're a creator and sender is not admin)
-    // messageCharge is stored in state to survive re-renders
-    if (shouldCheckCharge && messageCharge > 0) {
+    // Check if recipient has message charging enabled
+    if (shouldCheckCharge && chargeAmount > 0) {
       // If user hasn't acknowledged the charge yet, show warning for first message
       if (!hasAcknowledgedCharge) {
         setPendingMessage(newMessage.trim());
@@ -478,7 +403,7 @@ export default function ChatPage() {
       }
 
       // User has acknowledged - check if they have enough balance
-      if (userBalance !== null && userBalance < messageCharge) {
+      if (userBalance !== null && userBalance < chargeAmount) {
         // Insufficient balance - show warning
         setPendingMessage(newMessage.trim());
         setShowChargeWarning(true);
@@ -513,8 +438,7 @@ export default function ChatPage() {
         setNewMessage('');
         setPendingMessage('');
         // Mark as acknowledged if this was a paid message to a creator
-        const isRecipientCreator = conversation.otherUser.role === 'creator';
-        if (isRecipientCreator && messageCharge > 0) {
+        if (recipientIsCreator && (costPerMessage || 0) > 0) {
           setHasAcknowledgedCharge(true);
         }
         // Refresh balance after sending paid message
@@ -1042,7 +966,7 @@ export default function ChatPage() {
                         </button>
 
                         {/* Gift/Tip - only when chatting with a creator */}
-                        {otherUserRole === 'creator' && (
+                        {recipientIsCreator && (
                           <button
                             onClick={() => {
                               setShowAttachmentMenu(false);
@@ -1077,15 +1001,12 @@ export default function ChatPage() {
                 </div>
 
                 {/* Cost indicator - show above input when messaging a creator */}
-                {/* Use both state AND ref as fallback to prevent flash */}
-                {(otherUserRole === 'creator' || otherUserRoleRef.current === 'creator') &&
-                 (messageCharge > 0 || messageChargeRef.current > 0) &&
-                 !currentUserIsAdmin && (
+                {recipientIsCreator && (costPerMessage || 0) > 0 && !currentUserIsAdmin && (
                   <div className="absolute -top-8 left-0 right-0 flex justify-center">
                     <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full flex items-center gap-1.5">
                       <Coins className="w-3.5 h-3.5 text-yellow-400" />
                       <span className="text-xs text-yellow-300 font-medium">
-                        {messageCharge || messageChargeRef.current} coins per message
+                        {costPerMessage} coins per message
                       </span>
                     </div>
                   </div>
@@ -1132,7 +1053,7 @@ export default function ChatPage() {
           onClose={() => setShowMediaModal(false)}
           onSend={handleSendMedia}
           isCreator={currentUserRole === 'creator'}
-          recipientIsCreator={otherUserRole === 'creator'}
+          recipientIsCreator={recipientIsCreator}
         />
       )}
 
@@ -1140,7 +1061,7 @@ export default function ChatPage() {
       {showChargeWarning && conversation && (
         <MessageChargeWarningModal
           recipientName={conversation.otherUser.username || 'Creator'}
-          messageCharge={messageCharge}
+          messageCharge={costPerMessage || 0}
           messagePreview={pendingMessage}
           onClose={() => {
             setShowChargeWarning(false);
