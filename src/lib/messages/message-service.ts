@@ -452,6 +452,7 @@ export class MessageService {
             displayName: true,
             username: true,
             avatarUrl: true,
+            role: true,
           },
         },
       },

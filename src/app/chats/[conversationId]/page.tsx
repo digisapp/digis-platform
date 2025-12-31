@@ -286,13 +286,20 @@ export default function ChatPage() {
         if (conv) {
           setConversation(conv);
 
-          // Only fetch cost info once
+          // Set cost info from conversation data (already includes messageCharge)
           if (!costFetchedRef.current && conv.otherUser?.id) {
             const isCreator = conv.otherUser?.role === 'creator';
             if (isCreator) {
               setRecipientIsCreator(true);
-              // Fetch the rate directly from the dedicated API
-              fetchCreatorRate(conv.otherUser.id);
+              // Use messageCharge from conversation if available, otherwise fetch it
+              if (typeof conv.otherUser.messageCharge === 'number') {
+                costFetchedRef.current = true;
+                setCostPerMessage(conv.otherUser.messageCharge);
+                console.log('[Chat] Got creator rate from conversation:', conv.otherUser.messageCharge);
+              } else {
+                // Fallback: fetch the rate directly from the dedicated API
+                fetchCreatorRate(conv.otherUser.id);
+              }
             }
           }
         }
@@ -333,6 +340,16 @@ export default function ChatPage() {
         setMessages(fetchedMessages);
         // If we got less than 100, there are no more older messages
         setHasMoreMessages(data.messages.length >= 100);
+
+        // Backup: if we don't have rate info yet, check messages for creator
+        if (!costFetchedRef.current && fetchedMessages.length > 0 && currentUserId) {
+          // Find the other user from messages (someone who is not the current user)
+          const otherUser = fetchedMessages.find((m: any) => m.sender?.id !== currentUserId)?.sender;
+          if (otherUser && otherUser.role === 'creator') {
+            setRecipientIsCreator(true);
+            fetchCreatorRate(otherUser.id);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
