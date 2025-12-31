@@ -73,6 +73,7 @@ export default function ChatPage() {
   const [pendingMessage, setPendingMessage] = useState('');
   const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
   const [userBalance, setUserBalance] = useState<number | null>(null);
+  const [messageCharge, setMessageCharge] = useState<number>(0);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
@@ -274,12 +275,12 @@ export default function ChatPage() {
         const conversations = data.data || data.conversations || [];
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
-          console.log('[Chat] Setting conversation:', {
-            otherUser: conv.otherUser?.username,
-            role: conv.otherUser?.role,
-            messageCharge: conv.otherUser?.messageCharge,
-          });
           setConversation(conv);
+          // Store messageCharge separately so it doesn't get lost on re-renders
+          const charge = Number(conv.otherUser?.messageCharge ?? 0);
+          if (charge > 0) {
+            setMessageCharge(charge);
+          }
         }
       }
     } catch (error) {
@@ -359,8 +360,8 @@ export default function ChatPage() {
     const shouldCheckCharge = isRecipientCreator && !currentUserIsAdmin; // Admins never pay
 
     // Check if recipient has message charging enabled (only if they're a creator and sender is not admin)
-    const messageCharge = conversation.otherUser.messageCharge;
-    if (shouldCheckCharge && messageCharge && messageCharge > 0) {
+    // messageCharge is stored in state to survive re-renders
+    if (shouldCheckCharge && messageCharge > 0) {
       // If user hasn't acknowledged the charge yet, show warning for first message
       if (!hasAcknowledgedCharge) {
         setPendingMessage(newMessage.trim());
@@ -405,7 +406,7 @@ export default function ChatPage() {
         setPendingMessage('');
         // Mark as acknowledged if this was a paid message to a creator
         const isRecipientCreator = conversation.otherUser.role === 'creator';
-        if (isRecipientCreator && conversation.otherUser.messageCharge && conversation.otherUser.messageCharge > 0) {
+        if (isRecipientCreator && messageCharge > 0) {
           setHasAcknowledgedCharge(true);
         }
         // Refresh balance after sending paid message
@@ -952,20 +953,10 @@ export default function ChatPage() {
                   disabled={sending}
                 />
                 {(() => {
-                  const showCost = conversation?.otherUser.role === 'creator'
-                    && conversation?.otherUser.messageCharge
-                    && conversation.otherUser.messageCharge > 0
+                  // Use separate messageCharge state (doesn't get lost on re-renders)
+                  const showCost = conversation?.otherUser?.role === 'creator'
+                    && messageCharge > 0
                     && !currentUserIsAdmin;
-                  const cost = conversation?.otherUser.messageCharge || 0;
-
-                  // Debug logging
-                  console.log('[Chat] Send button render:', {
-                    role: conversation?.otherUser?.role,
-                    messageCharge: conversation?.otherUser?.messageCharge,
-                    isAdmin: currentUserIsAdmin,
-                    showCost,
-                    cost,
-                  });
 
                   return (
                     <button
@@ -977,7 +968,7 @@ export default function ChatPage() {
                         showCost ? (
                           <>
                             <span>Send</span>
-                            <span className="text-yellow-300 font-bold">{cost}</span>
+                            <span className="text-yellow-300 font-bold">{messageCharge}</span>
                             <Coins className="w-3 h-3 text-yellow-300" />
                           </>
                         ) : (
@@ -1014,7 +1005,7 @@ export default function ChatPage() {
       {showChargeWarning && conversation && (
         <MessageChargeWarningModal
           recipientName={conversation.otherUser.username || 'Creator'}
-          messageCharge={conversation.otherUser.messageCharge || 0}
+          messageCharge={messageCharge}
           messagePreview={pendingMessage}
           onClose={() => {
             setShowChargeWarning(false);
