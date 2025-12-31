@@ -114,6 +114,8 @@ export default function AiTwinPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [autoSaved, setAutoSaved] = useState<'voice' | 'text' | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -182,6 +184,45 @@ export default function AiTwinPage() {
       console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Auto-save toggle states immediately
+  const saveToggle = async (type: 'voice' | 'text', newValue: boolean) => {
+    setAutoSaving(true);
+    setAutoSaved(null);
+
+    const payload = type === 'voice'
+      ? { enabled: newValue }
+      : { textChatEnabled: newValue };
+
+    console.log(`[AI Twin] Auto-saving ${type}:`, newValue);
+
+    try {
+      const response = await fetch('/api/ai/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.settings) {
+          setSettings(prev => ({ ...prev, ...data.settings }));
+        }
+        setAutoSaved(type);
+        setTimeout(() => setAutoSaved(null), 2000);
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Failed to save');
+        setTimeout(() => setError(''), 3000);
+      }
+    } catch (err: any) {
+      console.error('[AI Twin] Auto-save error:', err);
+      setError('Failed to save toggle');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setAutoSaving(false);
     }
   };
 
@@ -319,7 +360,14 @@ export default function AiTwinPage() {
                   <Mic className="w-6 h-6 text-cyan-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-white">Voice Chat</h3>
+                  <h3 className="font-bold text-white flex items-center gap-2">
+                    Voice Chat
+                    {autoSaved === 'voice' && (
+                      <span className="text-xs text-green-400 font-normal flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Saved
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-gray-400">
                     Real-time voice calls with AI
                   </p>
@@ -329,11 +377,13 @@ export default function AiTwinPage() {
                 </div>
                 <button
                   type="button"
+                  disabled={autoSaving}
                   onClick={() => {
-                    console.log('[AI Twin] Toggling voice chat:', !settings.enabled);
-                    setSettings({ ...settings, enabled: !settings.enabled });
+                    const newValue = !settings.enabled;
+                    setSettings({ ...settings, enabled: newValue });
+                    saveToggle('voice', newValue);
                   }}
-                  className="focus:outline-none"
+                  className="focus:outline-none disabled:opacity-50"
                 >
                   {settings.enabled ? (
                     <ToggleRight className="w-12 h-12 text-cyan-500" />
@@ -351,7 +401,14 @@ export default function AiTwinPage() {
                   <MessageSquare className="w-6 h-6 text-purple-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-white">Text Chat</h3>
+                  <h3 className="font-bold text-white flex items-center gap-2">
+                    Text Chat
+                    {autoSaved === 'text' && (
+                      <span className="text-xs text-green-400 font-normal flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> Saved
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-gray-400">
                     AI responds to DMs
                   </p>
@@ -361,11 +418,13 @@ export default function AiTwinPage() {
                 </div>
                 <button
                   type="button"
+                  disabled={autoSaving}
                   onClick={() => {
-                    console.log('[AI Twin] Toggling text chat:', !settings.textChatEnabled);
-                    setSettings({ ...settings, textChatEnabled: !settings.textChatEnabled });
+                    const newValue = !settings.textChatEnabled;
+                    setSettings({ ...settings, textChatEnabled: newValue });
+                    saveToggle('text', newValue);
                   }}
-                  className="focus:outline-none"
+                  className="focus:outline-none disabled:opacity-50"
                 >
                   {settings.textChatEnabled ? (
                     <ToggleRight className="w-12 h-12 text-purple-500" />
