@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { conversations, messages } from '@/lib/data/system';
-import { eq, or, and } from 'drizzle-orm';
+import { conversations, messages, users, creatorSettings, wallets, walletTransactions } from '@/lib/data/system';
+import { eq, or, and, sql } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -127,6 +127,71 @@ export async function POST(req: NextRequest) {
         .returning();
 
       conversation = newConversation;
+    }
+
+    // Check if sender needs to pay (fan sending to creator)
+    const sender = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { role: true },
+    });
+
+    const recipient = await db.query.users.findFirst({
+      where: eq(users.id, recipientId),
+      columns: { id: true, role: true },
+    });
+
+    let messageCharge = 0;
+
+    // If fan sending to creator, charge messageRate
+    if (sender?.role !== 'creator' && recipient?.role === 'creator') {
+      const creatorSetting = await db.query.creatorSettings.findFirst({
+        where: eq(creatorSettings.userId, recipientId),
+      });
+
+      messageCharge = creatorSetting?.messageRate || 0;
+
+      if (messageCharge > 0) {
+        // Check sender's balance
+        const senderWallet = await db.query.wallets.findFirst({
+          where: eq(wallets.userId, user.id),
+        });
+
+        if (!senderWallet || senderWallet.balance < messageCharge) {
+          return NextResponse.json(
+            { error: `Insufficient balance. You need ${messageCharge} coins to send voice messages.` },
+            { status: 402 }
+          );
+        }
+
+        // Deduct from sender
+        await db
+          .update(wallets)
+          .set({ balance: sql`${wallets.balance} - ${messageCharge}` })
+          .where(eq(wallets.userId, user.id));
+
+        // Credit to creator
+        await db
+          .update(wallets)
+          .set({ balance: sql`${wallets.balance} + ${messageCharge}` })
+          .where(eq(wallets.userId, recipientId));
+
+        // Create transaction records
+        await db.insert(walletTransactions).values({
+          userId: user.id,
+          amount: -messageCharge,
+          type: 'message',
+          status: 'completed',
+          description: 'Voice message to creator',
+        });
+
+        await db.insert(walletTransactions).values({
+          userId: recipientId,
+          amount: messageCharge,
+          type: 'message',
+          status: 'completed',
+          description: 'Voice message from fan',
+        });
+      }
     }
 
     // Create message with voice data

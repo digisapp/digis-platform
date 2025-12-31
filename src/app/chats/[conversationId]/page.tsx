@@ -866,7 +866,7 @@ export default function ChatPage() {
                 onCancel={() => setShowVoiceRecorder(false)}
               />
             ) : (
-              <form onSubmit={sendMessage} className="flex gap-2 items-center">
+              <form onSubmit={sendMessage} className="relative flex gap-2 items-center pt-6">
                 {/* Attachment Menu Button */}
                 <div className="relative flex-shrink-0">
                   <button
@@ -955,6 +955,15 @@ export default function ChatPage() {
                   )}
                 </div>
 
+                {/* Cost indicator - show above input when messaging a creator */}
+                {conversation?.otherUser?.role === 'creator' && messageCharge > 0 && !currentUserIsAdmin && (
+                  <div className="absolute -top-8 left-0 right-0 flex justify-center">
+                    <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full flex items-center gap-1.5">
+                      <Coins className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className="text-xs text-yellow-300 font-medium">{messageCharge} coins per message</span>
+                    </div>
+                  </div>
+                )}
                 <input
                   type="text"
                   value={newMessage}
@@ -970,18 +979,10 @@ export default function ChatPage() {
                   className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-lg shadow-cyan-500/20"
                 >
                   {sending ? '...' : (
-                    conversation?.otherUser?.role === 'creator' && messageCharge > 0 && !currentUserIsAdmin ? (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span className="text-yellow-300 font-bold">{messageCharge}</span>
-                        <Coins className="w-3.5 h-3.5 text-yellow-300" />
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        <span>Send</span>
-                      </>
-                    )
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send</span>
+                    </>
                   )}
                 </button>
               </form>
