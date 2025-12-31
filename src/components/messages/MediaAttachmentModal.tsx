@@ -32,7 +32,7 @@ interface MediaAttachmentModalProps {
 
 export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recipientIsCreator = false }: MediaAttachmentModalProps) {
   const { showError } = useToastContext();
-  const [activeTab, setActiveTab] = useState<'upload'>('upload'); // Fans only see upload
+  const [activeTab, setActiveTab] = useState<'upload' | 'library'>('upload');
 
   // Upload state
   const [file, setFile] = useState<File | null>(null);
@@ -190,7 +190,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
               Upload New
             </button>
             <button
-              onClick={() => setActiveTab('library' as any)}
+              onClick={() => setActiveTab('library')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
                 activeTab === 'library'
                   ? 'text-cyan-400 border-b-2 border-cyan-400'
