@@ -1070,11 +1070,16 @@ export default function ChatPage() {
                 </div>
 
                 {/* Cost indicator - show above input when messaging a creator */}
-                {otherUserRole === 'creator' && messageCharge > 0 && !currentUserIsAdmin && (
+                {/* Use both state AND ref as fallback to prevent flash */}
+                {(otherUserRole === 'creator' || otherUserRoleRef.current === 'creator') &&
+                 (messageCharge > 0 || messageChargeRef.current > 0) &&
+                 !currentUserIsAdmin && (
                   <div className="absolute -top-8 left-0 right-0 flex justify-center">
                     <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full flex items-center gap-1.5">
                       <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                      <span className="text-xs text-yellow-300 font-medium">{messageCharge} coins per message</span>
+                      <span className="text-xs text-yellow-300 font-medium">
+                        {messageCharge || messageChargeRef.current} coins per message
+                      </span>
                     </div>
                   </div>
                 )}
