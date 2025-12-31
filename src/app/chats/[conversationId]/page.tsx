@@ -278,6 +278,12 @@ export default function ChatPage() {
           setConversation(conv);
           // Store messageCharge separately so it doesn't get lost on re-renders
           const charge = Number(conv.otherUser?.messageCharge ?? 0);
+          console.log('[Chat] Conversation loaded:', {
+            otherUser: conv.otherUser?.username,
+            role: conv.otherUser?.role,
+            messageChargeFromAPI: conv.otherUser?.messageCharge,
+            chargeToSet: charge,
+          });
           if (charge > 0) {
             setMessageCharge(charge);
           }
@@ -878,8 +884,8 @@ export default function ChatPage() {
                     onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
                     className={`p-2.5 border rounded-full transition-all flex items-center justify-center ${
                       showAttachmentMenu
-                        ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
-                        : 'bg-white/10 border-white/20 hover:bg-white/20 hover:border-cyan-500/50 text-white'
+                        ? 'bg-cyan-500/30 border-cyan-400 text-cyan-300'
+                        : 'bg-white/10 border-white/30 hover:bg-white/20 hover:border-cyan-400 text-white'
                     }`}
                     title="Attach"
                   >
@@ -949,27 +955,34 @@ export default function ChatPage() {
                   onChange={handleInputChange}
                   onBlur={() => sendTypingIndicator(false)}
                   placeholder="Message..."
-                  className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-full px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all text-sm"
+                  className="flex-1 min-w-0 bg-white/10 border border-white/30 rounded-full px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-white/15 transition-all text-sm"
                   disabled={sending}
                 />
                 {(() => {
                   // Use separate messageCharge state (doesn't get lost on re-renders)
-                  const showCost = conversation?.otherUser?.role === 'creator'
-                    && messageCharge > 0
-                    && !currentUserIsAdmin;
+                  const isCreator = conversation?.otherUser?.role === 'creator';
+                  const showCost = isCreator && messageCharge > 0 && !currentUserIsAdmin;
+
+                  // Debug logging
+                  console.log('[Chat] Send button:', {
+                    isCreator,
+                    messageCharge,
+                    currentUserIsAdmin,
+                    showCost,
+                  });
 
                   return (
                     <button
                       type="submit"
                       disabled={!newMessage.trim() || sending}
-                      className="px-3 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1 whitespace-nowrap flex-shrink-0"
+                      className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-lg shadow-cyan-500/20"
                     >
                       {sending ? '...' : (
                         showCost ? (
                           <>
                             <span>Send</span>
-                            <span className="text-yellow-300 font-bold">{messageCharge}</span>
-                            <Coins className="w-3 h-3 text-yellow-300" />
+                            <span className="text-yellow-300">{messageCharge}</span>
+                            <Coins className="w-3.5 h-3.5 text-yellow-300" />
                           </>
                         ) : (
                           'Send'
