@@ -1018,12 +1018,12 @@ export default function ChatPage() {
                 </div>
 
                 {/* Cost indicator - show above input when messaging a creator */}
-                {recipientIsCreator && (costPerMessage || 0) > 0 && !currentUserIsAdmin && (
+                {recipientIsCreator && (costPerMessage || 0) > 0 && (
                   <div className="absolute -top-8 left-0 right-0 flex justify-center">
-                    <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full flex items-center gap-1.5">
-                      <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                      <span className="text-xs text-yellow-300 font-medium">
-                        {costPerMessage} coins per message
+                    <div className={`px-3 py-1 ${currentUserIsAdmin ? 'bg-green-500/20 border-green-500/40' : 'bg-yellow-500/20 border-yellow-500/40'} border rounded-full flex items-center gap-1.5`}>
+                      <Coins className={`w-3.5 h-3.5 ${currentUserIsAdmin ? 'text-green-400' : 'text-yellow-400'}`} />
+                      <span className={`text-xs font-medium ${currentUserIsAdmin ? 'text-green-300' : 'text-yellow-300'}`}>
+                        {costPerMessage} coins per message{currentUserIsAdmin && ' (free for admin)'}
                       </span>
                     </div>
                   </div>
