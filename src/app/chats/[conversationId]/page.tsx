@@ -942,8 +942,8 @@ export default function ChatPage() {
                   value={newMessage}
                   onChange={handleInputChange}
                   onBlur={() => sendTypingIndicator(false)}
-                  placeholder="Type a message..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+                  placeholder="Message..."
+                  className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-full px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
                   disabled={sending}
                 />
                 {(() => {
@@ -957,18 +957,18 @@ export default function ChatPage() {
                     <button
                       type="submit"
                       disabled={!newMessage.trim() || sending}
-                      className="p-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1"
+                      className="px-3 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1 whitespace-nowrap flex-shrink-0"
                     >
                       {sending ? '...' : (
-                        <>
-                          <Send className="w-5 h-5" />
-                          {showCost && (
-                            <span className="flex items-center gap-0.5 text-yellow-300 text-sm font-bold">
-                              <span>{cost}</span>
-                              <Coins className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                        </>
+                        showCost ? (
+                          <span className="flex items-center gap-1">
+                            <span>Send</span>
+                            <span className="text-yellow-300">{cost}</span>
+                            <Coins className="w-3.5 h-3.5 text-yellow-300" />
+                          </span>
+                        ) : (
+                          'Send'
+                        )
                       )}
                     </button>
                   );
