@@ -77,6 +77,7 @@ export default function ChatPage() {
   const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [messageCharge, setMessageCharge] = useState<number>(0);
+  const [otherUserRole, setOtherUserRole] = useState<string | null>(null); // Stable role state
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
@@ -241,13 +242,13 @@ export default function ChatPage() {
 
   // Auto-acknowledge charge if user has already sent messages in this conversation
   useEffect(() => {
-    if (currentUserId && messages.length > 0 && conversation?.otherUser.role === 'creator') {
+    if (currentUserId && messages.length > 0 && otherUserRole === 'creator') {
       const hasUserSentMessages = messages.some(m => m.sender.id === currentUserId);
       if (hasUserSentMessages) {
         setHasAcknowledgedCharge(true);
       }
     }
-  }, [currentUserId, messages, conversation]);
+  }, [currentUserId, messages, otherUserRole]);
 
   // Sync messageCharge state from ref if state gets reset but ref has value
   useEffect(() => {
@@ -291,7 +292,24 @@ export default function ChatPage() {
         const conversations = data.data || data.conversations || [];
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
-          setConversation(conv);
+          // Merge conversation to preserve existing fields that may be missing in new payload
+          setConversation(prev => {
+            if (!prev) return conv;
+            return {
+              ...conv,
+              otherUser: {
+                ...conv.otherUser,
+                // Preserve existing messageCharge if new payload lacks it
+                messageCharge: conv.otherUser?.messageCharge ?? prev.otherUser?.messageCharge ?? 0,
+                role: conv.otherUser?.role ?? prev.otherUser?.role,
+              },
+            };
+          });
+
+          // Set role in stable state once (don't overwrite with undefined)
+          if (conv.otherUser?.role && !otherUserRole) {
+            setOtherUserRole(conv.otherUser.role);
+          }
 
           // If other user is a creator, fetch their messageRate directly
           if (conv.otherUser?.role === 'creator' && conv.otherUser?.id) {
@@ -312,7 +330,7 @@ export default function ChatPage() {
 
   // Fetch creator's message rate directly - more reliable than conversation data
   const fetchCreatorMessageRate = async (creatorId: string) => {
-    // Skip if we've already fetched successfully
+    // Skip if we've already fetched a non-zero rate
     if (rateFetchedRef.current && messageChargeRef.current > 0) {
       console.log('[Chat] Rate already fetched, skipping. Value:', messageChargeRef.current);
       return;
@@ -322,11 +340,13 @@ export default function ChatPage() {
       const response = await fetch(`/api/creator/${creatorId}/rate`);
       if (response.ok) {
         const data = await response.json();
-        const rate = data.messageRate || 0;
+        const rate = typeof data.messageRate === 'number' ? data.messageRate : 0;
         console.log('[Chat] Fetched creator rate:', rate);
 
-        // Mark as fetched
-        rateFetchedRef.current = true;
+        // Only lock if we got a non-zero rate (allow retries if 0)
+        if (rate > 0) {
+          rateFetchedRef.current = true;
+        }
 
         // Update state
         messageChargeRef.current = rate;
@@ -984,7 +1004,7 @@ export default function ChatPage() {
                         </button>
 
                         {/* Gift/Tip - only when chatting with a creator */}
-                        {conversation.otherUser.role === 'creator' && (
+                        {otherUserRole === 'creator' && (
                           <button
                             onClick={() => {
                               setShowAttachmentMenu(false);
@@ -1019,7 +1039,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Cost indicator - show above input when messaging a creator */}
-                {conversation?.otherUser?.role === 'creator' && messageCharge > 0 && !currentUserIsAdmin && (
+                {otherUserRole === 'creator' && messageCharge > 0 && !currentUserIsAdmin && (
                   <div className="absolute -top-8 left-0 right-0 flex justify-center">
                     <div className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/40 rounded-full flex items-center gap-1.5">
                       <Coins className="w-3.5 h-3.5 text-yellow-400" />
@@ -1069,7 +1089,7 @@ export default function ChatPage() {
           onClose={() => setShowMediaModal(false)}
           onSend={handleSendMedia}
           isCreator={currentUserRole === 'creator'}
-          recipientIsCreator={conversation?.otherUser?.role === 'creator'}
+          recipientIsCreator={otherUserRole === 'creator'}
         />
       )}
 
