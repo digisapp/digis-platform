@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
         await db.insert(walletTransactions).values({
           userId: user.id,
           amount: -messageCharge,
-          type: 'message',
+          type: 'message_charge',
           status: 'completed',
           description: 'Media message to creator',
         });
@@ -269,7 +269,7 @@ export async function POST(req: NextRequest) {
         await db.insert(walletTransactions).values({
           userId: recipientId,
           amount: messageCharge,
-          type: 'message',
+          type: 'message_earnings',
           status: 'completed',
           description: 'Media message from fan',
         });
