@@ -36,6 +36,8 @@ interface CampaignStats {
   expired: number;
   revoked: number;
   withEmail: number;
+  emailed: number;
+  pendingNotEmailed: number;
 }
 
 interface BatchConfig {
@@ -63,12 +65,12 @@ export default function CampaignsPage() {
   const [sendProgress, setSendProgress] = useState({ sent: 0, total: 0, failed: 0 });
   const [sendResults, setSendResults] = useState<SendResult[]>([]);
 
-  // Config
+  // Config - use fast delays to avoid Vercel timeout (max 10s function duration)
   const [config, setConfig] = useState<BatchConfig>({
-    batchSize: 5,
-    minDelay: 30000,
-    maxDelay: 90000,
-    dailyLimit: 50,
+    batchSize: 10,
+    minDelay: 1000,
+    maxDelay: 2000,
+    dailyLimit: 100,
   });
 
   // Test email
@@ -253,7 +255,7 @@ export default function CampaignsPage() {
 
         {/* Stats */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <GlassCard className="p-4 text-center">
               <Users className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
               <div className="text-2xl font-bold text-white">{stats.total}</div>
@@ -273,6 +275,16 @@ export default function CampaignsPage() {
               <Mail className="w-6 h-6 text-purple-400 mx-auto mb-2" />
               <div className="text-2xl font-bold text-white">{stats.withEmail}</div>
               <div className="text-xs text-gray-400">With Email</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <Send className="w-6 h-6 text-green-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{stats.emailed}</div>
+              <div className="text-xs text-gray-400">Emailed</div>
+            </GlassCard>
+            <GlassCard className="p-4 text-center">
+              <Sparkles className="w-6 h-6 text-pink-400 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-white">{stats.pendingNotEmailed}</div>
+              <div className="text-xs text-gray-400">Ready to Send</div>
             </GlassCard>
           </div>
         )}
@@ -346,10 +358,10 @@ export default function CampaignsPage() {
                 onChange={(e) => setConfig({ ...config, minDelay: parseInt(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"
               >
-                <option value={15000}>15 sec</option>
-                <option value={30000}>30 sec</option>
-                <option value={45000}>45 sec</option>
-                <option value={60000}>60 sec</option>
+                <option value={500}>0.5 sec</option>
+                <option value={1000}>1 sec</option>
+                <option value={2000}>2 sec</option>
+                <option value={3000}>3 sec</option>
               </select>
             </div>
             <div>
@@ -359,10 +371,10 @@ export default function CampaignsPage() {
                 onChange={(e) => setConfig({ ...config, maxDelay: parseInt(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"
               >
-                <option value={60000}>60 sec</option>
-                <option value={90000}>90 sec</option>
-                <option value={120000}>120 sec</option>
-                <option value={180000}>180 sec</option>
+                <option value={1000}>1 sec</option>
+                <option value={2000}>2 sec</option>
+                <option value={3000}>3 sec</option>
+                <option value={5000}>5 sec</option>
               </select>
             </div>
             <div>
@@ -372,7 +384,7 @@ export default function CampaignsPage() {
                 onChange={(e) => setConfig({ ...config, dailyLimit: parseInt(e.target.value) })}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white"
               >
-                {[25, 50, 75, 100].map(n => (
+                {[50, 100, 150, 200, 250].map(n => (
                   <option key={n} value={n}>{n} emails</option>
                 ))}
               </select>
@@ -380,7 +392,7 @@ export default function CampaignsPage() {
           </div>
           <p className="text-xs text-gray-500 mt-3">
             <AlertTriangle className="w-3 h-3 inline mr-1" />
-            Random delays between batches help avoid spam filters
+            Fast delays (1-2s) work best with Vercel. Resend handles rate limiting automatically.
           </p>
         </GlassCard>
 
@@ -490,7 +502,7 @@ export default function CampaignsPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-yellow-400" />
-              Pending Invites ({readyToInvite.length})
+              Ready to Email ({readyToInvite.length})
             </h3>
             <div className="flex gap-2">
               <GlassButton variant="ghost" size="sm" onClick={selectAll}>
