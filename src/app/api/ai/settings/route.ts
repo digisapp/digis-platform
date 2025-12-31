@@ -86,7 +86,7 @@ export async function PUT(request: NextRequest) {
 
     if (authError || !user) {
       console.log('[AI Settings PUT] Auth error or no user:', authError?.message);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized - please log in again' }, { status: 401 });
     }
 
     // Check if user is a creator
@@ -101,15 +101,31 @@ export async function PUT(request: NextRequest) {
       username: profile?.username
     });
 
-    if (profile?.role !== 'creator') {
+    if (!profile) {
+      console.log('[AI Settings PUT] User profile not found:', { userId: user.id });
+      return NextResponse.json(
+        { error: 'User profile not found. Please contact support.' },
+        { status: 404 }
+      );
+    }
+
+    if (profile.role !== 'creator') {
       console.log('[AI Settings PUT] Not a creator - access denied:', { userId: user.id, role: profile?.role });
       return NextResponse.json(
-        { error: 'Creator access required' },
+        { error: 'Creator access required. Your role is: ' + profile.role },
         { status: 403 }
       );
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.log('[AI Settings PUT] Failed to parse request body:', parseError);
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    console.log('[AI Settings PUT] Request body:', body);
     const {
       enabled,
       textChatEnabled,
@@ -181,7 +197,10 @@ export async function PUT(request: NextRequest) {
     if (maxSessionMinutes !== undefined) updateData.maxSessionMinutes = maxSessionMinutes;
     if (textPricePerMessage !== undefined) updateData.textPricePerMessage = textPricePerMessage;
 
+    console.log('[AI Settings PUT] Update data:', updateData);
+
     if (settings) {
+      console.log('[AI Settings PUT] Updating existing settings for:', profile.username);
       const [updated] = await db
         .update(aiTwinSettings)
         .set(updateData)
@@ -189,7 +208,12 @@ export async function PUT(request: NextRequest) {
         .returning();
 
       settings = updated;
+      console.log('[AI Settings PUT] Updated successfully:', {
+        enabled: settings.enabled,
+        textChatEnabled: settings.textChatEnabled,
+      });
     } else {
+      console.log('[AI Settings PUT] Creating new settings for:', profile.username);
       const [created] = await db
         .insert(aiTwinSettings)
         .values({
@@ -208,9 +232,16 @@ export async function PUT(request: NextRequest) {
         .returning();
 
       settings = created;
+      console.log('[AI Settings PUT] Created successfully:', {
+        enabled: settings.enabled,
+        textChatEnabled: settings.textChatEnabled,
+      });
     }
 
-    return NextResponse.json({ settings });
+    return NextResponse.json({
+      settings,
+      message: 'Settings saved successfully',
+    });
 
   } catch (error: any) {
     console.error('[AI Settings PUT] Update error:', {
