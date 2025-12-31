@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
-import { creatorInvites, users, profiles, creatorSettings } from '@/db/schema';
+import { creatorInvites, users, profiles, creatorSettings, aiTwinSettings } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
@@ -305,6 +305,23 @@ export async function POST(
       console.log(`[Claim] Creator settings created for: ${userEmail}`);
     } catch (settingsError) {
       console.error(`[Claim] Error creating creator settings:`, settingsError);
+    }
+
+    // Create default AI Twin settings
+    try {
+      await db.insert(aiTwinSettings).values({
+        creatorId: authData.user.id,
+        enabled: false,
+        textChatEnabled: false,
+        voice: 'ara',
+        pricePerMinute: 20,
+        minimumMinutes: 5,
+        maxSessionMinutes: 60,
+        textPricePerMessage: 5,
+      }).onConflictDoNothing();
+      console.log(`[Claim] AI Twin settings created for: ${userEmail}`);
+    } catch (aiSettingsError) {
+      console.error(`[Claim] Error creating AI Twin settings:`, aiSettingsError);
     }
 
     // Send creator welcome email (fire-and-forget)

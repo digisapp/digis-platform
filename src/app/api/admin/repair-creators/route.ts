@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorInvites, creatorSettings } from '@/db/schema';
+import { users, creatorInvites, creatorSettings, aiTwinSettings } from '@/db/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -165,6 +165,34 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Check 4: AI Twin settings should exist
+      const existingAiSettings = await db.query.aiTwinSettings.findFirst({
+        where: eq(aiTwinSettings.creatorId, invite.claimedBy),
+      });
+
+      if (!existingAiSettings) {
+        result.issues.push('Missing ai_twin_settings record');
+
+        try {
+          await db.insert(aiTwinSettings).values({
+            creatorId: invite.claimedBy,
+            enabled: false,
+            textChatEnabled: false,
+            voice: 'ara',
+            pricePerMinute: 20,
+            minimumMinutes: 5,
+            maxSessionMinutes: 60,
+            textPricePerMessage: 5,
+          }).onConflictDoNothing();
+
+          result.fixed.push('Created ai_twin_settings record');
+          totalFixed++;
+        } catch (aiSettingsErr: any) {
+          result.errors.push(`Failed to create ai_twin_settings: ${aiSettingsErr.message}`);
+          totalErrors++;
+        }
+      }
+
       // Only add to results if there were issues
       if (result.issues.length > 0) {
         results.push(result);
@@ -246,6 +274,34 @@ export async function POST(request: NextRequest) {
           totalFixed++;
         } catch (settingsErr: any) {
           result.errors.push(`Failed to create creator_settings: ${settingsErr.message}`);
+          totalErrors++;
+        }
+      }
+
+      // Check AI Twin settings
+      const existingAiSettings = await db.query.aiTwinSettings.findFirst({
+        where: eq(aiTwinSettings.creatorId, creator.id),
+      });
+
+      if (!existingAiSettings) {
+        result.issues.push('Missing ai_twin_settings record');
+
+        try {
+          await db.insert(aiTwinSettings).values({
+            creatorId: creator.id,
+            enabled: false,
+            textChatEnabled: false,
+            voice: 'ara',
+            pricePerMinute: 20,
+            minimumMinutes: 5,
+            maxSessionMinutes: 60,
+            textPricePerMessage: 5,
+          }).onConflictDoNothing();
+
+          result.fixed.push('Created ai_twin_settings record');
+          totalFixed++;
+        } catch (aiSettingsErr: any) {
+          result.errors.push(`Failed to create ai_twin_settings: ${aiSettingsErr.message}`);
           totalErrors++;
         }
       }

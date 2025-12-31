@@ -197,6 +197,32 @@ export async function POST(request: NextRequest) {
                 console.error(`[Signup] Error creating creator settings:`, settingsCreateError);
               }
 
+              // Create default AI Twin settings
+              try {
+                const { error: aiSettingsError } = await adminClient
+                  .from('ai_twin_settings')
+                  .insert({
+                    creator_id: authData.user.id,
+                    enabled: false,
+                    text_chat_enabled: false,
+                    voice: 'ara',
+                    price_per_minute: 20,
+                    minimum_minutes: 5,
+                    max_session_minutes: 60,
+                    text_price_per_message: 5,
+                  })
+                  .select()
+                  .single();
+
+                if (aiSettingsError && !aiSettingsError.message?.includes('duplicate')) {
+                  console.error(`[Signup] Error creating AI Twin settings: ${aiSettingsError.message}`);
+                } else {
+                  console.log(`[Signup] AI Twin settings created for: ${email}`);
+                }
+              } catch (aiSettingsCreateError) {
+                console.error(`[Signup] Error creating AI Twin settings:`, aiSettingsCreateError);
+              }
+
               // Send creator welcome email
               sendWelcomeEmail({
                 email,
