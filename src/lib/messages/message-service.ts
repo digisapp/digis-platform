@@ -644,6 +644,9 @@ export class MessageService {
       messageRateMap.set(settings.userId, settings.messageRate);
     });
 
+    // Debug log
+    console.log('[MessageService] messageRateMap entries:', Array.from(messageRateMap.entries()));
+
     // Transform to include "other user" and unread count
     return allConversations.map((conv) => {
       const isUser1 = conv.user1Id === userId;
@@ -656,6 +659,11 @@ export class MessageService {
 
       // Add message charge from creator settings
       const messageCharge = otherUser ? messageRateMap.get(otherUser.id) || 0 : 0;
+
+      // Debug log for each conversation
+      if (otherUser) {
+        console.log('[MessageService] Conversation with:', otherUser.username, '| messageCharge:', messageCharge);
+      }
 
       return {
         ...conv,
