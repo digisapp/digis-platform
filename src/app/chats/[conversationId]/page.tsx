@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
-import { Gift, MoreVertical } from 'lucide-react';
+import { Gift, MoreVertical, Coins } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
@@ -875,13 +875,34 @@ export default function ChatPage() {
                 className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
                 disabled={sending}
               />
-              <button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {sending ? '...' : 'Send'}
-              </button>
+              {(() => {
+                const showCost = conversation?.otherUser.role === 'creator'
+                  && conversation?.otherUser.messageCharge
+                  && conversation.otherUser.messageCharge > 0
+                  && !currentUserIsAdmin;
+                const cost = conversation?.otherUser.messageCharge || 0;
+
+                return (
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim() || sending}
+                    className="px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-1.5"
+                  >
+                    {sending ? '...' : (
+                      <>
+                        Send
+                        {showCost && (
+                          <span className="flex items-center gap-0.5 text-yellow-300">
+                            <span>·</span>
+                            <span>{cost}</span>
+                            <Coins className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
             </form>
           </div>
         </div>
