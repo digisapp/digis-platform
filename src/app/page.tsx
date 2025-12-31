@@ -632,17 +632,17 @@ function MarketingPage({
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5 md:gap-4 my-10 md:mb-12 md:mt-0">
               <button
-                onClick={() => onSignup('/')}
+                onClick={() => onSignup('/explore')}
                 className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
               >
                 Start Exploring
               </button>
-              <button
-                onClick={() => onSignup('/creator/apply')}
-                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+              <a
+                href="/become-creator"
+                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300 text-center"
               >
                 Become a Creator
-              </button>
+              </a>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
