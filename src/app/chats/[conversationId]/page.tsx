@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { TipModal } from '@/components/messages/TipModal';
-import { Gift, MoreVertical, Coins } from 'lucide-react';
+import { Gift, MoreVertical, Coins, Plus, Camera, Film, Mic, FolderOpen, X } from 'lucide-react';
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
@@ -75,6 +75,8 @@ export default function ChatPage() {
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isBlocking, setIsBlocking] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -850,60 +852,130 @@ export default function ChatPage() {
         {/* Message Input - pb-20 on mobile for bottom nav, pb-4 on desktop */}
         <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-16 lg:pb-0">
           <div className="container mx-auto px-4 py-4 max-w-2xl">
-            <form onSubmit={sendMessage} className="flex gap-2">
-              {/* Voice Message Button - placed first (furthest from input to avoid accidental taps) */}
-              <VoiceMessageButton onSend={handleSendVoice} isCreator={currentUserRole === 'creator'} />
-
-              {/* Attachment Button */}
-              <button
-                type="button"
-                onClick={() => setShowMediaModal(true)}
-                className="p-3 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 hover:border-cyan-500/50 transition-all flex items-center justify-center"
-                title="Attach media"
-              >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-
-              <input
-                type="text"
-                value={newMessage}
-                onChange={handleInputChange}
-                onBlur={() => sendTypingIndicator(false)}
-                placeholder="Type a message..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
-                disabled={sending}
+            {/* Voice Recorder - shown when recording */}
+            {showVoiceRecorder ? (
+              <VoiceMessageButton
+                onSend={async (blob, duration, price) => {
+                  await handleSendVoice(blob, duration, price);
+                  setShowVoiceRecorder(false);
+                }}
+                isCreator={currentUserRole === 'creator'}
+                autoStart={true}
+                onCancel={() => setShowVoiceRecorder(false)}
               />
-              {(() => {
-                const showCost = conversation?.otherUser.role === 'creator'
-                  && conversation?.otherUser.messageCharge
-                  && conversation.otherUser.messageCharge > 0
-                  && !currentUserIsAdmin;
-                const cost = conversation?.otherUser.messageCharge || 0;
-
-                return (
+            ) : (
+              <form onSubmit={sendMessage} className="flex gap-2">
+                {/* Attachment Menu Button */}
+                <div className="relative">
                   <button
-                    type="submit"
-                    disabled={!newMessage.trim() || sending}
-                    className="px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-1.5"
+                    type="button"
+                    onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+                    className={`p-3 border rounded-full transition-all flex items-center justify-center ${
+                      showAttachmentMenu
+                        ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                        : 'bg-white/10 border-white/20 hover:bg-white/20 hover:border-cyan-500/50 text-white'
+                    }`}
+                    title="Attach"
                   >
-                    {sending ? '...' : (
-                      <>
-                        Send
-                        {showCost && (
-                          <span className="flex items-center gap-0.5 text-yellow-300">
-                            <span>·</span>
-                            <span>{cost}</span>
-                            <Coins className="w-3.5 h-3.5" />
-                          </span>
-                        )}
-                      </>
+                    {showAttachmentMenu ? (
+                      <X className="w-6 h-6" />
+                    ) : (
+                      <Plus className="w-6 h-6" />
                     )}
                   </button>
-                );
-              })()}
-            </form>
+
+                  {/* Attachment Menu Popup */}
+                  {showAttachmentMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowAttachmentMenu(false)}
+                      />
+                      <div className="absolute bottom-14 left-0 bg-black/95 backdrop-blur-xl rounded-2xl border border-white/20 p-2 min-w-[180px] z-50 shadow-xl shadow-black/50">
+                        <button
+                          onClick={() => {
+                            setShowAttachmentMenu(false);
+                            setShowMediaModal(true);
+                          }}
+                          className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-xl flex items-center gap-3 transition-colors"
+                        >
+                          <div className="p-2 rounded-lg bg-cyan-500/20">
+                            <Camera className="w-5 h-5 text-cyan-400" />
+                          </div>
+                          <span className="font-medium">Photo / Video</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setShowAttachmentMenu(false);
+                            setShowVoiceRecorder(true);
+                          }}
+                          className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-xl flex items-center gap-3 transition-colors"
+                        >
+                          <div className="p-2 rounded-lg bg-purple-500/20">
+                            <Mic className="w-5 h-5 text-purple-400" />
+                          </div>
+                          <span className="font-medium">Voice Message</span>
+                        </button>
+
+                        {currentUserRole === 'creator' && (
+                          <button
+                            onClick={() => {
+                              setShowAttachmentMenu(false);
+                              setShowMediaModal(true);
+                            }}
+                            className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-xl flex items-center gap-3 transition-colors"
+                          >
+                            <div className="p-2 rounded-lg bg-yellow-500/20">
+                              <FolderOpen className="w-5 h-5 text-yellow-400" />
+                            </div>
+                            <span className="font-medium">From Library</span>
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={handleInputChange}
+                  onBlur={() => sendTypingIndicator(false)}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+                  disabled={sending}
+                />
+                {(() => {
+                  const showCost = conversation?.otherUser.role === 'creator'
+                    && conversation?.otherUser.messageCharge
+                    && conversation.otherUser.messageCharge > 0
+                    && !currentUserIsAdmin;
+                  const cost = conversation?.otherUser.messageCharge || 0;
+
+                  return (
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim() || sending}
+                      className="px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-1.5"
+                    >
+                      {sending ? '...' : (
+                        <>
+                          Send
+                          {showCost && (
+                            <span className="flex items-center gap-0.5 text-yellow-300">
+                              <span>·</span>
+                              <span>{cost}</span>
+                              <Coins className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  );
+                })()}
+              </form>
+            )}
           </div>
         </div>
       </div>

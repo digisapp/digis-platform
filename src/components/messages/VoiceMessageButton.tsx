@@ -8,9 +8,11 @@ import { useToastContext } from '@/context/ToastContext';
 interface VoiceMessageButtonProps {
   onSend: (audioBlob: Blob, duration: number, unlockPrice?: number) => Promise<void>;
   isCreator?: boolean; // Only creators can charge for voice messages
+  autoStart?: boolean; // Auto-start recording when mounted
+  onCancel?: () => void; // Called when user cancels (for menu flow)
 }
 
-export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageButtonProps) {
+export function VoiceMessageButton({ onSend, isCreator = false, autoStart = false, onCancel }: VoiceMessageButtonProps) {
   const { showError } = useToastContext();
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -28,6 +30,14 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Auto-start recording when mounted with autoStart prop
+  useEffect(() => {
+    if (autoStart && mounted && !isRecording && !showPPVOptions) {
+      startRecording();
+    }
+  }, [autoStart, mounted]);
+
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -126,6 +136,9 @@ export function VoiceMessageButton({ onSend, isCreator = false }: VoiceMessageBu
         timerRef.current = null;
       }
     }
+
+    // Call onCancel if provided (for menu flow)
+    onCancel?.();
   };
 
   const handleSend = async () => {
