@@ -283,20 +283,41 @@ export default function ChatPage() {
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
           setConversation(conv);
-          // Store messageCharge in ref to persist across re-renders
-          const charge = Number(conv.otherUser?.messageCharge ?? 0);
-          if (charge > 0) {
-            // Only update if we got a valid charge
-            messageChargeRef.current = charge;
-            setMessageCharge(charge);
-          } else if (messageChargeRef.current > 0) {
-            // Use cached value if API returned 0 but we had a value before
-            setMessageCharge(messageChargeRef.current);
+
+          // If other user is a creator, fetch their messageRate directly
+          if (conv.otherUser?.role === 'creator' && conv.otherUser?.id) {
+            // First set from conversation data if available (immediate feedback)
+            if (conv.otherUser.messageCharge && conv.otherUser.messageCharge > 0) {
+              messageChargeRef.current = conv.otherUser.messageCharge;
+              setMessageCharge(conv.otherUser.messageCharge);
+            }
+            // Then fetch directly for most accurate data
+            fetchCreatorMessageRate(conv.otherUser.id);
           }
         }
       }
     } catch (error) {
       console.error('Error fetching conversation:', error);
+    }
+  };
+
+  // Fetch creator's message rate directly - more reliable than conversation data
+  const fetchCreatorMessageRate = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/creator/${creatorId}/rate`);
+      if (response.ok) {
+        const data = await response.json();
+        const rate = data.messageRate || 0;
+        console.log('[Chat] Fetched creator rate:', rate, 'Current ref:', messageChargeRef.current);
+        // Only update if we got a valid rate, or if no rate is currently set
+        if (rate > 0 || messageChargeRef.current === 0) {
+          messageChargeRef.current = rate;
+          setMessageCharge(rate);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching creator message rate:', error);
+      // Don't reset on error - keep existing value
     }
   };
 
