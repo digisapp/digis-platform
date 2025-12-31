@@ -21,6 +21,7 @@ import {
   DollarSign,
   GraduationCap,
   User,
+  Users,
   Gift
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
@@ -507,6 +508,18 @@ export function Navigation() {
                   >
                     <Gift className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
                     <span className="text-base md:text-sm text-white font-semibold">Share & Earn</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/referrals');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <Users className="w-6 h-6 md:w-5 md:h-5 text-purple-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Referrals</span>
                   </button>
 
                   <button

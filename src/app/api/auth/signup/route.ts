@@ -6,6 +6,8 @@ import { rateLimit } from '@/lib/rate-limit';
 import { signupSchema, validateBody } from '@/lib/validation/schemas';
 import { sendWelcomeEmail } from '@/lib/email/welcome';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { cookies } from 'next/headers';
+import { processReferralSignup, activateReferral } from '@/lib/referrals';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -101,6 +103,25 @@ export async function POST(request: NextRequest) {
           // User is created in auth, this is okay - will be handled on login
         }
 
+        // Process referral if present
+        let referralProcessed = false;
+        try {
+          const cookieStore = await cookies();
+          const referralCode = cookieStore.get('referral_code')?.value;
+          if (referralCode) {
+            console.log(`[Signup] Processing referral code: ${referralCode}`);
+            const referralResult = await processReferralSignup(authData.user.id, referralCode);
+            if (referralResult.success) {
+              referralProcessed = true;
+              console.log(`[Signup] Referral processed successfully: ${referralResult.referralId}`);
+            } else {
+              console.log(`[Signup] Referral not processed: ${referralResult.error}`);
+            }
+          }
+        } catch (referralError) {
+          console.error('[Signup] Error processing referral:', referralError);
+        }
+
         // Check if email OR Instagram handle matches a pending creator invite (auto-claim)
         // Either match = auto-approve as creator
         try {
@@ -151,6 +172,18 @@ export async function POST(request: NextRequest) {
               console.error(`[Signup] Error upgrading to creator: ${upgradeError.message}`);
             } else {
               console.log(`[Signup] Auto-claimed invite and upgraded to creator: ${email}`);
+
+              // Activate referral if this user was referred (pays bonus to referrer)
+              if (referralProcessed) {
+                try {
+                  const activationResult = await activateReferral(authData.user.id);
+                  if (activationResult.success) {
+                    console.log(`[Signup] Referral activated, bonus paid: ${activationResult.bonusPaid} coins`);
+                  }
+                } catch (activationError) {
+                  console.error('[Signup] Error activating referral:', activationError);
+                }
+              }
 
               // 🔥 CRITICAL: Update Supabase auth metadata to persist role in JWT
               // This prevents role from reverting during auth sync issues

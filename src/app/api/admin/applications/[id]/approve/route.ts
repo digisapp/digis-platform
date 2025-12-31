@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { AdminService } from '@/lib/admin/admin-service';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email/creator-notifications';
+import { activateReferral } from '@/lib/referrals';
+import { db } from '@/lib/data/system';
+import { creatorApplications } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 // POST /api/admin/applications/[id]/approve - Approve application
 export async function POST(
@@ -23,7 +27,22 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
+    // Get the application to know the user ID
+    const application = await db.query.creatorApplications.findFirst({
+      where: eq(creatorApplications.id, id),
+      columns: { userId: true },
+    });
+
     const result = await AdminService.approveApplication(id, user.id);
+
+    // Activate referral if this user was referred (pays bonus to referrer)
+    if (application?.userId) {
+      activateReferral(application.userId).then(activationResult => {
+        if (activationResult.success) {
+          console.log(`[Application Approval] Referral activated, bonus paid: ${activationResult.bonusPaid} coins`);
+        }
+      }).catch(err => console.error('[Application Approval] Error activating referral:', err));
+    }
 
     // Send approval email and add to creators audience (don't block on these)
     if (result.user?.email) {
