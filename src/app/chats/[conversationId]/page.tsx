@@ -58,6 +58,7 @@ export default function ChatPage() {
   const isNearBottomRef = useRef(true);
   const isInitialLoadRef = useRef(true);
   const lastMessageCountRef = useRef(0);
+  const messageChargeRef = useRef<number>(0); // Persist messageCharge across re-renders
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -276,10 +277,15 @@ export default function ChatPage() {
         const conv = conversations.find((c: any) => c.id === conversationId);
         if (conv) {
           setConversation(conv);
-          // Store messageCharge separately so it doesn't get lost on re-renders
+          // Store messageCharge in ref to persist across re-renders
           const charge = Number(conv.otherUser?.messageCharge ?? 0);
           if (charge > 0) {
+            // Only update if we got a valid charge
+            messageChargeRef.current = charge;
             setMessageCharge(charge);
+          } else if (messageChargeRef.current > 0) {
+            // Use cached value if API returned 0 but we had a value before
+            setMessageCharge(messageChargeRef.current);
           }
         }
       }
