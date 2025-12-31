@@ -759,16 +759,6 @@ export default function ChatPage() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
-                {/* Tip Button - Only show when chatting with a creator */}
-                {conversation.otherUser.role === 'creator' && (
-                  <button
-                    onClick={() => setShowTipModal(true)}
-                    className="p-2.5 rounded-xl bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 text-white"
-                  >
-                    <Gift className="w-5 h-5" />
-                  </button>
-                )}
-
                 {/* Options Menu */}
                 <div className="relative">
                   <button
@@ -930,6 +920,22 @@ export default function ChatPage() {
                           <span className="font-medium">Voice Message</span>
                         </button>
 
+                        {/* Gift/Tip - only when chatting with a creator */}
+                        {conversation.otherUser.role === 'creator' && (
+                          <button
+                            onClick={() => {
+                              setShowAttachmentMenu(false);
+                              setShowTipModal(true);
+                            }}
+                            className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-xl flex items-center gap-3 transition-colors"
+                          >
+                            <div className="p-2 rounded-lg bg-yellow-500/20">
+                              <Gift className="w-5 h-5 text-yellow-400" />
+                            </div>
+                            <span className="font-medium">Send Gift</span>
+                          </button>
+                        )}
+
                         {currentUserRole === 'creator' && (
                           <button
                             onClick={() => {
@@ -938,8 +944,8 @@ export default function ChatPage() {
                             }}
                             className="w-full text-left px-4 py-3 text-white hover:bg-white/10 rounded-xl flex items-center gap-3 transition-colors"
                           >
-                            <div className="p-2 rounded-lg bg-yellow-500/20">
-                              <FolderOpen className="w-5 h-5 text-yellow-400" />
+                            <div className="p-2 rounded-lg bg-green-500/20">
+                              <FolderOpen className="w-5 h-5 text-green-400" />
                             </div>
                             <span className="font-medium">From Library</span>
                           </button>
@@ -998,6 +1004,8 @@ export default function ChatPage() {
         <MediaAttachmentModal
           onClose={() => setShowMediaModal(false)}
           onSend={handleSendMedia}
+          isCreator={currentUserRole === 'creator'}
+          recipientIsCreator={conversation?.otherUser?.role === 'creator'}
         />
       )}
 

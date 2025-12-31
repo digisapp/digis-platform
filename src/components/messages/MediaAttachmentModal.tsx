@@ -26,11 +26,13 @@ interface MediaAttachmentModalProps {
     isLocked: boolean;
     unlockPrice: number;
   }) => Promise<void>;
+  isCreator?: boolean; // If false, fan sending to creator - media will be blurred
+  recipientIsCreator?: boolean; // If true, blur media for creator's safety
 }
 
-export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalProps) {
+export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recipientIsCreator = false }: MediaAttachmentModalProps) {
   const { showError } = useToastContext();
-  const [activeTab, setActiveTab] = useState<'upload' | 'library'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload'>('upload'); // Fans only see upload
 
   // Upload state
   const [file, setFile] = useState<File | null>(null);
@@ -122,23 +124,28 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
 
     setSending(true);
     try {
+      // For fans sending to creators: auto-blur (locked but free to reveal)
+      const shouldAutoBlur = !isCreator && recipientIsCreator;
+      const finalIsLocked = shouldAutoBlur ? true : isLocked;
+      const finalUnlockPrice = shouldAutoBlur ? 0 : (isLocked ? unlockPrice : 0);
+
       if (selectedContent) {
-        // Sending from library
+        // Sending from library (creators only)
         await onSend({
           contentId: selectedContent.id,
           mediaUrl: selectedContent.mediaUrl,
           mediaType: selectedContent.contentType === 'video' ? 'video' : 'image',
           caption,
-          isLocked,
-          unlockPrice: isLocked ? unlockPrice : 0,
+          isLocked: finalIsLocked,
+          unlockPrice: finalUnlockPrice,
         });
       } else if (file) {
         // Sending new upload
         await onSend({
           file,
           caption,
-          isLocked,
-          unlockPrice: isLocked ? unlockPrice : 0,
+          isLocked: finalIsLocked,
+          unlockPrice: finalUnlockPrice,
         });
       }
       onClose();
@@ -168,31 +175,39 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-white/10">
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'upload'
-                ? 'text-cyan-400 border-b-2 border-cyan-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Upload className="w-4 h-4" />
-            Upload New
-          </button>
-          <button
-            onClick={() => setActiveTab('library')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'library'
-                ? 'text-cyan-400 border-b-2 border-cyan-400'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <FolderOpen className="w-4 h-4" />
-            My Content
-          </button>
-        </div>
+        {/* Tabs - only show for creators */}
+        {isCreator ? (
+          <div className="flex border-b border-white/10">
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'upload'
+                  ? 'text-cyan-400 border-b-2 border-cyan-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              Upload New
+            </button>
+            <button
+              onClick={() => setActiveTab('library' as any)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'library'
+                  ? 'text-cyan-400 border-b-2 border-cyan-400'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <FolderOpen className="w-4 h-4" />
+              My Content
+            </button>
+          </div>
+        ) : (
+          <div className="border-b border-white/10 py-2 px-4">
+            <p className="text-xs text-gray-400 text-center">
+              📷 Your media will be blurred until the creator chooses to view it
+            </p>
+          </div>
+        )}
 
         <div className="relative p-4 space-y-4">
           {/* Upload Tab */}
@@ -316,50 +331,52 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                 />
               </div>
 
-              {/* PPV Toggle */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <button
-                    onClick={() => setIsLocked(false)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      !isLocked
-                        ? 'border-green-500 bg-green-500/10'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10'
-                    }`}
-                  >
-                    <Eye className={`w-5 h-5 mx-auto mb-1 ${!isLocked ? 'text-green-400' : 'text-gray-400'}`} />
-                    <div className={`text-sm font-medium ${!isLocked ? 'text-green-400' : 'text-white'}`}>Free</div>
-                  </button>
+              {/* PPV Toggle - only for creators */}
+              {isCreator && (
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <button
+                      onClick={() => setIsLocked(false)}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        !isLocked
+                          ? 'border-green-500 bg-green-500/10'
+                          : 'border-white/10 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <Eye className={`w-5 h-5 mx-auto mb-1 ${!isLocked ? 'text-green-400' : 'text-gray-400'}`} />
+                      <div className={`text-sm font-medium ${!isLocked ? 'text-green-400' : 'text-white'}`}>Free</div>
+                    </button>
 
-                  <button
-                    onClick={() => setIsLocked(true)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      isLocked
-                        ? 'border-purple-500 bg-purple-500/10'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10'
-                    }`}
-                  >
-                    <Lock className={`w-5 h-5 mx-auto mb-1 ${isLocked ? 'text-purple-400' : 'text-gray-400'}`} />
-                    <div className={`text-sm font-medium ${isLocked ? 'text-purple-400' : 'text-white'}`}>PPV</div>
-                  </button>
-                </div>
-
-                {/* Price Input */}
-                {isLocked && (
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-cyan-400" />
-                    <input
-                      type="number"
-                      min="1"
-                      max="10000"
-                      value={unlockPrice}
-                      onChange={(e) => setUnlockPrice(parseInt(e.target.value) || 1)}
-                      className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white font-medium focus:outline-none focus:border-cyan-500/50 transition-all text-sm"
-                    />
-                    <span className="text-gray-400 text-sm">coins</span>
+                    <button
+                      onClick={() => setIsLocked(true)}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        isLocked
+                          ? 'border-purple-500 bg-purple-500/10'
+                          : 'border-white/10 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <Lock className={`w-5 h-5 mx-auto mb-1 ${isLocked ? 'text-purple-400' : 'text-gray-400'}`} />
+                      <div className={`text-sm font-medium ${isLocked ? 'text-purple-400' : 'text-white'}`}>PPV</div>
+                    </button>
                   </div>
-                )}
-              </div>
+
+                  {/* Price Input */}
+                  {isLocked && (
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-cyan-400" />
+                      <input
+                        type="number"
+                        min="1"
+                        max="10000"
+                        value={unlockPrice}
+                        onChange={(e) => setUnlockPrice(parseInt(e.target.value) || 1)}
+                        className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white font-medium focus:outline-none focus:border-cyan-500/50 transition-all text-sm"
+                      />
+                      <span className="text-gray-400 text-sm">coins</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Send Button */}
               <div className="flex gap-2">
@@ -374,7 +391,11 @@ export function MediaAttachmentModal({ onClose, onSend }: MediaAttachmentModalPr
                   disabled={sending}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-medium hover:scale-105 transition-all shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm"
                 >
-                  {sending ? 'Sending...' : isLocked ? `Send (${unlockPrice} coins)` : 'Send Free'}
+                  {sending ? 'Sending...' : (
+                    isCreator
+                      ? (isLocked ? `Send (${unlockPrice} coins)` : 'Send Free')
+                      : 'Send (Blurred)'
+                  )}
                 </button>
               </div>
             </>
