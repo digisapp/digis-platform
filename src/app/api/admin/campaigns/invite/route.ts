@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { creatorInvites } from '@/db/schema';
-import { eq, or, desc } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
 import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
 
@@ -82,14 +82,30 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await sendBatchInvites(recipients, config);
+
+      // Mark successfully sent invites as emailed
+      const sentEmails = result.results
+        .filter(r => r.success)
+        .map(r => r.email);
+
+      if (sentEmails.length > 0) {
+        await db
+          .update(creatorInvites)
+          .set({ emailSentAt: new Date() })
+          .where(inArray(creatorInvites.email, sentEmails));
+      }
+
       return NextResponse.json(result);
     }
 
     // Generate invite URLs from pending invites
     if (action === 'generate-from-invites') {
-      // Get all pending invites that haven't been claimed yet
+      // Get all pending invites that haven't been emailed yet
       const pendingInvites = await db.query.creatorInvites.findMany({
-        where: eq(creatorInvites.status, 'pending'),
+        where: and(
+          eq(creatorInvites.status, 'pending'),
+          isNull(creatorInvites.emailSentAt) // Only those not yet emailed
+        ),
       });
 
       // Filter to only those with emails
@@ -105,6 +121,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         count: recipients.length,
         recipients,
+        message: recipients.length === 0
+          ? 'All pending invites have already been emailed'
+          : `Found ${recipients.length} invites ready to email`,
       });
     }
 
@@ -134,6 +153,7 @@ export async function GET(request: NextRequest) {
         displayName: true,
         instagramHandle: true,
         code: true,
+        emailSentAt: true,
         createdAt: true,
       },
       orderBy: (table, { desc: descFn }) => [descFn(table.createdAt)],
@@ -146,11 +166,13 @@ export async function GET(request: NextRequest) {
       expired: allInvites.filter((c: typeof allInvites[0]) => c.status === 'expired').length,
       revoked: allInvites.filter((c: typeof allInvites[0]) => c.status === 'revoked').length,
       withEmail: allInvites.filter((c: typeof allInvites[0]) => c.email).length,
+      emailed: allInvites.filter((c: typeof allInvites[0]) => c.emailSentAt).length,
+      pendingNotEmailed: allInvites.filter((c: typeof allInvites[0]) => c.status === 'pending' && c.email && !c.emailSentAt).length,
     };
 
-    // Get pending invites with emails ready to send
+    // Get pending invites with emails that HAVEN'T been sent yet
     const readyToInvite = allInvites
-      .filter((c: typeof allInvites[0]) => c.status === 'pending' && c.email)
+      .filter((c: typeof allInvites[0]) => c.status === 'pending' && c.email && !c.emailSentAt)
       .slice(0, 100)
       .map((c: typeof allInvites[0]) => ({
         id: c.id,
