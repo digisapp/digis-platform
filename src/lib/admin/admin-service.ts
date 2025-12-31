@@ -520,10 +520,10 @@ export class AdminService {
           count: count(),
           totalAmount: sum(payoutRequests.amount),
         }).from(payoutRequests).where(eq(payoutRequests.status, 'pending')),
-        // Count today's signups
-        db.select({ count: count() }).from(users).where(gte(users.createdAt, today)),
-        // Count last 7 days signups
-        db.select({ count: count() }).from(users).where(gte(users.createdAt, sevenDaysAgo)),
+        // Count today's creator signups
+        db.select({ count: count() }).from(users).where(and(gte(users.createdAt, today), eq(users.role, 'creator'))),
+        // Count last 7 days creator signups
+        db.select({ count: count() }).from(users).where(and(gte(users.createdAt, sevenDaysAgo), eq(users.role, 'creator'))),
       ]),
       { timeoutMs: 3000, retries: 1, tag: 'adminStats' }
     );

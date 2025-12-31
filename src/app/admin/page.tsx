@@ -511,7 +511,7 @@ export default function AdminDashboard() {
                   <UserPlus className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">New Users (7d)</p>
+                  <p className="text-xs text-gray-400">New Creators (7d)</p>
                   <p className="text-xl font-bold">{stats.weekSignups || 0}</p>
                 </div>
               </div>
@@ -562,7 +562,7 @@ export default function AdminDashboard() {
             onClick={() => router.push('/admin/community?filter=new')}
             className="px-3 md:px-6 py-3 font-semibold transition-colors relative whitespace-nowrap text-sm md:text-base text-gray-400 hover:text-white"
           >
-            New Users
+            New Creators
             {stats?.weekSignups ? (
               <span className="ml-1.5 px-1.5 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
                 {stats.weekSignups}
