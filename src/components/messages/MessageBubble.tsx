@@ -412,8 +412,159 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     );
   }
 
-  // Locked message
-  if (message.isLocked && message.unlockPrice) {
+  // Free blurred message (fan media to creator - no cost to reveal)
+  if (message.isLocked && (!message.unlockPrice || message.unlockPrice === 0)) {
+    const isViewed = !!message.unlockedBy;
+
+    // Sender view - show their media with viewed status
+    if (isOwnMessage) {
+      return (
+        <>
+          {showDeleteConfirm && <DeleteConfirmModal />}
+          <div className="group flex items-center gap-2 justify-end">
+            <DeleteButton />
+            <div className="max-w-[70%]">
+              {/* Show media (visible to sender) */}
+              {message.mediaUrl && (
+                <div className="rounded-2xl overflow-hidden">
+                  {message.mediaType === 'image' || message.mediaType === 'photo' ? (
+                    <img
+                      src={message.mediaUrl}
+                      alt="Content"
+                      className="w-full max-h-80 object-contain rounded-2xl"
+                    />
+                  ) : message.mediaType === 'video' ? (
+                    <video controls className="w-full max-h-80 rounded-2xl">
+                      <source src={message.mediaUrl} type="video/mp4" />
+                    </video>
+                  ) : message.mediaType === 'audio' ? (
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
+                      <audio controls className="w-full">
+                        <source src={message.mediaUrl} type="audio/webm" />
+                        <source src={message.mediaUrl} type="audio/ogg" />
+                      </audio>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Caption */}
+              {message.content && (
+                <div className="mt-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-500">
+                  <p className="text-white text-sm break-words">{message.content}</p>
+                </div>
+              )}
+
+              <p className="text-xs text-gray-500 mt-1 flex items-center justify-end gap-2">
+                {formatTime(message.createdAt)}
+                {isViewed ? (
+                  <span className="text-cyan-400 flex items-center gap-1">
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    Viewed
+                  </span>
+                ) : (
+                  <span className="text-gray-500">Blurred</span>
+                )}
+              </p>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // Recipient view - show blurred or revealed
+    if (!isViewed) {
+      return (
+        <>
+          {showDeleteConfirm && <DeleteConfirmModal />}
+          <div className="group flex items-center gap-2 justify-start">
+            <div className="max-w-[70%]">
+              <div className="bg-gradient-to-br from-gray-500/20 to-gray-600/20 border-2 border-gray-500/50 rounded-2xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">📷</span>
+                  <div>
+                    <p className="text-white font-semibold">Media Message</p>
+                    <p className="text-gray-400 text-sm">Tap to reveal</p>
+                  </div>
+                </div>
+
+                {message.thumbnailUrl && (
+                  <div className="relative mb-3 rounded-lg overflow-hidden">
+                    <img
+                      src={message.thumbnailUrl}
+                      alt="Blurred content"
+                      className="w-full h-32 object-cover blur-xl"
+                    />
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="text-4xl">👁️</span>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleUnlock}
+                  disabled={unlocking}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg font-semibold hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {unlocking ? 'Revealing...' : 'Tap to Reveal'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1 flex items-center justify-start">
+                {formatTime(message.createdAt)}
+              </p>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // Revealed - show media
+    return (
+      <>
+        {showDeleteConfirm && <DeleteConfirmModal />}
+        <div className="group flex items-center gap-2 justify-start">
+          <div className="max-w-[70%]">
+            {message.mediaUrl && (
+              <div className="rounded-2xl overflow-hidden">
+                {message.mediaType === 'image' || message.mediaType === 'photo' ? (
+                  <img
+                    src={message.mediaUrl}
+                    alt="Content"
+                    className="w-full max-h-80 object-contain rounded-2xl"
+                  />
+                ) : message.mediaType === 'video' ? (
+                  <video controls className="w-full max-h-80 rounded-2xl">
+                    <source src={message.mediaUrl} type="video/mp4" />
+                  </video>
+                ) : message.mediaType === 'audio' ? (
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3">
+                    <audio controls className="w-full">
+                      <source src={message.mediaUrl} type="audio/webm" />
+                      <source src={message.mediaUrl} type="audio/ogg" />
+                    </audio>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {message.content && (
+              <div className="mt-2 px-4 py-2 rounded-2xl bg-white/5">
+                <p className="text-white text-sm break-words">{message.content}</p>
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500 mt-1 flex items-center justify-start">
+              {formatTime(message.createdAt)}
+            </p>
+          </div>
+          <DeleteButton />
+        </div>
+      </>
+    );
+  }
+
+  // Paid locked message (PPV content)
+  if (message.isLocked && message.unlockPrice && message.unlockPrice > 0) {
     const isUnlocked = message.unlockedBy === currentUserId || isOwnMessage;
 
     if (!isUnlocked) {
@@ -461,14 +612,13 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
       );
     }
 
-    // Unlocked locked message - show media directly without verbose wrapper
+    // Unlocked paid message - show media directly
     return (
       <>
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {isOwnMessage && <DeleteButton />}
           <div className="max-w-[70%]">
-            {/* Show media directly */}
             {message.mediaUrl && (
               <div className="rounded-2xl overflow-hidden">
                 {message.mediaType === 'image' || message.mediaType === 'photo' ? (
@@ -492,7 +642,6 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
               </div>
             )}
 
-            {/* Show caption if present */}
             {message.content && (
               <div className={`mt-2 px-4 py-2 rounded-2xl ${isOwnMessage ? 'bg-gradient-to-r from-cyan-500 to-purple-500' : 'bg-white/5'}`}>
                 <p className="text-white text-sm break-words">{message.content}</p>
@@ -501,6 +650,9 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
 
             <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
               {formatTime(message.createdAt)}
+              {isOwnMessage && message.unlockedBy && (
+                <span className="text-green-400 ml-2">Purchased</span>
+              )}
               <ReadReceipt />
             </p>
           </div>

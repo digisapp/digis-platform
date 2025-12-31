@@ -984,11 +984,23 @@ export class MessageService {
       throw new Error('Message already unlocked');
     }
 
-    if (!message.unlockPrice) {
-      throw new Error('Message has no unlock price');
+    // Check if this is a free reveal (fan media blurred for creator safety)
+    const isFreeReveal = !message.unlockPrice || message.unlockPrice === 0;
+
+    if (isFreeReveal) {
+      // Free reveal - just mark as viewed, no payment needed
+      await db
+        .update(messages)
+        .set({
+          unlockedBy: userId,
+          unlockedAt: new Date(),
+        })
+        .where(eq(messages.id, messageId));
+
+      return { success: true, message: 'Media revealed' };
     }
 
-    // Use transaction for all financial operations
+    // Use transaction for all financial operations (paid unlock)
     return await db.transaction(async (tx) => {
       // Check if user has enough balance
       const wallet = await tx.query.wallets.findFirst({
