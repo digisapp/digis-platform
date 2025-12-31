@@ -377,6 +377,13 @@ export default function ChatPage() {
         // Only lock if we got a non-zero rate (allow retries if 0)
         if (rate > 0) {
           rateFetchedRef.current = true;
+
+          // If we got a rate > 0, they're definitely a creator - ensure role is set
+          if (!otherUserRoleRef.current) {
+            console.log('[Chat] Setting otherUserRole to creator based on rate');
+            otherUserRoleRef.current = 'creator';
+            setOtherUserRole('creator');
+          }
         }
 
         // Update state
