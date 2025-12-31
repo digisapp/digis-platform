@@ -133,7 +133,7 @@ export default function BecomeCreatorPage() {
               </div>
 
               <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl">
-                Train an AI version of yourself that sounds just like you. It chats with fans,
+                Train an AI version of yourself so AI can respond exactly like you! It chats with fans,
                 sends voice messages, and earns money while you focus on creating content or just living your life.
               </p>
 
