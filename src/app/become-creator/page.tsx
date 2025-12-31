@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { LoginModal } from '@/components/auth/LoginModal';
-import { Sparkles, Video, MessageCircle, Zap, DollarSign, Clock, Shield, TrendingUp } from 'lucide-react';
+import { Sparkles, Video, MessageCircle, DollarSign, Clock, Shield, TrendingUp } from 'lucide-react';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
@@ -137,7 +137,7 @@ export default function BecomeCreatorPage() {
                 sends voice messages, and earns money while you focus on creating content or just living your life.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
                   <Clock className="w-5 h-5 text-digis-cyan" />
                   <span className="text-white/80">Never miss a message</span>
@@ -145,10 +145,6 @@ export default function BecomeCreatorPage() {
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
                   <DollarSign className="w-5 h-5 text-green-400" />
                   <span className="text-white/80">Passive income 24/7</span>
-                </div>
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
-                  <Zap className="w-5 h-5 text-digis-pink" />
-                  <span className="text-white/80">Sounds just like you</span>
                 </div>
               </div>
             </div>
