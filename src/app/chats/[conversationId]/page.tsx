@@ -10,6 +10,7 @@ import { Gift, MoreVertical, Coins, Plus, Camera, Film, Mic, FolderOpen, X, Send
 import { MediaAttachmentModal } from '@/components/messages/MediaAttachmentModal';
 import { VoiceMessageButton } from '@/components/messages/VoiceMessageButton';
 import { MessageChargeWarningModal } from '@/components/messages/MessageChargeWarningModal';
+import { InsufficientBalanceModal } from '@/components/messages/InsufficientBalanceModal';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
@@ -80,6 +81,11 @@ export default function ChatPage() {
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [isBlocking, setIsBlocking] = useState(false);
+  const [insufficientBalanceInfo, setInsufficientBalanceInfo] = useState<{
+    required: number;
+    balance: number;
+    type: 'message' | 'media' | 'voice';
+  } | null>(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -564,6 +570,15 @@ export default function ChatPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check for insufficient balance
+        if (response.status === 402 && result.required && result.balance !== undefined) {
+          setInsufficientBalanceInfo({
+            required: result.required,
+            balance: result.balance,
+            type: result.type || 'media',
+          });
+          return; // Don't throw, modal will handle it
+        }
         throw new Error(result.error || 'Failed to send media');
       }
 
@@ -596,10 +611,20 @@ export default function ChatPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check for insufficient balance
+        if (response.status === 402 && result.required && result.balance !== undefined) {
+          setInsufficientBalanceInfo({
+            required: result.required,
+            balance: result.balance,
+            type: result.type || 'voice',
+          });
+          return; // Don't throw, modal will handle it
+        }
         throw new Error(result.error || 'Failed to send voice message');
       }
 
       fetchMessages();
+      setShowVoiceRecorder(false);
     } catch (error) {
       console.error('Error sending voice message:', error);
       throw error;
@@ -1025,6 +1050,16 @@ export default function ChatPage() {
             setHasAcknowledgedCharge(true);
             await actualSendMessage(pendingMessage);
           }}
+        />
+      )}
+
+      {/* Insufficient Balance Modal */}
+      {insufficientBalanceInfo && (
+        <InsufficientBalanceModal
+          required={insufficientBalanceInfo.required}
+          balance={insufficientBalanceInfo.balance}
+          type={insufficientBalanceInfo.type}
+          onClose={() => setInsufficientBalanceInfo(null)}
         />
       )}
     </>

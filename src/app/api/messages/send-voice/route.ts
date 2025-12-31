@@ -158,7 +158,12 @@ export async function POST(req: NextRequest) {
 
         if (!senderWallet || senderWallet.balance < messageCharge) {
           return NextResponse.json(
-            { error: `Insufficient balance. You need ${messageCharge} coins to send voice messages.` },
+            {
+              error: 'Insufficient balance',
+              required: messageCharge,
+              balance: senderWallet?.balance || 0,
+              type: 'voice'
+            },
             { status: 402 }
           );
         }
