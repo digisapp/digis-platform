@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { LoginModal } from '@/components/auth/LoginModal';
+import { Sparkles, Video, MessageCircle, Zap, DollarSign, Clock, Shield, TrendingUp } from 'lucide-react';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
@@ -13,7 +14,6 @@ export default function BecomeCreatorPage() {
   const [showSignup, setShowSignup] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  // Check if user is logged in
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
@@ -25,16 +25,14 @@ export default function BecomeCreatorPage() {
 
   const handleApplyClick = () => {
     if (isLoggedIn) {
-      // User is logged in, go directly to apply page
       router.push('/creator/apply');
     } else {
-      // User is not logged in, show signup modal
       setShowSignup(true);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black overflow-x-hidden">
       {/* Auth Modals */}
       <SignupModal
         isOpen={showSignup}
@@ -56,9 +54,9 @@ export default function BecomeCreatorPage() {
 
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-[600px] h-[600px] -top-40 -left-40 bg-digis-cyan opacity-15 rounded-full blur-[120px]" />
-        <div className="absolute w-[500px] h-[500px] top-1/3 -right-40 bg-digis-pink opacity-15 rounded-full blur-[120px]" />
-        <div className="absolute w-[400px] h-[400px] bottom-0 left-1/3 bg-digis-purple opacity-10 rounded-full blur-[100px]" />
+        <div className="absolute w-[800px] h-[800px] -top-60 -left-60 bg-digis-cyan opacity-20 rounded-full blur-[150px]" />
+        <div className="absolute w-[600px] h-[600px] top-1/4 -right-60 bg-digis-pink opacity-20 rounded-full blur-[150px]" />
+        <div className="absolute w-[500px] h-[500px] bottom-0 left-1/4 bg-digis-purple opacity-15 rounded-full blur-[120px]" />
       </div>
 
       {/* Navigation */}
@@ -77,67 +75,270 @@ export default function BecomeCreatorPage() {
             onClick={handleApplyClick}
             className="px-6 py-2.5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
           >
-            Apply Now
+            Get Started
           </button>
         </div>
       </nav>
 
-      {/* Hero */}
-      <div className="relative z-10 px-4 pt-16 md:pt-24 pb-20">
-        <div className="max-w-4xl mx-auto text-center">
+      {/* Hero Section */}
+      <div className="relative z-10 px-4 pt-12 md:pt-20 pb-16">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-8">
+            <Sparkles className="w-4 h-4 text-digis-cyan" />
+            <span className="text-sm text-white/80">The Future of Creator Monetization</span>
+          </div>
+
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent">
-            Get Paid to Be You
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+            <span className="bg-gradient-to-r from-digis-cyan via-digis-pink to-digis-purple bg-clip-text text-transparent">
+              Get Paid to Be You
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/70 mb-16 max-w-xl mx-auto">
-            Monetize your content. Connect with fans. Build your empire.
+
+          <p className="text-lg md:text-2xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Monetize your content. Connect with fans. Build your empire with AI Twin, live streams, video calls, and exclusive content.
           </p>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <button
+              onClick={handleApplyClick}
+              className="group px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] transition-all duration-300"
+            >
+              Start Earning Today
+              <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Twin Feature - Hero Card */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-digis-purple/20 via-digis-pink/10 to-digis-cyan/20 border border-white/10 backdrop-blur-xl overflow-hidden">
+            {/* Glow effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-digis-cyan/30 rounded-full blur-[100px]" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-digis-pink/30 rounded-full blur-[80px]" />
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-digis-cyan to-digis-purple flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white">AI Twin</h2>
+                  <p className="text-digis-cyan text-sm font-medium">Your 24/7 Money Machine</p>
+                </div>
+              </div>
+
+              <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl">
+                Train an AI version of yourself that sounds just like you. It chats with fans,
+                sends voice messages, and earns money while you focus on creating content or just living your life.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
+                  <Clock className="w-5 h-5 text-digis-cyan" />
+                  <span className="text-white/80">Never miss a message</span>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
+                  <DollarSign className="w-5 h-5 text-green-400" />
+                  <span className="text-white/80">Passive income 24/7</span>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
+                  <Zap className="w-5 h-5 text-digis-pink" />
+                  <span className="text-white/80">Sounds just like you</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+            Everything You Need to Monetize
+          </h2>
+          <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">
+            Multiple revenue streams, one platform. Keep more of what you earn.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Live Streaming */}
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="text-4xl mb-3">🎥</div>
-              <h3 className="text-white font-bold mb-1">Live Streams</h3>
-              <p className="text-white/50 text-sm">Earn tips & sell tickets</p>
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Video className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Live Streaming</h3>
+              <p className="text-white/50">
+                Go live and earn from virtual gifts. Sell tickets to exclusive streams. Build real connections.
+              </p>
             </div>
 
             {/* Video Calls */}
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="text-4xl mb-3">📱</div>
-              <h3 className="text-white font-bold mb-1">Video Calls</h3>
-              <p className="text-white/50 text-sm">Set your own rate</p>
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-pink/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-pink/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Video className="w-6 h-6 text-digis-pink" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">1-on-1 Video Calls</h3>
+              <p className="text-white/50">
+                Set your own rate per minute. Fans book time with you directly. Premium personal experience.
+              </p>
             </div>
 
             {/* Paid Messages */}
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="text-4xl mb-3">💬</div>
-              <h3 className="text-white font-bold mb-1">Paid Chats</h3>
-              <p className="text-white/50 text-sm">Charge per message</p>
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-purple/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-purple/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <MessageCircle className="w-6 h-6 text-digis-purple" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Paid Messaging</h3>
+              <p className="text-white/50">
+                Charge per message. Fans pay to slide into your DMs. Your time is valuable.
+              </p>
             </div>
 
             {/* Exclusive Content */}
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-              <div className="text-4xl mb-3">🔒</div>
-              <h3 className="text-white font-bold mb-1">PPV Content</h3>
-              <p className="text-white/50 text-sm">Sell exclusive content</p>
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-cyan/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Shield className="w-6 h-6 text-digis-cyan" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Digitals</h3>
+              <p className="text-white/50">
+                Sell exclusive photos and videos. Set your own prices. Fans unlock premium content.
+              </p>
+            </div>
+
+            {/* Tips & Gifts */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-green-500/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <DollarSign className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Tips & Gifts</h3>
+              <p className="text-white/50">
+                Fans send coins anytime. On streams, in DMs, on your profile. Every interaction can earn.
+              </p>
+            </div>
+
+            {/* Analytics */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-yellow-500/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Creator Analytics</h3>
+              <p className="text-white/50">
+                Track your earnings, top fans, and growth. Know what content performs best.
+              </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* CTA */}
+      {/* Why Digis Section */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                Built for Creators Who Want More
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-400 text-sm">✓</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Keep 80% of Earnings</h4>
+                    <p className="text-white/50 text-sm">Industry-leading creator payouts</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-400 text-sm">✓</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Weekly Payouts</h4>
+                    <p className="text-white/50 text-sm">Get paid fast, no waiting around</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-400 text-sm">✓</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">No Follower Minimum</h4>
+                    <p className="text-white/50 text-sm">Start earning from day one</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-400 text-sm">✓</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">Creator-First Support</h4>
+                    <p className="text-white/50 text-sm">Real humans who help you succeed</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 rounded-3xl blur-xl" />
+              <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 text-center">
+                <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent mb-2">
+                  80%
+                </div>
+                <p className="text-white/70 text-lg">
+                  of every dollar goes directly to you
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Final CTA */}
+      <div className="relative z-10 px-4 pb-24">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+            Ready to Start Earning?
+          </h2>
+          <p className="text-white/50 text-lg mb-10 max-w-xl mx-auto">
+            Join creators who are building real income on Digis.
+            Set up takes 5 minutes.
+          </p>
+
           <button
             onClick={handleApplyClick}
-            className="group px-12 py-5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] transition-all duration-300"
+            className="group px-12 py-5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
           >
-            Apply Now
+            Create Your Account
             <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
           </button>
 
-          <p className="text-white/40 text-sm mt-6">
-            Join thousands of creators already earning on Digis
+          <p className="text-white/30 text-sm mt-6">
+            Free to join. No credit card required.
           </p>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/10 py-8 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <Image
+            src="/images/digis-logo-white.png"
+            alt="Digis"
+            width={80}
+            height={28}
+            className="h-6 w-auto opacity-50"
+          />
+          <p className="text-white/30 text-sm">
+            © 2025 Digis. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
