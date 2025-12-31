@@ -377,16 +377,6 @@ export default function AiTwinPage() {
             </GlassCard>
           </div>
 
-          {/* Quick Save - Always Visible */}
-          <GlassButton
-            variant="gradient"
-            onClick={saveSettings}
-            disabled={saving}
-            className="w-full mb-6"
-          >
-            {saving ? <LoadingSpinner size="sm" /> : 'Save AI Twin Settings'}
-          </GlassButton>
-
           {(settings.enabled || settings.textChatEnabled) && (
             <div className="space-y-6">
               {/* Voice Selection - only show if voice enabled */}
@@ -625,7 +615,7 @@ export default function AiTwinPage() {
             </div>
           )}
 
-          {/* Disabled State */}
+          {/* Disabled State - Show when both toggles are off */}
           {!settings.enabled && !settings.textChatEnabled && (
             <div className="p-8 text-center">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
@@ -638,6 +628,16 @@ export default function AiTwinPage() {
               </p>
             </div>
           )}
+
+          {/* Save Button - Always at bottom */}
+          <GlassButton
+            variant="gradient"
+            onClick={saveSettings}
+            disabled={saving}
+            className="w-full mt-6"
+          >
+            {saving ? <LoadingSpinner size="sm" /> : 'Save AI Twin Settings'}
+          </GlassButton>
         </div>
       </div>
     </div>
