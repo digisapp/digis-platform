@@ -98,7 +98,7 @@ export default function BecomeCreatorPage() {
           </h1>
 
           <p className="text-lg md:text-2xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Monetize your content. Connect with fans. Build your empire with AI Twin, live streams, video calls, and exclusive content.
+            Build your community. Live stream and receive virtual gifts. Monetize your Digitals. Video calls with your fans and students. Earn while you sleep with AI Twin.
           </p>
 
           {/* CTA Buttons */}
@@ -110,125 +110,6 @@ export default function BecomeCreatorPage() {
               Start Earning Today
               <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* AI Twin Feature - Hero Card */}
-      <div className="relative z-10 px-4 pb-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative p-8 md:p-12 rounded-3xl bg-gradient-to-br from-digis-purple/20 via-digis-pink/10 to-digis-cyan/20 border border-white/10 backdrop-blur-xl overflow-hidden">
-            {/* Glow effect */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-digis-cyan/30 rounded-full blur-[100px]" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-digis-pink/30 rounded-full blur-[80px]" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-digis-cyan to-digis-purple flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-white">AI Twin</h2>
-                  <p className="text-digis-cyan text-sm font-medium">Your 24/7 Money Machine</p>
-                </div>
-              </div>
-
-              <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl">
-                Train an AI version of yourself so AI can respond exactly like you! It chats with fans,
-                sends voice messages, and earns money while you focus on creating content or just living your life.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
-                  <Clock className="w-5 h-5 text-digis-cyan" />
-                  <span className="text-white/80">Never miss a message</span>
-                </div>
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5">
-                  <DollarSign className="w-5 h-5 text-green-400" />
-                  <span className="text-white/80">Passive income 24/7</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Features Grid */}
-      <div className="relative z-10 px-4 pb-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
-            Everything You Need to Monetize
-          </h2>
-          <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">
-            Multiple revenue streams, one platform. Keep more of what you earn.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Live Streaming */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-red-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Live Streaming</h3>
-              <p className="text-white/50">
-                Go live and earn from virtual gifts. Sell tickets to exclusive streams. Build real connections.
-              </p>
-            </div>
-
-            {/* Video Calls */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-pink/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-pink/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-digis-pink" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">1-on-1 Video Calls</h3>
-              <p className="text-white/50">
-                Set your own rate per minute. Fans book time with you directly. Premium personal experience.
-              </p>
-            </div>
-
-            {/* Paid Messages */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-purple/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-purple/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-6 h-6 text-digis-purple" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Paid Messaging</h3>
-              <p className="text-white/50">
-                Charge per message. Fans pay to slide into your DMs. Your time is valuable.
-              </p>
-            </div>
-
-            {/* Exclusive Content */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-cyan/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Shield className="w-6 h-6 text-digis-cyan" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Digitals</h3>
-              <p className="text-white/50">
-                Sell exclusive photos and videos. Set your own prices. Fans unlock premium content.
-              </p>
-            </div>
-
-            {/* Tips & Gifts */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-green-500/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <DollarSign className="w-6 h-6 text-green-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Tips & Gifts</h3>
-              <p className="text-white/50">
-                Fans send coins anytime. On streams, in DMs, on your profile. Every interaction can earn.
-              </p>
-            </div>
-
-            {/* Analytics */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-yellow-500/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-yellow-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Creator Analytics</h3>
-              <p className="text-white/50">
-                Track your earnings, top fans, and growth. Know what content performs best.
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -398,6 +279,86 @@ export default function BecomeCreatorPage() {
               They combine live streaming, paid messages, calls, subscriptions, and their AI Twin
               to earn around the clock—even while they sleep.
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+            Everything You Need to Monetize
+          </h2>
+          <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">
+            Multiple revenue streams, one platform. Keep more of what you earn.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Live Streaming */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Video className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Live Streaming</h3>
+              <p className="text-white/50">
+                Go live and earn from virtual gifts. Sell tickets to exclusive streams. Build real connections.
+              </p>
+            </div>
+
+            {/* Video Calls */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-pink/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-pink/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Video className="w-6 h-6 text-digis-pink" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">1-on-1 Video Calls</h3>
+              <p className="text-white/50">
+                Set your own rate per minute. Fans book time with you directly. Premium personal experience.
+              </p>
+            </div>
+
+            {/* Paid Messages */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-purple/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-purple/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <MessageCircle className="w-6 h-6 text-digis-purple" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Paid Messaging</h3>
+              <p className="text-white/50">
+                Charge per message. Fans pay to slide into your DMs. Your time is valuable.
+              </p>
+            </div>
+
+            {/* Exclusive Content */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-digis-cyan/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Shield className="w-6 h-6 text-digis-cyan" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Digitals</h3>
+              <p className="text-white/50">
+                Sell exclusive photos and videos. Set your own prices. Fans unlock premium content.
+              </p>
+            </div>
+
+            {/* Tips & Gifts */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-green-500/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <DollarSign className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Tips & Gifts</h3>
+              <p className="text-white/50">
+                Fans send coins anytime. On streams, in DMs, on your profile. Every interaction can earn.
+              </p>
+            </div>
+
+            {/* Analytics */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-yellow-500/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Creator Analytics</h3>
+              <p className="text-white/50">
+                Track your earnings, top fans, and growth. Know what content performs best.
+              </p>
+            </div>
           </div>
         </div>
       </div>
