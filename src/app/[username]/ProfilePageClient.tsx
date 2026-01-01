@@ -1357,7 +1357,6 @@ export default function ProfilePageClient() {
                           {clips.length > 0 && (
                             <span className="px-1.5 py-0.5 bg-white/20 rounded text-xs">{clips.length}</span>
                           )}
-                          <span className="px-1.5 py-0.5 bg-green-500/30 text-green-300 rounded text-[10px] font-bold">FREE</span>
                         </button>
                       </div>
 
