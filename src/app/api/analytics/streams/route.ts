@@ -41,80 +41,64 @@ export async function GET(req: NextRequest) {
         break;
     }
 
-    // Fetch creator's streams in date range
-    const creatorStreams = await db.query.streams.findMany({
-      where: and(
+    // Aggregate stream metrics in database (much faster than fetching all rows)
+    const [streamMetrics] = await db
+      .select({
+        totalViews: sql<number>`COALESCE(SUM(${streams.totalViews}), 0)::int`,
+        totalViewers: sql<number>`COALESCE(SUM(${streams.peakViewers}), 0)::int`,
+        peakConcurrentViewers: sql<number>`COALESCE(MAX(${streams.peakViewers}), 0)::int`,
+        totalDuration: sql<number>`COALESCE(SUM(${streams.durationSeconds}), 0)::int`,
+        streamCount: sql<number>`COUNT(*)::int`,
+      })
+      .from(streams)
+      .where(and(
         eq(streams.creatorId, user.id),
         gte(streams.createdAt, startDate)
-      ),
-      orderBy: [desc(streams.startedAt)],
-    });
+      ));
 
-    // Calculate basic metrics
-    const totalViews = creatorStreams.reduce((sum, s) => sum + (s.totalViews || 0), 0);
-    const totalViewers = creatorStreams.reduce((sum, s) => sum + (s.peakViewers || 0), 0);
-    const peakConcurrentViewers = Math.max(...creatorStreams.map(s => s.peakViewers || 0), 0);
+    const totalViews = streamMetrics?.totalViews || 0;
+    const totalViewers = streamMetrics?.totalViewers || 0;
+    const peakConcurrentViewers = streamMetrics?.peakConcurrentViewers || 0;
+    const streamCount = streamMetrics?.streamCount || 0;
+    const averageViewDuration = streamCount > 0 ? Math.floor((streamMetrics?.totalDuration || 0) / streamCount) : 0;
 
-    // Calculate average view duration (simplified)
-    const totalDuration = creatorStreams.reduce((sum, s) => sum + (s.durationSeconds || 0), 0);
-    const averageViewDuration = creatorStreams.length > 0 ? Math.floor(totalDuration / creatorStreams.length) : 0;
-
-    // Fetch earnings from wallet transactions
-    const earningsTransactions = await db.query.walletTransactions.findMany({
-      where: and(
+    // Aggregate earnings in database with breakdown by type (much faster)
+    const [earningsAgg] = await db
+      .select({
+        totalEarnings: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+        totalTips: sql<number>`COUNT(CASE WHEN ${walletTransactions.type} IN ('stream_tip', 'dm_tip') AND ${walletTransactions.amount} > 0 THEN 1 END)::int`,
+        tips: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.type} IN ('stream_tip', 'dm_tip') AND ${walletTransactions.amount} > 0 THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+        gifts: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.type} = 'gift' AND ${walletTransactions.amount} > 0 THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+        subscriptions: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.type} = 'subscription_earnings' AND ${walletTransactions.amount} > 0 THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+        ppv: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.type} = 'ppv_unlock' AND ${walletTransactions.amount} > 0 THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+      })
+      .from(walletTransactions)
+      .where(and(
         eq(walletTransactions.userId, user.id),
         eq(walletTransactions.status, 'completed'),
         gte(walletTransactions.createdAt, startDate)
-      ),
-    });
+      ));
 
-    // Calculate earnings breakdown
+    const totalEarnings = earningsAgg?.totalEarnings || 0;
+    const totalTips = earningsAgg?.totalTips || 0;
     const earningsBreakdown = {
-      tips: 0,
-      gifts: 0,
-      subscriptions: 0,
-      ppv: 0,
+      tips: earningsAgg?.tips || 0,
+      gifts: earningsAgg?.gifts || 0,
+      subscriptions: earningsAgg?.subscriptions || 0,
+      ppv: earningsAgg?.ppv || 0,
     };
 
-    let totalEarnings = 0;
-    let totalTips = 0;
+    // Count messages using a subquery join (no need to fetch stream IDs separately)
+    const [messageCountResult] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(streamMessages)
+      .innerJoin(streams, eq(streamMessages.streamId, streams.id))
+      .where(and(
+        eq(streams.creatorId, user.id),
+        gte(streams.createdAt, startDate)
+      ));
 
-    earningsTransactions.forEach(tx => {
-      if (tx.amount > 0) {
-        totalEarnings += tx.amount;
-
-        switch (tx.type) {
-          case 'stream_tip':
-          case 'dm_tip':
-            earningsBreakdown.tips += tx.amount;
-            totalTips++;
-            break;
-          case 'gift':
-            earningsBreakdown.gifts += tx.amount;
-            break;
-          case 'subscription_earnings':
-            earningsBreakdown.subscriptions += tx.amount;
-            break;
-          case 'ppv_unlock':
-            earningsBreakdown.ppv += tx.amount;
-            break;
-        }
-      }
-    });
-
-    // Count chat messages
-    const streamIds = creatorStreams.map(s => s.id);
-    let totalMessages = 0;
-
-    if (streamIds.length > 0) {
-      // Count messages across all streams
-      const messageCount = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(streamMessages)
-        .where(sql`${streamMessages.streamId} = ANY(${streamIds})`);
-
-      totalMessages = Number(messageCount[0]?.count || 0);
-    }
+    const totalMessages = messageCountResult?.count || 0;
 
     // Calculate engagement rate (messages + tips / total views)
     const engagementRate = totalViews > 0
@@ -126,17 +110,31 @@ export async function GET(req: NextRequest) {
     const revenueGrowth = 0;
     const viewerGrowth = 0;
 
-    // Get top performing streams
-    const topStreams = creatorStreams
-      .sort((a, b) => (b.totalGiftsReceived || 0) - (a.totalGiftsReceived || 0))
-      .slice(0, 5)
-      .map(stream => ({
-        id: stream.id,
-        title: stream.title,
-        views: stream.totalViews || 0,
-        earnings: stream.totalGiftsReceived || 0,
-        date: stream.startedAt?.toISOString() || stream.createdAt.toISOString(),
-      }));
+    // Get top 5 performing streams directly from database (no need to fetch all)
+    const topStreamsData = await db
+      .select({
+        id: streams.id,
+        title: streams.title,
+        views: streams.totalViews,
+        earnings: streams.totalGiftsReceived,
+        startedAt: streams.startedAt,
+        createdAt: streams.createdAt,
+      })
+      .from(streams)
+      .where(and(
+        eq(streams.creatorId, user.id),
+        gte(streams.createdAt, startDate)
+      ))
+      .orderBy(desc(streams.totalGiftsReceived))
+      .limit(5);
+
+    const topStreams = topStreamsData.map(stream => ({
+      id: stream.id,
+      title: stream.title,
+      views: stream.views || 0,
+      earnings: stream.earnings || 0,
+      date: stream.startedAt?.toISOString() || stream.createdAt.toISOString(),
+    }));
 
     // Viewer distribution by hour (simplified - just return empty array for now)
     const viewersByHour: Array<{ hour: number; viewers: number }> = [];

@@ -5,6 +5,7 @@ import { eq, ilike, or, desc, sql, and, gte } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { createClient } from '@/lib/supabase/server';
+import { redis } from '@/lib/redis';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -110,12 +111,8 @@ export async function GET(request: NextRequest) {
               conditions.push(sql`${users.createdAt} >= ${thirtyDaysAgo.toISOString()}`);
             }
 
-            // Use subquery for accurate follower count
-            const followerCountSubquery = sql<number>`(
-              SELECT COUNT(*)::int FROM follows WHERE follows.following_id = ${users.id}
-            )`.as('actual_follower_count');
-
-            // Fetch more than needed since we'll sort in JS
+            // Use the denormalized followerCount column (updated when follows change)
+            // This is much faster than a subquery that runs per-row
             const results = await db
               .select({
                 id: users.id,
@@ -123,7 +120,7 @@ export async function GET(request: NextRequest) {
                 displayName: users.displayName,
                 avatarUrl: users.avatarUrl,
                 isCreatorVerified: users.isCreatorVerified,
-                followerCount: followerCountSubquery,
+                followerCount: users.followerCount,
                 isOnline: users.isOnline,
                 createdAt: users.createdAt,
               })
@@ -143,12 +140,22 @@ export async function GET(request: NextRequest) {
         }, 5000))
       ]).catch(() => []),
 
-      // 3. Categories - can fail gracefully
-      Promise.race([
-        db.select({ name: creatorCategories.name }).from(creatorCategories).orderBy(creatorCategories.name)
-          .then(cats => ['All', ...cats.map(c => c.name)]),
-        new Promise<string[]>((resolve) => setTimeout(() => resolve(['All']), 2000))
-      ]).catch(() => ['All']),
+      // 3. Categories - cached for 10 minutes (rarely changes)
+      (async () => {
+        try {
+          const cached = await redis.get('explore:categories');
+          if (cached) return cached as string[];
+
+          const cats = await db.select({ name: creatorCategories.name })
+            .from(creatorCategories)
+            .orderBy(creatorCategories.name);
+          const categoryList = ['All', ...cats.map(c => c.name)];
+          await redis.set('explore:categories', categoryList, { ex: 600 }); // 10 min cache
+          return categoryList;
+        } catch {
+          return ['All'];
+        }
+      })(),
 
       // 4. Recent streams (last 7 days) - for activity scoring
       Promise.race([
