@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { LoginModal } from '@/components/auth/LoginModal';
-import { Sparkles, Video, MessageCircle, DollarSign, Clock, Shield, TrendingUp, Dumbbell, Shirt, Camera, Heart, Flower2 } from 'lucide-react';
+import { Sparkles, Video, MessageCircle, DollarSign, Shield, Dumbbell, Shirt, Camera, Heart, Flower2 } from 'lucide-react';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
@@ -349,14 +349,14 @@ export default function BecomeCreatorPage() {
               </p>
             </div>
 
-            {/* Analytics */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-yellow-500/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-yellow-400" />
+            {/* AI Twin */}
+            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Creator Analytics</h3>
+              <h3 className="text-xl font-bold text-white mb-2">AI Twin</h3>
               <p className="text-white/50">
-                Track your earnings, top fans, and growth. Know what content performs best.
+                Your AI chats with fans 24/7. Earn while you sleep. Never miss a message.
               </p>
             </div>
           </div>
