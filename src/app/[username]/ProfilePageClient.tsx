@@ -1514,11 +1514,6 @@ export default function ProfilePageClient() {
                                     </div>
                                   )}
 
-                                  {/* FREE Badge */}
-                                  <div className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-green-500 to-cyan-500 text-white text-xs font-bold rounded-lg">
-                                    FREE
-                                  </div>
-
                                   {/* Duration Badge */}
                                   <div className="absolute top-2 right-2 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded-lg">
                                     0:{(clip.duration || 30).toString().padStart(2, '0')}
