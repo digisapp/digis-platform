@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { LoginModal } from '@/components/auth/LoginModal';
-import { Sparkles, Video, MessageCircle, DollarSign, Clock, Shield, TrendingUp } from 'lucide-react';
+import { Sparkles, Video, MessageCircle, DollarSign, Clock, Shield, TrendingUp, Dumbbell, Shirt, Camera, Heart, Flower2 } from 'lucide-react';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
@@ -229,6 +229,175 @@ export default function BecomeCreatorPage() {
                 Track your earnings, top fans, and growth. Know what content performs best.
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Creator Scenarios Section */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+            Real Creators, Real Income
+          </h2>
+          <p className="text-white/50 text-center mb-12 max-w-2xl mx-auto">
+            See how creators like you are combining multiple revenue streams to build sustainable income on Digis.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Model Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-white/10 hover:border-pink-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">The Model</h3>
+                  <p className="text-sm text-pink-300">Glamour, Fashion, Fitness</p>
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="text-pink-400 mt-0.5">▸</span>
+                  <span>Sell <strong className="text-white">exclusive photosets</strong> and behind-the-scenes Digitals</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-pink-400 mt-0.5">▸</span>
+                  <span>Go <strong className="text-white">live</strong> for Q&As, GRWM and OOTD sessions</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-pink-400 mt-0.5">▸</span>
+                  <span>Offer <strong className="text-white">paid video calls</strong> for personal time with you</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-pink-400 mt-0.5">▸</span>
+                  <span>Your <strong className="text-white">AI Twin</strong> chats 24/7 - earn while you sleep</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Influencer Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-white/10 hover:border-cyan-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                  <Shirt className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">The Influencer</h3>
+                  <p className="text-sm text-cyan-300">Fashion, Lifestyle, Beauty</p>
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="text-cyan-400 mt-0.5">▸</span>
+                  <span>Host <strong className="text-white">live Q&As</strong> about style and skincare routines</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-cyan-400 mt-0.5">▸</span>
+                  <span>Charge for <strong className="text-white">paid DMs</strong> for personalized outfit feedback</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-cyan-400 mt-0.5">▸</span>
+                  <span>Sell <strong className="text-white">exclusive photos</strong> and lookbooks</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Virtual Date Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-white/10 hover:border-red-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Virtual Dates</h3>
+                  <p className="text-sm text-red-300">Dinner Dates, Companionship</p>
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">▸</span>
+                  <span>Add <strong className="text-white">"Virtual Dinner Date"</strong> to your tip menu for romantic video time</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 mt-0.5">▸</span>
+                  <span>Charge <strong className="text-white">premium per-minute rates</strong> for 1-on-1 video calls</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Health & Fitness Coach Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Dumbbell className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Fitness Coach</h3>
+                  <p className="text-sm text-green-300">Personal Training, Health</p>
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">▸</span>
+                  <span>Host <strong className="text-white">live workout classes</strong></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">▸</span>
+                  <span>Sell <strong className="text-white">personalized workout plans</strong> as digital downloads</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">▸</span>
+                  <span>Book <strong className="text-white">private coaching video calls</strong></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-green-400 mt-0.5">▸</span>
+                  <span><strong className="text-white">Subscriber only</strong> exclusive workout streams</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Yoga & Pilates Instructor Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-white/10 hover:border-purple-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                  <Flower2 className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Yoga & Pilates</h3>
+                  <p className="text-sm text-purple-300">Mindfulness, Flexibility</p>
+                </div>
+              </div>
+              <div className="space-y-3 text-sm text-white/70">
+                <div className="flex items-start gap-2">
+                  <span className="text-purple-400 mt-0.5">▸</span>
+                  <span>Stream <strong className="text-white">live yoga sessions</strong> - morning flows, evening stretches, meditation</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-purple-400 mt-0.5">▸</span>
+                  <span>Sell <strong className="text-white">guided meditation audio and video</strong></span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-purple-400 mt-0.5">▸</span>
+                  <span>Offer <strong className="text-white">private video sessions</strong> for personalized instruction</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-purple-400 mt-0.5">▸</span>
+                  <span>Your <strong className="text-white">AI Twin</strong> talks with your students about your personalized guides</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Earnings Potential Callout */}
+          <div className="mt-12 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-digis-cyan/10 via-digis-purple/10 to-digis-pink/10 border border-white/10 text-center">
+            <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+              Stack Your Revenue Streams
+            </h3>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              The most successful creators on Digis don't rely on just one income source.
+              They combine live streaming, paid messages, calls, subscriptions, and their AI Twin
+              to earn around the clock—even while they sleep.
+            </p>
           </div>
         </div>
       </div>
