@@ -89,20 +89,23 @@ export async function GET(request: NextRequest) {
           sql`${walletTransactions.amount} < 0` // Outgoing transactions (tips sent)
         )),
 
-      // Top earners (creators with highest balance)
+      // Top earners (creators with highest lifetime earnings from tips/gifts/messages)
       db.select({
         id: users.id,
         username: users.username,
         displayName: users.displayName,
         avatarUrl: users.avatarUrl,
         isCreatorVerified: users.isCreatorVerified,
+        lifetimeEarnings: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_payment', 'subscription') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
         balance: wallets.balance,
         followerCount: users.followerCount,
       })
         .from(users)
-        .innerJoin(wallets, eq(users.id, wallets.userId))
+        .leftJoin(wallets, eq(users.id, wallets.userId))
+        .leftJoin(walletTransactions, eq(users.id, walletTransactions.userId))
         .where(eq(users.role, 'creator'))
-        .orderBy(desc(wallets.balance))
+        .groupBy(users.id, users.username, users.displayName, users.avatarUrl, users.isCreatorVerified, users.followerCount, wallets.balance)
+        .orderBy(desc(sql`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_payment', 'subscription') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)`))
         .limit(10),
 
       // Most followed creators
@@ -167,7 +170,8 @@ export async function GET(request: NextRequest) {
       leaderboard: {
         topEarners: topEarners.map(c => ({
           ...c,
-          earnings: c.balance || 0,
+          earnings: c.lifetimeEarnings || 0,
+          currentBalance: c.balance || 0,
         })),
         topFollowed,
         mostActive: mostActiveStreamers,
