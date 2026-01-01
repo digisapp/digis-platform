@@ -81,6 +81,8 @@ function PricingPageContent() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<MenuItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [formLabel, setFormLabel] = useState('');
   const [formEmoji, setFormEmoji] = useState('');
   const [formPrice, setFormPrice] = useState('');
@@ -242,20 +244,24 @@ function PricingPageContent() {
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm('Delete this menu item?')) return;
+  const handleDeleteItem = async () => {
+    if (!deleteConfirmItem) return;
 
+    setDeleting(true);
     try {
-      const response = await fetch(`/api/creator/tip-menu/${id}`, {
+      const response = await fetch(`/api/creator/tip-menu/${deleteConfirmItem.id}`, {
         method: 'DELETE',
       });
       if (response.ok) {
-        setMenuItems(menuItems.filter(item => item.id !== id));
+        setMenuItems(menuItems.filter(item => item.id !== deleteConfirmItem.id));
         setMessage('Item deleted');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
       console.error('Error deleting item:', error);
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmItem(null);
     }
   };
 
@@ -689,7 +695,7 @@ function PricingPageContent() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteItem(item.id)}
+                            onClick={() => setDeleteConfirmItem(item)}
                             className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -883,6 +889,40 @@ function PricingPageContent() {
                 >
                   {savingItem ? <LoadingSpinner size="sm" /> : editingItem ? 'Save Changes' : 'Add Item'}
                 </GlassButton>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmItem && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <GlassCard className="w-full max-w-sm p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                <Trash2 className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Delete Item?</h3>
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete <span className="text-white font-medium">"{deleteConfirmItem.label}"</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <GlassButton
+                  onClick={() => setDeleteConfirmItem(null)}
+                  variant="ghost"
+                  className="flex-1"
+                  disabled={deleting}
+                >
+                  Cancel
+                </GlassButton>
+                <button
+                  onClick={handleDeleteItem}
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors disabled:opacity-50"
+                >
+                  {deleting ? <LoadingSpinner size="sm" /> : 'Delete'}
+                </button>
               </div>
             </div>
           </GlassCard>
