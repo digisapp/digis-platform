@@ -12,6 +12,7 @@ import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 import { getCreatorNextTierProgress, getCreatorTierConfig, type CreatorTier } from '@/lib/tiers/creator-tiers';
 import { ShareDigisCard } from '@/components/share/ShareDigisCard';
+import { extractInstagramHandle, extractTiktokHandle, extractTwitterHandle, extractSnapchatHandle, extractYoutubeHandle } from '@/lib/utils/social-handles';
 
 interface UsernameStatus {
   canChange: boolean;
@@ -1235,7 +1236,7 @@ export default function SettingsPage() {
                         type="text"
                         placeholder="username"
                         value={instagramHandle}
-                        onChange={(e) => setInstagramHandle(e.target.value.replace(/^@/, ''))}
+                        onChange={(e) => setInstagramHandle(extractInstagramHandle(e.target.value))}
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
                       />
                     </div>
@@ -1255,7 +1256,7 @@ export default function SettingsPage() {
                         type="text"
                         placeholder="username"
                         value={tiktokHandle}
-                        onChange={(e) => setTiktokHandle(e.target.value.replace(/^@/, ''))}
+                        onChange={(e) => setTiktokHandle(extractTiktokHandle(e.target.value))}
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                       />
                     </div>
@@ -1275,7 +1276,7 @@ export default function SettingsPage() {
                         type="text"
                         placeholder="username"
                         value={twitterHandle}
-                        onChange={(e) => setTwitterHandle(e.target.value.replace(/^@/, ''))}
+                        onChange={(e) => setTwitterHandle(extractTwitterHandle(e.target.value))}
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50"
                       />
                     </div>
@@ -1295,7 +1296,7 @@ export default function SettingsPage() {
                         type="text"
                         placeholder="username"
                         value={snapchatHandle}
-                        onChange={(e) => setSnapchatHandle(e.target.value.replace(/^@/, ''))}
+                        onChange={(e) => setSnapchatHandle(extractSnapchatHandle(e.target.value))}
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                       />
                     </div>
@@ -1313,7 +1314,7 @@ export default function SettingsPage() {
                         type="text"
                         placeholder="channel"
                         value={youtubeHandle}
-                        onChange={(e) => setYoutubeHandle(e.target.value.replace(/^@/, ''))}
+                        onChange={(e) => setYoutubeHandle(extractYoutubeHandle(e.target.value))}
                         className="w-full pl-8 pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/50"
                       />
                     </div>

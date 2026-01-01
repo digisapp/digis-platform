@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, profiles } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { extractInstagramHandle, extractTiktokHandle, extractTwitterHandle, extractSnapchatHandle, extractYoutubeHandle } from '@/lib/utils/social-handles';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -87,12 +88,12 @@ export async function POST(request: NextRequest) {
       if (city !== undefined) profileData.city = city;
       if (state !== undefined) profileData.state = state;
       if (phoneNumber !== undefined) profileData.phoneNumber = phoneNumber;
-      // Social media handles
-      if (twitterHandle !== undefined) profileData.twitterHandle = twitterHandle;
-      if (instagramHandle !== undefined) profileData.instagramHandle = instagramHandle;
-      if (tiktokHandle !== undefined) profileData.tiktokHandle = tiktokHandle;
-      if (snapchatHandle !== undefined) profileData.snapchatHandle = snapchatHandle;
-      if (youtubeHandle !== undefined) profileData.youtubeHandle = youtubeHandle;
+      // Social media handles - extract usernames from URLs if pasted
+      if (twitterHandle !== undefined) profileData.twitterHandle = extractTwitterHandle(twitterHandle);
+      if (instagramHandle !== undefined) profileData.instagramHandle = extractInstagramHandle(instagramHandle);
+      if (tiktokHandle !== undefined) profileData.tiktokHandle = extractTiktokHandle(tiktokHandle);
+      if (snapchatHandle !== undefined) profileData.snapchatHandle = extractSnapchatHandle(snapchatHandle);
+      if (youtubeHandle !== undefined) profileData.youtubeHandle = extractYoutubeHandle(youtubeHandle);
       if (twitchHandle !== undefined) profileData.twitchHandle = twitchHandle;
       if (amazonHandle !== undefined) profileData.amazonHandle = amazonHandle;
       if (contactEmail !== undefined) profileData.contactEmail = contactEmail;
@@ -113,11 +114,11 @@ export async function POST(request: NextRequest) {
             city: city || null,
             state: state || null,
             phoneNumber: phoneNumber || null,
-            twitterHandle: twitterHandle || null,
-            instagramHandle: instagramHandle || null,
-            tiktokHandle: tiktokHandle || null,
-            snapchatHandle: snapchatHandle || null,
-            youtubeHandle: youtubeHandle || null,
+            twitterHandle: twitterHandle ? extractTwitterHandle(twitterHandle) : null,
+            instagramHandle: instagramHandle ? extractInstagramHandle(instagramHandle) : null,
+            tiktokHandle: tiktokHandle ? extractTiktokHandle(tiktokHandle) : null,
+            snapchatHandle: snapchatHandle ? extractSnapchatHandle(snapchatHandle) : null,
+            youtubeHandle: youtubeHandle ? extractYoutubeHandle(youtubeHandle) : null,
             twitchHandle: twitchHandle || null,
             amazonHandle: amazonHandle || null,
             contactEmail: contactEmail || null,
