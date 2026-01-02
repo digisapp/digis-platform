@@ -640,13 +640,15 @@ function AdminCommunityContent() {
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="font-medium text-white">
-                                  {creator.display_name || creator.username}
+                                  @{creator.username}
                                 </span>
                                 {creator.is_creator_verified && (
                                   <Shield className="w-4 h-4 text-cyan-400" />
                                 )}
                               </div>
-                              <span className="text-xs text-gray-500">{creator.email}</span>
+                              {creator.display_name && (
+                                <span className="text-xs text-gray-500">{creator.display_name}</span>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -904,9 +906,11 @@ function AdminCommunityContent() {
                             </div>
                             <div>
                               <span className="font-medium text-white">
-                                {fan.display_name || fan.username}
+                                @{fan.username}
                               </span>
-                              <p className="text-xs text-gray-500">{fan.email}</p>
+                              {fan.display_name && (
+                                <p className="text-xs text-gray-500">{fan.display_name}</p>
+                              )}
                             </div>
                           </div>
                         </td>
