@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       where: eq(users.id, adminUser.id),
     });
 
-    if (!admin || admin.role !== 'admin') {
+    if (!admin || (admin.role !== 'admin' && !admin.isAdmin)) {
       return NextResponse.json(
         failure('Admin access required', 'auth', requestId),
         { status: 403, headers: { 'x-request-id': requestId } }
