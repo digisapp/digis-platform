@@ -44,17 +44,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { userId, username, verifyCreator } = await request.json();
+    const { userId, identifier, username, newUsername, verifyCreator } = await request.json();
 
-    if (!userId || !username) {
+    // Support both old and new parameter names
+    const targetUserId = userId || identifier;
+    const targetUsername = username || newUsername;
+
+    if (!targetUserId || !targetUsername) {
       return NextResponse.json(
-        failure('userId and username are required', 'validation', requestId),
+        failure('userId/identifier and username/newUsername are required', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
       );
     }
 
     // Format validation
-    const formatCheck = validateUsernameFormat(username);
+    const formatCheck = validateUsernameFormat(targetUsername);
     if (!formatCheck.valid) {
       return NextResponse.json(
         failure(formatCheck.error || 'Invalid username format', 'validation', requestId),
@@ -64,10 +68,10 @@ export async function POST(request: NextRequest) {
 
     // Check if username is already taken by someone else
     const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, username.toLowerCase()),
+      where: eq(users.username, targetUsername.toLowerCase()),
     });
 
-    if (existingUser && existingUser.id !== userId) {
+    if (existingUser && existingUser.id !== targetUserId) {
       return NextResponse.json(
         failure('Username already taken by another user', 'validation', requestId),
         { status: 400, headers: { 'x-request-id': requestId } }
@@ -76,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Get target user
     const targetUser = await db.query.users.findFirst({
-      where: eq(users.id, userId),
+      where: eq(users.id, targetUserId),
     });
 
     if (!targetUser) {
@@ -87,11 +91,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if this is a reserved name
-    const isReserved = isReservedUsername(username);
+    const isReserved = isReservedUsername(targetUsername);
 
     // Build update object
     const updateData: any = {
-      username: username.toLowerCase(),
+      username: targetUsername.toLowerCase(),
       updatedAt: new Date(),
     };
 
@@ -107,22 +111,22 @@ export async function POST(request: NextRequest) {
     // Update user
     await db.update(users)
       .set(updateData)
-      .where(eq(users.id, userId));
+      .where(eq(users.id, targetUserId));
 
     console.log('[ADMIN_SET_USERNAME]', {
       requestId,
       adminId: adminUser.id,
       adminEmail: adminUser.email,
-      userId,
+      userId: targetUserId,
       oldUsername: targetUser.username,
-      newUsername: username.toLowerCase(),
+      newUsername: targetUsername.toLowerCase(),
       isReserved,
       verified: updateData.isCreatorVerified || false,
     });
 
     return NextResponse.json(
       success({
-        username: username.toLowerCase(),
+        username: targetUsername.toLowerCase(),
         wasReserved: isReserved,
         verified: updateData.isCreatorVerified || false,
       }, requestId),
