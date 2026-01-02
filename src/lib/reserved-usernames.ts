@@ -5,10 +5,13 @@
  * Only verified creators can claim these usernames.
  *
  * Categories:
+ * - All 4-letter or shorter usernames (premium)
+ * - Common first names (high demand)
  * - Major brands and companies
  * - Popular creators and celebrities
  * - Common platform terms
  * - Geographic locations
+ * - Model/influencer terms
  */
 
 export const RESERVED_USERNAMES = new Set([
@@ -22,6 +25,41 @@ export const RESERVED_USERNAMES = new Set([
   'live', 'shows', 'creator', 'fan', 'browse', 'search', 'trending',
   'popular', 'new', 'featured', 'discover', 'feed', 'notifications',
   'account', 'login', 'signup', 'logout', 'register', 'auth',
+
+  // Common first names (high value - VIP only)
+  'hannah', 'emma', 'olivia', 'sarah', 'james', 'david', 'emily', 'grace',
+  'bella', 'sofia', 'lucas', 'ethan', 'mason', 'logan', 'alex', 'ryan',
+  'kate', 'anna', 'lily', 'rose', 'jack', 'mike', 'john', 'jane', 'mary',
+  'lisa', 'amy', 'kim', 'sam', 'max', 'leo', 'mia', 'ava', 'zoe', 'eva',
+  'chloe', 'sophie', 'julia', 'laura', 'rachel', 'nicole', 'ashley', 'amber',
+  'jessica', 'jennifer', 'stephanie', 'natalie', 'victoria', 'vanessa',
+  'madison', 'morgan', 'taylor', 'jordan', 'alexis', 'destiny', 'jasmine',
+  'diamond', 'crystal', 'tiffany', 'brittany', 'courtney', 'lindsey', 'haley',
+  'kayla', 'kendra', 'cassie', 'cassidy', 'carmen', 'carmen', 'veronica',
+  'valentina', 'camila', 'daniela', 'gabriela', 'alejandra', 'adriana',
+  'natasha', 'sasha', 'megan', 'paige', 'brooke', 'claire', 'faith', 'hope',
+  'summer', 'autumn', 'winter', 'spring', 'sky', 'skye', 'jade', 'ruby',
+  'scarlett', 'violet', 'ivy', 'luna', 'stella', 'aurora', 'willow', 'hazel',
+  'savannah', 'brooklyn', 'london', 'paris', 'milan', 'vienna', 'sienna',
+  'sierra', 'savanna', 'brianna', 'briana', 'ariana', 'diana', 'elena',
+  'maria', 'maya', 'layla', 'leah', 'nora', 'ella', 'aria', 'isla', 'ellie',
+  'lucy', 'lola', 'daisy', 'poppy', 'molly', 'evie', 'millie', 'freya',
+  'phoebe', 'alice', 'lilly', 'florence', 'matilda', 'rosie', 'lacey',
+  'imogen', 'sienna', 'elsie', 'harper', 'isla', 'quinn', 'riley', 'reese',
+
+  // Model/Influencer terms (VIP only)
+  'goddess', 'queen', 'princess', 'prince', 'king', 'angel', 'babe', 'baby',
+  'hottie', 'beauty', 'model', 'supermodel', 'diva', 'barbie', 'dolly',
+  'fitness', 'fitspo', 'fitgirl', 'fitbabe', 'yoga', 'yogagirl', 'yogababe',
+  'coach', 'trainer', 'lifestyle', 'luxury', 'glamour', 'glam', 'gorgeous',
+  'stunning', 'flawless', 'perfect', 'iconic', 'baddie', 'badgirl', 'hotgirl',
+  'dreamgirl', 'covergirl', 'centerfold', 'playmate', 'vixen', 'temptress',
+  'seductive', 'sultry', 'exotic', 'bombshell', 'knockout', 'showstopper',
+  'heartbreaker', 'sweetheart', 'darling', 'honey', 'sugar', 'candy', 'sweet',
+  'peach', 'cherry', 'strawberry', 'berry', 'cookie', 'cupcake', 'muffin',
+  'bunny', 'kitten', 'kitty', 'cat', 'fox', 'foxy', 'vibe', 'vibes', 'mood',
+  'slay', 'slayer', 'boss', 'bossbabe', 'ceo', 'hustle', 'grind', 'goals',
+  'blessed', 'flawless', 'snatched', 'fierce', 'savage', 'extra', 'iconic',
 
   // Tech companies
   'apple', 'google', 'microsoft', 'amazon', 'meta', 'facebook', 'instagram',
@@ -131,14 +169,14 @@ export const RESERVED_USERNAMES = new Set([
 
 /**
  * Check if a username is reserved (premium/VIP only)
- * - All 3-letter usernames are reserved
+ * - All 4-letter or shorter usernames are reserved
  * - Specific brand/celebrity names are reserved
  */
 export function isReservedUsername(username: string): boolean {
   const lower = username.toLowerCase();
 
-  // All 3-letter usernames are reserved for VIP creators
-  if (lower.length === 3) {
+  // All 4-letter or shorter usernames are reserved for VIP creators
+  if (lower.length <= 4) {
     return true;
   }
 
@@ -153,8 +191,8 @@ export function isReservedUsername(username: string): boolean {
 export function getReservedReason(username: string): string | null {
   const lower = username.toLowerCase();
 
-  if (lower.length === 3) {
-    return 'Premium 3-letter username (VIP only)';
+  if (lower.length <= 4) {
+    return `Premium ${lower.length}-letter username (VIP only)`;
   }
 
   if (RESERVED_USERNAMES.has(lower)) {
