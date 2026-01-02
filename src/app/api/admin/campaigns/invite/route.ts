@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
-import { creatorInvites } from '@/db/schema';
+import { creatorInvites, users, creatorSettings, aiTwinSettings, profiles } from '@/db/schema';
 import { eq, and, isNull, inArray } from 'drizzle-orm';
 import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
 import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+import { nanoid } from 'nanoid';
 
 async function isAdmin(request: NextRequest): Promise<boolean> {
   const supabase = await createClient();
@@ -96,6 +98,150 @@ export async function POST(request: NextRequest) {
       }
 
       return NextResponse.json(result);
+    }
+
+    // Create account with generated password
+    if (action === 'create-account') {
+      const { inviteId } = body;
+      if (!inviteId) {
+        return NextResponse.json({ error: 'inviteId required' }, { status: 400 });
+      }
+
+      // Get the invite
+      const invite = await db.query.creatorInvites.findFirst({
+        where: eq(creatorInvites.id, inviteId),
+      });
+
+      if (!invite) {
+        return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+      }
+
+      if (invite.status !== 'pending') {
+        return NextResponse.json({ error: `Invite already ${invite.status}` }, { status: 400 });
+      }
+
+      if (!invite.email) {
+        return NextResponse.json({ error: 'Invite has no email' }, { status: 400 });
+      }
+
+      // Check if email already exists
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, invite.email.toLowerCase()),
+      });
+
+      if (existingUser) {
+        return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
+      }
+
+      // Generate password: Digis + 4 random chars + ! + 3 random numbers
+      const randomChars = nanoid(4).replace(/[^a-zA-Z]/g, 'x');
+      const randomNums = Math.floor(Math.random() * 900 + 100);
+      const password = `Digis${randomChars}!${randomNums}`;
+
+      // Create username from instagram handle or email
+      const username = (invite.instagramHandle || invite.email.split('@')[0])
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '');
+
+      // Check if username is taken
+      const existingUsername = await db.query.users.findFirst({
+        where: eq(users.username, username),
+      });
+
+      const finalUsername = existingUsername ? `${username}${nanoid(4)}` : username;
+
+      try {
+        // Create user in Supabase Auth
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: invite.email,
+          password: password,
+          email_confirm: true, // Auto-verify email
+          app_metadata: { role: 'creator' },
+          user_metadata: {
+            display_name: invite.displayName || finalUsername,
+            username: finalUsername,
+            is_creator_verified: true,
+          },
+        });
+
+        if (authError || !authData.user) {
+          console.error('[CreateAccount] Auth error:', authError);
+          return NextResponse.json({ error: authError?.message || 'Failed to create auth user' }, { status: 500 });
+        }
+
+        const userId = authData.user.id;
+
+        // Create user in database
+        await db.insert(users).values({
+          id: userId,
+          email: invite.email.toLowerCase(),
+          username: finalUsername,
+          displayName: invite.displayName || finalUsername,
+          role: 'creator',
+          verificationStatus: 'grandfathered',
+          isCreatorVerified: true,
+          lastSeenAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        // Create profile
+        await db.insert(profiles).values({
+          userId: userId,
+          instagramHandle: invite.instagramHandle || null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }).onConflictDoNothing();
+
+        // Create creator settings
+        await db.insert(creatorSettings).values({
+          userId: userId,
+          messageRate: 25,
+          callRatePerMinute: 25,
+          minimumCallDuration: 5,
+          isAvailableForCalls: false,
+          voiceCallRatePerMinute: 15,
+          minimumVoiceCallDuration: 5,
+          isAvailableForVoiceCalls: false,
+        }).onConflictDoNothing();
+
+        // Create AI Twin settings
+        await db.insert(aiTwinSettings).values({
+          creatorId: userId,
+          enabled: false,
+          textChatEnabled: false,
+          voice: 'ara',
+          pricePerMinute: 20,
+          minimumMinutes: 5,
+          maxSessionMinutes: 60,
+          textPricePerMessage: 5,
+        }).onConflictDoNothing();
+
+        // Mark invite as claimed
+        await db.update(creatorInvites)
+          .set({
+            status: 'claimed',
+            claimedBy: userId,
+            claimedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(creatorInvites.id, inviteId));
+
+        console.log('[CreateAccount] Created account:', invite.email, finalUsername);
+
+        return NextResponse.json({
+          success: true,
+          email: invite.email,
+          username: finalUsername,
+          password: password,
+        });
+
+      } catch (error) {
+        console.error('[CreateAccount] Error:', error);
+        return NextResponse.json({
+          error: error instanceof Error ? error.message : 'Failed to create account'
+        }, { status: 500 });
+      }
     }
 
     // Generate invite URLs from pending invites

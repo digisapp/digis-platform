@@ -19,6 +19,10 @@ import {
   Settings,
   AlertTriangle,
   Sparkles,
+  UserPlus,
+  Copy,
+  X,
+  Key,
 } from 'lucide-react';
 
 interface InviteRecipient {
@@ -81,6 +85,16 @@ export default function CampaignsPage() {
   // Custom recipients (paste emails)
   const [customEmails, setCustomEmails] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
+
+  // Credentials modal
+  const [credentialsModal, setCredentialsModal] = useState<{
+    show: boolean;
+    email: string;
+    username: string;
+    password: string;
+  } | null>(null);
+  const [creatingAccount, setCreatingAccount] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Fetch data
   const fetchData = async () => {
@@ -222,6 +236,62 @@ export default function CampaignsPage() {
     } finally {
       setIsSending(false);
     }
+  };
+
+  // Create account with generated password
+  const createAccount = async (recipient: InviteRecipient) => {
+    setCreatingAccount(recipient.id);
+    try {
+      const res = await fetch('/api/admin/campaigns/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create-account',
+          inviteId: recipient.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCredentialsModal({
+          show: true,
+          email: data.email,
+          username: data.username,
+          password: data.password,
+        });
+        // Remove from list
+        setReadyToInvite(prev => prev.filter(r => r.id !== recipient.id));
+        setSelectedRecipients(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(recipient.id);
+          return newSet;
+        });
+      } else {
+        alert(data.error || 'Failed to create account');
+      }
+    } catch (err) {
+      alert('Failed to create account');
+      console.error(err);
+    } finally {
+      setCreatingAccount(null);
+    }
+  };
+
+  // Copy to clipboard
+  const copyToClipboard = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  // Copy all credentials
+  const copyAllCredentials = async () => {
+    if (!credentialsModal) return;
+    const text = `Email: ${credentialsModal.email}\nPassword: ${credentialsModal.password}`;
+    await navigator.clipboard.writeText(text);
+    setCopiedField('all');
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   if (loading) {
@@ -531,15 +601,15 @@ export default function CampaignsPage() {
               {readyToInvite.map((recipient) => (
                 <div
                   key={recipient.id}
-                  onClick={() => toggleRecipient(recipient.id)}
-                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
                     selectedRecipients.has(recipient.id)
                       ? 'bg-cyan-500/20 border border-cyan-500/50'
                       : 'bg-white/5 border border-transparent hover:bg-white/10'
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
+                    onClick={() => toggleRecipient(recipient.id)}
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer ${
                       selectedRecipients.has(recipient.id)
                         ? 'bg-cyan-500 border-cyan-500'
                         : 'border-white/30'
@@ -549,18 +619,152 @@ export default function CampaignsPage() {
                       <CheckCircle className="w-3 h-3 text-white" />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-medium truncate">{recipient.email}</p>
+                  <div className="flex-1 min-w-0" onClick={() => toggleRecipient(recipient.id)}>
+                    <p className="text-white font-medium truncate cursor-pointer">{recipient.email}</p>
                     <p className="text-xs text-gray-400 truncate">
                       {recipient.name || 'No name'} • {new Date(recipient.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      createAccount(recipient);
+                    }}
+                    disabled={creatingAccount === recipient.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-lg text-green-400 text-sm font-medium transition-all disabled:opacity-50"
+                  >
+                    {creatingAccount === recipient.id ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        Create
+                      </>
+                    )}
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </GlassCard>
       </div>
+
+      {/* Credentials Modal */}
+      {credentialsModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Key className="w-5 h-5 text-green-400" />
+                Account Created
+              </h3>
+              <button
+                onClick={() => setCredentialsModal(null)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Email */}
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Email</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={credentialsModal.email}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(credentialsModal.email, 'email')}
+                    className={`px-3 rounded-lg transition-all ${
+                      copiedField === 'email'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    {copiedField === 'email' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Password</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={credentialsModal.password}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(credentialsModal.password, 'password')}
+                    className={`px-3 rounded-lg transition-all ${
+                      copiedField === 'password'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    {copiedField === 'password' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="text-xs text-gray-400 block mb-1">Username</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`@${credentialsModal.username}`}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-mono text-sm"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(credentialsModal.username, 'username')}
+                    className={`px-3 rounded-lg transition-all ${
+                      copiedField === 'username'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white/10 text-gray-400 hover:bg-white/20'
+                    }`}
+                  >
+                    {copiedField === 'username' ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Copy All Button */}
+            <button
+              onClick={copyAllCredentials}
+              className={`w-full mt-6 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                copiedField === 'all'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:opacity-90'
+              }`}
+            >
+              {copiedField === 'all' ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-5 h-5" />
+                  Copy Email & Password
+                </>
+              )}
+            </button>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              Send these credentials to the creator. They can log in at digis.cc
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
