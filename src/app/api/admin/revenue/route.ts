@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       topEarners,
       topFollowed,
       mostActiveStreamers,
+      topPurchasers,
     ] = await Promise.all([
       // Total coins purchased (all time)
       db.select({
@@ -139,6 +140,26 @@ export async function GET(request: NextRequest) {
         ))
         .orderBy(desc(users.lastSeenAt))
         .limit(10),
+
+      // Top purchasers (fans who buy the most coins)
+      db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatarUrl: users.avatarUrl,
+        email: users.email,
+        totalPurchased: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)::int`,
+        purchaseCount: sql<number>`COUNT(*)::int`,
+      })
+        .from(walletTransactions)
+        .innerJoin(users, eq(walletTransactions.userId, users.id))
+        .where(and(
+          eq(walletTransactions.type, 'purchase'),
+          eq(walletTransactions.status, 'completed')
+        ))
+        .groupBy(users.id, users.username, users.displayName, users.avatarUrl, users.email)
+        .orderBy(desc(sql`COALESCE(SUM(${walletTransactions.amount}), 0)`))
+        .limit(10),
     ]);
 
     // Calculate platform revenue (assuming ~40% margin on average)
@@ -175,6 +196,15 @@ export async function GET(request: NextRequest) {
         })),
         topFollowed,
         mostActive: mostActiveStreamers,
+        topPurchasers: topPurchasers.map(p => ({
+          id: p.id,
+          username: p.username,
+          displayName: p.displayName,
+          avatarUrl: p.avatarUrl,
+          email: p.email,
+          totalPurchased: p.totalPurchased || 0,
+          purchaseCount: p.purchaseCount || 0,
+        })),
       },
     });
   } catch (error: any) {

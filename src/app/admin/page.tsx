@@ -80,6 +80,15 @@ interface RevenueData {
       lastSeenAt: string | null;
       followerCount: number;
     }>;
+    topPurchasers: Array<{
+      id: string;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+      email: string | null;
+      totalPurchased: number;
+      purchaseCount: number;
+    }>;
   };
 }
 
@@ -1327,7 +1336,7 @@ export default function AdminDashboard() {
                 </GlassCard>
 
                 {/* Creator Leaderboards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Top Earners */}
                   <GlassCard className="p-6">
                     <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -1441,6 +1450,49 @@ export default function AdminDashboard() {
                           </p>
                         </div>
                       ))}
+                    </div>
+                  </GlassCard>
+
+                  {/* Top Purchasers */}
+                  <GlassCard className="p-6">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-cyan-500" />
+                      Top Purchasers
+                    </h3>
+                    <div className="space-y-3">
+                      {revenue.leaderboard.topPurchasers?.map((purchaser, index) => (
+                        <div
+                          key={purchaser.id}
+                          className="flex items-center gap-3 p-2 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                          onClick={() => router.push(`/${purchaser.username}`)}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-yellow-500 text-black' :
+                            index === 1 ? 'bg-gray-300 text-black' :
+                            index === 2 ? 'bg-amber-600 text-white' :
+                            'bg-white/10 text-gray-400'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold shrink-0">
+                            {purchaser.avatarUrl ? (
+                              <img src={purchaser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              purchaser.username?.[0]?.toUpperCase() || '?'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{purchaser.displayName || purchaser.username}</p>
+                            <p className="text-xs text-gray-400 truncate">{purchaser.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-cyan-400">{purchaser.totalPurchased.toLocaleString()}</p>
+                            <p className="text-[10px] text-gray-500">{purchaser.purchaseCount} orders</p>
+                          </div>
+                        </div>
+                      )) || (
+                        <p className="text-gray-500 text-center py-4">No purchases yet</p>
+                      )}
                     </div>
                   </GlassCard>
                 </div>

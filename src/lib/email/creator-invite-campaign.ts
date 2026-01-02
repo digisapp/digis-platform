@@ -39,7 +39,7 @@ function sleep(ms: number): Promise<void> {
 
 // Generate the invite email HTML
 function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
-  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey there!';
+  const greeting = recipientName ? `Hey ${recipientName},` : 'Hey,';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -57,8 +57,8 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                     <!-- Header -->
                     <tr>
                         <td align="center" style="background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); padding: 50px 40px 40px;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-                                You're Invited — Join Digis
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                                Stop leaving money on the table
                             </h1>
                         </td>
                     </tr>
@@ -72,77 +72,91 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                         <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9);">
                                             ${greeting}
                                         </p>
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.9);">
+                                            You've got the followers. You've got the content. But Instagram doesn't pay you.
+                                        </p>
                                         <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.9);">
-                                            You've been invited to <strong style="color: #00D4FF;">Digis</strong> an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2026!
+                                            <strong style="color: #00D4FF;">Digis does.</strong>
+                                        </p>
+                                        <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.7);">
+                                            We're an invite-only platform where models and fitness creators are actually getting paid — not just likes.
+                                        </p>
+                                        <p style="margin: 0 0 16px; color: rgba(255, 255, 255, 0.9); font-weight: 600;">
+                                            Here's what girls in Miami and LA are doing on Digis:
                                         </p>
 
                                         <!-- Feature list with icons -->
                                         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 10px 0;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 36px; vertical-align: middle;">
-                                                                <span style="color: #00D4FF; font-size: 20px;">►</span>
+                                                            <td style="width: 36px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="color: #FF006E; font-size: 18px;">📸</span>
                                                             </td>
-                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
-                                                                <strong>Live Streaming</strong> — go live and earn from gifts
+                                                            <td style="vertical-align: top; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Exclusive Content</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 15px;">Sell the photos and videos that are "too much" for IG. You set the price.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 10px 0;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 36px; vertical-align: middle;">
-                                                                <span style="color: #FF006E; font-size: 20px;">◈</span>
+                                                            <td style="width: 36px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="color: #00D4FF; font-size: 18px;">📹</span>
                                                             </td>
-                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
-                                                                <strong>Digitals</strong> — sell exclusive content
+                                                            <td style="vertical-align: top; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Paid Video Calls</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 15px;">Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 10px 0;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 36px; vertical-align: middle;">
-                                                                <span style="color: #9D4EDD; font-size: 20px;">✧</span>
+                                                            <td style="width: 36px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="color: #9D4EDD; font-size: 18px;">🤖</span>
                                                             </td>
-                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
-                                                                <strong>AI Twin</strong> — earn 24/7 with AI chats and voice
+                                                            <td style="vertical-align: top; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>AI Twin</strong> <span style="color: #9D4EDD;">(This one's wild)</span><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 15px;">Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 10px 0;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 36px; vertical-align: middle;">
-                                                                <span style="color: #00CC88; font-size: 20px;">▣</span>
+                                                            <td style="width: 36px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="color: #FF006E; font-size: 18px;">🍷</span>
                                                             </td>
-                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
-                                                                <strong>Paid Video Calls</strong> — set your rate for calls
+                                                            <td style="vertical-align: top; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Virtual Dates</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 15px;">Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0;">
+                                                <td style="padding: 10px 0;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 36px; vertical-align: middle;">
-                                                                <span style="color: #FFB800; font-size: 20px;">✦</span>
+                                                            <td style="width: 36px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="color: #00CC88; font-size: 18px;">🏋️</span>
                                                             </td>
-                                                            <td style="vertical-align: middle; color: rgba(255, 255, 255, 0.9);">
-                                                                <strong>Exclusive Events!</strong>
+                                                            <td style="vertical-align: top; color: rgba(255, 255, 255, 0.9);">
+                                                                <strong>Private Training Sessions</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 15px;">Fitness creators are booking paid video calls for personalized workouts and coaching.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -150,9 +164,16 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                             </tr>
                                         </table>
 
-                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.7);">
-                                            We're currently invite-only, first come first serve for username, claim today and <strong style="color: #00D4FF;">Bring in the new year 2026 with Digis!</strong>
+                                        <p style="margin: 0; padding: 16px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; color: rgba(255, 255, 255, 0.8); font-size: 15px;">
+                                            No algorithms. No shadowbans. Just you, your content, and fans who actually pay.
                                         </p>
+                                    </td>
+                                </tr>
+
+                                <!-- Username urgency -->
+                                <tr>
+                                    <td style="padding: 0 0 20px; color: rgba(255, 255, 255, 0.7); font-size: 15px;">
+                                        Usernames are first come, first serve — and the good ones are going fast.
                                     </td>
                                 </tr>
 
@@ -160,7 +181,7 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                                 <tr>
                                     <td align="center" style="padding: 10px 0 35px;">
                                         <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 50%, #FF006E 100%); color: #ffffff; text-decoration: none; padding: 20px 56px; border-radius: 50px; font-size: 18px; font-weight: 700; box-shadow: 0 8px 32px rgba(157, 78, 221, 0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;">
-                                            Claim Your Invite
+                                            Claim Your Username
                                         </a>
                                     </td>
                                 </tr>
@@ -183,7 +204,10 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
                     <!-- Footer -->
                     <tr>
                         <td style="background: rgba(0, 0, 0, 0.4); padding: 30px 40px; text-align: center;">
-                            <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.5); font-size: 13px;">
+                            <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.6); font-size: 13px;">
+                                See you inside,<br><strong>Team Digis</strong>
+                            </p>
+                            <p style="margin: 0 0 12px; color: rgba(255, 255, 255, 0.4); font-size: 12px;">
                                 Wasn't expecting this? No worries, just ignore this email.
                             </p>
                             <p style="margin: 0; color: rgba(255, 255, 255, 0.3); font-size: 11px;">
@@ -202,21 +226,45 @@ function generateInviteHtml(inviteUrl: string, recipientName?: string): string {
 
 // Generate plain text version
 function generateInvitePlainText(inviteUrl: string, recipientName?: string): string {
-  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey there!';
+  const greeting = recipientName ? `Hey ${recipientName},` : 'Hey,';
 
   return `${greeting}
 
-You've been invited to Digis an invite-only Creator platform built for the next wave of creators with all the tools to be successful in 2026!
+You've got the followers. You've got the content. But Instagram doesn't pay you.
 
-► Live Streaming — go live and earn from gifts
-◈ Digitals — sell exclusive content
-✧ AI Twin — earn 24/7 with AI chats and voice
-▣ Paid Video Calls — set your rate for calls
-✦ Exclusive Events!
+Digis does.
 
-We're currently invite-only, first come first serve for username, claim today and Bring in the new year 2026 with Digis!
+We're an invite-only platform where models and fitness creators are actually getting paid — not just likes.
 
-Claim your invite: ${inviteUrl}
+Here's what girls in Miami and LA are doing on Digis:
+
+📸 Exclusive Content
+Sell the photos and videos that are "too much" for IG. You set the price.
+
+📹 Paid Video Calls
+Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.
+
+🤖 AI Twin (This one's wild)
+Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.
+
+🍷 Virtual Dates
+Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.
+
+🏋️ Private Training Sessions
+Fitness creators are booking paid video calls for personalized workouts and coaching.
+
+---
+
+No algorithms. No shadowbans. Just you, your content, and fans who actually pay.
+
+Usernames are first come, first serve — and the good ones are going fast.
+
+Claim your username: ${inviteUrl}
+
+See you inside,
+Team Digis
+
+---
 
 Wasn't expecting this? No worries, just ignore this email.
 
@@ -235,10 +283,14 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
   }
 
   try {
+    const subject = recipient.name
+      ? `${recipient.name}, stop leaving money on the table`
+      : "Stop leaving money on the table";
+
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
       to: recipient.email,
-      subject: "You're invited to Digis (invite-only)",
+      subject,
       html: generateInviteHtml(recipient.inviteUrl, recipient.name),
       text: generateInvitePlainText(recipient.inviteUrl, recipient.name),
     });

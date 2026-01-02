@@ -487,30 +487,6 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
-                      router.push('/creator/pricing');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <DollarSign className="w-6 h-6 md:w-5 md:h-5 text-green-400" />
-                    <span className="text-base md:text-sm text-white font-semibold">Pricing</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      router.push('/creator/earn');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <Gift className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
-                    <span className="text-base md:text-sm text-white font-semibold">Promote & Earn</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
                       router.push('/creator/ai-twin');
                       setShowProfileMenu(false);
                     }}
@@ -523,6 +499,18 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
+                      router.push('/creator/pricing');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <DollarSign className="w-6 h-6 md:w-5 md:h-5 text-green-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Pricing</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
                       router.push('/creator/learn');
                       setShowProfileMenu(false);
                     }}
@@ -531,6 +519,18 @@ export function Navigation() {
                   >
                     <GraduationCap className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
                     <span className="text-base md:text-sm text-white font-semibold">Digis 101</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/earn');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <Gift className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Promote & Earn</span>
                   </button>
 
                 </>
