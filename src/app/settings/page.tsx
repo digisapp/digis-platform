@@ -1013,9 +1013,9 @@ export default function SettingsPage() {
                 rows={4}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                maxLength={200}
+                maxLength={500}
               />
-              <p className="text-xs text-gray-400 mt-1">{bio.length}/200 characters</p>
+              <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
             </div>
 
             {/* Category selectors - Only for creators */}
