@@ -78,6 +78,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
   const [remainingBalance, setRemainingBalance] = useState<number | null>(null);
   const [minutesRemaining, setMinutesRemaining] = useState<number | null>(null);
   const [totalCharged, setTotalCharged] = useState(0);
+  const [finalCost, setFinalCost] = useState<number | null>(null); // Total cost when session ends
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -638,12 +639,20 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     // Reset connecting state
     connectingRef.current = false;
 
-    // End session record
+    // End session record and get final cost
     if (sessionIdRef.current) {
       try {
-        await fetch(`/api/ai/session/${sessionIdRef.current}/end`, {
+        const response = await fetch(`/api/ai/session/${sessionIdRef.current}/end`, {
           method: 'POST',
         });
+        if (response.ok) {
+          const data = await response.json();
+          // Store the final cost before resetting other state
+          if (data.charged !== undefined) {
+            setFinalCost(data.charged);
+          }
+          console.log('[AI Voice] Session ended, final cost:', data.charged);
+        }
       } catch (err) {
         console.error('[AI Voice] Failed to end session:', err);
       }
@@ -762,5 +771,6 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
     remainingBalance,
     minutesRemaining,
     totalCharged,
+    finalCost, // Total cost from session end (use this for summary screen)
   };
 }

@@ -39,6 +39,7 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
     remainingBalance,
     minutesRemaining,
     totalCharged,
+    finalCost,
   } = useAiVoiceChat({
     onTranscript: (text, isFinal) => {
       if (isFinal) {
@@ -190,15 +191,13 @@ export function AiVoiceChat({ creatorId, creatorName, creatorAvatar, onEnd }: Ai
                 <span className="text-gray-400">Duration</span>
                 <span className="text-white font-mono">{formatDuration(duration)}</span>
               </div>
-              {totalCharged > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Coins Used</span>
-                  <span className="text-cyan-400 font-mono flex items-center gap-1">
-                    <Coins className="w-4 h-4" />
-                    {totalCharged.toLocaleString()}
-                  </span>
-                </div>
-              )}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400">Total Cost</span>
+                <span className="text-cyan-400 font-mono flex items-center gap-1">
+                  <Coins className="w-4 h-4" />
+                  {(finalCost ?? totalCharged).toLocaleString()} coins
+                </span>
+              </div>
             </div>
 
             <GlassButton variant="cyan" onClick={handleCloseSummary} className="w-full">
