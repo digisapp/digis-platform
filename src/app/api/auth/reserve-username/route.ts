@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorInvites } from '@/lib/data/system';
+import { users, creatorInvites, creatorSettings, aiTwinSettings, profiles } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // If matched a creator invite, mark it as claimed
+    // If matched a creator invite, mark it as claimed and set up creator records
     if (matchedInvite) {
       try {
         await db.update(creatorInvites)
@@ -145,6 +146,64 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error('[Signup] Error marking invite as claimed:', err);
         // Don't fail the signup if this fails
+      }
+
+      // Update Supabase auth metadata for creator
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          app_metadata: { role: 'creator' },
+          user_metadata: { is_creator_verified: true },
+        });
+        console.log(`[Signup] Auth metadata updated for creator: ${cleanEmail}`);
+      } catch (err) {
+        console.error('[Signup] Error updating auth metadata:', err);
+      }
+
+      // Create creator settings
+      try {
+        await db.insert(creatorSettings).values({
+          userId: userId,
+          messageRate: 25,
+          callRatePerMinute: 25,
+          minimumCallDuration: 5,
+          isAvailableForCalls: false,
+          voiceCallRatePerMinute: 15,
+          minimumVoiceCallDuration: 5,
+          isAvailableForVoiceCalls: false,
+        }).onConflictDoNothing();
+        console.log(`[Signup] Creator settings created for: ${cleanEmail}`);
+      } catch (err) {
+        console.error('[Signup] Error creating creator settings:', err);
+      }
+
+      // Create AI Twin settings
+      try {
+        await db.insert(aiTwinSettings).values({
+          creatorId: userId,
+          enabled: false,
+          textChatEnabled: false,
+          voice: 'ara',
+          pricePerMinute: 20,
+          minimumMinutes: 5,
+          maxSessionMinutes: 60,
+          textPricePerMessage: 5,
+        }).onConflictDoNothing();
+        console.log(`[Signup] AI Twin settings created for: ${cleanEmail}`);
+      } catch (err) {
+        console.error('[Signup] Error creating AI Twin settings:', err);
+      }
+
+      // Create profile with Instagram handle from invite
+      try {
+        await db.insert(profiles).values({
+          userId: userId,
+          instagramHandle: matchedInvite.instagramHandle || null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }).onConflictDoNothing();
+        console.log(`[Signup] Profile created for: ${cleanEmail}`);
+      } catch (err) {
+        console.error('[Signup] Error creating profile:', err);
       }
     }
 
