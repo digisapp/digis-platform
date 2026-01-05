@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 import { notifyGiftReceived } from '@/lib/email/creator-earnings';
+import { getRequestMetadata } from '@/lib/request-id';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';

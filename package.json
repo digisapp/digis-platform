@@ -10,7 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test:monetization": "npx tsx scripts/test-monetization.ts"
+    "test:monetization": "source .env.local 2>/dev/null; npx tsx scripts/test-monetization.ts"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.15",

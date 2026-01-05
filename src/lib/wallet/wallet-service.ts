@@ -4,6 +4,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateTier } from '@/lib/tiers/spend-tiers';
 import { getCachedBalance, setCachedBalance, invalidateBalanceCache, withMiniLock } from '@/lib/cache';
+import { FinancialAuditService, type FinancialEventType } from '@/lib/services/financial-audit-service';
 
 /**
  * WalletService handles all financial transactions using Drizzle ORM.
@@ -28,6 +29,13 @@ interface CreateTransactionParams {
   description?: string;
   metadata?: Record<string, any>;
   idempotencyKey?: string;
+  // Audit context (optional but recommended)
+  auditContext?: {
+    requestId?: string;
+    targetUserId?: string; // For tips/gifts, who received it
+    ipAddress?: string;
+    userAgent?: string;
+  };
 }
 
 interface CreateHoldParams {
@@ -107,7 +115,7 @@ export class WalletService {
    * This ensures only one transaction can modify a wallet at a time.
    */
   static async createTransaction(params: CreateTransactionParams) {
-    const { userId, amount, type, description, metadata, idempotencyKey } = params;
+    const { userId, amount, type, description, metadata, idempotencyKey, auditContext } = params;
 
     // Generate idempotency key if not provided
     const finalIdempotencyKey = idempotencyKey || uuidv4();
@@ -122,8 +130,12 @@ export class WalletService {
       return existingTransaction;
     }
 
+    // Track balance for audit logging
+    let balanceBefore = 0;
+    let balanceAfter = 0;
+
     // Start transaction
-    return await db.transaction(async (tx) => {
+    const transaction = await db.transaction(async (tx) => {
       // Lock the wallet row for update to prevent race conditions
       // This ensures only one transaction can modify this wallet at a time
       const lockedWalletResult = await tx.execute(
@@ -158,6 +170,9 @@ export class WalletService {
         };
       }
 
+      // Capture balance before for audit
+      balanceBefore = wallet.balance;
+
       // For debit transactions, check if user has sufficient balance
       // This check is now safe because we hold the row lock
       if (amount < 0) {
@@ -166,6 +181,9 @@ export class WalletService {
           throw new Error('Insufficient balance');
         }
       }
+
+      // Calculate balance after for audit
+      balanceAfter = balanceBefore + amount;
 
       // Create the transaction
       const [transaction] = await tx
@@ -229,6 +247,39 @@ export class WalletService {
 
       return transaction;
     });
+
+    // Log to financial audit (non-blocking, after successful transaction)
+    // Map transaction type to audit event type
+    const auditEventMap: Record<TransactionType, FinancialEventType> = {
+      'purchase': 'coin_purchase',
+      'gift': amount < 0 ? 'gift_sent' : 'gift_received',
+      'call_charge': amount < 0 ? 'call_payment' : 'call_earned',
+      'stream_tip': amount < 0 ? 'tip_sent' : 'tip_received',
+      'ppv_unlock': amount < 0 ? 'message_unlock' : 'message_payment_received',
+      'creator_payout': 'payout_requested',
+      'refund': 'admin_refund',
+    };
+
+    FinancialAuditService.log({
+      eventType: auditEventMap[type] || 'tip_sent',
+      requestId: auditContext?.requestId,
+      actorId: userId,
+      targetId: auditContext?.targetUserId,
+      amount: Math.abs(amount),
+      actorBalanceBefore: balanceBefore,
+      actorBalanceAfter: balanceAfter,
+      transactionId: transaction.id,
+      idempotencyKey: finalIdempotencyKey,
+      ipAddress: auditContext?.ipAddress,
+      userAgent: auditContext?.userAgent,
+      description,
+      metadata: metadata,
+    }).catch(err => {
+      // Never let audit logging fail the transaction
+      console.error('[WalletService] Audit log failed:', err);
+    });
+
+    return transaction;
   }
 
   /**
