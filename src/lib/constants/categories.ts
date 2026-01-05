@@ -14,6 +14,7 @@ export const CREATOR_CATEGORIES = [
   { value: 'beauty', label: 'Beauty', emoji: '💄', color: 'from-rose-400 to-pink-500' },
   { value: 'fashion', label: 'Fashion', emoji: '👗', color: 'from-purple-400 to-pink-400' },
   { value: 'model', label: 'Model', emoji: '📸', color: 'from-indigo-400 to-purple-500' },
+  { value: 'college', label: 'College', emoji: '📖', color: 'from-red-500 to-amber-500' },
   { value: 'tech', label: 'Tech', emoji: '🔧', color: 'from-blue-600 to-indigo-600' },
   { value: 'irl', label: 'IRL', emoji: '🎪', color: 'from-yellow-400 to-amber-500' },
   { value: 'sports', label: 'Sports', emoji: '⚽', color: 'from-green-600 to-emerald-600' },
