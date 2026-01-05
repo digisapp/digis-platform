@@ -16,3 +16,4 @@ export * from './ai';
 export * from './onboarding';
 export * from './rewards';
 export * from './referrals';
+export * from './financial-audit';

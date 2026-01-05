@@ -9,7 +9,8 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:monetization": "npx tsx scripts/test-monetization.ts"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.15",
