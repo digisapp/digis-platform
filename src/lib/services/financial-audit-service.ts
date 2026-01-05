@@ -1,5 +1,8 @@
 import { db } from '@/lib/data/system';
 import { financialAuditLogs, FinancialEventType } from '@/db/schema/financial-audit';
+
+// Re-export type for consumers
+export type { FinancialEventType };
 import { desc, eq, and, gte, lte, or } from 'drizzle-orm';
 import { createHash } from 'crypto';
 
