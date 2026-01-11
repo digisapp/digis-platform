@@ -3,6 +3,7 @@ import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { sql } from 'drizzle-orm';
 import ProfilePageClient from './ProfilePageClient';
+import { PersonJsonLd } from '@/components/seo/JsonLd';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -77,9 +78,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: [ogImage],
     },
+    alternates: {
+      canonical: `https://digis.cc/${user.username}`,
+    },
   };
 }
 
-export default function ProfilePage() {
-  return <ProfilePageClient />;
+export default async function ProfilePage({ params }: Props) {
+  const { username } = await params;
+  const user = await getUser(username);
+
+  return (
+    <>
+      {user && (
+        <PersonJsonLd
+          name={user.displayName || user.username || 'Creator'}
+          url={`https://digis.cc/${user.username}`}
+          image={user.avatarUrl || undefined}
+          description={user.bio || undefined}
+        />
+      )}
+      <ProfilePageClient />
+    </>
+  );
 }

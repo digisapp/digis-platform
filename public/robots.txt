@@ -1,0 +1,38 @@
+# Digis - Live Creator Platform
+# https://digis.cc
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://digis.cc/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Disallow private/authenticated areas
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /wallet/
+Disallow: /calls/
+Disallow: /messages/
+Disallow: /notifications/
+Disallow: /creator/
+Disallow: /admin/
+
+# Disallow stream control pages (for broadcasters only)
+Disallow: /stream/control/
+Disallow: /stream/monitor/
+Disallow: /stream/live/
+
+# Allow public content
+Allow: /stream/$
+Allow: /vod/
+Allow: /clip/
+Allow: /live
+Allow: /explore
+
+# Disallow duplicate content paths
+Disallow: /*?*
+Allow: /?ref=

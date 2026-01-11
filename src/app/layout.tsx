@@ -8,6 +8,7 @@ import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Analytics } from "@vercel/analytics/next";
 import { PageTracker } from "@/components/analytics/PageTracker";
+import { OrganizationJsonLd } from "@/components/seo/JsonLd";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -17,8 +18,11 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Digis - Live Creator Platform",
-  description: "Connect with your favorite creators through video calls, live streams, and exclusive content",
+  title: {
+    default: "Digis - Live Creator Platform",
+    template: "%s | Digis",
+  },
+  description: "Connect with your favorite creators through video calls, live streams, and exclusive content on Digis - the ultimate creator platform.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/iphone-logo.png",
@@ -36,6 +40,40 @@ export const metadata: Metadata = {
     userScalable: false,
     viewportFit: "cover",
   },
+  metadataBase: new URL("https://digis.cc"),
+  openGraph: {
+    title: "Digis - Live Creator Platform",
+    description: "Connect with your favorite creators through video calls, live streams, and exclusive content.",
+    url: "https://digis.cc",
+    siteName: "Digis",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/images/digis-logo-white.png",
+        width: 1200,
+        height: 630,
+        alt: "Digis - Live Creator Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Digis - Live Creator Platform",
+    description: "Connect with your favorite creators through video calls, live streams, and exclusive content.",
+    images: ["/images/digis-logo-white.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -45,6 +83,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`bg-black ${poppins.variable}`}>
+      <head>
+        <OrganizationJsonLd
+          name="Digis"
+          url="https://digis.cc"
+          logo="https://digis.cc/images/digis-logo-white.png"
+          description="Connect with your favorite creators through video calls, live streams, and exclusive content."
+        />
+      </head>
       <body className="antialiased bg-black min-h-screen">
         <ErrorBoundary>
           <AuthProvider>
