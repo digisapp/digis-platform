@@ -47,19 +47,23 @@ export async function GET(req: NextRequest) {
       creatorId = user.id;
     }
 
-    // Get VODs with pagination and timeout protection
+    // Get VODs with pagination and timeout protection (fetch one extra to check hasMore)
     const creatorVODs = await withTimeoutAndRetry(
       () => db.query.vods.findMany({
         where: eq(vods.creatorId, creatorId),
         orderBy: [desc(vods.createdAt)],
-        limit,
+        limit: limit + 1,
         offset,
       }),
       { timeoutMs: 8000, retries: 1, tag: 'myVods' }
     );
 
+    // Check if there's more content
+    const hasMore = creatorVODs.length > limit;
+    const vodsToProcess = hasMore ? creatorVODs.slice(0, limit) : creatorVODs;
+
     // For public view, filter out drafts and add access status
-    let accessibleVODs = creatorVODs.filter(vod => !(vod as any).isDraft); // Don't show drafts
+    let accessibleVODs = vodsToProcess.filter(vod => !(vod as any).isDraft); // Don't show drafts
     let purchasedVodIds: Set<string> = new Set();
     let isSubscribed = false;
 
@@ -99,7 +103,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Calculate totals (only for creator's own view, not public)
-    const vodsForTotals = isPublicView ? accessibleVODs : creatorVODs;
+    const vodsForTotals = isPublicView ? accessibleVODs : vodsToProcess;
     const totals = vodsForTotals.reduce(
       (acc, vod) => ({
         totalViews: acc.totalViews + vod.viewCount,
@@ -111,6 +115,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       vods: accessibleVODs,
+      hasMore,
       totals: isPublicView ? undefined : totals, // Don't expose earnings to public
       count: accessibleVODs.length,
     });

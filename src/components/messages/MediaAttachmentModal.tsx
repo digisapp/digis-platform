@@ -66,8 +66,8 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
         setLibraryContent(data.content);
       }
     } catch (error) {
-      console.error('Error fetching library:', error);
-      showError('Failed to load content library');
+      console.error('Error fetching content:', error);
+      showError('Failed to load your content');
     } finally {
       setLoadingLibrary(false);
     }
@@ -244,7 +244,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
               ) : libraryContent.length === 0 ? (
                 <div className="text-center py-12">
                   <FolderOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400">No content in your library</p>
+                  <p className="text-gray-400">No content yet</p>
                   <p className="text-sm text-gray-500">Upload content from the Post page first</p>
                 </div>
               ) : (
@@ -311,7 +311,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
                 </button>
                 {selectedContent && (
                   <div className="absolute bottom-2 left-2 bg-black/70 text-xs text-cyan-400 px-2 py-1 rounded">
-                    From Library
+                    From My Content
                   </div>
                 )}
               </div>

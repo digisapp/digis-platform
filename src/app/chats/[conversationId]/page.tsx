@@ -1009,7 +1009,7 @@ export default function ChatPage() {
                             <div className="p-2 rounded-lg bg-green-500/20">
                               <FolderOpen className="w-5 h-5 text-green-400" />
                             </div>
-                            <span className="font-medium">From Library</span>
+                            <span className="font-medium">From My Content</span>
                           </button>
                         )}
                       </div>

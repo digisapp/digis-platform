@@ -111,6 +111,11 @@ export default function ContentLibraryPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 relative z-10">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">My Content</h1>
+          <p className="text-gray-400 mt-2">Your purchased photos and videos</p>
+        </div>
 
         {/* Filters */}
         <div className="flex gap-3 mb-8">

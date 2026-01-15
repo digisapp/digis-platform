@@ -96,7 +96,7 @@ export async function GET(
           )
         : Promise.resolve([]),
 
-      // 5. Get content preview if creator (non-essential)
+      // 5. Get content preview if creator (non-essential) - initial 12 items
       user.role === 'creator'
         ? withTimeout(
             db.query.contentItems.findMany({
@@ -105,7 +105,7 @@ export async function GET(
                 eq(contentItems.isPublished, true)
               ),
               orderBy: [desc(contentItems.createdAt)],
-              limit: 20,
+              limit: 13, // Fetch 13 to check if there's more (hasMore = length > 12)
             }).catch(() => []),
             []
           )
@@ -224,6 +224,10 @@ export async function GET(
       }
     }
 
+    // Check if there's more content (we fetched 13, show 12)
+    const hasMoreContent = contentWithStatus.length > 12;
+    const contentToReturn = hasMoreContent ? contentWithStatus.slice(0, 12) : contentWithStatus;
+
     return NextResponse.json({
       user,
       followCounts,
@@ -231,7 +235,8 @@ export async function GET(
       callSettings,
       messageRate,
       goals,
-      content: contentWithStatus,
+      content: contentToReturn,
+      hasMoreContent,
       socialLinks,
       links: links.length > 0 ? links : null, // Only include if creator has links
     });

@@ -83,6 +83,8 @@ export default function ProfilePageClient() {
   const [activeTab, setActiveTab] = useState<'photos' | 'video' | 'streams' | 'about'>('photos');
   const [streamsSubTab, setStreamsSubTab] = useState<'vods' | 'clips'>('vods');
   const [streams, setStreams] = useState<any[]>([]); // Combined streams and shows
+  const [hasMoreStreams, setHasMoreStreams] = useState(false);
+  const [loadingMoreStreams, setLoadingMoreStreams] = useState(false);
   const [clips, setClips] = useState<any[]>([]); // Creator clips
   const [isLive, setIsLive] = useState(false);
   const [liveStreamId, setLiveStreamId] = useState<string | null>(null);
@@ -94,6 +96,8 @@ export default function ProfilePageClient() {
   const [isColdOutreach, setIsColdOutreach] = useState(false);
   const [goals, setGoals] = useState<any[]>([]);
   const [content, setContent] = useState<any[]>([]);
+  const [hasMoreContent, setHasMoreContent] = useState(false);
+  const [loadingMoreContent, setLoadingMoreContent] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -193,6 +197,7 @@ export default function ProfilePageClient() {
           featured: false,
         }));
         setContent(bentaContent);
+        setHasMoreContent(data.hasMoreContent || false);
       }
 
       // Check subscription status and AI Twin if creator (parallel, non-blocking)
@@ -255,7 +260,7 @@ export default function ProfilePageClient() {
     try {
       // Fetch saved streams (VODs), shows, and clips in parallel
       const [vodsRes, showsRes, clipsRes] = await Promise.all([
-        fetch(`/api/vods/my-vods?userId=${profile.user.id}`),
+        fetch(`/api/vods/my-vods?userId=${profile.user.id}&limit=12`),
         fetch(`/api/shows/creator?creatorId=${profile.user.id}`),
         fetch(`/api/clips?creatorId=${profile.user.id}`)
       ]);
@@ -265,8 +270,10 @@ export default function ProfilePageClient() {
       if (vodsRes.ok) {
         const vodsData = await vodsRes.json();
         const vodsList = vodsData.vods || [];
+        setHasMoreStreams(vodsData.hasMore || false);
+
         // Transform VODs to match streams format for display
-        const savedStreams = vodsList.slice(0, 12).map((vod: any) => ({
+        const savedStreams = vodsList.map((vod: any) => ({
           id: vod.id,
           title: vod.title,
           description: vod.description,
@@ -615,6 +622,104 @@ export default function ProfilePageClient() {
       showError('Failed to start conversation. Please try again.');
     } finally {
       setMessageLoading(false);
+    }
+  };
+
+  // Load more content (photos/videos) with pagination
+  const loadMoreContent = async (type?: 'photo' | 'video') => {
+    if (!profile?.user.username || loadingMoreContent) return;
+
+    setLoadingMoreContent(true);
+    try {
+      const currentCount = type
+        ? content.filter(c => c.type === type).length
+        : content.length;
+
+      const params = new URLSearchParams({
+        limit: '12',
+        offset: currentCount.toString(),
+      });
+      if (type) params.set('type', type);
+
+      const response = await fetch(`/api/profile/${profile.user.username}/content?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.content && data.content.length > 0) {
+          // Transform and append new content
+          const newContent = data.content.map((item: any) => ({
+            id: item.id,
+            type: item.contentType === 'video' ? 'video' : 'photo',
+            title: item.title,
+            thumbnail: item.thumbnailUrl,
+            url: item.mediaUrl,
+            description: item.description,
+            likes: item.likeCount || 0,
+            isLiked: item.isLiked || false,
+            views: item.viewCount,
+            isLocked: !item.isFree && !item.hasPurchased,
+            unlockPrice: item.unlockPrice,
+            isFree: item.isFree,
+            timestamp: new Date(item.createdAt).toLocaleDateString(),
+            featured: false,
+          }));
+
+          setContent(prev => [...prev, ...newContent]);
+          setHasMoreContent(data.hasMore);
+        } else {
+          setHasMoreContent(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more content:', error);
+    } finally {
+      setLoadingMoreContent(false);
+    }
+  };
+
+  // Load more VODs with pagination
+  const loadMoreVods = async () => {
+    if (!profile?.user.id || loadingMoreStreams) return;
+
+    setLoadingMoreStreams(true);
+    try {
+      const currentVodCount = streams.filter(s => s.isVod).length;
+      const response = await fetch(
+        `/api/vods/my-vods?userId=${profile.user.id}&limit=12&offset=${currentVodCount}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.vods && data.vods.length > 0) {
+          const newVods = data.vods.map((vod: any) => ({
+            id: vod.id,
+            title: vod.title,
+            description: vod.description,
+            thumbnailUrl: vod.thumbnailUrl,
+            peakViewers: vod.originalPeakViewers,
+            totalViews: vod.viewCount,
+            endedAt: vod.createdAt,
+            startedAt: vod.createdAt,
+            duration: vod.duration,
+            priceCoins: vod.priceCoins,
+            isPublic: vod.isPublic,
+            isVod: true,
+            isTicketed: false,
+            isLocked: vod.isLocked || false,
+            hasAccess: vod.hasAccess !== false,
+            recordingType: vod.recordingType || 'auto',
+            sortDate: new Date(vod.createdAt),
+          }));
+
+          setStreams(prev => [...prev, ...newVods]);
+          setHasMoreStreams(data.hasMore || false);
+        } else {
+          setHasMoreStreams(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more VODs:', error);
+    } finally {
+      setLoadingMoreStreams(false);
     }
   };
 
@@ -1218,6 +1323,26 @@ export default function ProfilePageClient() {
                           ))}
                         </div>
                       )}
+
+                      {/* Load More Button for Photos */}
+                      {hasMoreContent && content.filter(c => c.type === 'photo').length > 0 && (
+                        <div className="flex justify-center mt-8">
+                          <button
+                            onClick={() => loadMoreContent('photo')}
+                            disabled={loadingMoreContent}
+                            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+                          >
+                            {loadingMoreContent ? (
+                              <>
+                                <LoadingSpinner size="sm" />
+                                Loading...
+                              </>
+                            ) : (
+                              'Load More Photos'
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1320,6 +1445,26 @@ export default function ProfilePageClient() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+
+                      {/* Load More Button for Videos */}
+                      {hasMoreContent && content.filter(c => c.type === 'video').length > 0 && (
+                        <div className="flex justify-center mt-8">
+                          <button
+                            onClick={() => loadMoreContent('video')}
+                            disabled={loadingMoreContent}
+                            className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+                          >
+                            {loadingMoreContent ? (
+                              <>
+                                <LoadingSpinner size="sm" />
+                                Loading...
+                              </>
+                            ) : (
+                              'Load More Videos'
+                            )}
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1476,6 +1621,26 @@ export default function ProfilePageClient() {
                                   </div>
                                 </button>
                               ))}
+                            </div>
+                          )}
+
+                          {/* Load More Button for VODs */}
+                          {hasMoreStreams && streams.filter(s => s.isVod).length > 0 && (
+                            <div className="flex justify-center mt-8">
+                              <button
+                                onClick={loadMoreVods}
+                                disabled={loadingMoreStreams}
+                                className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white rounded-xl font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+                              >
+                                {loadingMoreStreams ? (
+                                  <>
+                                    <LoadingSpinner size="sm" />
+                                    Loading...
+                                  </>
+                                ) : (
+                                  'Load More VODs'
+                                )}
+                              </button>
                             </div>
                           )}
                         </>

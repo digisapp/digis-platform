@@ -106,7 +106,7 @@ export default function ContentFeedPage() {
               onClick={() => router.push('/content/library')}
               className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
             >
-              My Library
+              My Content
             </button>
           </div>
           <p className="text-gray-400">Unlock exclusive photos and videos from your favorite creators</p>
