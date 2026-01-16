@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'How to Use Digis - Creator Guide',
-  description: 'Learn how to monetize your Instagram and TikTok following with Digis. Real-life scenarios for fitness, yoga, fashion, lifestyle, and model creators to earn through live streams, video calls, subscriptions, and more.',
+  title: 'Turn Your Following Into Real Income | Digis',
+  description: 'Stop posting for free. Digis helps Instagram & TikTok creators earn through paid DMs, video calls, live streams, subscriptions, and AI that talks like you 24/7.',
   keywords: [
     'creator monetization',
     'instagram monetization',
@@ -16,10 +16,12 @@ export const metadata: Metadata = {
     'video call monetization',
     'subscription content',
     'creator economy',
+    'paid dms',
+    'ai twin',
   ],
   openGraph: {
-    title: 'How to Use Digis - Turn Your Following Into Income',
-    description: 'See exactly how creators are using Digis to monetize their audience with live streams, video calls, subscriptions, AI twins, and more.',
+    title: 'Turn Your Following Into Real Income | Digis',
+    description: 'No weird corporate stuff. Just you, your vibe, your fans — paid. 10+ ways to earn, AI that talks like you 24/7, 80% creator payout.',
     url: 'https://digis.cc/for-creators',
     siteName: 'Digis',
     locale: 'en_US',
@@ -29,14 +31,14 @@ export const metadata: Metadata = {
         url: '/images/digis-logo-white.png',
         width: 1200,
         height: 630,
-        alt: 'Digis Creator Guide',
+        alt: 'Digis - Turn Your Following Into Real Income',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'How to Use Digis - Creator Guide',
-    description: 'Learn how to monetize your following with live streams, video calls, subscriptions, and more.',
+    title: 'Turn Your Following Into Real Income | Digis',
+    description: 'Stop posting for free. Paid DMs, video calls, live streams, subscriptions, and AI that earns while you sleep.',
     images: ['/images/digis-logo-white.png'],
   },
 };
