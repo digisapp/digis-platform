@@ -145,6 +145,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[AuthContext] signOut complete');
   };
 
+  // Heartbeat: Update last_seen_at periodically for authenticated users
+  useEffect(() => {
+    if (!user) return;
+
+    // Send heartbeat immediately on mount
+    const sendHeartbeat = async () => {
+      try {
+        await fetch('/api/user/heartbeat', { method: 'POST' });
+      } catch (error) {
+        // Silent fail - heartbeat is non-critical
+        console.debug('[AuthContext] Heartbeat failed:', error);
+      }
+    };
+
+    sendHeartbeat();
+
+    // Send heartbeat every 5 minutes while user is active
+    const interval = setInterval(sendHeartbeat, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
   const value: AuthContextType = {
     user,
     session,
