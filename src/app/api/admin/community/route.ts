@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       } else if (filter === 'unverified') {
         filterCondition = sql`AND u.is_creator_verified = false`;
       } else if (filter === 'online') {
-        filterCondition = sql`AND u.is_online = true`;
+        filterCondition = sql`AND u.last_seen_at > NOW() - INTERVAL '10 minutes'`;
       } else if (filter === 'inactive') {
         filterCondition = sql`AND (u.last_seen_at IS NULL OR u.last_seen_at < NOW() - INTERVAL '30 days')`;
       } else if (filter === 'new') {
@@ -66,7 +66,8 @@ export async function GET(req: NextRequest) {
           u.last_seen_at,
           u.account_status,
           u.created_at,
-          u.is_online,
+          -- Calculate online status: seen in last 10 minutes
+          CASE WHEN u.last_seen_at > NOW() - INTERVAL '10 minutes' THEN true ELSE false END as is_online,
           u.primary_category,
           COALESCE(w.balance, 0) as balance,
           COALESCE(earnings.total_earned, 0) as total_earned,
@@ -170,7 +171,7 @@ export async function GET(req: NextRequest) {
       // Build filter conditions for fans
       let filterCondition = sql``;
       if (filter === 'online') {
-        filterCondition = sql`AND u.is_online = true`;
+        filterCondition = sql`AND u.last_seen_at > NOW() - INTERVAL '10 minutes'`;
       } else if (filter === 'blocked') {
         filterCondition = sql`AND EXISTS (SELECT 1 FROM user_blocks WHERE blocked_id = u.id)`;
       } else if (filter === 'top_spenders') {
@@ -197,7 +198,8 @@ export async function GET(req: NextRequest) {
           u.lifetime_spending,
           u.spend_tier,
           u.created_at,
-          u.is_online,
+          -- Calculate online status: seen in last 10 minutes
+          CASE WHEN u.last_seen_at > NOW() - INTERVAL '10 minutes' THEN true ELSE false END as is_online,
           COALESCE(w.balance, 0) as balance,
           COALESCE(spending.total_spent, 0) as total_spent,
           COALESCE(blocks.block_count, 0) as block_count,
