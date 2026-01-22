@@ -9,6 +9,7 @@ import {
 } from '@/lib/data/system';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { NotificationService } from './notification-service';
 
 export class SubscriptionService {
   /**
@@ -253,8 +254,21 @@ export class SubscriptionService {
         })
         .where(eq(subscriptionTiers.id, tierId));
 
-      return subscription;
+      return { subscription, tierName: tier.name };
     });
+
+    // Send notification to creator (async, non-blocking)
+    this.sendSubscriptionNotification(
+      creatorId,
+      userId,
+      subscriberUsername,
+      result.tierName,
+      tier.pricePerMonth
+    ).catch(err => {
+      console.error('[SubscriptionService] Failed to send notification:', err);
+    });
+
+    return result.subscription;
   }
 
   /**
@@ -683,5 +697,34 @@ export class SubscriptionService {
       where: eq(users.id, userId),
     });
     return user?.username || user?.displayName || 'Unknown';
+  }
+
+  /**
+   * Send subscription notification to creator
+   */
+  private static async sendSubscriptionNotification(
+    creatorId: string,
+    subscriberId: string,
+    subscriberUsername: string,
+    tierName: string,
+    amount: number
+  ) {
+    // Get subscriber details for avatar
+    const subscriber = await db.query.users.findFirst({
+      where: eq(users.id, subscriberId),
+      columns: { displayName: true, avatarUrl: true },
+    });
+
+    const subscriberName = subscriber?.displayName || subscriberUsername || 'Someone';
+
+    await NotificationService.sendNotification(
+      creatorId,
+      'subscription',
+      'New Subscriber!',
+      `${subscriberName} subscribed to your ${tierName} tier (${amount} coins/month)`,
+      `/@${subscriberUsername}`,
+      subscriber?.avatarUrl || undefined,
+      { subscriberId, tierName, amount }
+    );
   }
 }

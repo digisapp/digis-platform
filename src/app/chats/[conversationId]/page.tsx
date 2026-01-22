@@ -21,6 +21,7 @@ type Message = {
   content: string;
   messageType: 'text' | 'media' | 'tip' | 'locked' | 'system' | null;
   createdAt: Date;
+  updatedAt?: Date;
   isLocked: boolean;
   unlockPrice: number | null;
   unlockedBy: string | null;
@@ -91,8 +92,13 @@ export default function ChatPage() {
   } | null>(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [oldestMessageCursor, setOldestMessageCursor] = useState<string | null>(null);
+  const [pendingMessages, setPendingMessages] = useState<Map<string, { content: string; timestamp: Date }>>(new Map());
+  const [newMessageCount, setNewMessageCount] = useState(0);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingSentRef = useRef<number>(0);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch user balance for paid messaging
   const fetchUserBalance = async () => {
@@ -145,6 +151,24 @@ export default function ChatPage() {
       )
       .subscribe((status) => {
         console.log('[Chat] Real-time subscription status:', status);
+        const isConnected = status === 'SUBSCRIBED';
+        setRealtimeConnected(isConnected);
+
+        // Smart polling: only poll when real-time is not connected
+        if (isConnected) {
+          // Real-time working - stop polling
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+            console.log('[Chat] Real-time connected, stopping fallback polling');
+          }
+        } else if (!pollIntervalRef.current) {
+          // Real-time not connected - start fallback polling
+          console.log('[Chat] Real-time not connected, starting fallback polling');
+          pollIntervalRef.current = setInterval(() => {
+            fetchMessages();
+          }, 5000);
+        }
       });
 
     // Subscribe to typing indicators via Ably
@@ -175,14 +199,14 @@ export default function ChatPage() {
           // Only show typing indicator if it's from the other user
           if (userId !== currentUserId) {
             setIsOtherUserTyping(isTyping);
-            // Auto-clear typing indicator after 3 seconds
+            // Auto-clear typing indicator after 5 seconds (extended for slow typers)
             if (isTyping) {
               if (typingTimeoutRef.current) {
                 clearTimeout(typingTimeoutRef.current);
               }
               typingTimeoutRef.current = setTimeout(() => {
                 setIsOtherUserTyping(false);
-              }, 3000);
+              }, 5000);
             }
           }
         });
@@ -192,11 +216,6 @@ export default function ChatPage() {
     };
 
     setupTypingChannel();
-
-    // Fallback polling every 5 seconds in case real-time fails
-    const pollInterval = setInterval(() => {
-      fetchMessages();
-    }, 5000);
 
     return () => {
       supabase.removeChannel(messageChannel);
@@ -208,7 +227,11 @@ export default function ChatPage() {
           typingChannel.detach().catch(() => {});
         }
       }
-      clearInterval(pollInterval);
+      // Clean up fallback polling if active
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -332,14 +355,48 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100`);
+      // Use cursor-based pagination for better reliability
+      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&useCursor=true`);
       const data = await response.json();
 
       if (response.ok) {
         const fetchedMessages = data.messages.reverse();
+
+        // Clear pending messages that have been confirmed
+        if (pendingMessages.size > 0) {
+          setPendingMessages(prev => {
+            const newPending = new Map(prev);
+            // Remove pending messages that are now in the real messages
+            // (match by content and timestamp proximity)
+            Array.from(prev.entries()).forEach(([tempId, pending]) => {
+              const isConfirmed = fetchedMessages.some((m: Message) =>
+                m.content === pending.content &&
+                Math.abs(new Date(m.createdAt).getTime() - pending.timestamp.getTime()) < 10000
+              );
+              if (isConfirmed) {
+                newPending.delete(tempId);
+              }
+            });
+            return newPending;
+          });
+        }
+
+        // Track new messages when user is scrolled up
+        if (!isNearBottomRef.current && messages.length > 0) {
+          const existingIds = new Set(messages.map(m => m.id));
+          const newMsgs = fetchedMessages.filter((m: Message) => !existingIds.has(m.id) && m.sender.id !== currentUserId);
+          if (newMsgs.length > 0) {
+            setNewMessageCount(prev => prev + newMsgs.length);
+          }
+        }
+
         setMessages(fetchedMessages);
-        // If we got less than 100, there are no more older messages
-        setHasMoreMessages(data.messages.length >= 100);
+        setHasMoreMessages(data.hasMore ?? data.messages.length >= 100);
+
+        // Store cursor of oldest message for loading more
+        if (fetchedMessages.length > 0) {
+          setOldestMessageCursor(fetchedMessages[0].createdAt.toString());
+        }
 
         // Backup: if we don't have rate info yet, check messages for creator
         if (!costFetchedRef.current && fetchedMessages.length > 0 && currentUserId) {
@@ -359,12 +416,14 @@ export default function ChatPage() {
   };
 
   const loadMoreMessages = async () => {
-    if (loadingMore || !hasMoreMessages) return;
+    if (loadingMore || !hasMoreMessages || !oldestMessageCursor) return;
 
     setLoadingMore(true);
     try {
-      const offset = messages.length;
-      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&offset=${offset}`);
+      // Use cursor-based pagination - get messages older than our oldest
+      const response = await fetch(
+        `/api/messages/conversations/${conversationId}?limit=100&cursor=${encodeURIComponent(oldestMessageCursor)}&direction=older`
+      );
       const data = await response.json();
 
       if (response.ok && data.messages.length > 0) {
@@ -373,8 +432,10 @@ export default function ChatPage() {
         setMessages(prev => [...olderMessages, ...prev]);
         // Update lastMessageCountRef to prevent scroll
         lastMessageCountRef.current = messages.length + olderMessages.length;
+        // Update cursor to oldest message
+        setOldestMessageCursor(olderMessages[0].createdAt.toString());
         // Check if there are more
-        setHasMoreMessages(data.messages.length >= 100);
+        setHasMoreMessages(data.hasMore ?? data.messages.length >= 100);
       } else {
         setHasMoreMessages(false);
       }
@@ -435,11 +496,25 @@ export default function ChatPage() {
   };
 
   const actualSendMessage = async (content: string) => {
-    if (!conversation) return;
+    if (!conversation || !currentUserId) return;
 
     setSending(true);
     // Stop typing indicator when sending
     sendTypingIndicator(false);
+
+    // Generate a temporary ID for optimistic UI
+    const tempId = `pending-${Date.now()}`;
+    const timestamp = new Date();
+
+    // Optimistic update: add pending message immediately
+    setPendingMessages(prev => new Map(prev).set(tempId, { content, timestamp }));
+
+    // Clear input immediately for better UX
+    setNewMessage('');
+    setPendingMessage('');
+
+    // Force scroll to bottom after adding optimistic message
+    scrollToBottom(true);
 
     try {
       const response = await fetch('/api/messages/send', {
@@ -452,29 +527,40 @@ export default function ChatPage() {
       });
 
       if (response.ok) {
-        setNewMessage('');
-        setPendingMessage('');
         // Mark as acknowledged if this was a paid message to a creator
         if (recipientIsCreator && (costPerMessage || 0) > 0) {
           setHasAcknowledgedCharge(true);
         }
         // Refresh balance after sending paid message
         fetchUserBalance();
-        // Force scroll to bottom after sending own message
-        scrollToBottom(true);
+        // Fetch messages to get the real message (will clear pending)
         fetchMessages();
       } else {
         const data = await response.json();
+        // Remove failed pending message
+        setPendingMessages(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(tempId);
+          return newMap;
+        });
+
         if (data.error?.includes('Insufficient balance')) {
           // Show the charge warning modal with insufficient balance
           setPendingMessage(content);
           setShowChargeWarning(true);
         } else {
-          console.error('Error sending message:', data.error);
+          showError(data.error || 'Failed to send message');
         }
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Remove failed pending message
+      setPendingMessages(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(tempId);
+        return newMap;
+      });
+      showError('Failed to send message. Please try again.');
     } finally {
       setSending(false);
     }
@@ -516,6 +602,32 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error deleting message:', error);
+      throw error;
+    }
+  };
+
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newContent }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update message in local state
+        setMessages(prev => prev.map(m =>
+          m.id === messageId
+            ? { ...m, content: newContent, updatedAt: new Date() }
+            : m
+        ));
+      } else {
+        throw new Error(data.error || 'Failed to edit message');
+      }
+    } catch (error) {
+      console.error('Error editing message:', error);
       throw error;
     }
   };
@@ -683,8 +795,14 @@ export default function ChatPage() {
 
     const threshold = 200; // pixels from bottom - larger for mobile
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const wasNearBottom = isNearBottomRef.current;
     isNearBottomRef.current = distanceFromBottom < threshold;
-  }, []);
+
+    // Clear new message count when user scrolls to bottom
+    if (!wasNearBottom && isNearBottomRef.current && newMessageCount > 0) {
+      setNewMessageCount(0);
+    }
+  }, [newMessageCount]);
 
   const handleBlockUser = async () => {
     if (!conversation) return;
@@ -868,7 +986,7 @@ export default function ChatPage() {
           ref={messagesContainerRef}
           onScroll={handleScroll}
           onTouchMove={handleScroll}
-          className="flex-1 overflow-y-auto overscroll-contain"
+          className="flex-1 overflow-y-auto overscroll-contain relative"
         >
           <div className="container mx-auto px-4 py-6 max-w-2xl">
             <div className="space-y-4">
@@ -885,23 +1003,41 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {messages.length === 0 ? (
+              {messages.length === 0 && pendingMessages.size === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">👋</div>
                   <h3 className="text-xl font-semibold text-white mb-2">Start the conversation!</h3>
                   <p className="text-gray-400">Send a message to get started</p>
                 </div>
               ) : (
-                messages.map((message) => (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isOwnMessage={message.sender.id === currentUserId}
-                    currentUserId={currentUserId || ''}
-                    onUnlock={handleUnlockMessage}
-                    onDelete={handleDeleteMessage}
-                  />
-                ))
+                <>
+                  {messages.map((message) => (
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isOwnMessage={message.sender.id === currentUserId}
+                      currentUserId={currentUserId || ''}
+                      onUnlock={handleUnlockMessage}
+                      onDelete={handleDeleteMessage}
+                      onEdit={handleEditMessage}
+                    />
+                  ))}
+
+                  {/* Optimistic pending messages */}
+                  {Array.from(pendingMessages).map(([tempId, pending]) => (
+                    <div key={tempId} className="flex justify-end">
+                      <div className="max-w-[70%]">
+                        <div className="px-4 py-3 rounded-2xl bg-gradient-to-r from-cyan-500/70 to-purple-500/70 text-white">
+                          <p className="break-words">{pending.content}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 flex items-center justify-end gap-1">
+                          <span className="inline-block w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                          Sending...
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
               {isOtherUserTyping && conversation && (
                 <TypingIndicator
@@ -911,6 +1047,22 @@ export default function ChatPage() {
               <div ref={messagesEndRef} />
             </div>
           </div>
+
+          {/* New messages badge - appears when scrolled up and new messages arrive */}
+          {newMessageCount > 0 && !isNearBottomRef.current && (
+            <button
+              onClick={() => {
+                setNewMessageCount(0);
+                scrollToBottom(true);
+              }}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-cyan-500 text-white rounded-full text-sm font-medium shadow-lg shadow-cyan-500/30 hover:bg-cyan-400 transition-all animate-bounce flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              {newMessageCount} new message{newMessageCount > 1 ? 's' : ''}
+            </button>
+          )}
         </div>
 
         {/* Message Input - pb-20 on mobile for bottom nav, pb-4 on desktop */}

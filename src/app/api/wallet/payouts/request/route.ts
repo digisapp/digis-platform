@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, payoutRequests, wallets, creatorBankingInfo } from '@/lib/data/system';
+import { db, payoutRequests, wallets, creatorBankingInfo, spendHolds } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe/config';
 import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
@@ -74,7 +74,9 @@ export async function POST(request: NextRequest) {
       }>;
       const wallet = walletRows[0];
 
-      if (!wallet || wallet.balance < amount) {
+      // Check AVAILABLE balance (balance - heldBalance) to prevent overspending
+      const availableBalance = wallet ? wallet.balance - wallet.held_balance : 0;
+      if (!wallet || availableBalance < amount) {
         throw new Error('Insufficient balance');
       }
 
@@ -102,12 +104,30 @@ export async function POST(request: NextRequest) {
         throw new Error('You have a payout currently being processed');
       }
 
-      // Create payout request (now safe from concurrent duplicates)
+      // Create a balance hold to reserve the payout amount
+      const [hold] = await tx.insert(spendHolds).values({
+        userId: user.id,
+        amount,
+        purpose: 'payout',
+        status: 'active',
+      }).returning();
+
+      // Update wallet held_balance
+      await tx
+        .update(wallets)
+        .set({
+          heldBalance: sql`${wallets.heldBalance} + ${amount}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(wallets.userId, user.id));
+
+      // Create payout request with hold reference in metadata
       const [newPayout] = await tx.insert(payoutRequests).values({
         creatorId: user.id,
         amount,
         bankingInfoId: banking.id,
         status: 'pending',
+        metadata: JSON.stringify({ holdId: hold.id }),
       }).returning();
 
       return newPayout;

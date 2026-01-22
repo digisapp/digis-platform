@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/data/system';
+import { db, users } from '@/lib/data/system';
 import { follows } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { BlockService } from '@/lib/services/block-service';
+import { NotificationService } from '@/lib/services/notification-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,31 @@ export async function POST(
       followerId: user.id,
       followingId: creatorId,
     });
+
+    // Send notification to creator (async, non-blocking)
+    (async () => {
+      try {
+        // Get follower info for the notification
+        const follower = await db.query.users.findFirst({
+          where: eq(users.id, user.id),
+          columns: { username: true, displayName: true, avatarUrl: true },
+        });
+        const followerName = follower?.displayName || follower?.username || 'Someone';
+        const followerUsername = follower?.username || '';
+
+        await NotificationService.sendNotification(
+          creatorId,
+          'follow',
+          'New Follower',
+          `${followerName} started following you`,
+          followerUsername ? `/@${followerUsername}` : undefined,
+          follower?.avatarUrl || undefined,
+          { followerId: user.id }
+        );
+      } catch (err) {
+        console.error('[FOLLOW] Failed to send notification:', err);
+      }
+    })();
 
     return NextResponse.json({ message: 'Now following', isFollowing: true });
   } catch (error: any) {

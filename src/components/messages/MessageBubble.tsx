@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images, Pencil, X } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 import { useToastContext } from '@/context/ToastContext';
 
@@ -184,6 +184,62 @@ function parseMessageContent(content: string): Array<{ type: 'text' | 'content';
   return parts.length > 0 ? parts : [{ type: 'text', value: content }];
 }
 
+// URL regex pattern - matches http, https, and www URLs
+const URL_REGEX = /(https?:\/\/[^\s<]+|www\.[^\s<]+\.[^\s<]+)/gi;
+
+// Render text with clickable URLs
+function LinkifyText({ text }: { text: string }) {
+  const parts: Array<{ type: 'text' | 'url'; value: string }> = [];
+  let lastIndex = 0;
+  let match;
+
+  // Reset regex state
+  URL_REGEX.lastIndex = 0;
+
+  while ((match = URL_REGEX.exec(text)) !== null) {
+    // Add text before the URL
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+    }
+    // Add the URL
+    parts.push({ type: 'url', value: match[0] });
+    lastIndex = URL_REGEX.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', value: text.slice(lastIndex) });
+  }
+
+  if (parts.length === 0) {
+    return <>{text}</>;
+  }
+
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.type === 'url') {
+          // Ensure URL has protocol for href
+          const href = part.value.startsWith('http') ? part.value : `https://${part.value}`;
+          return (
+            <a
+              key={index}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-300 hover:text-cyan-200 underline underline-offset-2 break-all"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {part.value}
+            </a>
+          );
+        }
+        return <span key={index}>{part.value}</span>;
+      })}
+    </>
+  );
+}
+
 // Render parsed message content with content cards
 function MessageContent({ content }: { content: string }) {
   const parts = parseMessageContent(content);
@@ -192,7 +248,9 @@ function MessageContent({ content }: { content: string }) {
     <>
       {parts.map((part, index) => (
         part.type === 'text' ? (
-          <span key={index} className="break-words whitespace-pre-wrap">{part.value}</span>
+          <span key={index} className="break-words whitespace-pre-wrap">
+            <LinkifyText text={part.value} />
+          </span>
         ) : (
           <ContentCard key={index} contentId={part.value} />
         )
@@ -206,6 +264,7 @@ type Message = {
   content: string;
   messageType: 'text' | 'media' | 'tip' | 'locked' | 'system' | null;
   createdAt: Date;
+  updatedAt?: Date;
   isLocked: boolean;
   unlockPrice: number | null;
   unlockedBy: string | null;
@@ -224,20 +283,80 @@ type Message = {
   };
 };
 
+// Edit window in minutes
+const EDIT_WINDOW_MINUTES = 5;
+
 interface MessageBubbleProps {
   message: Message;
   isOwnMessage: boolean;
   currentUserId: string;
   onUnlock?: (messageId: string) => Promise<void>;
   onDelete?: (messageId: string) => Promise<void>;
+  onEdit?: (messageId: string, newContent: string) => Promise<void>;
 }
 
-export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, onDelete }: MessageBubbleProps) {
+export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, onDelete, onEdit }: MessageBubbleProps) {
   const { showError } = useToastContext();
   const [unlocking, setUnlocking] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content);
+  const [saving, setSaving] = useState(false);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Check if message can be edited (within 5 min window, is own message, is text type)
+  const canEdit = isOwnMessage &&
+    onEdit &&
+    message.messageType === 'text' &&
+    !message.mediaUrl &&
+    (Date.now() - new Date(message.createdAt).getTime()) < EDIT_WINDOW_MINUTES * 60 * 1000;
+
+  // Check if message was edited
+  const wasEdited = message.updatedAt &&
+    new Date(message.updatedAt).getTime() - new Date(message.createdAt).getTime() > 1000;
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editContent.length, editContent.length);
+    }
+  }, [isEditing]);
+
+  const handleSaveEdit = async () => {
+    if (!onEdit || !editContent.trim() || editContent.trim() === message.content) {
+      setIsEditing(false);
+      setEditContent(message.content);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onEdit(message.id, editContent.trim());
+      setIsEditing(false);
+    } catch (error) {
+      showError('Failed to edit message');
+      setEditContent(message.content);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(message.content);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
 
   // Reactions hook
   const { reactions, fetchReactions, toggleReaction } = useMessageReactions(message.id);
@@ -323,6 +442,21 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         title="Delete message"
       >
         <Trash2 className="w-4 h-4" />
+      </button>
+    );
+  };
+
+  // Edit button component
+  const EditButton = () => {
+    if (!canEdit) return null;
+
+    return (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all"
+        title="Edit message"
+      >
+        <Pencil className="w-4 h-4" />
       </button>
     );
   };
@@ -678,9 +812,10 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     <>
       {showDeleteConfirm && <DeleteConfirmModal />}
       <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-        {isOwnMessage && (
+        {isOwnMessage && !isEditing && (
           <div className="flex items-center gap-1">
             <DeleteButton />
+            <EditButton />
             <div className="relative">
               <ReactionButton />
               <ReactionPicker
@@ -722,29 +857,62 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
             </div>
           )}
 
-          <div
-            className={`px-4 py-3 rounded-2xl ${
-              isOwnMessage
-                ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-                : message.isAiGenerated
-                  ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white'
-                  : 'bg-white/5 text-white'
-            }`}
-          >
-            {message.isAiGenerated && (
-              <div className="flex items-center gap-1.5 mb-1.5 text-purple-400">
-                <Bot className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">AI Twin</span>
+          {isEditing ? (
+            /* Edit mode UI */
+            <div className="w-full">
+              <textarea
+                ref={editInputRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-cyan-400 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 resize-none"
+                rows={Math.min(5, editContent.split('\n').length + 1)}
+                disabled={saving}
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={saving || !editContent.trim()}
+                  className="px-3 py-1.5 text-sm bg-cyan-500 text-white rounded-lg hover:bg-cyan-400 transition-colors disabled:opacity-50 flex items-center gap-1"
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
               </div>
-            )}
-            <div className="break-words">
-              {message.isAiGenerated ? (
-                <MessageContent content={message.content} />
-              ) : (
-                message.content
-              )}
             </div>
-          </div>
+          ) : (
+            /* Normal display */
+            <div
+              className={`px-4 py-3 rounded-2xl ${
+                isOwnMessage
+                  ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
+                  : message.isAiGenerated
+                    ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-white'
+                    : 'bg-white/5 text-white'
+              }`}
+            >
+              {message.isAiGenerated && (
+                <div className="flex items-center gap-1.5 mb-1.5 text-purple-400">
+                  <Bot className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">AI Twin</span>
+                </div>
+              )}
+              <div className="break-words whitespace-pre-wrap">
+                {message.isAiGenerated ? (
+                  <MessageContent content={message.content} />
+                ) : (
+                  <LinkifyText text={message.content} />
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Reactions display */}
           <ReactionDisplay
@@ -753,8 +921,9 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
             compact
           />
 
-          <p className={`text-xs text-gray-500 mt-1 flex items-center ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+          <p className={`text-xs text-gray-500 mt-1 flex items-center gap-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
             {formatTime(message.createdAt)}
+            {wasEdited && <span className="text-gray-600">(edited)</span>}
             <ReadReceipt />
           </p>
         </div>

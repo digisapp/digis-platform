@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/data/system';
+import { db, walletTransactions } from '@/lib/data/system';
 import { wallets, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { FinancialAuditService } from '@/lib/services/financial-audit-service';
 
 export const runtime = 'nodejs';
 
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const { userId, balance } = await request.json();
+    const { userId, balance, reason } = await request.json();
 
     if (!userId || balance === undefined) {
       return NextResponse.json({ error: 'userId and balance required' }, { status: 400 });
@@ -80,10 +81,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'balance must be a non-negative number' }, { status: 400 });
     }
 
-    // Check if wallet exists
+    // Check if wallet exists and get previous balance
     const existingWallet = await db.query.wallets.findFirst({
       where: eq(wallets.userId, userId),
     });
+
+    const previousBalance = existingWallet?.balance ?? 0;
+    const adjustmentAmount = balance - previousBalance;
 
     if (existingWallet) {
       // Update existing wallet
@@ -100,12 +104,51 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log(`[ADMIN WALLET] Admin ${user.id} set balance for user ${userId} to ${balance}`);
+    // Create wallet transaction record for audit trail
+    const idempotencyKey = `admin_adjust_${userId}_${Date.now()}`;
+    const adjustmentReason = reason || 'Admin adjustment';
+
+    await db.insert(walletTransactions).values({
+      userId,
+      amount: adjustmentAmount,
+      type: 'admin_adjustment',
+      status: 'completed',
+      description: `Admin adjustment by @${adminUser.username || 'admin'}: ${adjustmentReason}`,
+      metadata: JSON.stringify({
+        adminId: user.id,
+        adminUsername: adminUser.username,
+        previousBalance,
+        newBalance: balance,
+        reason: adjustmentReason,
+      }),
+      idempotencyKey,
+    });
+
+    // Log to financial audit service
+    FinancialAuditService.log({
+      eventType: 'admin_wallet_adjustment',
+      actorId: user.id,
+      targetId: userId,
+      amount: adjustmentAmount,
+      idempotencyKey,
+      metadata: {
+        previousBalance,
+        newBalance: balance,
+        reason: adjustmentReason,
+        adminUsername: adminUser.username,
+      },
+    }).catch(err => {
+      console.error('[ADMIN WALLET] Audit log failed:', err);
+    });
+
+    console.log(`[ADMIN WALLET] Admin ${user.id} (@${adminUser.username}) adjusted balance for user ${userId}: ${previousBalance} -> ${balance} (${adjustmentAmount >= 0 ? '+' : ''}${adjustmentAmount}). Reason: ${adjustmentReason}`);
 
     return NextResponse.json({
       success: true,
       userId,
+      previousBalance,
       newBalance: balance,
+      adjustment: adjustmentAmount,
     });
   } catch (error: any) {
     console.error('[ADMIN WALLET POST]', error);

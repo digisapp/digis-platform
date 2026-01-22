@@ -4,6 +4,7 @@ import { eq, and, or, desc, lt, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { invalidateBalanceCache } from '@/lib/cache';
+import { FinancialAuditService } from '@/lib/services/financial-audit-service';
 
 // Call timeout settings
 const PENDING_CALL_TIMEOUT_MINUTES = 5; // Calls auto-expire after 5 minutes
@@ -324,7 +325,7 @@ export class CallService {
     const calculatedCoins = call.ratePerMinute * durationMinutes;
 
     // Use a single transaction with FOR UPDATE locks to prevent race conditions
-    const { updatedCall, fanId, creatorId } = await db.transaction(async (tx) => {
+    const { updatedCall, fanId, creatorId, billedCoins, wasCapped } = await db.transaction(async (tx) => {
       // Generate idempotency key for this call completion
       const idempotencyKeyDebit = `call-end-${callId}-debit`;
       const idempotencyKeyCredit = `call-end-${callId}-credit`;
@@ -348,7 +349,8 @@ export class CallService {
           })
           .where(eq(calls.id, callId))
           .returning();
-        return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId };
+        // Return billedCoins: 0 to skip audit logging (already logged)
+        return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId, billedCoins: 0, wasCapped: false };
       }
 
       let billedCoins = calculatedCoins;
@@ -460,7 +462,13 @@ export class CallService {
         .where(eq(calls.id, callId))
         .returning();
 
-      return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId };
+      return {
+        updatedCall: result,
+        fanId: call.fanId,
+        creatorId: call.creatorId,
+        billedCoins,
+        wasCapped: billedCoins < calculatedCoins,
+      };
     });
 
     // Invalidate caches OUTSIDE the transaction to prevent Redis errors from rolling back DB
@@ -470,6 +478,49 @@ export class CallService {
     invalidateBalanceCache(creatorId).catch(err =>
       console.error('[CallService] Failed to invalidate creator cache:', err)
     );
+
+    // Log to financial audit (non-blocking, after successful transaction)
+    if (billedCoins > 0) {
+      // Log fan's payment
+      FinancialAuditService.log({
+        eventType: 'call_payment',
+        actorId: fanId,
+        targetId: creatorId,
+        amount: billedCoins,
+        idempotencyKey: `call-end-${callId}-debit`,
+        description: `${updatedCall.callType === 'voice' ? 'Voice' : 'Video'} call payment (${durationMinutes} min)`,
+        metadata: {
+          callId,
+          durationMinutes,
+          durationSeconds,
+          callType: updatedCall.callType,
+          ratePerMinute: updatedCall.ratePerMinute,
+          calculatedCoins,
+          billedCoins,
+          wasCapped,
+        },
+      }).catch(err => console.error('[CallService] Audit log (fan) failed:', err));
+
+      // Log creator's earnings
+      FinancialAuditService.log({
+        eventType: 'call_earned',
+        actorId: creatorId,
+        targetId: fanId,
+        amount: billedCoins,
+        idempotencyKey: `call-end-${callId}-credit`,
+        description: `${updatedCall.callType === 'voice' ? 'Voice' : 'Video'} call earnings (${durationMinutes} min)`,
+        metadata: {
+          callId,
+          durationMinutes,
+          durationSeconds,
+          callType: updatedCall.callType,
+          ratePerMinute: updatedCall.ratePerMinute,
+          calculatedCoins,
+          billedCoins,
+          wasCapped,
+        },
+      }).catch(err => console.error('[CallService] Audit log (creator) failed:', err));
+    }
 
     return updatedCall;
   }

@@ -6,6 +6,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/messages/conversations/[conversationId] - Get messages for a conversation
+// Supports cursor-based pagination (recommended) and offset-based (legacy)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -24,8 +25,28 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const cursor = searchParams.get('cursor');
+    const direction = (searchParams.get('direction') as 'older' | 'newer') || 'older';
 
+    // Use cursor-based pagination if cursor is provided or explicitly requested
+    if (cursor || searchParams.has('useCursor')) {
+      const result = await MessageService.getMessagesCursor(
+        conversationId,
+        user.id,
+        limit,
+        cursor || undefined,
+        direction
+      );
+
+      return NextResponse.json({
+        messages: result.messages,
+        nextCursor: result.nextCursor,
+        hasMore: result.hasMore,
+      });
+    }
+
+    // Legacy offset-based pagination
+    const offset = parseInt(searchParams.get('offset') || '0');
     const messages = await MessageService.getMessages(conversationId, user.id, limit, offset);
 
     return NextResponse.json({ messages });

@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { contentItems, contentPurchases, users } from '@/lib/data/system';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { eq, and, desc, sql } from 'drizzle-orm';
+import { createClient } from '@/lib/supabase/server';
 
 export type ContentType = 'photo' | 'video' | 'gallery';
 
@@ -397,9 +398,84 @@ export class ContentService {
       return await this.updateContent(contentId, creatorId, { isPublished: false });
     }
 
+    // Clean up storage files before deleting database record
+    await this.cleanupContentStorage(content);
+
     // Delete if no purchases
     await db.delete(contentItems).where(eq(contentItems.id, contentId));
     return { deleted: true };
+  }
+
+  /**
+   * Clean up storage files for content
+   * Handles both single files and galleries
+   */
+  private static async cleanupContentStorage(content: {
+    mediaUrl: string;
+    thumbnailUrl: string | null;
+    contentType: string;
+    creatorId: string;
+  }) {
+    const supabase = await createClient();
+    const bucket = 'content';
+    const filesToDelete: string[] = [];
+
+    try {
+      // Extract file paths from URLs
+      // URLs are in format: https://xxx.supabase.co/storage/v1/object/public/content/{userId}/{filename}
+      const extractPath = (url: string): string | null => {
+        try {
+          // Find the bucket name in the URL and extract everything after it
+          const bucketPath = `/storage/v1/object/public/${bucket}/`;
+          const idx = url.indexOf(bucketPath);
+          if (idx === -1) return null;
+          return url.substring(idx + bucketPath.length);
+        } catch {
+          return null;
+        }
+      };
+
+      // Handle gallery (JSON array of URLs) or single file
+      if (content.contentType === 'gallery') {
+        try {
+          const urls = JSON.parse(content.mediaUrl) as string[];
+          for (const url of urls) {
+            const path = extractPath(url);
+            if (path) filesToDelete.push(path);
+          }
+        } catch {
+          // Not valid JSON, treat as single URL
+          const path = extractPath(content.mediaUrl);
+          if (path) filesToDelete.push(path);
+        }
+      } else {
+        // Single file (photo/video)
+        const path = extractPath(content.mediaUrl);
+        if (path) filesToDelete.push(path);
+      }
+
+      // Add thumbnail if it's different from media
+      if (content.thumbnailUrl && content.thumbnailUrl !== content.mediaUrl) {
+        const thumbPath = extractPath(content.thumbnailUrl);
+        if (thumbPath && !filesToDelete.includes(thumbPath)) {
+          filesToDelete.push(thumbPath);
+        }
+      }
+
+      // Delete files from storage
+      if (filesToDelete.length > 0) {
+        const { error } = await supabase.storage.from(bucket).remove(filesToDelete);
+        if (error) {
+          console.error('[ContentService] Storage cleanup error:', error);
+          // Don't throw - we still want to delete the DB record
+        } else {
+          console.log(`[ContentService] Cleaned up ${filesToDelete.length} file(s) from storage`);
+        }
+      }
+    } catch (err) {
+      console.error('[ContentService] Storage cleanup failed:', err);
+      // Don't throw - allow DB deletion to proceed
+    }
   }
 
   /**

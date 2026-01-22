@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, payoutRequests, wallets, walletTransactions, users } from '@/lib/data/system';
+import { db, payoutRequests, wallets, walletTransactions, users, spendHolds } from '@/lib/data/system';
 import { eq, sql } from 'drizzle-orm';
 import {
   sendPayoutProcessingEmail,
@@ -55,8 +55,20 @@ export async function POST(request: NextRequest) {
         amount: number;
         status: string;
         requested_at: Date;
+        metadata: string | null;
       }>;
       const payout = payoutRows[0];
+
+      // Parse hold ID from metadata (if exists)
+      let holdId: string | null = null;
+      if (payout?.metadata) {
+        try {
+          const meta = JSON.parse(payout.metadata);
+          holdId = meta.holdId || null;
+        } catch {
+          // Metadata parsing failed, continue without hold
+        }
+      }
 
       if (!payout) {
         throw new Error('Payout not found');
@@ -102,6 +114,27 @@ export async function POST(request: NextRequest) {
             sql`SELECT * FROM wallets WHERE user_id = ${payout.creator_id} FOR UPDATE`
           );
 
+          // Settle the hold: release heldBalance and deduct from balance
+          // The hold reserved the amount, now we're completing the payout
+          if (holdId) {
+            await tx
+              .update(spendHolds)
+              .set({
+                status: 'settled',
+                updatedAt: new Date(),
+              })
+              .where(eq(spendHolds.id, holdId));
+
+            // Release the held balance (it was reserved for this payout)
+            await tx
+              .update(wallets)
+              .set({
+                heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${payout.amount})`,
+                updatedAt: new Date(),
+              })
+              .where(eq(wallets.userId, payout.creator_id));
+          }
+
           // Deduct coins from creator's wallet
           await tx
             .update(wallets)
@@ -127,13 +160,13 @@ export async function POST(request: NextRequest) {
       } else if (status === 'failed' || status === 'cancelled') {
         updateData.failureReason = failureReason;
 
+        // Lock the wallet row for any balance operations
+        await tx.execute(
+          sql`SELECT * FROM wallets WHERE user_id = ${payout.creator_id} FOR UPDATE`
+        );
+
         // If payout was previously 'completed', refund the coins
         if (payout.status === 'completed') {
-          // Lock the wallet row for refund
-          await tx.execute(
-            sql`SELECT * FROM wallets WHERE user_id = ${payout.creator_id} FOR UPDATE`
-          );
-
           // Refund coins to creator's wallet
           await tx
             .update(wallets)
@@ -153,8 +186,25 @@ export async function POST(request: NextRequest) {
             metadata: JSON.stringify({ payoutId, reason: failureReason }),
             idempotencyKey: `payout_refund_${payoutId}`,
           });
+        } else if (holdId && (payout.status === 'pending' || payout.status === 'processing')) {
+          // Release the hold: coins go back to available balance (no deduction)
+          await tx
+            .update(spendHolds)
+            .set({
+              status: 'released',
+              updatedAt: new Date(),
+            })
+            .where(eq(spendHolds.id, holdId));
+
+          // Release the held balance back to available
+          await tx
+            .update(wallets)
+            .set({
+              heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${payout.amount})`,
+              updatedAt: new Date(),
+            })
+            .where(eq(wallets.userId, payout.creator_id));
         }
-        // If not previously completed, coins are still in wallet (no action needed)
       }
 
       // Update payout request
