@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SubscriptionService } from '@/lib/services/subscription-service';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,15 @@ export async function POST(
   { params }: { params: Promise<{ subscriptionId: string }> }
 ) {
   try {
+    // Rate limit to prevent abuse
+    const rateLimitResult = await rateLimit(req, 'subscription:cancel');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const { subscriptionId } = await params;
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

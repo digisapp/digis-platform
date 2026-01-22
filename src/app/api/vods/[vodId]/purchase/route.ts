@@ -70,6 +70,9 @@ export async function POST(
 
     const price = vod.priceCoins;
 
+    // Generate unique transaction ID for this purchase attempt
+    const txId = uuidv4();
+
     try {
       // Deduct coins from buyer's wallet
       await WalletService.createTransaction({
@@ -77,7 +80,7 @@ export async function POST(
         amount: -price,
         type: 'ppv_unlock',
         description: `Purchased VOD: ${vod.title}`,
-        idempotencyKey: `vod_purchase_${vodId}_${user.id}_${Date.now()}`,
+        idempotencyKey: `vod_purchase_${vodId}_${user.id}_${txId}`,
       });
     } catch (walletError: any) {
       return NextResponse.json(
@@ -93,13 +96,13 @@ export async function POST(
     });
 
     if (!purchaseResult.success) {
-      // Refund if purchase recording fails
+      // Refund if purchase recording fails - use same txId for tracing
       await WalletService.createTransaction({
         userId: user.id,
         amount: price,
         type: 'refund',
         description: `Refund for failed VOD purchase: ${vod.title}`,
-        idempotencyKey: `vod_refund_${vodId}_${user.id}_${Date.now()}`,
+        idempotencyKey: `vod_refund_${vodId}_${user.id}_${txId}`,
       });
 
       return NextResponse.json(
@@ -108,13 +111,13 @@ export async function POST(
       );
     }
 
-    // Credit the creator
+    // Credit the creator - use same txId for complete audit trail
     await WalletService.createTransaction({
       userId: vod.creatorId,
       amount: price,
       type: 'creator_payout',
       description: `VOD sale: ${vod.title}`,
-      idempotencyKey: `vod_sale_${vodId}_${user.id}_${Date.now()}`,
+      idempotencyKey: `vod_sale_${vodId}_${user.id}_${txId}`,
     });
 
     // Get updated balance

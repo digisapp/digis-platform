@@ -115,16 +115,26 @@ export async function incrementViewerCount(streamId: string): Promise<number> {
   }
 }
 
+/**
+ * Atomically decrement viewer count, never going below zero.
+ * Uses Lua script to prevent race condition where concurrent decrements
+ * could temporarily show negative counts.
+ */
 export async function decrementViewerCount(streamId: string): Promise<number> {
   try {
     const key = `viewers:${streamId}`;
-    const newCount = await redis.decr(key);
-    // Don't let it go negative
-    if (newCount < 0) {
-      await redis.set(key, 0, { ex: VIEWER_COUNT_CACHE_TTL });
-      return 0;
-    }
-    return newCount;
+    // Lua script: decrement only if > 0, return new value (or 0 if was 0)
+    const luaScript = `
+      local current = redis.call('GET', KEYS[1])
+      if current and tonumber(current) > 0 then
+        return redis.call('DECR', KEYS[1])
+      else
+        redis.call('SET', KEYS[1], 0, 'EX', ARGV[1])
+        return 0
+      end
+    `;
+    const result = await redis.eval(luaScript, [key], [VIEWER_COUNT_CACHE_TTL.toString()]);
+    return typeof result === 'number' ? result : 0;
   } catch (error) {
     console.error('[Cache] Error decrementing viewer count:', error);
     return 0;

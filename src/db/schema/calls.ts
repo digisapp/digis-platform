@@ -1,5 +1,6 @@
 import { pgTable, uuid, timestamp, integer, text, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
 import { users } from './users';
+import { spendHolds } from './wallet';
 import { relations } from 'drizzle-orm';
 
 export const callStatusEnum = pgEnum('call_status', [
@@ -43,8 +44,8 @@ export const calls = pgTable('calls', {
   // LiveKit
   roomName: text('room_name').unique(),
 
-  // Hold tracking
-  holdId: uuid('hold_id'), // References spend_holds.id
+  // Hold tracking - FK to spend_holds for financial audit trail
+  holdId: uuid('hold_id').references(() => spendHolds.id, { onDelete: 'set null' }),
 
   // Cancellation/rejection
   cancelledBy: uuid('cancelled_by'), // user_id who cancelled

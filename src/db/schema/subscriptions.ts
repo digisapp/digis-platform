@@ -59,6 +59,8 @@ export const subscriptions = pgTable('subscriptions', {
   statusIdx: index('subscriptions_status_idx').on(table.status),
   expiresAtIdx: index('subscriptions_expires_at_idx').on(table.expiresAt),
   userCreatorIdx: index('subscriptions_user_creator_idx').on(table.userId, table.creatorId),
+  // Compound index for subscription renewal cron queries
+  renewalIdx: index('subscriptions_renewal_idx').on(table.status, table.autoRenew, table.nextBillingAt),
 }));
 
 // Subscription payment history
