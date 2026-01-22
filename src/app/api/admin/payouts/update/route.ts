@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
               .update(spendHolds)
               .set({
                 status: 'settled',
-                updatedAt: new Date(),
+                settledAt: new Date(),
               })
               .where(eq(spendHolds.id, holdId));
 
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
             .update(spendHolds)
             .set({
               status: 'released',
-              updatedAt: new Date(),
+              releasedAt: new Date(),
             })
             .where(eq(spendHolds.id, holdId));
 

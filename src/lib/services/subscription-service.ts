@@ -146,7 +146,7 @@ export class SubscriptionService {
     ]);
 
     // Use transaction for all financial operations
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       // Get user wallet within transaction
       const userWallet = await tx.query.wallets.findFirst({
         where: eq(wallets.userId, userId),
@@ -254,7 +254,7 @@ export class SubscriptionService {
         })
         .where(eq(subscriptionTiers.id, tierId));
 
-      return { subscription, tierName: tier.name };
+      return subscription;
     });
 
     // Send notification to creator (async, non-blocking)
@@ -262,13 +262,13 @@ export class SubscriptionService {
       creatorId,
       userId,
       subscriberUsername,
-      result.tierName,
+      tier.name,
       tier.pricePerMonth
     ).catch(err => {
       console.error('[SubscriptionService] Failed to send notification:', err);
     });
 
-    return result.subscription;
+    return result;
   }
 
   /**

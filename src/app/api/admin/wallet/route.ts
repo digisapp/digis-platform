@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     await db.insert(walletTransactions).values({
       userId,
       amount: adjustmentAmount,
-      type: 'admin_adjustment',
+      type: 'refund', // Using 'refund' type for admin adjustments
       status: 'completed',
       description: `Admin adjustment by @${adminUser.username || 'admin'}: ${adjustmentReason}`,
       metadata: JSON.stringify({
@@ -120,17 +120,21 @@ export async function POST(request: NextRequest) {
         previousBalance,
         newBalance: balance,
         reason: adjustmentReason,
+        isAdminAdjustment: true,
       }),
       idempotencyKey,
     });
 
     // Log to financial audit service
     FinancialAuditService.log({
-      eventType: 'admin_wallet_adjustment',
-      actorId: user.id,
-      targetId: userId,
+      eventType: 'admin_refund', // Using admin_refund for admin adjustments
+      actorId: userId,
+      adminId: user.id,
       amount: adjustmentAmount,
       idempotencyKey,
+      actorBalanceBefore: previousBalance,
+      actorBalanceAfter: balance,
+      description: `Admin wallet adjustment: ${adjustmentReason}`,
       metadata: {
         previousBalance,
         newBalance: balance,
