@@ -27,6 +27,7 @@ import {
 } from '@/lib/cache';
 import { LiveKitEgressService } from '../services/livekit-egress-service';
 import { BlockService } from '../services/block-service';
+import { NotificationService } from '../services/notification-service';
 
 /**
  * StreamService uses Drizzle ORM for complex streaming operations.
@@ -116,6 +117,19 @@ export class StreamService {
       } catch (err) {
         // Recording is optional - don't fail stream creation if egress fails
         console.warn('[StreamService] Failed to start recording (continuing without):', err);
+
+        // Notify creator that recording failed to start
+        NotificationService.sendNotification(
+          creatorId,
+          'stream',
+          'Recording Not Available',
+          `Your stream "${title}" is live but recording could not be started. VOD will not be available.`,
+          `/stream/${stream.id}`,
+          undefined,
+          { streamId: stream.id, error: 'recording_start_failed' }
+        ).catch(notifErr => {
+          console.error('[StreamService] Failed to send recording failure notification:', notifErr);
+        });
       }
     }
 
@@ -150,6 +164,19 @@ export class StreamService {
         console.log(`[StreamService] Stopped recording for stream ${streamId}`);
       } catch (err) {
         console.warn('[StreamService] Failed to stop recording:', err);
+
+        // Notify creator that recording failed to stop/save
+        NotificationService.sendNotification(
+          stream.creatorId,
+          'stream',
+          'Recording Save Failed',
+          `Your stream recording may not have saved properly. Please check your VODs.`,
+          `/dashboard/vods`,
+          undefined,
+          { streamId, error: 'recording_stop_failed' }
+        ).catch(notifErr => {
+          console.error('[StreamService] Failed to send recording stop failure notification:', notifErr);
+        });
       }
     }
 
