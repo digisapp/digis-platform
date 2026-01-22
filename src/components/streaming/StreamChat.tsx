@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { Send, Smile, Gift, Pin, X, Ticket, Coins, List } from 'lucide-react';
+import { Send, Smile, Gift, Pin, X, Ticket, Coins, List, Trash2 } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
 import { getTierColor, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 
@@ -19,6 +19,7 @@ type StreamChatProps = {
   messages: StreamMessage[];
   onSendMessage?: (message: string) => void;
   isCreator?: boolean;
+  currentUserId?: string;
   onMessageDeleted?: () => void;
   pinnedMessage?: StreamMessage | null;
   onPinMessage?: (message: StreamMessage | null) => void;
@@ -73,6 +74,7 @@ type ChatMessageProps = {
   msg: StreamMessage;
   streamId: string;
   isCreator: boolean;
+  currentUserId?: string;
   onMessageDeleted?: () => void;
   onPinMessage?: (message: StreamMessage | null) => void;
   isPinned: boolean;
@@ -82,11 +84,33 @@ const ChatMessage = memo(function ChatMessage({
   msg,
   streamId,
   isCreator,
+  currentUserId,
   onMessageDeleted,
   onPinMessage,
   isPinned,
 }: ChatMessageProps) {
   const tierStyle = getTierStyle((msg as any).user?.spendTier);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isOwnMessage = currentUserId && msg.userId === currentUserId;
+
+  const handleDeleteOwnMessage = async () => {
+    if (!confirm('Delete this message?')) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/streams/${streamId}/messages/${msg.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        onMessageDeleted?.();
+      }
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (msg.messageType === 'system') {
     return (
@@ -315,6 +339,7 @@ const ChatMessage = memo(function ChatMessage({
         </p>
       </div>
 
+      {/* Creator gets full moderation tools */}
       {isCreator && (
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
           <ModerationTools
@@ -326,11 +351,23 @@ const ChatMessage = memo(function ChatMessage({
           />
         </div>
       )}
+
+      {/* Non-creators can delete their own messages */}
+      {!isCreator && isOwnMessage && (
+        <button
+          onClick={handleDeleteOwnMessage}
+          disabled={isDeleting}
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-red-400 disabled:opacity-50"
+          title="Delete message"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 });
 
-export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick, onMenuClose }: StreamChatProps) {
+export function StreamChat({ streamId, messages, onSendMessage, isCreator = false, currentUserId, onMessageDeleted, pinnedMessage, onPinMessage, menuEnabled = false, menuItems = [], onMenuClick, onMenuClose }: StreamChatProps) {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -470,6 +507,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                 msg={msg}
                 streamId={streamId}
                 isCreator={isCreator}
+                currentUserId={currentUserId}
                 onMessageDeleted={onMessageDeleted}
                 onPinMessage={onPinMessage}
                 isPinned={pinnedMessage?.id === msg.id}

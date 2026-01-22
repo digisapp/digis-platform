@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// DELETE /api/streams/[streamId]/messages/[messageId] - Delete a message (creator only)
+// DELETE /api/streams/[streamId]/messages/[messageId] - Delete a message (creator or message owner)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ streamId: string; messageId: string }> }
@@ -21,32 +21,43 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is the stream creator
-    const stream = await db.query.streams.findFirst({
-      where: eq(streams.id, streamId),
-    });
+    // Get the stream and message
+    const [stream, message] = await Promise.all([
+      db.query.streams.findFirst({
+        where: eq(streams.id, streamId),
+      }),
+      db.query.streamMessages.findFirst({
+        where: and(
+          eq(streamMessages.id, messageId),
+          eq(streamMessages.streamId, streamId)
+        ),
+      }),
+    ]);
 
     if (!stream) {
       return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
     }
 
-    if (stream.creatorId !== user.id) {
-      return NextResponse.json({ error: 'Only the stream creator can delete messages' }, { status: 403 });
+    if (!message) {
+      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
+    }
+
+    // Allow deletion if user is stream creator OR the message owner
+    const isCreator = stream.creatorId === user.id;
+    const isMessageOwner = message.userId === user.id;
+
+    if (!isCreator && !isMessageOwner) {
+      return NextResponse.json({ error: 'You can only delete your own messages' }, { status: 403 });
     }
 
     // Delete the message
-    const deleted = await db.delete(streamMessages)
+    await db.delete(streamMessages)
       .where(
         and(
           eq(streamMessages.id, messageId),
           eq(streamMessages.streamId, streamId)
         )
-      )
-      .returning();
-
-    if (deleted.length === 0) {
-      return NextResponse.json({ error: 'Message not found' }, { status: 404 });
-    }
+      );
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

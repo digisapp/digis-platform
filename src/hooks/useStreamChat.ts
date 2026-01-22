@@ -181,10 +181,13 @@ interface UseStreamChatOptions {
   onGuestInvite?: (event: GuestInviteEvent) => void;
 }
 
+export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'failed';
+
 interface UseStreamChatReturn {
   messages: ChatMessage[];
   viewerCount: number;
   isConnected: boolean;
+  connectionState: ConnectionState;
   error: Error | null;
 }
 
@@ -220,6 +223,7 @@ export function useStreamChat({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [error, setError] = useState<Error | null>(null);
 
   // Use refs for callbacks to avoid stale closures
@@ -284,8 +288,50 @@ export function useStreamChat({
       try {
         const ably = getAblyClient();
 
+        // Set up connection state listeners for reconnection handling
+        const handleConnectionStateChange = (stateChange: Ably.ConnectionStateChange) => {
+          if (!mounted) return;
+
+          switch (stateChange.current) {
+            case 'connected':
+              setConnectionState('connected');
+              setIsConnected(true);
+              setError(null);
+              break;
+            case 'connecting':
+              // Check if we were previously connected (reconnecting)
+              if (stateChange.previous === 'disconnected' || stateChange.previous === 'suspended') {
+                setConnectionState('reconnecting');
+              } else {
+                setConnectionState('connecting');
+              }
+              break;
+            case 'disconnected':
+              setConnectionState('disconnected');
+              setIsConnected(false);
+              break;
+            case 'suspended':
+              setConnectionState('disconnected');
+              setIsConnected(false);
+              break;
+            case 'failed':
+              setConnectionState('failed');
+              setIsConnected(false);
+              setError(new Error(stateChange.reason?.message || 'Connection failed'));
+              break;
+            case 'closed':
+              setConnectionState('disconnected');
+              setIsConnected(false);
+              break;
+          }
+        };
+
+        // Subscribe to connection state changes
+        ably.connection.on(handleConnectionStateChange);
+
         // Wait for connection
         if (ably.connection.state !== 'connected') {
+          setConnectionState('connecting');
           await new Promise<void>((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
             ably.connection.once('connected', () => {
@@ -301,6 +347,7 @@ export function useStreamChat({
 
         if (!mounted) return;
         setIsConnected(true);
+        setConnectionState('connected');
 
         // Subscribe to chat channel (messages, reactions, goals)
         chatChannel = ably.channels.get(`stream:${streamId}:chat`);
@@ -417,6 +464,7 @@ export function useStreamChat({
         if (mounted) {
           setError(err instanceof Error ? err : new Error('Unknown error'));
           setIsConnected(false);
+          setConnectionState('failed');
         }
       }
     };
@@ -433,6 +481,14 @@ export function useStreamChat({
           channel.detach().catch(() => {});
         }
       };
+
+      // Cleanup connection state listener
+      try {
+        const ably = getAblyClient();
+        ably.connection.off();
+      } catch {
+        // Ignore if ably client not available
+      }
 
       // Cleanup channels
       if (presenceChannel) {
@@ -462,6 +518,7 @@ export function useStreamChat({
     messages,
     viewerCount,
     isConnected,
+    connectionState,
     error,
   };
 }

@@ -15,6 +15,7 @@ import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { GuestStreamView } from '@/components/streaming/GuestStreamView';
 import { GuestInvitePopup } from '@/components/streaming/GuestInvitePopup';
+import { ConnectionStatusBanner } from '@/components/streaming/ConnectionStatusBanner';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -365,7 +366,7 @@ export default function StreamViewerPageClient() {
   }, [isJoined, streamId]);
 
   // Setup real-time subscriptions with Ably
-  const { viewerCount: ablyViewerCount } = useStreamChat({
+  const { viewerCount: ablyViewerCount, connectionState } = useStreamChat({
     streamId,
     onMessage: (message) => {
       setMessages((prev) => [...prev, message as unknown as StreamMessage]);
@@ -1041,6 +1042,9 @@ export default function StreamViewerPageClient() {
             onMouseLeave={() => setShowControls(false)}
             onClick={() => isMobile && setShowControls(!showControls)}
           >
+            {/* Connection Status Banner */}
+            <ConnectionStatusBanner connectionState={connectionState} />
+
             {/* LiveKit Video - Shows only the broadcaster */}
             {token && serverUrl ? (
               <LiveKitRoom
@@ -1557,6 +1561,7 @@ export default function StreamViewerPageClient() {
                   streamId={streamId}
                   messages={messages}
                   onSendMessage={handleSendMessage}
+                  currentUserId={currentUserId || undefined}
                 />
               </div>
             </div>
@@ -1626,6 +1631,7 @@ export default function StreamViewerPageClient() {
                 streamId={streamId}
                 messages={messages}
                 onSendMessage={handleSendMessage}
+                currentUserId={currentUserId || undefined}
               />
             </div>
           </div>
