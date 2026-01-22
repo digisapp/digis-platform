@@ -193,7 +193,8 @@ export class MessageService {
     senderId: string,
     content: string,
     mediaUrl?: string,
-    mediaType?: string
+    mediaType?: string,
+    replyToId?: string
   ) {
     // Get conversation to determine receiver (outside transaction for validation)
     const conversation = await db.query.conversations.findFirst({
@@ -379,6 +380,7 @@ export class MessageService {
           content,
           mediaUrl,
           mediaType,
+          replyToId,
         })
         .returning();
 
@@ -400,7 +402,7 @@ export class MessageService {
         })
         .where(eq(conversations.id, conversationId));
 
-      // Return message with sender info
+      // Return message with sender info and replyTo
       const messageWithSender = await tx.query.messages.findFirst({
         where: eq(messages.id, message.id),
         with: {
@@ -410,6 +412,25 @@ export class MessageService {
               displayName: true,
               username: true,
               avatarUrl: true,
+            },
+          },
+          replyTo: {
+            columns: {
+              id: true,
+              content: true,
+              senderId: true,
+              messageType: true,
+              mediaUrl: true,
+              mediaType: true,
+            },
+            with: {
+              sender: {
+                columns: {
+                  id: true,
+                  displayName: true,
+                  username: true,
+                },
+              },
             },
           },
         },
@@ -453,6 +474,25 @@ export class MessageService {
             username: true,
             avatarUrl: true,
             role: true,
+          },
+        },
+        replyTo: {
+          columns: {
+            id: true,
+            content: true,
+            senderId: true,
+            messageType: true,
+            mediaUrl: true,
+            mediaType: true,
+          },
+          with: {
+            sender: {
+              columns: {
+                id: true,
+                displayName: true,
+                username: true,
+              },
+            },
           },
         },
       },
@@ -520,6 +560,25 @@ export class MessageService {
             displayName: true,
             username: true,
             avatarUrl: true,
+          },
+        },
+        replyTo: {
+          columns: {
+            id: true,
+            content: true,
+            senderId: true,
+            messageType: true,
+            mediaUrl: true,
+            mediaType: true,
+          },
+          with: {
+            sender: {
+              columns: {
+                id: true,
+                displayName: true,
+                username: true,
+              },
+            },
           },
         },
       },

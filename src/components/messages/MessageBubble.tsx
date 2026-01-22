@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images, Pencil, X } from 'lucide-react';
+import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images, Pencil, X, Reply, CornerUpLeft } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 import { useToastContext } from '@/context/ToastContext';
 
@@ -259,6 +259,20 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
+type ReplyToMessage = {
+  id: string;
+  content: string;
+  senderId: string;
+  messageType: string | null;
+  mediaUrl: string | null;
+  mediaType: string | null;
+  sender?: {
+    id: string;
+    displayName: string | null;
+    username: string | null;
+  };
+};
+
 type Message = {
   id: string;
   content: string;
@@ -275,6 +289,7 @@ type Message = {
   isRead?: boolean;
   readAt?: Date | null;
   isAiGenerated?: boolean;
+  replyTo?: ReplyToMessage | null;
   sender: {
     id: string;
     displayName: string | null;
@@ -293,9 +308,53 @@ interface MessageBubbleProps {
   onUnlock?: (messageId: string) => Promise<void>;
   onDelete?: (messageId: string) => Promise<void>;
   onEdit?: (messageId: string, newContent: string) => Promise<void>;
+  onReply?: (message: Message) => void;
 }
 
-export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, onDelete, onEdit }: MessageBubbleProps) {
+// Quoted message preview component
+function QuotedMessagePreview({ replyTo, isOwnMessage }: { replyTo: ReplyToMessage; isOwnMessage: boolean }) {
+  const senderName = replyTo.sender?.displayName || replyTo.sender?.username || 'Unknown';
+  const hasMedia = replyTo.mediaUrl && replyTo.mediaType;
+
+  // Truncate content for preview
+  const previewContent = replyTo.content.length > 100
+    ? replyTo.content.substring(0, 100) + '...'
+    : replyTo.content;
+
+  return (
+    <div className={`mb-2 pl-3 border-l-2 ${isOwnMessage ? 'border-white/40' : 'border-cyan-400/60'} rounded-r-lg bg-white/5 py-2 pr-3`}>
+      <div className="flex items-center gap-1.5 mb-1">
+        <CornerUpLeft className="w-3 h-3 text-gray-400" />
+        <span className="text-xs font-medium text-cyan-400">{senderName}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {hasMedia && (
+          <div className="flex-shrink-0">
+            {replyTo.mediaType === 'image' || replyTo.mediaType === 'photo' ? (
+              <ImageIcon className="w-4 h-4 text-gray-400" />
+            ) : replyTo.mediaType === 'video' ? (
+              <Play className="w-4 h-4 text-gray-400" />
+            ) : (
+              <span className="text-gray-400 text-xs">🎤</span>
+            )}
+          </div>
+        )}
+        <p className="text-xs text-gray-400 truncate">
+          {hasMedia && !previewContent ? (
+            <span className="italic">
+              {replyTo.mediaType === 'image' || replyTo.mediaType === 'photo' ? 'Photo' :
+               replyTo.mediaType === 'video' ? 'Video' : 'Voice message'}
+            </span>
+          ) : (
+            previewContent || <span className="italic">Message</span>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, onDelete, onEdit, onReply }: MessageBubbleProps) {
   const { showError } = useToastContext();
   const [unlocking, setUnlocking] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -457,6 +516,21 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         title="Edit message"
       >
         <Pencil className="w-4 h-4" />
+      </button>
+    );
+  };
+
+  // Reply button component
+  const ReplyButton = () => {
+    if (!onReply || message.messageType === 'system') return null;
+
+    return (
+      <button
+        onClick={() => onReply(message)}
+        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-all"
+        title="Reply"
+      >
+        <Reply className="w-4 h-4" />
       </button>
     );
   };
@@ -816,6 +890,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
           <div className="flex items-center gap-1">
             <DeleteButton />
             <EditButton />
+            <ReplyButton />
             <div className="relative">
               <ReactionButton />
               <ReactionPicker
@@ -829,6 +904,11 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
           </div>
         )}
         <div className="max-w-[70%]">
+          {/* Show quoted message if this is a reply */}
+          {message.replyTo && (
+            <QuotedMessagePreview replyTo={message.replyTo} isOwnMessage={isOwnMessage} />
+          )}
+
           {message.mediaUrl && (
             <div className="mb-2 rounded-lg overflow-hidden">
               {message.mediaType === 'image' || message.mediaType === 'photo' ? (
@@ -929,6 +1009,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         </div>
         {!isOwnMessage && (
           <div className="flex items-center gap-1">
+            <ReplyButton />
             <div className="relative">
               <ReactionButton />
               <ReactionPicker

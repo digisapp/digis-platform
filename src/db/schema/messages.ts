@@ -74,12 +74,16 @@ export const messages = pgTable('messages', {
   // AI-generated message flag
   isAiGenerated: boolean('is_ai_generated').default(false).notNull(),
 
+  // Reply/quote support
+  replyToId: uuid('reply_to_id').references((): any => messages.id, { onDelete: 'set null' }),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   conversationIdx: index('messages_conversation_id_idx').on(table.conversationId, table.createdAt),
   senderIdx: index('messages_sender_id_idx').on(table.senderId),
   lockedIdx: index('messages_locked_idx').on(table.isLocked, table.unlockedAt),
+  replyToIdx: index('messages_reply_to_id_idx').on(table.replyToId),
 }));
 
 // Message Requests table
@@ -182,6 +186,11 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   tipTransaction: one(walletTransactions, {
     fields: [messages.tipTransactionId],
     references: [walletTransactions.id],
+  }),
+  replyTo: one(messages, {
+    fields: [messages.replyToId],
+    references: [messages.id],
+    relationName: 'replyTo',
   }),
 }));
 

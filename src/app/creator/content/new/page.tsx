@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Upload, Grid3x3, Coins, Lock, Eye, Plus, X, Image, Video } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { generateVideoThumbnail, ThumbnailResult } from '@/lib/utils/video-thumbnail';
 
 type ContentType = 'photo' | 'video' | 'gallery';
 
@@ -57,6 +58,8 @@ export default function CreateContentPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [previews, setPreviews] = useState<string[]>([]);
   const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [videoThumbnail, setVideoThumbnail] = useState<ThumbnailResult | null>(null);
+  const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
 
   // Extract video duration from file
   const getVideoDuration = (file: File): Promise<number> => {
@@ -96,6 +99,18 @@ export default function CreateContentPage() {
       const duration = await getVideoDuration(firstFile);
       setVideoDuration(duration);
       setPreviews([]);
+
+      // Generate video thumbnail
+      setGeneratingThumbnail(true);
+      try {
+        const thumbnail = await generateVideoThumbnail(firstFile);
+        setVideoThumbnail(thumbnail);
+      } catch (err) {
+        console.error('Failed to generate video thumbnail:', err);
+        // Continue without thumbnail - will use video URL as fallback
+      } finally {
+        setGeneratingThumbnail(false);
+      }
     } else if (fileArray.length === 1) {
       // Single image - photo mode
       setFormData({ ...formData, contentType: 'photo', file: firstFile, files: [] });
@@ -171,6 +186,7 @@ export default function CreateContentPage() {
     setPreview(null);
     setPreviews([]);
     setVideoDuration(0);
+    setVideoThumbnail(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -221,6 +237,28 @@ export default function CreateContentPage() {
 
         const { data: { publicUrl } } = supabase.storage.from('content').getPublicUrl(fileName);
 
+        // Upload video thumbnail if we have one
+        let thumbnailUrl = publicUrl; // Fallback to video URL
+        if (videoThumbnail) {
+          try {
+            const thumbnailFormData = new FormData();
+            thumbnailFormData.append('file', videoThumbnail.blob, `thumbnail-${Date.now()}.jpg`);
+
+            const thumbResponse = await fetch('/api/upload/thumbnail', {
+              method: 'POST',
+              body: thumbnailFormData,
+            });
+
+            if (thumbResponse.ok) {
+              const thumbResult = await thumbResponse.json();
+              thumbnailUrl = thumbResult.data?.url || thumbnailUrl;
+            }
+          } catch (thumbError) {
+            console.error('Failed to upload thumbnail:', thumbError);
+            // Continue with video URL as thumbnail
+          }
+        }
+
         const response = await fetch('/api/content/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -229,7 +267,7 @@ export default function CreateContentPage() {
             description: formData.description || '',
             contentType: formData.contentType,
             unlockPrice: formData.isFree ? 0 : formData.unlockPrice,
-            thumbnailUrl: publicUrl,
+            thumbnailUrl,
             mediaUrl: publicUrl,
             durationSeconds: videoDuration,
           }),
@@ -379,7 +417,30 @@ export default function CreateContentPage() {
                 </div>
                 <div className="relative">
                   {formData.contentType === 'video' ? (
-                    <video src={preview} controls className="w-full rounded-xl max-h-96 object-contain bg-black" />
+                    <div className="space-y-3">
+                      <video src={preview} controls className="w-full rounded-xl max-h-96 object-contain bg-black" />
+                      {/* Thumbnail preview */}
+                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                        <span className="text-sm text-gray-400">Thumbnail:</span>
+                        {generatingThumbnail ? (
+                          <div className="flex items-center gap-2">
+                            <LoadingSpinner size="sm" />
+                            <span className="text-sm text-gray-300">Generating...</span>
+                          </div>
+                        ) : videoThumbnail ? (
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={videoThumbnail.dataUrl}
+                              alt="Video thumbnail"
+                              className="w-16 h-10 rounded object-cover"
+                            />
+                            <span className="text-sm text-green-400">Generated</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">Will use video preview</span>
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <img src={preview} alt="Preview" className="w-full rounded-xl max-h-96 object-contain" />
                   )}
@@ -499,13 +560,13 @@ export default function CreateContentPage() {
             <GlassButton
               type="submit"
               variant="gradient"
-              disabled={uploading || !formData.title || !hasContent}
+              disabled={uploading || generatingThumbnail || !formData.title || !hasContent}
               shimmer
               className="w-full"
               size="lg"
             >
               <span className="text-white font-semibold">
-                {uploading ? 'Publishing...' : 'Publish'}
+                {uploading ? 'Publishing...' : generatingThumbnail ? 'Generating thumbnail...' : 'Publish'}
               </span>
             </GlassButton>
           </div>

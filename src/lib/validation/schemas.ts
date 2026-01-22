@@ -101,6 +101,7 @@ export const sendMessageSchema = z.object({
     .max(2000, 'Message too long'),
   mediaUrl: z.string().url().optional(),
   mediaType: z.enum(['image', 'video', 'audio']).optional(),
+  replyToId: uuidSchema.optional(), // Reply/quote a previous message
 });
 
 export const broadcastMessageSchema = z.object({

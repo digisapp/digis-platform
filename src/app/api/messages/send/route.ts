@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { recipientId, content, mediaUrl, mediaType } = validation.data;
+    const { recipientId, content, mediaUrl, mediaType, replyToId } = validation.data;
 
     // Get or create conversation
     const conversation = await MessageService.getOrCreateConversation(
@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
       user.id,
       content,
       mediaUrl,
-      mediaType
+      mediaType,
+      replyToId
     );
 
     // Check if recipient has AI text chat enabled and auto-respond
