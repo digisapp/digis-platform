@@ -1,11 +1,13 @@
 'use client';
 
-import { HTMLAttributes, forwardRef } from 'react';
+import { HTMLAttributes, forwardRef, AriaRole } from 'react';
 
 interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
   glow?: 'cyan' | 'pink' | 'purple' | 'none';
   hover?: boolean;
   padding?: 'sm' | 'md' | 'lg';
+  /** Semantic role for accessibility - defaults to 'region' if aria-label provided */
+  as?: 'article' | 'section' | 'div';
 }
 
 export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
@@ -15,6 +17,8 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
     padding = 'md',
     className = '',
     children,
+    as = 'div',
+    'aria-label': ariaLabel,
     ...props
   }, ref) => {
     const baseClasses = 'glass rounded-2xl border-2 border-transparent transition-all duration-300';
@@ -33,14 +37,20 @@ export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
       none: 'hover:border-white/20',
     };
 
+    const Component = as;
+    // Add role="region" when aria-label is provided for better screen reader support
+    const role: AriaRole | undefined = ariaLabel && as === 'div' ? 'region' : undefined;
+
     return (
-      <div
+      <Component
         ref={ref}
+        role={role}
+        aria-label={ariaLabel}
         className={`${baseClasses} ${hoverClass} ${paddingClasses[padding]} ${glowClasses[glow]} ${className}`}
         {...props}
       >
         {children}
-      </div>
+      </Component>
     );
   }
 );

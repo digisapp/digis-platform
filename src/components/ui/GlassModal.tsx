@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useId, useCallback } from 'react';
 
 interface GlassModalProps {
   isOpen: boolean;
@@ -9,9 +9,20 @@ interface GlassModalProps {
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg';
   transparentBackdrop?: boolean; // For streaming - keeps background visible
+  /** Custom aria-label when no title is provided */
+  ariaLabel?: string;
 }
 
-export function GlassModal({ isOpen, onClose, title, children, size = 'md', transparentBackdrop = false }: GlassModalProps) {
+export function GlassModal({ isOpen, onClose, title, children, size = 'md', transparentBackdrop = false, ariaLabel }: GlassModalProps) {
+  const titleId = useId();
+
+  // Handle Escape key to close modal
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen) {
       // Prevent body scroll and fix position to prevent jump on mobile
@@ -20,6 +31,9 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md', tran
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
+
+      // Add escape key listener
+      document.addEventListener('keydown', handleKeyDown);
     } else {
       // Restore scroll position
       const scrollY = document.body.style.top;
@@ -36,8 +50,9 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md', tran
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
 
@@ -48,7 +63,10 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md', tran
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 overflow-y-auto"
+      role="presentation"
+    >
       {/* Backdrop - covers ENTIRE screen including sidebar */}
       <div
         className={`absolute top-0 left-0 right-0 bottom-0 ${
@@ -57,19 +75,32 @@ export function GlassModal({ isOpen, onClose, title, children, size = 'md', tran
             : 'bg-black/70 backdrop-blur-md'
         }`}
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal - Futuristic Glass Dark Theme */}
-      <div className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[calc(100dvh-160px)] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-label={!title ? ariaLabel : undefined}
+        className={`relative backdrop-blur-2xl bg-gradient-to-br from-black/80 via-gray-900/90 to-black/80 rounded-3xl w-full ${sizeClasses[size]} max-h-[calc(100dvh-160px)] sm:max-h-[90vh] flex flex-col border-2 border-cyan-500/30 shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-fadeIn mx-auto`}
+      >
         {/* Header */}
         {title && (
           <div className="px-6 py-4 border-b border-cyan-500/20 flex items-center justify-between relative flex-shrink-0">
-            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">{title}</h2>
+            <h2
+              id={titleId}
+              className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent"
+            >
+              {title}
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+              aria-label="Close modal"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

@@ -5,9 +5,11 @@ import Image from 'next/image';
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Custom loading message for screen readers */
+  label?: string;
 }
 
-export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = 'md', className = '', label = 'Loading' }: LoadingSpinnerProps) {
   const logoSizes = {
     sm: { width: 30, height: 10 },
     md: { width: 45, height: 15 },
@@ -15,14 +17,21 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
   };
 
   return (
-    <div className={`animate-breathe ${className}`}>
+    <div
+      className={`animate-breathe ${className}`}
+      role="status"
+      aria-live="polite"
+      aria-label={label}
+    >
       <Image
         src="/images/digis-logo-white.png"
-        alt="Loading"
+        alt=""
+        aria-hidden="true"
         width={logoSizes[size].width}
         height={logoSizes[size].height}
         className="w-auto h-auto drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]"
       />
+      <span className="sr-only">{label}</span>
       <style jsx>{`
         @keyframes breathe {
           0%, 100% {

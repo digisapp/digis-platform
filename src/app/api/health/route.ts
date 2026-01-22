@@ -1,167 +1,81 @@
 import { NextResponse } from 'next/server';
-import { sql } from 'drizzle-orm';
-import { getDb } from '@/db';
+import { db } from '@/lib/data/system';
 import { redis } from '@/lib/redis';
+import { sql } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-interface HealthCheck {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+type ServiceStatus = 'healthy' | 'degraded' | 'unhealthy';
+
+interface HealthCheckResult {
+  status: ServiceStatus;
   timestamp: string;
   version: string;
-  checks: {
-    database: ComponentHealth;
-    redis: ComponentHealth;
-    ably: ComponentHealth;
+  uptime: number;
+  services: {
+    database: { status: ServiceStatus; latencyMs?: number; error?: string };
+    redis: { status: ServiceStatus; latencyMs?: number; error?: string };
   };
-  responseTimeMs: number;
-}
-
-interface ComponentHealth {
-  status: 'up' | 'down' | 'degraded';
-  latencyMs?: number;
-  error?: string;
 }
 
 /**
- * Health check endpoint for monitoring and alerting
- *
- * Returns:
- * - 200: All systems healthy
- * - 503: One or more critical systems down
- *
- * Usage:
- * - Uptime monitoring: GET /api/health
- * - Load balancer health checks
- * - Kubernetes liveness/readiness probes
+ * Health check endpoint for monitoring
+ * GET /api/health - Returns overall system health status
  */
 export async function GET() {
   const startTime = Date.now();
-
-  const checks: HealthCheck['checks'] = {
-    database: { status: 'down' },
-    redis: { status: 'down' },
-    ably: { status: 'down' },
-  };
-
-  // Check Database (PostgreSQL via Drizzle)
-  const dbStart = Date.now();
-  try {
-    const db = getDb();
-    await db.execute(sql`SELECT 1 as health_check`);
-    checks.database = {
-      status: 'up',
-      latencyMs: Date.now() - dbStart,
-    };
-  } catch (error) {
-    checks.database = {
-      status: 'down',
-      latencyMs: Date.now() - dbStart,
-      error: error instanceof Error ? error.message : 'Database connection failed',
-    };
-  }
-
-  // Check Redis (Upstash)
-  const redisStart = Date.now();
-  try {
-    const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-    if (!redisUrl) {
-      checks.redis = {
-        status: 'down',
-        error: 'Redis not configured',
-      };
-    } else {
-      // Simple ping test
-      await redis.ping();
-      checks.redis = {
-        status: 'up',
-        latencyMs: Date.now() - redisStart,
-      };
-    }
-  } catch (error) {
-    checks.redis = {
-      status: 'down',
-      latencyMs: Date.now() - redisStart,
-      error: error instanceof Error ? error.message : 'Redis connection failed',
-    };
-  }
-
-  // Check Ably
-  const ablyStart = Date.now();
-  try {
-    const ablyKey = process.env.ABLY_API_KEY;
-    if (!ablyKey) {
-      checks.ably = {
-        status: 'down',
-        error: 'Ably not configured',
-      };
-    } else {
-      // Extract key ID from API key (format: keyId.keySecret)
-      const keyId = ablyKey.split('.')[0];
-
-      // Quick REST API check - get app stats (lightweight)
-      const response = await fetch(`https://rest.ably.io/time`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${Buffer.from(ablyKey).toString('base64')}`,
-        },
-        signal: AbortSignal.timeout(3000), // 3 second timeout
-      });
-
-      if (response.ok) {
-        checks.ably = {
-          status: 'up',
-          latencyMs: Date.now() - ablyStart,
-        };
-      } else {
-        checks.ably = {
-          status: 'degraded',
-          latencyMs: Date.now() - ablyStart,
-          error: `Ably returned ${response.status}`,
-        };
-      }
-    }
-  } catch (error) {
-    checks.ably = {
-      status: 'down',
-      latencyMs: Date.now() - ablyStart,
-      error: error instanceof Error ? error.message : 'Ably connection failed',
-    };
-  }
-
-  // Determine overall status
-  const allUp = Object.values(checks).every(c => c.status === 'up');
-  const anyDown = Object.values(checks).some(c => c.status === 'down');
-
-  // Database is critical - if it's down, the whole system is unhealthy
-  const databaseCritical = checks.database.status === 'down';
-
-  let overallStatus: HealthCheck['status'];
-  if (databaseCritical || anyDown) {
-    overallStatus = 'unhealthy';
-  } else if (!allUp) {
-    overallStatus = 'degraded';
-  } else {
-    overallStatus = 'healthy';
-  }
-
-  const healthResponse: HealthCheck = {
-    status: overallStatus,
+  const result: HealthCheckResult = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '0.1.0',
-    checks,
-    responseTimeMs: Date.now() - startTime,
+    version: process.env.npm_package_version || '1.0.0',
+    uptime: process.uptime(),
+    services: {
+      database: { status: 'healthy' },
+      redis: { status: 'healthy' },
+    },
   };
 
-  // Return 503 if critical services are down
-  const httpStatus = overallStatus === 'unhealthy' ? 503 : 200;
+  // Check database health
+  try {
+    const dbStart = Date.now();
+    await Promise.race([
+      db.execute(sql`SELECT 1`),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database timeout')), 5000)
+      ),
+    ]);
+    result.services.database.latencyMs = Date.now() - dbStart;
+  } catch (error) {
+    result.services.database.status = 'unhealthy';
+    result.services.database.error = error instanceof Error ? error.message : 'Unknown error';
+    result.status = 'degraded';
+  }
 
-  return NextResponse.json(healthResponse, {
-    status: httpStatus,
-    headers: {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'X-Health-Status': overallStatus,
-    },
-  });
+  // Check Redis health
+  try {
+    const redisStart = Date.now();
+    await Promise.race([
+      redis.ping(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Redis timeout')), 3000)
+      ),
+    ]);
+    result.services.redis.latencyMs = Date.now() - redisStart;
+  } catch (error) {
+    result.services.redis.status = 'unhealthy';
+    result.services.redis.error = error instanceof Error ? error.message : 'Unknown error';
+    result.status = 'degraded';
+  }
+
+  // If all services are unhealthy, mark overall as unhealthy
+  const allUnhealthy = Object.values(result.services).every(s => s.status === 'unhealthy');
+  if (allUnhealthy) {
+    result.status = 'unhealthy';
+  }
+
+  // Return appropriate status code
+  const statusCode = result.status === 'healthy' ? 200 : result.status === 'degraded' ? 200 : 503;
+
+  return NextResponse.json(result, { status: statusCode });
 }
