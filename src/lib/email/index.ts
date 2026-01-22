@@ -39,11 +39,11 @@ export {
 
 // Creator invite campaigns
 export {
-  sendCreatorInviteEmail,
-  sendBulkCreatorInvites,
+  sendCreatorInvite,
+  sendBatchInvites,
 } from './creator-invite-campaign';
 
 // Creator earnings reports
 export {
-  sendEarningsReport,
+  sendCreatorEarningsEmail,
 } from './creator-earnings';
