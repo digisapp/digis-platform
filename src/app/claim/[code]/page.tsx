@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Eye, EyeOff, Instagram, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, EyeOff, Instagram, Mail, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -185,25 +185,18 @@ export default function ClaimInvitePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] p-4">
       <div className="max-w-md w-full">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/">
-            <Image
-              src="/digis-logo.svg"
-              alt="Digis"
-              width={120}
-              height={40}
-              className="mx-auto mb-4"
-            />
-          </Link>
-        </div>
-
         {/* Welcome Card */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-6">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-cyan-400" />
-            </div>
+            <Link href="/" className="inline-block mb-4">
+              <Image
+                src="/images/digis-logo-white.png"
+                alt="Digis"
+                width={120}
+                height={40}
+                className="mx-auto"
+              />
+            </Link>
             <h1 className="text-2xl font-bold text-white mb-2">
               Welcome, {invite?.displayName || `@${invite?.instagramHandle}`}!
             </h1>
