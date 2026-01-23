@@ -110,8 +110,8 @@ const limiters = {
 
 // Map buckets to limiters
 const bucketToLimiter: Record<string, keyof typeof limiters> = {
-  // CRITICAL: Money operations
-  'wallet:balance': 'critical',
+  // CRITICAL: Money operations (balance is read-only, use generous)
+  'wallet:balance': 'generous',
   'wallet:checkout': 'critical',
   'wallet:purchase': 'critical',
   'stripe:checkout': 'critical',

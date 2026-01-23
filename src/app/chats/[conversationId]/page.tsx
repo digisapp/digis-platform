@@ -100,8 +100,15 @@ export default function ChatPage() {
   const lastTypingSentRef = useRef<number>(0);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Prevent duplicate API calls
+  const fetchingBalanceRef = useRef(false);
+  const fetchingMessagesRef = useRef(false);
+  const fetchingConversationRef = useRef(false);
+
   // Fetch user balance for paid messaging
   const fetchUserBalance = async () => {
+    if (fetchingBalanceRef.current) return;
+    fetchingBalanceRef.current = true;
     try {
       const response = await fetch('/api/wallet/balance');
       if (response.ok) {
@@ -110,6 +117,8 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
+    } finally {
+      fetchingBalanceRef.current = false;
     }
   };
 
@@ -299,6 +308,8 @@ export default function ChatPage() {
   };
 
   const fetchConversation = async () => {
+    if (fetchingConversationRef.current) return;
+    fetchingConversationRef.current = true;
     try {
       // Use dedicated endpoint to fetch single conversation directly
       // This is more reliable than fetching all conversations and filtering
@@ -328,6 +339,8 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error fetching conversation:', error);
+    } finally {
+      fetchingConversationRef.current = false;
     }
   };
 
@@ -353,6 +366,8 @@ export default function ChatPage() {
   };
 
   const fetchMessages = async () => {
+    if (fetchingMessagesRef.current) return;
+    fetchingMessagesRef.current = true;
     try {
       // Use cursor-based pagination for better reliability
       const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&useCursor=true`);
@@ -411,6 +426,7 @@ export default function ChatPage() {
       console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
+      fetchingMessagesRef.current = false;
     }
   };
 
