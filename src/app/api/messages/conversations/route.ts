@@ -35,8 +35,14 @@ export async function GET() {
         }
       );
 
-      // Filter out conversations with null otherUser (edge case where user was deleted)
-      const validConversations = conversations.filter(c => c.otherUser !== null && c.otherUser !== undefined);
+      // Filter out:
+      // 1. Conversations with null otherUser (edge case where user was deleted)
+      // 2. Conversations with no messages (empty conversations that were auto-created)
+      const validConversations = conversations.filter(c =>
+        c.otherUser !== null &&
+        c.otherUser !== undefined &&
+        c.lastMessageAt !== null // Only show conversations that have at least one message
+      );
 
       return NextResponse.json(
         success(validConversations, requestId),
