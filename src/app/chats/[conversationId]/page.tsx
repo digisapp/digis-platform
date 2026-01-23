@@ -122,6 +122,20 @@ export default function ChatPage() {
     }
   };
 
+  // Reset state when conversation changes
+  useEffect(() => {
+    // Reset refs to allow new fetches when switching conversations
+    fetchingBalanceRef.current = false;
+    fetchingMessagesRef.current = false;
+    fetchingConversationRef.current = false;
+    // Reset messages state for new conversation
+    setMessages([]);
+    setLoading(true);
+    setConversation(null);
+    isInitialLoadRef.current = true;
+    costFetchedRef.current = false;
+  }, [conversationId]);
+
   useEffect(() => {
     checkAuth();
     fetchConversation();
