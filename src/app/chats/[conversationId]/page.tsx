@@ -100,15 +100,8 @@ export default function ChatPage() {
   const lastTypingSentRef = useRef<number>(0);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Prevent duplicate API calls
-  const fetchingBalanceRef = useRef(false);
-  const fetchingMessagesRef = useRef(false);
-  const fetchingConversationRef = useRef(false);
-
   // Fetch user balance for paid messaging
   const fetchUserBalance = async () => {
-    if (fetchingBalanceRef.current) return;
-    fetchingBalanceRef.current = true;
     try {
       const response = await fetch('/api/wallet/balance');
       if (response.ok) {
@@ -117,18 +110,12 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
-    } finally {
-      fetchingBalanceRef.current = false;
     }
   };
 
   // Reset state when conversation changes
   useEffect(() => {
-    // Reset refs to allow new fetches when switching conversations
-    fetchingBalanceRef.current = false;
-    fetchingMessagesRef.current = false;
-    fetchingConversationRef.current = false;
-    // Reset messages state for new conversation
+    // Reset state for new conversation
     setMessages([]);
     setLoading(true);
     setConversation(null);
@@ -322,13 +309,12 @@ export default function ChatPage() {
   };
 
   const fetchConversation = async () => {
-    if (fetchingConversationRef.current) return;
-    fetchingConversationRef.current = true;
     try {
       // Use dedicated endpoint to fetch single conversation directly
       // This is more reliable than fetching all conversations and filtering
       const response = await fetch(`/api/messages/conversations/${conversationId}/details`);
       const data = await response.json();
+      console.log('[Chat] Conversation response:', { ok: response.ok, hasConversation: !!data.conversation });
 
       if (response.ok && data.conversation) {
         const conv = data.conversation;
@@ -353,8 +339,6 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error fetching conversation:', error);
-    } finally {
-      fetchingConversationRef.current = false;
     }
   };
 
@@ -380,8 +364,6 @@ export default function ChatPage() {
   };
 
   const fetchMessages = async () => {
-    if (fetchingMessagesRef.current) return;
-    fetchingMessagesRef.current = true;
     console.log('[Chat] Fetching messages for conversation:', conversationId);
     try {
       // Use cursor-based pagination for better reliability
@@ -451,7 +433,6 @@ export default function ChatPage() {
       console.error('Error fetching messages:', error);
     } finally {
       setLoading(false);
-      fetchingMessagesRef.current = false;
     }
   };
 
