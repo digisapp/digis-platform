@@ -300,29 +300,28 @@ export default function ChatPage() {
 
   const fetchConversation = async () => {
     try {
-      const response = await fetch('/api/messages/conversations');
+      // Use dedicated endpoint to fetch single conversation directly
+      // This is more reliable than fetching all conversations and filtering
+      const response = await fetch(`/api/messages/conversations/${conversationId}/details`);
       const data = await response.json();
 
-      if (response.ok) {
-        const conversations = data.data || data.conversations || [];
-        const conv = conversations.find((c: any) => c.id === conversationId);
-        if (conv) {
-          setConversation(conv);
+      if (response.ok && data.conversation) {
+        const conv = data.conversation;
+        setConversation(conv);
 
-          // Set cost info from conversation data (already includes messageCharge)
-          if (!costFetchedRef.current && conv.otherUser?.id) {
-            const isCreator = conv.otherUser?.role === 'creator';
-            if (isCreator) {
-              setRecipientIsCreator(true);
-              // Use messageCharge from conversation if available, otherwise fetch it
-              if (typeof conv.otherUser.messageCharge === 'number') {
-                costFetchedRef.current = true;
-                setCostPerMessage(conv.otherUser.messageCharge);
-                console.log('[Chat] Got creator rate from conversation:', conv.otherUser.messageCharge);
-              } else {
-                // Fallback: fetch the rate directly from the dedicated API
-                fetchCreatorRate(conv.otherUser.id);
-              }
+        // Set cost info from conversation data (already includes messageCharge)
+        if (!costFetchedRef.current && conv.otherUser?.id) {
+          const isCreator = conv.otherUser?.role === 'creator';
+          if (isCreator) {
+            setRecipientIsCreator(true);
+            // Use messageCharge from conversation if available, otherwise fetch it
+            if (typeof conv.otherUser.messageCharge === 'number') {
+              costFetchedRef.current = true;
+              setCostPerMessage(conv.otherUser.messageCharge);
+              console.log('[Chat] Got creator rate from conversation:', conv.otherUser.messageCharge);
+            } else {
+              // Fallback: fetch the rate directly from the dedicated API
+              fetchCreatorRate(conv.otherUser.id);
             }
           }
         }

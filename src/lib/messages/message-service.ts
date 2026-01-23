@@ -731,6 +731,77 @@ export class MessageService {
   }
 
   /**
+   * Get a single conversation by ID with the other user's details
+   * This is more efficient than fetching all conversations and filtering
+   */
+  static async getConversationById(conversationId: string, userId: string) {
+    const conv = await db.query.conversations.findFirst({
+      where: and(
+        eq(conversations.id, conversationId),
+        or(
+          eq(conversations.user1Id, userId),
+          eq(conversations.user2Id, userId)
+        )
+      ),
+      with: {
+        user1: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+            role: true,
+          },
+        },
+        user2: {
+          columns: {
+            id: true,
+            displayName: true,
+            username: true,
+            avatarUrl: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!conv) {
+      return null;
+    }
+
+    // Determine other user and get their message rate
+    const isUser1 = conv.user1Id === userId;
+    const otherUser = isUser1 ? conv.user2 : conv.user1;
+
+    // Fetch message rate for the other user if they're a creator
+    let messageCharge = 0;
+    if (otherUser) {
+      const settings = await db.query.creatorSettings.findFirst({
+        where: eq(creatorSettings.userId, otherUser.id),
+        columns: { messageRate: true },
+      });
+      messageCharge = settings?.messageRate || 0;
+    }
+
+    const unreadCount = isUser1 ? conv.user1UnreadCount : conv.user2UnreadCount;
+    const isArchived = isUser1 ? conv.user1Archived : conv.user2Archived;
+    const isPinned = isUser1 ? conv.user1Pinned : conv.user2Pinned;
+
+    return {
+      id: conv.id,
+      otherUser: otherUser ? {
+        ...otherUser,
+        messageCharge,
+      } : null,
+      unreadCount,
+      isArchived,
+      isPinned,
+      lastMessageAt: conv.lastMessageAt,
+      lastMessageText: conv.lastMessageText,
+    };
+  }
+
+  /**
    * Create a message request
    */
   static async createMessageRequest(
