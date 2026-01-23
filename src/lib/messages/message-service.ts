@@ -476,17 +476,6 @@ export class MessageService {
             role: true,
           },
         },
-        // Simplified replyTo - removed nested sender to avoid query issues
-        replyTo: {
-          columns: {
-            id: true,
-            content: true,
-            senderId: true,
-            messageType: true,
-            mediaUrl: true,
-            mediaType: true,
-          },
-        },
       },
     });
   }
@@ -552,17 +541,6 @@ export class MessageService {
             displayName: true,
             username: true,
             avatarUrl: true,
-          },
-        },
-        // Simplified replyTo - removed nested sender to avoid self-referential query issues
-        replyTo: {
-          columns: {
-            id: true,
-            content: true,
-            senderId: true,
-            messageType: true,
-            mediaUrl: true,
-            mediaType: true,
           },
         },
       },
