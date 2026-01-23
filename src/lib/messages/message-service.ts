@@ -476,6 +476,7 @@ export class MessageService {
             role: true,
           },
         },
+        // Simplified replyTo - removed nested sender to avoid query issues
         replyTo: {
           columns: {
             id: true,
@@ -484,15 +485,6 @@ export class MessageService {
             messageType: true,
             mediaUrl: true,
             mediaType: true,
-          },
-          with: {
-            sender: {
-              columns: {
-                id: true,
-                displayName: true,
-                username: true,
-              },
-            },
           },
         },
       },
