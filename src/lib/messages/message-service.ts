@@ -448,10 +448,12 @@ export class MessageService {
    * Requires userId to verify participation
    */
   static async getMessages(conversationId: string, userId: string, limit: number = 50, offset: number = 0) {
-    // Verify user is a participant in this conversation
-    const conversation = await db.query.conversations.findFirst({
-      where: eq(conversations.id, conversationId),
-    });
+    // Verify user is a participant in this conversation using simple select
+    const [conversation] = await db
+      .select({ user1Id: conversations.user1Id, user2Id: conversations.user2Id })
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
 
     if (!conversation) {
       throw new Error('Conversation not found');
@@ -549,10 +551,12 @@ export class MessageService {
     direction: 'older' | 'newer' = 'older'
   ) {
     try {
-      // Verify user is a participant in this conversation
-      const conversation = await db.query.conversations.findFirst({
-        where: eq(conversations.id, conversationId),
-      });
+      // Verify user is a participant in this conversation using simple select
+      const [conversation] = await db
+        .select({ user1Id: conversations.user1Id, user2Id: conversations.user2Id })
+        .from(conversations)
+        .where(eq(conversations.id, conversationId))
+        .limit(1);
 
       if (!conversation) {
         throw new Error('Conversation not found');
