@@ -4,12 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
-// Redirect /streams to /live - all live content is now in one place
+// Redirect /streams to /watch - all streaming content is now in the Watch hub
 export default function StreamsRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/live');
+    router.replace('/watch');
   }, [router]);
 
   return (

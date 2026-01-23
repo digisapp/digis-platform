@@ -218,7 +218,7 @@ function FanDashboard() {
                   </span>
                 </div>
                 <Link
-                  href="/live"
+                  href="/watch"
                   className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
                 >
                   See All <ChevronRight className="w-4 h-4" />

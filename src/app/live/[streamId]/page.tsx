@@ -1288,7 +1288,7 @@ export default function TheaterModePage() {
             {error || 'Stream not found'}
           </h1>
           <button
-            onClick={() => router.push('/live')}
+            onClick={() => router.push('/watch')}
             className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
           >
             Browse Live Streams
@@ -1413,7 +1413,7 @@ export default function TheaterModePage() {
                       View Creator Profile
                     </button>
                     <button
-                      onClick={() => router.push('/live')}
+                      onClick={() => router.push('/watch')}
                       className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
                     >
                       Browse Live Streams
@@ -2300,7 +2300,7 @@ export default function TheaterModePage() {
                 View Creator Profile
               </button>
               <button
-                onClick={() => router.push('/live')}
+                onClick={() => router.push('/watch')}
                 className="w-full px-6 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all text-lg"
               >
                 Browse Live Streams

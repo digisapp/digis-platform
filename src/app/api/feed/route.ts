@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     // Fetch data in parallel
     const [
       liveFromFollowing,
+      discoverLive,
       upcomingFromFollowing,
       recentContent,
       suggestedCreators,
@@ -52,6 +53,32 @@ export async function GET(request: NextRequest) {
         orderBy: [desc(streams.currentViewers)],
         limit: 10,
       }) : Promise.resolve([]),
+
+      // Discover Live - Live streams from creators user doesn't follow (max 4)
+      db.query.streams.findMany({
+        where: and(
+          eq(streams.status, 'live'),
+          // Exclude streams from followed creators
+          hasFollowing
+            ? sql`${streams.creatorId} NOT IN (${sql.join(followedIds.map(id => sql`${id}`), sql`, `)})`
+            : sql`1=1`,
+          // Exclude own streams
+          sql`${streams.creatorId} != ${user.id}`
+        ),
+        with: {
+          creator: {
+            columns: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatarUrl: true,
+              primaryCategory: true,
+            },
+          },
+        },
+        orderBy: [desc(streams.currentViewers)],
+        limit: 4,
+      }),
 
       // Upcoming shows from followed creators
       hasFollowing ? db.query.shows.findMany({
@@ -155,6 +182,15 @@ export async function GET(request: NextRequest) {
         thumbnailUrl: stream.thumbnailUrl,
         viewerCount: stream.currentViewers,
         status: stream.status,
+        creator: stream.creator,
+      })),
+      discoverLive: discoverLive.map(stream => ({
+        id: stream.id,
+        title: stream.title,
+        thumbnailUrl: stream.thumbnailUrl,
+        viewerCount: stream.currentViewers,
+        status: stream.status,
+        category: (stream as any).category,
         creator: stream.creator,
       })),
       upcomingFromFollowing: upcomingFromFollowing.map(show => ({

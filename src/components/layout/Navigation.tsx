@@ -138,7 +138,7 @@ export function Navigation() {
 
     // Prefetch common pages so they load instantly when tapped
     router.prefetch('/explore');
-    router.prefetch('/live');
+    router.prefetch('/watch');
     router.prefetch('/chats');
     router.prefetch('/settings');
     router.prefetch('/wallet');
@@ -330,12 +330,12 @@ export function Navigation() {
       path: userRole === 'admin' ? '/admin' : '/',
       active: isActive('/') || isActive('/dashboard') || isActive('/admin'),
     },
-    // Streams: Always shown (shows suggested creators when no one is live)
+    // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{
-      label: 'Streams',
+      label: 'Watch',
       icon: Video,
-      path: '/live',
-      active: isActive('/live') || isActive('/streams'),
+      path: '/watch',
+      active: isActive('/watch') || isActive('/live') || isActive('/streams'),
     }] : []),
     // Chats is always shown
     {

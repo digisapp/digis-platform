@@ -24,6 +24,16 @@ interface LiveStream {
   creator: Creator;
 }
 
+interface DiscoverLiveStream {
+  id: string;
+  title: string;
+  thumbnailUrl: string | null;
+  viewerCount: number;
+  status: string;
+  category: string | null;
+  creator: Creator & { primaryCategory?: string | null };
+}
+
 interface UpcomingShow {
   id: string;
   title: string;
@@ -68,6 +78,7 @@ export default function FanDashboard() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
   const [liveFromFollowing, setLiveFromFollowing] = useState<LiveStream[]>([]);
+  const [discoverLive, setDiscoverLive] = useState<DiscoverLiveStream[]>([]);
   const [upcomingFromFollowing, setUpcomingFromFollowing] = useState<UpcomingShow[]>([]);
   const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
   const [suggestedCreators, setSuggestedCreators] = useState<SuggestedCreator[]>([]);
@@ -115,6 +126,7 @@ export default function FanDashboard() {
         setIsNewUser(data.isNewUser);
         setFollowingCount(data.followingCount);
         setLiveFromFollowing(data.liveFromFollowing || []);
+        setDiscoverLive(data.discoverLive || []);
         setUpcomingFromFollowing(data.upcomingFromFollowing || []);
         setRecentContent(data.recentContent || []);
         setSuggestedCreators(data.suggestedCreators || []);
@@ -202,7 +214,7 @@ export default function FanDashboard() {
                 <span className="text-xs text-gray-400">from creators you follow</span>
               </div>
               <button
-                onClick={() => router.push('/live')}
+                onClick={() => router.push('/watch')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
@@ -248,6 +260,89 @@ export default function FanDashboard() {
                   {/* Stream Info */}
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0 ring-2 ring-red-500">
+                      {stream.creator.avatarUrl ? (
+                        <img src={stream.creator.avatarUrl} alt={stream.creator.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        <span className="text-white font-bold text-sm">{stream.creator.username?.[0]?.toUpperCase() || '?'}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold text-sm line-clamp-1 mb-1">{stream.title}</h3>
+                      <p className="text-gray-400 text-xs line-clamp-1">{stream.creator.username}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Discover Live - Live creators you don't follow (shows when no followed creators are live or always if there are discover streams) */}
+        {discoverLive.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-purple-500 rounded-full blur opacity-75"></div>
+                  <div className="relative w-3 h-3 bg-purple-500 rounded-full animate-pulse shadow-lg shadow-purple-500/50"></div>
+                </div>
+                <h2 className="text-2xl font-black bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">Discover Live</h2>
+                <span className="text-xs text-gray-400">creators to explore</span>
+              </div>
+              <button
+                onClick={() => router.push('/watch')}
+                className="text-sm text-purple-400 hover:text-purple-300 transition-colors font-semibold"
+              >
+                View all →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {discoverLive.map((stream) => (
+                <div
+                  key={stream.id}
+                  onClick={() => router.push(`/live/${stream.creator.username}`)}
+                  className="group cursor-pointer"
+                >
+                  <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 mb-3 border-2 border-purple-500/30 hover:border-purple-500/60 transition-all">
+                    {stream.thumbnailUrl ? (
+                      <img
+                        src={stream.thumbnailUrl}
+                        alt={stream.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                        <Play className="w-12 h-12 text-purple-400" />
+                      </div>
+                    )}
+
+                    {/* Live Badge */}
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      LIVE
+                    </div>
+
+                    {/* Viewer Count */}
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      {stream.viewerCount}
+                    </div>
+
+                    {/* Category Badge */}
+                    {stream.category && (
+                      <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-medium bg-purple-500/80 text-white">
+                        {getCategoryLabel(stream.category)}
+                      </div>
+                    )}
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+
+                  {/* Stream Info */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 ring-2 ring-purple-500/50">
                       {stream.creator.avatarUrl ? (
                         <img src={stream.creator.avatarUrl} alt={stream.creator.username} className="w-full h-full rounded-full object-cover" />
                       ) : (
@@ -346,7 +441,7 @@ export default function FanDashboard() {
                 <span className="text-xs text-gray-400">from creators you follow</span>
               </div>
               <button
-                onClick={() => router.push('/streams')}
+                onClick={() => router.push('/watch')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
@@ -499,7 +594,7 @@ export default function FanDashboard() {
                 Explore Creators
               </button>
               <button
-                onClick={() => router.push('/live')}
+                onClick={() => router.push('/watch')}
                 className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
               >
                 See Who's Live
