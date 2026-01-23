@@ -201,7 +201,7 @@ export default function ClaimInvitePage() {
               Welcome, {invite?.displayName || `@${invite?.instagramHandle}`}!
             </h1>
             <p className="text-gray-400">
-              You&apos;ve been invited to join Digis as a creator.
+              You&apos;ve been invited to be a Creator on Digis.
             </p>
           </div>
 
