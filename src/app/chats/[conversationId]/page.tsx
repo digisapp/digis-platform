@@ -867,7 +867,7 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 lg:shadow-[0_0_50px_rgba(34,211,238,0.3)]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -875,9 +875,9 @@ export default function ChatPage() {
 
   if (!conversation) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 lg:shadow-[0_0_50px_rgba(34,211,238,0.3)]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Conversation not found</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Conversation not found</h2>
           <button
             onClick={() => router.push('/chats')}
             className="px-6 py-3 bg-digis-cyan text-gray-900 rounded-lg font-semibold hover:scale-105 transition-transform"
@@ -891,10 +891,10 @@ export default function ChatPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex flex-col">
+      <div className="flex-1 flex flex-col backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 lg:shadow-[0_0_50px_rgba(34,211,238,0.3)] overflow-hidden">
         {/* Header */}
-        <div className="backdrop-blur-xl bg-black/60 border-b border-white/10 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4 max-w-4xl">
+        <div className="backdrop-blur-xl bg-black/60 border-b border-white/10 sticky top-0 z-10 rounded-t-3xl">
+          <div className="px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
@@ -987,7 +987,7 @@ export default function ChatPage() {
           onTouchMove={handleScroll}
           className="flex-1 overflow-y-auto overscroll-contain relative"
         >
-          <div className="container mx-auto px-4 py-6 max-w-2xl">
+          <div className="px-4 py-6">
             <div className="space-y-4">
               {/* Load older messages button */}
               {messages.length > 0 && hasMoreMessages && (
@@ -1065,8 +1065,8 @@ export default function ChatPage() {
         </div>
 
         {/* Message Input - pb-20 on mobile for bottom nav, pb-4 on desktop */}
-        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-16 lg:pb-0">
-          <div className="container mx-auto px-4 py-4 max-w-2xl">
+        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-16 lg:pb-4 rounded-b-3xl">
+          <div className="px-4 py-4">
             {/* Voice Recorder - shown when recording */}
             {showVoiceRecorder ? (
               <VoiceMessageButton
