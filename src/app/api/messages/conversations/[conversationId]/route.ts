@@ -51,7 +51,11 @@ export async function GET(
 
     return NextResponse.json({ messages });
   } catch (error: any) {
-    console.error('Error fetching messages:', error);
+    console.error('Error fetching messages:', {
+      conversationId: (await params).conversationId,
+      error: error.message,
+      stack: error.stack,
+    });
     return NextResponse.json(
       { error: error.message || 'Failed to fetch messages' },
       { status: 500 }

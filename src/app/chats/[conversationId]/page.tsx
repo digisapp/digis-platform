@@ -370,10 +370,17 @@ export default function ChatPage() {
     fetchingMessagesRef.current = true;
     try {
       // Use cursor-based pagination for better reliability
-      const response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&useCursor=true`);
-      const data = await response.json();
+      let response = await fetch(`/api/messages/conversations/${conversationId}?limit=100&useCursor=true`);
+      let data = await response.json();
 
-      if (response.ok) {
+      // Fallback to legacy pagination if cursor-based fails
+      if (!response.ok) {
+        console.warn('[Chat] Cursor-based fetch failed, trying legacy:', data.error);
+        response = await fetch(`/api/messages/conversations/${conversationId}?limit=100`);
+        data = await response.json();
+      }
+
+      if (response.ok && data.messages) {
         const fetchedMessages = data.messages.reverse();
 
         // Clear pending messages that have been confirmed

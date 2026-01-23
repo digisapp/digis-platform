@@ -562,6 +562,7 @@ export class MessageService {
             avatarUrl: true,
           },
         },
+        // Simplified replyTo - removed nested sender to avoid self-referential query issues
         replyTo: {
           columns: {
             id: true,
@@ -570,15 +571,6 @@ export class MessageService {
             messageType: true,
             mediaUrl: true,
             mediaType: true,
-          },
-          with: {
-            sender: {
-              columns: {
-                id: true,
-                displayName: true,
-                username: true,
-              },
-            },
           },
         },
       },
