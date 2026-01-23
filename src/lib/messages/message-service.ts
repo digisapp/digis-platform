@@ -550,13 +550,21 @@ export class MessageService {
     cursor?: string,
     direction: 'older' | 'newer' = 'older'
   ) {
+    let serviceStep = 'init';
     try {
-      // Verify user is a participant in this conversation using simple select
+      console.log('[MessageService.getMessagesCursor] Starting', { conversationId, userId, limit, cursor, direction });
+
+      // Step 1: Verify user is a participant in this conversation using simple select
+      serviceStep = 'verify-conversation';
+      console.log('[MessageService.getMessagesCursor] Step 1: Verifying conversation');
+
       const [conversation] = await db
         .select({ user1Id: conversations.user1Id, user2Id: conversations.user2Id })
         .from(conversations)
         .where(eq(conversations.id, conversationId))
         .limit(1);
+
+      console.log('[MessageService.getMessagesCursor] Step 1 result:', { found: !!conversation });
 
       if (!conversation) {
         throw new Error('Conversation not found');
@@ -566,10 +574,14 @@ export class MessageService {
         throw new Error('Unauthorized: You are not a participant in this conversation');
       }
 
-      // Build where condition for messages query
+      // Step 2: Build where condition for messages query
+      serviceStep = 'build-where-condition';
+      console.log('[MessageService.getMessagesCursor] Step 2: Building where condition');
+
       let whereCondition;
       if (cursor) {
         const cursorDate = new Date(cursor);
+        console.log('[MessageService.getMessagesCursor] Using cursor date:', cursorDate.toISOString());
         if (direction === 'older') {
           whereCondition = and(
             eq(messages.conversationId, conversationId),
@@ -582,10 +594,14 @@ export class MessageService {
           );
         }
       } else {
+        console.log('[MessageService.getMessagesCursor] No cursor, fetching first page');
         whereCondition = eq(messages.conversationId, conversationId);
       }
 
-      // Fetch messages first (simple query without joins)
+      // Step 3: Fetch messages (simple query without joins)
+      serviceStep = 'fetch-messages';
+      console.log('[MessageService.getMessagesCursor] Step 3: Fetching messages');
+
       const messageRows = await db
         .select()
         .from(messages)
@@ -593,12 +609,16 @@ export class MessageService {
         .orderBy(direction === 'older' ? desc(messages.createdAt) : messages.createdAt)
         .limit(limit + 1);
 
+      console.log('[MessageService.getMessagesCursor] Step 3 result:', { rowCount: messageRows.length });
+
       // Check if there are more messages
       const hasMore = messageRows.length > limit;
       const rows = hasMore ? messageRows.slice(0, limit) : messageRows;
 
-      // Collect unique sender IDs
+      // Step 4: Collect unique sender IDs and fetch sender info
+      serviceStep = 'fetch-senders';
       const senderIds = [...new Set(rows.map(r => r.senderId))];
+      console.log('[MessageService.getMessagesCursor] Step 4: Fetching senders', { senderCount: senderIds.length });
 
       // Fetch sender info in a separate query
       const senderMap = new Map<string, { displayName: string | null; username: string | null; avatarUrl: string | null; role: string | null }>();
@@ -614,6 +634,7 @@ export class MessageService {
           .from(users)
           .where(inArray(users.id, senderIds));
 
+        console.log('[MessageService.getMessagesCursor] Step 4 result:', { sendersFound: senders.length });
         senders.forEach(s => senderMap.set(s.id, s));
       }
 
@@ -676,15 +697,20 @@ export class MessageService {
         hasMore,
       };
     } catch (error: any) {
-      console.error('[MessageService.getMessagesCursor] Error:', {
+      console.error('[MessageService.getMessagesCursor] Error at step:', serviceStep, {
         conversationId,
         userId,
         cursor,
         direction,
         error: error?.message,
-        stack: error?.stack,
+        errorCode: error?.code,
+        stack: error?.stack?.split('\n').slice(0, 5).join('\n'),
       });
-      throw error;
+      // Rethrow with additional context
+      const enhancedError = new Error(`[${serviceStep}] ${error?.message || 'Unknown error'}`);
+      (enhancedError as any).originalError = error;
+      (enhancedError as any).step = serviceStep;
+      throw enhancedError;
     }
   }
 

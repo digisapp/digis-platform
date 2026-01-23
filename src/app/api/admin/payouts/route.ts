@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, payoutRequests, creatorBankingInfo, users } from '@/lib/data/system';
+import { db, payoutRequests, creatorBankingInfo, users, creatorPayoneerInfo } from '@/lib/data/system';
 import { eq, desc } from 'drizzle-orm';
 import { getLastFourDigits, decrypt } from '@/lib/crypto/encryption';
 import { isAdminUser } from '@/lib/admin/check-admin';
@@ -28,16 +28,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'pending';
 
-    // Fetch payout requests with creator info
+    // Fetch payout requests with creator info and Payoneer info
     let payoutsQuery = db
       .select({
         payout: payoutRequests,
         creator: users,
         banking: creatorBankingInfo,
+        payoneer: creatorPayoneerInfo,
       })
       .from(payoutRequests)
       .leftJoin(users, eq(payoutRequests.creatorId, users.id))
       .leftJoin(creatorBankingInfo, eq(payoutRequests.bankingInfoId, creatorBankingInfo.id))
+      .leftJoin(creatorPayoneerInfo, eq(payoutRequests.creatorId, creatorPayoneerInfo.creatorId))
       .orderBy(desc(payoutRequests.requestedAt))
       .$dynamic();
 
@@ -67,6 +69,10 @@ export async function GET(request: NextRequest) {
       creatorEmail: row.creator?.email || 'Unknown',
       amount: row.payout.amount,
       status: row.payout.status,
+      payoutMethod: row.payout.payoutMethod,
+      payoneerPaymentId: row.payout.payoneerPaymentId,
+      externalReference: row.payout.externalReference,
+      providerStatus: row.payout.providerStatus,
       bankingInfo: row.banking ? {
         accountHolderName: row.banking.accountHolderName,
         bankName: row.banking.bankName,
@@ -75,6 +81,11 @@ export async function GET(request: NextRequest) {
         accountNumber: decryptAccountNumber(row.banking.accountNumber),
         lastFourDigits: getLastFourDigits(row.banking.accountNumber),
         isVerified: row.banking.isVerified === 1,
+      } : null,
+      payoneerInfo: row.payoneer ? {
+        payeeId: row.payoneer.payeeId,
+        payeeStatus: row.payoneer.payeeStatus,
+        preferredCurrency: row.payoneer.preferredCurrency,
       } : null,
       requestedAt: row.payout.requestedAt,
       processedAt: row.payout.processedAt,

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, payoutRequests, wallets, creatorBankingInfo, spendHolds } from '@/lib/data/system';
+import { db, payoutRequests, wallets, creatorBankingInfo, spendHolds, creatorPayoneerInfo } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe/config';
 import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
 import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
+import { isPayoneerAvailable } from '@/lib/payoneer/service';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { amount } = validation.data;
+    const { amount, method } = validation.data;
 
     // Validate amount using new minimum threshold
     if (amount < MIN_PAYOUT_COINS) {
@@ -48,13 +49,29 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if creator has banking info (can be done outside transaction)
-    const banking = await db.query.creatorBankingInfo.findFirst({
-      where: eq(creatorBankingInfo.creatorId, user.id),
-    });
+    // Validate payout method and required info
+    let banking = null;
+    let payoneerInfo = null;
 
-    if (!banking) {
-      return NextResponse.json({ error: 'Please add banking information first' }, { status: 400 });
+    if (method === 'bank_transfer') {
+      // Check if creator has banking info for bank transfer
+      banking = await db.query.creatorBankingInfo.findFirst({
+        where: eq(creatorBankingInfo.creatorId, user.id),
+      });
+
+      if (!banking) {
+        return NextResponse.json({ error: 'Please add banking information first' }, { status: 400 });
+      }
+    } else if (method === 'payoneer') {
+      // Check if creator has active Payoneer account
+      const hasPayoneer = await isPayoneerAvailable(user.id);
+      if (!hasPayoneer) {
+        return NextResponse.json({ error: 'Please connect your Payoneer account first' }, { status: 400 });
+      }
+
+      payoneerInfo = await db.query.creatorPayoneerInfo.findFirst({
+        where: eq(creatorPayoneerInfo.creatorId, user.id),
+      });
     }
 
     // Use transaction with row-level locking to prevent race conditions
@@ -125,9 +142,14 @@ export async function POST(request: NextRequest) {
       const [newPayout] = await tx.insert(payoutRequests).values({
         creatorId: user.id,
         amount,
-        bankingInfoId: banking.id,
+        payoutMethod: method,
+        bankingInfoId: method === 'bank_transfer' ? banking?.id : null,
         status: 'pending',
-        metadata: JSON.stringify({ holdId: hold.id }),
+        metadata: JSON.stringify({
+          holdId: hold.id,
+          method,
+          ...(method === 'payoneer' && payoneerInfo ? { payeeId: payoneerInfo.payeeId } : {}),
+        }),
       }).returning();
 
       return newPayout;
@@ -153,6 +175,7 @@ export async function POST(request: NextRequest) {
         id: payout.id,
         amount: payout.amount,
         status: payout.status,
+        method: payout.payoutMethod,
         requestedAt: payout.requestedAt,
       }
     }, { status: 201 });

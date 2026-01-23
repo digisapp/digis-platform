@@ -82,11 +82,14 @@ export const purchaseCoinsSchema = z.object({
   paymentMethodId: z.string().optional(),
 });
 
+export const payoutMethodSchema = z.enum(['bank_transfer', 'payoneer']);
+
 export const payoutRequestSchema = z.object({
   amount: z
     .number()
     .positive('Amount must be positive')
     .max(100_000, 'Amount too large'),
+  method: payoutMethodSchema.default('bank_transfer'),
 });
 
 // ============================================

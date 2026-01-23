@@ -42,6 +42,11 @@ export const payoutStatusEnum = pgEnum('payout_status', [
   'cancelled'
 ]);
 
+export const payoutMethodEnum = pgEnum('payout_method', [
+  'bank_transfer',
+  'payoneer'
+]);
+
 // Double-entry ledger table
 export const walletTransactions = pgTable('wallet_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -124,7 +129,11 @@ export const payoutRequests = pgTable('payout_requests', {
   creatorId: uuid('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   amount: integer('amount').notNull(), // Amount in coins to be paid out
   status: payoutStatusEnum('status').default('pending').notNull(),
+  payoutMethod: payoutMethodEnum('payout_method').default('bank_transfer').notNull(),
   bankingInfoId: uuid('banking_info_id').references(() => creatorBankingInfo.id),
+  payoneerPaymentId: text('payoneer_payment_id'), // Payoneer's payment ID for tracking
+  externalReference: text('external_reference'), // Our unique reference for Payoneer
+  providerStatus: text('provider_status'), // Status from Payoneer API
   requestedAt: timestamp('requested_at').defaultNow().notNull(),
   processedAt: timestamp('processed_at'),
   completedAt: timestamp('completed_at'),
@@ -138,6 +147,7 @@ export const payoutRequests = pgTable('payout_requests', {
   creatorIdIdx: index('payout_requests_creator_id_idx').on(table.creatorId),
   statusIdx: index('payout_requests_status_idx').on(table.status),
   requestedAtIdx: index('payout_requests_requested_at_idx').on(table.requestedAt),
+  payoutMethodIdx: index('payout_requests_payout_method_idx').on(table.payoutMethod),
 }));
 
 export type WalletTransaction = typeof walletTransactions.$inferSelect;

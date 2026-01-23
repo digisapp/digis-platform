@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { DollarSign, Clock, CheckCircle, XCircle, Eye, User, AlertCircle } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, XCircle, Eye, User, AlertCircle, Zap, CreditCard, Globe } from 'lucide-react';
 import { formatCoinsAsUSD } from '@/lib/stripe/constants';
 
 interface PayoutRequest {
@@ -14,6 +14,10 @@ interface PayoutRequest {
   creatorEmail: string;
   amount: number;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  payoutMethod: 'bank_transfer' | 'payoneer';
+  payoneerPaymentId: string | null;
+  externalReference: string | null;
+  providerStatus: string | null;
   bankingInfo: {
     accountHolderName: string;
     bankName: string;
@@ -22,7 +26,12 @@ interface PayoutRequest {
     accountNumber: string;
     lastFourDigits: string;
     isVerified: boolean;
-  };
+  } | null;
+  payoneerInfo: {
+    payeeId: string;
+    payeeStatus: string;
+    preferredCurrency: string;
+  } | null;
   requestedAt: string;
   processedAt: string | null;
   completedAt: string | null;
@@ -92,6 +101,50 @@ export default function AdminPayoutsPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleProcessPayoneer = async (payoutId: string, action: 'submit' | 'check_status' = 'submit') => {
+    setProcessing(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/admin/payouts/process-payoneer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payoutId, action }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process Payoneer payout');
+      }
+
+      // Refresh list
+      fetchPayouts();
+      setSelectedPayout(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const getMethodBadge = (method: string) => {
+    if (method === 'payoneer') {
+      return (
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center gap-1">
+          <Globe className="w-3 h-3" />
+          Payoneer
+        </span>
+      );
+    }
+    return (
+      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+        <CreditCard className="w-3 h-3" />
+        Bank
+      </span>
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -218,7 +271,10 @@ export default function AdminPayoutsPage() {
                         <p className="text-sm text-gray-400">@{payout.creatorUsername}</p>
                       </div>
                     </div>
-                    {getStatusBadge(payout.status)}
+                    <div className="flex items-center gap-2">
+                      {getMethodBadge(payout.payoutMethod)}
+                      {getStatusBadge(payout.status)}
+                    </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4 mb-3">
@@ -241,7 +297,7 @@ export default function AdminPayoutsPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <GlassButton
                       variant="cyan"
                       size="sm"
@@ -253,14 +309,26 @@ export default function AdminPayoutsPage() {
 
                     {payout.status === 'pending' && (
                       <>
-                        <GlassButton
-                          variant="gradient"
-                          size="sm"
-                          onClick={() => handleUpdateStatus(payout.id, 'processing')}
-                          disabled={processing}
-                        >
-                          Mark Processing
-                        </GlassButton>
+                        {payout.payoutMethod === 'payoneer' ? (
+                          <GlassButton
+                            variant="gradient"
+                            size="sm"
+                            onClick={() => handleProcessPayoneer(payout.id, 'submit')}
+                            disabled={processing}
+                          >
+                            <Zap className="w-4 h-4 mr-1" />
+                            Auto-Process via Payoneer
+                          </GlassButton>
+                        ) : (
+                          <GlassButton
+                            variant="gradient"
+                            size="sm"
+                            onClick={() => handleUpdateStatus(payout.id, 'processing')}
+                            disabled={processing}
+                          >
+                            Mark Processing
+                          </GlassButton>
+                        )}
                         <GlassButton
                           variant="pink"
                           size="sm"
@@ -277,6 +345,16 @@ export default function AdminPayoutsPage() {
 
                     {payout.status === 'processing' && (
                       <>
+                        {payout.payoutMethod === 'payoneer' && payout.payoneerPaymentId && (
+                          <GlassButton
+                            variant="cyan"
+                            size="sm"
+                            onClick={() => handleProcessPayoneer(payout.id, 'check_status')}
+                            disabled={processing}
+                          >
+                            Check Payoneer Status
+                          </GlassButton>
+                        )}
                         <GlassButton
                           variant="gradient"
                           size="sm"
@@ -345,87 +423,143 @@ export default function AdminPayoutsPage() {
                   <p className="text-sm text-gray-400">{selectedPayout.creatorEmail}</p>
                 </div>
 
-                {/* Banking Info */}
+                {/* Payout Method Info */}
                 <div className="p-4 rounded-xl bg-white/5">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-digis-cyan">Banking Information</h3>
-                    <button
-                      onClick={() => setShowSensitive(!showSensitive)}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        showSensitive
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                      }`}
-                    >
-                      {showSensitive ? '🔓 Hide Sensitive' : '🔒 Show Full Details'}
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Account Holder:</span>
-                      <span className="text-white font-medium">
-                        {selectedPayout.bankingInfo.accountHolderName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Bank:</span>
-                      <span className="text-white font-medium">
-                        {selectedPayout.bankingInfo.bankName || 'Not provided'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Account Type:</span>
-                      <span className="text-white font-medium capitalize">
-                        {selectedPayout.bankingInfo.accountType}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Routing Number:</span>
-                      <span className="text-white font-medium font-mono">
-                        {showSensitive ? selectedPayout.bankingInfo.routingNumber : '•••••••••'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Account Number:</span>
-                      <span className="text-white font-medium font-mono">
-                        {showSensitive
-                          ? selectedPayout.bankingInfo.accountNumber
-                          : `••••••${selectedPayout.bankingInfo.lastFourDigits}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Verified:</span>
-                      <span className={selectedPayout.bankingInfo.isVerified ? 'text-green-400' : 'text-yellow-400'}>
-                        {selectedPayout.bankingInfo.isVerified ? '✓ Yes' : '⚠ No'}
-                      </span>
-                    </div>
+                    <h3 className="text-sm font-bold text-digis-cyan flex items-center gap-2">
+                      {selectedPayout.payoutMethod === 'payoneer' ? (
+                        <>
+                          <Globe className="w-4 h-4" />
+                          Payoneer Information
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4" />
+                          Banking Information
+                        </>
+                      )}
+                    </h3>
+                    {selectedPayout.payoutMethod === 'bank_transfer' && selectedPayout.bankingInfo && (
+                      <button
+                        onClick={() => setShowSensitive(!showSensitive)}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                          showSensitive
+                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                        }`}
+                      >
+                        {showSensitive ? '🔓 Hide Sensitive' : '🔒 Show Full Details'}
+                      </button>
+                    )}
                   </div>
 
-                  {/* Copy buttons for easy transfer */}
-                  {showSensitive && (
-                    <div className="mt-4 pt-4 border-t border-white/10">
-                      <p className="text-xs text-gray-400 mb-2">Quick copy for bank transfer:</p>
-                      <div className="flex gap-2 flex-wrap">
-                        <button
-                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.routingNumber)}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
-                        >
-                          Copy Routing
-                        </button>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.accountNumber)}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
-                        >
-                          Copy Account
-                        </button>
-                        <button
-                          onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo.accountHolderName)}
-                          className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
-                        >
-                          Copy Name
-                        </button>
+                  {/* Payoneer Info */}
+                  {selectedPayout.payoutMethod === 'payoneer' && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Payee Status:</span>
+                        <span className={`font-medium ${
+                          selectedPayout.payoneerInfo?.payeeStatus === 'active' ? 'text-green-400' : 'text-yellow-400'
+                        }`}>
+                          {selectedPayout.payoneerInfo?.payeeStatus || 'Unknown'}
+                        </span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Currency:</span>
+                        <span className="text-white font-medium">
+                          {selectedPayout.payoneerInfo?.preferredCurrency || 'USD'}
+                        </span>
+                      </div>
+                      {selectedPayout.payoneerPaymentId && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Payment ID:</span>
+                          <span className="text-white font-medium font-mono text-sm">
+                            {selectedPayout.payoneerPaymentId}
+                          </span>
+                        </div>
+                      )}
+                      {selectedPayout.providerStatus && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Provider Status:</span>
+                          <span className="text-white font-medium capitalize">
+                            {selectedPayout.providerStatus}
+                          </span>
+                        </div>
+                      )}
                     </div>
+                  )}
+
+                  {/* Bank Transfer Info */}
+                  {selectedPayout.payoutMethod === 'bank_transfer' && selectedPayout.bankingInfo && (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Account Holder:</span>
+                          <span className="text-white font-medium">
+                            {selectedPayout.bankingInfo.accountHolderName}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Bank:</span>
+                          <span className="text-white font-medium">
+                            {selectedPayout.bankingInfo.bankName || 'Not provided'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Account Type:</span>
+                          <span className="text-white font-medium capitalize">
+                            {selectedPayout.bankingInfo.accountType}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Routing Number:</span>
+                          <span className="text-white font-medium font-mono">
+                            {showSensitive ? selectedPayout.bankingInfo.routingNumber : '•••••••••'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Account Number:</span>
+                          <span className="text-white font-medium font-mono">
+                            {showSensitive
+                              ? selectedPayout.bankingInfo.accountNumber
+                              : `••••••${selectedPayout.bankingInfo.lastFourDigits}`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Verified:</span>
+                          <span className={selectedPayout.bankingInfo.isVerified ? 'text-green-400' : 'text-yellow-400'}>
+                            {selectedPayout.bankingInfo.isVerified ? '✓ Yes' : '⚠ No'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Copy buttons for easy transfer */}
+                      {showSensitive && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <p className="text-xs text-gray-400 mb-2">Quick copy for bank transfer:</p>
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo!.routingNumber)}
+                              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                            >
+                              Copy Routing
+                            </button>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo!.accountNumber)}
+                              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                            >
+                              Copy Account
+                            </button>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(selectedPayout.bankingInfo!.accountHolderName)}
+                              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white transition-colors"
+                            >
+                              Copy Name
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 

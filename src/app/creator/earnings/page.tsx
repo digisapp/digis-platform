@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { DollarSign, TrendingUp, Clock, Download, Wallet, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, Clock, Download, Wallet, AlertCircle, Globe, CreditCard, ExternalLink, CheckCircle } from 'lucide-react';
 import { formatCoinsAsUSD, coinsToUSD, MIN_PAYOUT_COINS, MIN_PAYOUT_USD } from '@/lib/stripe/constants';
 
 interface EarningsData {
@@ -16,6 +16,7 @@ interface EarningsData {
     amount: number;
     status: string;
     requestedAt: string;
+    method?: string;
   } | null;
   recentTransactions: Array<{
     id: string;
@@ -32,6 +33,13 @@ interface EarningsData {
   };
 }
 
+interface PayoneerStatus {
+  configured: boolean;
+  status: 'not_registered' | 'pending' | 'active' | 'inactive' | 'declined';
+  isActive: boolean;
+  canRequestPayout: boolean;
+}
+
 export default function CreatorEarningsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -39,9 +47,13 @@ export default function CreatorEarningsPage() {
   const [error, setError] = useState('');
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutMessage, setPayoutMessage] = useState('');
+  const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'payoneer'>('bank_transfer');
+  const [payoneerStatus, setPayoneerStatus] = useState<PayoneerStatus | null>(null);
+  const [connectingPayoneer, setConnectingPayoneer] = useState(false);
 
   useEffect(() => {
     fetchEarnings();
+    fetchPayoneerStatus();
   }, []);
 
   const fetchEarnings = async () => {
@@ -61,11 +73,63 @@ export default function CreatorEarningsPage() {
     }
   };
 
+  const fetchPayoneerStatus = async () => {
+    try {
+      const response = await fetch('/api/creator/payoneer/status');
+      const data = await response.json();
+
+      if (response.ok) {
+        setPayoneerStatus(data);
+        // If Payoneer is active but bank_transfer selected, keep it
+        // User can switch if they want
+      }
+    } catch (err) {
+      // Silently fail - Payoneer might not be configured
+      console.error('Failed to fetch Payoneer status:', err);
+    }
+  };
+
+  const handleConnectPayoneer = async () => {
+    setConnectingPayoneer(true);
+
+    try {
+      const response = await fetch('/api/creator/payoneer/register', {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate Payoneer link');
+      }
+
+      // Open Payoneer registration in new tab
+      if (data.registrationLink) {
+        window.open(data.registrationLink, '_blank');
+        setPayoutMessage('Payoneer registration opened in a new tab. Complete the setup there.');
+      }
+
+      // Refresh status after a short delay
+      setTimeout(() => {
+        fetchPayoneerStatus();
+      }, 2000);
+    } catch (err: any) {
+      setPayoutMessage(err.message);
+    } finally {
+      setConnectingPayoneer(false);
+    }
+  };
+
   const handleRequestPayout = async () => {
     if (!earningsData) return;
 
     if (earningsData.availableBalance < MIN_PAYOUT_COINS) {
       setPayoutMessage(`Minimum payout is ${MIN_PAYOUT_COINS.toLocaleString()} coins (${formatCoinsAsUSD(MIN_PAYOUT_COINS)})`);
+      return;
+    }
+
+    // Validate payout method
+    if (payoutMethod === 'payoneer' && !payoneerStatus?.isActive) {
+      setPayoutMessage('Please connect your Payoneer account first');
       return;
     }
 
@@ -76,7 +140,10 @@ export default function CreatorEarningsPage() {
       const response = await fetch('/api/wallet/payouts/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: earningsData.availableBalance }),
+        body: JSON.stringify({
+          amount: earningsData.availableBalance,
+          method: payoutMethod,
+        }),
       });
 
       const data = await response.json();
@@ -85,7 +152,8 @@ export default function CreatorEarningsPage() {
         throw new Error(data.error || 'Failed to request payout');
       }
 
-      setPayoutMessage('Payout requested successfully! You will receive an email when it is processed.');
+      const methodLabel = payoutMethod === 'payoneer' ? 'Payoneer' : 'bank transfer';
+      setPayoutMessage(`Payout requested via ${methodLabel}! You will receive an email when it is processed.`);
       fetchEarnings(); // Refresh data
     } catch (err: any) {
       setPayoutMessage(err.message);
@@ -199,6 +267,11 @@ export default function CreatorEarningsPage() {
               </p>
               <p className="text-sm text-gray-400">
                 Status: <span className="capitalize">{earningsData.pendingPayout.status}</span>
+                {earningsData.pendingPayout.method && (
+                  <span className="ml-2">
+                    via {earningsData.pendingPayout.method === 'payoneer' ? 'Payoneer' : 'Bank Transfer'}
+                  </span>
+                )}
               </p>
             </div>
           ) : (
@@ -212,9 +285,104 @@ export default function CreatorEarningsPage() {
                 </p>
               </div>
 
+              {/* Payout Method Selector */}
+              {payoneerStatus?.configured && (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-gray-300">Payout Method</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setPayoutMethod('bank_transfer')}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        payoutMethod === 'bank_transfer'
+                          ? 'border-digis-cyan bg-digis-cyan/10'
+                          : 'border-white/10 bg-white/5 hover:border-white/30'
+                      }`}
+                    >
+                      <CreditCard className={`w-6 h-6 mx-auto mb-2 ${
+                        payoutMethod === 'bank_transfer' ? 'text-digis-cyan' : 'text-gray-400'
+                      }`} />
+                      <p className={`text-sm font-medium ${
+                        payoutMethod === 'bank_transfer' ? 'text-white' : 'text-gray-400'
+                      }`}>
+                        Bank Transfer
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">US accounts only</p>
+                    </button>
+
+                    <button
+                      onClick={() => payoneerStatus?.isActive && setPayoutMethod('payoneer')}
+                      disabled={!payoneerStatus?.isActive}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        payoutMethod === 'payoneer'
+                          ? 'border-purple-500 bg-purple-500/10'
+                          : payoneerStatus?.isActive
+                            ? 'border-white/10 bg-white/5 hover:border-white/30'
+                            : 'border-white/5 bg-white/5 opacity-60 cursor-not-allowed'
+                      }`}
+                    >
+                      <Globe className={`w-6 h-6 mx-auto mb-2 ${
+                        payoutMethod === 'payoneer' ? 'text-purple-400' : 'text-gray-400'
+                      }`} />
+                      <p className={`text-sm font-medium ${
+                        payoutMethod === 'payoneer' ? 'text-white' : 'text-gray-400'
+                      }`}>
+                        Payoneer
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {payoneerStatus?.isActive ? 'International' : 'Not connected'}
+                      </p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Payoneer Connection Section */}
+              {payoneerStatus?.configured && !payoneerStatus?.isActive && (
+                <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/30">
+                  <div className="flex items-start gap-3">
+                    <Globe className="w-5 h-5 text-purple-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">
+                        {payoneerStatus?.status === 'pending'
+                          ? 'Complete Payoneer Setup'
+                          : 'Connect Payoneer for International Payouts'}
+                      </p>
+                      <p className="text-sm text-gray-400 mb-3">
+                        {payoneerStatus?.status === 'pending'
+                          ? 'Your Payoneer registration is pending. Complete the setup to receive payouts.'
+                          : 'Receive payouts to bank accounts worldwide via Payoneer.'}
+                      </p>
+                      <GlassButton
+                        variant="pink"
+                        size="sm"
+                        onClick={handleConnectPayoneer}
+                        disabled={connectingPayoneer}
+                      >
+                        {connectingPayoneer ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            {payoneerStatus?.status === 'pending' ? 'Continue Setup' : 'Connect Payoneer'}
+                          </>
+                        )}
+                      </GlassButton>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payoneer Connected Badge */}
+              {payoneerStatus?.isActive && payoutMethod === 'payoneer' && (
+                <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span className="text-green-400 text-sm font-medium">Payoneer account connected</span>
+                </div>
+              )}
+
               {payoutMessage && (
                 <div className={`p-4 rounded-xl ${
-                  payoutMessage.includes('successfully')
+                  payoutMessage.includes('successfully') || payoutMessage.includes('opened')
                     ? 'bg-green-500/10 border border-green-500/30 text-green-400'
                     : 'bg-red-500/10 border border-red-500/30 text-red-400'
                 }`}>
@@ -227,17 +395,30 @@ export default function CreatorEarningsPage() {
                 size="lg"
                 className="w-full"
                 onClick={handleRequestPayout}
-                disabled={requestingPayout || (earningsData?.availableBalance || 0) < MIN_PAYOUT_COINS}
+                disabled={
+                  requestingPayout ||
+                  (earningsData?.availableBalance || 0) < MIN_PAYOUT_COINS ||
+                  (payoutMethod === 'payoneer' && !payoneerStatus?.isActive)
+                }
               >
                 {requestingPayout ? (
                   <LoadingSpinner size="sm" />
                 ) : (
-                  `Request Payout: ${formatCoinsAsUSD(earningsData?.availableBalance || 0)}`
+                  <>
+                    {payoutMethod === 'payoneer' ? (
+                      <Globe className="w-5 h-5 mr-2" />
+                    ) : (
+                      <CreditCard className="w-5 h-5 mr-2" />
+                    )}
+                    Request Payout: {formatCoinsAsUSD(earningsData?.availableBalance || 0)}
+                  </>
                 )}
               </GlassButton>
 
               <p className="text-xs text-gray-500 text-center">
-                Payouts are processed within 2-3 business days
+                {payoutMethod === 'payoneer'
+                  ? 'Payoneer payouts are typically processed within 1-2 business days'
+                  : 'Bank transfer payouts are processed within 2-3 business days'}
               </p>
             </div>
           )}
