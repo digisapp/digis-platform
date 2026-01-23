@@ -5,7 +5,18 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox, Plus, Sparkles } from 'lucide-react';
+
+type SuggestedCreator = {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  isOnline: boolean;
+  followerCount: number;
+  primaryCategory: string | null;
+};
 
 type ConversationWithOtherUser = {
   id: string;
@@ -31,6 +42,10 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState<string>('fan');
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [showNewMessage, setShowNewMessage] = useState(false);
+  const [suggestedCreators, setSuggestedCreators] = useState<SuggestedCreator[]>([]);
+  const [loadingCreators, setLoadingCreators] = useState(false);
+  const [creatorSearchQuery, setCreatorSearchQuery] = useState('');
 
   useEffect(() => {
     checkAuth();
@@ -94,6 +109,42 @@ export default function MessagesPage() {
       setLoading(false);
     }
   };
+
+  const fetchSuggestedCreators = async () => {
+    setLoadingCreators(true);
+    try {
+      const response = await fetch('/api/explore?limit=20');
+      const result = await response.json();
+      if (response.ok && result.data?.creators) {
+        setSuggestedCreators(result.data.creators);
+      }
+    } catch (error) {
+      console.error('Error fetching creators:', error);
+    } finally {
+      setLoadingCreators(false);
+    }
+  };
+
+  const handleStartNewChat = () => {
+    setShowNewMessage(true);
+    if (suggestedCreators.length === 0) {
+      fetchSuggestedCreators();
+    }
+  };
+
+  const handleSelectCreator = (username: string) => {
+    router.push(`/${username}`);
+  };
+
+  const filteredCreators = suggestedCreators.filter(creator => {
+    if (!creatorSearchQuery.trim()) return true;
+    const query = creatorSearchQuery.toLowerCase();
+    return (
+      creator.username?.toLowerCase().includes(query) ||
+      creator.displayName?.toLowerCase().includes(query) ||
+      creator.bio?.toLowerCase().includes(query)
+    );
+  });
 
   const handlePinConversation = async (conversationId: string) => {
     const conv = conversations.find(c => c.id === conversationId);
@@ -240,10 +291,23 @@ export default function MessagesPage() {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-2 mb-4">
+              {/* New Message Button */}
               <button
-                onClick={() => setFilter('all')}
+                onClick={handleStartNewChat}
+                className={`px-4 py-2.5 min-h-[44px] rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
+                  showNewMessage
+                    ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg hover:scale-105'
+                }`}
+              >
+                <Plus className="w-4 h-4" strokeWidth={2} />
+                New
+              </button>
+
+              <button
+                onClick={() => { setFilter('all'); setShowNewMessage(false); }}
                 className={`px-4 py-2.5 min-h-[44px] rounded-full font-semibold text-sm transition-all duration-200 ${
-                  filter === 'all'
+                  filter === 'all' && !showNewMessage
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
                     : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
@@ -251,9 +315,9 @@ export default function MessagesPage() {
                 All
               </button>
               <button
-                onClick={() => setFilter('unread')}
+                onClick={() => { setFilter('unread'); setShowNewMessage(false); }}
                 className={`px-4 py-2.5 min-h-[44px] rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
-                  filter === 'unread'
+                  filter === 'unread' && !showNewMessage
                     ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg'
                     : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30'
                 }`}
@@ -270,7 +334,7 @@ export default function MessagesPage() {
               {userRole === 'creator' && (
                 <button
                   onClick={() => router.push('/creator/chats/broadcast')}
-                  className="px-4 py-2.5 min-h-[44px] bg-gradient-to-r from-cyan-600 to-purple-600 text-white shadow-lg rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2"
+                  className="px-4 py-2.5 min-h-[44px] bg-white/5 text-gray-300 hover:bg-white/10 border border-cyan-500/30 rounded-full font-semibold text-sm transition-all duration-200 flex items-center gap-2"
                 >
                   <Users className="w-4 h-4" strokeWidth={2} />
                   Mass
@@ -280,13 +344,73 @@ export default function MessagesPage() {
 
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-              {filteredConversations.length === 0 ? (
-                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-                  <Inbox className="w-20 h-20 mx-auto mb-4 text-cyan-400" />
-                  <h3 className="text-2xl font-bold mb-2 text-white">
+              {filteredConversations.length === 0 && !showNewMessage ? (
+                <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                  <Inbox className="w-16 h-16 mx-auto mb-4 text-cyan-400" />
+                  <h3 className="text-xl font-bold mb-2 text-white">
                     {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
                   </h3>
-                  <p className="text-gray-400 text-lg">Start a conversation with a creator</p>
+                  <p className="text-gray-400 mb-4">Start a conversation with a creator</p>
+                  <button
+                    onClick={handleStartNewChat}
+                    className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform flex items-center gap-2 mx-auto"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Find Creators
+                  </button>
+                </div>
+              ) : showNewMessage ? (
+                /* Mobile: Show suggested creators in left panel when New is clicked */
+                <div className="lg:hidden space-y-3">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-pink-400" />
+                    <input
+                      type="text"
+                      value={creatorSearchQuery}
+                      onChange={(e) => setCreatorSearchQuery(e.target.value)}
+                      placeholder="Search creators..."
+                      className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-pink-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 transition-colors"
+                    />
+                  </div>
+                  {loadingCreators ? (
+                    <div className="flex items-center justify-center py-12">
+                      <LoadingSpinner size="lg" />
+                    </div>
+                  ) : filteredCreators.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Users className="w-12 h-12 mx-auto mb-3 text-gray-500" />
+                      <p className="text-gray-400">No creators found</p>
+                    </div>
+                  ) : (
+                    filteredCreators.map((creator) => (
+                      <div
+                        key={creator.id}
+                        onClick={() => handleSelectCreator(creator.username)}
+                        className="flex items-center gap-4 p-4 rounded-xl backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-pink-500/30 hover:border-pink-500/50 cursor-pointer transition-all"
+                      >
+                        <div className="relative flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                            {creator.avatarUrl ? (
+                              <img src={creator.avatarUrl} alt={creator.username} className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              <span className="text-white font-bold">{creator.username?.[0]?.toUpperCase() || '?'}</span>
+                            )}
+                          </div>
+                          {creator.isOnline && (
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-white truncate">{creator.displayName || creator.username}</h3>
+                            <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full">Creator</span>
+                          </div>
+                          <p className="text-sm text-gray-400 truncate">@{creator.username}</p>
+                        </div>
+                        <MessageCircle className="w-5 h-5 text-pink-400 flex-shrink-0" />
+                      </div>
+                    ))
+                  )}
                 </div>
               ) : (
                 filteredConversations.map((conversation) => (
@@ -393,14 +517,107 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Right Column: Message Panel (Empty State) */}
-          <div className="hidden lg:flex items-center justify-center backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 h-[calc(100vh-180px)] shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-            <div className="text-center max-w-md">
-              <MessageCircle className="w-24 h-24 mx-auto mb-6 text-cyan-400" />
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-                Select a Chat
-              </h2>
-            </div>
+          {/* Right Column: Message Panel or New Message Panel */}
+          <div className="hidden lg:flex flex-col backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 h-[calc(100vh-180px)] shadow-[0_0_50px_rgba(34,211,238,0.3)] overflow-hidden">
+            {showNewMessage ? (
+              /* New Message Panel - Show Suggested Creators */
+              <div className="flex flex-col h-full">
+                <div className="p-6 border-b border-cyan-500/20">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent mb-4 flex items-center gap-2">
+                    <Sparkles className="w-6 h-6 text-pink-400" />
+                    Start a Conversation
+                  </h2>
+                  {/* Creator Search */}
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-pink-400" />
+                    <input
+                      type="text"
+                      value={creatorSearchQuery}
+                      onChange={(e) => setCreatorSearchQuery(e.target.value)}
+                      placeholder="Search creators..."
+                      className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-pink-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                  {loadingCreators ? (
+                    <div className="flex items-center justify-center h-full">
+                      <LoadingSpinner size="lg" />
+                    </div>
+                  ) : filteredCreators.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Users className="w-16 h-16 mx-auto mb-4 text-gray-500" />
+                      <p className="text-gray-400">No creators found</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {filteredCreators.map((creator) => (
+                        <div
+                          key={creator.id}
+                          onClick={() => handleSelectCreator(creator.username)}
+                          className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-pink-500/20 hover:border-pink-500/50 hover:bg-white/10 cursor-pointer transition-all hover:scale-[1.02]"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                              {creator.avatarUrl ? (
+                                <img
+                                  src={creator.avatarUrl}
+                                  alt={creator.username}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-white text-xl font-bold">
+                                  {creator.username?.[0]?.toUpperCase() || '?'}
+                                </span>
+                              )}
+                            </div>
+                            {creator.isOnline && (
+                              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900"></div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-white truncate">
+                                {creator.displayName || creator.username}
+                              </h3>
+                              <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full flex-shrink-0">
+                                Creator
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-400 truncate">@{creator.username}</p>
+                            {creator.bio && (
+                              <p className="text-xs text-gray-500 truncate mt-1">{creator.bio}</p>
+                            )}
+                          </div>
+                          <div className="flex-shrink-0">
+                            <MessageCircle className="w-5 h-5 text-pink-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Default Empty State */
+              <div className="flex items-center justify-center h-full p-12">
+                <div className="text-center max-w-md">
+                  <MessageCircle className="w-24 h-24 mx-auto mb-6 text-cyan-400" />
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
+                    Select a Chat
+                  </h2>
+                  <p className="text-gray-400 mb-6">Choose a conversation from the left or start a new one</p>
+                  <button
+                    onClick={handleStartNewChat}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform flex items-center gap-2 mx-auto"
+                  >
+                    <Plus className="w-5 h-5" />
+                    New Message
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
