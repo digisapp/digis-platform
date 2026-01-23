@@ -464,8 +464,30 @@ export class MessageService {
     }
 
     // Fetch messages first (simple query without joins)
+    // NOTE: Explicitly select columns to avoid selecting columns that may not exist in DB yet
     const messageRows = await db
-      .select()
+      .select({
+        id: messages.id,
+        conversationId: messages.conversationId,
+        senderId: messages.senderId,
+        messageType: messages.messageType,
+        content: messages.content,
+        isRead: messages.isRead,
+        readAt: messages.readAt,
+        mediaUrl: messages.mediaUrl,
+        mediaType: messages.mediaType,
+        thumbnailUrl: messages.thumbnailUrl,
+        isLocked: messages.isLocked,
+        unlockPrice: messages.unlockPrice,
+        unlockedBy: messages.unlockedBy,
+        unlockedAt: messages.unlockedAt,
+        tipAmount: messages.tipAmount,
+        tipTransactionId: messages.tipTransactionId,
+        isAiGenerated: messages.isAiGenerated,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        // NOTE: replyToId excluded - column may not exist in production DB yet
+      })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.createdAt))
@@ -513,7 +535,7 @@ export class MessageService {
         tipAmount: row.tipAmount,
         tipTransactionId: row.tipTransactionId,
         isAiGenerated: row.isAiGenerated,
-        replyToId: row.replyToId,
+        replyToId: null, // Column not in production DB yet
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         sender: sender ? {
@@ -599,11 +621,33 @@ export class MessageService {
       }
 
       // Step 3: Fetch messages (simple query without joins)
+      // NOTE: Explicitly select columns to avoid selecting columns that may not exist in DB yet
       serviceStep = 'fetch-messages';
       console.log('[MessageService.getMessagesCursor] Step 3: Fetching messages');
 
       const messageRows = await db
-        .select()
+        .select({
+          id: messages.id,
+          conversationId: messages.conversationId,
+          senderId: messages.senderId,
+          messageType: messages.messageType,
+          content: messages.content,
+          isRead: messages.isRead,
+          readAt: messages.readAt,
+          mediaUrl: messages.mediaUrl,
+          mediaType: messages.mediaType,
+          thumbnailUrl: messages.thumbnailUrl,
+          isLocked: messages.isLocked,
+          unlockPrice: messages.unlockPrice,
+          unlockedBy: messages.unlockedBy,
+          unlockedAt: messages.unlockedAt,
+          tipAmount: messages.tipAmount,
+          tipTransactionId: messages.tipTransactionId,
+          isAiGenerated: messages.isAiGenerated,
+          createdAt: messages.createdAt,
+          updatedAt: messages.updatedAt,
+          // NOTE: replyToId excluded - column may not exist in production DB yet
+        })
         .from(messages)
         .where(whereCondition!)
         .orderBy(direction === 'older' ? desc(messages.createdAt) : messages.createdAt)
@@ -659,7 +703,7 @@ export class MessageService {
           tipAmount: row.tipAmount,
           tipTransactionId: row.tipTransactionId,
           isAiGenerated: row.isAiGenerated,
-          replyToId: row.replyToId,
+          replyToId: null, // Column not in production DB yet
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           sender: sender ? {
