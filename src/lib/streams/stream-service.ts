@@ -854,13 +854,13 @@ export class StreamService {
   }
 
   /**
-   * Get all live streams
+   * Get all live streams (excludes suspended/banned creators)
    */
   static async getLiveStreams() {
     // First, cleanup any stale streams (no heartbeat for 2+ minutes)
     await this.cleanupStaleStreams();
 
-    return await db.query.streams.findMany({
+    const liveStreams = await db.query.streams.findMany({
       where: eq(streams.status, 'live'),
       orderBy: [desc(streams.currentViewers), desc(streams.startedAt)],
       with: {
@@ -870,10 +870,16 @@ export class StreamService {
             displayName: true,
             username: true,
             avatarUrl: true,
+            accountStatus: true,
           },
         },
       },
     });
+
+    // Filter out streams from suspended/banned creators
+    return liveStreams.filter(stream =>
+      stream.creator?.accountStatus === 'active' || !stream.creator?.accountStatus
+    );
   }
 
   /**

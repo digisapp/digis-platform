@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(users.role, 'creator'),
-          // Exclude the current user
+          eq(users.accountStatus, 'active'), // Hide suspended/banned creators
           or(
             ilike(users.username, `%${query}%`),
             ilike(users.displayName, `%${query}%`)

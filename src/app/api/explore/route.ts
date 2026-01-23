@@ -85,9 +85,10 @@ export async function GET(request: NextRequest) {
         (async () => {
           try {
             // Build WHERE conditions
-            // Only show creators with profile pictures (better explore experience)
+            // Only show active creators with profile pictures (better explore experience)
             const conditions = [
               eq(users.role, 'creator'),
+              eq(users.accountStatus, 'active'), // Hide suspended/banned creators
               sql`${users.avatarUrl} IS NOT NULL AND ${users.avatarUrl} != ''`,
             ];
 
