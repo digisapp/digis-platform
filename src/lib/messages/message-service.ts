@@ -463,8 +463,7 @@ export class MessageService {
       throw new Error('Unauthorized: You are not a participant in this conversation');
     }
 
-    // Fetch messages first (simple query without joins)
-    // NOTE: Explicitly select columns to avoid selecting columns that may not exist in DB yet
+    // Fetch messages (simple query without joins)
     const messageRows = await db
       .select({
         id: messages.id,
@@ -484,9 +483,9 @@ export class MessageService {
         tipAmount: messages.tipAmount,
         tipTransactionId: messages.tipTransactionId,
         isAiGenerated: messages.isAiGenerated,
+        replyToId: messages.replyToId,
         createdAt: messages.createdAt,
         updatedAt: messages.updatedAt,
-        // NOTE: replyToId excluded - column may not exist in production DB yet
       })
       .from(messages)
       .where(eq(messages.conversationId, conversationId))
@@ -535,7 +534,7 @@ export class MessageService {
         tipAmount: row.tipAmount,
         tipTransactionId: row.tipTransactionId,
         isAiGenerated: row.isAiGenerated,
-        replyToId: null, // Column not in production DB yet
+        replyToId: row.replyToId,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         sender: sender ? {
@@ -621,7 +620,6 @@ export class MessageService {
       }
 
       // Step 3: Fetch messages (simple query without joins)
-      // NOTE: Explicitly select columns to avoid selecting columns that may not exist in DB yet
       serviceStep = 'fetch-messages';
       console.log('[MessageService.getMessagesCursor] Step 3: Fetching messages');
 
@@ -644,9 +642,9 @@ export class MessageService {
           tipAmount: messages.tipAmount,
           tipTransactionId: messages.tipTransactionId,
           isAiGenerated: messages.isAiGenerated,
+          replyToId: messages.replyToId,
           createdAt: messages.createdAt,
           updatedAt: messages.updatedAt,
-          // NOTE: replyToId excluded - column may not exist in production DB yet
         })
         .from(messages)
         .where(whereCondition!)
@@ -703,7 +701,7 @@ export class MessageService {
           tipAmount: row.tipAmount,
           tipTransactionId: row.tipTransactionId,
           isAiGenerated: row.isAiGenerated,
-          replyToId: null, // Column not in production DB yet
+          replyToId: row.replyToId,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
           sender: sender ? {
