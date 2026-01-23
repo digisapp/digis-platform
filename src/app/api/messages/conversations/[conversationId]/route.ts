@@ -51,13 +51,27 @@ export async function GET(
 
     return NextResponse.json({ messages });
   } catch (error: any) {
-    console.error('Error fetching messages:', {
-      conversationId: (await params).conversationId,
-      error: error.message,
-      stack: error.stack,
-    });
+    // Detailed error logging for debugging
+    const errorDetails = {
+      conversationId: 'unknown',
+      error: error?.message || String(error),
+      errorName: error?.name,
+      stack: error?.stack,
+      cause: error?.cause,
+    };
+
+    // Try to get conversationId for logging
+    try {
+      errorDetails.conversationId = (await params).conversationId;
+    } catch {}
+
+    console.error('[Messages API] Error fetching messages:', JSON.stringify(errorDetails, null, 2));
+
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch messages' },
+      {
+        error: error?.message || 'Failed to fetch messages',
+        errorType: error?.name || 'UnknownError',
+      },
       { status: 500 }
     );
   }

@@ -545,119 +545,139 @@ export class MessageService {
     cursor?: string,
     direction: 'older' | 'newer' = 'older'
   ) {
-    // Verify user is a participant in this conversation
-    const conversation = await db.query.conversations.findFirst({
-      where: eq(conversations.id, conversationId),
-    });
+    try {
+      // Verify user is a participant in this conversation
+      const conversation = await db.query.conversations.findFirst({
+        where: eq(conversations.id, conversationId),
+      });
 
-    if (!conversation) {
-      throw new Error('Conversation not found');
-    }
-
-    if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
-      throw new Error('Unauthorized: You are not a participant in this conversation');
-    }
-
-    // Build the query using direct SQL joins to avoid relational query issues
-    let query = db
-      .select({
-        id: messages.id,
-        conversationId: messages.conversationId,
-        senderId: messages.senderId,
-        messageType: messages.messageType,
-        content: messages.content,
-        isRead: messages.isRead,
-        readAt: messages.readAt,
-        mediaUrl: messages.mediaUrl,
-        mediaType: messages.mediaType,
-        thumbnailUrl: messages.thumbnailUrl,
-        isLocked: messages.isLocked,
-        unlockPrice: messages.unlockPrice,
-        unlockedBy: messages.unlockedBy,
-        unlockedAt: messages.unlockedAt,
-        tipAmount: messages.tipAmount,
-        tipTransactionId: messages.tipTransactionId,
-        isAiGenerated: messages.isAiGenerated,
-        replyToId: messages.replyToId,
-        createdAt: messages.createdAt,
-        updatedAt: messages.updatedAt,
-        senderDisplayName: users.displayName,
-        senderUsername: users.username,
-        senderAvatarUrl: users.avatarUrl,
-        senderRole: users.role,
-      })
-      .from(messages)
-      .leftJoin(users, eq(messages.senderId, users.id));
-
-    // Build where condition
-    let whereCondition;
-    if (cursor) {
-      const cursorDate = new Date(cursor);
-      if (direction === 'older') {
-        whereCondition = and(
-          eq(messages.conversationId, conversationId),
-          sql`${messages.createdAt} < ${cursorDate}`
-        );
-      } else {
-        whereCondition = and(
-          eq(messages.conversationId, conversationId),
-          sql`${messages.createdAt} > ${cursorDate}`
-        );
+      if (!conversation) {
+        throw new Error('Conversation not found');
       }
-    } else {
-      whereCondition = eq(messages.conversationId, conversationId);
+
+      if (conversation.user1Id !== userId && conversation.user2Id !== userId) {
+        throw new Error('Unauthorized: You are not a participant in this conversation');
+      }
+
+      // Build the query using direct SQL joins to avoid relational query issues
+      let query = db
+        .select({
+          id: messages.id,
+          conversationId: messages.conversationId,
+          senderId: messages.senderId,
+          messageType: messages.messageType,
+          content: messages.content,
+          isRead: messages.isRead,
+          readAt: messages.readAt,
+          mediaUrl: messages.mediaUrl,
+          mediaType: messages.mediaType,
+          thumbnailUrl: messages.thumbnailUrl,
+          isLocked: messages.isLocked,
+          unlockPrice: messages.unlockPrice,
+          unlockedBy: messages.unlockedBy,
+          unlockedAt: messages.unlockedAt,
+          tipAmount: messages.tipAmount,
+          tipTransactionId: messages.tipTransactionId,
+          isAiGenerated: messages.isAiGenerated,
+          replyToId: messages.replyToId,
+          createdAt: messages.createdAt,
+          updatedAt: messages.updatedAt,
+          senderDisplayName: users.displayName,
+          senderUsername: users.username,
+          senderAvatarUrl: users.avatarUrl,
+          senderRole: users.role,
+        })
+        .from(messages)
+        .leftJoin(users, eq(messages.senderId, users.id));
+
+      // Build where condition
+      let whereCondition;
+      if (cursor) {
+        const cursorDate = new Date(cursor);
+        if (direction === 'older') {
+          whereCondition = and(
+            eq(messages.conversationId, conversationId),
+            sql`${messages.createdAt} < ${cursorDate}`
+          );
+        } else {
+          whereCondition = and(
+            eq(messages.conversationId, conversationId),
+            sql`${messages.createdAt} > ${cursorDate}`
+          );
+        }
+      } else {
+        whereCondition = eq(messages.conversationId, conversationId);
+      }
+
+      const result = await query
+        .where(whereCondition!)
+        .orderBy(direction === 'older' ? desc(messages.createdAt) : messages.createdAt)
+        .limit(limit + 1); // Fetch one extra to check if there are more
+
+      // Check if there are more messages
+      const hasMore = result.length > limit;
+      const rows = hasMore ? result.slice(0, limit) : result;
+
+      // Transform to expected format with nested sender object
+      const messageList = rows.map(row => ({
+        id: row.id,
+        conversationId: row.conversationId,
+        senderId: row.senderId,
+        messageType: row.messageType,
+        content: row.content,
+        isRead: row.isRead,
+        readAt: row.readAt,
+        mediaUrl: row.mediaUrl,
+        mediaType: row.mediaType,
+        thumbnailUrl: row.thumbnailUrl,
+        isLocked: row.isLocked,
+        unlockPrice: row.unlockPrice,
+        unlockedBy: row.unlockedBy,
+        unlockedAt: row.unlockedAt,
+        tipAmount: row.tipAmount,
+        tipTransactionId: row.tipTransactionId,
+        isAiGenerated: row.isAiGenerated,
+        replyToId: row.replyToId,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        sender: {
+          id: row.senderId,
+          displayName: row.senderDisplayName,
+          username: row.senderUsername,
+          avatarUrl: row.senderAvatarUrl,
+          role: row.senderRole,
+        },
+      }));
+
+      // Get the next cursor (the createdAt of the last message)
+      // Handle both Date objects and string timestamps (depending on fetch_types setting)
+      const nextCursor = messageList.length > 0
+        ? (() => {
+            const lastCreatedAt = messageList[messageList.length - 1].createdAt;
+            if (lastCreatedAt instanceof Date) {
+              return lastCreatedAt.toISOString();
+            }
+            // If it's already a string, return as-is
+            return typeof lastCreatedAt === 'string' ? lastCreatedAt : null;
+          })()
+        : null;
+
+      return {
+        messages: messageList,
+        nextCursor,
+        hasMore,
+      };
+    } catch (error: any) {
+      console.error('[MessageService.getMessagesCursor] Error:', {
+        conversationId,
+        userId,
+        cursor,
+        direction,
+        error: error?.message,
+        stack: error?.stack,
+      });
+      throw error;
     }
-
-    const result = await query
-      .where(whereCondition!)
-      .orderBy(direction === 'older' ? desc(messages.createdAt) : messages.createdAt)
-      .limit(limit + 1); // Fetch one extra to check if there are more
-
-    // Check if there are more messages
-    const hasMore = result.length > limit;
-    const rows = hasMore ? result.slice(0, limit) : result;
-
-    // Transform to expected format with nested sender object
-    const messageList = rows.map(row => ({
-      id: row.id,
-      conversationId: row.conversationId,
-      senderId: row.senderId,
-      messageType: row.messageType,
-      content: row.content,
-      isRead: row.isRead,
-      readAt: row.readAt,
-      mediaUrl: row.mediaUrl,
-      mediaType: row.mediaType,
-      thumbnailUrl: row.thumbnailUrl,
-      isLocked: row.isLocked,
-      unlockPrice: row.unlockPrice,
-      unlockedBy: row.unlockedBy,
-      unlockedAt: row.unlockedAt,
-      tipAmount: row.tipAmount,
-      tipTransactionId: row.tipTransactionId,
-      isAiGenerated: row.isAiGenerated,
-      replyToId: row.replyToId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      sender: {
-        id: row.senderId,
-        displayName: row.senderDisplayName,
-        username: row.senderUsername,
-        avatarUrl: row.senderAvatarUrl,
-        role: row.senderRole,
-      },
-    }));
-
-    // Get the next cursor (the createdAt of the last message)
-    const nextCursor = messageList.length > 0
-      ? messageList[messageList.length - 1].createdAt.toISOString()
-      : null;
-
-    return {
-      messages: messageList,
-      nextCursor,
-      hasMore,
-    };
   }
 
   /**
