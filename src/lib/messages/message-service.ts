@@ -461,71 +461,74 @@ export class MessageService {
       throw new Error('Unauthorized: You are not a participant in this conversation');
     }
 
-    // Use raw SQL join to avoid relational query issues
-    const result = await db
-      .select({
-        id: messages.id,
-        conversationId: messages.conversationId,
-        senderId: messages.senderId,
-        messageType: messages.messageType,
-        content: messages.content,
-        isRead: messages.isRead,
-        readAt: messages.readAt,
-        mediaUrl: messages.mediaUrl,
-        mediaType: messages.mediaType,
-        thumbnailUrl: messages.thumbnailUrl,
-        isLocked: messages.isLocked,
-        unlockPrice: messages.unlockPrice,
-        unlockedBy: messages.unlockedBy,
-        unlockedAt: messages.unlockedAt,
-        tipAmount: messages.tipAmount,
-        tipTransactionId: messages.tipTransactionId,
-        isAiGenerated: messages.isAiGenerated,
-        replyToId: messages.replyToId,
-        createdAt: messages.createdAt,
-        updatedAt: messages.updatedAt,
-        senderDisplayName: users.displayName,
-        senderUsername: users.username,
-        senderAvatarUrl: users.avatarUrl,
-        senderRole: users.role,
-      })
+    // Fetch messages first (simple query without joins)
+    const messageRows = await db
+      .select()
       .from(messages)
-      .leftJoin(users, eq(messages.senderId, users.id))
       .where(eq(messages.conversationId, conversationId))
       .orderBy(desc(messages.createdAt))
       .limit(limit)
       .offset(offset);
 
+    // Collect unique sender IDs
+    const senderIds = [...new Set(messageRows.map(r => r.senderId))];
+
+    // Fetch sender info in a separate query
+    const senderMap = new Map<string, { displayName: string | null; username: string | null; avatarUrl: string | null; role: string | null }>();
+    if (senderIds.length > 0) {
+      const senders = await db
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          username: users.username,
+          avatarUrl: users.avatarUrl,
+          role: users.role,
+        })
+        .from(users)
+        .where(inArray(users.id, senderIds));
+
+      senders.forEach(s => senderMap.set(s.id, s));
+    }
+
     // Transform to expected format with nested sender object
-    return result.map(row => ({
-      id: row.id,
-      conversationId: row.conversationId,
-      senderId: row.senderId,
-      messageType: row.messageType,
-      content: row.content,
-      isRead: row.isRead,
-      readAt: row.readAt,
-      mediaUrl: row.mediaUrl,
-      mediaType: row.mediaType,
-      thumbnailUrl: row.thumbnailUrl,
-      isLocked: row.isLocked,
-      unlockPrice: row.unlockPrice,
-      unlockedBy: row.unlockedBy,
-      unlockedAt: row.unlockedAt,
-      tipAmount: row.tipAmount,
-      tipTransactionId: row.tipTransactionId,
-      isAiGenerated: row.isAiGenerated,
-      replyToId: row.replyToId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      sender: {
-        id: row.senderId,
-        displayName: row.senderDisplayName,
-        username: row.senderUsername,
-        avatarUrl: row.senderAvatarUrl,
-        role: row.senderRole,
-      },
-    }));
+    return messageRows.map(row => {
+      const sender = senderMap.get(row.senderId);
+      return {
+        id: row.id,
+        conversationId: row.conversationId,
+        senderId: row.senderId,
+        messageType: row.messageType,
+        content: row.content,
+        isRead: row.isRead,
+        readAt: row.readAt,
+        mediaUrl: row.mediaUrl,
+        mediaType: row.mediaType,
+        thumbnailUrl: row.thumbnailUrl,
+        isLocked: row.isLocked,
+        unlockPrice: row.unlockPrice,
+        unlockedBy: row.unlockedBy,
+        unlockedAt: row.unlockedAt,
+        tipAmount: row.tipAmount,
+        tipTransactionId: row.tipTransactionId,
+        isAiGenerated: row.isAiGenerated,
+        replyToId: row.replyToId,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        sender: sender ? {
+          id: row.senderId,
+          displayName: sender.displayName,
+          username: sender.username,
+          avatarUrl: sender.avatarUrl,
+          role: sender.role,
+        } : {
+          id: row.senderId,
+          displayName: null,
+          username: null,
+          avatarUrl: null,
+          role: null,
+        },
+      };
+    });
   }
 
   /**
@@ -559,38 +562,7 @@ export class MessageService {
         throw new Error('Unauthorized: You are not a participant in this conversation');
       }
 
-      // Build the query using direct SQL joins to avoid relational query issues
-      let query = db
-        .select({
-          id: messages.id,
-          conversationId: messages.conversationId,
-          senderId: messages.senderId,
-          messageType: messages.messageType,
-          content: messages.content,
-          isRead: messages.isRead,
-          readAt: messages.readAt,
-          mediaUrl: messages.mediaUrl,
-          mediaType: messages.mediaType,
-          thumbnailUrl: messages.thumbnailUrl,
-          isLocked: messages.isLocked,
-          unlockPrice: messages.unlockPrice,
-          unlockedBy: messages.unlockedBy,
-          unlockedAt: messages.unlockedAt,
-          tipAmount: messages.tipAmount,
-          tipTransactionId: messages.tipTransactionId,
-          isAiGenerated: messages.isAiGenerated,
-          replyToId: messages.replyToId,
-          createdAt: messages.createdAt,
-          updatedAt: messages.updatedAt,
-          senderDisplayName: users.displayName,
-          senderUsername: users.username,
-          senderAvatarUrl: users.avatarUrl,
-          senderRole: users.role,
-        })
-        .from(messages)
-        .leftJoin(users, eq(messages.senderId, users.id));
-
-      // Build where condition
+      // Build where condition for messages query
       let whereCondition;
       if (cursor) {
         const cursorDate = new Date(cursor);
@@ -609,45 +581,77 @@ export class MessageService {
         whereCondition = eq(messages.conversationId, conversationId);
       }
 
-      const result = await query
+      // Fetch messages first (simple query without joins)
+      const messageRows = await db
+        .select()
+        .from(messages)
         .where(whereCondition!)
         .orderBy(direction === 'older' ? desc(messages.createdAt) : messages.createdAt)
-        .limit(limit + 1); // Fetch one extra to check if there are more
+        .limit(limit + 1);
 
       // Check if there are more messages
-      const hasMore = result.length > limit;
-      const rows = hasMore ? result.slice(0, limit) : result;
+      const hasMore = messageRows.length > limit;
+      const rows = hasMore ? messageRows.slice(0, limit) : messageRows;
+
+      // Collect unique sender IDs
+      const senderIds = [...new Set(rows.map(r => r.senderId))];
+
+      // Fetch sender info in a separate query
+      const senderMap = new Map<string, { displayName: string | null; username: string | null; avatarUrl: string | null; role: string | null }>();
+      if (senderIds.length > 0) {
+        const senders = await db
+          .select({
+            id: users.id,
+            displayName: users.displayName,
+            username: users.username,
+            avatarUrl: users.avatarUrl,
+            role: users.role,
+          })
+          .from(users)
+          .where(inArray(users.id, senderIds));
+
+        senders.forEach(s => senderMap.set(s.id, s));
+      }
 
       // Transform to expected format with nested sender object
-      const messageList = rows.map(row => ({
-        id: row.id,
-        conversationId: row.conversationId,
-        senderId: row.senderId,
-        messageType: row.messageType,
-        content: row.content,
-        isRead: row.isRead,
-        readAt: row.readAt,
-        mediaUrl: row.mediaUrl,
-        mediaType: row.mediaType,
-        thumbnailUrl: row.thumbnailUrl,
-        isLocked: row.isLocked,
-        unlockPrice: row.unlockPrice,
-        unlockedBy: row.unlockedBy,
-        unlockedAt: row.unlockedAt,
-        tipAmount: row.tipAmount,
-        tipTransactionId: row.tipTransactionId,
-        isAiGenerated: row.isAiGenerated,
-        replyToId: row.replyToId,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        sender: {
-          id: row.senderId,
-          displayName: row.senderDisplayName,
-          username: row.senderUsername,
-          avatarUrl: row.senderAvatarUrl,
-          role: row.senderRole,
-        },
-      }));
+      const messageList = rows.map(row => {
+        const sender = senderMap.get(row.senderId);
+        return {
+          id: row.id,
+          conversationId: row.conversationId,
+          senderId: row.senderId,
+          messageType: row.messageType,
+          content: row.content,
+          isRead: row.isRead,
+          readAt: row.readAt,
+          mediaUrl: row.mediaUrl,
+          mediaType: row.mediaType,
+          thumbnailUrl: row.thumbnailUrl,
+          isLocked: row.isLocked,
+          unlockPrice: row.unlockPrice,
+          unlockedBy: row.unlockedBy,
+          unlockedAt: row.unlockedAt,
+          tipAmount: row.tipAmount,
+          tipTransactionId: row.tipTransactionId,
+          isAiGenerated: row.isAiGenerated,
+          replyToId: row.replyToId,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          sender: sender ? {
+            id: row.senderId,
+            displayName: sender.displayName,
+            username: sender.username,
+            avatarUrl: sender.avatarUrl,
+            role: sender.role,
+          } : {
+            id: row.senderId,
+            displayName: null,
+            username: null,
+            avatarUrl: null,
+            role: null,
+          },
+        };
+      });
 
       // Get the next cursor (the createdAt of the last message)
       // Handle both Date objects and string timestamps (depending on fetch_types setting)
