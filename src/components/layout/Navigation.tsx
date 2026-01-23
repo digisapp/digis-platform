@@ -564,6 +564,20 @@ export function Navigation() {
                 <span className="text-base md:text-sm text-white font-semibold">Settings</span>
               </button>
 
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  handleLogout();
+                }}
+                className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-red-500/10 active:bg-red-500/20 transition-all text-left active:scale-98"
+                style={{ minHeight: '56px' }}
+              >
+                <svg className="w-6 h-6 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="text-base md:text-sm text-red-400 font-semibold">Sign Out</span>
+              </button>
+
             </div>
           </div>
         </>
@@ -941,9 +955,9 @@ export function Navigation() {
           </button>
         )}
 
-        {/* Navigation Items - Skip "Go Live" on desktop since it has its own button above */}
+        {/* Navigation Items - Skip "Go Live" and "Profile" on desktop since they have their own buttons above */}
         <div className="flex-1 flex flex-col gap-2">
-          {navItems.filter(item => item.label !== 'Go Live').map((item) => {
+          {navItems.filter(item => item.label !== 'Go Live' && item.label !== 'Profile').map((item) => {
             const IconComponent = item.icon;
             return (
               <button

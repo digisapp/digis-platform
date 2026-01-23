@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { GlassCard, GlassInput, GlassButton, LoadingSpinner, ResponsiveSettingsLayout } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Circle, LogOut, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Circle, Settings } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -1530,34 +1530,12 @@ export default function SettingsPage() {
     );
   };
 
-  // Actions Section (Sign Out, Delete Account, Become Creator)
+  // Actions Section (Delete Account, Become Creator)
   const renderActionsSection = () => (
     <div className="space-y-6">
-      {/* Sign Out */}
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-          <LogOut className="w-5 h-5 text-gray-400" />
-          Sign Out
-        </h3>
-        <button
-          type="button"
-          onClick={async () => {
-            console.log('[Settings] Sign out clicked');
-            await signOut();
-            router.push('/');
-          }}
-          className="w-full px-6 py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 font-semibold flex items-center justify-center gap-3 transition-all"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Sign Out
-        </button>
-      </div>
-
       {/* Become Creator Button - Only for Fans */}
       {currentUser?.role === 'fan' && (
-        <div className="pt-6 border-t border-cyan-500/20">
+        <div>
           <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
             <Crown className="w-5 h-5 text-digis-pink" />
             Creator Account
