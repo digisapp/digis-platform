@@ -24,6 +24,7 @@ export const users = pgTable('users', {
   secondaryCategory: text('secondary_category'), // Optional second category
   isCreatorVerified: boolean('is_creator_verified').default(false),
   verificationStatus: verificationStatusEnum('verification_status').default('none').notNull(), // Age/ID verification status
+  isHiddenFromDiscovery: boolean('is_hidden_from_discovery').default(false).notNull(), // Hide from explore, search, suggestions
   isTrending: boolean('is_trending').default(false),
   isOnline: boolean('is_online').default(false),
   lastSeenAt: timestamp('last_seen_at'),

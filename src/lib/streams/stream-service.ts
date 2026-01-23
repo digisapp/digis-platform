@@ -871,14 +871,16 @@ export class StreamService {
             username: true,
             avatarUrl: true,
             accountStatus: true,
+            isHiddenFromDiscovery: true,
           },
         },
       },
     });
 
-    // Filter out streams from suspended/banned creators
+    // Filter out streams from suspended/banned or hidden creators
     return liveStreams.filter(stream =>
-      stream.creator?.accountStatus === 'active' || !stream.creator?.accountStatus
+      (stream.creator?.accountStatus === 'active' || !stream.creator?.accountStatus) &&
+      !stream.creator?.isHiddenFromDiscovery
     );
   }
 

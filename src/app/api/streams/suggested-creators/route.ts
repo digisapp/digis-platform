@@ -62,6 +62,7 @@ export async function GET() {
           and(
             eq(users.role, 'creator'),
             eq(users.accountStatus, 'active'),
+            eq(users.isHiddenFromDiscovery, false), // Hide creators marked as hidden
             sql`${users.id} != ${user.id}`,
             sql`${users.id} NOT IN (
               SELECT following_id FROM follows WHERE follower_id = ${user.id}
@@ -87,7 +88,8 @@ export async function GET() {
         .where(
           and(
             eq(users.role, 'creator'),
-            eq(users.accountStatus, 'active')
+            eq(users.accountStatus, 'active'),
+            eq(users.isHiddenFromDiscovery, false) // Hide creators marked as hidden
           )
         )
         .orderBy(desc(users.isOnline), desc(users.followerCount))

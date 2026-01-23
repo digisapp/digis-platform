@@ -521,6 +521,31 @@ export class AdminService {
     return { success: true, isVerified: newVerificationStatus };
   }
 
+  // Toggle hide from discovery
+  static async toggleHideFromDiscovery(userId: string) {
+    // Get current hidden status
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { isHiddenFromDiscovery: true },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Toggle the hidden status
+    const newHiddenStatus = !user.isHiddenFromDiscovery;
+
+    await db.update(users)
+      .set({
+        isHiddenFromDiscovery: newHiddenStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    return { success: true, isHidden: newHiddenStatus };
+  }
+
   // Get platform statistics - optimized with COUNT queries
   static async getStatistics() {
     // Get date ranges for signup counts

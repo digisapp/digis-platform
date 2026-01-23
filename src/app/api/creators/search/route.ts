@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         and(
           eq(users.role, 'creator'),
           eq(users.accountStatus, 'active'), // Hide suspended/banned creators
+          eq(users.isHiddenFromDiscovery, false), // Hide creators marked as hidden
           or(
             ilike(users.username, `%${query}%`),
             ilike(users.displayName, `%${query}%`)

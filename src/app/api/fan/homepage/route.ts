@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
           and(
             eq(users.role, 'creator'),
             eq(users.accountStatus, 'active'),
+            eq(users.isHiddenFromDiscovery, false), // Hide creators marked as hidden
             // Exclude self
             sql`${users.id} != ${user.id}`,
             // Exclude already followed creators

@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
         filterCondition = sql`AND u.is_creator_verified = true`;
       } else if (filter === 'unverified') {
         filterCondition = sql`AND u.is_creator_verified = false`;
+      } else if (filter === 'hidden') {
+        filterCondition = sql`AND u.is_hidden_from_discovery = true`;
       } else if (filter === 'online') {
         filterCondition = sql`AND u.last_seen_at > NOW() - INTERVAL '10 minutes'`;
       } else if (filter === 'inactive') {
@@ -61,6 +63,7 @@ export async function GET(req: NextRequest) {
           u.avatar_url,
           u.bio,
           u.is_creator_verified,
+          u.is_hidden_from_discovery,
           u.follower_count,
           u.following_count,
           u.last_seen_at,

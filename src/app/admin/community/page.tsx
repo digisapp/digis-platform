@@ -36,6 +36,7 @@ import {
   UserCog,
   Star,
   Eye,
+  EyeOff,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
@@ -47,6 +48,7 @@ interface Creator {
   avatar_url: string | null;
   bio: string | null;
   is_creator_verified: boolean;
+  is_hidden_from_discovery: boolean;
   follower_count: number;
   following_count: number;
   last_seen_at: string | null;
@@ -309,6 +311,37 @@ function AdminCommunityContent() {
           }
         } catch {
           showToast('Failed to update verification', 'error');
+        }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleHideFromDiscovery = (userId: string, isCurrentlyHidden: boolean) => {
+    setActiveDropdown(null);
+    setConfirmModal({
+      show: true,
+      title: isCurrentlyHidden ? 'Show in Discovery' : 'Hide from Discovery',
+      message: isCurrentlyHidden
+        ? 'Make this creator visible in explore, search, and suggestions again?'
+        : 'Hide this creator from explore, search, and suggestions? They can still use the platform and existing followers can find them.',
+      type: 'confirm',
+      confirmText: isCurrentlyHidden ? 'Show' : 'Hide',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/admin/users/${userId}/hide`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (response.ok) {
+            showToast(isCurrentlyHidden ? 'Creator now visible in discovery' : 'Creator hidden from discovery', 'success');
+            fetchData();
+          } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update visibility', 'error');
+          }
+        } catch {
+          showToast('Failed to update visibility', 'error');
         }
         setConfirmModal(null);
       },
@@ -782,6 +815,25 @@ function AdminCommunityContent() {
                                     <>
                                       <ShieldCheck className="w-4 h-4 text-cyan-400" />
                                       Verify Creator
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleHideFromDiscovery(creator.id, creator.is_hidden_from_discovery);
+                                  }}
+                                  className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2"
+                                >
+                                  {creator.is_hidden_from_discovery ? (
+                                    <>
+                                      <Eye className="w-4 h-4 text-green-400" />
+                                      Show in Discovery
+                                    </>
+                                  ) : (
+                                    <>
+                                      <EyeOff className="w-4 h-4 text-orange-400" />
+                                      Hide from Discovery
                                     </>
                                   )}
                                 </button>
