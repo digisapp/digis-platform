@@ -271,6 +271,367 @@ Wasn't expecting this? No worries, just ignore this email.
 © 2025 Digis · digis.cc`;
 }
 
+// ============================================
+// EXA MODELS CAMPAIGN - Fun & Vibey Template
+// ============================================
+
+// Generate the EXA Models vibey invite email HTML
+function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string): string {
+  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey you!';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXA Models Invites You to Create on Digis</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%);">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%); padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, rgba(157, 78, 221, 0.15) 0%, rgba(255, 0, 110, 0.08) 50%, rgba(0, 212, 255, 0.05) 100%); border: 1px solid rgba(157, 78, 221, 0.3); border-radius: 32px; overflow: hidden; box-shadow: 0 24px 80px rgba(157, 78, 221, 0.25), 0 0 120px rgba(255, 0, 110, 0.1);">
+
+                    <!-- Sparkle Header -->
+                    <tr>
+                        <td align="center" style="background: linear-gradient(135deg, #FF006E 0%, #9D4EDD 40%, #00D4FF 100%); padding: 50px 40px 45px; position: relative;">
+                            <p style="margin: 0 0 8px; font-size: 40px; line-height: 1;">✨</p>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: -0.5px;">
+                                EXA Models Invites You<br>to Create on Digis
+                            </h1>
+                            <p style="margin: 16px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
+                                Your exclusive invite is ready 💅
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 45px 40px 35px;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="color: #ffffff; font-size: 18px; line-height: 1.8; padding-bottom: 20px;">
+                                        <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.95); font-weight: 500;">
+                                            ${greeting}
+                                        </p>
+                                        <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.85);">
+                                            We've been watching your content and honestly? <strong style="color: #FF006E;">You're too good</strong> to not be getting paid for it. 💸
+                                        </p>
+                                        <p style="margin: 0 0 28px; color: rgba(255, 255, 255, 0.85);">
+                                            <span style="color: #00D4FF; font-weight: 600;">Digis</span> is where creators like you are turning followers into actual income. No cap.
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- What's the vibe -->
+                                <tr>
+                                    <td style="padding-bottom: 28px;">
+                                        <p style="margin: 0 0 20px; color: #9D4EDD; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">
+                                            ⚡ What's the vibe?
+                                        </p>
+
+                                        <!-- Feature Cards -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 212, 255, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(0, 212, 255, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">📹</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">Paid Video Calls</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay YOUR rate. 10 min, 30 min — you decide what you're worth.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(255, 0, 110, 0.2) 0%, rgba(255, 0, 110, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(255, 0, 110, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">🔥</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">Go Live GRWM & Get Tips</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Stream, vibe with fans, and watch the tips roll in. It hits different.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(0, 204, 136, 0.2) 0%, rgba(0, 204, 136, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(0, 204, 136, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">📸</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">Sell Your Content & Guides</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Photos, videos, fitness guides — whatever you create. Your prices, your rules.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(157, 78, 221, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">🤖</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">AI Twin Chats For You</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Your AI handles DMs 24/7. Earn $$ while you sleep fr fr.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Social proof -->
+                                <tr>
+                                    <td style="padding: 24px; background: rgba(255, 255, 255, 0.03); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
+                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; text-align: center; font-style: italic;">
+                                            "Finally a platform that actually pays creators what they deserve" ✨
+                                        </p>
+                                        <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.5); font-size: 13px; text-align: center;">
+                                            — Creators in Miami, LA, and NYC are already on Digis
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- Urgency -->
+                                <tr>
+                                    <td style="padding: 24px 0 0; text-align: center;">
+                                        <p style="margin: 0; color: rgba(255, 255, 255, 0.7); font-size: 15px;">
+                                            👀 <strong style="color: #FFB800;">Usernames are first come, first serve</strong> — the good ones are going fast!
+                                        </p>
+                                    </td>
+                                </tr>
+
+                                <!-- CTA Button -->
+                                <tr>
+                                    <td align="center" style="padding: 32px 0 20px;">
+                                        <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(135deg, #FF006E 0%, #9D4EDD 50%, #00D4FF 100%); color: #ffffff; text-decoration: none; padding: 22px 64px; border-radius: 60px; font-size: 18px; font-weight: 800; box-shadow: 0 12px 40px rgba(157, 78, 221, 0.5), 0 0 0 2px rgba(255,255,255,0.15) inset; letter-spacing: 0.5px; text-transform: uppercase;">
+                                            Claim Your Spot 🚀
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <!-- Alternative Link -->
+                                <tr>
+                                    <td style="color: rgba(255, 255, 255, 0.4); font-size: 12px; line-height: 1.6; padding-top: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                                        <p style="margin: 0 0 6px;">
+                                            Button being weird? Copy this link:
+                                        </p>
+                                        <p style="margin: 0; word-break: break-all;">
+                                            <a href="${inviteUrl}" style="color: #00D4FF; text-decoration: none;">${inviteUrl}</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: rgba(0, 0, 0, 0.5); padding: 32px 40px; text-align: center;">
+                            <p style="margin: 0 0 8px; color: rgba(255, 255, 255, 0.6); font-size: 14px;">
+                                Can't wait to see you inside! 💜
+                            </p>
+                            <p style="margin: 0 0 4px; color: rgba(255, 255, 255, 0.8); font-size: 14px; font-weight: 600;">
+                                — The EXA Models & Digis Team
+                            </p>
+                            <p style="margin: 20px 0 0; color: rgba(255, 255, 255, 0.3); font-size: 11px;">
+                                Wasn't expecting this? No worries, just ignore this email.
+                            </p>
+                            <p style="margin: 12px 0 0; color: rgba(255, 255, 255, 0.25); font-size: 11px;">
+                                © ${new Date().getFullYear()} EXA Models & Digis · <a href="https://digis.cc" style="color: rgba(255, 255, 255, 0.35); text-decoration: none;">digis.cc</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+}
+
+// Generate EXA Models plain text version
+function generateExaModelsInvitePlainText(inviteUrl: string, recipientName?: string): string {
+  const greeting = recipientName ? `Hey ${recipientName}!` : 'Hey you!';
+
+  return `${greeting}
+
+EXA Models Invites You to Create on Digis ✨
+
+We've been watching your content and honestly? You're too good to not be getting paid for it.
+
+Digis is where creators like you are turning followers into actual income. No cap.
+
+⚡ WHAT'S THE VIBE?
+
+📹 Paid Video Calls
+Fans pay YOUR rate. 10 min, 30 min — you decide what you're worth.
+
+🔥 Go Live GRWM & Get Tips
+Stream, vibe with fans, and watch the tips roll in. It hits different.
+
+📸 Sell Your Content & Guides
+Photos, videos, fitness guides — whatever you create. Your prices, your rules.
+
+🤖 AI Twin Chats For You
+Your AI handles DMs 24/7. Earn $$ while you sleep fr fr.
+
+---
+
+"Finally a platform that actually pays creators what they deserve" ✨
+— Creators in Miami, LA, and NYC are already on Digis
+
+---
+
+👀 Usernames are first come, first serve — the good ones are going fast!
+
+Claim your spot: ${inviteUrl}
+
+Can't wait to see you inside! 💜
+— The EXA Models & Digis Team
+
+---
+
+Wasn't expecting this? No worries, just ignore this email.
+
+© ${new Date().getFullYear()} EXA Models & Digis · digis.cc`;
+}
+
+// Send EXA Models campaign invite email
+export async function sendExaModelsInvite(recipient: InviteRecipient): Promise<{
+  success: boolean;
+  id?: string;
+  error?: string;
+}> {
+  if (!resend) {
+    console.log(`[EXA Campaign] [DEV] Would send invite to ${recipient.email}`);
+    return { success: true, id: 'dev-mode' };
+  }
+
+  try {
+    const subject = recipient.name
+      ? `${recipient.name}, EXA Models invites you to Create on Digis ✨`
+      : "EXA Models invites you to Create on Digis ✨";
+
+    const { data, error } = await resend.emails.send({
+      from: CAMPAIGN_FROM,
+      to: recipient.email,
+      subject,
+      html: generateExaModelsInviteHtml(recipient.inviteUrl, recipient.name),
+      text: generateExaModelsInvitePlainText(recipient.inviteUrl, recipient.name),
+    });
+
+    if (error) {
+      console.error(`[EXA Campaign] Failed to send to ${recipient.email}:`, error);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`[EXA Campaign] Sent invite to ${recipient.email}, id: ${data?.id}`);
+    return { success: true, id: data?.id };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[EXA Campaign] Error sending to ${recipient.email}:`, errorMsg);
+    return { success: false, error: errorMsg };
+  }
+}
+
+// Send batch EXA Models invites with delays
+export async function sendExaModelsBatchInvites(
+  recipients: InviteRecipient[],
+  config: Partial<BatchConfig> = {},
+  onProgress?: (sent: number, total: number, failed: number) => void
+): Promise<{
+  sent: number;
+  failed: number;
+  results: Array<{ email: string; success: boolean; error?: string }>;
+}> {
+  const cfg = { ...DEFAULT_CONFIG, ...config };
+  const results: Array<{ email: string; success: boolean; error?: string }> = [];
+  let sent = 0;
+  let failed = 0;
+
+  // Limit to daily limit
+  const toSend = recipients.slice(0, cfg.dailyLimit);
+
+  console.log(`[EXA Campaign] Starting batch send: ${toSend.length} emails, batch size: ${cfg.batchSize}`);
+
+  // Process in batches
+  for (let i = 0; i < toSend.length; i += cfg.batchSize) {
+    const batch = toSend.slice(i, i + cfg.batchSize);
+
+    console.log(`[EXA Campaign] Processing batch ${Math.floor(i / cfg.batchSize) + 1}, emails ${i + 1}-${i + batch.length}`);
+
+    // Send batch concurrently
+    const batchResults = await Promise.all(
+      batch.map(async (recipient) => {
+        const result = await sendExaModelsInvite(recipient);
+        return { email: recipient.email, ...result };
+      })
+    );
+
+    // Track results
+    for (const result of batchResults) {
+      results.push(result);
+      if (result.success) {
+        sent++;
+      } else {
+        failed++;
+      }
+    }
+
+    // Report progress
+    onProgress?.(sent, toSend.length, failed);
+
+    // Delay before next batch (except for last batch)
+    if (i + cfg.batchSize < toSend.length) {
+      const delay = getRandomDelay(cfg.minDelay, cfg.maxDelay);
+      console.log(`[EXA Campaign] Waiting ${Math.round(delay / 1000)}s before next batch...`);
+      await sleep(delay);
+    }
+  }
+
+  console.log(`[EXA Campaign] Complete! Sent: ${sent}, Failed: ${failed}`);
+  return { sent, failed, results };
+}
+
+// Test the EXA Models email setup
+export async function testExaModelsInviteEmail(testEmail: string): Promise<{ success: boolean; error?: string }> {
+  console.log('[EXA Campaign] Testing email to:', testEmail);
+  console.log('[EXA Campaign] Resend configured:', !!resend);
+
+  const result = await sendExaModelsInvite({
+    email: testEmail,
+    name: 'Test Creator',
+    inviteUrl: 'https://digis.cc/join/test123',
+  });
+
+  console.log('[EXA Campaign] Test result:', result);
+  return { success: result.success, error: result.error };
+}
+
 // Send a single invite email
 export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
   success: boolean;

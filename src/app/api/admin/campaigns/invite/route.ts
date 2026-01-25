@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { creatorInvites, users, creatorSettings, aiTwinSettings, profiles } from '@/db/schema';
 import { eq, and, isNull, inArray } from 'drizzle-orm';
-import { sendBatchInvites, sendCreatorInvite, testInviteEmail } from '@/lib/email/creator-invite-campaign';
+import { sendBatchInvites, sendCreatorInvite, testInviteEmail, sendExaModelsBatchInvites, sendExaModelsInvite, testExaModelsInviteEmail } from '@/lib/email/creator-invite-campaign';
 import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { nanoid } from 'nanoid';
@@ -39,6 +39,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: result.success,
         message: result.success ? 'Test email sent!' : `Failed: ${result.error || 'Unknown error'}`,
+        error: result.error
+      });
+    }
+
+    // Test EXA Models campaign email
+    if (action === 'test-exa') {
+      if (!testEmail) {
+        return NextResponse.json({ error: 'testEmail required' }, { status: 400 });
+      }
+      const result = await testExaModelsInviteEmail(testEmail);
+      return NextResponse.json({
+        success: result.success,
+        message: result.success ? 'EXA Models test email sent!' : `Failed: ${result.error || 'Unknown error'}`,
         error: result.error
       });
     }
@@ -84,6 +97,39 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await sendBatchInvites(recipients, config);
+
+      // Mark successfully sent invites as emailed
+      const sentEmails = result.results
+        .filter(r => r.success)
+        .map(r => r.email);
+
+      if (sentEmails.length > 0) {
+        await db
+          .update(creatorInvites)
+          .set({ emailSentAt: new Date() })
+          .where(inArray(creatorInvites.email, sentEmails));
+      }
+
+      return NextResponse.json(result);
+    }
+
+    // Send EXA Models batch campaign (fun & vibey template)
+    if (action === 'exa-batch') {
+      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return NextResponse.json({ error: 'recipients array required' }, { status: 400 });
+      }
+
+      // Validate recipients have required fields
+      for (const r of recipients) {
+        if (!r.email || !r.inviteUrl) {
+          return NextResponse.json({
+            error: 'Each recipient must have email and inviteUrl',
+            invalidRecipient: r
+          }, { status: 400 });
+        }
+      }
+
+      const result = await sendExaModelsBatchInvites(recipients, config);
 
       // Mark successfully sent invites as emailed
       const sentEmails = result.results

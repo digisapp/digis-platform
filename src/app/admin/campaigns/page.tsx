@@ -96,6 +96,9 @@ export default function CampaignsPage() {
   const [creatingAccount, setCreatingAccount] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Template selection
+  const [useExaTemplate, setUseExaTemplate] = useState(true); // Default to EXA Models template
+
   // Fetch data
   const fetchData = async () => {
     try {
@@ -127,7 +130,10 @@ export default function CampaignsPage() {
       const res = await fetch('/api/admin/campaigns/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'test', testEmail }),
+        body: JSON.stringify({
+          action: useExaTemplate ? 'test-exa' : 'test',
+          testEmail
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -179,7 +185,7 @@ export default function CampaignsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'batch',
+          action: useExaTemplate ? 'exa-batch' : 'batch',
           recipients: recipients.map(r => ({
             email: r.email,
             name: r.name,
@@ -217,7 +223,7 @@ export default function CampaignsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'batch',
+          action: useExaTemplate ? 'exa-batch' : 'batch',
           recipients: emails.map(email => ({
             email,
             inviteUrl: 'https://digis.cc/signup?ref=invite',
@@ -311,11 +317,11 @@ export default function CampaignsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Mail className="w-7 h-7 text-cyan-400" />
-              Creator Invite Campaigns
+              <Sparkles className="w-7 h-7 text-pink-400" />
+              EXA Models Campaign
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Send batch invite emails via examodels.com
+              Send invite emails to {stats?.pendingNotEmailed?.toLocaleString() || '...'} pending creators via examodels.com
             </p>
           </div>
           <GlassButton variant="ghost" onClick={fetchData}>
@@ -359,11 +365,69 @@ export default function CampaignsPage() {
           </div>
         )}
 
+        {/* Template Selection */}
+        <GlassCard className="p-5 border-2 border-pink-500/30 bg-gradient-to-r from-pink-500/10 to-purple-500/10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-pink-400" />
+                Email Template
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                {useExaTemplate
+                  ? '"EXA Models invites you to Create on Digis" - Fun & vibey template'
+                  : 'Standard "Stop leaving money on the table" template'}
+              </p>
+            </div>
+            <button
+              onClick={() => setUseExaTemplate(!useExaTemplate)}
+              className={`relative w-20 h-10 rounded-full transition-all ${
+                useExaTemplate
+                  ? 'bg-gradient-to-r from-pink-500 to-purple-500'
+                  : 'bg-white/10'
+              }`}
+            >
+              <span className="absolute left-1 top-1/2 -translate-y-1/2 text-xs font-medium text-white/60 pl-1">
+                STD
+              </span>
+              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-xs font-medium text-white/60 pr-1">
+                EXA
+              </span>
+              <div
+                className={`absolute top-1 w-8 h-8 bg-white rounded-full shadow-lg transition-all flex items-center justify-center ${
+                  useExaTemplate ? 'left-[44px]' : 'left-1'
+                }`}
+              >
+                {useExaTemplate ? (
+                  <Sparkles className="w-4 h-4 text-pink-500" />
+                ) : (
+                  <Mail className="w-4 h-4 text-gray-600" />
+                )}
+              </div>
+            </button>
+          </div>
+          {useExaTemplate && (
+            <div className="mt-4 p-3 bg-black/30 rounded-xl border border-white/5">
+              <p className="text-sm text-white/80 font-medium mb-1">
+                Subject: "[Name], EXA Models invites you to Create on Digis"
+              </p>
+              <p className="text-xs text-gray-400">
+                Features vibey gradients, casual copy ("no cap", "fr fr"), and colorful feature cards
+              </p>
+            </div>
+          )}
+        </GlassCard>
+
         {/* Test Email Section */}
         <GlassCard className="p-5">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <TestTube className="w-5 h-5 text-cyan-400" />
             Test Email
+            {useExaTemplate && (
+              <span className="text-xs bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full">
+                EXA Template
+              </span>
+            )}
           </h3>
           <div className="flex gap-3">
             <input
