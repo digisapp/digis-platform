@@ -27,11 +27,6 @@ const DEFAULT_CONFIG: BatchConfig = {
   dailyLimit: 250,   // Safe limit for established domain (examodels.com)
 };
 
-// Generate random delay between min and max
-function getRandomDelay(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 // Sleep utility
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -599,6 +594,8 @@ export async function sendExaModelsInvite(recipient: InviteRecipient): Promise<{
 }
 
 // Send batch EXA Models invites with delays
+// IMPORTANT: Resend has a rate limit of 2 requests/second
+// We send emails sequentially with 600ms delay between each to stay under the limit
 export async function sendExaModelsBatchInvites(
   recipients: InviteRecipient[],
   config: Partial<BatchConfig> = {},
@@ -616,40 +613,32 @@ export async function sendExaModelsBatchInvites(
   // Limit to daily limit
   const toSend = recipients.slice(0, cfg.dailyLimit);
 
-  console.log(`[EXA Campaign] Starting batch send: ${toSend.length} emails, batch size: ${cfg.batchSize}`);
+  console.log(`[EXA Campaign] Starting sequential send: ${toSend.length} emails (rate limit: 2/sec)`);
 
-  // Process in batches
-  for (let i = 0; i < toSend.length; i += cfg.batchSize) {
-    const batch = toSend.slice(i, i + cfg.batchSize);
+  // Send emails sequentially to respect rate limit (2 requests/second = 500ms minimum between requests)
+  // Using 600ms to be safe
+  const RATE_LIMIT_DELAY = 600;
 
-    console.log(`[EXA Campaign] Processing batch ${Math.floor(i / cfg.batchSize) + 1}, emails ${i + 1}-${i + batch.length}`);
+  for (let i = 0; i < toSend.length; i++) {
+    const recipient = toSend[i];
 
-    // Send batch concurrently
-    const batchResults = await Promise.all(
-      batch.map(async (recipient) => {
-        const result = await sendExaModelsInvite(recipient);
-        return { email: recipient.email, ...result };
-      })
-    );
+    console.log(`[EXA Campaign] Sending ${i + 1}/${toSend.length}: ${recipient.email}`);
 
-    // Track results
-    for (const result of batchResults) {
-      results.push(result);
-      if (result.success) {
-        sent++;
-      } else {
-        failed++;
-      }
+    const result = await sendExaModelsInvite(recipient);
+    results.push({ email: recipient.email, ...result });
+
+    if (result.success) {
+      sent++;
+    } else {
+      failed++;
     }
 
-    // Report progress
+    // Report progress after each email
     onProgress?.(sent, toSend.length, failed);
 
-    // Delay before next batch (except for last batch)
-    if (i + cfg.batchSize < toSend.length) {
-      const delay = getRandomDelay(cfg.minDelay, cfg.maxDelay);
-      console.log(`[EXA Campaign] Waiting ${Math.round(delay / 1000)}s before next batch...`);
-      await sleep(delay);
+    // Add delay between emails to respect rate limit (except for last email)
+    if (i < toSend.length - 1) {
+      await sleep(RATE_LIMIT_DELAY);
     }
   }
 
@@ -711,6 +700,8 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
 }
 
 // Send batch invites with delays
+// IMPORTANT: Resend has a rate limit of 2 requests/second
+// We send emails sequentially with 600ms delay between each to stay under the limit
 export async function sendBatchInvites(
   recipients: InviteRecipient[],
   config: Partial<BatchConfig> = {},
@@ -728,40 +719,32 @@ export async function sendBatchInvites(
   // Limit to daily limit
   const toSend = recipients.slice(0, cfg.dailyLimit);
 
-  console.log(`[Campaign] Starting batch send: ${toSend.length} emails, batch size: ${cfg.batchSize}`);
+  console.log(`[Campaign] Starting sequential send: ${toSend.length} emails (rate limit: 2/sec)`);
 
-  // Process in batches
-  for (let i = 0; i < toSend.length; i += cfg.batchSize) {
-    const batch = toSend.slice(i, i + cfg.batchSize);
+  // Send emails sequentially to respect rate limit (2 requests/second = 500ms minimum between requests)
+  // Using 600ms to be safe
+  const RATE_LIMIT_DELAY = 600;
 
-    console.log(`[Campaign] Processing batch ${Math.floor(i / cfg.batchSize) + 1}, emails ${i + 1}-${i + batch.length}`);
+  for (let i = 0; i < toSend.length; i++) {
+    const recipient = toSend[i];
 
-    // Send batch concurrently
-    const batchResults = await Promise.all(
-      batch.map(async (recipient) => {
-        const result = await sendCreatorInvite(recipient);
-        return { email: recipient.email, ...result };
-      })
-    );
+    console.log(`[Campaign] Sending ${i + 1}/${toSend.length}: ${recipient.email}`);
 
-    // Track results
-    for (const result of batchResults) {
-      results.push(result);
-      if (result.success) {
-        sent++;
-      } else {
-        failed++;
-      }
+    const result = await sendCreatorInvite(recipient);
+    results.push({ email: recipient.email, ...result });
+
+    if (result.success) {
+      sent++;
+    } else {
+      failed++;
     }
 
-    // Report progress
+    // Report progress after each email
     onProgress?.(sent, toSend.length, failed);
 
-    // Delay before next batch (except for last batch)
-    if (i + cfg.batchSize < toSend.length) {
-      const delay = getRandomDelay(cfg.minDelay, cfg.maxDelay);
-      console.log(`[Campaign] Waiting ${Math.round(delay / 1000)}s before next batch...`);
-      await sleep(delay);
+    // Add delay between emails to respect rate limit (except for last email)
+    if (i < toSend.length - 1) {
+      await sleep(RATE_LIMIT_DELAY);
     }
   }
 
