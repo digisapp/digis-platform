@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { LoginModal } from '@/components/auth/LoginModal';
-import { Sparkles, Video, MessageCircle, DollarSign, Shield, Dumbbell, Shirt, Camera, Heart, Flower2 } from 'lucide-react';
+import { Sparkles, Video, MessageCircle, DollarSign, Dumbbell, Camera, Heart, Flower2, Flame, Bot } from 'lucide-react';
 
 export default function BecomeCreatorPage() {
   const router = useRouter();
@@ -25,7 +25,6 @@ export default function BecomeCreatorPage() {
 
   const handleApplyClick = () => {
     if (isLoggedIn) {
-      // Logged-in users go to application form (or see their application status)
       router.push('/apply-creator');
     } else {
       setShowSignup(true);
@@ -86,9 +85,9 @@ export default function BecomeCreatorPage() {
       <div className="relative z-10 px-4 pt-12 md:pt-20 pb-16">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 mb-8">
-            <Sparkles className="w-4 h-4 text-digis-cyan" />
-            <span className="text-sm text-white/80">The Future of Creator Monetization</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 mb-8">
+            <span className="text-2xl">🌍✨</span>
+            <span className="text-sm font-medium text-white/90">Create Content While Traveling the World</span>
           </div>
 
           {/* Headline */}
@@ -98,32 +97,138 @@ export default function BecomeCreatorPage() {
             </span>
           </h1>
 
-          <p className="text-lg md:text-2xl text-white/60 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Build your community. Live stream and receive virtual gifts. Monetize your Digitals. Video calls with your fans and students. Earn while you sleep with AI Twin.
+          <p className="text-lg md:text-2xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Turn your time and content into actual income. Work from anywhere.
+            <span className="text-digis-pink font-semibold"> Your rates, your rules.</span>
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <button
               onClick={handleApplyClick}
-              className="group px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] transition-all duration-300"
+              className="group px-10 py-4 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_50px_rgba(168,85,247,0.6)] transition-all duration-300"
             >
-              Start Earning Today
-              <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              Claim Your Spot 🚀
             </button>
+          </div>
+
+          {/* Social Proof */}
+          <div className="inline-block px-6 py-3 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-white/60 text-sm italic">
+              "Finally a platform that actually pays creators what they deserve" ✨
+            </p>
+            <p className="text-white/40 text-xs mt-1">
+              — Creators in Miami, LA, and NYC are already on Digis
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Creator Scenarios Section */}
+      {/* What's the Vibe Section */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-sm font-bold text-purple-400 uppercase tracking-widest mb-3">
+              ⚡ What's the Vibe?
+            </h2>
+            <p className="text-3xl md:text-4xl font-bold text-white">
+              Here's How You Get Paid
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Paid Video Calls */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/20 hover:border-cyan-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">📹</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Paid Video Calls</h3>
+                  <p className="text-white/60 text-sm">
+                    Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Twin */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 hover:border-purple-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🤖</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">AI Twin <span className="text-purple-400 text-sm">(This one's wild)</span></h3>
+                  <p className="text-white/60 text-sm">
+                    Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Go Live */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🔥</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Go Live GRWM & Get Tips</h3>
+                  <p className="text-white/60 text-sm">
+                    Stream, vibe with fans, and watch the tips roll in.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sell Content */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/20 to-pink-500/5 border border-pink-500/20 hover:border-pink-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">📸</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Sell Your Content</h3>
+                  <p className="text-white/60 text-sm">
+                    Photos, videos, fitness courses — whatever you create.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Private Training */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 border border-green-500/20 hover:border-green-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🏋️</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Private Training Sessions</h3>
+                  <p className="text-white/60 text-sm">
+                    Fitness creators are booking paid video calls for personalized workouts and coaching.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Virtual Dates */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-500/5 border border-red-500/20 hover:border-red-500/40 transition-all">
+              <div className="flex items-start gap-4">
+                <span className="text-3xl">🍷</span>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Virtual Dates</h3>
+                  <p className="text-white/60 text-sm">
+                    Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Creator Types Section */}
       <div className="relative z-10 px-4 pb-20">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
-            Real Creators, Real Income
-          </h2>
-          <p className="text-white/50 text-center mb-12 max-w-2xl mx-auto">
-            See how creators like you are combining multiple revenue streams to build sustainable income on Digis.
-          </p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+              Creators Like You Are Already Earning
+            </h2>
+            <p className="text-white/50 max-w-2xl mx-auto">
+              Whether you're a model, influencer, fitness coach, or content creator — there's a way for you to get paid.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Model Scenario */}
@@ -133,54 +238,34 @@ export default function BecomeCreatorPage() {
                   <Camera className="w-6 h-6 text-pink-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">The Model</h3>
-                  <p className="text-sm text-pink-300">Glamour, Fashion, Fitness</p>
+                  <h3 className="text-lg font-bold text-white">Models & Influencers</h3>
+                  <p className="text-sm text-pink-300">Glamour, Fashion, Lifestyle</p>
                 </div>
               </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex items-start gap-2">
-                  <span className="text-pink-400 mt-0.5">▸</span>
-                  <span>Sell <strong className="text-white">exclusive photosets</strong> and behind-the-scenes Digitals</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-pink-400 mt-0.5">▸</span>
-                  <span>Go <strong className="text-white">live</strong> for Q&As, GRWM and OOTD sessions</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-pink-400 mt-0.5">▸</span>
-                  <span>Offer <strong className="text-white">paid video calls</strong> for personal time with you</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-pink-400 mt-0.5">▸</span>
-                  <span>Your <strong className="text-white">AI Twin</strong> chats 24/7 - earn while you sleep</span>
-                </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
+                <p>🔥 Go live for Q&As and GRWM</p>
+                <p>📹 Offer paid 1-on-1 video calls</p>
+                <p>🤖 AI Twin chats while you sleep</p>
               </div>
             </div>
 
-            {/* Influencer Scenario */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-white/10 hover:border-cyan-500/30 transition-all">
+            {/* Fitness Scenario */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                  <Shirt className="w-6 h-6 text-cyan-400" />
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Dumbbell className="w-6 h-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">The Influencer</h3>
-                  <p className="text-sm text-cyan-300">Fashion, Lifestyle, Beauty</p>
+                  <h3 className="text-lg font-bold text-white">Fitness Creators</h3>
+                  <p className="text-sm text-green-300">Training, Yoga, Wellness</p>
                 </div>
               </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-0.5">▸</span>
-                  <span>Host <strong className="text-white">live Q&As</strong> about style and skincare routines</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-0.5">▸</span>
-                  <span>Charge for <strong className="text-white">paid DMs</strong> for personalized outfit feedback</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-cyan-400 mt-0.5">▸</span>
-                  <span>Sell <strong className="text-white">exclusive photos</strong> and lookbooks</span>
-                </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🏋️ Host live workout classes</p>
+                <p>📱 Sell workout plans & guides</p>
+                <p>📹 Private coaching video calls</p>
+                <p>🧘 Meditation & wellness content</p>
               </div>
             </div>
 
@@ -191,175 +276,28 @@ export default function BecomeCreatorPage() {
                   <Heart className="w-6 h-6 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Virtual Dates</h3>
-                  <p className="text-sm text-red-300">Dinner Dates, Companionship</p>
+                  <h3 className="text-lg font-bold text-white">Virtual Companions</h3>
+                  <p className="text-sm text-red-300">Dates, Conversation, Connection</p>
                 </div>
               </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex items-start gap-2">
-                  <span className="text-red-400 mt-0.5">▸</span>
-                  <span>Add <strong className="text-white">"Virtual Dinner Date"</strong> to your tip menu for romantic video time</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-red-400 mt-0.5">▸</span>
-                  <span>Charge <strong className="text-white">premium per-minute rates</strong> for 1-on-1 video calls</span>
-                </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🍷 Virtual dinner dates</p>
+                <p>💬 Premium per-minute rates</p>
+                <p>🎯 Set your own boundaries</p>
+                <p>🤖 AI Twin handles overflow</p>
               </div>
             </div>
-
-            {/* Health & Fitness Coach Scenario */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <Dumbbell className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Fitness Coach</h3>
-                  <p className="text-sm text-green-300">Personal Training, Health</p>
-                </div>
-              </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex items-start gap-2">
-                  <span className="text-green-400 mt-0.5">▸</span>
-                  <span>Host <strong className="text-white">live workout classes</strong></span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-green-400 mt-0.5">▸</span>
-                  <span>Sell <strong className="text-white">personalized workout plans</strong> as digital downloads</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-green-400 mt-0.5">▸</span>
-                  <span>Book <strong className="text-white">private coaching video calls</strong></span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-green-400 mt-0.5">▸</span>
-                  <span><strong className="text-white">Subscriber only</strong> exclusive workout streams</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Yoga & Pilates Instructor Scenario */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/10 to-indigo-500/10 border border-white/10 hover:border-purple-500/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                  <Flower2 className="w-6 h-6 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Yoga & Pilates</h3>
-                  <p className="text-sm text-purple-300">Mindfulness, Flexibility</p>
-                </div>
-              </div>
-              <div className="space-y-3 text-sm text-white/70">
-                <div className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-0.5">▸</span>
-                  <span>Stream <strong className="text-white">live yoga sessions</strong> - morning flows, evening stretches, meditation</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-0.5">▸</span>
-                  <span>Sell <strong className="text-white">guided meditation audio and video</strong></span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-0.5">▸</span>
-                  <span>Offer <strong className="text-white">private video sessions</strong> for personalized instruction</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-purple-400 mt-0.5">▸</span>
-                  <span>Your <strong className="text-white">AI Twin</strong> talks with your students about your personalized guides</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Earnings Potential Callout */}
-          <div className="mt-12 p-6 md:p-8 rounded-2xl bg-gradient-to-r from-digis-cyan/10 via-digis-purple/10 to-digis-pink/10 border border-white/10 text-center">
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-              Stack Your Revenue Streams
-            </h3>
-            <p className="text-white/60 max-w-2xl mx-auto">
-              The most successful creators on Digis don't rely on just one income source.
-              They combine live streaming, paid messages, calls, subscriptions, and their AI Twin
-              to earn around the clock—even while they sleep.
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="relative z-10 px-4 pb-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
-            Everything You Need to Monetize
-          </h2>
-          <p className="text-white/50 text-center mb-12 max-w-xl mx-auto">
-            Multiple revenue streams, one platform. Keep more of what you earn.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Live Streaming */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-red-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Live Streaming</h3>
-              <p className="text-white/50">
-                Go live and earn from virtual gifts. Sell tickets to exclusive streams. Build real connections.
-              </p>
-            </div>
-
-            {/* Video Calls */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-pink/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-pink/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Video className="w-6 h-6 text-digis-pink" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">1-on-1 Video Calls</h3>
-              <p className="text-white/50">
-                Set your own rate per minute. Fans book time with you directly. Premium personal experience.
-              </p>
-            </div>
-
-            {/* Paid Messages */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-purple/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-purple/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-6 h-6 text-digis-purple" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Paid Messaging</h3>
-              <p className="text-white/50">
-                Charge per message. Fans pay to slide into your DMs. Your time is valuable.
-              </p>
-            </div>
-
-            {/* Exclusive Content */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-digis-cyan/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-digis-cyan/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Shield className="w-6 h-6 text-digis-cyan" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Digitals</h3>
-              <p className="text-white/50">
-                Sell exclusive photos and videos. Set your own prices. Fans unlock premium content.
-              </p>
-            </div>
-
-            {/* Tips & Gifts */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-green-500/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <DollarSign className="w-6 h-6 text-green-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Tips & Gifts</h3>
-              <p className="text-white/50">
-                Fans send coins anytime. On streams, in DMs, on your profile. Every interaction can earn.
-              </p>
-            </div>
-
-            {/* AI Twin */}
-            <div className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Sparkles className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">AI Twin</h3>
-              <p className="text-white/50">
-                Your AI chats with fans 24/7. Earn while you sleep. Never miss a message.
-              </p>
-            </div>
+      {/* Urgency Banner */}
+      <div className="relative z-10 px-4 pb-12">
+        <div className="max-w-3xl mx-auto">
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 text-center">
+            <p className="text-white/90 text-lg">
+              👀 <span className="font-bold text-yellow-400">Usernames are first come, first serve</span> — the good ones are going fast!
+            </p>
           </div>
         </div>
       </div>
@@ -371,16 +309,15 @@ export default function BecomeCreatorPage() {
             Ready to Start Earning?
           </h2>
           <p className="text-white/50 text-lg mb-10 max-w-xl mx-auto">
-            Join creators who are building real income on Digis.
-            Set up takes 5 minutes.
+            Join creators who are turning their content into real income.
+            Free to join. Takes 2 minutes.
           </p>
 
           <button
             onClick={handleApplyClick}
-            className="group px-12 py-5 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
+            className="group px-12 py-5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
           >
-            Create Your Account
-            <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
+            Claim Your Spot 🚀
           </button>
 
           <p className="text-white/30 text-sm mt-6">
