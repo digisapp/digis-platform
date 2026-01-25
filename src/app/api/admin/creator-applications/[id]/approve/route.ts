@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
-import { users, creatorApplications } from '@/db/schema';
+import { users, creatorApplications, creatorSettings, aiTwinSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
@@ -52,87 +51,63 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const { adminNotes } = body;
 
-    // Start transaction-like operations
-    const adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Use a transaction for atomicity - all operations succeed or all fail
+    // This prevents partial states like "approved but role not upgraded"
+    await db.transaction(async (tx) => {
+      // 1. Update application status
+      await tx.update(creatorApplications)
+        .set({
+          status: 'approved',
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          adminNotes: adminNotes || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(creatorApplications.id, id));
 
-    // 1. Update application status
-    await db.update(creatorApplications)
-      .set({
-        status: 'approved',
-        reviewedBy: user.id,
-        reviewedAt: new Date(),
-        adminNotes: adminNotes || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(creatorApplications.id, id));
+      // 2. Update user role to creator
+      await tx.update(users)
+        .set({
+          role: 'creator',
+          isCreatorVerified: false, // Not auto-verified, just approved as creator
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, application.userId));
 
-    // 2. Update user role to creator
-    await db.update(users)
-      .set({
-        role: 'creator',
-        isCreatorVerified: false, // Not auto-verified, just approved as creator
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, application.userId));
+      // 3. Create default creator settings (using Drizzle in same transaction)
+      await tx.insert(creatorSettings).values({
+        userId: application.userId,
+        messageRate: 25,
+        callRatePerMinute: 25,
+        minimumCallDuration: 5,
+        isAvailableForCalls: false,
+        voiceCallRatePerMinute: 15,
+        minimumVoiceCallDuration: 5,
+        isAvailableForVoiceCalls: false,
+      }).onConflictDoNothing();
 
-    // 3. Update Supabase auth metadata
+      // 4. Create default AI Twin settings (using Drizzle in same transaction)
+      await tx.insert(aiTwinSettings).values({
+        creatorId: application.userId,
+        enabled: false,
+        textChatEnabled: false,
+        voice: 'ara',
+        pricePerMinute: 20,
+        minimumMinutes: 5,
+        maxSessionMinutes: 60,
+        textPricePerMessage: 5,
+      }).onConflictDoNothing();
+    });
+
+    // 5. Update Supabase auth metadata (outside transaction - different system)
+    // This is fire-and-forget; the DB is the source of truth
     try {
       await supabaseAdmin.auth.admin.updateUserById(application.userId, {
         app_metadata: { role: 'creator' },
       });
     } catch (authError) {
       console.error('[Creator Application] Failed to update auth metadata:', authError);
-    }
-
-    // 4. Create default creator settings
-    try {
-      const { error: settingsError } = await adminClient
-        .from('creator_settings')
-        .insert({
-          user_id: application.userId,
-          message_rate: 25,
-          call_rate_per_minute: 25,
-          minimum_call_duration: 5,
-          is_available_for_calls: false,
-          voice_call_rate_per_minute: 15,
-          minimum_voice_call_duration: 5,
-          is_available_for_voice_calls: false,
-        })
-        .select()
-        .single();
-
-      if (settingsError && !settingsError.message?.includes('duplicate')) {
-        console.error('[Creator Application] Error creating creator settings:', settingsError);
-      }
-    } catch (settingsError) {
-      console.error('[Creator Application] Error creating creator settings:', settingsError);
-    }
-
-    // 5. Create default AI Twin settings
-    try {
-      const { error: aiSettingsError } = await adminClient
-        .from('ai_twin_settings')
-        .insert({
-          creator_id: application.userId,
-          enabled: false,
-          text_chat_enabled: false,
-          voice: 'ara',
-          price_per_minute: 20,
-          minimum_minutes: 5,
-          max_session_minutes: 60,
-          text_price_per_message: 5,
-        })
-        .select()
-        .single();
-
-      if (aiSettingsError && !aiSettingsError.message?.includes('duplicate')) {
-        console.error('[Creator Application] Error creating AI Twin settings:', aiSettingsError);
-      }
-    } catch (aiSettingsError) {
-      console.error('[Creator Application] Error creating AI Twin settings:', aiSettingsError);
+      // Don't fail the request - DB is the source of truth
     }
 
     console.log(`[Creator Application] Approved: ${application.userId} by ${user.id}`);

@@ -35,10 +35,13 @@ CREATE TABLE IF NOT EXISTS creator_applications (
 );
 
 -- Add new columns if table already exists (for existing deployments)
+ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS display_name TEXT;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS other_social_links TEXT;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS follower_count TEXT;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS content_category TEXT;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS age_confirmed BOOLEAN DEFAULT false;
+ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS terms_accepted BOOLEAN DEFAULT false;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES users(id);
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP;
 ALTER TABLE creator_applications ADD COLUMN IF NOT EXISTS rejection_reason TEXT;

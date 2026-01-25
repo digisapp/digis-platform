@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorInvites, creatorSettings, aiTwinSettings, profiles } from '@/lib/data/system';
+import { users, creatorInvites, creatorSettings, aiTwinSettings, profiles, creatorApplications } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';
@@ -34,12 +34,17 @@ export async function POST(request: NextRequest) {
     const cleanEmail = email.toLowerCase().trim();
 
     // Determine user role based on:
-    // 1. If email matches a pending creator invite → creator (verified)
-    // 2. If defaultRole is 'creator' (signed up via /become-creator) → creator (pending verification)
-    // 3. Otherwise → fan (no verification needed)
-    let userRole: 'fan' | 'creator' = defaultRole === 'creator' ? 'creator' : 'fan';
+    // 1. If email matches a pending creator invite → creator (verified, admin pre-approved)
+    // 2. Otherwise → fan (must apply via /apply-creator for admin approval)
+    //
+    // SECURITY: Only admin-approved paths can create creators:
+    // - Invite claim (/api/claim/[code])
+    // - Admin role update (/api/admin/users/[userId]/role)
+    // - Admin application approve (/api/admin/creator-applications/[id]/approve)
+    let userRole: 'fan' | 'creator' = 'fan';
     let isCreatorVerified = false;
     let matchedInvite = null;
+    let wantsToBeCreator = defaultRole === 'creator';
 
     try {
       matchedInvite = await db.query.creatorInvites.findFirst({
@@ -50,17 +55,17 @@ export async function POST(request: NextRequest) {
       });
 
       if (matchedInvite) {
-        // Email is in invite list - auto-verify as creator
+        // Email is in invite list - auto-verify as creator (admin pre-approved via invite)
         userRole = 'creator';
         isCreatorVerified = true;
         console.log(`[Signup] Email ${cleanEmail} matched creator invite, granting verified creator role`);
-      } else if (defaultRole === 'creator') {
-        // Signed up as creator but not in invite list - pending verification
-        console.log(`[Signup] Email ${cleanEmail} signed up as creator (pending verification)`);
+      } else if (wantsToBeCreator) {
+        // Signed up wanting to be a creator - stays as fan, will auto-create application
+        console.log(`[Signup] Email ${cleanEmail} wants to be creator - will create pending application`);
       }
     } catch (err) {
       console.error('[Signup] Error checking creator invites:', err);
-      // Continue with defaultRole if check fails
+      // Continue as fan if check fails
     }
 
     // Spam protection: Check honeypot field
@@ -207,11 +212,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Auto-create a pending creator application if user wants to be creator but wasn't invited
+    // This ensures they go through the admin approval workflow
+    if (wantsToBeCreator && !matchedInvite) {
+      try {
+        await db.insert(creatorApplications).values({
+          userId: userId,
+          status: 'pending',
+          ageConfirmed: true, // They confirmed 18+ during signup
+          termsAccepted: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }).onConflictDoNothing(); // Don't fail if application already exists
+        console.log(`[Signup] Auto-created pending creator application for: ${cleanEmail}`);
+      } catch (err) {
+        console.error('[Signup] Error creating creator application:', err);
+        // Don't fail signup if application creation fails - they can apply later
+      }
+    }
+
     return NextResponse.json({
       success: true,
       username: cleanUsername,
       role: userRole,
       isCreator: userRole === 'creator',
+      applicationPending: wantsToBeCreator && !matchedInvite, // Let frontend know to show pending status
     });
   } catch (error: any) {
     console.error('Error reserving username:', error);
