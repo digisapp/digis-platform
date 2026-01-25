@@ -412,7 +412,7 @@ export default function CampaignsPage() {
                 Subject: "[Name], Create Content while Traveling the World 🌍✨"
               </p>
               <p className="text-xs text-gray-400">
-                Features: Paid Video Calls, AI Twin, Virtual Dates, Private Training Sessions
+                Features: Paid Video Calls, AI Twin, Go Live GRWM, Sell Content, Training, Virtual Dates
               </p>
             </div>
           )}

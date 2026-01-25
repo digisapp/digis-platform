@@ -367,22 +367,39 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                         </table>
                                         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
                                             <tr>
-                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(255, 0, 110, 0.2) 0%, rgba(255, 0, 110, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(255, 0, 110, 0.2);">
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 140, 0, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(255, 140, 0, 0.2);">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
                                                             <td style="width: 44px; vertical-align: top; padding-top: 2px;">
-                                                                <span style="font-size: 24px;">🍷</span>
+                                                                <span style="font-size: 24px;">🔥</span>
                                                             </td>
                                                             <td style="vertical-align: top; color: #ffffff;">
-                                                                <strong style="font-size: 16px;">Virtual Dates</strong><br>
-                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.</span>
+                                                                <strong style="font-size: 16px;">Go Live GRWM & Get Tips</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Stream, vibe with fans, and watch the tips roll in.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
                                                 </td>
                                             </tr>
                                         </table>
-                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(236, 72, 153, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">📸</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">Sell Your Content</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Photos, videos, fitness courses — whatever you create.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
                                             <tr>
                                                 <td style="padding: 16px; background: linear-gradient(135deg, rgba(0, 204, 136, 0.2) 0%, rgba(0, 204, 136, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(0, 204, 136, 0.2);">
                                                     <table cellpadding="0" cellspacing="0">
@@ -393,6 +410,23 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                                             <td style="vertical-align: top; color: #ffffff;">
                                                                 <strong style="font-size: 16px;">Private Training Sessions</strong><br>
                                                                 <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fitness creators are booking paid video calls for personalized workouts and coaching.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(255, 0, 110, 0.2) 0%, rgba(255, 0, 110, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(255, 0, 110, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">🍷</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">Virtual Dates</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -493,11 +527,17 @@ Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.
 🤖 AI Twin (This one's wild)
 Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.
 
-🍷 Virtual Dates
-Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.
+🔥 Go Live GRWM & Get Tips
+Stream, vibe with fans, and watch the tips roll in.
+
+📸 Sell Your Content
+Photos, videos, fitness courses — whatever you create.
 
 🏋️ Private Training Sessions
 Fitness creators are booking paid video calls for personalized workouts and coaching.
+
+🍷 Virtual Dates
+Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.
 
 ---
 
