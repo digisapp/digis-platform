@@ -7,21 +7,28 @@ export const applicationStatusEnum = pgEnum('application_status', ['pending', 'a
 // Creator applications table
 export const creatorApplications = pgTable('creator_applications', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
-  displayName: text('display_name').notNull(),
-  bio: text('bio'), // Optional - creators fill this out after approval in settings
-  category: text('category'), // Primary content category (Gaming, Music, etc.) - optional, set in settings after approval
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  displayName: text('display_name'),
+  bio: text('bio'), // Why they want to be a creator
+  contentCategory: text('content_category'), // Primary content category (Gaming, Music, etc.)
   instagramHandle: text('instagram_handle'),
   tiktokHandle: text('tiktok_handle'),
-  ageConfirmed: boolean('age_confirmed').default(false).notNull(), // User confirmed 18+
-  termsAccepted: boolean('terms_accepted').default(false).notNull(), // User accepted terms
+  otherSocialLinks: text('other_social_links'), // JSON string of additional links
+  followerCount: text('follower_count'), // Self-reported: "1k-10k", "10k-50k", etc.
+  ageConfirmed: boolean('age_confirmed').default(false), // User confirmed 18+
+  termsAccepted: boolean('terms_accepted').default(false), // User accepted terms
   status: applicationStatusEnum('status').default('pending').notNull(),
   reviewedBy: uuid('reviewed_by').references(() => users.id),
   reviewedAt: timestamp('reviewed_at'),
   rejectionReason: text('rejection_reason'),
+  adminNotes: text('admin_notes'), // Internal notes not shown to user
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdx: index('creator_applications_user_idx').on(table.userId),
+  statusIdx: index('creator_applications_status_idx').on(table.status),
+  createdAtIdx: index('creator_applications_created_at_idx').on(table.createdAt),
+}));
 
 // Relations
 export const creatorApplicationsRelations = relations(creatorApplications, ({ one }) => ({
