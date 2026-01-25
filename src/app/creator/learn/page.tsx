@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   GraduationCap, Video, Target, BarChart2, Clock, Mic, DollarSign,
   MessageSquare, Sparkles, Gift, Ticket, Radio, Camera,
   ChevronDown, ChevronUp, Play, CheckCircle, Star, Phone,
-  Upload, Image, Coins
+  Upload, Image, Coins, PlayCircle, PauseCircle, Volume2, VolumeX,
+  Maximize, RotateCcw, CheckCircle2
 } from 'lucide-react';
 
 interface FeatureGuide {
@@ -16,6 +17,178 @@ interface FeatureGuide {
   description: string;
   tips: string[];
   steps?: string[];
+  videoUrl?: string; // HeyGen tutorial video URL (Supabase storage)
+}
+
+// Welcome video configuration
+const WELCOME_VIDEO = {
+  title: "Welcome to Creator Academy",
+  description: "Learn how to maximize your earnings and engage with fans on Digis",
+  // Replace with your HeyGen welcome video URL from Supabase storage
+  videoUrl: "", // e.g., "https://xxxxx.supabase.co/storage/v1/object/public/videos/tutorials/welcome.mp4"
+};
+
+// Video Player Component
+function VideoPlayer({
+  src,
+  poster,
+  onComplete
+}: {
+  src: string;
+  poster?: string;
+  onComplete?: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      setProgress(progress);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setProgress(0);
+    onComplete?.();
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (videoRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      videoRef.current.currentTime = pos * videoRef.current.duration;
+    }
+  };
+
+  const restart = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  return (
+    <div
+      className="relative rounded-xl overflow-hidden bg-black group"
+      onMouseEnter={() => setShowControls(true)}
+      onMouseLeave={() => setShowControls(isPlaying ? false : true)}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full aspect-video object-cover"
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        onClick={togglePlay}
+        playsInline
+      />
+
+      {/* Play overlay when paused */}
+      {!isPlaying && (
+        <div
+          className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+          onClick={togglePlay}
+        >
+          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+            <Play className="w-8 h-8 text-white ml-1" fill="white" />
+          </div>
+        </div>
+      )}
+
+      {/* Controls */}
+      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 transition-opacity ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Progress bar */}
+        <div
+          className="h-1 bg-white/30 rounded-full mb-3 cursor-pointer"
+          onClick={handleSeek}
+        >
+          <div
+            className="h-full bg-cyan-400 rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Control buttons */}
+        <div className="flex items-center gap-3">
+          <button onClick={togglePlay} className="text-white hover:text-cyan-400 transition-colors">
+            {isPlaying ? <PauseCircle className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
+          </button>
+          <button onClick={restart} className="text-white hover:text-cyan-400 transition-colors">
+            <RotateCcw className="w-5 h-5" />
+          </button>
+          <button onClick={toggleMute} className="text-white hover:text-cyan-400 transition-colors">
+            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          </button>
+          <div className="flex-1" />
+          <button onClick={toggleFullscreen} className="text-white hover:text-cyan-400 transition-colors">
+            <Maximize className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Progress tracking hook (localStorage)
+function useWatchedVideos() {
+  const [watched, setWatched] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const saved = localStorage.getItem('digis_watched_tutorials');
+    if (saved) {
+      setWatched(new Set(JSON.parse(saved)));
+    }
+  }, []);
+
+  const markWatched = (id: string) => {
+    setWatched(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem('digis_watched_tutorials', JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const isWatched = (id: string) => watched.has(id);
+
+  const watchedCount = watched.size;
+
+  return { markWatched, isWatched, watchedCount };
 }
 
 const featureGuides: FeatureGuide[] = [
@@ -38,7 +211,8 @@ const featureGuides: FeatureGuide[] = [
       'Choose portrait or landscape orientation',
       'Allow camera and microphone permissions',
       'Tap "Start Stream" when ready'
-    ]
+    ],
+    videoUrl: "", // Add your HeyGen video URL here
   },
   {
     id: 'goals',
@@ -57,7 +231,8 @@ const featureGuides: FeatureGuide[] = [
       'Enter a target amount in coins',
       'Add a description of the reward',
       'Watch contributions come in!'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'polls',
@@ -76,7 +251,8 @@ const featureGuides: FeatureGuide[] = [
       'Enter your question',
       'Add 2-4 answer options',
       'Set the duration and start!'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'timers',
@@ -94,7 +270,8 @@ const featureGuides: FeatureGuide[] = [
       'Enter a label (e.g., "Giveaway in...")',
       'Set the duration',
       'Everyone sees the countdown!'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'vip-shows',
@@ -113,7 +290,8 @@ const featureGuides: FeatureGuide[] = [
       'Set your ticket price and show title',
       'Fans can purchase tickets to join',
       'Start VIP mode when ready to go exclusive'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'guest-calls',
@@ -132,7 +310,8 @@ const featureGuides: FeatureGuide[] = [
       'Review requests and accept who you want',
       'Guest appears in your stream overlay',
       'Remove guests anytime with one tap'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'recordings',
@@ -150,7 +329,8 @@ const featureGuides: FeatureGuide[] = [
       'Recording indicator appears when active',
       'Stop recording or it saves when stream ends',
       'Choose to save or discard after the stream'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'ai-twin',
@@ -174,7 +354,8 @@ const featureGuides: FeatureGuide[] = [
       'Choose your AI\'s voice',
       'Write a welcome message',
       'Set your pricing and save!'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'video-calls',
@@ -193,7 +374,8 @@ const featureGuides: FeatureGuide[] = [
       'Set your per-minute video call rate',
       'Set minimum call duration',
       'Toggle availability on/off as needed'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'voice-calls',
@@ -205,7 +387,8 @@ const featureGuides: FeatureGuide[] = [
       'Usually priced lower than video calls',
       'Great for casual conversations',
       'Can be done from anywhere'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'messages',
@@ -217,7 +400,8 @@ const featureGuides: FeatureGuide[] = [
       'Respond promptly to paying fans',
       'Set rates that reflect your availability',
       'Fans pay per message they send to you'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'tip-menu',
@@ -236,7 +420,8 @@ const featureGuides: FeatureGuide[] = [
       'Add items with emojis, descriptions, and prices',
       'Toggle items on/off as needed',
       'Fans see your menu on your profile and in streams'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'virtual-gifts',
@@ -248,7 +433,8 @@ const featureGuides: FeatureGuide[] = [
       'React to gifts to encourage more',
       'Thank top gifters by name',
       'Bigger gifts get more attention in chat'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'digitals',
@@ -266,7 +452,8 @@ const featureGuides: FeatureGuide[] = [
       'Add your photo or video',
       'Set a price in coins',
       'Publish to make it available'
-    ]
+    ],
+    videoUrl: "",
   },
   {
     id: 'pricing',
@@ -285,16 +472,22 @@ const featureGuides: FeatureGuide[] = [
       'Set rates for video calls, voice calls, and messages',
       'Configure your tip menu',
       'Save changes to update your profile'
-    ]
+    ],
+    videoUrl: "",
   }
 ];
 
 export default function LearnPage() {
   const [expandedGuide, setExpandedGuide] = useState<string | null>(null);
+  const { markWatched, isWatched, watchedCount } = useWatchedVideos();
 
   const toggleGuide = (id: string) => {
     setExpandedGuide(expandedGuide === id ? null : id);
   };
+
+  // Count guides with videos
+  const guidesWithVideos = featureGuides.filter(g => g.videoUrl).length;
+  const totalVideos = (WELCOME_VIDEO.videoUrl ? 1 : 0) + guidesWithVideos;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -308,7 +501,47 @@ export default function LearnPage() {
           <p className="text-gray-400 text-lg">
             Master all the tools to maximize your earnings and engagement
           </p>
+
+          {/* Progress indicator */}
+          {totalVideos > 0 && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full">
+              <CheckCircle2 className="w-4 h-4 text-green-400" />
+              <span className="text-sm text-gray-300">
+                {watchedCount} / {totalVideos} videos watched
+              </span>
+              <div className="w-20 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-cyan-400 rounded-full transition-all"
+                  style={{ width: `${totalVideos > 0 ? (watchedCount / totalVideos) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Welcome Video Section */}
+        {WELCOME_VIDEO.videoUrl && (
+          <div className="mb-8 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl border border-cyan-500/20 p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
+                <Play className="w-6 h-6 text-cyan-400" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-white">{WELCOME_VIDEO.title}</h2>
+                <p className="text-sm text-gray-400">{WELCOME_VIDEO.description}</p>
+              </div>
+              {isWatched('welcome') && (
+                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" /> Watched
+                </span>
+              )}
+            </div>
+            <VideoPlayer
+              src={WELCOME_VIDEO.videoUrl}
+              onComplete={() => markWatched('welcome')}
+            />
+          </div>
+        )}
 
         {/* Feature Guides */}
         <div className="space-y-3">
@@ -326,7 +559,17 @@ export default function LearnPage() {
                   {guide.icon}
                 </div>
                 <div className="flex-1 text-left">
-                  <h3 className="text-lg font-semibold text-white">{guide.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white">{guide.title}</h3>
+                    {guide.videoUrl && isWatched(guide.id) && (
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    )}
+                    {guide.videoUrl && !isWatched(guide.id) && (
+                      <span className="text-xs text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <PlayCircle className="w-3 h-3" /> Video
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-400 line-clamp-1">{guide.description}</p>
                 </div>
                 {expandedGuide === guide.id ? (
@@ -339,6 +582,27 @@ export default function LearnPage() {
               {/* Expanded Content */}
               {expandedGuide === guide.id && (
                 <div className="px-5 pb-5 pt-2 border-t border-white/10">
+                  {/* Video Tutorial */}
+                  {guide.videoUrl && (
+                    <div className="mb-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                          <Video className="w-4 h-4 text-cyan-400" />
+                          Watch Tutorial
+                        </h4>
+                        {isWatched(guide.id) && (
+                          <span className="flex items-center gap-1 text-xs text-green-400">
+                            <CheckCircle2 className="w-3 h-3" /> Completed
+                          </span>
+                        )}
+                      </div>
+                      <VideoPlayer
+                        src={guide.videoUrl}
+                        onComplete={() => markWatched(guide.id)}
+                      />
+                    </div>
+                  )}
+
                   <p className="text-gray-300 mb-4">{guide.description}</p>
 
                   {/* Steps */}
