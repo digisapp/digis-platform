@@ -375,7 +375,7 @@ export default function CampaignsPage() {
               </h3>
               <p className="text-sm text-gray-400 mt-1">
                 {useExaTemplate
-                  ? '"EXA Models invites you to Create on Digis" - Fun & vibey template'
+                  ? '"Create Content while Traveling the World" - Fun & vibey template'
                   : 'Standard "Stop leaving money on the table" template'}
               </p>
             </div>
@@ -409,10 +409,10 @@ export default function CampaignsPage() {
           {useExaTemplate && (
             <div className="mt-4 p-3 bg-black/30 rounded-xl border border-white/5">
               <p className="text-sm text-white/80 font-medium mb-1">
-                Subject: "[Name], EXA Models invites you to Create on Digis"
+                Subject: "[Name], Create Content while Traveling the World 🌍✨"
               </p>
               <p className="text-xs text-gray-400">
-                Features vibey gradients, casual copy ("no cap", "fr fr"), and colorful feature cards
+                Features: Paid Video Calls, AI Twin, Virtual Dates, Private Training Sessions
               </p>
             </div>
           )}

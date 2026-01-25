@@ -284,7 +284,7 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXA Models Invites You to Create on Digis</title>
+    <title>Create Content while Traveling the World with Digis</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%);">
     <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%); padding: 40px 20px;">
@@ -295,12 +295,12 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                     <!-- Sparkle Header -->
                     <tr>
                         <td align="center" style="background: linear-gradient(135deg, #FF006E 0%, #9D4EDD 40%, #00D4FF 100%); padding: 50px 40px 45px; position: relative;">
-                            <p style="margin: 0 0 8px; font-size: 40px; line-height: 1;">✨</p>
+                            <p style="margin: 0 0 8px; font-size: 40px; line-height: 1;">🌍✨</p>
                             <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: -0.5px;">
-                                EXA Models Invites You<br>to Create on Digis
+                                Create Content while<br>Traveling the World
                             </h1>
                             <p style="margin: 16px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
-                                Your exclusive invite is ready 💅
+                                Your exclusive invite to Digis is ready 💅
                             </p>
                         </td>
                     </tr>
@@ -315,10 +315,10 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                             ${greeting}
                                         </p>
                                         <p style="margin: 0 0 24px; color: rgba(255, 255, 255, 0.85);">
-                                            We've been watching your content and honestly? <strong style="color: #FF006E;">You're too good</strong> to not be getting paid for it. 💸
+                                            <strong style="color: #FF006E;">EXA Models</strong> invites you to join Digis — your new way to earn while living your best life. 🌴
                                         </p>
                                         <p style="margin: 0 0 28px; color: rgba(255, 255, 255, 0.85);">
-                                            <span style="color: #00D4FF; font-weight: 600;">Digis</span> is where creators like you are turning followers into actual income. No cap.
+                                            <span style="color: #00D4FF; font-weight: 600;">Digis</span> is where creators like you are turning time and content into actual income. Work from anywhere.
                                         </p>
                                     </td>
                                 </tr>
@@ -341,7 +341,24 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                                             </td>
                                                             <td style="vertical-align: top; color: #ffffff;">
                                                                 <strong style="font-size: 16px;">Paid Video Calls</strong><br>
-                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay YOUR rate. 10 min, 30 min — you decide what you're worth.</span>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+                                            <tr>
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(157, 78, 221, 0.2);">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
+                                                                <span style="font-size: 24px;">🤖</span>
+                                                            </td>
+                                                            <td style="vertical-align: top; color: #ffffff;">
+                                                                <strong style="font-size: 16px;">AI Twin (This one's wild)</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -354,28 +371,11 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
                                                             <td style="width: 44px; vertical-align: top; padding-top: 2px;">
-                                                                <span style="font-size: 24px;">🔥</span>
+                                                                <span style="font-size: 24px;">🍷</span>
                                                             </td>
                                                             <td style="vertical-align: top; color: #ffffff;">
-                                                                <strong style="font-size: 16px;">Go Live GRWM & Get Tips</strong><br>
-                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Stream, vibe with fans, and watch the tips roll in. It hits different.</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
-                                            <tr>
-                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(0, 204, 136, 0.2) 0%, rgba(0, 204, 136, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(0, 204, 136, 0.2);">
-                                                    <table cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="width: 44px; vertical-align: top; padding-top: 2px;">
-                                                                <span style="font-size: 24px;">📸</span>
-                                                            </td>
-                                                            <td style="vertical-align: top; color: #ffffff;">
-                                                                <strong style="font-size: 16px;">Sell Your Content & Guides</strong><br>
-                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Photos, videos, fitness guides — whatever you create. Your prices, your rules.</span>
+                                                                <strong style="font-size: 16px;">Virtual Dates</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -384,15 +384,15 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                                         </table>
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(157, 78, 221, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(157, 78, 221, 0.2);">
+                                                <td style="padding: 16px; background: linear-gradient(135deg, rgba(0, 204, 136, 0.2) 0%, rgba(0, 204, 136, 0.05) 100%); border-radius: 16px; border: 1px solid rgba(0, 204, 136, 0.2);">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
                                                             <td style="width: 44px; vertical-align: top; padding-top: 2px;">
-                                                                <span style="font-size: 24px;">🤖</span>
+                                                                <span style="font-size: 24px;">🏋️</span>
                                                             </td>
                                                             <td style="vertical-align: top; color: #ffffff;">
-                                                                <strong style="font-size: 16px;">AI Twin Chats For You</strong><br>
-                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Your AI handles DMs 24/7. Earn $$ while you sleep fr fr.</span>
+                                                                <strong style="font-size: 16px;">Private Training Sessions</strong><br>
+                                                                <span style="color: rgba(255, 255, 255, 0.6); font-size: 14px;">Fitness creators are booking paid video calls for personalized workouts and coaching.</span>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -479,25 +479,25 @@ function generateExaModelsInvitePlainText(inviteUrl: string, recipientName?: str
 
   return `${greeting}
 
-EXA Models Invites You to Create on Digis ✨
+Create Content while Traveling the World with Digis 🌍✨
 
-We've been watching your content and honestly? You're too good to not be getting paid for it.
+EXA Models invites you to join Digis — your new way to earn while living your best life.
 
-Digis is where creators like you are turning followers into actual income. No cap.
+Digis is where creators like you are turning time and content into actual income. Work from anywhere.
 
 ⚡ WHAT'S THE VIBE?
 
 📹 Paid Video Calls
-Fans pay YOUR rate. 10 min, 30 min — you decide what you're worth.
+Fans pay YOUR rate for 1-on-1 calls. 10 minutes, 30 minutes — you decide.
 
-🔥 Go Live GRWM & Get Tips
-Stream, vibe with fans, and watch the tips roll in. It hits different.
+🤖 AI Twin (This one's wild)
+Your AI answers DMs and takes voice calls 24/7. You literally make money in your sleep.
 
-📸 Sell Your Content & Guides
-Photos, videos, fitness guides — whatever you create. Your prices, your rules.
+🍷 Virtual Dates
+Fans pay for virtual dinner dates and private video calls. Set your rate, keep your boundaries.
 
-🤖 AI Twin Chats For You
-Your AI handles DMs 24/7. Earn $$ while you sleep fr fr.
+🏋️ Private Training Sessions
+Fitness creators are booking paid video calls for personalized workouts and coaching.
 
 ---
 
@@ -533,8 +533,8 @@ export async function sendExaModelsInvite(recipient: InviteRecipient): Promise<{
 
   try {
     const subject = recipient.name
-      ? `${recipient.name}, EXA Models invites you to Create on Digis ✨`
-      : "EXA Models invites you to Create on Digis ✨";
+      ? `${recipient.name}, Create Content while Traveling the World 🌍✨`
+      : "Create Content while Traveling the World 🌍✨";
 
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
