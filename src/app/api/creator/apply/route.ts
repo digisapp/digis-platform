@@ -52,18 +52,45 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      fullName,
       instagramHandle,
-      tiktokHandle,
-      otherSocialLinks,
       followerCount,
-      contentCategory,
-      bio,
+      ageConfirmed,
+      termsAccepted,
     } = body;
 
     // Validate required fields
-    if (!contentCategory) {
+    if (!fullName?.trim()) {
       return NextResponse.json(
-        { error: 'Please select a content category' },
+        { error: 'Please enter your full name' },
+        { status: 400 }
+      );
+    }
+
+    if (!instagramHandle?.trim()) {
+      return NextResponse.json(
+        { error: 'Please enter your Instagram handle' },
+        { status: 400 }
+      );
+    }
+
+    if (!followerCount) {
+      return NextResponse.json(
+        { error: 'Please enter your follower count' },
+        { status: 400 }
+      );
+    }
+
+    if (!ageConfirmed) {
+      return NextResponse.json(
+        { error: 'You must confirm you are 18 or older' },
+        { status: 400 }
+      );
+    }
+
+    if (!termsAccepted) {
+      return NextResponse.json(
+        { error: 'You must accept the terms of service' },
         { status: 400 }
       );
     }
@@ -71,16 +98,15 @@ export async function POST(request: NextRequest) {
     // Create the application
     const [application] = await db.insert(creatorApplications).values({
       userId: user.id,
-      instagramHandle: instagramHandle?.trim() || null,
-      tiktokHandle: tiktokHandle?.trim() || null,
-      otherSocialLinks: otherSocialLinks ? JSON.stringify(otherSocialLinks) : null,
-      followerCount,
-      contentCategory,
-      bio: bio?.trim() || null,
+      displayName: fullName.trim(),
+      instagramHandle: instagramHandle.trim(),
+      followerCount: String(followerCount),
+      ageConfirmed: true,
+      termsAccepted: true,
       status: 'pending',
     }).returning();
 
-    console.log(`[Creator Application] New application submitted: ${user.id} - ${contentCategory}`);
+    console.log(`[Creator Application] New application submitted: ${user.id} - @${instagramHandle}`);
 
     return NextResponse.json({
       success: true,
@@ -124,11 +150,9 @@ export async function GET(request: NextRequest) {
       application: {
         id: application.id,
         status: application.status,
+        displayName: application.displayName,
         instagramHandle: application.instagramHandle,
-        tiktokHandle: application.tiktokHandle,
-        contentCategory: application.contentCategory,
         followerCount: application.followerCount,
-        bio: application.bio,
         rejectionReason: application.rejectionReason,
         createdAt: application.createdAt,
         reviewedAt: application.reviewedAt,

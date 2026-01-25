@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   Users, Search, CheckCircle, XCircle, Clock, Eye,
-  Instagram, Music2, ChevronLeft, ChevronRight, ExternalLink,
-  AlertCircle, Loader2
+  Instagram, ChevronLeft, ChevronRight, ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { GlassModal } from '@/components/ui/GlassModal';
 
@@ -233,17 +233,12 @@ export default function CreatorApplicationsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-white">@{app.username}</span>
+                      {app.display_name && (
+                        <span className="font-semibold text-white">{app.display_name}</span>
+                      )}
+                      <span className="text-gray-400 text-sm">@{app.username}</span>
                       <span className="text-gray-500">•</span>
                       <span className="text-gray-400 text-sm truncate">{app.email}</span>
-                      {app.content_category && (
-                        <>
-                          <span className="text-gray-500">•</span>
-                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-                            {app.content_category}
-                          </span>
-                        </>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-3 mt-1 text-sm">
@@ -258,27 +253,12 @@ export default function CreatorApplicationsPage() {
                           {app.instagram_handle}
                         </a>
                       )}
-                      {app.tiktok_handle && (
-                        <a
-                          href={`https://tiktok.com/@${app.tiktok_handle.replace('@', '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300"
-                        >
-                          <Music2 className="w-3.5 h-3.5" />
-                          {app.tiktok_handle}
-                        </a>
-                      )}
                       {app.follower_count && (
-                        <span className="text-gray-400">
-                          {app.follower_count} followers
+                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                          {Number(app.follower_count).toLocaleString()} followers
                         </span>
                       )}
                     </div>
-
-                    {app.bio && (
-                      <p className="text-gray-400 text-sm mt-2 line-clamp-2">{app.bio}</p>
-                    )}
 
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                       <span>Applied {formatDate(app.created_at)}</span>
@@ -504,19 +484,19 @@ export default function CreatorApplicationsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-gray-500 uppercase">Content Category</label>
-                <p className="text-white">{selectedApp.content_category || '-'}</p>
+                <label className="text-xs text-gray-500 uppercase">Full Name</label>
+                <p className="text-white">{selectedApp.display_name || '-'}</p>
               </div>
               <div>
-                <label className="text-xs text-gray-500 uppercase">Follower Count</label>
-                <p className="text-white">{selectedApp.follower_count || '-'}</p>
+                <label className="text-xs text-gray-500 uppercase">Instagram Followers</label>
+                <p className="text-white">{selectedApp.follower_count ? Number(selectedApp.follower_count).toLocaleString() : '-'}</p>
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-gray-500 uppercase">Social Links</label>
+              <label className="text-xs text-gray-500 uppercase">Instagram</label>
               <div className="flex flex-wrap gap-2 mt-1">
-                {selectedApp.instagram_handle && (
+                {selectedApp.instagram_handle ? (
                   <a
                     href={`https://instagram.com/${selectedApp.instagram_handle.replace('@', '')}`}
                     target="_blank"
@@ -527,28 +507,11 @@ export default function CreatorApplicationsPage() {
                     {selectedApp.instagram_handle}
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                )}
-                {selectedApp.tiktok_handle && (
-                  <a
-                    href={`https://tiktok.com/@${selectedApp.tiktok_handle.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-3 py-1.5 bg-cyan-500/10 text-cyan-400 rounded-lg text-sm hover:bg-cyan-500/20 transition-colors"
-                  >
-                    <Music2 className="w-4 h-4" />
-                    {selectedApp.tiktok_handle}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                ) : (
+                  <span className="text-gray-500">-</span>
                 )}
               </div>
             </div>
-
-            {selectedApp.bio && (
-              <div>
-                <label className="text-xs text-gray-500 uppercase">Bio / Why They Want to Be a Creator</label>
-                <p className="text-white mt-1">{selectedApp.bio}</p>
-              </div>
-            )}
 
             <div>
               <label className="text-xs text-gray-500 uppercase">Status</label>

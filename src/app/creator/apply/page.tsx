@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Clock, Instagram, Bell, Home, Music2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Instagram, Bell, Home, User, Users } from 'lucide-react';
 
 export default function CreatorApplyPage() {
   const router = useRouter();
@@ -14,8 +14,9 @@ export default function CreatorApplyPage() {
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
+    fullName: '',
     instagramHandle: '',
-    tiktokHandle: '',
+    followerCount: '',
     ageConfirmed: false,
     termsAccepted: false,
   });
@@ -273,7 +274,7 @@ export default function CreatorApplyPage() {
             Become a Creator
           </h1>
           <p className="text-gray-400 mt-3">
-            Share your social profiles so we can verify your content
+            Tell us about yourself so we can review your application
           </p>
         </div>
 
@@ -283,41 +284,57 @@ export default function CreatorApplyPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 relative">
-            {/* Social Links */}
+            {/* Creator Info */}
             <div className="space-y-4">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
+                  <User className="w-4 h-4 text-cyan-400" />
+                  Full Name <span className="text-cyan-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="Your full name"
+                  required
+                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                />
+              </div>
+
               {/* Instagram */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
                   <Instagram className="w-4 h-4 text-pink-400" />
-                  Instagram
+                  Instagram <span className="text-cyan-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.instagramHandle}
                   onChange={(e) => setFormData({ ...formData, instagramHandle: e.target.value })}
                   placeholder="@username"
+                  required
                   className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/50 focus:ring-2 focus:ring-pink-500/20 transition-all"
                 />
               </div>
 
-              {/* TikTok */}
+              {/* Follower Count */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300 flex items-center gap-2">
-                  <Music2 className="w-4 h-4 text-cyan-400" />
-                  TikTok
+                  <Users className="w-4 h-4 text-purple-400" />
+                  Instagram Followers <span className="text-cyan-400">*</span>
                 </label>
                 <input
-                  type="text"
-                  value={formData.tiktokHandle}
-                  onChange={(e) => setFormData({ ...formData, tiktokHandle: e.target.value })}
-                  placeholder="@username"
-                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                  type="number"
+                  value={formData.followerCount}
+                  onChange={(e) => setFormData({ ...formData, followerCount: e.target.value })}
+                  placeholder="e.g. 103567"
+                  required
+                  min="0"
+                  className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
+                <p className="text-xs text-gray-500 mt-1">Enter your exact follower count</p>
               </div>
-
-              <p className="text-xs text-gray-500 text-center">
-                Add at least one social profile so we can review your content
-              </p>
             </div>
 
             {/* Age Confirmation & Terms */}
