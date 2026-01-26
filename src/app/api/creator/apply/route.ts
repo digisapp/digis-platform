@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
       displayName: fullName.trim(),
       instagramHandle: instagramHandle.trim(),
       followerCount: String(followerCount),
+      bio: '', // Required field - provide empty string as default
       ageConfirmed: true,
       termsAccepted: true,
       status: 'pending',
