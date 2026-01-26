@@ -84,15 +84,20 @@ export async function POST(request: NextRequest) {
     // requests could both pass the pending check and create duplicate applications
     const application = await db.transaction(async (tx) => {
       // Check if user already has a pending application INSIDE transaction
-      const existingApplication = await tx.query.creatorApplications.findFirst({
-        where: and(
-          eq(creatorApplications.userId, user.id),
-          eq(creatorApplications.status, 'pending')
-        ),
-      });
+      // Note: Using query builder syntax since relational API doesn't work in transactions
+      const existingApplications = await tx
+        .select({ id: creatorApplications.id })
+        .from(creatorApplications)
+        .where(
+          and(
+            eq(creatorApplications.userId, user.id),
+            eq(creatorApplications.status, 'pending')
+          )
+        )
+        .limit(1);
 
-      if (existingApplication) {
-        throw new Error(`DUPLICATE:${existingApplication.id}`);
+      if (existingApplications.length > 0) {
+        throw new Error(`DUPLICATE:${existingApplications[0].id}`);
       }
 
       // Create the application
@@ -126,7 +131,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Error submitting creator application:', error);
+    console.error('Error submitting creator application:', error?.message || error, error?.stack);
     return NextResponse.json(
       { error: 'Failed to submit application' },
       { status: 500 }
