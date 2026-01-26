@@ -16,7 +16,7 @@ import {
   shows,
   showTickets,
 } from '@/lib/data/system';
-import { eq, desc, and, sql, lt } from 'drizzle-orm';
+import { eq, desc, and, sql, lt, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { WalletService } from '../wallet/wallet-service';
 import {
@@ -222,6 +222,9 @@ export class StreamService {
           where: eq(showTickets.showId, show.id),
         });
 
+        // Track successfully refunded ticket IDs for batch update
+        const refundedTicketIds: string[] = [];
+
         // Issue refunds in parallel with concurrency limit (10 at a time)
         const CONCURRENCY_LIMIT = 10;
         const processRefund = async (ticket: typeof tickets[0]) => {
@@ -234,21 +237,24 @@ export class StreamService {
               metadata: { showId: show.id, ticketId: ticket.id, reason: 'stream_ended' },
               idempotencyKey: `refund_stream_end_${ticket.id}`,
             });
-
-            // Invalidate ticket
-            await db
-              .update(showTickets)
-              .set({ isValid: false })
-              .where(eq(showTickets.id, ticket.id));
+            refundedTicketIds.push(ticket.id);
           } catch (refundError) {
             console.error(`[StreamService] Failed to refund ticket ${ticket.id}:`, refundError);
           }
         };
 
-        // Process in batches to avoid spiking DB connections
+        // Process refunds in batches to avoid spiking DB connections
         for (let i = 0; i < tickets.length; i += CONCURRENCY_LIMIT) {
           const batch = tickets.slice(i, i + CONCURRENCY_LIMIT);
           await Promise.all(batch.map(processRefund));
+        }
+
+        // Batch invalidate all successfully refunded tickets in one query
+        if (refundedTicketIds.length > 0) {
+          await db
+            .update(showTickets)
+            .set({ isValid: false })
+            .where(inArray(showTickets.id, refundedTicketIds));
         }
 
         // Mark show as cancelled

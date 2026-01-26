@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, decimal } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, decimal, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 
@@ -45,7 +45,13 @@ export const referrals = pgTable('referrals', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   activatedAt: timestamp('activated_at'), // When referred user became active creator
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for referral lookups
+  referrerIdx: index('referrals_referrer_id_idx').on(table.referrerId),
+  referredIdx: index('referrals_referred_id_idx').on(table.referredId),
+  referralCodeIdx: index('referrals_referral_code_idx').on(table.referralCode),
+  statusIdx: index('referrals_status_idx').on(table.status),
+}));
 
 // Monthly commission records
 export const referralCommissions = pgTable('referral_commissions', {
@@ -70,7 +76,12 @@ export const referralCommissions = pgTable('referral_commissions', {
   // Timestamps
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for commission lookups
+  referralIdx: index('referral_commissions_referral_id_idx').on(table.referralId),
+  periodIdx: index('referral_commissions_period_month_idx').on(table.periodMonth),
+  statusIdx: index('referral_commissions_status_idx').on(table.status),
+}));
 
 // Relations
 export const referralsRelations = relations(referrals, ({ one, many }) => ({

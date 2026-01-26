@@ -280,8 +280,8 @@ export default function ExplorePage() {
   );
 }
 
-// Live Creator Card - Larger, more prominent
-function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
+// Live Creator Card - Larger, more prominent (memoized for performance)
+const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
   const imageUrl = creator.avatarUrl;
 
   return (
@@ -316,7 +316,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
       </div>
     </div>
   );
-}
+});
 
 // Regular Creator Card - Clean minimal design
 interface CreatorCardProps {
