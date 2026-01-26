@@ -10,11 +10,20 @@ interface CreatorOnboardingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  currentProfile?: {
+    username?: string | null;
+    displayName?: string | null;
+    bio?: string | null;
+    avatarUrl?: string | null;
+  };
 }
 
-export function CreatorOnboardingModal({ isOpen, onClose, onComplete }: CreatorOnboardingModalProps) {
+export function CreatorOnboardingModal({ isOpen, onClose, onComplete, currentProfile }: CreatorOnboardingModalProps) {
   const { showSuccess, showError } = useToastContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if user already has a valid username (not auto-generated)
+  const hasValidUsername = currentProfile?.username && !currentProfile.username.startsWith('user_');
 
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -26,7 +35,28 @@ export function CreatorOnboardingModal({ isOpen, onClose, onComplete }: CreatorO
   const [usernameError, setUsernameError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1); // 1 = username, 2 = profile details
+  // Start at step 2 if user already has a valid username
+  const [step, setStep] = useState(hasValidUsername ? 2 : 1);
+
+  // Pre-fill from current profile
+  useEffect(() => {
+    if (currentProfile) {
+      if (currentProfile.displayName) {
+        setDisplayName(currentProfile.displayName);
+      }
+      if (currentProfile.bio) {
+        setBio(currentProfile.bio);
+      }
+      if (currentProfile.avatarUrl) {
+        setAvatarPreview(currentProfile.avatarUrl);
+      }
+      // If user has a valid username, mark it as available
+      if (hasValidUsername) {
+        setUsername(currentProfile.username!);
+        setUsernameStatus('available');
+      }
+    }
+  }, [currentProfile, hasValidUsername]);
 
   // Check username availability with debouncing
   useEffect(() => {
@@ -115,19 +145,32 @@ export function CreatorOnboardingModal({ isOpen, onClose, onComplete }: CreatorO
     setLoading(true);
 
     try {
-      // Step 1: Set username
-      const usernameResponse = await fetch('/api/user/set-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: username.toLowerCase(),
-          displayName: displayName || username,
-        }),
-      });
+      // Step 1: Set username (skip if user already has a valid username)
+      if (!hasValidUsername) {
+        const usernameResponse = await fetch('/api/user/set-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username.toLowerCase(),
+            displayName: displayName || username,
+          }),
+        });
 
-      if (!usernameResponse.ok) {
-        const data = await usernameResponse.json();
-        throw new Error(data.error || 'Failed to set username');
+        if (!usernameResponse.ok) {
+          const data = await usernameResponse.json();
+          throw new Error(data.error || 'Failed to set username');
+        }
+      } else if (displayName && displayName !== currentProfile?.displayName) {
+        // If they have a username but changed displayName, update it
+        const updateResponse = await fetch('/api/user/update-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayName }),
+        });
+
+        if (!updateResponse.ok) {
+          console.warn('Display name update failed, continuing anyway');
+        }
       }
 
       // Step 2: Upload avatar if provided
@@ -188,18 +231,22 @@ export function CreatorOnboardingModal({ isOpen, onClose, onComplete }: CreatorO
           Welcome, Creator! 🎉
         </h2>
         <p className="text-gray-400">
-          {step === 1
+          {hasValidUsername
+            ? "Add a profile picture and bio to help fans find you."
+            : step === 1
             ? "Let's set up your profile. First, choose your unique username."
             : "Great! Now add a profile picture and bio to help fans find you."}
         </p>
       </div>
 
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <div className={`w-3 h-3 rounded-full transition-colors ${step >= 1 ? 'bg-digis-cyan' : 'bg-white/20'}`} />
-        <div className={`w-8 h-0.5 transition-colors ${step >= 2 ? 'bg-digis-cyan' : 'bg-white/20'}`} />
-        <div className={`w-3 h-3 rounded-full transition-colors ${step >= 2 ? 'bg-digis-purple' : 'bg-white/20'}`} />
-      </div>
+      {/* Progress indicator - hide if user already has username (single step) */}
+      {!hasValidUsername && (
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className={`w-3 h-3 rounded-full transition-colors ${step >= 1 ? 'bg-digis-cyan' : 'bg-white/20'}`} />
+          <div className={`w-8 h-0.5 transition-colors ${step >= 2 ? 'bg-digis-cyan' : 'bg-white/20'}`} />
+          <div className={`w-3 h-3 rounded-full transition-colors ${step >= 2 ? 'bg-digis-purple' : 'bg-white/20'}`} />
+        </div>
+      )}
 
       {step === 1 ? (
         /* Step 1: Username */
@@ -350,12 +397,15 @@ export function CreatorOnboardingModal({ isOpen, onClose, onComplete }: CreatorO
           )}
 
           <div className="flex gap-3">
-            <button
-              onClick={() => setStep(1)}
-              className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold transition-colors"
-            >
-              ← Back
-            </button>
+            {/* Only show Back button if user doesn't have a valid username */}
+            {!hasValidUsername && (
+              <button
+                onClick={() => setStep(1)}
+                className="px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold transition-colors"
+              >
+                ← Back
+              </button>
+            )}
             <button
               onClick={handleSubmit}
               disabled={loading}

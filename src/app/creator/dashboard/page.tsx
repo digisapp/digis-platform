@@ -527,6 +527,12 @@ export default function CreatorDashboard() {
         isOpen={showOnboardingModal}
         onClose={() => setShowOnboardingModal(false)}
         onComplete={handleOnboardingComplete}
+        currentProfile={userProfile ? {
+          username: userProfile.username,
+          displayName: userProfile.displayName,
+          bio: userProfile.bio,
+          avatarUrl: userProfile.avatarUrl,
+        } : undefined}
       />
 
       <div className="container mx-auto">
