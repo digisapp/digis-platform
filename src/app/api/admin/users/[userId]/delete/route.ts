@@ -7,7 +7,7 @@ import { isAdminUser } from '@/lib/admin/check-admin';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// POST /api/admin/users/[userId]/delete - Ban/delete user (soft delete)
+// POST /api/admin/users/[userId]/delete - Hard delete user
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -62,31 +62,38 @@ export async function POST(
       return NextResponse.json({ error: 'You cannot delete other admin accounts' }, { status: 400 });
     }
 
-    // Soft delete - mark as banned
-    const { error: updateError } = await adminClient
+    // Hard delete - remove from database (CASCADE will handle related data)
+    const { error: deleteError } = await adminClient
       .from('users')
-      .update({
-        account_status: 'banned',
-        updated_at: new Date().toISOString(),
-      })
+      .delete()
       .eq('id', userId);
 
-    if (updateError) {
-      console.error('Supabase update error:', updateError);
+    if (deleteError) {
+      console.error('[ADMIN/DELETE] Database delete error:', deleteError);
       return NextResponse.json(
-        { error: 'Failed to ban user' },
+        { error: 'Failed to delete user from database' },
         { status: 500 }
       );
     }
 
+    // Also delete from Supabase Auth
+    const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(userId);
+
+    if (authDeleteError) {
+      console.error('[ADMIN/DELETE] Auth delete error:', authDeleteError);
+      // User is already deleted from database, so just log this
+    }
+
+    console.log('[ADMIN/DELETE] Successfully deleted user:', currentUser.username);
+
     return NextResponse.json({
       success: true,
-      message: 'User account has been banned',
+      message: 'User account has been permanently deleted',
     });
   } catch (error: any) {
-    console.error('Error banning user:', error);
+    console.error('Error deleting user:', error);
     return NextResponse.json(
-      { error: 'Failed to ban user' },
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }
