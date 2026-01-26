@@ -14,11 +14,17 @@ const DRAFT_DAYS = 7; // Delete draft recordings after 7 days
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify this is called by authorized source (cron secret or admin)
+    // Verify this is called by authorized source (cron secret)
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // SECURITY: Require CRON_SECRET to be set - don't allow bypass if missing
+    if (!cronSecret) {
+      console.error('[RECORDINGS CLEANUP] CRON_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

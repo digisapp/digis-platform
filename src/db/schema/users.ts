@@ -45,7 +45,16 @@ export const users = pgTable('users', {
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for creator discovery queries (filtering by role)
+  roleIdx: index('users_role_idx').on(table.role),
+  // Index for online status filtering
+  isOnlineIdx: index('users_is_online_idx').on(table.isOnline),
+  // Compound index for explore page queries (visible creators, sorted by trending)
+  exploreIdx: index('users_explore_idx').on(table.role, table.isHiddenFromDiscovery, table.isTrending),
+  // Index for category-based discovery
+  primaryCategoryIdx: index('users_primary_category_idx').on(table.primaryCategory),
+}));
 
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().defaultRandom(),

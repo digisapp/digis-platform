@@ -236,15 +236,15 @@ export class MessageService {
       throw new Error('Unable to send message to this user');
     }
 
-    // Check if this is the first message in the conversation (cold outreach)
-    const existingMessages = await db.query.messages.findFirst({
-      where: eq(messages.conversationId, conversationId),
-    });
-
-    const isFirstMessage = !existingMessages;
-
     // Use transaction for all financial and message operations
     return await db.transaction(async (tx) => {
+      // SECURITY: Check for first message INSIDE transaction to prevent race condition
+      // where two concurrent messages could both be charged the cold outreach fee
+      const existingMessages = await tx.query.messages.findFirst({
+        where: eq(messages.conversationId, conversationId),
+      });
+      const isFirstMessage = !existingMessages;
+
       let messageCost = 0;
 
       // Skip all fees for admin conversations

@@ -49,11 +49,28 @@ export function getRoleFromToken(token: string): Role | null {
 
 /**
  * Extract role from localStorage Supabase auth token.
- * This is a last-resort fallback when auth.getSession() is null.
+ *
+ * SECURITY WARNING: This function decodes JWT WITHOUT verification.
+ * Only use for UI hints (showing/hiding elements), NEVER for authorization.
+ * Server-side checks must always verify the actual session.
+ *
+ * @returns Role or null if not found
+ * @deprecated Use getRoleFromLocalStorageForUI instead to make intent clear
+ */
+export function getRoleFromLocalStorage(): Role | null {
+  return getRoleFromLocalStorageForUI();
+}
+
+/**
+ * Extract role from localStorage for UI display purposes ONLY.
+ *
+ * SECURITY: This is UNVERIFIED data from localStorage. An attacker with XSS
+ * could modify this. Only use for UI hints like showing/hiding menu items.
+ * All actual authorization must happen server-side.
  *
  * @returns Role or null if not found
  */
-export function getRoleFromLocalStorage(): Role | null {
+export function getRoleFromLocalStorageForUI(): Role | null {
   if (typeof window === 'undefined') return null;
 
   try {
@@ -62,7 +79,6 @@ export function getRoleFromLocalStorage(): Role | null {
     const authTokenKey = keys.find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
 
     if (!authTokenKey) {
-      console.log('[JWT] No Supabase auth token found in localStorage');
       return null;
     }
 
@@ -73,16 +89,12 @@ export function getRoleFromLocalStorage(): Role | null {
     const accessToken = parsed?.access_token || parsed?.accessToken;
 
     if (!accessToken) {
-      console.log('[JWT] No access token in localStorage auth data');
       return null;
     }
 
-    const role = getRoleFromToken(accessToken);
-    if (role) {
-      console.log('[JWT] Extracted role from localStorage token:', role);
-    }
-
-    return role;
+    // SECURITY: This only decodes, does NOT verify signature
+    // Never use this for actual authorization decisions
+    return getRoleFromToken(accessToken);
   } catch (err) {
     console.warn('[JWT] Failed to extract role from localStorage:', err);
     return null;
@@ -91,29 +103,27 @@ export function getRoleFromLocalStorage(): Role | null {
 
 /**
  * Get role from multiple sources with priority:
- * 1. Supabase session (most reliable)
- * 2. localStorage auth token (fallback)
- * 3. localStorage digis_user_role (last resort)
+ * 1. Supabase session (most reliable, server-verified)
+ * 2. localStorage auth token (fallback for UI only)
+ *
+ * SECURITY: Only the Supabase session role is verified. Fallback roles
+ * from localStorage are UNVERIFIED and should only be used for UI hints.
+ * All authorization must happen server-side with proper session verification.
  *
  * @param supabaseRole - Role from supabase.auth.getSession()
  * @returns Role or null
  */
 export function getRoleWithFallback(supabaseRole: Role | null): Role | null {
-  // Priority 1: Supabase session
+  // Priority 1: Supabase session (VERIFIED - safe for authorization)
   if (supabaseRole) return supabaseRole;
 
-  // Priority 2: Decode from localStorage auth token
-  const tokenRole = getRoleFromLocalStorage();
+  // Priority 2: Decode from localStorage auth token (UNVERIFIED - UI hints only)
+  // SECURITY: Do NOT use this role for actual authorization decisions
+  const tokenRole = getRoleFromLocalStorageForUI();
   if (tokenRole) return tokenRole;
 
-  // Priority 3: localStorage digis_user_role (previously cached)
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('digis_user_role');
-    if (stored && isValidRole(stored)) {
-      console.log('[JWT] Using cached role from localStorage:', stored);
-      return stored;
-    }
-  }
+  // REMOVED: localStorage digis_user_role fallback
+  // This was too easy to tamper with and shouldn't be trusted for any purpose
 
   return null;
 }

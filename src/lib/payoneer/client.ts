@@ -157,6 +157,11 @@ class PayoneerClient {
   }
 
   private isMockMode(): boolean {
+    // SECURITY: Never allow mock mode in production, even if env var is set
+    if (process.env.NODE_ENV === 'production' && this.config.mockMode) {
+      console.error('[Payoneer] CRITICAL: PAYONEER_MOCK_MODE=true in production - ignoring');
+      return false;
+    }
     return this.config.mockMode;
   }
 
@@ -240,11 +245,22 @@ class PayoneerClient {
 
   /**
    * Verify webhook signature
+   * SECURITY: Mock mode only works in development environment
    */
   verifyWebhookSignature(payload: string, signature: string): boolean {
     if (this.isMockMode()) {
-      // In mock mode, accept any signature starting with 'mock_'
-      return signature.startsWith('mock_') || signature === this.config.webhookSecret;
+      // SECURITY: Only allow mock mode in development
+      if (process.env.NODE_ENV === 'production') {
+        console.error('[Payoneer] CRITICAL: Mock mode enabled in production - rejecting webhook');
+        return false;
+      }
+      // In mock mode (development only), accept the webhook secret or a specific test signature
+      return signature === this.config.webhookSecret || signature === 'mock_webhook_test';
+    }
+
+    if (!this.config.webhookSecret) {
+      console.error('[Payoneer] Webhook secret not configured');
+      return false;
     }
 
     const crypto = require('crypto');
@@ -253,10 +269,16 @@ class PayoneerClient {
       .update(payload)
       .digest('hex');
 
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      );
+    } catch {
+      // timingSafeEqual throws if lengths differ
+      return false;
+    }
   }
 
   /**
