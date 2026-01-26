@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Clock, Instagram, Bell, Home, User, Users } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function CreatorApplyPage() {
   const router = useRouter();
@@ -22,12 +23,30 @@ export default function CreatorApplyPage() {
   });
 
   useEffect(() => {
-    checkExistingApplication();
+    checkAuthAndApplication();
   }, []);
 
-  const checkExistingApplication = async () => {
+  const checkAuthAndApplication = async () => {
     try {
+      // First check if user is authenticated
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        // Not logged in - redirect to homepage
+        router.push('/');
+        return;
+      }
+
+      // Check for existing application
       const response = await fetch('/api/creator/apply');
+
+      if (response.status === 401) {
+        // Session expired or not authenticated
+        router.push('/');
+        return;
+      }
+
       const data = await response.json();
 
       if (response.ok && data.application) {

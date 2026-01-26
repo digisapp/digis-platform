@@ -227,23 +227,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Auto-create a pending creator application if user wants to be creator but wasn't invited
-    // This ensures they go through the admin approval workflow
+    // Note: We don't auto-create creator applications during signup anymore.
+    // Users who select "Creator" during signup are redirected to /creator/apply
+    // where they fill out the full application form with details (name, instagram, etc).
+    // This provides a better UX and ensures applications have complete information.
     if (wantsToBeCreator && !matchedInvite) {
-      try {
-        await db.insert(creatorApplications).values({
-          userId: userId,
-          status: 'pending',
-          ageConfirmed: true, // They confirmed 18+ during signup
-          termsAccepted: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }).onConflictDoNothing(); // Don't fail if application already exists
-        console.log(`[Signup] Auto-created pending creator application for: ${cleanEmail}`);
-      } catch (err) {
-        console.error('[Signup] Error creating creator application:', err);
-        // Don't fail signup if application creation fails - they can apply later
-      }
+      console.log(`[Signup] User ${cleanEmail} wants to be creator - will redirect to /creator/apply`);
     }
 
     return NextResponse.json({
