@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { db } from '@/lib/data/system';
 import { creatorInvites } from '@/db/schema';
-import { eq, sql, and, isNull, gt } from 'drizzle-orm';
+import { eq, sql, and, isNull, gt, or, ilike } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 export const runtime = 'nodejs';
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const batchId = searchParams.get('batchId');
+    const search = searchParams.get('search');
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -43,6 +44,17 @@ export async function GET(request: NextRequest) {
     }
     if (batchId) {
       conditions.push(eq(creatorInvites.batchId, batchId));
+    }
+    // Search by Instagram handle, email, or invite code
+    if (search) {
+      const searchTerm = `%${search.toLowerCase()}%`;
+      conditions.push(
+        or(
+          ilike(creatorInvites.instagramHandle, searchTerm),
+          ilike(creatorInvites.email, searchTerm),
+          ilike(creatorInvites.code, searchTerm)
+        )
+      );
     }
 
     // Get invites (using simple select to avoid relation issues)

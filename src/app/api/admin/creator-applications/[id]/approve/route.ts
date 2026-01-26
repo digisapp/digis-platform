@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorApplications, creatorSettings, aiTwinSettings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, creatorApplications, creatorSettings, aiTwinSettings, creatorInvites } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 
@@ -111,6 +111,35 @@ export async function POST(
     }
 
     console.log(`[Creator Application] Approved: ${application.userId} by ${user.id}`);
+
+    // 6. Auto-link pending invite if Instagram handle matches
+    // This handles the case where an invited creator signed up naturally instead of using the invite link
+    if (application.instagramHandle) {
+      const normalizedHandle = application.instagramHandle.toLowerCase().replace('@', '');
+      try {
+        const updatedInvites = await db.update(creatorInvites)
+          .set({
+            status: 'claimed',
+            claimedBy: application.userId,
+            claimedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(creatorInvites.instagramHandle, normalizedHandle),
+              eq(creatorInvites.status, 'pending')
+            )
+          )
+          .returning({ id: creatorInvites.id });
+
+        if (updatedInvites.length > 0) {
+          console.log(`[Creator Application] Auto-linked pending invite for @${normalizedHandle} to user ${application.userId}`);
+        }
+      } catch (inviteError) {
+        // Don't fail the approval if invite linking fails - it's a nice-to-have
+        console.error('[Creator Application] Failed to auto-link invite:', inviteError);
+      }
+    }
 
     // TODO: Send approval email notification to user
 

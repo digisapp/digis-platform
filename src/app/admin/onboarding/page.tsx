@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Filter,
   ArrowLeft,
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -92,6 +93,7 @@ export default function AdminOnboardingPage() {
   const [batches, setBatches] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterBatch, setFilterBatch] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [invitesPage, setInvitesPage] = useState(0);
   const [totalInvites, setTotalInvites] = useState(0);
@@ -126,6 +128,7 @@ export default function AdminOnboardingPage() {
       const params = new URLSearchParams();
       if (filterStatus) params.set('status', filterStatus);
       if (filterBatch) params.set('batchId', filterBatch);
+      if (searchQuery) params.set('search', searchQuery);
       params.set('limit', INVITES_PER_PAGE.toString());
       params.set('offset', (page * INVITES_PER_PAGE).toString());
 
@@ -143,13 +146,18 @@ export default function AdminOnboardingPage() {
     } finally {
       setInvitesLoading(false);
     }
-  }, [filterStatus, filterBatch, invitesPage]);
+  }, [filterStatus, filterBatch, searchQuery, invitesPage]);
 
+  // Debounced search effect
   useEffect(() => {
-    if (isAdmin && activeTab === 'invites') {
+    if (!isAdmin || activeTab !== 'invites') return;
+
+    const timeoutId = setTimeout(() => {
       fetchInvites(0);
-    }
-  }, [isAdmin, activeTab, filterStatus, filterBatch]);
+    }, searchQuery ? 300 : 0); // Debounce only for search queries
+
+    return () => clearTimeout(timeoutId);
+  }, [isAdmin, activeTab, filterStatus, filterBatch, searchQuery]);
 
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -538,6 +546,26 @@ export default function AdminOnboardingPage() {
               </h2>
 
               <div className="flex flex-wrap gap-2">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by handle, email, or code..."
+                    className="pl-9 pr-4 py-2 w-64 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded"
+                    >
+                      <XCircle className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
+                </div>
+
                 {/* Status Filter */}
                 <select
                   value={filterStatus}
