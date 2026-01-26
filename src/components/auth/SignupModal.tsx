@@ -5,25 +5,23 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
-import { CheckCircle, XCircle, Loader2, AtSign } from 'lucide-react';
+import { Users, Star } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface SignupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToLogin: () => void;
-  redirectTo?: string; // Where to redirect after signup (default: /explore)
-  defaultRole?: 'fan' | 'creator'; // What role to create if not in invite list (default: fan)
+  redirectTo?: string;
+  defaultRole?: 'fan' | 'creator';
 }
 
-export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/explore', defaultRole = 'fan' }: SignupModalProps) {
+export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defaultRole = 'fan' }: SignupModalProps) {
   const { showSuccess, showError } = useToastContext();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
-  const [usernameError, setUsernameError] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'fan' | 'creator'>(defaultRole);
   const [website, setWebsite] = useState(''); // Honeypot field - should stay empty
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [error, setError] = useState('');
@@ -32,65 +30,17 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
   const [resendLoading, setResendLoading] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
 
-  // Check username availability with debouncing
-  useEffect(() => {
-    if (!username || username.length < 3) {
-      setUsernameStatus('idle');
-      setUsernameError(username.length > 0 && username.length < 3 ? 'Username must be at least 3 characters' : '');
-      return;
-    }
-
-    // Basic validation
-    if (!/^[a-z][a-z0-9_]*$/.test(username)) {
-      setUsernameStatus('invalid');
-      setUsernameError('Must start with a letter, only letters, numbers, and underscores');
-      return;
-    }
-
-    if (username.length > 20) {
-      setUsernameStatus('invalid');
-      setUsernameError('Username must be 20 characters or less');
-      return;
-    }
-
-    setUsernameStatus('checking');
-    setUsernameError('');
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
-        const data = await response.json();
-
-        if (response.ok && data.available) {
-          setUsernameStatus('available');
-          setUsernameError('');
-        } else {
-          setUsernameStatus('taken');
-          setUsernameError(data.error || 'Username is not available');
-        }
-      } catch (err) {
-        console.error('Error checking username:', err);
-        setUsernameStatus('idle');
-        setUsernameError('Could not check availability');
-      }
-    }, 400);
-
-    return () => clearTimeout(timeoutId);
-  }, [username]);
-
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setEmail('');
       setPassword('');
-      setUsername('');
-      setUsernameStatus('idle');
-      setUsernameError('');
+      setSelectedRole(defaultRole);
       setAgeConfirmed(false);
       setError('');
       setSuccess(false);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultRole]);
 
   const handleResend = async () => {
     if (!signupEmail) return;
@@ -98,11 +48,12 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
     setResendLoading(true);
     try {
       const supabase = createClient();
+      const destinationUrl = selectedRole === 'creator' ? '/creator/apply' : '/welcome/username';
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: signupEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}${redirectTo}`,
+          emailRedirectTo: `${window.location.origin}${destinationUrl}`,
         },
       });
 
@@ -123,14 +74,11 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
     e.preventDefault();
     setError('');
 
-    // Validate username
-    if (!username || username.length < 3) {
-      setError('Please choose a username (at least 3 characters)');
-      return;
-    }
-
-    if (usernameStatus !== 'available') {
-      setError('Please choose an available username');
+    // Check honeypot - bots will fill this
+    if (website) {
+      // Silently fail for bots
+      setSuccess(true);
+      setSignupEmail(email);
       return;
     }
 
@@ -139,15 +87,17 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
     try {
       const supabase = createClient();
 
-      // Sign up with Supabase Auth, including username in metadata
+      // Determine redirect based on role
+      const destinationUrl = selectedRole === 'creator' ? '/creator/apply' : '/welcome/username';
+
+      // Sign up with Supabase Auth, storing intended role in metadata
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}${redirectTo}`,
+          emailRedirectTo: `${window.location.origin}${destinationUrl}`,
           data: {
-            username: username.toLowerCase(),
-            display_name: username,
+            intended_role: selectedRole,
           },
         },
       });
@@ -160,28 +110,22 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
         throw new Error('Signup failed - no user returned');
       }
 
-      // Reserve the username in the database
+      // Create the user record in database (without username)
       const reserveResponse = await fetch('/api/auth/reserve-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: data.user.id,
           email,
-          username: username.toLowerCase(),
+          username: null, // No username at signup
           website, // Honeypot field
-          defaultRole, // Pass the default role (fan or creator)
+          defaultRole: selectedRole,
         }),
       });
 
       if (!reserveResponse.ok) {
         const reserveData = await reserveResponse.json();
-        // If username was taken between check and signup, show error
-        if (reserveData.error?.includes('taken') || reserveData.error?.includes('exists')) {
-          setUsernameStatus('taken');
-          setUsernameError('Username was just taken. Please choose another.');
-          throw new Error('Username was just taken. Please choose another.');
-        }
-        console.warn('Username reservation warning:', reserveData.error);
+        console.warn('User creation warning:', reserveData.error);
       }
 
       // Check if email confirmation is required
@@ -190,16 +134,14 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
         setSuccess(true);
         setEmail('');
         setPassword('');
-        setUsername('');
         return;
       }
 
-      // User is logged in immediately
+      // User is logged in immediately (no email confirmation required)
       setEmail('');
       setPassword('');
-      setUsername('');
       onClose();
-      router.push(redirectTo);
+      router.push(destinationUrl);
 
     } catch (err: any) {
       console.error('Signup error:', err);
@@ -209,7 +151,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
     }
   };
 
-  const isFormValid = email && password && password.length >= 6 && usernameStatus === 'available' && ageConfirmed;
+  const isFormValid = email && password && password.length >= 6 && ageConfirmed;
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
@@ -244,10 +186,13 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
               Check Your Email!
             </h3>
             <p className="text-lg text-white font-semibold">
-              We've reserved <span className="text-digis-cyan">@{username || signupEmail.split('@')[0]}</span> for you!
+              We sent a confirmation link to{' '}
+              <span className="text-digis-cyan">{signupEmail}</span>
             </p>
             <p className="text-sm text-gray-400 max-w-sm mx-auto">
-              Click the link in your email to verify your account and start connecting with your favorite creators!
+              {selectedRole === 'creator'
+                ? 'Click the link in your email to verify your account and start your creator application!'
+                : 'Click the link in your email to verify your account and start connecting with your favorite creators!'}
             </p>
           </div>
 
@@ -283,53 +228,43 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo = '/e
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username Field - First! */}
-          <div className="space-y-1">
+          {/* Role Selection */}
+          <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-300">
-              Username <span className="text-red-400">*</span>
+              I want to join as a... <span className="text-red-400">*</span>
             </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <AtSign className="w-5 h-5" />
-              </div>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                placeholder="yourname"
-                className={`w-full pl-10 pr-10 py-3 bg-white/5 border-2 rounded-xl text-white placeholder-gray-500 focus:outline-none transition-all ${
-                  usernameStatus === 'idle' || !username
-                    ? 'border-white/10 focus:border-digis-cyan'
-                    : usernameStatus === 'checking'
-                    ? 'border-yellow-500'
-                    : usernameStatus === 'available'
-                    ? 'border-green-500'
-                    : 'border-red-500'
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRole('fan')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === 'fan'
+                    ? 'border-digis-cyan bg-digis-cyan/10 text-white'
+                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
                 }`}
-                maxLength={20}
-              />
-              {/* Status Indicator */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {usernameStatus === 'checking' && (
-                  <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
-                )}
-                {usernameStatus === 'available' && (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                )}
-                {(usernameStatus === 'taken' || usernameStatus === 'invalid') && (
-                  <XCircle className="w-5 h-5 text-red-500" />
-                )}
-              </div>
+              >
+                <Users className={`w-8 h-8 ${selectedRole === 'fan' ? 'text-digis-cyan' : ''}`} />
+                <span className="font-semibold">Fan</span>
+                <span className="text-xs text-gray-500">Support creators</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole('creator')}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === 'creator'
+                    ? 'border-digis-purple bg-digis-purple/10 text-white'
+                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
+                }`}
+              >
+                <Star className={`w-8 h-8 ${selectedRole === 'creator' ? 'text-digis-purple' : ''}`} />
+                <span className="font-semibold">Creator</span>
+                <span className="text-xs text-gray-500">Share content</span>
+              </button>
             </div>
-            {/* Username feedback */}
-            {usernameError && (
-              <p className="text-xs text-red-400">{usernameError}</p>
-            )}
-            {usernameStatus === 'available' && (
-              <p className="text-xs text-green-400">✓ digis.cc/{username} is yours!</p>
-            )}
-            {!username && (
-              <p className="text-xs text-gray-500">This will be your profile URL: digis.cc/username</p>
+            {selectedRole === 'creator' && (
+              <p className="text-xs text-amber-400 mt-2">
+                ⚡ Creator accounts require approval. You'll complete an application after verifying your email.
+              </p>
             )}
           </div>
 

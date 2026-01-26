@@ -24,12 +24,16 @@ export async function POST(request: NextRequest) {
 
     const { userId, email, username, website, defaultRole } = await request.json();
 
-    if (!userId || !email || !username) {
+    if (!userId || !email) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
+
+    // If no username provided, generate a temporary one
+    // Users will set their real username later in the onboarding flow
+    const hasUsername = username && username.trim();
 
     const cleanEmail = email.toLowerCase().trim();
 
@@ -72,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (isHoneypotTriggered(website)) {
       console.log('[SPAM] Honeypot triggered for:', email);
       // Return success to not alert bots, but don't create account
-      return NextResponse.json({ success: true, username: username.toLowerCase() });
+      return NextResponse.json({ success: true, username: hasUsername ? username.toLowerCase() : 'user_temp' });
     }
 
     // Spam protection: Check email domain blocklist
@@ -85,25 +89,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate username format
-    const cleanUsername = username.toLowerCase().trim();
-    if (!/^[a-z][a-z0-9_]{2,19}$/.test(cleanUsername)) {
-      return NextResponse.json(
-        { error: 'Invalid username format' },
-        { status: 400 }
-      );
-    }
+    // Generate or validate username
+    let cleanUsername: string;
 
-    // Check if username is already taken
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, cleanUsername),
-    });
+    if (hasUsername) {
+      // Validate provided username format
+      cleanUsername = username.toLowerCase().trim();
+      if (!/^[a-z][a-z0-9_]{2,19}$/.test(cleanUsername)) {
+        return NextResponse.json(
+          { error: 'Invalid username format' },
+          { status: 400 }
+        );
+      }
 
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Username is already taken' },
-        { status: 409 }
-      );
+      // Check if username is already taken
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.username, cleanUsername),
+      });
+
+      if (existingUser) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 409 }
+        );
+      }
+    } else {
+      // Generate a temporary auto-username (user_shortUUID)
+      // Users will set their real username later in the onboarding flow
+      const shortId = userId.slice(0, 8);
+      cleanUsername = `user_${shortId}`;
+      console.log(`[Signup] No username provided for ${cleanEmail}, using temp: ${cleanUsername}`);
     }
 
     // Check if user row already exists (from a previous signup attempt)

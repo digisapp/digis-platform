@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
+import { CreatorOnboardingModal } from '@/components/creator/CreatorOnboardingModal';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -104,6 +105,7 @@ export default function CreatorDashboard() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [dismissedChecklist, setDismissedChecklist] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
   useEffect(() => {
     checkAuth().then((result) => {
@@ -118,6 +120,14 @@ export default function CreatorDashboard() {
           const dismissed = localStorage.getItem('creator_checklist_dismissed');
           if (dismissed === 'true') {
             setDismissedChecklist(true);
+          }
+
+          // Check if creator needs onboarding (no real username set)
+          // A user needs onboarding if their username is auto-generated (starts with 'user_')
+          const needsOnboarding = !result.profile.username ||
+            result.profile.username.startsWith('user_');
+          if (needsOnboarding) {
+            setShowOnboardingModal(true);
           }
         }
 
@@ -233,6 +243,20 @@ export default function CreatorDashboard() {
       setTimeout(() => setCopiedLink(false), 3000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleOnboardingComplete = async () => {
+    setShowOnboardingModal(false);
+    // Refresh user profile to get updated data
+    const response = await fetch('/api/user/profile');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.user) {
+        setUserProfile(data.user);
+        setFollowerCount(data.user.followerCount || 0);
+        setSubscriberCount(data.user.subscriberCount || 0);
+      }
     }
   };
 
@@ -497,6 +521,13 @@ export default function CreatorDashboard() {
           onClose={hideToast}
         />
       )}
+
+      {/* Creator Onboarding Modal - shown for first-time creators */}
+      <CreatorOnboardingModal
+        isOpen={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+        onComplete={handleOnboardingComplete}
+      />
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
