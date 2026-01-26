@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import { Clock, Users, Eye, Play, Image as ImageIcon, Lock } from 'lucide-react';
 import { getCategoryLabel, getCategoryColor } from '@/lib/constants/categories';
 
@@ -74,6 +75,7 @@ interface SuggestedCreator {
 
 export default function FanDashboard() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
@@ -82,6 +84,13 @@ export default function FanDashboard() {
   const [upcomingFromFollowing, setUpcomingFromFollowing] = useState<UpcomingShow[]>([]);
   const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
   const [suggestedCreators, setSuggestedCreators] = useState<SuggestedCreator[]>([]);
+
+  // Redirect to homepage when user signs out
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     checkAuth();

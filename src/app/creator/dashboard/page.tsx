@@ -8,6 +8,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
@@ -91,6 +92,7 @@ interface UpcomingEvent {
 
 export default function CreatorDashboard() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isCreator, setIsCreator] = useState(false);
@@ -106,6 +108,13 @@ export default function CreatorDashboard() {
   const [dismissedChecklist, setDismissedChecklist] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+
+  // Redirect to homepage when user signs out
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     checkAuth().then((result) => {
