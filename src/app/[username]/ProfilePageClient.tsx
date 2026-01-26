@@ -111,6 +111,11 @@ export default function ProfilePageClient() {
   const [showSubscribeConfirmModal, setShowSubscribeConfirmModal] = useState(false);
   const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
   const [insufficientFundsAmount, setInsufficientFundsAmount] = useState(0);
+  const [insufficientFundsDetails, setInsufficientFundsDetails] = useState<{
+    available: number;
+    total: number;
+    held: number;
+  } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [showTipSuccessModal, setShowTipSuccessModal] = useState(false);
   const [tipSuccessAmount, setTipSuccessAmount] = useState(0);
@@ -495,8 +500,18 @@ export default function ProfilePageClient() {
 
       if (!response.ok) {
         // Check if it's an insufficient funds error
-        if (data.error?.includes('Insufficient') || data.error?.includes('need') || data.required) {
+        if (data.insufficientBalance || data.error?.includes('Insufficient') || data.error?.includes('need') || data.required) {
           setInsufficientFundsAmount(data.required || subscriptionTier?.pricePerMonth || 0);
+          // Set details if available (shows held coins info)
+          if (data.held !== undefined) {
+            setInsufficientFundsDetails({
+              available: data.available || 0,
+              total: data.total || 0,
+              held: data.held || 0,
+            });
+          } else {
+            setInsufficientFundsDetails(null);
+          }
           setShowInsufficientFundsModal(true);
           return;
         }
@@ -512,10 +527,12 @@ export default function ProfilePageClient() {
       // Show insufficient funds modal for balance-related errors
       if (err.message?.includes('Insufficient') || err.message?.includes('need')) {
         setInsufficientFundsAmount(subscriptionTier?.pricePerMonth || 0);
+        setInsufficientFundsDetails(null);
         setShowInsufficientFundsModal(true);
       } else {
         // For other errors, show a simple themed error (not browser alert)
         setInsufficientFundsAmount(0);
+        setInsufficientFundsDetails(null);
         setShowInsufficientFundsModal(true);
       }
     } finally {
@@ -2172,27 +2189,62 @@ export default function ProfilePageClient() {
             {/* Title */}
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white mb-2">
-                Not Enough Coins
+                {insufficientFundsDetails?.held ? 'Coins Unavailable' : 'Not Enough Coins'}
               </h2>
               <p className="text-gray-400 mb-6">
-                {insufficientFundsAmount > 0
-                  ? `You need ${insufficientFundsAmount} coins to subscribe`
-                  : 'You need more coins to complete this action'
-                }
+                {insufficientFundsDetails?.held ? (
+                  <>Some of your coins are held for active calls</>
+                ) : insufficientFundsAmount > 0 ? (
+                  `You need ${insufficientFundsAmount} coins to subscribe`
+                ) : (
+                  'You need more coins to complete this action'
+                )}
               </p>
             </div>
 
-            {/* Coin display */}
-            <div className="flex justify-center mb-6">
-              <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
-                <div className="flex items-center gap-3">
-                  <Coins className="w-8 h-8 text-yellow-400" />
-                  <span className="text-3xl font-bold text-yellow-400">
-                    {insufficientFundsAmount > 0 ? insufficientFundsAmount : '???'}
-                  </span>
-                  <span className="text-gray-400">needed</span>
+            {/* Coin display - show breakdown if held coins exist */}
+            <div className="flex flex-col items-center gap-3 mb-6">
+              {insufficientFundsDetails?.held ? (
+                <>
+                  <div className="px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 w-full">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Total Balance</span>
+                      <span className="text-xl font-bold text-yellow-400">{insufficientFundsDetails.total} coins</span>
+                    </div>
+                  </div>
+                  <div className="px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 w-full">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Held for Calls</span>
+                      <span className="text-xl font-bold text-orange-400">-{insufficientFundsDetails.held} coins</span>
+                    </div>
+                  </div>
+                  <div className="px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 w-full">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Available</span>
+                      <span className="text-xl font-bold text-cyan-400">{insufficientFundsDetails.available} coins</span>
+                    </div>
+                  </div>
+                  <div className="px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 w-full">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Need for Subscribe</span>
+                      <span className="text-xl font-bold text-purple-400">{insufficientFundsAmount} coins</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    Held coins will be released when your call ends
+                  </p>
+                </>
+              ) : (
+                <div className="px-6 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30">
+                  <div className="flex items-center gap-3">
+                    <Coins className="w-8 h-8 text-yellow-400" />
+                    <span className="text-3xl font-bold text-yellow-400">
+                      {insufficientFundsAmount > 0 ? insufficientFundsAmount : '???'}
+                    </span>
+                    <span className="text-gray-400">needed</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Action Buttons */}

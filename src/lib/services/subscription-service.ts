@@ -159,7 +159,12 @@ export class SubscriptionService {
       // Check if user has enough coins
       const availableBalance = userWallet.balance - userWallet.heldBalance;
       if (availableBalance < tier.pricePerMonth) {
-        throw new Error(`Not enough coins. You need ${tier.pricePerMonth} coins to subscribe.`);
+        // Include balance details in error for better UX
+        const hasHeldCoins = userWallet.heldBalance > 0;
+        const errorDetails = hasHeldCoins
+          ? `You have ${userWallet.balance} coins total, but ${userWallet.heldBalance} are held for active calls. Available: ${availableBalance} coins.`
+          : `You have ${availableBalance} coins.`;
+        throw new Error(`INSUFFICIENT_BALANCE:${tier.pricePerMonth}:${availableBalance}:${userWallet.balance}:${userWallet.heldBalance}`);
       }
 
       // Calculate subscription period (30 days from now)

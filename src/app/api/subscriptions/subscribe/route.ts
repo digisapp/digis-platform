@@ -59,8 +59,32 @@ export async function POST(req: NextRequest) {
     if (message.includes('Already subscribed')) {
       return NextResponse.json({ error: 'You are already subscribed to this creator.' }, { status: 400 });
     }
+    // Parse structured insufficient balance error: INSUFFICIENT_BALANCE:required:available:total:held
+    if (message.startsWith('INSUFFICIENT_BALANCE:')) {
+      const parts = message.split(':');
+      const required = parseInt(parts[1]) || 0;
+      const available = parseInt(parts[2]) || 0;
+      const total = parseInt(parts[3]) || 0;
+      const held = parseInt(parts[4]) || 0;
+
+      let errorMessage = `You need ${required} coins to subscribe.`;
+      if (held > 0) {
+        errorMessage = `You have ${total} coins, but ${held} are held for active calls. Only ${available} available.`;
+      } else {
+        errorMessage = `You have ${available} coins but need ${required} to subscribe.`;
+      }
+
+      return NextResponse.json({
+        error: errorMessage,
+        required,
+        available,
+        total,
+        held,
+        insufficientBalance: true,
+      }, { status: 400 });
+    }
     if (message.includes('Not enough coins') || message.includes('Insufficient balance')) {
-      return NextResponse.json({ error: message }, { status: 400 });
+      return NextResponse.json({ error: message, insufficientBalance: true }, { status: 400 });
     }
     if (message.includes('Wallet not found')) {
       return NextResponse.json({ error: 'Please try again or contact support.' }, { status: 500 });
