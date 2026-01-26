@@ -13,18 +13,26 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log('[Creator Application] Starting application submission...');
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.log('[Creator Application] Auth failed:', authError?.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is already a creator
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-      columns: { role: true },
-    });
+    console.log('[Creator Application] User authenticated:', user.id);
+
+    // Check if user is already a creator using query builder (not relational API)
+    const [dbUser] = await db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+
+    console.log('[Creator Application] User role check:', dbUser?.role);
 
     if (dbUser?.role === 'creator') {
       return NextResponse.json(
@@ -42,7 +50,9 @@ export async function POST(request: NextRequest) {
       termsAccepted,
     } = body;
 
-    // Validate required fields before transaction
+    console.log('[Creator Application] Form data received:', { fullName, instagramHandle, followerCount, ageConfirmed, termsAccepted });
+
+    // Validate required fields
     if (!fullName?.trim()) {
       return NextResponse.json(
         { error: 'Please enter your full name' },
@@ -78,25 +88,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for existing pending application first
-    const existingApplication = await db.query.creatorApplications.findFirst({
-      where: and(
-        eq(creatorApplications.userId, user.id),
-        eq(creatorApplications.status, 'pending')
-      ),
-      columns: { id: true },
-    });
+    // Check for existing pending application using query builder (not relational API)
+    console.log('[Creator Application] Checking for existing pending application...');
+    const existingApps = await db
+      .select({ id: creatorApplications.id })
+      .from(creatorApplications)
+      .where(
+        and(
+          eq(creatorApplications.userId, user.id),
+          eq(creatorApplications.status, 'pending')
+        )
+      )
+      .limit(1);
 
-    if (existingApplication) {
+    console.log('[Creator Application] Existing apps check result:', existingApps);
+
+    if (existingApps.length > 0) {
       return NextResponse.json(
-        { error: 'You already have a pending application', applicationId: existingApplication.id },
+        { error: 'You already have a pending application', applicationId: existingApps[0].id },
         { status: 400 }
       );
     }
 
     // Create the application
-    // Note: Database has a unique constraint (creator_applications_user_pending_idx)
-    // that prevents duplicate pending applications per user as a safety net
+    console.log('[Creator Application] Creating new application...');
     const [application] = await db.insert(creatorApplications).values({
       userId: user.id,
       displayName: fullName.trim(),
@@ -107,7 +122,7 @@ export async function POST(request: NextRequest) {
       status: 'pending',
     }).returning();
 
-    console.log(`[Creator Application] New application submitted: ${user.id} - @${instagramHandle}`);
+    console.log(`[Creator Application] Success! Application ID: ${application.id} for user ${user.id}`);
 
     return NextResponse.json({
       success: true,
@@ -115,15 +130,22 @@ export async function POST(request: NextRequest) {
       applicationId: application.id,
     });
   } catch (error: any) {
-    // Handle unique constraint violation (race condition where check passed but insert failed)
+    // Handle unique constraint violation
     if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
+      console.log('[Creator Application] Duplicate application detected');
       return NextResponse.json(
         { error: 'You already have a pending application' },
         { status: 400 }
       );
     }
 
-    console.error('Error submitting creator application:', error?.message || error, error?.stack);
+    console.error('[Creator Application] ERROR:', {
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack,
+      name: error?.name,
+      cause: error?.cause,
+    });
     return NextResponse.json(
       { error: 'Failed to submit application' },
       { status: 500 }
@@ -144,31 +166,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's most recent application
-    const application = await db.query.creatorApplications.findFirst({
-      where: eq(creatorApplications.userId, user.id),
-      orderBy: [desc(creatorApplications.createdAt)],
-    });
+    // Get user's most recent application using query builder (not relational API)
+    const applications = await db
+      .select({
+        id: creatorApplications.id,
+        status: creatorApplications.status,
+        displayName: creatorApplications.displayName,
+        instagramHandle: creatorApplications.instagramHandle,
+        followerCount: creatorApplications.followerCount,
+        rejectionReason: creatorApplications.rejectionReason,
+        createdAt: creatorApplications.createdAt,
+        reviewedAt: creatorApplications.reviewedAt,
+      })
+      .from(creatorApplications)
+      .where(eq(creatorApplications.userId, user.id))
+      .orderBy(desc(creatorApplications.createdAt))
+      .limit(1);
 
-    if (!application) {
+    if (applications.length === 0) {
       return NextResponse.json({ hasApplication: false, application: null });
     }
 
     return NextResponse.json({
       hasApplication: true,
-      application: {
-        id: application.id,
-        status: application.status,
-        displayName: application.displayName,
-        instagramHandle: application.instagramHandle,
-        followerCount: application.followerCount,
-        rejectionReason: application.rejectionReason,
-        createdAt: application.createdAt,
-        reviewedAt: application.reviewedAt,
-      },
+      application: applications[0],
     });
   } catch (error: any) {
-    console.error('Error fetching application status:', error);
+    console.error('Error fetching application status:', error?.message, error?.stack);
     return NextResponse.json(
       { error: 'Failed to fetch application status' },
       { status: 500 }
