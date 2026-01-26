@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
 import { users, creatorApplications } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { supabaseAdmin } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -80,39 +78,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY: Use transaction to prevent race condition where two concurrent
-    // requests could both pass the pending check and create duplicate applications
-    const application = await db.transaction(async (tx) => {
-      // Check if user already has a pending application INSIDE transaction
-      // Note: Using query builder syntax since relational API doesn't work in transactions
-      const existingApplications = await tx
-        .select({ id: creatorApplications.id })
-        .from(creatorApplications)
-        .where(
-          and(
-            eq(creatorApplications.userId, user.id),
-            eq(creatorApplications.status, 'pending')
-          )
-        )
-        .limit(1);
-
-      if (existingApplications.length > 0) {
-        throw new Error(`DUPLICATE:${existingApplications[0].id}`);
-      }
-
-      // Create the application
-      const [newApp] = await tx.insert(creatorApplications).values({
-        userId: user.id,
-        displayName: fullName.trim(),
-        instagramHandle: instagramHandle.trim(),
-        followerCount: String(followerCount),
-        ageConfirmed: true,
-        termsAccepted: true,
-        status: 'pending',
-      }).returning();
-
-      return newApp;
+    // Check for existing pending application first
+    const existingApplication = await db.query.creatorApplications.findFirst({
+      where: and(
+        eq(creatorApplications.userId, user.id),
+        eq(creatorApplications.status, 'pending')
+      ),
+      columns: { id: true },
     });
+
+    if (existingApplication) {
+      return NextResponse.json(
+        { error: 'You already have a pending application', applicationId: existingApplication.id },
+        { status: 400 }
+      );
+    }
+
+    // Create the application
+    // Note: Database has a unique constraint (creator_applications_user_pending_idx)
+    // that prevents duplicate pending applications per user as a safety net
+    const [application] = await db.insert(creatorApplications).values({
+      userId: user.id,
+      displayName: fullName.trim(),
+      instagramHandle: instagramHandle.trim(),
+      followerCount: String(followerCount),
+      ageConfirmed: true,
+      termsAccepted: true,
+      status: 'pending',
+    }).returning();
 
     console.log(`[Creator Application] New application submitted: ${user.id} - @${instagramHandle}`);
 
@@ -122,11 +115,10 @@ export async function POST(request: NextRequest) {
       applicationId: application.id,
     });
   } catch (error: any) {
-    // Handle duplicate application error from transaction
-    if (error.message?.startsWith('DUPLICATE:')) {
-      const existingId = error.message.split(':')[1];
+    // Handle unique constraint violation (race condition where check passed but insert failed)
+    if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {
       return NextResponse.json(
-        { error: 'You already have a pending application', applicationId: existingId },
+        { error: 'You already have a pending application' },
         { status: 400 }
       );
     }
