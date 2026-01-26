@@ -860,6 +860,45 @@ export class MessageService {
       messageRateMap.set(settings.userId, settings.messageRate);
     });
 
+    // Find conversations with missing lastMessageText and backfill them
+    const conversationsWithoutPreview = allConversations.filter(
+      conv => conv.lastMessageAt && !conv.lastMessageText
+    );
+
+    // Backfill missing lastMessageText from actual messages
+    const lastMessageMap = new Map<string, string>();
+    if (conversationsWithoutPreview.length > 0) {
+      const convIds = conversationsWithoutPreview.map(c => c.id);
+
+      // Fetch the last message for each conversation that's missing preview
+      for (const convId of convIds) {
+        const lastMsg = await db.query.messages.findFirst({
+          where: eq(messages.conversationId, convId),
+          orderBy: [desc(messages.createdAt)],
+          columns: { content: true, messageType: true, isLocked: true },
+        });
+
+        if (lastMsg) {
+          let preview = lastMsg.content?.substring(0, 100) || '';
+          if (lastMsg.isLocked) {
+            preview = '🔒 Locked message';
+          } else if (lastMsg.messageType === 'media') {
+            preview = '📷 Media';
+          } else if (lastMsg.messageType === 'tip') {
+            preview = '💰 Tip';
+          }
+          lastMessageMap.set(convId, preview);
+
+          // Also update the database to fix this for future queries
+          db.update(conversations)
+            .set({ lastMessageText: preview })
+            .where(eq(conversations.id, convId))
+            .execute()
+            .catch(err => console.error('Failed to backfill lastMessageText:', err));
+        }
+      }
+    }
+
     // Transform to include "other user" and unread count
     return allConversations.map((conv) => {
       const isUser1 = conv.user1Id === userId;
@@ -873,8 +912,12 @@ export class MessageService {
       // Add message charge from creator settings
       const messageCharge = otherUser ? messageRateMap.get(otherUser.id) || 0 : 0;
 
+      // Use backfilled message text if original is missing
+      const lastMessageText = conv.lastMessageText || lastMessageMap.get(conv.id) || null;
+
       return {
         ...conv,
+        lastMessageText,
         otherUser: otherUser ? {
           ...otherUser,
           messageCharge,
