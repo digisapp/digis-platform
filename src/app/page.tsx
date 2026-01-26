@@ -711,6 +711,13 @@ function HomeContent() {
           if (response.ok) {
             const data = await response.json();
             const role = data.user?.role;
+            const username = data.user?.username;
+
+            // New users need to complete onboarding (set their username)
+            if (!username || username.startsWith('user_')) {
+              router.replace('/welcome/username');
+              return;
+            }
 
             if (role === 'admin') {
               router.replace('/admin');
