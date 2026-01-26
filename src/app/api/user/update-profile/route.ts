@@ -4,6 +4,7 @@ import { db } from '@/lib/data/system';
 import { users, profiles } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { extractInstagramHandle, extractTiktokHandle, extractTwitterHandle, extractSnapchatHandle, extractYoutubeHandle } from '@/lib/utils/social-handles';
+import { invalidateCreatorProfile } from '@/lib/cache/hot-data-cache';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -133,6 +134,9 @@ export async function POST(request: NextRequest) {
         display_name: displayName || null,
       },
     });
+
+    // Invalidate cached creator profile so changes are immediately visible
+    await invalidateCreatorProfile(authUser.id);
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { invalidateCreatorProfile } from '@/lib/cache/hot-data-cache';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -85,6 +86,9 @@ export async function POST(request: NextRequest) {
         avatar_url: publicUrl,
       },
     });
+
+    // Invalidate cached creator profile so new avatar is immediately visible
+    await invalidateCreatorProfile(user.id);
 
     return NextResponse.json({
       success: true,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SubscriptionService } from '@/lib/services/subscription-service';
+import { invalidateSubscriptionTiers } from '@/lib/cache/hot-data-cache';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -70,6 +71,9 @@ export async function POST(req: NextRequest) {
         .set({ isActive, updatedAt: new Date() })
         .where(eq(subscriptionTiers.id, tier.id));
     }
+
+    // Invalidate cached tiers so changes are immediately visible to fans
+    await invalidateSubscriptionTiers(user.id);
 
     return NextResponse.json({ success: true, tier });
   } catch (error) {
