@@ -35,21 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already has a pending application
-    const existingApplication = await db.query.creatorApplications.findFirst({
-      where: and(
-        eq(creatorApplications.userId, user.id),
-        eq(creatorApplications.status, 'pending')
-      ),
-    });
-
-    if (existingApplication) {
-      return NextResponse.json(
-        { error: 'You already have a pending application', applicationId: existingApplication.id },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
     const {
       fullName,
@@ -59,7 +44,7 @@ export async function POST(request: NextRequest) {
       termsAccepted,
     } = body;
 
-    // Validate required fields
+    // Validate required fields before transaction
     if (!fullName?.trim()) {
       return NextResponse.json(
         { error: 'Please enter your full name' },
@@ -95,16 +80,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the application
-    const [application] = await db.insert(creatorApplications).values({
-      userId: user.id,
-      displayName: fullName.trim(),
-      instagramHandle: instagramHandle.trim(),
-      followerCount: String(followerCount),
-      ageConfirmed: true,
-      termsAccepted: true,
-      status: 'pending',
-    }).returning();
+    // SECURITY: Use transaction to prevent race condition where two concurrent
+    // requests could both pass the pending check and create duplicate applications
+    const application = await db.transaction(async (tx) => {
+      // Check if user already has a pending application INSIDE transaction
+      const existingApplication = await tx.query.creatorApplications.findFirst({
+        where: and(
+          eq(creatorApplications.userId, user.id),
+          eq(creatorApplications.status, 'pending')
+        ),
+      });
+
+      if (existingApplication) {
+        throw new Error(`DUPLICATE:${existingApplication.id}`);
+      }
+
+      // Create the application
+      const [newApp] = await tx.insert(creatorApplications).values({
+        userId: user.id,
+        displayName: fullName.trim(),
+        instagramHandle: instagramHandle.trim(),
+        followerCount: String(followerCount),
+        ageConfirmed: true,
+        termsAccepted: true,
+        status: 'pending',
+      }).returning();
+
+      return newApp;
+    });
 
     console.log(`[Creator Application] New application submitted: ${user.id} - @${instagramHandle}`);
 
@@ -114,6 +117,15 @@ export async function POST(request: NextRequest) {
       applicationId: application.id,
     });
   } catch (error: any) {
+    // Handle duplicate application error from transaction
+    if (error.message?.startsWith('DUPLICATE:')) {
+      const existingId = error.message.split(':')[1];
+      return NextResponse.json(
+        { error: 'You already have a pending application', applicationId: existingId },
+        { status: 400 }
+      );
+    }
+
     console.error('Error submitting creator application:', error);
     return NextResponse.json(
       { error: 'Failed to submit application' },

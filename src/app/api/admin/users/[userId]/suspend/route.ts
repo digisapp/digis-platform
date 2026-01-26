@@ -62,7 +62,11 @@ export async function POST(
       .eq('id', userId);
 
     if (updateError) {
-      throw new Error(`Failed to update user status: ${updateError.message}`);
+      console.error('Supabase update error:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update user status' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -73,7 +77,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error updating user status:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update user status' },
+      { error: 'Failed to update user status' },
       { status: 500 }
     );
   }
