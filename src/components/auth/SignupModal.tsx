@@ -145,7 +145,12 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
 
     } catch (err: any) {
       console.error('Signup error:', err);
-      setError(err.message || 'An error occurred during signup');
+      // Handle specific Supabase errors with friendlier messages
+      if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
+        setError('This email is already registered. Please sign in instead.');
+      } else {
+        setError(err.message || 'An error occurred during signup');
+      }
     } finally {
       setLoading(false);
     }
