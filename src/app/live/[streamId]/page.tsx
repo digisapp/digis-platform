@@ -9,7 +9,7 @@ import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
   Share2, X, Send, Ticket, Coins, List,
-  Download, CheckCircle
+  Download, CheckCircle, Lock, UserPlus, CreditCard
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -170,6 +170,15 @@ export default function TheaterModePage() {
   const [stream, setStream] = useState<StreamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState<{
+    reason: string;
+    creatorId?: string;
+    creatorUsername?: string;
+    requiresSubscription?: boolean;
+    requiresFollow?: boolean;
+    requiresTicket?: boolean;
+    ticketPrice?: number;
+  } | null>(null);
 
   // Video player state
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -937,6 +946,23 @@ export default function TheaterModePage() {
   const loadStream = async () => {
     try {
       const response = await fetch(`/api/streams/${streamId}`);
+
+      // Handle 403 Access Denied with detailed info
+      if (response.status === 403) {
+        const data = await response.json();
+        setAccessDenied({
+          reason: data.error || 'Access denied',
+          creatorId: data.creatorId,
+          creatorUsername: data.creatorUsername,
+          requiresSubscription: data.requiresSubscription,
+          requiresFollow: data.requiresFollow,
+          requiresTicket: data.requiresTicket,
+          ticketPrice: data.ticketPrice,
+        });
+        setLoading(false);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error('Stream not found');
       }
@@ -1271,6 +1297,76 @@ export default function TheaterModePage() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // Access denied - show clear instructions on how to access the stream
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="mb-6 p-4 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 inline-block">
+            <Lock className="w-12 h-12 text-pink-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-3">
+            This Stream is Private
+          </h1>
+          <p className="text-gray-400 mb-6">
+            {accessDenied.reason}
+          </p>
+
+          {/* Action buttons based on what's required */}
+          <div className="space-y-3">
+            {accessDenied.requiresFollow && accessDenied.creatorUsername && (
+              <button
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-purple text-white rounded-xl font-semibold hover:scale-105 transition-all"
+              >
+                <UserPlus className="w-5 h-5" />
+                Follow @{accessDenied.creatorUsername}
+              </button>
+            )}
+
+            {accessDenied.requiresSubscription && accessDenied.creatorUsername && (
+              <button
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-digis-purple to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all"
+              >
+                <CreditCard className="w-5 h-5" />
+                Subscribe to @{accessDenied.creatorUsername}
+              </button>
+            )}
+
+            {accessDenied.requiresTicket && accessDenied.creatorUsername && (
+              <button
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
+              >
+                <Ticket className="w-5 h-5" />
+                Buy Ticket {accessDenied.ticketPrice ? `(${accessDenied.ticketPrice} coins)` : ''}
+              </button>
+            )}
+
+            {/* Visit creator profile if username available */}
+            {accessDenied.creatorUsername && (
+              <button
+                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
+                className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-all"
+              >
+                Visit Creator Profile
+              </button>
+            )}
+
+            {/* Browse other streams */}
+            <button
+              onClick={() => router.push('/watch')}
+              className="w-full px-6 py-3 text-gray-400 hover:text-white transition-colors"
+            >
+              Browse Other Streams
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
