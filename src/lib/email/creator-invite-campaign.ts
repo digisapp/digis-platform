@@ -279,7 +279,7 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Content while Traveling the World with Digis</title>
+    <title>EXA Models invites you to be a Creator on Digis - Create & Earn</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%);">
     <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, #0a0014 0%, #1a0a2e 50%, #0a0014 100%); padding: 40px 20px;">
@@ -290,13 +290,10 @@ function generateExaModelsInviteHtml(inviteUrl: string, recipientName?: string):
                     <!-- Sparkle Header -->
                     <tr>
                         <td align="center" style="background: linear-gradient(135deg, #FF006E 0%, #9D4EDD 40%, #00D4FF 100%); padding: 50px 40px 45px; position: relative;">
-                            <p style="margin: 0 0 8px; font-size: 40px; line-height: 1;">🌍✨</p>
+                            <p style="margin: 0 0 8px; font-size: 40px; line-height: 1;">📱✨</p>
                             <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; text-shadow: 0 4px 20px rgba(0,0,0,0.4); letter-spacing: -0.5px;">
-                                Create Content while<br>Traveling the World
+                                Create & Earn<br>Live Your Best Life
                             </h1>
-                            <p style="margin: 16px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
-                                Your exclusive invite to Digis is ready 💅
-                            </p>
                         </td>
                     </tr>
 
@@ -508,9 +505,11 @@ function generateExaModelsInvitePlainText(inviteUrl: string, recipientName?: str
 
   return `${greeting}
 
-Create Content while Traveling the World with Digis 🌍✨
+EXA Models invites you to be a Creator on Digis 📱✨
 
-EXA Models invites you to join Digis — your new way to earn while living your best life.
+Create & Earn — Live Your Best Life
+
+Join Digis — your new way to earn while living your best life.
 
 Digis is where creators like you are turning time and content into actual income. Work from anywhere.
 
@@ -568,8 +567,8 @@ export async function sendExaModelsInvite(recipient: InviteRecipient): Promise<{
 
   try {
     const subject = recipient.name
-      ? `${recipient.name}, Create Content while Traveling the World 🌍✨`
-      : "Create Content while Traveling the World 🌍✨";
+      ? `${recipient.name}, EXA Models invites you to be a Creator on Digis 📱✨`
+      : "EXA Models invites you to be a Creator on Digis 📱✨";
 
     const { data, error } = await resend.emails.send({
       from: CAMPAIGN_FROM,
