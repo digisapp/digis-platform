@@ -23,7 +23,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator'>(defaultRole);
   const [website, setWebsite] = useState(''); // Honeypot field - should stay empty
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -36,7 +35,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
       setEmail('');
       setPassword('');
       setSelectedRole(defaultRole);
-      setAgeConfirmed(false);
       setError('');
       setSuccess(false);
     }
@@ -156,7 +154,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
     }
   };
 
-  const isFormValid = email && password && password.length >= 6 && ageConfirmed;
+  const isFormValid = email && password && password.length >= 6;
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
@@ -292,32 +290,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
             autoComplete="new-password"
           />
           <p className="text-xs text-gray-500 -mt-2">At least 6 characters</p>
-
-          {/* Age Confirmation */}
-          <label className="flex items-center gap-3 cursor-pointer group pt-2">
-            <div className="relative flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={ageConfirmed}
-                onChange={(e) => setAgeConfirmed(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className={`w-5 h-5 border-2 rounded transition-all flex items-center justify-center ${
-                ageConfirmed
-                  ? 'bg-gradient-to-r from-digis-cyan to-digis-purple border-digis-cyan'
-                  : 'border-white/30 bg-white/5 group-hover:border-white/50'
-              }`}>
-                {ageConfirmed && (
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
-              I confirm I am <strong className="text-white">18 years or older</strong>
-            </span>
-          </label>
 
           {/* Honeypot field - hidden from real users, bots will fill it */}
           <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
