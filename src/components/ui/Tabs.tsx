@@ -25,6 +25,7 @@ export function Tabs({ tabs, activeTab, onChange, className = '' }: TabsProps) {
 
           return (
             <button
+              type="button"
               key={tab.id}
               onClick={() => onChange(tab.id)}
               className={`

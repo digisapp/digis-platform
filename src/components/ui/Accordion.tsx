@@ -53,6 +53,7 @@ export function Accordion({
             className="glass rounded-xl border border-white/10 overflow-hidden"
           >
             <button
+              type="button"
               onClick={() => toggleItem(item.id)}
               className="w-full flex items-center justify-between p-4 text-left hover:bg-white/5 transition-colors"
             >
