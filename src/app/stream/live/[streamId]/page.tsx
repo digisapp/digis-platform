@@ -2113,10 +2113,8 @@ export default function BroadcastStudioPage() {
                       <span className="text-yellow-400 font-bold text-sm">{totalEarnings.toLocaleString()}</span>
                     </div>
 
-                    {/* Connection Status - Desktop only */}
-                    <div className="hidden md:block">
-                      <StreamHealthIndicator streamId={streamId} />
-                    </div>
+                    {/* Connection Status - visible on all screens */}
+                    <StreamHealthIndicator streamId={streamId} />
 
                     {/* Screen Share Active Indicator */}
                     {isScreenSharing && (
@@ -2345,13 +2343,15 @@ export default function BroadcastStudioPage() {
                         )}
                       </div>
                     ) : (
-                      /* Collapsed + button - Larger */
+                      /* Collapsed Tools button - prominent with label */
                       <button
                         onClick={() => setShowMobileTools(true)}
-                        className="p-4 backdrop-blur-xl bg-black/70 rounded-full border-2 border-white/40 hover:border-cyan-500/50 hover:bg-black/80 transition-all shadow-xl"
+                        className="flex items-center gap-2 px-4 py-3 backdrop-blur-xl bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border-2 border-cyan-400/50 hover:border-cyan-400 active:scale-95 transition-all shadow-xl shadow-cyan-500/20"
                         title="Stream Tools"
+                        aria-label="Open stream tools menu"
                       >
-                        <Plus className="w-7 h-7 text-white" />
+                        <Plus className="w-6 h-6 text-white" />
+                        <span className="text-white font-semibold text-sm">Tools</span>
                       </button>
                     )}
                   </div>

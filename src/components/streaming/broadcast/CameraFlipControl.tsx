@@ -61,10 +61,11 @@ export function CameraFlipControl({
     <button
       onClick={flipCamera}
       disabled={isFlipping}
-      className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
+      className="min-w-[48px] min-h-[48px] p-3 bg-black/70 backdrop-blur-xl rounded-full text-white hover:bg-black/90 active:scale-95 transition-all disabled:opacity-50 border border-white/20 shadow-lg"
       title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
+      aria-label={facingMode === 'user' ? 'Switch to back camera' : 'Switch to front camera'}
     >
-      <RefreshCw className={`w-5 h-5 ${isFlipping ? 'animate-spin' : ''}`} />
+      <RefreshCw className={`w-6 h-6 ${isFlipping ? 'animate-spin' : ''}`} />
     </button>
   );
 }
