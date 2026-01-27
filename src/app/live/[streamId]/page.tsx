@@ -1324,21 +1324,6 @@ export default function TheaterModePage() {
                   : accessDenied.reason}
           </p>
 
-          {/* Show price info */}
-          {(accessDenied.subscriptionPrice || accessDenied.ticketPrice) && (
-            <div className="mb-6 px-4 py-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl">
-              <div className="flex items-center justify-center gap-2">
-                <Coins className="w-5 h-5 text-yellow-400" />
-                <span className="text-yellow-400 font-bold text-lg">
-                  {accessDenied.subscriptionPrice || accessDenied.ticketPrice} coins
-                </span>
-                <span className="text-gray-400 text-sm">
-                  {accessDenied.subscriptionPrice ? '/month' : ''}
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Action buttons based on what's required */}
           <div className="space-y-3">
             {accessDenied.requiresFollow && accessDenied.creatorUsername && (
