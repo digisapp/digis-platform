@@ -219,6 +219,7 @@ export default function TheaterModePage() {
 
   // Viewers state
   const [viewers, setViewers] = useState<Viewer[]>([]);
+  const [leaderboard, setLeaderboard] = useState<Array<{ id: string; username: string; avatarUrl?: string; totalSpent: number }>>([]);
 
   // User state
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -854,7 +855,7 @@ export default function TheaterModePage() {
     return () => clearInterval(interval);
   }, [stream, streamId, streamEnded]);
 
-  // Fetch viewers when viewer list is opened
+  // Fetch viewers and leaderboard when viewer list is opened
   useEffect(() => {
     if (!showViewerList || !streamId) return;
 
@@ -870,9 +871,25 @@ export default function TheaterModePage() {
       }
     };
 
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(`/api/streams/${streamId}/leaderboard?limit=5`);
+        if (res.ok) {
+          const data = await res.json();
+          setLeaderboard(data.leaderboard || []);
+        }
+      } catch (e) {
+        console.error('[Stream] Failed to fetch leaderboard:', e);
+      }
+    };
+
     fetchViewers();
+    fetchLeaderboard();
     // Refresh every 10 seconds while open
-    const interval = setInterval(fetchViewers, 10000);
+    const interval = setInterval(() => {
+      fetchViewers();
+      fetchLeaderboard();
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [showViewerList, streamId]);
