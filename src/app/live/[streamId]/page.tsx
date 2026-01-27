@@ -1117,6 +1117,40 @@ export default function TheaterModePage() {
     }
   };
 
+  // Desktop keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in input fields
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case 'm':
+          // M to toggle mute
+          toggleMute();
+          break;
+        case 'f':
+          // F to toggle fullscreen
+          toggleFullscreen();
+          break;
+        case 'c':
+          // C to toggle chat sidebar
+          setShowChat(prev => !prev);
+          break;
+        case 'escape':
+          // Escape to close modals or exit fullscreen
+          if (isFullscreen) {
+            toggleFullscreen();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [muted, isFullscreen]);
+
   // Send chat message
   const sendMessage = async () => {
     if (!messageInput.trim() || !currentUser || sendingMessage) return;
@@ -2333,23 +2367,36 @@ export default function TheaterModePage() {
                     </div>
                   ) : currentUser ? (
                     userBalance > 0 ? (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={messageInput}
-                          onChange={(e) => setMessageInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                          placeholder="Send a message..."
-                          disabled={sendingMessage}
-                          className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
-                        />
-                        <button
-                          onClick={sendMessage}
-                          disabled={!messageInput.trim() || sendingMessage}
-                          className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
-                        >
-                          <Send className="w-5 h-5" />
-                        </button>
+                      <div className="space-y-2">
+                        {/* Balance indicator - desktop */}
+                        <div className="hidden lg:flex items-center justify-between px-1">
+                          <span className="text-xs text-white/50">Chat is free for coin holders</span>
+                          <button
+                            onClick={() => setShowBuyCoinsModal(true)}
+                            className="flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
+                          >
+                            <Coins className="w-3 h-3" />
+                            <span className="font-semibold">{userBalance.toLocaleString()}</span>
+                          </button>
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={messageInput}
+                            onChange={(e) => setMessageInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                            placeholder="Send a message..."
+                            disabled={sendingMessage}
+                            className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
+                          />
+                          <button
+                            onClick={sendMessage}
+                            disabled={!messageInput.trim() || sendingMessage}
+                            className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
+                          >
+                            <Send className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center text-sm pb-12 lg:pb-0">
@@ -2360,7 +2407,7 @@ export default function TheaterModePage() {
                           </p>
                           <button
                             onClick={() => setShowBuyCoinsModal(true)}
-                            className="mt-2 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs transition-colors"
+                            className="mt-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-full text-sm transition-all hover:scale-105"
                           >
                             Get Coins
                           </button>
@@ -2368,14 +2415,13 @@ export default function TheaterModePage() {
                       </div>
                     )
                   ) : (
-                    <div className="text-center text-sm text-white/70 pb-12 lg:pb-0">
+                    <div className="text-center py-3">
                       <button
                         onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
-                        className="text-cyan-400 hover:text-cyan-300 font-semibold hover:underline transition-colors"
+                        className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-all"
                       >
-                        Sign in
-                      </button>{' '}
-                      to chat
+                        Sign in to chat
+                      </button>
                     </div>
                   )}
                 </div>
@@ -2384,42 +2430,90 @@ export default function TheaterModePage() {
 
             {/* Viewer List View */}
             {showViewerList && (
-              <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-cyan-500/5 to-transparent">
-                {viewers.length === 0 ? (
-                  <div className="text-center text-gray-400 text-sm mt-10 font-medium">
-                    Loading viewers...
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {viewers.map((viewer) => (
-                      <div
-                        key={viewer.id}
-                        className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.15)] border border-transparent hover:border-cyan-400/30"
-                      >
-                        {viewer.avatarUrl ? (
-                          <img
-                            src={viewer.avatarUrl}
-                            alt={viewer.username}
-                            className="w-10 h-10 rounded-full object-cover ring-2 ring-cyan-400/30"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold shadow-lg shadow-cyan-500/30">
-                            {viewer.displayName?.[0] || viewer.username?.[0] || '?'}
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold truncate text-white">
-                            {viewer.displayName || viewer.username}
-                          </div>
-                          <div className="text-xs text-cyan-300/80 truncate font-medium">
-                            @{viewer.username}
+              <div className="flex-1 overflow-y-auto bg-gradient-to-b from-cyan-500/5 to-transparent">
+                {/* Top Supporters Section */}
+                {leaderboard && leaderboard.length > 0 && (
+                  <div className="p-4 border-b border-cyan-400/20">
+                    <h3 className="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                      <span className="text-lg">🏆</span> Top Supporters
+                    </h3>
+                    <div className="space-y-2">
+                      {leaderboard.slice(0, 5).map((supporter, index) => (
+                        <div
+                          key={supporter.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg ${
+                            index === 0 ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30' :
+                            index === 1 ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/20 border border-gray-400/30' :
+                            index === 2 ? 'bg-gradient-to-r from-orange-600/20 to-orange-500/20 border border-orange-500/30' :
+                            'bg-white/5'
+                          }`}
+                        >
+                          <span className={`text-sm font-bold w-5 ${
+                            index === 0 ? 'text-yellow-400' :
+                            index === 1 ? 'text-gray-300' :
+                            index === 2 ? 'text-orange-400' :
+                            'text-white/50'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          {supporter.avatarUrl ? (
+                            <img src={supporter.avatarUrl} alt={supporter.username} className="w-7 h-7 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
+                              {supporter.username?.[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-white truncate flex-1">{supporter.username}</span>
+                          <div className="flex items-center gap-1 text-xs">
+                            <Coins className="w-3 h-3 text-yellow-400" />
+                            <span className="text-yellow-400 font-bold">{supporter.totalSpent?.toLocaleString() || 0}</span>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {/* Active Viewers */}
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-white/70 mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Watching Now
+                  </h3>
+                  {viewers.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-4">
+                      Loading viewers...
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {viewers.map((viewer) => (
+                        <div
+                          key={viewer.id}
+                          className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-cyan-400/20"
+                        >
+                          {viewer.avatarUrl ? (
+                            <img
+                              src={viewer.avatarUrl}
+                              alt={viewer.username}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
+                              {viewer.displayName?.[0] || viewer.username?.[0] || '?'}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate text-white">
+                              {viewer.displayName || viewer.username}
+                            </div>
+                            <div className="text-xs text-white/50 truncate">
+                              @{viewer.username}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
