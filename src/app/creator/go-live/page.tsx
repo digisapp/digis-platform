@@ -314,6 +314,13 @@ export default function GoLivePage() {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // iOS requires explicit play() call after setting srcObject
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          // Autoplay may be blocked, but video should still show when user interacts
+          console.warn('Video autoplay blocked:', playError);
+        }
       }
 
       // Setup audio monitoring with the existing stream
@@ -386,6 +393,12 @@ export default function GoLivePage() {
       // Attach to video element
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // iOS requires explicit play() call after setting srcObject
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Video autoplay blocked:', playError);
+        }
       }
 
       // Setup audio monitoring
