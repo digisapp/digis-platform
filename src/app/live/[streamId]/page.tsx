@@ -9,7 +9,7 @@ import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
   Share2, X, Send, Ticket, Coins, List,
-  Download, CheckCircle, Lock, UserPlus, CreditCard
+  Download, CheckCircle, Lock, UserPlus, CreditCard, Scissors
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -22,6 +22,7 @@ import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { useStreamChat } from '@/hooks/useStreamChat';
+import { useStreamClipper } from '@/hooks/useStreamClipper';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
@@ -317,6 +318,56 @@ export default function TheaterModePage() {
   const removeFloatingGift = useCallback((id: string) => {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
   }, []);
+
+  // Stream clipping hook (rolling 30-second buffer for viewers)
+  const {
+    bufferSeconds: clipBufferSeconds,
+    isClipping: clipIsClipping,
+    setIsClipping: setClipIsClipping,
+    canClip,
+    isSupported: clipIsSupported,
+    clipCooldownRemaining,
+    clipIt,
+  } = useStreamClipper({
+    bufferDurationSeconds: 30,
+    onError: (error) => showError(error),
+  });
+
+  const handleCreateClip = useCallback(async () => {
+    if (!currentUser) {
+      showInfo('Sign in to create clips');
+      router.push(`/login?redirect=/live/${streamId}`);
+      return;
+    }
+
+    const blob = await clipIt();
+    if (!blob) return;
+
+    setClipIsClipping(true);
+    try {
+      const formData = new FormData();
+      formData.append('video', blob, `clip-${Date.now()}.webm`);
+      formData.append('title', `Live Clip - ${stream?.title || 'Stream'}`);
+      formData.append('streamId', streamId);
+      formData.append('duration', String(Math.min(clipBufferSeconds, 30)));
+
+      const response = await fetch('/api/clips/live', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create clip');
+      }
+
+      showSuccess('Clipped!');
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to create clip');
+    } finally {
+      setClipIsClipping(false);
+    }
+  }, [currentUser, clipIt, clipBufferSeconds, streamId, stream?.title, showSuccess, showError, showInfo, router, setClipIsClipping]);
 
   // Real-time stream updates via Ably
   const { viewerCount: realtimeViewerCount } = useStreamChat({
@@ -1574,6 +1625,30 @@ export default function TheaterModePage() {
           >
             <Share2 className="w-5 h-5" />
           </button>
+
+          {/* Clip Button - viewers can clip the last 30 seconds */}
+          {clipIsSupported && !streamEnded && (
+            <button
+              onClick={handleCreateClip}
+              disabled={!canClip || clipIsClipping}
+              className={`p-2.5 sm:p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
+                clipIsClipping
+                  ? 'bg-green-500/20 text-green-400 animate-pulse'
+                  : canClip
+                    ? 'hover:bg-green-500/20 text-green-400'
+                    : 'text-gray-600'
+              }`}
+              title={
+                clipIsClipping ? 'Creating clip...'
+                  : clipCooldownRemaining > 0 ? `Wait ${clipCooldownRemaining}s`
+                    : canClip ? `Clip last ${clipBufferSeconds}s`
+                      : 'Buffering...'
+              }
+              aria-label={canClip ? `Clip last ${clipBufferSeconds} seconds` : 'Clip not available'}
+            >
+              <Scissors className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Toggle Chat Button - desktop only since chat is always visible below video on mobile */}
           <button

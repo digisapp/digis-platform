@@ -24,9 +24,11 @@ import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { CreatePollModal } from '@/components/streaming/CreatePollModal';
 import { CreateCountdownModal } from '@/components/streaming/CreateCountdownModal';
 import { StreamRecordButton } from '@/components/streaming/StreamRecordButton';
+import { StreamClipButton } from '@/components/streaming/StreamClipButton';
 import { SaveRecordingsModal } from '@/components/streaming/SaveRecordingsModal';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { useStreamRecorder } from '@/hooks/useStreamRecorder';
+import { useStreamClipper } from '@/hooks/useStreamClipper';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
@@ -346,6 +348,51 @@ export default function BroadcastStudioPage() {
       showError(error);
     },
   });
+
+  // Stream clipping hook (rolling 30-second buffer)
+  const {
+    isBuffering: isClipBuffering,
+    bufferSeconds: clipBufferSeconds,
+    isClipping: clipIsClipping,
+    setIsClipping: setClipIsClipping,
+    canClip,
+    isSupported: clipIsSupported,
+    clipCooldownRemaining,
+    clipIt,
+  } = useStreamClipper({
+    bufferDurationSeconds: 30,
+    onError: (error) => showError(error),
+  });
+
+  const handleCreateClip = async () => {
+    const blob = await clipIt();
+    if (!blob) return;
+
+    setClipIsClipping(true);
+    try {
+      const formData = new FormData();
+      formData.append('video', blob, `clip-${Date.now()}.webm`);
+      formData.append('title', `Live Clip - ${stream?.title || 'Stream'}`);
+      formData.append('streamId', streamId);
+      formData.append('duration', String(Math.min(clipBufferSeconds, 30)));
+
+      const response = await fetch('/api/clips/live', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create clip');
+      }
+
+      showSuccess('Clipped!');
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Failed to create clip');
+    } finally {
+      setClipIsClipping(false);
+    }
+  };
 
   // Detect Safari browser
   useEffect(() => {
@@ -2187,19 +2234,31 @@ export default function BroadcastStudioPage() {
                     )}
                   </div>
 
-                  {/* Mobile Second Row - Record, End Stream */}
+                  {/* Mobile Second Row - Record, Clip, End Stream */}
                   <div className="absolute top-14 left-3 right-3 z-20 md:hidden">
                     <div className="flex items-center justify-between">
-                      {/* Left side: Record */}
-                      <StreamRecordButton
-                        isRecording={isRecording}
-                        currentDuration={formattedDuration}
-                        maxDuration={maxDuration}
-                        recordingsCount={recordings.length}
-                        maxRecordings={maxRecordings}
-                        onStartRecording={startRecording}
-                        onStopRecording={stopRecording}
-                      />
+                      {/* Left side: Record + Clip */}
+                      <div className="flex items-center gap-2">
+                        <StreamRecordButton
+                          isRecording={isRecording}
+                          currentDuration={formattedDuration}
+                          maxDuration={maxDuration}
+                          recordingsCount={recordings.length}
+                          maxRecordings={maxRecordings}
+                          onStartRecording={startRecording}
+                          onStopRecording={stopRecording}
+                        />
+                        {clipIsSupported && (
+                          <StreamClipButton
+                            canClip={canClip}
+                            isClipping={clipIsClipping}
+                            bufferSeconds={clipBufferSeconds}
+                            cooldownRemaining={clipCooldownRemaining}
+                            onClip={handleCreateClip}
+                            compact
+                          />
+                        )}
+                      </div>
 
                       {/* Right side: End Stream - Larger */}
                       <button
@@ -2483,7 +2542,7 @@ export default function BroadcastStudioPage() {
                     </div>
                   )}
 
-                  {/* Desktop Record + End Stream Buttons */}
+                  {/* Desktop Record + Clip + End Stream Buttons */}
                   <div className="absolute bottom-3 left-3 z-20 hidden md:flex flex-row items-center gap-2">
                     {/* Record Button */}
                     <StreamRecordButton
@@ -2495,6 +2554,17 @@ export default function BroadcastStudioPage() {
                       onStartRecording={startRecording}
                       onStopRecording={stopRecording}
                     />
+
+                    {/* Clip Button */}
+                    {clipIsSupported && (
+                      <StreamClipButton
+                        canClip={canClip}
+                        isClipping={clipIsClipping}
+                        bufferSeconds={clipBufferSeconds}
+                        cooldownRemaining={clipCooldownRemaining}
+                        onClip={handleCreateClip}
+                      />
+                    )}
 
                     {/* End Stream Button */}
                     <button
