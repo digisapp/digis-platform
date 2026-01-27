@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, useRoomContext, VideoTrack } from '@livekit/components-react';
 import { VideoPresets, Room, Track, LocalParticipant } from 'livekit-client';
@@ -349,6 +349,12 @@ export default function BroadcastStudioPage() {
     },
   });
 
+  // Memoize watermark config for clip branding (Digis logo + creator URL)
+  const clipWatermark = useMemo(() =>
+    currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
+    [currentUsername]
+  );
+
   // Stream clipping hook (rolling 30-second buffer)
   const {
     isBuffering: isClipBuffering,
@@ -361,6 +367,7 @@ export default function BroadcastStudioPage() {
     clipIt,
   } = useStreamClipper({
     bufferDurationSeconds: 30,
+    watermark: clipWatermark,
     onError: (error) => showError(error),
   });
 

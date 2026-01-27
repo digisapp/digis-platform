@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
     }
 
-    // Rate limit: max 1 clip per 30 seconds per user per stream
+    // Rate limit: max 1 clip per 30 seconds per stream (global cooldown)
     const recentClip = await db.query.clips.findFirst({
       where: and(
         eq(clips.streamId, streamId),

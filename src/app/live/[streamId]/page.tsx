@@ -319,6 +319,14 @@ export default function TheaterModePage() {
     setFloatingGifts(prev => prev.filter(g => g.id !== id));
   }, []);
 
+  // Memoize watermark config for clip branding (Digis logo + creator URL)
+  const clipWatermark = useMemo(() =>
+    stream?.creator.username
+      ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: stream.creator.username }
+      : undefined,
+    [stream?.creator.username]
+  );
+
   // Stream clipping hook (rolling 30-second buffer for viewers)
   const {
     bufferSeconds: clipBufferSeconds,
@@ -330,6 +338,7 @@ export default function TheaterModePage() {
     clipIt,
   } = useStreamClipper({
     bufferDurationSeconds: 30,
+    watermark: clipWatermark,
     onError: (error) => showError(error),
   });
 
@@ -1634,9 +1643,11 @@ export default function TheaterModePage() {
               className={`p-2.5 sm:p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
                 clipIsClipping
                   ? 'bg-green-500/20 text-green-400 animate-pulse'
-                  : canClip
-                    ? 'hover:bg-green-500/20 text-green-400'
-                    : 'text-gray-600'
+                  : clipCooldownRemaining > 0
+                    ? 'text-gray-600 cursor-not-allowed'
+                    : canClip
+                      ? 'hover:bg-green-500/20 text-green-400'
+                      : 'text-gray-600'
               }`}
               title={
                 clipIsClipping ? 'Creating clip...'
@@ -1644,9 +1655,18 @@ export default function TheaterModePage() {
                     : canClip ? `Clip last ${clipBufferSeconds}s`
                       : 'Buffering...'
               }
-              aria-label={canClip ? `Clip last ${clipBufferSeconds} seconds` : 'Clip not available'}
+              aria-label={
+                clipIsClipping ? 'Creating clip...'
+                  : clipCooldownRemaining > 0 ? `Clip cooldown: ${clipCooldownRemaining} seconds`
+                    : canClip ? `Clip last ${clipBufferSeconds} seconds`
+                      : 'Clip not available'
+              }
             >
-              <Scissors className="w-5 h-5" />
+              {clipCooldownRemaining > 0 ? (
+                <span className="text-xs font-bold tabular-nums">{clipCooldownRemaining}s</span>
+              ) : (
+                <Scissors className="w-5 h-5" />
+              )}
             </button>
           )}
 

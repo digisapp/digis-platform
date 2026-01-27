@@ -2,14 +2,95 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+interface WatermarkConfig {
+  logoUrl: string;
+  creatorUsername: string;
+}
+
 interface UseStreamClipperOptions {
   bufferDurationSeconds?: number; // default 30
+  watermark?: WatermarkConfig;
   onError?: (error: string) => void;
+}
+
+// Pure function: draws Digis watermark overlay onto canvas
+function drawWatermarkOverlay(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  username: string,
+  logo: HTMLImageElement | null,
+  logoLoaded: boolean,
+) {
+  const padding = Math.round(Math.max(w * 0.015, 12));
+  const innerPad = Math.round(Math.max(w * 0.01, 8));
+  const hasLogo = logoLoaded && logo !== null && logo.naturalWidth > 0;
+
+  // Scale sizes relative to video resolution
+  const logoH = Math.round(Math.max(h * 0.045, 20));
+  const logoW = hasLogo ? Math.round(logoH * (logo.naturalWidth / logo.naturalHeight)) : 0;
+  const fontSize = Math.round(Math.max(h * 0.024, 12));
+  const urlText = `digis.cc/${username}`;
+
+  ctx.save();
+
+  // Measure text width
+  ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  const textW = ctx.measureText(urlText).width;
+
+  // Compute watermark block size
+  const contentW = Math.max(hasLogo ? logoW : 0, textW);
+  const gapBetween = hasLogo ? Math.round(h * 0.005) : 0;
+  const contentH = (hasLogo ? logoH + gapBetween : 0) + fontSize;
+  const blockW = contentW + innerPad * 2;
+  const blockH = contentH + innerPad * 2;
+  const blockX = w - padding - blockW;
+  const blockY = h - padding - blockH;
+
+  // Semi-transparent dark background pill
+  const r = Math.round(Math.max(h * 0.008, 5));
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#000000';
+  ctx.beginPath();
+  ctx.moveTo(blockX + r, blockY);
+  ctx.lineTo(blockX + blockW - r, blockY);
+  ctx.quadraticCurveTo(blockX + blockW, blockY, blockX + blockW, blockY + r);
+  ctx.lineTo(blockX + blockW, blockY + blockH - r);
+  ctx.quadraticCurveTo(blockX + blockW, blockY + blockH, blockX + blockW - r, blockY + blockH);
+  ctx.lineTo(blockX + r, blockY + blockH);
+  ctx.quadraticCurveTo(blockX, blockY + blockH, blockX, blockY + blockH - r);
+  ctx.lineTo(blockX, blockY + r);
+  ctx.quadraticCurveTo(blockX, blockY, blockX + r, blockY);
+  ctx.closePath();
+  ctx.fill();
+
+  // Draw logo centered in block
+  if (hasLogo) {
+    ctx.globalAlpha = 0.92;
+    const logoX = blockX + (blockW - logoW) / 2;
+    const logoY = blockY + innerPad;
+    ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+  }
+
+  // Draw URL text centered below logo
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 1;
+  ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(urlText, blockX + blockW / 2, blockY + innerPad + (hasLogo ? logoH + gapBetween : 0));
+
+  ctx.restore();
 }
 
 export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const {
     bufferDurationSeconds = 30,
+    watermark,
     onError,
   } = options;
 
@@ -19,6 +100,7 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const [clipCooldownRemaining, setClipCooldownRemaining] = useState(0);
   const [isSupported, setIsSupported] = useState(true);
 
+  // Core recording refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const headerChunkRef = useRef<Blob | null>(null);
   const ringBufferRef = useRef<Blob[]>([]);
@@ -32,16 +114,55 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const lastClipTimeRef = useRef(0);
   const isCleanedUpRef = useRef(false);
 
-  // Find a video element with a MediaStream srcObject
-  const getVideoStream = useCallback((): MediaStream | null => {
+  // Canvas watermark pipeline refs
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasStreamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const logoRef = useRef<HTMLImageElement | null>(null);
+  const logoLoadedRef = useRef(false);
+
+  // Stable refs for callbacks that change frequently — prevents pipeline restarts
+  // when parent component re-renders with new inline arrow function references
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
+
+  // Keep watermark config in a ref so the draw loop always reads the latest
+  // without needing to restart the MediaRecorder pipeline
+  const watermarkRef = useRef(watermark);
+  useEffect(() => {
+    watermarkRef.current = watermark;
+  }, [watermark]);
+
+  // Preload logo image once
+  useEffect(() => {
+    if (!watermark?.logoUrl) return;
+    if (logoRef.current?.src === watermark.logoUrl) return; // already loading/loaded
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { logoLoadedRef.current = true; };
+    img.onerror = () => { logoLoadedRef.current = false; };
+    img.src = watermark.logoUrl;
+    logoRef.current = img;
+  }, [watermark?.logoUrl]);
+
+  // Find a video element that's playing a MediaStream (LiveKit video)
+  const getVideoElement = useCallback((): HTMLVideoElement | null => {
     const videoElements = document.querySelectorAll('video');
     for (const video of videoElements) {
       if (video.srcObject instanceof MediaStream) {
-        return video.srcObject;
+        return video;
       }
     }
     return null;
   }, []);
+
+  // Convenience: get just the stream
+  const getVideoStream = useCallback((): MediaStream | null => {
+    const el = getVideoElement();
+    return el?.srcObject instanceof MediaStream ? el.srcObject : null;
+  }, [getVideoElement]);
 
   // Detect supported MIME type
   const getSelectedMimeType = useCallback((): string => {
@@ -62,6 +183,88 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     return '';
   }, []);
 
+  // Start canvas draw loop, returns watermarked MediaStream for recording
+  const startCanvasPipeline = useCallback((videoEl: HTMLVideoElement, originalStream: MediaStream): MediaStream | null => {
+    try {
+      // Check canvas capture support
+      if (!('captureStream' in HTMLCanvasElement.prototype)) {
+        console.warn('[StreamClipper] captureStream not supported, recording without watermark');
+        return null;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth || 1280;
+      canvas.height = videoEl.videoHeight || 720;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) return null;
+
+      canvasRef.current = canvas;
+      videoElRef.current = videoEl;
+
+      // Draw loop: composites video frame + watermark overlay
+      const draw = () => {
+        if (isCleanedUpRef.current || !canvasRef.current) return;
+
+        // Adapt canvas to video dimension changes (e.g., resolution switch)
+        if (videoEl.videoWidth && videoEl.videoHeight) {
+          if (canvas.width !== videoEl.videoWidth) canvas.width = videoEl.videoWidth;
+          if (canvas.height !== videoEl.videoHeight) canvas.height = videoEl.videoHeight;
+        }
+
+        // Draw current video frame
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        // Overlay watermark (reads latest config from ref)
+        const wm = watermarkRef.current;
+        if (wm) {
+          drawWatermarkOverlay(
+            ctx,
+            canvas.width,
+            canvas.height,
+            wm.creatorUsername,
+            logoRef.current,
+            logoLoadedRef.current,
+          );
+        }
+
+        animFrameRef.current = requestAnimationFrame(draw);
+      };
+      draw();
+
+      // Capture canvas output at 30fps
+      const canvasStream = (canvas as HTMLCanvasElement & { captureStream(fps?: number): MediaStream }).captureStream(30);
+      canvasStreamRef.current = canvasStream;
+
+      // Merge: canvas video track + original audio tracks
+      const mergedStream = new MediaStream();
+      canvasStream.getVideoTracks().forEach(t => mergedStream.addTrack(t));
+      originalStream.getAudioTracks().forEach(t => mergedStream.addTrack(t));
+
+      return mergedStream;
+    } catch (err) {
+      console.error('[StreamClipper] Canvas pipeline failed, falling back to raw stream:', err);
+      return null;
+    }
+  }, []); // No deps needed: reads latest values from refs
+
+  // Stop canvas pipeline and release capture stream tracks
+  const stopCanvasPipeline = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    // Stop canvas capture stream tracks to release resources
+    if (canvasStreamRef.current) {
+      canvasStreamRef.current.getTracks().forEach(t => t.stop());
+      canvasStreamRef.current = null;
+    }
+    canvasRef.current = null;
+    videoElRef.current = null;
+  }, []);
+
+  // Whether canvas watermark is enabled (primitive boolean for stable deps)
+  const enableWatermark = !!watermark;
+
   // Start the MediaRecorder rolling buffer
   const startBuffering = useCallback((stream: MediaStream) => {
     if (isCleanedUpRef.current) return;
@@ -69,16 +272,30 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     const mimeType = getSelectedMimeType();
     if (!mimeType) {
       setIsSupported(false);
-      onError?.('Clipping not supported on this browser');
+      onErrorRef.current?.('Clipping not supported on this browser');
       return;
     }
 
     mimeTypeRef.current = mimeType;
 
     try {
-      const recorder = new MediaRecorder(stream, {
+      // Decide recording stream: canvas-watermarked or raw
+      let recordingStream = stream;
+
+      if (enableWatermark) {
+        const videoEl = getVideoElement();
+        if (videoEl) {
+          const watermarked = startCanvasPipeline(videoEl, stream);
+          if (watermarked) {
+            recordingStream = watermarked;
+          }
+          // Falls back to raw stream if canvas setup fails
+        }
+      }
+
+      const recorder = new MediaRecorder(recordingStream, {
         mimeType,
-        videoBitsPerSecond: 4_000_000, // 4 Mbps (lower than recording for smaller clip files)
+        videoBitsPerSecond: 4_000_000, // 4 Mbps
         audioBitsPerSecond: 128_000,
       });
 
@@ -129,11 +346,11 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
 
     } catch (err) {
       console.error('[StreamClipper] Failed to start MediaRecorder:', err);
-      onError?.('Failed to start clip buffer');
+      onErrorRef.current?.('Failed to start clip buffer');
     }
-  }, [bufferDurationSeconds, getSelectedMimeType, onError]);
+  }, [bufferDurationSeconds, getSelectedMimeType, getVideoElement, enableWatermark, startCanvasPipeline]);
 
-  // Stop the current MediaRecorder
+  // Stop the current MediaRecorder and canvas pipeline
   const stopBuffering = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
@@ -145,17 +362,19 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     mediaRecorderRef.current = null;
     activeStreamRef.current = null;
 
+    stopCanvasPipeline();
+
     if (bufferCounterRef.current) {
       clearInterval(bufferCounterRef.current);
       bufferCounterRef.current = null;
     }
-  }, []);
+  }, [stopCanvasPipeline]);
 
   // Clip the current buffer - returns a valid WebM Blob
   const clipIt = useCallback(async (): Promise<Blob | null> => {
     const header = headerChunkRef.current;
     if (!header) {
-      onError?.('Buffer not ready yet');
+      onErrorRef.current?.('Buffer not ready yet');
       return null;
     }
 
@@ -163,7 +382,7 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     const availableCount = Math.min(Math.max(totalClusters, 0), bufferDurationSeconds);
 
     if (availableCount === 0) {
-      onError?.('No video data buffered yet');
+      onErrorRef.current?.('No video data buffered yet');
       return null;
     }
 
@@ -189,7 +408,7 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     }
 
     if (clusters.length === 0) {
-      onError?.('No clip data available');
+      onErrorRef.current?.('No clip data available');
       return null;
     }
 
@@ -213,7 +432,7 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     }, 1000);
 
     return blob;
-  }, [bufferDurationSeconds, onError]);
+  }, [bufferDurationSeconds]);
 
   // Full cleanup
   const cleanup = useCallback(() => {
