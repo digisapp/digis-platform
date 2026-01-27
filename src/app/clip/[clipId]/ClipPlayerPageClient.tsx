@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { Play, Heart, Eye, Share2, ArrowLeft, CheckCircle, Scissors } from 'lucide-react';
+import { Play, Heart, Eye, Share2, ArrowLeft, Scissors, Download, Loader2 } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface ClipData {
@@ -44,6 +44,7 @@ export default function ClipPlayerPageClient() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     fetchClip();
@@ -97,9 +98,12 @@ export default function ClipPlayerPageClient() {
       return;
     }
 
+    // Capture original state before optimistic update
+    const wasLiked = isLiked;
+
     // Optimistic update
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    setIsLiked(!wasLiked);
+    setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
 
     try {
       const response = await fetch(`/api/clips/${clipId}/like`, {
@@ -107,15 +111,15 @@ export default function ClipPlayerPageClient() {
       });
 
       if (!response.ok) {
-        // Revert on error
-        setIsLiked(!isLiked);
-        setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
+        // Revert to original state
+        setIsLiked(wasLiked);
+        setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
         showError('Failed to update like');
       }
     } catch (err) {
-      // Revert on error
-      setIsLiked(!isLiked);
-      setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
+      // Revert to original state
+      setIsLiked(wasLiked);
+      setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
       showError('Failed to update like');
     }
   };
@@ -131,11 +135,47 @@ export default function ClipPlayerPageClient() {
         });
       } catch (err) {
         // User cancelled or error
+        return;
       }
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(clipUrl);
       showSuccess('Link copied to clipboard!');
+    }
+
+    // Track share count
+    try {
+      await fetch(`/api/clips/${clipId}/share`, { method: 'POST' });
+    } catch {
+      // Non-critical — don't block the share flow
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!clip?.videoUrl) return;
+
+    setIsDownloading(true);
+    try {
+      const response = await fetch(clip.videoUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      // Use .webm if the URL contains it, otherwise .mp4
+      const ext = clip.videoUrl.includes('.webm') ? 'webm' : 'mp4';
+      const safeName = (clip.title || 'clip').replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+      a.download = `${safeName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showSuccess('Download started!');
+    } catch (err) {
+      showError('Failed to download clip');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -182,11 +222,12 @@ export default function ClipPlayerPageClient() {
                 <video
                   controls
                   autoPlay
+                  playsInline
                   loop
                   className="w-full h-full object-contain"
                   poster={clip.thumbnailUrl || undefined}
+                  src={clip.videoUrl}
                 >
-                  <source src={clip.videoUrl} type="video/mp4" />
                   Your browser does not support video playback.
                 </video>
               ) : (
@@ -217,10 +258,10 @@ export default function ClipPlayerPageClient() {
             </div>
 
             {/* Action buttons */}
-            <div className="flex items-center justify-center gap-4 max-w-md mx-auto">
+            <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
               <button
                 onClick={handleLike}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all ${
                   isLiked
                     ? 'bg-red-500 text-white'
                     : 'bg-white/10 text-white hover:bg-white/20'
@@ -229,9 +270,23 @@ export default function ClipPlayerPageClient() {
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-white' : ''}`} />
                 <span>{likeCount}</span>
               </button>
+              {clip.videoUrl && (
+                <button
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold bg-gradient-to-r from-green-500/20 to-cyan-500/20 text-green-400 hover:from-green-500/30 hover:to-cyan-500/30 border border-green-500/30 transition-all disabled:opacity-50"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Download className="w-5 h-5" />
+                  )}
+                  <span>{isDownloading ? 'Saving...' : 'Save'}</span>
+                </button>
+              )}
               <button
                 onClick={handleShare}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-white/10 text-white hover:bg-white/20 transition-all"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold bg-white/10 text-white hover:bg-white/20 transition-all"
               >
                 <Share2 className="w-5 h-5" />
                 <span>Share</span>

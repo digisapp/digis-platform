@@ -370,7 +370,18 @@ export default function TheaterModePage() {
         throw new Error(data.error || 'Failed to create clip');
       }
 
-      showSuccess('Clipped!');
+      // Trigger instant download of the clip from the in-memory blob
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const safeName = (stream?.title || 'clip').replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
+      a.download = `${safeName}-clip.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+
+      showSuccess('Clipped & saved!');
     } catch (err) {
       showError(err instanceof Error ? err.message : 'Failed to create clip');
     } finally {
