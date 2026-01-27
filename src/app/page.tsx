@@ -675,6 +675,9 @@ function MarketingPage({
         </div>
       </div>
 
+      {/* Gradient divider between hero and content */}
+      <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
       {/* Lifestyle Use Cases Section */}
       <div className="relative bg-black">
         {/* Subtle background glow */}
@@ -705,19 +708,35 @@ function MarketingPage({
 
           {/* Use Case Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Content Creator */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-500/15 to-red-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">🔥</span>
+                <h3 className="text-lg font-bold text-white">Content Creator</h3>
+              </div>
+              <p className="text-white/60 text-sm mb-4">
+                Your AI Twin chats with fans 24/7 while you sleep. Drop exclusive content, collect tips, and build your community.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">AI Twin</span>
+                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
+              </div>
+            </div>
+
             {/* Yoga Instructor */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/15 to-cyan-500/5 border border-green-500/20 hover:border-green-500/40 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🧘</span>
+                <span className="text-3xl">🧘‍♀️</span>
                 <h3 className="text-lg font-bold text-white">Yoga Instructor</h3>
               </div>
               <p className="text-white/60 text-sm mb-4">
                 Stream live yoga classes to followers worldwide. Sell recorded sessions as VODs for passive income.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">VODs</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Tips</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">VODs</span>
+                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
               </div>
             </div>
 
@@ -731,25 +750,25 @@ function MarketingPage({
                 Book 1-on-1 video training sessions. Share workout programs and meal plans as exclusive content.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Content</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
               </div>
             </div>
 
-            {/* Health & Wellness Coach */}
+            {/* Health Coach */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">🌿</span>
-                <h3 className="text-lg font-bold text-white">Health & Wellness Coach</h3>
+                <h3 className="text-lg font-bold text-white">Health Coach</h3>
               </div>
               <p className="text-white/60 text-sm mb-4">
                 Offer private consultations via paid video calls. Share nutrition guides and wellness content with subscribers.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Paid DMs</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Content</span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
+                <span className="px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-xs font-medium">Paid DMs</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
               </div>
             </div>
 
@@ -763,9 +782,9 @@ function MarketingPage({
                 Go live from events and get tipped. Offer exclusive behind-the-scenes access and fan meet-and-greets via video calls.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Virtual Gifts</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Video Calls</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Virtual Gifts</span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
               </div>
             </div>
 
@@ -779,25 +798,9 @@ function MarketingPage({
                 Host GRWM live streams. Offer personal style consultations and drop exclusive outfit content for subscribers.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Content</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Tips</span>
-              </div>
-            </div>
-
-            {/* Music Artist */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-500/15 to-indigo-500/5 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🎵</span>
-                <h3 className="text-lg font-bold text-white">Music Artist</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Host private listening parties and live performances. Sell fan video call experiences and exclusive tracks.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Content</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
+                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
               </div>
             </div>
 
@@ -811,27 +814,50 @@ function MarketingPage({
                 Run paid advisory calls and group coaching streams. Let your AI Twin handle intake questions around the clock.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">AI Twin</span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">AI Twin</span>
               </div>
             </div>
 
-            {/* Content Creator */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-500/15 to-red-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all hover:scale-[1.02]">
+            {/* Music Artist */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-500/15 to-indigo-500/5 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🔥</span>
-                <h3 className="text-lg font-bold text-white">Content Creator</h3>
+                <span className="text-3xl">🎵</span>
+                <h3 className="text-lg font-bold text-white">Music Artist</h3>
               </div>
               <p className="text-white/60 text-sm mb-4">
-                Your AI Twin chats with fans 24/7 while you sleep. Drop exclusive content, collect tips, and build your community.
+                Host private listening parties and live performances. Sell fan video call experiences and exclusive tracks.
               </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">AI Twin</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Tips</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs font-medium">Content</span>
+                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
+                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
               </div>
             </div>
+
+            {/* 9th Card - CTA */}
+            <a
+              href="/become-creator"
+              className="group p-5 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-dashed border-white/20 hover:border-white/40 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center min-h-[180px]"
+            >
+              <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">✨</span>
+              <h3 className="text-lg font-bold text-white mb-1">Your Idea Here</h3>
+              <p className="text-white/50 text-sm">
+                Whatever you do, there&apos;s a way to earn on Digis.
+              </p>
+              <span
+                className="mt-3 text-sm font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, #00D4FF, #FF006E)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                Get Started →
+              </span>
+            </a>
           </div>
 
           {/* Bottom CTA */}
