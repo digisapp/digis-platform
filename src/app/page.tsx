@@ -687,7 +687,7 @@ function MarketingPage({
           <div className="absolute w-[400px] h-[400px] bottom-40 -right-40 bg-digis-pink opacity-[0.05] rounded-full blur-[100px]" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-20 md:py-28">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 pt-10 pb-20 md:pt-14 md:pb-28">
           {/* Section Header */}
           <div className="text-center mb-14">
             <h2
@@ -836,45 +836,8 @@ function MarketingPage({
               </div>
             </div>
 
-            {/* 9th Card - CTA */}
-            <a
-              href="/become-creator"
-              className="group p-5 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-dashed border-white/20 hover:border-white/40 transition-all hover:scale-[1.02] flex flex-col items-center justify-center text-center min-h-[180px]"
-            >
-              <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">✨</span>
-              <h3 className="text-lg font-bold text-white mb-1">Your Idea Here</h3>
-              <p className="text-white/50 text-sm">
-                Whatever you do, there&apos;s a way to earn on Digis.
-              </p>
-              <span
-                className="mt-3 text-sm font-bold"
-                style={{
-                  background: 'linear-gradient(135deg, #00D4FF, #FF006E)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                Get Started →
-              </span>
-            </a>
           </div>
 
-          {/* Bottom CTA */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-16">
-            <button
-              onClick={() => onSignup('/explore')}
-              className="w-full sm:w-auto px-10 py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
-            >
-              Start Exploring
-            </button>
-            <a
-              href="/become-creator"
-              className="w-full sm:w-auto px-10 py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300 text-center"
-            >
-              Become a Creator
-            </a>
-          </div>
         </div>
       </div>
     </div>
