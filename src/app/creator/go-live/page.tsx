@@ -515,7 +515,7 @@ export default function GoLivePage() {
           });
         }
 
-        // Show success animation
+        // Show success animation briefly
         setShowSuccess(true);
 
         // Stop preview stream before redirecting
@@ -523,10 +523,10 @@ export default function GoLivePage() {
           mediaStream.getTracks().forEach((track) => track.stop());
         }
 
-        // Redirect after animation
+        // Redirect quickly after brief animation (reduced from 2s to 800ms)
         setTimeout(() => {
           router.push(`/stream/live/${streamId}`);
-        }, 2000);
+        }, 800);
       } else {
         setError(result.error || 'Failed to start stream');
         setShowParticles(false);

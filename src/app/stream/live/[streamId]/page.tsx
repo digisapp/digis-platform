@@ -2521,8 +2521,10 @@ export default function BroadcastStudioPage() {
 {/* VideoControls removed - host doesn't need volume control for their own broadcast */}
                 </>
               ) : (
-                <div className="h-full flex items-center justify-center">
+                <div className="h-full flex flex-col items-center justify-center bg-black">
                   <LoadingSpinner size="lg" />
+                  <p className="text-white/80 mt-4 text-lg font-semibold">Starting camera...</p>
+                  <p className="text-white/50 text-sm mt-1">Connecting to stream server</p>
                 </div>
               )}
             </div>
