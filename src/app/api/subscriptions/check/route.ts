@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SubscriptionService } from '@/lib/services/subscription-service';
+import { db } from '@/lib/data/system';
+import { subscriptions } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,11 +25,29 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Creator ID is required' }, { status: 400 });
     }
 
+    // DEBUG: Query ALL subscriptions for this user/creator pair to see what exists
+    const allSubs = await db.query.subscriptions.findMany({
+      where: and(
+        eq(subscriptions.userId, user.id),
+        eq(subscriptions.creatorId, creatorId)
+      ),
+    });
+
+    console.log(`[Subscription Check DEBUG] All subscriptions for user ${user.id} -> creator ${creatorId}:`,
+      allSubs.map(s => ({
+        id: s.id,
+        status: s.status,
+        expiresAt: s.expiresAt,
+        createdAt: s.createdAt,
+        now: new Date().toISOString()
+      }))
+    );
+
     const subscription = await SubscriptionService.getUserSubscription(user.id, creatorId);
     const isSubscribed = !!subscription;
 
     // Debug logging for subscription check
-    console.log(`[Subscription Check] User ${user.id} -> Creator ${creatorId}: isSubscribed=${isSubscribed}`);
+    console.log(`[Subscription Check] User ${user.id} -> Creator ${creatorId}: isSubscribed=${isSubscribed}, subscription found:`, subscription ? { id: subscription.id, status: subscription.status, expiresAt: subscription.expiresAt } : null);
 
     return NextResponse.json({
       isSubscribed,

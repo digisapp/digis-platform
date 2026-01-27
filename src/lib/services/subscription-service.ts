@@ -7,7 +7,7 @@ import {
   walletTransactions,
   wallets,
 } from '@/lib/data/system';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, gt, lte } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { NotificationService } from './notification-service';
 
@@ -115,11 +115,14 @@ export class SubscriptionService {
    */
   static async subscribe(userId: string, creatorId: string, tierId: string) {
     // Pre-validation checks (outside transaction)
+    // Must check both status AND expiration to match getUserSubscription logic
+    const now = new Date();
     const existingSubscription = await db.query.subscriptions.findFirst({
       where: and(
         eq(subscriptions.userId, userId),
         eq(subscriptions.creatorId, creatorId),
-        eq(subscriptions.status, 'active')
+        eq(subscriptions.status, 'active'),
+        gt(subscriptions.expiresAt, now) // Only block if not expired
       ),
     });
 
@@ -322,12 +325,13 @@ export class SubscriptionService {
    * Check if user is subscribed to a creator
    */
   static async isSubscribed(userId: string, creatorId: string) {
+    const now = new Date();
     const subscription = await db.query.subscriptions.findFirst({
       where: and(
         eq(subscriptions.userId, userId),
         eq(subscriptions.creatorId, creatorId),
         eq(subscriptions.status, 'active'),
-        sql`${subscriptions.expiresAt} > NOW()`
+        gt(subscriptions.expiresAt, now) // Use JS Date to avoid timezone issues
       ),
     });
 
@@ -338,12 +342,13 @@ export class SubscriptionService {
    * Get user's subscription to a creator (if any)
    */
   static async getUserSubscription(userId: string, creatorId: string) {
+    const now = new Date();
     const subscription = await db.query.subscriptions.findFirst({
       where: and(
         eq(subscriptions.userId, userId),
         eq(subscriptions.creatorId, creatorId),
         eq(subscriptions.status, 'active'),
-        sql`${subscriptions.expiresAt} > NOW()`
+        gt(subscriptions.expiresAt, now) // Use JS Date to avoid timezone issues with NOW()
       ),
       with: {
         tier: true,
@@ -358,11 +363,12 @@ export class SubscriptionService {
    * Get all subscribers for a creator
    */
   static async getCreatorSubscribers(creatorId: string) {
+    const now = new Date();
     const subs = await db.query.subscriptions.findMany({
       where: and(
         eq(subscriptions.creatorId, creatorId),
         eq(subscriptions.status, 'active'),
-        sql`${subscriptions.expiresAt} > NOW()`
+        gt(subscriptions.expiresAt, now)
       ),
       with: {
         user: true,
@@ -378,10 +384,11 @@ export class SubscriptionService {
    * Get all user's subscriptions
    */
   static async getUserSubscriptions(userId: string) {
+    const now = new Date();
     const subs = await db.query.subscriptions.findMany({
       where: and(
         eq(subscriptions.userId, userId),
-        sql`${subscriptions.expiresAt} > NOW()`
+        gt(subscriptions.expiresAt, now)
       ),
       with: {
         creator: true,
@@ -397,11 +404,12 @@ export class SubscriptionService {
    * Get subscription stats for a creator
    */
   static async getCreatorStats(creatorId: string) {
+    const now = new Date();
     const activeSubscribers = await db.query.subscriptions.findMany({
       where: and(
         eq(subscriptions.creatorId, creatorId),
         eq(subscriptions.status, 'active'),
-        sql`${subscriptions.expiresAt} > NOW()`
+        gt(subscriptions.expiresAt, now)
       ),
     });
 
@@ -433,7 +441,7 @@ export class SubscriptionService {
         where: and(
           eq(subscriptions.status, 'active'),
           eq(subscriptions.autoRenew, true),
-          sql`${subscriptions.nextBillingAt} <= NOW()`
+          lte(subscriptions.nextBillingAt, now) // Use JS Date for consistency
         ),
         with: {
           tier: true,
