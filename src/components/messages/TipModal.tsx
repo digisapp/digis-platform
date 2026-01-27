@@ -149,11 +149,11 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-6 max-w-md w-full border-2 border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.3)] animate-in zoom-in-95 duration-200 mx-auto max-h-[90vh] overflow-hidden flex flex-col"
+        className="relative backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl p-6 max-w-md w-full border-2 border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.3)] animate-in zoom-in-95 duration-200 mx-auto max-h-[calc(100dvh-160px)] sm:max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Animated gradient border effect */}

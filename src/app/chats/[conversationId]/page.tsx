@@ -1102,8 +1102,8 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* Message Input - pb-20 on mobile for bottom nav, pb-4 on desktop */}
-        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-16 lg:pb-4 rounded-b-3xl">
+        {/* Message Input - safe-area padding for iOS notch + bottom nav space */}
+        <div className="backdrop-blur-xl bg-black/60 border-t border-white/10 sticky bottom-0 pb-mobile-safe lg:pb-4 rounded-b-3xl">
           <div className="px-4 py-4">
             {/* Voice Recorder - shown when recording */}
             {showVoiceRecorder ? (

@@ -43,10 +43,10 @@ export function CategoryPills({
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#f5f3ff] to-transparent z-10 pointer-events-none" />
       )}
 
-      {/* Scrollable container */}
+      {/* Scrollable container with snap-scroll for mobile */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
+        className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-1 snap-x-mandatory"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -59,7 +59,7 @@ export function CategoryPills({
               key={category}
               onClick={() => onSelectCategory(category)}
               className={`
-                flex-shrink-0 px-3 py-1.5 rounded-full font-semibold text-xs transition-all duration-200
+                flex-shrink-0 px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 snap-start touch-target
                 ${
                   isSelected
                     ? 'bg-gradient-to-r from-digis-cyan to-digis-pink text-white shadow-md scale-105'

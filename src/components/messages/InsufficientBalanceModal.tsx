@@ -22,8 +22,8 @@ export function InsufficientBalanceModal({
   const typeLabel = type === 'voice' ? 'voice message' : type === 'media' ? 'media' : 'message';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="relative bg-gradient-to-br from-black/90 via-gray-900 to-black/90 rounded-3xl p-6 max-w-sm w-full border-2 border-red-500/40 shadow-[0_0_40px_rgba(239,68,68,0.2)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] sm:pb-4 bg-black/80 backdrop-blur-md">
+      <div className="relative bg-gradient-to-br from-black/90 via-gray-900 to-black/90 rounded-3xl p-6 max-w-sm w-full border-2 border-red-500/40 shadow-[0_0_40px_rgba(239,68,68,0.2)] max-h-[calc(100dvh-160px)] sm:max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={onClose}

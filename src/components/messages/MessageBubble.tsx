@@ -572,7 +572,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {isOwnMessage && <DeleteButton />}
-          <div className={`max-w-[70%]`}>
+          <div className={`max-w-[85%] md:max-w-[70%]`}>
             <div className={`rounded-2xl px-4 py-3 ${
               isVirtualGift
                 ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-2 border-pink-500/50'
@@ -631,7 +631,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
           {showDeleteConfirm && <DeleteConfirmModal />}
           <div className="group flex items-center gap-2 justify-end">
             <DeleteButton />
-            <div className="max-w-[70%]">
+            <div className="max-w-[85%] md:max-w-[70%]">
               {/* Show media (visible to sender) */}
               {message.mediaUrl && (
                 <div className="rounded-2xl overflow-hidden">
@@ -686,7 +686,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         <>
           {showDeleteConfirm && <DeleteConfirmModal />}
           <div className="group flex items-center gap-2 justify-start">
-            <div className="max-w-[70%]">
+            <div className="max-w-[85%] md:max-w-[70%]">
               <div className="bg-gradient-to-br from-gray-500/20 to-gray-600/20 border-2 border-gray-500/50 rounded-2xl p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl">📷</span>
@@ -731,7 +731,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
       <>
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className="group flex items-center gap-2 justify-start">
-          <div className="max-w-[70%]">
+          <div className="max-w-[85%] md:max-w-[70%]">
             {message.mediaUrl && (
               <div className="rounded-2xl overflow-hidden">
                 {message.mediaType === 'image' || message.mediaType === 'photo' ? (
@@ -780,7 +780,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         <>
           {showDeleteConfirm && <DeleteConfirmModal />}
           <div className="group flex items-center gap-2 justify-start">
-            <div className="max-w-[70%]">
+            <div className="max-w-[85%] md:max-w-[70%]">
               <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 rounded-2xl p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-3xl">🔒</span>
@@ -826,7 +826,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
         {showDeleteConfirm && <DeleteConfirmModal />}
         <div className={`group flex items-center gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {isOwnMessage && <DeleteButton />}
-          <div className="max-w-[70%]">
+          <div className="max-w-[85%] md:max-w-[70%]">
             {message.mediaUrl && (
               <div className="rounded-2xl overflow-hidden">
                 {message.mediaType === 'image' || message.mediaType === 'photo' ? (
@@ -903,7 +903,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
             </div>
           </div>
         )}
-        <div className="max-w-[70%]">
+        <div className="max-w-[85%] md:max-w-[70%]">
           {/* Show quoted message if this is a reply */}
           {message.replyTo && (
             <QuotedMessagePreview replyTo={message.replyTo} isOwnMessage={isOwnMessage} />

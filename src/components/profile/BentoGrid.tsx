@@ -30,12 +30,13 @@ export function BentoGrid({ content }: BentoGridProps) {
   const exclusiveContent = content.filter(c => c.isLocked).slice(0, 2);
 
   const ContentCard = ({ item, size = 'medium' }: { item: ContentItem; size?: 'large' | 'medium' | 'small' | 'wide' | 'tall' }) => {
+    // Responsive grid sizing: 2 cols mobile -> 4 cols sm -> 6 cols md+
     const sizeClasses = {
-      large: 'col-span-2 md:col-span-4 row-span-[30]',
-      wide: 'col-span-2 md:col-span-3 row-span-[18]',
-      tall: 'col-span-1 md:col-span-2 row-span-[24]',
-      medium: 'col-span-1 md:col-span-2 row-span-[18]',
-      small: 'col-span-1 md:col-span-1 row-span-[12]',
+      large: 'col-span-2 sm:col-span-4 md:col-span-4 row-span-[30]',
+      wide: 'col-span-2 sm:col-span-2 md:col-span-3 row-span-[18]',
+      tall: 'col-span-1 sm:col-span-2 md:col-span-2 row-span-[24]',
+      medium: 'col-span-1 sm:col-span-2 md:col-span-2 row-span-[18]',
+      small: 'col-span-1 sm:col-span-1 md:col-span-1 row-span-[12]',
     };
 
     return (
@@ -131,12 +132,13 @@ export function BentoGrid({ content }: BentoGridProps) {
 
   // Skeleton for loading state
   const SkeletonCard = ({ size = 'medium' }: { size?: 'large' | 'medium' | 'small' | 'wide' | 'tall' }) => {
+    // Responsive grid sizing: 2 cols mobile -> 4 cols sm -> 6 cols md+
     const sizeClasses = {
-      large: 'col-span-2 md:col-span-4 row-span-[30]',
-      wide: 'col-span-2 md:col-span-3 row-span-[18]',
-      tall: 'col-span-1 md:col-span-2 row-span-[24]',
-      medium: 'col-span-1 md:col-span-2 row-span-[18]',
-      small: 'col-span-1 md:col-span-1 row-span-[12]',
+      large: 'col-span-2 sm:col-span-4 md:col-span-4 row-span-[30]',
+      wide: 'col-span-2 sm:col-span-2 md:col-span-3 row-span-[18]',
+      tall: 'col-span-1 sm:col-span-2 md:col-span-2 row-span-[24]',
+      medium: 'col-span-1 sm:col-span-2 md:col-span-2 row-span-[18]',
+      small: 'col-span-1 sm:col-span-1 md:col-span-1 row-span-[12]',
     };
 
     return (
@@ -148,7 +150,7 @@ export function BentoGrid({ content }: BentoGridProps) {
 
   if (!content || content.length === 0) {
     return (
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-6 auto-rows-[8px]">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 md:grid-cols-6 auto-rows-[8px]">
         <SkeletonCard size="large" />
         <SkeletonCard size="wide" />
         <SkeletonCard size="tall" />
@@ -159,7 +161,7 @@ export function BentoGrid({ content }: BentoGridProps) {
   }
 
   return (
-    <div className="grid gap-3 grid-cols-2 md:grid-cols-6 auto-rows-[8px]">
+    <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 md:grid-cols-6 auto-rows-[8px]">
       {/* Featured - Large tile */}
       {featuredContent && <ContentCard item={featuredContent} size="large" />}
 

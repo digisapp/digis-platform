@@ -50,6 +50,22 @@ export function VideoControls({
     setHideTimeout(timeout);
   };
 
+  // Touch handlers for mobile - same logic as mouse
+  const handleTouchStart = () => {
+    setShowControls(true);
+    if (hideTimeout) clearTimeout(hideTimeout);
+  };
+
+  const handleTouchEnd = () => {
+    if (hideTimeout) clearTimeout(hideTimeout);
+
+    const timeout = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+
+    setHideTimeout(timeout);
+  };
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseInt(e.target.value);
     setVolume(newVolume);
@@ -66,6 +82,8 @@ export function VideoControls({
       className="absolute inset-0 pointer-events-none z-10"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setShowControls(true)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Controls Bar */}
       <div
@@ -78,7 +96,7 @@ export function VideoControls({
           {onToggleMute && (
             <button
               onClick={onToggleMute}
-              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg"
+              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center"
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? (
@@ -112,7 +130,7 @@ export function VideoControls({
           {showTheaterMode && onToggleTheater && (
             <button
               onClick={onToggleTheater}
-              className={`text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg ${
+              className={`text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center ${
                 isTheaterMode ? 'bg-white/20' : ''
               }`}
               title={isTheaterMode ? 'Exit Theater Mode' : 'Theater Mode'}
@@ -127,7 +145,7 @@ export function VideoControls({
           {onToggleFullscreen && (
             <button
               onClick={onToggleFullscreen}
-              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg"
+              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? (

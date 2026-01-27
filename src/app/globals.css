@@ -54,6 +54,50 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Mobile touch-friendly sizing - ensures 44px minimum tap targets (Apple HIG) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Mobile bottom navigation padding */
+  .pb-mobile-nav {
+    @apply pb-24 md:pb-8;
+  }
+
+  /* Safe area padding for iOS devices with notch/home indicator */
+  .pb-mobile-safe {
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  }
+
+  .pt-mobile-safe {
+    padding-top: max(0px, env(safe-area-inset-top, 0px));
+  }
+
+  /* Snap scroll for horizontal lists */
+  .snap-x-mandatory {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+  }
+
+  /* Mobile-optimized message bubble width */
+  .max-w-message {
+    max-width: 85%;
+  }
+
+  @screen md {
+    .max-w-message {
+      max-width: 70%;
+    }
+  }
 }
 
 /* Glassmorphism base styles - Tron Dark Theme */
