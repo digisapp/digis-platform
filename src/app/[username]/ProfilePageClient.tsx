@@ -2309,9 +2309,6 @@ export default function ProfilePageClient() {
               <p className="text-xl font-bold text-white mb-6">
                 {profile.user.displayName || profile.user.username}
               </p>
-              <p className="text-sm text-gray-400 mb-6">
-                Unlock exclusive content, special perks, and direct access. Let's go! ✨
-              </p>
             </div>
 
             {/* Close button */}
