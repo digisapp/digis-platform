@@ -190,6 +190,7 @@ export default function TheaterModePage() {
   const [streamEnded, setStreamEnded] = useState(false);
   const [showBRB, setShowBRB] = useState(false);
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
+  const [showUnmutePrompt, setShowUnmutePrompt] = useState(true); // Show tap to unmute prompt on mobile
 
   // UI state
   const [showChat, setShowChat] = useState(true);
@@ -1089,6 +1090,11 @@ export default function TheaterModePage() {
     const newMutedState = !muted;
     setMuted(newMutedState);
 
+    // Dismiss unmute prompt when user unmutes
+    if (!newMutedState) {
+      setShowUnmutePrompt(false);
+    }
+
     if (videoRef.current) {
       videoRef.current.muted = newMutedState;
     }
@@ -1498,6 +1504,16 @@ export default function TheaterModePage() {
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {/* Mute Toggle Button - mobile only */}
+          <button
+            onClick={toggleMute}
+            className={`lg:hidden p-2.5 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${muted ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
+            title={muted ? 'Unmute' : 'Mute'}
+            aria-label={muted ? 'Unmute audio' : 'Mute audio'}
+          >
+            {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          </button>
+
           {/* Share Button */}
           <button
             onClick={shareStream}
@@ -1696,6 +1712,22 @@ export default function TheaterModePage() {
             )}
 
 
+            {/* Mobile Unmute Prompt - tap anywhere on video to unmute */}
+            {muted && showUnmutePrompt && !streamEnded && token && (
+              <button
+                onClick={toggleMute}
+                className="lg:hidden absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-300"
+              >
+                <div className="flex flex-col items-center gap-3 px-6 py-4 bg-black/80 rounded-2xl border border-white/20 shadow-2xl">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center shadow-lg shadow-cyan-500/40">
+                    <VolumeX className="w-7 h-7 text-white" />
+                  </div>
+                  <span className="text-white font-semibold text-lg">Tap to Unmute</span>
+                  <span className="text-white/60 text-sm">Sound is muted</span>
+                </div>
+              </button>
+            )}
+
             {/* Video Controls Overlay - desktop only (mobile users use phone volume/native controls) */}
             <div className="hidden lg:block absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm z-10">
               <div className="flex items-center justify-between">
@@ -1758,9 +1790,9 @@ export default function TheaterModePage() {
             )}
           </div>
 
-          {/* Desktop Goal Bar - inline below stream info (matches creator POV) */}
+          {/* Goal Bar - visible on all screen sizes */}
           {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (
-            <div className="hidden lg:block px-4 lg:pl-6 py-2">
+            <div className="px-3 lg:px-4 lg:pl-6 py-2">
               <TronGoalBar
                 goals={stream.goals
                   .filter((g: any) => g.isActive && !g.isCompleted)
@@ -1778,17 +1810,17 @@ export default function TheaterModePage() {
 
           {/* Mobile Action Bar - inline below goal bar */}
           {!streamEnded && (
-            <div className="lg:hidden px-2 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
-              <div className="flex items-center gap-2 overflow-visible">
-                {/* Tip Button with Menu indicator */}
+            <div className="lg:hidden px-3 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
+              <div className="flex items-center gap-3 overflow-visible">
+                {/* Tip Button with Menu indicator - 44px touch target */}
                 {currentUser && (
                   <button
                     onClick={() => setShowTipModal(true)}
-                    className="relative p-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg flex-shrink-0"
+                    className="relative min-w-[44px] min-h-[44px] p-2.5 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black rounded-xl shadow-lg shadow-cyan-500/30 flex-shrink-0 flex items-center justify-center active:scale-95 transition-transform"
                   >
-                    <Coins className="w-4 h-4" />
+                    <Coins className="w-5 h-5" />
                     {menuEnabled && menuItems.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
+                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-pink-500 rounded-full animate-pulse border-2 border-black" />
                     )}
                   </button>
                 )}
@@ -1860,7 +1892,7 @@ export default function TheaterModePage() {
             {/* Chat Messages - use more height in landscape mode */}
             <div
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[calc(100vh-380px)] landscape:max-h-[40vh] landscape:min-h-[120px]"
+              className="flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[35dvh] min-h-[150px] landscape:max-h-[45dvh] landscape:min-h-[120px]"
             >
               {messages.length === 0 ? (
                 <div className="text-center text-gray-400 text-xs py-4">
@@ -1945,51 +1977,62 @@ export default function TheaterModePage() {
             <div className="px-3 py-2 border-t border-cyan-400/20 bg-black/60 pb-[calc(60px+env(safe-area-inset-bottom))]">
               {/* Ticketed Mode - Chat disabled for non-ticket holders */}
               {ticketedModeActive && !hasTicket ? (
-                <div className="text-center text-xs py-2">
-                  <span className="text-amber-400">
-                    <Ticket className="w-3 h-3 inline mr-1" />
-                    Buy a ticket to chat
-                  </span>
+                <div className="flex items-center justify-center gap-3 py-3">
+                  <Ticket className="w-5 h-5 text-amber-400" />
+                  <span className="text-amber-300 font-medium">Buy a ticket to chat</span>
                 </div>
               ) : currentUser ? (
                 userBalance > 0 ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                      placeholder="Send a message..."
-                      disabled={sendingMessage}
-                      className="flex-1 px-3 py-2 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-[16px]"
-                    />
-                    <button
-                      onClick={sendMessage}
-                      disabled={!messageInput.trim() || sendingMessage}
-                      className="p-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full disabled:opacity-50"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
+                  <div className="space-y-2">
+                    {/* Balance indicator */}
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] text-white/50">Chat is free for coin holders</span>
+                      <button
+                        onClick={() => setShowBuyCoinsModal(true)}
+                        className="flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300"
+                      >
+                        <Coins className="w-3 h-3" />
+                        <span className="font-semibold">{userBalance.toLocaleString()}</span>
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                        placeholder="Say something..."
+                        disabled={sendingMessage}
+                        className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-[16px]"
+                      />
+                      <button
+                        onClick={sendMessage}
+                        disabled={!messageInput.trim() || sendingMessage}
+                        className="min-w-[48px] min-h-[48px] p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full disabled:opacity-50 flex items-center justify-center shadow-lg shadow-cyan-500/30"
+                      >
+                        <Send className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 text-xs">
-                    <span className="text-amber-300">
-                      <Coins className="w-3 h-3 inline mr-1" />
-                      Buy coins to chat
-                    </span>
+                  <div className="flex items-center justify-center gap-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-amber-400" />
+                      <span className="text-amber-300 font-medium text-sm">Buy coins to chat</span>
+                    </div>
                     <button
                       onClick={() => setShowBuyCoinsModal(true)}
-                      className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-xs"
+                      className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-full text-sm shadow-lg"
                     >
                       Get Coins
                     </button>
                   </div>
                 )
               ) : (
-                <div className="text-center text-xs text-white/70">
+                <div className="flex items-center justify-center gap-2 py-3 text-sm">
                   <button
                     onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
-                    className="text-cyan-400 hover:text-cyan-300 font-semibold"
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-full shadow-lg"
                   >
                     Sign in
                   </button>{' '}
