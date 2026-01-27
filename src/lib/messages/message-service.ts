@@ -289,8 +289,7 @@ export class MessageService {
 
       // Messaging cost logic:
       // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
-      // - Subscriber → Creator: FREE (subscribers get free text messages)
-      // - Fan → Creator: Fan pays the creator's message rate (if set)
+      // - Fan/Subscriber → Creator: Everyone pays the creator's message rate (min 5 coins)
       // - Creator → Creator: Sender pays the receiver's message rate (if set)
       // - Admin conversations: ALWAYS FREE (admins can chat with anyone for free)
       //
@@ -298,6 +297,7 @@ export class MessageService {
       // Note: This is for regular text messages only - locked/PPV messages still cost coins
       // Note: AI auto-responses are FREE - included in the message rate
       const receiverIsCreator = receiver.role === 'creator';
+      const MIN_MESSAGE_RATE = 5; // Minimum 5 coins per message
 
       if (!isAdminConversation && receiverIsCreator) {
         // Get creator settings to check message rate
@@ -305,69 +305,59 @@ export class MessageService {
           where: eq(creatorSettings.userId, receiverId),
         });
 
-        if (settings && settings.messageRate > 0) {
-          // Check if sender is subscribed to the creator - subscribers get FREE text messages
-          const isSubscribed = await tx.query.subscriptions.findFirst({
-            where: and(
-              eq(subscriptions.userId, senderId),
-              eq(subscriptions.creatorId, receiverId),
-              eq(subscriptions.status, 'active'),
-              sql`${subscriptions.expiresAt} > NOW()`
-            ),
-            columns: { id: true },
+        // Use creator's rate or minimum rate (5 coins)
+        const effectiveRate = Math.max(settings?.messageRate || MIN_MESSAGE_RATE, MIN_MESSAGE_RATE);
+
+        if (effectiveRate > 0) {
+          // Everyone pays the message rate (subscribers and non-subscribers alike)
+          messageCost = effectiveRate;
+
+          // Check sender's balance
+          const senderWallet = await tx.query.wallets.findFirst({
+            where: eq(wallets.userId, senderId),
           });
 
-          // Subscribers message for free, non-subscribers pay the message rate
-          if (!isSubscribed) {
-            messageCost = settings.messageRate;
-
-            // Check sender's balance
-            const senderWallet = await tx.query.wallets.findFirst({
-              where: eq(wallets.userId, senderId),
-            });
-
-            if (!senderWallet || senderWallet.balance < messageCost) {
-              throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
-            }
-
-            // Process payment
-            const transactionId = uuidv4();
-
-            // Deduct from sender
-            await tx.insert(walletTransactions).values({
-              userId: senderId,
-              amount: -messageCost,
-              type: 'message_charge',
-              status: 'completed',
-              description: `Message to ${receiver.displayName || receiver.username}`,
-              idempotencyKey: `${transactionId}-debit`,
-            });
-
-            // Credit to receiver (creator)
-            await tx.insert(walletTransactions).values({
-              userId: receiverId,
-              amount: messageCost,
-              type: 'message_earnings',
-              status: 'completed',
-              description: `Message from ${senderWallet ? 'fan' : 'user'}`,
-              idempotencyKey: `${transactionId}-credit`,
-            });
-
-            // Update wallet balances
-            await tx
-              .update(wallets)
-              .set({
-                balance: sql`${wallets.balance} - ${messageCost}`,
-              })
-              .where(eq(wallets.userId, senderId));
-
-            await tx
-              .update(wallets)
-              .set({
-                balance: sql`${wallets.balance} + ${messageCost}`,
-              })
-              .where(eq(wallets.userId, receiverId));
+          if (!senderWallet || senderWallet.balance < messageCost) {
+            throw new Error(`Insufficient balance. This creator charges ${messageCost} coins per message.`);
           }
+
+          // Process payment
+          const transactionId = uuidv4();
+
+          // Deduct from sender
+          await tx.insert(walletTransactions).values({
+            userId: senderId,
+            amount: -messageCost,
+            type: 'message_charge',
+            status: 'completed',
+            description: `Message to ${receiver.displayName || receiver.username}`,
+            idempotencyKey: `${transactionId}-debit`,
+          });
+
+          // Credit to receiver (creator)
+          await tx.insert(walletTransactions).values({
+            userId: receiverId,
+            amount: messageCost,
+            type: 'message_earnings',
+            status: 'completed',
+            description: `Message from ${senderWallet ? 'fan' : 'user'}`,
+            idempotencyKey: `${transactionId}-credit`,
+          });
+
+          // Update wallet balances
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} - ${messageCost}`,
+            })
+            .where(eq(wallets.userId, senderId));
+
+          await tx
+            .update(wallets)
+            .set({
+              balance: sql`${wallets.balance} + ${messageCost}`,
+            })
+            .where(eq(wallets.userId, receiverId));
         }
       }
 

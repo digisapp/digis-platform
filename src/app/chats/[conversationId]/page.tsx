@@ -78,7 +78,23 @@ export default function ChatPage() {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [showChargeWarning, setShowChargeWarning] = useState(false);
   const [pendingMessage, setPendingMessage] = useState('');
-  const [hasAcknowledgedCharge, setHasAcknowledgedCharge] = useState(false);
+  // Persist rate acknowledgment in localStorage so fans don't have to accept every session
+  const [hasAcknowledgedCharge, setHasAcknowledgedChargeState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(`chat_rate_accepted_${conversationId}`) === 'true';
+    }
+    return false;
+  });
+  const setHasAcknowledgedCharge = (value: boolean) => {
+    setHasAcknowledgedChargeState(value);
+    if (typeof window !== 'undefined') {
+      if (value) {
+        localStorage.setItem(`chat_rate_accepted_${conversationId}`, 'true');
+      } else {
+        localStorage.removeItem(`chat_rate_accepted_${conversationId}`);
+      }
+    }
+  };
   const [userBalance, setUserBalance] = useState<number | null>(null);
   const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
@@ -484,11 +500,11 @@ export default function ChatPage() {
 
     if (!newMessage.trim() || !conversation) return;
 
-    // Messaging cost rules:
+    // Messaging cost rules (min 5 coins per message):
     // - Admin → Anyone: ALWAYS FREE (admins can chat for free)
     // - Creator → Fan: ALWAYS FREE (creators don't pay to message fans)
-    // - Fan → Creator: Fan pays the creator's message rate (if set)
-    // - Creator → Creator: Sender pays the receiver's message rate (if set)
+    // - Fan/Subscriber → Creator: Everyone pays the creator's message rate
+    // - Creator → Creator: Sender pays the receiver's message rate
     const shouldCheckCharge = recipientIsCreator && !currentUserIsAdmin; // Admins never pay
     const chargeAmount = costPerMessage || 0;
 
