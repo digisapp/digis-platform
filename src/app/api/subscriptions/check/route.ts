@@ -25,6 +25,9 @@ export async function GET(req: NextRequest) {
     const subscription = await SubscriptionService.getUserSubscription(user.id, creatorId);
     const isSubscribed = !!subscription;
 
+    // Debug logging for subscription check
+    console.log(`[Subscription Check] User ${user.id} -> Creator ${creatorId}: isSubscribed=${isSubscribed}`);
+
     return NextResponse.json({
       isSubscribed,
       subscription: subscription || null,

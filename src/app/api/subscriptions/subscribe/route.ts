@@ -46,6 +46,8 @@ export async function POST(req: NextRequest) {
     // Subscribe user to creator's tier
     const subscription = await SubscriptionService.subscribe(user.id, creatorId, tier.id);
 
+    console.log(`[Subscribe] SUCCESS: User ${user.id} subscribed to creator ${creatorId}, subscription ID: ${subscription.id}, status: ${subscription.status}, expiresAt: ${subscription.expiresAt}`);
+
     return NextResponse.json({
       success: true,
       subscription,

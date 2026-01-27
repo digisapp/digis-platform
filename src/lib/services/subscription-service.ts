@@ -342,11 +342,13 @@ export class SubscriptionService {
       where: and(
         eq(subscriptions.userId, userId),
         eq(subscriptions.creatorId, creatorId),
+        eq(subscriptions.status, 'active'),
         sql`${subscriptions.expiresAt} > NOW()`
       ),
       with: {
         tier: true,
       },
+      orderBy: [desc(subscriptions.createdAt)], // Get most recent if multiple exist
     });
 
     return subscription;
