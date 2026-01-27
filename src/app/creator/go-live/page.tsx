@@ -524,8 +524,13 @@ export default function GoLivePage() {
         }
 
         // Redirect quickly after brief animation (reduced from 2s to 800ms)
+        // Pass device IDs so LiveKit can start with the same devices (faster startup)
         setTimeout(() => {
-          router.push(`/stream/live/${streamId}`);
+          const params = new URLSearchParams();
+          if (selectedVideoDevice) params.set('video', selectedVideoDevice);
+          if (selectedAudioDevice) params.set('audio', selectedAudioDevice);
+          const queryString = params.toString();
+          router.push(`/stream/live/${streamId}${queryString ? `?${queryString}` : ''}`);
         }, 800);
       } else {
         setError(result.error || 'Failed to start stream');

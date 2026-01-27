@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, useRoomContext, VideoTrack } from '@livekit/components-react';
 import { VideoPresets, Room, Track, LocalParticipant } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
@@ -193,8 +193,13 @@ function CameraFlipControl({
 export default function BroadcastStudioPage() {
   const params = useParams() as { streamId: string };
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showSuccess, showError, showInfo } = useToastContext();
   const streamId = params.streamId as string;
+
+  // Get device IDs from URL params (passed from go-live page for faster startup)
+  const preferredVideoDevice = searchParams.get('video') || undefined;
+  const preferredAudioDevice = searchParams.get('audio') || undefined;
 
   const [stream, setStream] = useState<Stream | null>(null);
   const [messages, setMessages] = useState<StreamMessage[]>([]);
@@ -268,6 +273,7 @@ export default function BroadcastStudioPage() {
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
   const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
   const [privateTips, setPrivateTips] = useState<Array<{
     id: string;
@@ -2056,6 +2062,12 @@ export default function BroadcastStudioPage() {
                         // Portrait display is achieved with object-cover CSS (like video calls)
                         resolution: VideoPresets.h1080,
                         facingMode: 'user',
+                        // Use same device from go-live preview for faster startup
+                        deviceId: preferredVideoDevice,
+                      },
+                      audioCaptureDefaults: {
+                        // Use same audio device from go-live preview
+                        deviceId: preferredAudioDevice,
                       },
                       publishDefaults: {
                         videoSimulcastLayers: [
@@ -2071,7 +2083,57 @@ export default function BroadcastStudioPage() {
                         red: true,
                       },
                     }}
+                    onConnected={() => {
+                      console.log('[LiveKit] Connected to room');
+                      setConnectionStatus('connected');
+                    }}
+                    onDisconnected={() => {
+                      console.log('[LiveKit] Disconnected from room');
+                      // Only show reconnecting if we were previously connected
+                      if (connectionStatus === 'connected') {
+                        setConnectionStatus('reconnecting');
+                      }
+                    }}
+                    onError={(error) => {
+                      console.error('[LiveKit] Room error:', error);
+                      if (connectionStatus !== 'disconnected') {
+                        setConnectionStatus('disconnected');
+                      }
+                    }}
                   >
+                    {/* Reconnection Overlay */}
+                    {(connectionStatus === 'reconnecting' || connectionStatus === 'disconnected') && (
+                      <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm">
+                        {connectionStatus === 'reconnecting' ? (
+                          <>
+                            <div className="w-16 h-16 mb-4 rounded-full bg-yellow-500/20 flex items-center justify-center animate-pulse">
+                              <RefreshCw className="w-8 h-8 text-yellow-500 animate-spin" />
+                            </div>
+                            <p className="text-white text-lg font-semibold mb-2">Reconnecting...</p>
+                            <p className="text-white/60 text-sm">Please wait while we restore your connection</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-16 h-16 mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                              <X className="w-8 h-8 text-red-500" />
+                            </div>
+                            <p className="text-white text-lg font-semibold mb-2">Connection Lost</p>
+                            <p className="text-white/60 text-sm mb-4">Unable to maintain stream connection</p>
+                            <button
+                              onClick={() => {
+                                setConnectionStatus('connecting');
+                                // Force re-fetch token and reconnect
+                                window.location.reload();
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full transition-colors"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                              Reconnect
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                     <LocalCameraPreview isMirrored={facingMode === 'user'} />
                     <RoomAudioRenderer />
                     {/* Screen Share Control - Desktop only, positioned in bottom right of video */}
