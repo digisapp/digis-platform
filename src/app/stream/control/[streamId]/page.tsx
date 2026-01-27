@@ -231,10 +231,10 @@ export default function StreamRemoteControlPage() {
     },
   });
 
-  // Scroll to bottom
+  // Scroll to bottom - use scrollTop on container to prevent page scroll on mobile
   const scrollToBottom = useCallback(() => {
-    if (isAutoScroll && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (isAutoScroll && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [isAutoScroll]);
 
@@ -686,7 +686,9 @@ export default function StreamRemoteControlPage() {
             <button
               onClick={() => {
                 setIsAutoScroll(true);
-                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                if (messagesContainerRef.current) {
+                  messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+                }
               }}
               className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 bg-digis-cyan text-black rounded-full flex items-center gap-2 shadow-lg"
             >

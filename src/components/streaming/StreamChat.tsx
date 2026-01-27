@@ -382,8 +382,9 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
 
       // Only auto-scroll if user is near the bottom
+      // Use scrollTop on container instead of scrollIntoView to prevent page scroll on mobile
       if (isNearBottom) {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
     }
   }, [messages]);

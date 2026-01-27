@@ -50,10 +50,10 @@ export default function ChatMonitorPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const ablyRef = useRef<Ably.Realtime | null>(null);
 
-  // Scroll to bottom
+  // Scroll to bottom - use scrollTop on container to prevent page scroll on mobile
   const scrollToBottom = useCallback(() => {
-    if (isAutoScroll && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (isAutoScroll && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [isAutoScroll]);
 
@@ -350,7 +350,9 @@ export default function ChatMonitorPage() {
         <button
           onClick={() => {
             setIsAutoScroll(true);
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            if (messagesContainerRef.current) {
+              messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+            }
           }}
           className="fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-digis-cyan rounded-full flex items-center gap-2 shadow-lg"
         >
