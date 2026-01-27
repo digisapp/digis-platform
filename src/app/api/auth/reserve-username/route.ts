@@ -113,6 +113,36 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
+    } else if (matchedInvite?.instagramHandle) {
+      // Try to use Instagram handle as username (replace dots/special chars with underscores)
+      const igUsername = matchedInvite.instagramHandle
+        .toLowerCase()
+        .replace(/^@/, '') // remove leading @
+        .replace(/[^a-z0-9_]/g, '_') // replace non-alphanumeric with underscores
+        .replace(/_+/g, '_') // collapse multiple underscores
+        .replace(/^_|_$/g, '') // trim leading/trailing underscores
+        .slice(0, 20); // max 20 chars
+
+      // Validate format and check availability
+      if (/^[a-z][a-z0-9_]{2,19}$/.test(igUsername)) {
+        const taken = await db.query.users.findFirst({
+          where: eq(users.username, igUsername),
+        });
+        if (!taken) {
+          cleanUsername = igUsername;
+          console.log(`[Signup] Using Instagram handle as username for ${cleanEmail}: ${cleanUsername}`);
+        } else {
+          // Instagram handle taken, fall back to auto-generated
+          const shortId = userId.slice(0, 8);
+          cleanUsername = `user_${shortId}`;
+          console.log(`[Signup] Instagram username '${igUsername}' taken for ${cleanEmail}, using temp: ${cleanUsername}`);
+        }
+      } else {
+        // Instagram handle doesn't meet username format, fall back
+        const shortId = userId.slice(0, 8);
+        cleanUsername = `user_${shortId}`;
+        console.log(`[Signup] Instagram handle '${igUsername}' invalid format for ${cleanEmail}, using temp: ${cleanUsername}`);
+      }
     } else {
       // Generate a temporary auto-username (user_shortUUID)
       // Users will set their real username later in the onboarding flow
@@ -126,12 +156,15 @@ export async function POST(request: NextRequest) {
       where: eq(users.id, userId),
     });
 
+    // Use invite display name if available, otherwise fall back to username
+    const displayName = matchedInvite?.displayName || cleanUsername;
+
     if (existingUserRow) {
       // Update existing row with username and role
       await db.update(users)
         .set({
           username: cleanUsername,
-          displayName: cleanUsername,
+          displayName,
           role: userRole,
           isCreatorVerified: isCreatorVerified,
           updatedAt: new Date(),
@@ -143,7 +176,7 @@ export async function POST(request: NextRequest) {
         id: userId,
         email: cleanEmail,
         username: cleanUsername,
-        displayName: cleanUsername,
+        displayName,
         role: userRole,
         isCreatorVerified: isCreatorVerified,
         createdAt: new Date(),
