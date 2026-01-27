@@ -65,7 +65,7 @@ function PricingPageContent() {
     minimumCallDuration: 5,
     voiceCallRatePerMinute: 15, // $1.50/min
     minimumVoiceCallDuration: 5,
-    messageRate: 25, // $2.50/message
+    messageRate: 3, // $0.30/message (minimum)
     isAvailableForCalls: true,
     isAvailableForVoiceCalls: true,
   });
@@ -110,7 +110,7 @@ function PricingPageContent() {
             minimumCallDuration: data.settings.minimumCallDuration || 5,
             voiceCallRatePerMinute: data.settings.voiceCallRatePerMinute || 15,
             minimumVoiceCallDuration: data.settings.minimumVoiceCallDuration || 5,
-            messageRate: data.settings.messageRate ?? 25,
+            messageRate: data.settings.messageRate ?? 3,
             isAvailableForCalls: data.settings.isAvailableForCalls ?? true,
             isAvailableForVoiceCalls: data.settings.isAvailableForVoiceCalls ?? true,
           });

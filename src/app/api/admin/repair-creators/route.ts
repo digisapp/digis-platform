@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
         try {
           await db.insert(creatorSettings).values({
             userId: invite.claimedBy,
-            messageRate: 25,
+            messageRate: 3,
             callRatePerMinute: 25,
             minimumCallDuration: 5,
             isAvailableForCalls: false,
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
         try {
           await db.insert(creatorSettings).values({
             userId: creator.id,
-            messageRate: 25,
+            messageRate: 3,
             callRatePerMinute: 25,
             minimumCallDuration: 5,
             isAvailableForCalls: false,

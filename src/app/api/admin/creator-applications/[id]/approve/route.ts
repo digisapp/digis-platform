@@ -77,7 +77,7 @@ export async function POST(
       // 3. Create default creator settings (using Drizzle in same transaction)
       await tx.insert(creatorSettings).values({
         userId: application.userId,
-        messageRate: 25,
+        messageRate: 3,
         callRatePerMinute: 25,
         minimumCallDuration: 5,
         isAvailableForCalls: false,

@@ -75,8 +75,8 @@ export const creatorSettings = pgTable('creator_settings', {
   voiceCallRatePerMinute: integer('voice_call_rate_per_minute').default(15).notNull(),
   minimumVoiceCallDuration: integer('minimum_voice_call_duration').default(5).notNull(), // Min 5 minutes
 
-  // Message Rates (25 coins = $2.50 per message for creator)
-  messageRate: integer('message_rate').default(25).notNull(),
+  // Message Rates (3 coins = $0.30 minimum per message for creator)
+  messageRate: integer('message_rate').default(3).notNull(),
 
   // Availability
   isAvailableForCalls: boolean('is_available_for_calls').default(true).notNull(),

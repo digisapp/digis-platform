@@ -297,7 +297,7 @@ export class MessageService {
       // Note: This is for regular text messages only - locked/PPV messages still cost coins
       // Note: AI auto-responses are FREE - included in the message rate
       const receiverIsCreator = receiver.role === 'creator';
-      const MIN_MESSAGE_RATE = 5; // Minimum 5 coins per message
+      const MIN_MESSAGE_RATE = 3; // Minimum 3 coins per message
 
       if (!isAdminConversation && receiverIsCreator) {
         // Get creator settings to check message rate
@@ -305,7 +305,7 @@ export class MessageService {
           where: eq(creatorSettings.userId, receiverId),
         });
 
-        // Use creator's rate or minimum rate (5 coins)
+        // Use creator's rate or minimum rate (3 coins)
         const effectiveRate = Math.max(settings?.messageRate || MIN_MESSAGE_RATE, MIN_MESSAGE_RATE);
 
         if (effectiveRate > 0) {

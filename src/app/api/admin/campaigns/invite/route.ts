@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
         // Create creator settings
         await db.insert(creatorSettings).values({
           userId: userId,
-          messageRate: 25,
+          messageRate: 3,
           callRatePerMinute: 25,
           minimumCallDuration: 5,
           isAvailableForCalls: false,

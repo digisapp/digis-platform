@@ -170,7 +170,7 @@ export class AdminService {
     await db.insert(creatorSettings)
       .values({
         userId: application.userId,
-        messageRate: 25, // 25 coins = $2.50 per message
+        messageRate: 3, // 3 coins = $0.30 per message (minimum)
         callRatePerMinute: 25, // 25 coins/min = $2.50/min
         minimumCallDuration: 5,
         isAvailableForCalls: false,
@@ -355,7 +355,7 @@ export class AdminService {
       await db.insert(creatorSettings)
         .values({
           userId,
-          messageRate: 25, // 25 coins = $2.50 per message
+          messageRate: 3, // 3 coins = $0.30 per message (minimum)
           callRatePerMinute: 25, // 25 coins/min = $2.50/min
           minimumCallDuration: 5,
           isAvailableForCalls: false,

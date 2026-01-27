@@ -29,7 +29,7 @@ export class CallService {
           minimumCallDuration: 5, // 5 min minimum
           voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min for creator
           minimumVoiceCallDuration: 5, // 5 min minimum
-          messageRate: 25, // 25 coins = $2.50 per message
+          messageRate: 3, // 3 coins = $0.30 per message (minimum)
           isAvailableForCalls: true,
           isAvailableForVoiceCalls: true,
         })
