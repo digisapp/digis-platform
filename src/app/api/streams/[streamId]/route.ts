@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { streamGoals, creatorSettings, shows } from '@/lib/data/system';
+import { streamGoals, creatorSettings, shows, subscriptionTiers } from '@/lib/data/system';
 import { eq, and, gt } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
@@ -32,6 +32,19 @@ export async function GET(
     const accessCheck = await StreamService.checkStreamAccess(streamId, userId);
 
     if (!accessCheck.hasAccess) {
+      // Get subscription price if stream requires subscription
+      let subscriptionPrice: number | undefined;
+      if (stream.privacy === 'subscribers' && stream.creatorId) {
+        const tier = await db.query.subscriptionTiers.findFirst({
+          where: and(
+            eq(subscriptionTiers.creatorId, stream.creatorId),
+            eq(subscriptionTiers.isActive, true)
+          ),
+          columns: { pricePerMonth: true },
+        });
+        subscriptionPrice = tier?.pricePerMonth;
+      }
+
       return NextResponse.json(
         {
           error: accessCheck.reason || 'Access denied',
@@ -42,6 +55,7 @@ export async function GET(
           requiresFollow: stream.privacy === 'followers',
           requiresTicket: stream.privacy === 'ticketed',
           ticketPrice: stream.privacy === 'ticketed' ? stream.ticketPrice : undefined,
+          subscriptionPrice,
         },
         { status: 403 }
       );

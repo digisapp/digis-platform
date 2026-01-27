@@ -178,6 +178,7 @@ export default function TheaterModePage() {
     requiresFollow?: boolean;
     requiresTicket?: boolean;
     ticketPrice?: number;
+    subscriptionPrice?: number;
   } | null>(null);
 
   // Video player state
@@ -958,6 +959,7 @@ export default function TheaterModePage() {
           requiresFollow: data.requiresFollow,
           requiresTicket: data.requiresTicket,
           ticketPrice: data.ticketPrice,
+          subscriptionPrice: data.subscriptionPrice,
         });
         setLoading(false);
         return;
@@ -1312,9 +1314,30 @@ export default function TheaterModePage() {
           <h1 className="text-2xl font-bold text-white mb-3">
             This Stream is Private
           </h1>
-          <p className="text-gray-400 mb-6">
-            {accessDenied.reason}
+          <p className="text-gray-400 mb-4">
+            {accessDenied.requiresSubscription
+              ? 'You must be an active subscriber to watch this stream.'
+              : accessDenied.requiresFollow
+                ? 'You must be following this creator to watch this stream.'
+                : accessDenied.requiresTicket
+                  ? 'This is a ticketed show. Purchase a ticket to watch.'
+                  : accessDenied.reason}
           </p>
+
+          {/* Show price info */}
+          {(accessDenied.subscriptionPrice || accessDenied.ticketPrice) && (
+            <div className="mb-6 px-4 py-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-xl">
+              <div className="flex items-center justify-center gap-2">
+                <Coins className="w-5 h-5 text-yellow-400" />
+                <span className="text-yellow-400 font-bold text-lg">
+                  {accessDenied.subscriptionPrice || accessDenied.ticketPrice} coins
+                </span>
+                <span className="text-gray-400 text-sm">
+                  {accessDenied.subscriptionPrice ? '/month' : ''}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Action buttons based on what's required */}
           <div className="space-y-3">
@@ -1331,20 +1354,34 @@ export default function TheaterModePage() {
             {accessDenied.requiresSubscription && accessDenied.creatorUsername && (
               <button
                 onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-digis-purple to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all"
+                className="w-full flex flex-col items-center justify-center gap-1 px-6 py-3 bg-gradient-to-r from-digis-purple to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all"
               >
-                <CreditCard className="w-5 h-5" />
-                Subscribe to @{accessDenied.creatorUsername}
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" />
+                  Subscribe to @{accessDenied.creatorUsername}
+                </div>
+                {accessDenied.subscriptionPrice && (
+                  <span className="text-sm opacity-90 flex items-center gap-1">
+                    <Coins className="w-4 h-4" /> {accessDenied.subscriptionPrice} coins/month
+                  </span>
+                )}
               </button>
             )}
 
             {accessDenied.requiresTicket && accessDenied.creatorUsername && (
               <button
                 onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
+                className="w-full flex flex-col items-center justify-center gap-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
               >
-                <Ticket className="w-5 h-5" />
-                Buy Ticket {accessDenied.ticketPrice ? `(${accessDenied.ticketPrice} coins)` : ''}
+                <div className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5" />
+                  Buy Ticket
+                </div>
+                {accessDenied.ticketPrice && (
+                  <span className="text-sm opacity-90 flex items-center gap-1">
+                    <Coins className="w-4 h-4" /> {accessDenied.ticketPrice} coins
+                  </span>
+                )}
               </button>
             )}
 
