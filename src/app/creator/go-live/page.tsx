@@ -280,21 +280,32 @@ export default function GoLivePage() {
       setDevicesLoading(true);
       setVideoPlaying(false);
 
-      // Use simpler constraints for iOS compatibility
-      // iOS can fail with strict width/height requirements
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'user',
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
+      let stream: MediaStream;
+
+      try {
+        // Full constraints (works on Chrome, most browsers)
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            frameRate: { ideal: 30, max: 30 },
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (constraintError) {
+        // Safari can fail with strict width/height/frameRate constraints
+        // Retry with minimal constraints for Safari compatibility
+        console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: true,
+        });
+      }
 
       // Get available devices (now we have permission)
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -315,14 +326,20 @@ export default function GoLivePage() {
       setPreviewError('');
 
       if (videoRef.current) {
+        // Ensure playsinline attributes are set (critical for Safari/iOS)
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.setAttribute('webkit-playsinline', '');
         videoRef.current.srcObject = stream;
-        // iOS requires explicit play() call after setting srcObject
+
+        // Safari needs a brief moment after srcObject is set before play() works
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         try {
           await videoRef.current.play();
           setVideoPlaying(true);
         } catch (playError) {
-          // Autoplay blocked - user needs to tap to play
-          console.warn('Video autoplay blocked:', playError);
+          // Autoplay blocked (common on Safari) - user needs to tap to play
+          console.warn('[GoLive] Video autoplay blocked:', playError);
           setVideoPlaying(false);
         }
       }
@@ -334,8 +351,18 @@ export default function GoLivePage() {
       setSelectedVideoDevice(currentVideoDevice);
       setSelectedAudioDevice(currentAudioDevice);
     } catch (err: any) {
-      console.error('Error initializing devices:', err);
-      setPreviewError('Unable to access camera/microphone. Please grant permissions.');
+      console.error('[GoLive] Error initializing devices:', err);
+
+      // Provide more specific error message based on the error
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setPreviewError('Camera/microphone access denied. Please allow access in your browser settings and reload.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setPreviewError('No camera or microphone found. Please connect a device.');
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        setPreviewError('Camera is in use by another app. Please close other apps using the camera.');
+      } else {
+        setPreviewError('Unable to access camera/microphone. Please grant permissions and reload.');
+      }
     } finally {
       setDevicesLoading(false);
     }
@@ -350,24 +377,39 @@ export default function GoLivePage() {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
 
-      // Use simpler constraints for iOS compatibility
-      const videoConstraints = {
-        deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
-        facingMode: 'user',
-        width: { ideal: 1280, max: 1920 },
-        height: { ideal: 720, max: 1080 },
-        frameRate: { ideal: 30, max: 30 },
-      };
+      let stream: MediaStream;
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: videoConstraints,
-        audio: {
-          deviceId: selectedAudioDevice,
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
+      try {
+        // Full constraints
+        const videoConstraints = {
+          deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
+          facingMode: 'user',
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30, max: 30 },
+        };
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: {
+            deviceId: selectedAudioDevice,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+      } catch (constraintError) {
+        // Safari fallback with minimal constraints
+        console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: selectedVideoDevice
+            ? { deviceId: { exact: selectedVideoDevice } }
+            : { facingMode: 'user' },
+          audio: selectedAudioDevice
+            ? { deviceId: selectedAudioDevice }
+            : true,
+        });
+      }
 
       // Check actual video track dimensions and reset zoom if available
       const videoTrack = stream.getVideoTracks()[0];
@@ -395,13 +437,18 @@ export default function GoLivePage() {
 
       // Attach to video element
       if (videoRef.current) {
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.setAttribute('webkit-playsinline', '');
         videoRef.current.srcObject = stream;
-        // iOS requires explicit play() call after setting srcObject
+
+        // Safari needs a brief moment after srcObject is set before play() works
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         try {
           await videoRef.current.play();
           setVideoPlaying(true);
         } catch (playError) {
-          console.warn('Video autoplay blocked:', playError);
+          console.warn('[GoLive] Video autoplay blocked:', playError);
           setVideoPlaying(false);
         }
       }
@@ -409,7 +456,7 @@ export default function GoLivePage() {
       // Setup audio monitoring
       setupAudioMonitoring(stream);
     } catch (err: any) {
-      console.error('Error starting media stream:', err);
+      console.error('[GoLive] Error starting media stream:', err);
       setPreviewError('Failed to start camera/microphone');
     }
   };

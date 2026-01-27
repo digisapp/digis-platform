@@ -1100,19 +1100,38 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  const fetchBroadcastToken = async () => {
+  const fetchBroadcastToken = async (retryCount = 0) => {
+    const maxRetries = 3;
+
     try {
-      const response = await fetch(`/api/streams/${streamId}/broadcast-token`);
+      console.log(`[Broadcast] Fetching token (attempt ${retryCount + 1}/${maxRetries + 1})...`);
+      const response = await fetch(`/api/streams/${streamId}/broadcast-token`, {
+        credentials: 'same-origin', // Explicitly include cookies (Safari compatibility)
+      });
       const data = await response.json();
 
       if (response.ok) {
+        console.log('[Broadcast] Token received successfully');
         setToken(data.token);
         setServerUrl(data.serverUrl);
+      } else if (response.status === 401 && retryCount < maxRetries) {
+        // Auth may not be ready yet (common on Safari) - retry with backoff
+        console.warn(`[Broadcast] Auth not ready (401), retrying in ${(retryCount + 1)}s...`);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+        return fetchBroadcastToken(retryCount + 1);
       } else {
+        console.error(`[Broadcast] Token fetch failed: ${data.error} (status ${response.status})`);
         setError(data.error || 'Not authorized to broadcast');
       }
     } catch (err) {
-      setError('Failed to get broadcast token');
+      if (retryCount < maxRetries) {
+        // Network error - retry with backoff
+        console.warn(`[Broadcast] Token fetch error, retrying in ${(retryCount + 1)}s...`, err);
+        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
+        return fetchBroadcastToken(retryCount + 1);
+      }
+      console.error('[Broadcast] Token fetch failed after all retries:', err);
+      setError('Failed to get broadcast token. Please check your connection and try again.');
     }
   };
 
@@ -2698,6 +2717,15 @@ export default function BroadcastStudioPage() {
                   <LoadingSpinner size="lg" />
                   <p className="text-white/80 mt-4 text-lg font-semibold">Starting camera...</p>
                   <p className="text-white/50 text-sm mt-1">Connecting to stream server</p>
+                  <button
+                    onClick={() => {
+                      setError('');
+                      fetchBroadcastToken();
+                    }}
+                    className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white/80 rounded-lg text-sm font-medium transition-colors border border-white/20"
+                  >
+                    Retry Connection
+                  </button>
                 </div>
               )}
             </div>
