@@ -2117,6 +2117,21 @@ export default function ProfilePageClient() {
               </div>
             </div>
 
+            {/* Subscriber Benefits */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
+              <p className="text-xs text-purple-300 font-medium mb-3 text-center">Subscribers Get</p>
+              <div className="flex justify-center gap-4">
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="text-base">🔴</span>
+                  <span>Subs Only Streams</span>
+                </div>
+                <div className="flex items-center gap-2 text-white text-sm">
+                  <span className="text-base">💬</span>
+                  <span>Free Chats</span>
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
