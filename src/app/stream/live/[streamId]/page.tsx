@@ -651,6 +651,21 @@ export default function BroadcastStudioPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Safety timeout: if still 'connecting' after 30 seconds, show disconnected
+  useEffect(() => {
+    if (connectionStatus !== 'connecting') return;
+    const timeout = setTimeout(() => {
+      setConnectionStatus(prev => {
+        if (prev === 'connecting') {
+          console.warn('[LiveKit] Initial connection timed out after 30s');
+          return 'disconnected';
+        }
+        return prev;
+      });
+    }, 30000);
+    return () => clearTimeout(timeout);
+  }, [connectionStatus]);
+
   // Send heartbeat every 30 seconds to keep stream alive
   useEffect(() => {
     if (!stream || stream.status !== 'live') return;
@@ -2154,16 +2169,24 @@ export default function BroadcastStudioPage() {
                     }}
                     onDisconnected={() => {
                       console.log('[LiveKit] Disconnected from room');
-                      // Only show reconnecting if we were previously connected
-                      if (connectionStatus === 'connected') {
-                        setConnectionStatus('reconnecting');
-                      }
+                      setConnectionStatus(prev => {
+                        // Only show reconnecting if we were previously connected
+                        if (prev === 'connected') return 'reconnecting';
+                        // During initial connection, stay in connecting state (LiveKit will retry)
+                        return prev;
+                      });
                     }}
                     onError={(error) => {
                       console.error('[LiveKit] Room error:', error);
-                      if (connectionStatus !== 'disconnected') {
-                        setConnectionStatus('disconnected');
-                      }
+                      setConnectionStatus(prev => {
+                        // During initial connection, don't immediately show "Connection Lost"
+                        // LiveKit will retry internally — only mark disconnected if we were already connected
+                        if (prev === 'connecting') {
+                          console.log('[LiveKit] Error during initial connection, staying in connecting state');
+                          return prev;
+                        }
+                        return 'disconnected';
+                      });
                     }}
                   >
                     {/* Reconnection Overlay */}
