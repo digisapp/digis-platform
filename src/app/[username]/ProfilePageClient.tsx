@@ -499,9 +499,15 @@ export default function ProfilePageClient() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if already subscribed - refresh state and show success
+        if (data.error?.includes('already subscribed')) {
+          setIsSubscribed(true);
+          setShowSubscribeSuccessModal(true);
+          return;
+        }
         // Check if it's an insufficient funds error
-        if (data.insufficientBalance || data.error?.includes('Insufficient') || data.error?.includes('need') || data.required) {
-          setInsufficientFundsAmount(data.required || subscriptionTier?.pricePerMonth || 0);
+        if (data.insufficientBalance || data.error?.includes('Insufficient') || data.error?.includes('need') || data.error?.includes('Not enough') || data.required) {
+          setInsufficientFundsAmount(data.required || subscriptionTier?.pricePerMonth || 50);
           // Set details if available (shows held coins info)
           if (data.held !== undefined) {
             setInsufficientFundsDetails({
