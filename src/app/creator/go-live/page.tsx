@@ -87,6 +87,7 @@ export default function GoLivePage() {
   const [audioLevel, setAudioLevel] = useState(0);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [previewError, setPreviewError] = useState('');
+  const [videoPlaying, setVideoPlaying] = useState(false);
 
   // Track actual device orientation (portrait = phone held upright)
   const [deviceOrientation, setDeviceOrientation] = useState<'portrait' | 'landscape'>('portrait');
@@ -277,15 +278,16 @@ export default function GoLivePage() {
   const initializeDevices = async () => {
     try {
       setDevicesLoading(true);
+      setVideoPlaying(false);
 
-      // Request permissions and start stream in one call to avoid multiple popups
+      // Use simpler constraints for iOS compatibility
+      // iOS can fail with strict width/height requirements
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'user',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          aspectRatio: { ideal: 16 / 9 },
-          frameRate: { ideal: 30 },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30, max: 30 },
         },
         audio: {
           echoCancellation: true,
@@ -317,9 +319,11 @@ export default function GoLivePage() {
         // iOS requires explicit play() call after setting srcObject
         try {
           await videoRef.current.play();
+          setVideoPlaying(true);
         } catch (playError) {
-          // Autoplay may be blocked, but video should still show when user interacts
+          // Autoplay blocked - user needs to tap to play
           console.warn('Video autoplay blocked:', playError);
+          setVideoPlaying(false);
         }
       }
 
@@ -339,21 +343,20 @@ export default function GoLivePage() {
 
   const startMediaStream = async () => {
     try {
+      setVideoPlaying(false);
+
       // Stop existing stream
       if (mediaStream) {
         mediaStream.getTracks().forEach((track) => track.stop());
       }
 
-      // Always capture in landscape 1080p (same as live stream)
-      // Portrait display is achieved with object-cover CSS (like video calls)
-      // This ensures the preview matches exactly what viewers will see
+      // Use simpler constraints for iOS compatibility
       const videoConstraints = {
         deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
         facingMode: 'user',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        aspectRatio: { ideal: 16 / 9 },
-        frameRate: { ideal: 30 },
+        width: { ideal: 1280, max: 1920 },
+        height: { ideal: 720, max: 1080 },
+        frameRate: { ideal: 30, max: 30 },
       };
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -396,8 +399,10 @@ export default function GoLivePage() {
         // iOS requires explicit play() call after setting srcObject
         try {
           await videoRef.current.play();
+          setVideoPlaying(true);
         } catch (playError) {
           console.warn('Video autoplay blocked:', playError);
+          setVideoPlaying(false);
         }
       }
 
@@ -440,6 +445,19 @@ export default function GoLivePage() {
     setAudioLevel(normalizedLevel);
 
     animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
+  };
+
+  // Handle tap to play video (iOS requires user gesture)
+  const handleTapToPlay = async () => {
+    if (videoRef.current && mediaStream) {
+      try {
+        videoRef.current.srcObject = mediaStream;
+        await videoRef.current.play();
+        setVideoPlaying(true);
+      } catch (err) {
+        console.error('Failed to play video:', err);
+      }
+    }
   };
 
   const handleStartStream = async (e: React.FormEvent) => {
@@ -1042,12 +1060,31 @@ export default function GoLivePage() {
                     muted
                     className="absolute inset-0 w-full h-full -scale-x-100"
                     style={{ objectFit: 'cover' }}
+                    onPlaying={() => setVideoPlaying(true)}
                   />
+                  {/* Tap to play overlay for iOS */}
+                  {!videoPlaying && mediaStream && (
+                    <button
+                      type="button"
+                      onClick={handleTapToPlay}
+                      className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/80 text-white"
+                    >
+                      <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 animate-pulse">
+                        <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </div>
+                      <p className="text-lg font-semibold">Tap to Start Preview</p>
+                      <p className="text-sm text-gray-400 mt-1">Camera is ready</p>
+                    </button>
+                  )}
                   {/* Live indicator */}
-                  <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                    PREVIEW
-                  </div>
+                  {videoPlaying && (
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                      PREVIEW
+                    </div>
+                  )}
                   {/* Orientation badge */}
                   <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
                     {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
