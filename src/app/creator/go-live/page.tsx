@@ -275,16 +275,46 @@ export default function GoLivePage() {
     }
   };
 
+  // Safari can hang forever if the user dismisses the permission prompt without answering.
+  // This wrapper adds a timeout so we don't block the UI indefinitely.
+  const getUserMediaWithTimeout = (
+    constraints: MediaStreamConstraints,
+    timeoutMs = 15000,
+  ): Promise<MediaStream> => {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new DOMException('Camera/microphone permission timed out. Please reload and allow access.', 'TimeoutError'));
+      }, timeoutMs);
+
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+          clearTimeout(timer);
+          resolve(stream);
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  };
+
   const initializeDevices = async () => {
     try {
       setDevicesLoading(true);
       setVideoPlaying(false);
 
+      // Check if getUserMedia is available (requires HTTPS or localhost)
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setPreviewError('Camera access is not available. Make sure you are using HTTPS.');
+        setDevicesLoading(false);
+        return;
+      }
+
       let stream: MediaStream;
 
       try {
         // Full constraints (works on Chrome, most browsers)
-        stream = await navigator.mediaDevices.getUserMedia({
+        stream = await getUserMediaWithTimeout({
           video: {
             facingMode: 'user',
             width: { ideal: 1280, max: 1920 },
@@ -297,11 +327,12 @@ export default function GoLivePage() {
             autoGainControl: true,
           },
         });
-      } catch (constraintError) {
+      } catch (constraintError: any) {
         // Safari can fail with strict width/height/frameRate constraints
         // Retry with minimal constraints for Safari compatibility
+        if (constraintError.name === 'TimeoutError') throw constraintError;
         console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
-        stream = await navigator.mediaDevices.getUserMedia({
+        stream = await getUserMediaWithTimeout({
           video: { facingMode: 'user' },
           audio: true,
         });
@@ -329,14 +360,30 @@ export default function GoLivePage() {
         // Ensure playsinline attributes are set (critical for Safari/iOS)
         videoRef.current.setAttribute('playsinline', '');
         videoRef.current.setAttribute('webkit-playsinline', '');
-        videoRef.current.srcObject = stream;
+
+        // Safari GPU compositing bug: assigning a live MediaStream to srcObject
+        // can render a black screen. Cloning the stream forces Safari to create a
+        // fresh rendering pipeline that avoids the compositing issue.
+        videoRef.current.srcObject = stream.clone();
 
         // Safari needs a brief moment after srcObject is set before play() works
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         try {
           await videoRef.current.play();
           setVideoPlaying(true);
+
+          // Force Safari GPU repaint to avoid black screen after play starts
+          requestAnimationFrame(() => {
+            if (videoRef.current) {
+              videoRef.current.style.willChange = 'transform';
+              requestAnimationFrame(() => {
+                if (videoRef.current) {
+                  videoRef.current.style.willChange = '';
+                }
+              });
+            }
+          });
         } catch (playError) {
           // Autoplay blocked (common on Safari) - user needs to tap to play
           console.warn('[GoLive] Video autoplay blocked:', playError);
@@ -344,7 +391,7 @@ export default function GoLivePage() {
         }
       }
 
-      // Setup audio monitoring with the existing stream
+      // Setup audio monitoring with the original stream (not the clone)
       setupAudioMonitoring(stream);
 
       // Set selected devices AFTER setting up the stream to avoid triggering startMediaStream
@@ -354,7 +401,9 @@ export default function GoLivePage() {
       console.error('[GoLive] Error initializing devices:', err);
 
       // Provide more specific error message based on the error
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      if (err.name === 'TimeoutError') {
+        setPreviewError('Camera permission timed out. Please reload and click "Allow" when prompted.');
+      } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setPreviewError('Camera/microphone access denied. Please allow access in your browser settings and reload.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         setPreviewError('No camera or microphone found. Please connect a device.');
@@ -389,7 +438,7 @@ export default function GoLivePage() {
           frameRate: { ideal: 30, max: 30 },
         };
 
-        stream = await navigator.mediaDevices.getUserMedia({
+        stream = await getUserMediaWithTimeout({
           video: videoConstraints,
           audio: {
             deviceId: selectedAudioDevice,
@@ -398,10 +447,11 @@ export default function GoLivePage() {
             autoGainControl: true,
           },
         });
-      } catch (constraintError) {
+      } catch (constraintError: any) {
         // Safari fallback with minimal constraints
+        if (constraintError.name === 'TimeoutError') throw constraintError;
         console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
-        stream = await navigator.mediaDevices.getUserMedia({
+        stream = await getUserMediaWithTimeout({
           video: selectedVideoDevice
             ? { deviceId: { exact: selectedVideoDevice } }
             : { facingMode: 'user' },
@@ -439,21 +489,34 @@ export default function GoLivePage() {
       if (videoRef.current) {
         videoRef.current.setAttribute('playsinline', '');
         videoRef.current.setAttribute('webkit-playsinline', '');
-        videoRef.current.srcObject = stream;
 
-        // Safari needs a brief moment after srcObject is set before play() works
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Safari GPU compositing fix: clone stream to avoid black screen
+        videoRef.current.srcObject = stream.clone();
+
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         try {
           await videoRef.current.play();
           setVideoPlaying(true);
+
+          // Force Safari GPU repaint
+          requestAnimationFrame(() => {
+            if (videoRef.current) {
+              videoRef.current.style.willChange = 'transform';
+              requestAnimationFrame(() => {
+                if (videoRef.current) {
+                  videoRef.current.style.willChange = '';
+                }
+              });
+            }
+          });
         } catch (playError) {
           console.warn('[GoLive] Video autoplay blocked:', playError);
           setVideoPlaying(false);
         }
       }
 
-      // Setup audio monitoring
+      // Setup audio monitoring with original stream
       setupAudioMonitoring(stream);
     } catch (err: any) {
       console.error('[GoLive] Error starting media stream:', err);
@@ -494,15 +557,28 @@ export default function GoLivePage() {
     animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
   };
 
-  // Handle tap to play video (iOS requires user gesture)
+  // Handle tap to play video (iOS/Safari requires user gesture)
   const handleTapToPlay = async () => {
     if (videoRef.current && mediaStream) {
       try {
-        videoRef.current.srcObject = mediaStream;
+        // Clone stream for Safari GPU compositing fix
+        videoRef.current.srcObject = mediaStream.clone();
         await videoRef.current.play();
         setVideoPlaying(true);
+
+        // Force Safari GPU repaint
+        requestAnimationFrame(() => {
+          if (videoRef.current) {
+            videoRef.current.style.willChange = 'transform';
+            requestAnimationFrame(() => {
+              if (videoRef.current) {
+                videoRef.current.style.willChange = '';
+              }
+            });
+          }
+        });
       } catch (err) {
-        console.error('Failed to play video:', err);
+        console.error('[GoLive] Failed to play video:', err);
       }
     }
   };
