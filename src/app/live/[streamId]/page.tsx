@@ -2200,12 +2200,12 @@ export default function TheaterModePage() {
           </div>
 
           {/* Action Buttons Bar - desktop only */}
-          <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3">
+          <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3 overflow-visible">
             {/* Send Gift Button - opens modal */}
             <button
               onClick={() => setShowTipModal(true)}
               disabled={!currentUser}
-              className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2"
+              className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2 flex-shrink-0"
             >
               <Coins className="w-4 h-4" />
               <span>Send Gift</span>
@@ -2216,14 +2216,16 @@ export default function TheaterModePage() {
 
             {/* Go Private Button */}
             {stream.creatorCallSettings && stream.goPrivateEnabled !== false && (
-              <RequestCallButton
-                creatorId={stream.creator.id}
-                creatorName={stream.creator.displayName || stream.creator.username}
-                ratePerMinute={stream.goPrivateRate ?? stream.creatorCallSettings.callRatePerMinute}
-                minimumDuration={stream.goPrivateMinDuration ?? stream.creatorCallSettings.minimumCallDuration}
-                isAvailable={stream.creatorCallSettings.isAvailableForCalls}
-                callType="video"
-              />
+              <div className="flex-shrink-0">
+                <RequestCallButton
+                  creatorId={stream.creator.id}
+                  creatorName={stream.creator.displayName || stream.creator.username}
+                  ratePerMinute={stream.goPrivateRate ?? stream.creatorCallSettings.callRatePerMinute}
+                  minimumDuration={stream.goPrivateMinDuration ?? stream.creatorCallSettings.minimumCallDuration}
+                  isAvailable={stream.creatorCallSettings.isAvailableForCalls}
+                  callType="video"
+                />
+              </div>
             )}
 
             {/* Menu Button - only shows when enabled */}
@@ -2231,7 +2233,7 @@ export default function TheaterModePage() {
               <button
                 onClick={() => setShowMenuModal(true)}
                 disabled={!currentUser}
-                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-pink-300/50 flex items-center gap-2 flex-shrink-0"
               >
                 <List className="w-4 h-4" />
                 <span>Menu</span>
@@ -2250,7 +2252,7 @@ export default function TheaterModePage() {
                     setShowQuickBuyModal(true);
                   }
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300/50 flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300/50 flex items-center gap-2 flex-shrink-0"
               >
                 <Ticket className="w-4 h-4" />
                 <span>Get Ticket</span>
@@ -2260,6 +2262,22 @@ export default function TheaterModePage() {
                   <span className="text-amber-900 text-xs ml-1">• {ticketCountdown}</span>
                 )}
               </button>
+            )}
+
+            {/* Inline Gift Bar - desktop */}
+            {stream && !streamEnded && (
+              <div className="flex-1 relative overflow-visible">
+                <FloatingGiftBar
+                  streamId={streamId}
+                  creatorId={stream.creator.id}
+                  onSendGift={handleSendGift}
+                  userBalance={userBalance}
+                  isAuthenticated={!!currentUser}
+                  onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
+                  onBuyCoins={() => setShowBuyCoinsModal(true)}
+                  inline
+                />
+              </div>
             )}
 
             </div>
@@ -2644,20 +2662,7 @@ export default function TheaterModePage() {
       </div>
 
 
-      {/* Desktop Floating Gift Bar */}
-      {stream && !streamEnded && (
-        <div className="hidden lg:block">
-          <FloatingGiftBar
-            streamId={streamId}
-            creatorId={stream.creator.id}
-            onSendGift={handleSendGift}
-            userBalance={userBalance}
-            isAuthenticated={!!currentUser}
-            onAuthRequired={() => router.push(`/login?redirect=/live/${streamId}`)}
-            onBuyCoins={() => setShowBuyCoinsModal(true)}
-          />
-        </div>
-      )}
+      {/* Desktop Floating Gift Bar - removed: now inline in desktop action bar */}
 
       {/* Mobile Goal Bar - floating at top (matches creator mobile POV) */}
       {stream && stream.goals && stream.goals.length > 0 && !streamEnded && stream.goals.some((g: any) => g.isActive && !g.isCompleted) && (

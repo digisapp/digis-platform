@@ -14,18 +14,20 @@ export function createClient() {
     {
       cookies: {
         getAll() {
+          if (typeof document === 'undefined') return [];
           return document.cookie.split(';').map(cookie => {
             const [name, ...rest] = cookie.trim().split('=');
             return { name, value: rest.join('=') };
           }).filter(cookie => cookie.name);
         },
         setAll(cookiesToSet) {
+          if (typeof document === 'undefined') return;
           cookiesToSet.forEach(({ name, value, options }) => {
             // Set cookies with explicit SameSite=Lax for better compatibility
             const cookieOptions = {
               ...options,
               sameSite: 'lax' as const,
-              secure: window.location.protocol === 'https:',
+              secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
             };
 
             let cookieString = `${name}=${value}`;

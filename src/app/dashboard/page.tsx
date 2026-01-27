@@ -196,17 +196,38 @@ export default function FanDashboard() {
         {/* New User Welcome / Empty State */}
         {isNewUser && (
           <div className="mb-8 backdrop-blur-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_50px_rgba(34,211,238,0.2)]">
-            <div className="text-5xl mb-4">👋</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Digis!</h2>
+            <div className="text-5xl mb-4">{user?.role === 'creator' ? '🎬' : '👋'}</div>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              {user?.role === 'creator' ? 'Welcome, Creator!' : 'Welcome to Digis!'}
+            </h2>
             <p className="text-gray-300 mb-6 max-w-md mx-auto">
-              Start by following some creators to personalize your feed. We'll show you their live streams, new content, and upcoming streams right here.
+              {user?.role === 'creator'
+                ? 'Your creator dashboard is ready. Go live, upload content, or set up your profile to start earning.'
+                : 'Start by following some creators to personalize your feed. We\'ll show you their live streams, new content, and upcoming streams right here.'}
             </p>
-            <button
-              onClick={() => router.push('/explore')}
-              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
-            >
-              Explore Creators
-            </button>
+            {user?.role === 'creator' ? (
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => router.push('/stream')}
+                  className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                >
+                  Go Live
+                </button>
+                <button
+                  onClick={() => router.push('/creator/content')}
+                  className="px-8 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
+                >
+                  Upload Content
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => router.push('/explore')}
+                className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+              >
+                Explore Creators
+              </button>
+            )}
           </div>
         )}
 
@@ -591,23 +612,46 @@ export default function FanDashboard() {
         {/* Empty state for returning users with no activity */}
         {!isNewUser && liveFromFollowing.length === 0 && recentContent.length === 0 && upcomingFromFollowing.length === 0 && (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">No New Activity</h3>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">
+              {user?.role === 'creator' ? 'Your Dashboard' : 'No New Activity'}
+            </h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              The creators you follow haven't posted anything new recently. Check back later or discover new creators!
+              {user?.role === 'creator'
+                ? 'Ready to create? Go live, upload new content, or check your earnings.'
+                : 'The creators you follow haven\'t posted anything new recently. Check back later or discover new creators!'}
             </p>
             <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => router.push('/explore')}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
-              >
-                Explore Creators
-              </button>
-              <button
-                onClick={() => router.push('/watch')}
-                className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
-              >
-                See Who's Live
-              </button>
+              {user?.role === 'creator' ? (
+                <>
+                  <button
+                    onClick={() => router.push('/stream')}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                  >
+                    Go Live
+                  </button>
+                  <button
+                    onClick={() => router.push('/creator/content')}
+                    className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
+                  >
+                    Upload Content
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => router.push('/explore')}
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg"
+                  >
+                    Explore Creators
+                  </button>
+                  <button
+                    onClick={() => router.push('/watch')}
+                    className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
+                  >
+                    See Who's Live
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
