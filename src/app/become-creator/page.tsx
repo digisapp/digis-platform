@@ -27,6 +27,8 @@ export default function BecomeCreatorPage() {
     if (isLoggedIn) {
       router.push('/creator/apply');
     } else {
+      // Mark intent so we skip role selection after signup
+      localStorage.setItem('digis_creator_intent', 'true');
       setShowSignup(true);
     }
   };

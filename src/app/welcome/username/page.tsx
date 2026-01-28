@@ -126,8 +126,16 @@ export default function UsernameSetupPage() {
         throw new Error(data.error || 'Failed to set username');
       }
 
-      // Success! Go to role selection so users can choose fan vs creator
-      router.push('/welcome/role');
+      // Check if user came from /become-creator (creator intent)
+      const creatorIntent = localStorage.getItem('digis_creator_intent');
+      if (creatorIntent) {
+        // Clear the flag and go straight to creator application
+        localStorage.removeItem('digis_creator_intent');
+        router.push('/creator/apply');
+      } else {
+        // Normal flow: go to role selection
+        router.push('/welcome/role');
+      }
 
     } catch (err: any) {
       console.error('Error setting username:', err);
