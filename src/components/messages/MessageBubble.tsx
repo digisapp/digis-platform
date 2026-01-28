@@ -595,7 +595,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
                   )}
                 </>
               ) : (
-                // Coin Gift Display
+                // Coin Tip Display
                 <>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-lg">

@@ -229,7 +229,7 @@ export function StreamAnalyticsDashboard({ timeRange = '30d' }: StreamAnalyticsD
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
-            <p className="text-sm text-gray-600 mb-1">Coin Gifts</p>
+            <p className="text-sm text-gray-600 mb-1">Coin Tips</p>
             <p className="text-2xl font-bold text-yellow-700">
               {formatCurrency(analytics.earningsBreakdown.tips)}
             </p>
