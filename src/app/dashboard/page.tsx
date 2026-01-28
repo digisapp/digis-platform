@@ -75,7 +75,7 @@ interface SuggestedCreator {
 
 export default function FanDashboard() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isCreator } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isNewUser, setIsNewUser] = useState(false);
   const [followingCount, setFollowingCount] = useState(0);
@@ -196,16 +196,16 @@ export default function FanDashboard() {
         {/* New User Welcome / Empty State */}
         {isNewUser && (
           <div className="mb-8 backdrop-blur-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_50px_rgba(34,211,238,0.2)]">
-            <div className="text-5xl mb-4">{user?.role === 'creator' ? '🎬' : '👋'}</div>
+            <div className="text-5xl mb-4">{isCreator ? '🎬' : '👋'}</div>
             <h2 className="text-2xl font-bold text-white mb-2">
-              {user?.role === 'creator' ? 'Welcome, Creator!' : 'Welcome to Digis!'}
+              {isCreator ? 'Welcome, Creator!' : 'Welcome to Digis!'}
             </h2>
             <p className="text-gray-300 mb-6 max-w-md mx-auto">
-              {user?.role === 'creator'
+              {isCreator
                 ? 'Your creator dashboard is ready. Go live, upload content, or set up your profile to start earning.'
                 : 'Start by following some creators to personalize your feed. We\'ll show you their live streams, new content, and upcoming streams right here.'}
             </p>
-            {user?.role === 'creator' ? (
+            {isCreator ? (
               <div className="flex gap-4 justify-center">
                 <button
                   onClick={() => router.push('/stream')}
@@ -613,15 +613,15 @@ export default function FanDashboard() {
         {!isNewUser && liveFromFollowing.length === 0 && recentContent.length === 0 && upcomingFromFollowing.length === 0 && (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">
-              {user?.role === 'creator' ? 'Your Dashboard' : 'No New Activity'}
+              {isCreator ? 'Your Dashboard' : 'No New Activity'}
             </h3>
             <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              {user?.role === 'creator'
+              {isCreator
                 ? 'Ready to create? Go live, upload new content, or check your earnings.'
                 : 'The creators you follow haven\'t posted anything new recently. Check back later or discover new creators!'}
             </p>
             <div className="flex gap-4 justify-center">
-              {user?.role === 'creator' ? (
+              {isCreator ? (
                 <>
                   <button
                     onClick={() => router.push('/stream')}
