@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 import { CreatorOnboardingModal } from '@/components/creator/CreatorOnboardingModal';
+import { SuccessCoachButton } from '@/components/creator/SuccessCoach';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Analytics {
@@ -896,6 +897,11 @@ export default function CreatorDashboard() {
 
         </div>
       </div>
+
+      {/* Creator Success Coach - AI-powered assistant */}
+      {userProfile?.id && (
+        <SuccessCoachButton creatorId={userProfile.id} />
+      )}
     </div>
   );
 }
