@@ -53,15 +53,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Maximum recording duration is ${MAX_DURATION / 60} minutes` }, { status: 400 });
     }
 
-    // Validate file type
+    // Validate file type (use startsWith to accept codec params like video/mp4;codecs=...)
     const validVideoTypes = ['video/webm', 'video/mp4', 'video/quicktime'];
-    if (!validVideoTypes.includes(videoFile.type)) {
+    if (!validVideoTypes.some(t => videoFile.type.startsWith(t))) {
       return NextResponse.json({ error: 'Invalid video format' }, { status: 400 });
     }
 
     // Upload to Supabase Storage
     const bucket = 'recordings';
-    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.webm`;
+    const ext = videoFile.type.includes('mp4') ? 'mp4' : 'webm';
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)

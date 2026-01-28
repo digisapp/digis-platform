@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
+    // Validate file type (use startsWith to accept codec params like video/mp4;codecs=...)
     const validTypes = ['video/webm', 'video/mp4', 'video/quicktime'];
-    if (!validTypes.includes(videoFile.type)) {
+    if (!validTypes.some(t => videoFile.type.startsWith(t))) {
       return NextResponse.json({ error: 'Invalid video format' }, { status: 400 });
     }
 
