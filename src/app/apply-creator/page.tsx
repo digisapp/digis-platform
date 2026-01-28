@@ -40,11 +40,14 @@ export default function ApplyCreatorPage() {
   const [isCreator, setIsCreator] = useState(false);
 
   // Form fields
+  const [fullName, setFullName] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
   const [tiktokHandle, setTiktokHandle] = useState('');
   const [followerCount, setFollowerCount] = useState('');
   const [contentCategory, setContentCategory] = useState('');
   const [bio, setBio] = useState('');
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -90,11 +93,14 @@ export default function ApplyCreatorPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          fullName: fullName.trim(),
           instagramHandle: instagramHandle.trim() || null,
           tiktokHandle: tiktokHandle.trim() || null,
           followerCount,
           contentCategory,
           bio: bio.trim() || null,
+          ageConfirmed,
+          termsAccepted,
         }),
       });
 
@@ -196,11 +202,14 @@ export default function ApplyCreatorPage() {
             <button
               onClick={() => {
                 setExistingApplication(null);
+                setFullName('');
                 setInstagramHandle('');
                 setTiktokHandle('');
                 setFollowerCount('');
                 setContentCategory('');
                 setBio('');
+                setAgeConfirmed(false);
+                setTermsAccepted(false);
               }}
               className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors"
             >
@@ -250,12 +259,32 @@ export default function ApplyCreatorPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Your Information</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Full Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Your full name"
+                  required
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
             <h2 className="text-lg font-semibold text-white mb-4">Your Social Presence</h2>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Instagram Handle
+                  Instagram Handle <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
                   <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-pink-400" />
@@ -343,6 +372,37 @@ export default function ApplyCreatorPage() {
             </div>
           </div>
 
+          {/* Confirmations */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 space-y-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ageConfirmed}
+                onChange={(e) => setAgeConfirmed(e.target.checked)}
+                className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
+              />
+              <span className="text-gray-300 text-sm">
+                I confirm that I am 18 years of age or older <span className="text-red-400">*</span>
+              </span>
+            </label>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-1 w-5 h-5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0"
+              />
+              <span className="text-gray-300 text-sm">
+                I agree to the{' '}
+                <a href="/terms" target="_blank" className="text-cyan-400 hover:underline">
+                  Creator Terms of Service
+                </a>{' '}
+                <span className="text-red-400">*</span>
+              </span>
+            </label>
+          </div>
+
           {error && (
             <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -352,7 +412,7 @@ export default function ApplyCreatorPage() {
 
           <button
             type="submit"
-            disabled={submitting || !contentCategory}
+            disabled={submitting || !fullName || !instagramHandle || !followerCount || !ageConfirmed || !termsAccepted}
             className="w-full py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {submitting ? (
@@ -367,10 +427,6 @@ export default function ApplyCreatorPage() {
               </>
             )}
           </button>
-
-          <p className="text-center text-gray-500 text-sm">
-            By applying, you agree to our Creator Terms of Service and confirm you are 18+.
-          </p>
         </form>
       </div>
     </div>
