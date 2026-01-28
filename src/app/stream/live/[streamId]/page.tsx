@@ -2420,7 +2420,7 @@ export default function BroadcastStudioPage() {
                             ? 'bg-yellow-500/20 border-yellow-500/50 hover:bg-yellow-500/30'
                             : 'bg-black/60 border-white/20 hover:border-white/40 hover:bg-black/80'
                         }`}
-                        title={menuEnabled ? 'Hide Tip Menu' : 'Show Tip Menu'}
+                        title={menuEnabled ? 'Hide Creator Menu' : 'Show Creator Menu'}
                       >
                         <List className={`w-4 h-4 ${menuEnabled ? 'text-yellow-400' : 'text-white/60'}`} />
                       </button>

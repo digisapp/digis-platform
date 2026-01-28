@@ -657,7 +657,7 @@ function PricingPageContent() {
                   <Coins className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-white mb-2">No menu items yet</h3>
                   <p className="text-gray-400 mb-4">
-                    Add items that fans can tip for during your live streams
+                    Add items that fans can purchase during your live streams
                   </p>
                   <GlassButton onClick={openAddModal} variant="gradient">
                     <Plus className="w-4 h-4 mr-2" />

@@ -114,7 +114,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
     const finalAmount = selectedGift ? selectedGift.coinCost : parseInt(customAmount) || 0;
 
     if (finalAmount < 1) {
-      setError('Please enter an amount or select a gift');
+      setError('Please enter a tip amount or select a gift');
       return;
     }
 
@@ -136,7 +136,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
       );
       onClose();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send gift');
+      setError(error instanceof Error ? error.message : 'Failed to send');
     } finally {
       setSending(false);
     }
@@ -172,7 +172,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             </svg>
           </button>
 
-          {/* Header - Send Gift to Username */}
+          {/* Header - Send Gift or Tip */}
           <div className="text-center mb-4">
             <div className="relative inline-block mb-3">
               <div className="absolute -inset-2 bg-yellow-500/30 rounded-full blur-xl"></div>
@@ -181,7 +181,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
               </div>
             </div>
             <h3 className="text-xl font-bold bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
-              Send Gift
+              Send Tip or Gift
             </h3>
             <p className="text-gray-400 text-sm">to {receiverName}</p>
           </div>
@@ -193,9 +193,9 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             <span className="text-sm font-bold text-yellow-500">{balance.toLocaleString()}</span>
           </div>
 
-          {/* Coin Gift Input */}
+          {/* Coin Tip Input */}
           <div className="mb-4">
-            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">🪙 Coin Gift</label>
+            <label className="text-xs text-gray-400 uppercase tracking-wide mb-2 block">🪙 Coin Tip</label>
             <div className="relative">
               <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-500/70" />
               <input
@@ -289,7 +289,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             </div>
           )}
 
-          {/* Send Gift Button (no cancel button) */}
+          {/* Send Button */}
           <button
             onClick={handleSend}
             disabled={sending || !canAfford}
@@ -301,7 +301,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
                 <span>Sending...</span>
               </>
             ) : !canAfford ? (
-              finalAmount > balance ? 'Insufficient Balance' : 'Select Gift or Enter Amount'
+              finalAmount > balance ? 'Insufficient Balance' : 'Select Gift or Enter Tip'
             ) : (
               <>
                 <Gift className="w-5 h-5" />

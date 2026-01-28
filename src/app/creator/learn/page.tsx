@@ -405,10 +405,10 @@ const featureGuides: FeatureGuide[] = [
   },
   {
     id: 'tip-menu',
-    title: 'Tip Menu',
+    title: 'Creator Menu',
     icon: <DollarSign className="w-6 h-6" />,
     color: 'text-green-400',
-    description: 'Create a menu of actions fans can tip for during streams or anytime.',
+    description: 'Create a menu of actions fans can request during streams or anytime.',
     tips: [
       'Offer a variety of price points',
       'Include fun, interactive options',
@@ -416,7 +416,7 @@ const featureGuides: FeatureGuide[] = [
       'Promote menu items during streams'
     ],
     steps: [
-      'Go to Pricing > Tip Menu',
+      'Go to Pricing > Creator Menu',
       'Add items with emojis, descriptions, and prices',
       'Toggle items on/off as needed',
       'Fans see your menu on your profile and in streams'
@@ -470,7 +470,7 @@ const featureGuides: FeatureGuide[] = [
     steps: [
       'Go to Pricing from your profile menu',
       'Set rates for video calls, voice calls, and messages',
-      'Configure your tip menu',
+      'Configure your creator menu',
       'Save changes to update your profile'
     ],
     videoUrl: "",

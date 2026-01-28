@@ -874,10 +874,10 @@ export default function StreamRemoteControlPage() {
             )}
           </div>
 
-          {/* Tip Menu Toggle */}
+          {/* Creator Menu Toggle */}
           <div className="bg-white/5 rounded-xl p-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Tip Menu</h3>
+              <h3 className="font-semibold">Creator Menu</h3>
               <button
                 onClick={toggleTipMenu}
                 className={`px-4 py-2 rounded-lg font-medium ${
