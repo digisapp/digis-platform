@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { userId, email, username, website, defaultRole } = await request.json();
+    const { userId, email, username, website } = await request.json();
 
     if (!userId || !email) {
       return NextResponse.json(
@@ -39,16 +39,16 @@ export async function POST(request: NextRequest) {
 
     // Determine user role based on:
     // 1. If email matches a pending creator invite → creator (verified, admin pre-approved)
-    // 2. Otherwise → fan (must apply via /apply-creator for admin approval)
+    // 2. Otherwise → fan (can apply to become creator via /creator/apply)
     //
     // SECURITY: Only admin-approved paths can create creators:
+    // - Email matching invite (auto-approve)
     // - Invite claim (/api/claim/[code])
     // - Admin role update (/api/admin/users/[userId]/role)
     // - Admin application approve (/api/admin/creator-applications/[id]/approve)
     let userRole: 'fan' | 'creator' = 'fan';
     let isCreatorVerified = false;
     let matchedInvite = null;
-    let wantsToBeCreator = defaultRole === 'creator';
 
     try {
       matchedInvite = await db.query.creatorInvites.findFirst({
@@ -63,9 +63,6 @@ export async function POST(request: NextRequest) {
         userRole = 'creator';
         isCreatorVerified = true;
         console.log(`[Signup] Email ${cleanEmail} matched creator invite, granting verified creator role`);
-      } else if (wantsToBeCreator) {
-        // Signed up wanting to be a creator - stays as fan, will auto-create application
-        console.log(`[Signup] Email ${cleanEmail} wants to be creator - will create pending application`);
       }
     } catch (err) {
       console.error('[Signup] Error checking creator invites:', err);
@@ -260,20 +257,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Note: We don't auto-create creator applications during signup anymore.
-    // Users who select "Creator" during signup are redirected to /creator/apply
-    // where they fill out the full application form with details (name, instagram, etc).
-    // This provides a better UX and ensures applications have complete information.
-    if (wantsToBeCreator && !matchedInvite) {
-      console.log(`[Signup] User ${cleanEmail} wants to be creator - will redirect to /creator/apply`);
-    }
-
     return NextResponse.json({
       success: true,
       username: cleanUsername,
       role: userRole,
       isCreator: userRole === 'creator',
-      applicationPending: wantsToBeCreator && !matchedInvite, // Let frontend know to show pending status
     });
   } catch (error: any) {
     console.error('Error reserving username:', error);

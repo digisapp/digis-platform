@@ -25,7 +25,7 @@ export default function BecomeCreatorPage() {
 
   const handleApplyClick = () => {
     if (isLoggedIn) {
-      router.push('/apply-creator');
+      router.push('/creator/apply');
     } else {
       setShowSignup(true);
     }
@@ -41,8 +41,7 @@ export default function BecomeCreatorPage() {
           setShowSignup(false);
           setShowLogin(true);
         }}
-        redirectTo="/apply-creator"
-        defaultRole="creator"
+        redirectTo="/creator/apply"
       />
       <LoginModal
         isOpen={showLogin}

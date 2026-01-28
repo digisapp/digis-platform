@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
-import { Users, Star } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface SignupModalProps {
@@ -13,15 +12,13 @@ interface SignupModalProps {
   onClose: () => void;
   onSwitchToLogin: () => void;
   redirectTo?: string;
-  defaultRole?: 'fan' | 'creator';
 }
 
-export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defaultRole = 'fan' }: SignupModalProps) {
+export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: SignupModalProps) {
   const { showSuccess, showError } = useToastContext();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'fan' | 'creator'>(defaultRole);
   const [website, setWebsite] = useState(''); // Honeypot field - should stay empty
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,11 +31,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
     if (!isOpen) {
       setEmail('');
       setPassword('');
-      setSelectedRole(defaultRole);
       setError('');
       setSuccess(false);
     }
-  }, [isOpen, defaultRole]);
+  }, [isOpen]);
 
   const handleResend = async () => {
     if (!signupEmail) return;
@@ -46,7 +42,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
     setResendLoading(true);
     try {
       const supabase = createClient();
-      const destinationUrl = selectedRole === 'creator' ? '/creator/apply' : '/welcome/username';
+      // Everyone goes to welcome page after verification
+      const destinationUrl = redirectTo || '/welcome';
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: signupEmail,
@@ -85,18 +82,15 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
     try {
       const supabase = createClient();
 
-      // Determine redirect based on role
-      const destinationUrl = selectedRole === 'creator' ? '/creator/apply' : '/welcome/username';
+      // Everyone goes to welcome page after verification
+      const destinationUrl = redirectTo || '/welcome';
 
-      // Sign up with Supabase Auth, storing intended role in metadata
+      // Sign up with Supabase Auth
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}${destinationUrl}`,
-          data: {
-            intended_role: selectedRole,
-          },
         },
       });
 
@@ -108,7 +102,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
         throw new Error('Signup failed - no user returned');
       }
 
-      // Create the user record in database (without username)
+      // Create the user record in database
+      // Note: If email matches a creator invite, they'll be auto-approved as creator
       const reserveResponse = await fetch('/api/auth/reserve-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,7 +112,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
           email,
           username: null, // No username at signup
           website, // Honeypot field
-          defaultRole: selectedRole,
         }),
       });
 
@@ -193,9 +187,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
               <span className="text-digis-cyan">{signupEmail}</span>
             </p>
             <p className="text-sm text-gray-400 max-w-sm mx-auto">
-              {selectedRole === 'creator'
-                ? 'Click the link in your email to verify your account and start your creator application!'
-                : 'Click the link in your email to verify your account and start connecting with your favorite creators!'}
+              Click the link in your email to verify your account and get started!
             </p>
           </div>
 
@@ -231,46 +223,6 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo, defa
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Role Selection */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-300">
-              I want to join as a... <span className="text-red-400">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedRole('fan')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  selectedRole === 'fan'
-                    ? 'border-digis-cyan bg-digis-cyan/10 text-white'
-                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
-                }`}
-              >
-                <Users className={`w-8 h-8 ${selectedRole === 'fan' ? 'text-digis-cyan' : ''}`} />
-                <span className="font-semibold">Fan</span>
-                <span className="text-xs text-gray-500">Support creators</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedRole('creator')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                  selectedRole === 'creator'
-                    ? 'border-digis-purple bg-digis-purple/10 text-white'
-                    : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20 hover:bg-white/10'
-                }`}
-              >
-                <Star className={`w-8 h-8 ${selectedRole === 'creator' ? 'text-digis-purple' : ''}`} />
-                <span className="font-semibold">Creator</span>
-                <span className="text-xs text-gray-500">Share content</span>
-              </button>
-            </div>
-            {selectedRole === 'creator' && (
-              <p className="text-xs text-amber-400 mt-2">
-                ⚡ Creator accounts require approval. You'll complete an application after verifying your email.
-              </p>
-            )}
-          </div>
-
           <GlassInput
             type="email"
             label="Email"
