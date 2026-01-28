@@ -126,9 +126,8 @@ export default function UsernameSetupPage() {
         throw new Error(data.error || 'Failed to set username');
       }
 
-      // Success! Go directly to dashboard - users start as fans
-      // They can apply to be a creator anytime via /creator/apply
-      router.push('/dashboard');
+      // Success! Go to role selection so users can choose fan vs creator
+      router.push('/welcome/role');
 
     } catch (err: any) {
       console.error('Error setting username:', err);
