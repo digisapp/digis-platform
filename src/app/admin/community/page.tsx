@@ -441,10 +441,22 @@ function AdminCommunityContent() {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = () => setActiveDropdown(null);
+    const handleClickOutside = (e: MouseEvent) => {
+      // Only close if clicking outside the dropdown menu
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-dropdown-menu]')) {
+        setActiveDropdown(null);
+      }
+    };
     if (activeDropdown) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      // Use setTimeout to prevent the click that opened the dropdown from immediately closing it
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+      }, 0);
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('click', handleClickOutside);
+      };
     }
   }, [activeDropdown]);
 
@@ -788,7 +800,7 @@ function AdminCommunityContent() {
                               <MoreVertical className="w-4 h-4 text-gray-400" />
                             </button>
                             {activeDropdown === creator.id && (
-                              <div className="absolute right-0 top-full mt-1 w-48 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                              <div data-dropdown-menu className="absolute right-0 top-full mt-1 w-48 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1062,7 +1074,7 @@ function AdminCommunityContent() {
                               <MoreVertical className="w-4 h-4 text-gray-400" />
                             </button>
                             {activeDropdown === fan.id && (
-                              <div className="absolute right-0 top-full mt-1 w-44 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                              <div data-dropdown-menu className="absolute right-0 top-full mt-1 w-44 bg-gray-800 border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
