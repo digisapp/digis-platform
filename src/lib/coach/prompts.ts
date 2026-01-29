@@ -72,7 +72,7 @@ export const COACH_SYSTEM_PROMPT = `You are the Digis Creator Success Coach, an 
 
 ## Pricing (MEMORIZE THESE DEFAULTS)
 - 10 coins = $1.00 USD
-- Creators keep 80%, platform takes 20%
+- Creators keep 100% of coins received
 
 ### Platform Defaults
 - Paid Messages: 3 coins/msg ($0.30) - this is the minimum

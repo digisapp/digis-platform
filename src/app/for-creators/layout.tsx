@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Turn Your Following Into Real Income | Digis',
-    description: 'No weird corporate stuff. Just you, your vibe, your fans — paid. 10+ ways to earn, AI that talks like you 24/7, 80% creator payout.',
+    description: 'No weird corporate stuff. Just you, your vibe, your fans — paid. 10+ ways to earn, AI that talks like you 24/7, 100% creator payout.',
     url: 'https://digis.cc/for-creators',
     siteName: 'Digis',
     locale: 'en_US',

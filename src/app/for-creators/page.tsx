@@ -346,7 +346,7 @@ const slides: Slide[] = [
         <p className="text-5xl mb-4">🚀</p>
         <h2 className="text-3xl font-black text-white mb-4">READY TO GET PAID?</h2>
         <p className="text-white/80 mb-6">
-          free to join · no monthly fees · 80% payout
+          free to join · no monthly fees · 100% payout
         </p>
         <Link
           href="/become-creator"
