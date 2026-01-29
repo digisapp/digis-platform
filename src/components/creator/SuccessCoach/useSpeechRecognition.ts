@@ -74,7 +74,9 @@ declare global {
 export function useSpeechRecognition(
   options: UseSpeechRecognitionOptions = {}
 ): UseSpeechRecognitionReturn {
-  const { onResult, onError, continuous = false, language = 'en-US' } = options;
+  // Default to browser's language (supports Spanish, Portuguese, etc.)
+  const browserLanguage = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+  const { onResult, onError, continuous = false, language = browserLanguage } = options;
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
