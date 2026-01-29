@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Send, Sparkles, Trash2, Mic } from 'lucide-react';
 import { SuccessCoachMessage } from './SuccessCoachMessage';
 import { QuickActionButtons } from './QuickActionButtons';
 import { ScriptGeneratorFlow } from './ScriptGeneratorFlow';
 import { useCoachChat } from './useCoachChat';
+import { useSpeechRecognition } from './useSpeechRecognition';
 
 interface SuccessCoachPanelProps {
   creatorId: string;
@@ -31,6 +32,32 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
     generateScript,
     closeScriptGenerator
   } = useCoachChat(creatorId);
+
+  // Voice input handling
+  const handleVoiceResult = useCallback((transcript: string) => {
+    if (transcript.trim() && !isLoading) {
+      sendMessage(transcript);
+    }
+  }, [sendMessage, isLoading]);
+
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    transcript: voiceTranscript,
+    startListening,
+    stopListening,
+    error: voiceError
+  } = useSpeechRecognition({
+    onResult: handleVoiceResult,
+  });
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -172,9 +199,21 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
           )}
 
           {/* Error message */}
-          {error && (
+          {(error || voiceError) && (
             <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-              {error}
+              {error || voiceError}
+            </div>
+          )}
+
+          {/* Listening indicator */}
+          {isListening && (
+            <div className="mx-4 mb-2 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs flex items-center gap-2">
+              <div className="flex gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span>{voiceTranscript || 'Listening...'}</span>
             </div>
           )}
 
@@ -186,13 +225,29 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything..."
-                disabled={isLoading}
+                placeholder={isListening ? 'Listening...' : 'Ask me anything...'}
+                disabled={isLoading || isListening}
                 className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 disabled:opacity-50"
               />
+              {/* Mic button */}
+              {isVoiceSupported && (
+                <button
+                  type="button"
+                  onClick={handleMicClick}
+                  disabled={isLoading}
+                  className={`px-3 py-2.5 rounded-xl transition-all ${
+                    isListening
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={isListening ? 'Stop listening' : 'Voice input'}
+                >
+                  <Mic className="w-4 h-4" />
+                </button>
+              )}
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isListening}
                 className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl text-white hover:from-purple-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
