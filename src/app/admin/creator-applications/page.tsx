@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   Users, Search, CheckCircle, XCircle, Clock, Eye,
   Instagram, ChevronLeft, ChevronRight, ExternalLink,
-  Loader2
+  Loader2, Phone
 } from 'lucide-react';
 import { GlassModal } from '@/components/ui/GlassModal';
 
@@ -30,6 +30,7 @@ interface Application {
   avatar_url: string | null;
   user_created_at: string;
   reviewer_username: string | null;
+  phone_number: string | null;
 }
 
 type TabStatus = 'pending' | 'approved' | 'rejected' | 'all';
@@ -190,7 +191,7 @@ export default function CreatorApplicationsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input
             type="text"
-            placeholder="Search by username, email, or social handle..."
+            placeholder="Search by username, email, phone, or social handle..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none"
@@ -241,7 +242,7 @@ export default function CreatorApplicationsPage() {
                       <span className="text-gray-400 text-sm truncate">{app.email}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-1 text-sm">
+                    <div className="flex items-center gap-3 mt-1 text-sm flex-wrap">
                       {app.instagram_handle && (
                         <a
                           href={`https://instagram.com/${app.instagram_handle.replace('@', '')}`}
@@ -252,6 +253,12 @@ export default function CreatorApplicationsPage() {
                           <Instagram className="w-3.5 h-3.5" />
                           {app.instagram_handle}
                         </a>
+                      )}
+                      {app.phone_number && (
+                        <span className="flex items-center gap-1 text-cyan-400">
+                          <Phone className="w-3.5 h-3.5" />
+                          {app.phone_number}
+                        </span>
                       )}
                       {app.follower_count && (
                         <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">
@@ -490,6 +497,17 @@ export default function CreatorApplicationsPage() {
               <div>
                 <label className="text-xs text-gray-500 uppercase">Instagram Followers</label>
                 <p className="text-white">{selectedApp.follower_count ? Number(selectedApp.follower_count).toLocaleString() : '-'}</p>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 uppercase">Phone Number</label>
+                <p className="text-white flex items-center gap-1">
+                  {selectedApp.phone_number ? (
+                    <>
+                      <Phone className="w-3.5 h-3.5 text-cyan-400" />
+                      {selectedApp.phone_number}
+                    </>
+                  ) : '-'}
+                </p>
               </div>
             </div>
 

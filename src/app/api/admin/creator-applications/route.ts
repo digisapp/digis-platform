@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, creatorApplications } from '@/db/schema';
+import { users, creatorApplications, profiles } from '@/db/schema';
 import { eq, desc, sql, and, ilike, or } from 'drizzle-orm';
 import { isAdminUser } from '@/lib/admin/check-admin';
 
@@ -54,10 +54,12 @@ export async function GET(request: NextRequest) {
         u.display_name,
         u.avatar_url,
         u.created_at as user_created_at,
-        reviewer.username as reviewer_username
+        reviewer.username as reviewer_username,
+        p.phone_number
       FROM creator_applications ca
       INNER JOIN users u ON u.id = ca.user_id
       LEFT JOIN users reviewer ON reviewer.id = ca.reviewed_by
+      LEFT JOIN profiles p ON p.user_id = ca.user_id
       WHERE 1=1
       ${status !== 'all' ? sql`AND ca.status = ${status}` : sql``}
       ${search ? sql`AND (
@@ -66,6 +68,7 @@ export async function GET(request: NextRequest) {
         OR u.display_name ILIKE ${`%${search}%`}
         OR ca.instagram_handle ILIKE ${`%${search}%`}
         OR ca.tiktok_handle ILIKE ${`%${search}%`}
+        OR p.phone_number ILIKE ${`%${search}%`}
       )` : sql``}
       ORDER BY ca.created_at DESC
       LIMIT ${limit}
@@ -79,6 +82,7 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*) as total
       FROM creator_applications ca
       INNER JOIN users u ON u.id = ca.user_id
+      LEFT JOIN profiles p ON p.user_id = ca.user_id
       WHERE 1=1
       ${status !== 'all' ? sql`AND ca.status = ${status}` : sql``}
       ${search ? sql`AND (
@@ -87,6 +91,7 @@ export async function GET(request: NextRequest) {
         OR u.display_name ILIKE ${`%${search}%`}
         OR ca.instagram_handle ILIKE ${`%${search}%`}
         OR ca.tiktok_handle ILIKE ${`%${search}%`}
+        OR p.phone_number ILIKE ${`%${search}%`}
       )` : sql``}
     `;
 
