@@ -77,6 +77,80 @@ export async function GET(request: NextRequest) {
 
     const applications = await db.execute(query);
 
+    // Check for red flags - duplicate detection
+    const applicationsWithFlags = await Promise.all(
+      (applications as any[]).map(async (app) => {
+        const redFlags: { type: string; message: string; severity: 'warning' | 'danger' }[] = [];
+
+        // Check if display_name matches an existing creator's username or display_name
+        if (app.display_name) {
+          const displayNameMatches = await db.execute(sql`
+            SELECT id, username, display_name, role
+            FROM users
+            WHERE id != ${app.user_id}
+              AND role = 'creator'
+              AND (
+                LOWER(username) = LOWER(${app.display_name})
+                OR LOWER(display_name) = LOWER(${app.display_name})
+              )
+            LIMIT 5
+          `);
+
+          if ((displayNameMatches as any[]).length > 0) {
+            const matches = (displayNameMatches as any[]).map(m => `@${m.username}`).join(', ');
+            redFlags.push({
+              type: 'display_name_match',
+              message: `Display name matches existing creator(s): ${matches}`,
+              severity: 'danger',
+            });
+          }
+        }
+
+        // Check if instagram_handle matches an existing user's username
+        if (app.instagram_handle) {
+          const cleanHandle = app.instagram_handle.replace(/^@/, '').replace(/_$/, '');
+          const igMatches = await db.execute(sql`
+            SELECT id, username, display_name, role
+            FROM users
+            WHERE id != ${app.user_id}
+              AND (
+                LOWER(username) = LOWER(${cleanHandle})
+                OR LOWER(username) = LOWER(${app.instagram_handle})
+              )
+            LIMIT 5
+          `);
+
+          if ((igMatches as any[]).length > 0) {
+            const matches = (igMatches as any[]).map((m: any) => `@${m.username} (${m.role})`).join(', ');
+            redFlags.push({
+              type: 'instagram_username_match',
+              message: `Instagram handle matches existing user(s): ${matches}`,
+              severity: 'warning',
+            });
+          }
+        }
+
+        // Check account age - flag accounts less than 24 hours old
+        const accountAgeMs = Date.now() - new Date(app.user_created_at).getTime();
+        const accountAgeHours = accountAgeMs / (1000 * 60 * 60);
+        const accountAgeDays = Math.floor(accountAgeHours / 24);
+
+        if (accountAgeHours < 24) {
+          redFlags.push({
+            type: 'new_account',
+            message: `Account created ${Math.round(accountAgeHours)} hours ago`,
+            severity: 'warning',
+          });
+        }
+
+        return {
+          ...app,
+          red_flags: redFlags,
+          account_age_days: accountAgeDays,
+        };
+      })
+    );
+
     // Get total count
     const countQuery = sql`
       SELECT COUNT(*) as total
@@ -119,7 +193,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      applications,
+      applications: applicationsWithFlags,
       pagination: {
         page,
         limit,

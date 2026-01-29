@@ -6,9 +6,15 @@ import Image from 'next/image';
 import {
   Users, Search, CheckCircle, XCircle, Clock, Eye,
   Instagram, ChevronLeft, ChevronRight, ExternalLink,
-  Loader2, Phone
+  Loader2, Phone, AlertTriangle, ShieldAlert, Calendar
 } from 'lucide-react';
 import { GlassModal } from '@/components/ui/GlassModal';
+
+interface RedFlag {
+  type: string;
+  message: string;
+  severity: 'warning' | 'danger';
+}
 
 interface Application {
   id: string;
@@ -31,6 +37,8 @@ interface Application {
   user_created_at: string;
   reviewer_username: string | null;
   phone_number: string | null;
+  red_flags: RedFlag[];
+  account_age_days: number;
 }
 
 type TabStatus = 'pending' | 'approved' | 'rejected' | 'all';
@@ -267,8 +275,15 @@ export default function CreatorApplicationsPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                      <span>Applied {formatDate(app.created_at)}</span>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Applied {formatDate(app.created_at)}
+                      </span>
+                      <span>•</span>
+                      <span className={app.account_age_days < 1 ? 'text-yellow-400' : ''}>
+                        Account age: {app.account_age_days < 1 ? 'less than 1 day' : `${app.account_age_days} day${app.account_age_days !== 1 ? 's' : ''}`}
+                      </span>
                       {app.reviewed_at && app.reviewer_username && (
                         <>
                           <span>•</span>
@@ -282,6 +297,29 @@ export default function CreatorApplicationsPage() {
                         <p className="text-red-400 text-sm">
                           <strong>Rejection reason:</strong> {app.rejection_reason}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Red Flags Warning */}
+                    {app.red_flags && app.red_flags.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {app.red_flags.map((flag, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
+                              flag.severity === 'danger'
+                                ? 'bg-red-500/20 border border-red-500/30 text-red-300'
+                                : 'bg-yellow-500/20 border border-yellow-500/30 text-yellow-300'
+                            }`}
+                          >
+                            {flag.severity === 'danger' ? (
+                              <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                            ) : (
+                              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                            )}
+                            <span>{flag.message}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -531,16 +569,51 @@ export default function CreatorApplicationsPage() {
               </div>
             </div>
 
-            <div>
-              <label className="text-xs text-gray-500 uppercase">Status</label>
-              <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${
-                selectedApp.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                selectedApp.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                'bg-red-500/20 text-red-400'
-              }`}>
-                {selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)}
-              </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-gray-500 uppercase">Status</label>
+                <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedApp.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                  selectedApp.status === 'approved' ? 'bg-green-500/20 text-green-400' :
+                  'bg-red-500/20 text-red-400'
+                }`}>
+                  {selectedApp.status.charAt(0).toUpperCase() + selectedApp.status.slice(1)}
+                </span>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 uppercase">Account Age</label>
+                <p className={`text-sm mt-1 ${selectedApp.account_age_days < 1 ? 'text-yellow-400' : 'text-white'}`}>
+                  {selectedApp.account_age_days < 1 ? 'Less than 1 day' : `${selectedApp.account_age_days} day${selectedApp.account_age_days !== 1 ? 's' : ''}`}
+                </p>
+              </div>
             </div>
+
+            {/* Red Flags Section */}
+            {selectedApp.red_flags && selectedApp.red_flags.length > 0 && (
+              <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+                <label className="text-xs text-red-400 uppercase flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  Security Flags ({selectedApp.red_flags.length})
+                </label>
+                <div className="mt-2 space-y-2">
+                  {selectedApp.red_flags.map((flag, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-start gap-2 text-sm ${
+                        flag.severity === 'danger' ? 'text-red-300' : 'text-yellow-300'
+                      }`}
+                    >
+                      {flag.severity === 'danger' ? (
+                        <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      )}
+                      <span>{flag.message}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {selectedApp.rejection_reason && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
