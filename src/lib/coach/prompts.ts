@@ -134,39 +134,106 @@ export function buildContextualPrompt(creatorData?: {
   primaryCategory?: string;
   followerCount?: number;
   hasAvatar?: boolean;
-  pricingConfigured?: boolean;
+  // Creator settings
+  messageRate?: number;
+  videoCallRate?: number;
+  voiceCallRate?: number;
+  minimumCallDuration?: number;
+  isAvailableForCalls?: boolean;
+  isAvailableForVoiceCalls?: boolean;
+  // AI Twin
+  aiTwinEnabled?: boolean;
+  aiTwinTextEnabled?: boolean;
+  aiTwinPricePerMinute?: number;
+  // Stats
+  totalEarnings?: number;
+  monthlyEarnings?: number;
+  totalCalls?: number;
+  totalMessages?: number;
 }): string {
   let prompt = COACH_SYSTEM_PROMPT;
 
   if (creatorData) {
-    prompt += `\n\n## Current Creator Context`;
+    prompt += `\n\n## THIS CREATOR'S PROFILE`;
+    if (creatorData.displayName) {
+      prompt += `\n- Name: ${creatorData.displayName}`;
+    }
     if (creatorData.username) {
       prompt += `\n- Username: @${creatorData.username}`;
     }
-    if (creatorData.displayName) {
-      prompt += `\n- Display Name: ${creatorData.displayName}`;
-    }
     if (creatorData.primaryCategory) {
-      prompt += `\n- Primary Category: ${creatorData.primaryCategory}`;
+      prompt += `\n- Category: ${creatorData.primaryCategory}`;
     }
     if (creatorData.followerCount !== undefined) {
       prompt += `\n- Followers: ${creatorData.followerCount}`;
     }
 
-    // Add personalization notes
+    // Current pricing settings
+    prompt += `\n\n## THIS CREATOR'S CURRENT SETTINGS`;
+    if (creatorData.messageRate !== undefined) {
+      prompt += `\n- Message Rate: ${creatorData.messageRate} coins ($${(creatorData.messageRate / 10).toFixed(2)}/msg)`;
+    }
+    if (creatorData.videoCallRate !== undefined) {
+      prompt += `\n- Video Call Rate: ${creatorData.videoCallRate} coins/min ($${(creatorData.videoCallRate / 10).toFixed(2)}/min)`;
+      prompt += `\n- Video Calls: ${creatorData.isAvailableForCalls ? 'ENABLED' : 'DISABLED'}`;
+    }
+    if (creatorData.voiceCallRate !== undefined) {
+      prompt += `\n- Voice Call Rate: ${creatorData.voiceCallRate} coins/min ($${(creatorData.voiceCallRate / 10).toFixed(2)}/min)`;
+      prompt += `\n- Voice Calls: ${creatorData.isAvailableForVoiceCalls ? 'ENABLED' : 'DISABLED'}`;
+    }
+    if (creatorData.minimumCallDuration !== undefined) {
+      prompt += `\n- Min Call Duration: ${creatorData.minimumCallDuration} minutes`;
+    }
+
+    // AI Twin
+    if (creatorData.aiTwinEnabled !== undefined) {
+      prompt += `\n- AI Twin: ${creatorData.aiTwinEnabled ? 'ENABLED' : 'DISABLED'}`;
+      if (creatorData.aiTwinEnabled && creatorData.aiTwinPricePerMinute) {
+        prompt += ` (${creatorData.aiTwinPricePerMinute} coins/min)`;
+      }
+    }
+
+    // Stats if available
+    if (creatorData.totalEarnings !== undefined || creatorData.monthlyEarnings !== undefined) {
+      prompt += `\n\n## THIS CREATOR'S STATS`;
+      if (creatorData.monthlyEarnings !== undefined) {
+        prompt += `\n- This Month: ${creatorData.monthlyEarnings} coins ($${(creatorData.monthlyEarnings / 10).toFixed(2)})`;
+      }
+      if (creatorData.totalEarnings !== undefined) {
+        prompt += `\n- All Time: ${creatorData.totalEarnings} coins ($${(creatorData.totalEarnings / 10).toFixed(2)})`;
+      }
+      if (creatorData.totalCalls !== undefined) {
+        prompt += `\n- Total Calls: ${creatorData.totalCalls}`;
+      }
+      if (creatorData.totalMessages !== undefined) {
+        prompt += `\n- Total Messages: ${creatorData.totalMessages}`;
+      }
+    }
+
+    // Add coaching notes based on their data
     const notes: string[] = [];
+
     if (!creatorData.hasAvatar) {
-      notes.push('Consider suggesting they upload a profile picture for better engagement');
+      notes.push('Suggest uploading a profile picture');
     }
     if (!creatorData.primaryCategory) {
-      notes.push('They haven\'t set a primary category - suggest setting one for better discovery');
+      notes.push('Suggest setting a category for discovery');
     }
-    if (creatorData.followerCount !== undefined && creatorData.followerCount < 10) {
-      notes.push('They\'re just starting out - focus on growth strategies and promotion tips');
+    if (creatorData.followerCount !== undefined && creatorData.followerCount < 50) {
+      notes.push('New creator - focus on growth and promotion');
+    }
+    if (creatorData.isAvailableForCalls === false) {
+      notes.push('Video calls disabled - could suggest enabling');
+    }
+    if (creatorData.aiTwinEnabled === false) {
+      notes.push('AI Twin disabled - could suggest enabling for passive income');
+    }
+    if (creatorData.messageRate === 3) {
+      notes.push('Using minimum message rate - fine for growth, can increase later');
     }
 
     if (notes.length > 0) {
-      prompt += `\n\n## Personalization Notes\n${notes.map(n => `- ${n}`).join('\n')}`;
+      prompt += `\n\n## COACHING OPPORTUNITIES\n${notes.map(n => `- ${n}`).join('\n')}`;
     }
   }
 

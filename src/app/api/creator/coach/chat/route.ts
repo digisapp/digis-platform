@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/db/schema';
+import { users, creatorSettings, aiTwinSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { buildContextualPrompt } from '@/lib/coach/prompts';
 import type { CoachMessage } from '@/lib/coach/types';
@@ -35,10 +35,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get creator profile for context
-    const creator = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
+    // Get creator profile with settings for context
+    const [creator, settings, aiSettings] = await Promise.all([
+      db.query.users.findFirst({
+        where: eq(users.id, user.id),
+      }),
+      db.query.creatorSettings.findFirst({
+        where: eq(creatorSettings.userId, user.id),
+      }),
+      db.query.aiTwinSettings.findFirst({
+        where: eq(aiTwinSettings.creatorId, user.id),
+      }),
+    ]);
 
     // Check if user is a creator
     if (creator?.role !== 'creator') {
@@ -48,14 +56,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build contextual system prompt (primaryCategory is on users table)
+    // Build contextual system prompt with all their data
     const systemPrompt = buildContextualPrompt({
+      // Profile
       username: creator.username || undefined,
       displayName: creator.displayName || undefined,
       primaryCategory: creator.primaryCategory || undefined,
       followerCount: creator.followerCount || 0,
       hasAvatar: !!creator.avatarUrl,
-      pricingConfigured: true, // Could check creatorSettings if needed
+      // Pricing settings
+      messageRate: settings?.messageRate ?? 3,
+      videoCallRate: settings?.callRatePerMinute ?? 25,
+      voiceCallRate: settings?.voiceCallRatePerMinute ?? 15,
+      minimumCallDuration: settings?.minimumCallDuration ?? 5,
+      isAvailableForCalls: settings?.isAvailableForCalls ?? false,
+      isAvailableForVoiceCalls: settings?.isAvailableForVoiceCalls ?? false,
+      // AI Twin
+      aiTwinEnabled: aiSettings?.enabled ?? false,
+      aiTwinTextEnabled: aiSettings?.textChatEnabled ?? false,
+      aiTwinPricePerMinute: aiSettings?.pricePerMinute ?? 20,
     });
 
     // Build conversation history for context
