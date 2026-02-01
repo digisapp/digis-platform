@@ -51,6 +51,8 @@ export async function GET(req: NextRequest) {
         filterCondition = sql`AND u.created_at > NOW() - INTERVAL '7 days'`;
       } else if (filter === 'top_earners') {
         // Will be handled in ORDER BY
+      } else if (filter === 'top_referrers') {
+        // Will be handled in ORDER BY
       }
 
       // Fetch creators with enhanced metrics
@@ -81,6 +83,7 @@ export async function GET(req: NextRequest) {
           COALESCE(sub_stats.active_subscribers, 0) as active_subscribers,
           COALESCE(traffic_stats.profile_views, 0) as profile_views,
           COALESCE(traffic_stats.views_7d, 0) as views_7d,
+          COALESCE(referral_stats.referral_count, 0) as referral_count,
           -- Profile completeness: check key fields
           CASE
             WHEN u.avatar_url IS NOT NULL
@@ -136,11 +139,20 @@ export async function GET(req: NextRequest) {
           WHERE page_type = 'profile' AND creator_username IS NOT NULL
           GROUP BY creator_username
         ) traffic_stats ON traffic_stats.creator_username = u.username
+        LEFT JOIN (
+          SELECT
+            referrer_id,
+            COUNT(*) as referral_count
+          FROM referrals
+          WHERE referred_id IS NOT NULL
+          GROUP BY referrer_id
+        ) referral_stats ON referral_stats.referrer_id = u.id
         WHERE u.role = 'creator'
         ${search ? sql`AND (u.username ILIKE ${`%${search}%`} OR u.email ILIKE ${`%${search}%`} OR u.display_name ILIKE ${`%${search}%`})` : sql``}
         ${filterCondition}
         ORDER BY
           ${filter === 'top_earners' ? sql`COALESCE(earnings.total_earned, 0) DESC,` : sql``}
+          ${filter === 'top_referrers' ? sql`COALESCE(referral_stats.referral_count, 0) DESC,` : sql``}
           u.created_at DESC
         LIMIT ${limit}
         OFFSET ${offset}

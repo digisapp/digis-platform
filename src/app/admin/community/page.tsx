@@ -66,6 +66,7 @@ interface Creator {
   profile_completeness: number;
   profile_views: number;
   views_7d: number;
+  referral_count: number;
 }
 
 interface Fan {
@@ -104,6 +105,7 @@ const CREATOR_FILTERS = [
   { key: 'verified', label: 'Verified' },
   { key: 'unverified', label: 'Unverified' },
   { key: 'top_earners', label: 'Top Earners' },
+  { key: 'top_referrers', label: 'Top Referrers' },
   { key: 'new', label: 'New (7d)' },
   { key: 'inactive', label: 'Inactive (30d)' },
 ];
@@ -672,6 +674,9 @@ function AdminCommunityContent() {
                       <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Traffic
                       </th>
+                      <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Referrals
+                      </th>
                       <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
@@ -787,6 +792,11 @@ function AdminCommunityContent() {
                               <span className="text-xs text-gray-500">+{creator.views_7d} this week</span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`text-sm font-medium ${creator.referral_count > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                            {creator.referral_count}
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           <div className="relative">
