@@ -239,8 +239,8 @@ export function FloatingGiftBar({
 
         {/* Gift Buttons */}
         <div className={inline
-          ? "flex items-center gap-1.5 px-2 py-1.5 bg-black/50 overflow-x-auto scrollbar-hide"
-          : "flex items-center gap-1.5 px-2 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-white/20 shadow-2xl"
+          ? "flex items-center gap-1.5 px-2 py-1.5 bg-gray-900/95 overflow-x-auto scrollbar-hide"
+          : "flex items-center gap-1.5 px-2 py-2 bg-gray-900 rounded-full border border-white/20 shadow-2xl"
         }>
           {/* Featured Gifts with bobbing animation */}
           {featuredGifts.map((gift, index) => {

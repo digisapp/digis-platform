@@ -134,7 +134,7 @@ function FaceTimeVideoLayout({
   const [isVideoOff, setIsVideoOff] = useState(true); // Default video OFF - users manually enable
   const [localPosition, setLocalPosition] = useState({ x: 16, y: 16 });
   const [isDragging, setIsDragging] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true); // Chat open by default
   const [showGifts, setShowGifts] = useState(false);
   const [showTipMenu, setShowTipMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
