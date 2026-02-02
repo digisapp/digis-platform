@@ -615,7 +615,7 @@ function FaceTimeVideoLayout({
         <div className="absolute left-1/2 -translate-x-1/2 bottom-48 sm:bottom-52 z-40 animate-in slide-in-from-bottom duration-200 w-[85vw] max-w-xs">
           <div className="bg-gray-900 rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-white text-xs font-semibold">Send a Gift</span>
+              <span className="text-white text-xs font-semibold">Send Tip</span>
               <button onClick={() => setShowGifts(false)} className="text-gray-400 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
@@ -987,7 +987,7 @@ function VoiceCallUI({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-in zoom-in-95 duration-200">
           <div className="bg-black/90 backdrop-blur-xl rounded-2xl p-4 border border-pink-500/30 shadow-xl min-w-[280px]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-white font-semibold">Send a Gift</span>
+              <span className="text-white font-semibold">Send Tip</span>
               <button onClick={() => setShowGifts(false)} className="text-gray-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -1037,7 +1037,7 @@ function VoiceCallUI({
                 ? 'bg-yellow-500 text-white'
                 : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
             }`}
-            title="Send Gift"
+            title="Send Tip"
           >
             <Coins className="w-6 h-6" />
           </button>
@@ -1061,7 +1061,7 @@ function VoiceCallUI({
                 ? 'bg-pink-500 text-white'
                 : 'bg-white/20 text-white hover:bg-white/30 border border-white/20'
             }`}
-            title="Send Gift"
+            title="Send Tip"
           >
             <Gift className="w-6 h-6" />
           </button>
