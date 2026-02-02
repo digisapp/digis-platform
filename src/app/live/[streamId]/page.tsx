@@ -2201,14 +2201,14 @@ export default function TheaterModePage() {
 
           {/* Action Buttons Bar - desktop only */}
           <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3 overflow-visible">
-            {/* Send Gift Button - opens modal */}
+            {/* Send Tip Button - opens modal */}
             <button
               onClick={() => setShowTipModal(true)}
               disabled={!currentUser}
               className="relative px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-black font-bold text-sm rounded-xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-300/50 flex items-center gap-2 flex-shrink-0"
             >
               <Coins className="w-4 h-4" />
-              <span>Send Gift</span>
+              <span>Send Tip</span>
               {menuEnabled && menuItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />
               )}
@@ -2812,13 +2812,13 @@ export default function TheaterModePage() {
             <div className="flex justify-center mb-4">
               <div className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/30">
                 <Coins className="w-4 h-4" />
-                SEND GIFT
+                SEND TIP
               </div>
             </div>
 
             {/* Creator Name */}
             <p className="text-white/80 text-center text-sm mb-4">
-              Gift <span className="font-bold text-cyan-300">@{stream?.creator.username}</span>
+              Tip <span className="font-bold text-cyan-300">@{stream?.creator.username}</span>
             </p>
 
             {/* Amount Input */}

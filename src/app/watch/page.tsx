@@ -63,6 +63,9 @@ interface VOD {
   creator: Creator;
 }
 
+// Popular categories to show as filter pills (subset of all categories)
+const POPULAR_CATEGORIES = ['fitness', 'beauty', 'music', 'cooking', 'gaming', 'just-chatting', 'education', 'creative'];
+
 export default function WatchPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('live');
@@ -72,6 +75,7 @@ export default function WatchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [counts, setCounts] = useState({ live: 0, upcoming: 0, vods: 0 });
 
   useEffect(() => {
@@ -127,22 +131,36 @@ export default function WatchPage() {
     }
   };
 
-  // Filter content by search query
-  const filterBySearch = <T extends { title: string; description?: string | null; creator: Creator; tags?: string[] | null }>(items: T[]): T[] => {
-    if (!searchQuery.trim()) return items;
-    const query = searchQuery.toLowerCase();
-    return items.filter(item =>
-      item.title.toLowerCase().includes(query) ||
-      item.description?.toLowerCase().includes(query) ||
-      item.creator.displayName?.toLowerCase().includes(query) ||
-      item.creator.username?.toLowerCase().includes(query) ||
-      item.tags?.some(tag => tag.toLowerCase().includes(query))
-    );
+  // Filter content by search query and category
+  const filterBySearchAndCategory = <T extends { title: string; description?: string | null; creator: Creator; tags?: string[] | null; category?: string | null; showType?: string }>(items: T[]): T[] => {
+    let filtered = items;
+
+    // Filter by category if selected
+    if (selectedCategory) {
+      filtered = filtered.filter(item => {
+        const itemCategory = item.category || item.showType;
+        return itemCategory?.toLowerCase() === selectedCategory.toLowerCase();
+      });
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.creator.displayName?.toLowerCase().includes(query) ||
+        item.creator.username?.toLowerCase().includes(query) ||
+        item.tags?.some(tag => tag.toLowerCase().includes(query))
+      );
+    }
+
+    return filtered;
   };
 
-  const filteredLive = filterBySearch(liveStreams);
-  const filteredSchedule = filterBySearch(upcomingShows);
-  const filteredVods = filterBySearch(recentVods);
+  const filteredLive = filterBySearchAndCategory(liveStreams);
+  const filteredSchedule = filterBySearchAndCategory(upcomingShows);
+  const filteredVods = filterBySearchAndCategory(recentVods);
 
   const formatStartTime = (date: Date | string) => {
     const now = new Date();
@@ -279,6 +297,39 @@ export default function WatchPage() {
               </span>
             )}
           </button>
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              selectedCategory === null
+                ? 'bg-white text-black'
+                : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+            }`}
+          >
+            All
+          </button>
+          {POPULAR_CATEGORIES.map((catId) => {
+            const category = getCategoryById(catId);
+            if (!category) return null;
+            const isSelected = selectedCategory === catId;
+            return (
+              <button
+                key={catId}
+                onClick={() => setSelectedCategory(isSelected ? null : catId)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                <span>{category.icon}</span>
+                {category.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* Error State */}

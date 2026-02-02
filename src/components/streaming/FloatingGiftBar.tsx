@@ -110,8 +110,8 @@ export function FloatingGiftBar({
       }>
         {/* Quick Send Modal */}
         {selectedGift && (
-          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 sm:w-80 z-[100]">
-            <div className="backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-2xl p-4 animate-slideUp">
+          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 sm:w-80 z-[9999]">
+            <div className="bg-gray-900 rounded-2xl border border-white/30 shadow-2xl p-4 animate-slideUp">
               {/* Close button */}
               <button
                 onClick={() => setSelectedGift(null)}
@@ -199,8 +199,8 @@ export function FloatingGiftBar({
 
         {/* Expand Button - shows all gifts */}
         {isExpanded && (
-          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-[90vw] max-w-md z-[100]">
-            <div className="backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-2xl p-4 animate-slideUp max-h-[50vh] overflow-y-auto">
+          <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-[90vw] max-w-md z-[9999]">
+            <div className="bg-gray-900 rounded-2xl border border-white/30 shadow-2xl p-4 animate-slideUp max-h-[50vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-white">All Gifts</h3>
                 <button
