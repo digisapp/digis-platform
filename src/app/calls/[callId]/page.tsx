@@ -613,7 +613,7 @@ function FaceTimeVideoLayout({
       {/* Gift picker overlay */}
       {showGifts && isFan && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-48 sm:bottom-52 z-40 animate-in slide-in-from-bottom duration-200 w-[85vw] max-w-xs">
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
+          <div className="bg-gray-900 rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-white text-xs font-semibold">Send a Gift</span>
               <button onClick={() => setShowGifts(false)} className="text-gray-400 hover:text-white">
@@ -648,7 +648,7 @@ function FaceTimeVideoLayout({
       {/* Tip picker overlay */}
       {showTipMenu && isFan && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-48 sm:bottom-52 z-40 animate-in slide-in-from-bottom duration-200">
-          <div className="bg-black/80 backdrop-blur-xl rounded-2xl p-3 border border-white/20">
+          <div className="bg-gray-900 rounded-2xl p-3 border border-white/20">
             <div className="flex items-center justify-between mb-2 px-1">
               <span className="text-white text-xs font-semibold">Send a Tip</span>
               <button onClick={() => setShowTipMenu(false)} className="text-gray-400 hover:text-white">
