@@ -1552,9 +1552,9 @@ export default function VideoCallPage() {
             setCallEndedByOther(false); // Ensure fan modal doesn't show
           } else {
             setCallEndedByOther(true);
-            // Navigate to dashboard after a short delay
+            // Navigate to appropriate dashboard after a short delay
             setTimeout(() => {
-              router.push('/dashboard');
+              router.push(isCreator ? '/creator/dashboard' : '/dashboard');
             }, 2000);
           }
         });
@@ -1573,8 +1573,12 @@ export default function VideoCallPage() {
           } else {
             setError('Call was declined');
           }
+          // Redirect to appropriate dashboard
+          const currentCallData = callDataRef.current;
+          const currentUserId = userIdRef.current;
+          const isCreatorUser = currentUserId && currentCallData && currentUserId === currentCallData.creatorId;
           setTimeout(() => {
-            router.push('/dashboard');
+            router.push(isCreatorUser ? '/creator/dashboard' : '/dashboard');
           }, 3000);
         });
 
@@ -1702,10 +1706,10 @@ export default function VideoCallPage() {
       setShowCreatorSummary(true);
       setCallEndedByOther(false); // Ensure fan modal doesn't show
     } else {
-      // Fan - show ended modal and redirect
+      // Fan or creator without started call - show ended modal and redirect
       setCallEndedByOther(true);
       setTimeout(() => {
-        router.push('/dashboard');
+        router.push(isCreator ? '/creator/dashboard' : '/dashboard');
       }, 2000);
     }
   }, [callId, router, user?.id, callData]);
@@ -1755,14 +1759,15 @@ export default function VideoCallPage() {
         setIsEnding(false);
       } else {
         console.log('[confirmEndCall] NOT showing summary - isCreator:', isCreator, 'callHasStarted:', callHasStarted);
-        // Redirect to dashboard for fan
-        router.push('/dashboard');
+        // Redirect to appropriate dashboard
+        router.push(isCreator ? '/creator/dashboard' : '/dashboard');
       }
     } catch (err: any) {
       console.error('Error ending call:', err);
       setIsEnding(false);
-      // Show error but still try to redirect
-      setTimeout(() => router.push('/dashboard'), 2000);
+      // Show error but still try to redirect to appropriate dashboard
+      const isCreatorUser = user?.id && callData && user.id === callData.creatorId;
+      setTimeout(() => router.push(isCreatorUser ? '/creator/dashboard' : '/dashboard'), 2000);
     }
   };
 
@@ -1824,7 +1829,7 @@ export default function VideoCallPage() {
             )}
             <p className="text-gray-500 text-sm mb-4">Redirecting to dashboard...</p>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push(isFan ? '/dashboard' : '/creator/dashboard')}
               className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all shadow-lg"
             >
               Back to Dashboard
@@ -1875,7 +1880,7 @@ export default function VideoCallPage() {
                 <button
                   onClick={() => {
                     fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
-                    router.push('/dashboard');
+                    router.push(isFan ? '/dashboard' : '/creator/dashboard');
                   }}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold transition-all shadow-lg"
                 >
@@ -2059,7 +2064,7 @@ export default function VideoCallPage() {
               )}
 
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/creator/dashboard')}
                 className="w-full px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-emerald-500/30"
               >
                 Back to Dashboard
