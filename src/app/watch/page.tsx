@@ -396,12 +396,6 @@ export default function WatchPage() {
                             )}
                           </div>
 
-                          {/* Viewer Count */}
-                          <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
-                            <Eye className="w-3 h-3" />
-                            {stream.currentViewers ?? stream.ticketsSold ?? 0}
-                          </div>
-
                           {/* Category */}
                           {stream.category && (
                             <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg text-xs font-medium bg-cyan-500/80 text-white">

@@ -249,10 +249,6 @@ function FanDashboard() {
                         <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                         <span className="text-xs font-bold text-white">LIVE</span>
                       </div>
-                      <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/70 rounded-md text-xs text-white">
-                        <Eye className="w-3 h-3" />
-                        {stream.currentViewers}
-                      </div>
                     </div>
                     <div className="p-3">
                       <div className="flex items-start gap-3">
