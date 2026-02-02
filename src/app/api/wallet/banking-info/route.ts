@@ -4,6 +4,7 @@ import { db, creatorBankingInfo } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { encrypt, getLastFourDigits } from '@/lib/crypto/encryption';
 import { bankingInfoSchema, validateBody } from '@/lib/validation/schemas';
+import { withOriginGuard } from '@/lib/security/withOriginGuard';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -47,7 +48,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/wallet/banking-info - Add or update banking info
-export async function POST(request: NextRequest) {
+// Protected with Origin/Referer validation for CSRF mitigation
+export const POST = withOriginGuard(async (request: Request) => {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -140,4 +142,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

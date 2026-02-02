@@ -1,32 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { pageViews } from '@/db/schema/admin';
 import { users } from '@/db/schema/users';
-import { AdminService } from '@/lib/admin/admin-service';
-import { createClient } from '@/lib/supabase/server';
 import { sql, desc, eq, gte, lt, and, count, countDistinct } from 'drizzle-orm';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/admin/traffic - Get traffic analytics
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    // Auth check
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Admin check
-    const isAdmin = await AdminService.isAdmin(user.id);
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || '7d';
 
@@ -210,8 +195,8 @@ export async function GET(request: NextRequest) {
 
     // Process signups by day
     const signupsByDay: { [key: string]: number } = {};
-    signups.forEach((user: any) => {
-      const date = new Date(user.created_at).toISOString().split('T')[0];
+    signups.forEach((user: Record<string, unknown>) => {
+      const date = new Date(user.created_at as string).toISOString().split('T')[0];
       signupsByDay[date] = (signupsByDay[date] || 0) + 1;
     });
 
@@ -263,4 +248,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

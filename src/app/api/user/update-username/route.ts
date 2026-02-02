@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateUsername } from '@/lib/utils/username';
+import { withOriginGuard } from '@/lib/security/withOriginGuard';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -11,7 +12,8 @@ export const dynamic = 'force-dynamic';
 const USERNAME_CHANGE_PERIOD_DAYS = 30; // Rolling 30-day period
 const MAX_CHANGES_PER_PERIOD = 2; // Allow 2 changes within the period
 
-export async function POST(request: NextRequest) {
+// Protected with Origin/Referer validation for CSRF mitigation
+export const POST = withOriginGuard(async (request: Request) => {
   try {
     const { username: newUsername } = await request.json();
 
@@ -146,7 +148,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // GET endpoint to check cooldown status
 export async function GET(request: NextRequest) {

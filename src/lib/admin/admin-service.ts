@@ -11,7 +11,10 @@ export class AdminService {
    * Check if user is admin
    *
    * SECURITY: Admin status is determined ONLY by the database isAdmin flag.
-   * Hardcoded email lists have been removed to prevent security vulnerabilities.
+   * SINGLE SOURCE OF TRUTH: users.is_admin === true
+   *
+   * DO NOT add fallback checks like role === 'admin' - that creates drift.
+   * If you need to migrate legacy admins, run a one-time migration to set isAdmin=true.
    *
    * To make someone admin:
    * - Use the admin dashboard to set isAdmin = true
@@ -23,7 +26,7 @@ export class AdminService {
       user = await withTimeoutAndRetry(
         () => db.query.users.findFirst({
           where: eq(users.id, userId),
-          columns: { role: true, email: true, isAdmin: true },
+          columns: { isAdmin: true },
         }),
         { timeoutMs: 5000, retries: 1, tag: 'isAdmin' }
       );
@@ -38,20 +41,16 @@ export class AdminService {
       return false;
     }
 
-    // PRIMARY CHECK: isAdmin flag in DB (ONLY source of truth)
-    if (user.isAdmin === true) {
-      console.log('[AdminService] Admin access granted by isAdmin flag, userId:', userId);
-      return true;
+    // SINGLE SOURCE OF TRUTH: isAdmin flag in DB only
+    const isAdmin = user.isAdmin === true;
+
+    if (isAdmin) {
+      console.log('[AdminService] Admin access granted, userId:', userId);
+    } else {
+      console.log('[AdminService] Admin access DENIED, userId:', userId);
     }
 
-    // LEGACY: Check if role is 'admin' (for backwards compatibility)
-    if (user.role === 'admin') {
-      console.log('[AdminService] Admin access granted by legacy role, userId:', userId);
-      return true;
-    }
-
-    console.log('[AdminService] Admin access DENIED, userId:', userId, { isAdmin: user.isAdmin, role: user.role });
-    return false;
+    return isAdmin;
   }
 
   // Get all pending creator applications

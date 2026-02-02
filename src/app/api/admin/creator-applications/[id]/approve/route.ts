@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorApplications, creatorSettings, aiTwinSettings, creatorInvites } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email';
+import { withAdminParams } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,24 +13,9 @@ export const dynamic = 'force-dynamic';
  * POST /api/admin/creator-applications/[id]/approve
  * Approve a creator application
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = withAdminParams<{ id: string }>(async ({ user, params, request }) => {
   try {
     const { id } = await params;
-
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
 
     // Get the application with user data
     const application = await db.query.creatorApplications.findFirst({
@@ -70,11 +54,11 @@ export async function POST(
       // Clean up Instagram handle to make a valid username
       const cleanedHandle = application.instagramHandle
         .toLowerCase()
-        .replace(/^@/, '') // remove leading @
-        .replace(/[^a-z0-9_]/g, '_') // replace invalid chars with underscore
-        .replace(/_+/g, '_') // collapse multiple underscores
-        .replace(/^_|_$/g, '') // trim leading/trailing underscores
-        .slice(0, 20); // max 20 chars
+        .replace(/^@/, '')
+        .replace(/[^a-z0-9_]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '')
+        .slice(0, 20);
 
       // Validate format (must start with letter, 3-20 chars)
       if (/^[a-z][a-z0-9_]{2,19}$/.test(cleanedHandle)) {
@@ -93,8 +77,7 @@ export async function POST(
       }
     }
 
-    // Use a transaction for atomicity - all operations succeed or all fail
-    // This prevents partial states like "approved but role not upgraded"
+    // Use a transaction for atomicity
     await db.transaction(async (tx) => {
       // 1. Update application status
       await tx.update(creatorApplications)
@@ -107,10 +90,10 @@ export async function POST(
         })
         .where(eq(creatorApplications.id, id));
 
-      // 2. Update user role to creator (and username if applicable)
-      const userUpdate: any = {
+      // 2. Update user role to creator
+      const userUpdate: Record<string, unknown> = {
         role: 'creator',
-        isCreatorVerified: false, // Not auto-verified, just approved as creator
+        isCreatorVerified: false,
         displayName: application.displayName || undefined,
         updatedAt: new Date(),
       };
@@ -123,7 +106,7 @@ export async function POST(
         .set(userUpdate)
         .where(eq(users.id, application.userId));
 
-      // 3. Create default creator settings (using Drizzle in same transaction)
+      // 3. Create default creator settings
       await tx.insert(creatorSettings).values({
         userId: application.userId,
         messageRate: 3,
@@ -135,7 +118,7 @@ export async function POST(
         isAvailableForVoiceCalls: false,
       }).onConflictDoNothing();
 
-      // 4. Create default AI Twin settings (using Drizzle in same transaction)
+      // 4. Create default AI Twin settings
       await tx.insert(aiTwinSettings).values({
         creatorId: application.userId,
         enabled: false,
@@ -148,21 +131,18 @@ export async function POST(
       }).onConflictDoNothing();
     });
 
-    // 5. Update Supabase auth metadata (outside transaction - different system)
-    // This is fire-and-forget; the DB is the source of truth
+    // 5. Update Supabase auth metadata (fire-and-forget)
     try {
       await supabaseAdmin.auth.admin.updateUserById(application.userId, {
         app_metadata: { role: 'creator' },
       });
     } catch (authError) {
       console.error('[Creator Application] Failed to update auth metadata:', authError);
-      // Don't fail the request - DB is the source of truth
     }
 
     console.log(`[Creator Application] Approved: ${application.userId} by ${user.id}`);
 
     // 6. Auto-link pending invite if Instagram handle matches
-    // This handles the case where an invited creator signed up naturally instead of using the invite link
     if (application.instagramHandle) {
       const normalizedHandle = application.instagramHandle.toLowerCase().replace('@', '');
       try {
@@ -185,12 +165,11 @@ export async function POST(
           console.log(`[Creator Application] Auto-linked pending invite for @${normalizedHandle} to user ${application.userId}`);
         }
       } catch (inviteError) {
-        // Don't fail the approval if invite linking fails - it's a nice-to-have
         console.error('[Creator Application] Failed to auto-link invite:', inviteError);
       }
     }
 
-    // 7. Send approval email notification to user
+    // 7. Send approval email notification
     if (application.user?.email) {
       const creatorData = {
         email: application.user.email,
@@ -198,7 +177,6 @@ export async function POST(
         username: newUsername || application.user.username || '',
       };
 
-      // Send emails in parallel (fire-and-forget, don't block the response)
       Promise.all([
         sendCreatorApprovalEmail(creatorData),
         addCreatorToAudience(creatorData),
@@ -220,11 +198,11 @@ export async function POST(
       success: true,
       message: 'Application approved successfully',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error approving creator application:', error);
     return NextResponse.json(
       { error: 'Failed to approve application' },
       { status: 500 }
     );
   }
-}
+});

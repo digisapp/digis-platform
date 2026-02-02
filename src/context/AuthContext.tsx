@@ -44,29 +44,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Extract user data from session metadata (instant, no DB call)
   // SECURITY: Admin status comes ONLY from app_metadata.isAdmin (synced from DB)
+  // SINGLE SOURCE OF TRUTH: isAdmin === true only (no legacy role check)
   // No hardcoded email lists - server enforces actual admin access via DB
   const extractUserFromSession = (session: Session | null): AuthUser | null => {
     if (!session?.user) return null;
 
     const authUser = session.user;
-    const appMeta = (authUser.app_metadata || {}) as Record<string, any>;
-    const userMeta = (authUser.user_metadata || {}) as Record<string, any>;
+    const appMeta = (authUser.app_metadata || {}) as Record<string, unknown>;
+    const userMeta = (authUser.user_metadata || {}) as Record<string, unknown>;
 
     // Role priority: app_metadata (server-set, authoritative) > user_metadata > 'fan'
-    const role = appMeta.role || userMeta.role || 'fan';
+    const role = (appMeta.role || userMeta.role || 'fan') as 'fan' | 'creator' | 'admin';
 
-    // isAdmin comes from app_metadata (synced from DB isAdmin flag) or legacy role
-    const isAdmin = appMeta.isAdmin === true || role === 'admin';
+    // SINGLE SOURCE OF TRUTH: isAdmin comes ONLY from app_metadata.isAdmin
+    // DO NOT add fallback checks like role === 'admin' - that creates drift
+    const isAdmin = appMeta.isAdmin === true;
 
     return {
       id: authUser.id,
       email: authUser.email,
-      username: userMeta.username || authUser.email?.split('@')[0] || null,
-      displayName: userMeta.display_name || userMeta.username || null,
+      username: (userMeta.username as string) || authUser.email?.split('@')[0] || null,
+      displayName: (userMeta.display_name as string) || (userMeta.username as string) || null,
       role,
       isAdmin,
-      isCreatorVerified: !!userMeta.is_creator_verified || !!userMeta.isCreatorVerified,
-      avatarUrl: userMeta.avatar_url || appMeta.avatar_url || null,
+      isCreatorVerified: !!(userMeta.is_creator_verified || userMeta.isCreatorVerified),
+      avatarUrl: (userMeta.avatar_url as string) || (appMeta.avatar_url as string) || null,
     };
   };
 

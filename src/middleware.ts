@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
+ * SINGLE SOURCE OF TRUTH for admin check in middleware
+ * Matches the predicate in src/lib/auth/admin.ts
+ * Only checks app_metadata.isAdmin === true
+ */
+function isAdminFromClaims(appMeta: Record<string, unknown> | null | undefined): boolean {
+  return appMeta?.isAdmin === true;
+}
+
+/**
  * Generate a unique request ID for distributed tracing
  * Format: timestamp-random (e.g., "1704412800000-abc123")
  */
@@ -76,10 +85,10 @@ export async function middleware(request: NextRequest) {
     }
 
     // SECURITY: Check admin status from app_metadata (synced from DB isAdmin flag)
-    const appMeta = user.app_metadata || {}
-    const isAdmin = appMeta.isAdmin === true || appMeta.role === 'admin'
+    // Uses SINGLE SOURCE OF TRUTH: isAdmin === true only (no legacy role check)
+    const appMeta = (user.app_metadata || {}) as Record<string, unknown>;
 
-    if (!isAdmin) {
+    if (!isAdminFromClaims(appMeta)) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

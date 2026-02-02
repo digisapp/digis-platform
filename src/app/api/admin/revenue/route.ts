@@ -1,23 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db, walletTransactions, users, wallets } from '@/lib/data/system';
 import { eq, sql, desc, and, gte } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 // GET /api/admin/revenue - Get revenue stats and creator leaderboard
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async () => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     // Get time ranges
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -207,11 +195,11 @@ export async function GET(request: NextRequest) {
         })),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching revenue data:', error);
     return NextResponse.json(
       { error: 'Failed to fetch revenue data' },
       { status: 500 }
     );
   }
-}
+});

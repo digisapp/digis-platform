@@ -6,13 +6,15 @@ import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe
 import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
 import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { isPayoneerAvailable } from '@/lib/payoneer/service';
+import { withOriginGuard } from '@/lib/security/withOriginGuard';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // POST /api/wallet/payouts/request - Creator requests a payout
-export async function POST(request: NextRequest) {
+// Protected with Origin/Referer validation for CSRF mitigation (money movement)
+export const POST = withOriginGuard(async (request: Request) => {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -193,4 +195,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

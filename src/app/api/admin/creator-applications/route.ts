@@ -1,33 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorApplications, profiles } from '@/db/schema';
-import { eq, desc, sql, and, ilike, or } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { sql } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+interface ApplicationRow {
+  id: string;
+  user_id: string;
+  instagram_handle: string | null;
+  tiktok_handle: string | null;
+  other_social_links: string | null;
+  follower_count: number | null;
+  content_category: string | null;
+  bio: string | null;
+  status: string;
+  rejection_reason: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  email: string | null;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  user_created_at: string;
+  reviewer_username: string | null;
+  phone_number: string | null;
+}
+
+interface UserMatch {
+  id: string;
+  username: string;
+  display_name: string | null;
+  role: string;
+}
 
 /**
  * GET /api/admin/creator-applications
  * List all creator applications with filtering
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'pending'; // pending, approved, rejected, all
+    const status = searchParams.get('status') || 'pending';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search') || '';
@@ -75,11 +92,11 @@ export async function GET(request: NextRequest) {
       OFFSET ${offset}
     `;
 
-    const applications = await db.execute(query);
+    const applications = await db.execute(query) as unknown as ApplicationRow[];
 
     // Check for red flags - duplicate detection
     const applicationsWithFlags = await Promise.all(
-      (applications as any[]).map(async (app) => {
+      applications.map(async (app) => {
         const redFlags: { type: string; message: string; severity: 'warning' | 'danger' }[] = [];
 
         // Check if display_name matches an existing creator's username or display_name
@@ -94,10 +111,10 @@ export async function GET(request: NextRequest) {
                 OR LOWER(display_name) = LOWER(${app.display_name})
               )
             LIMIT 5
-          `);
+          `) as unknown as UserMatch[];
 
-          if ((displayNameMatches as any[]).length > 0) {
-            const matches = (displayNameMatches as any[]).map(m => `@${m.username}`).join(', ');
+          if (displayNameMatches.length > 0) {
+            const matches = displayNameMatches.map(m => `@${m.username}`).join(', ');
             redFlags.push({
               type: 'display_name_match',
               message: `Display name matches existing creator(s): ${matches}`,
@@ -118,10 +135,10 @@ export async function GET(request: NextRequest) {
                 OR LOWER(username) = LOWER(${app.instagram_handle})
               )
             LIMIT 5
-          `);
+          `) as unknown as UserMatch[];
 
-          if ((igMatches as any[]).length > 0) {
-            const matches = (igMatches as any[]).map((m: any) => `@${m.username} (${m.role})`).join(', ');
+          if (igMatches.length > 0) {
+            const matches = igMatches.map((m) => `@${m.username} (${m.role})`).join(', ');
             redFlags.push({
               type: 'instagram_username_match',
               message: `Instagram handle matches existing user(s): ${matches}`,
@@ -169,8 +186,8 @@ export async function GET(request: NextRequest) {
       )` : sql``}
     `;
 
-    const countResult = await db.execute(countQuery);
-    const total = Number((countResult as any)[0]?.total || 0);
+    const countResult = await db.execute(countQuery) as { total: string }[];
+    const total = Number(countResult[0]?.total || 0);
 
     // Get counts by status for tabs
     const statusCountsQuery = sql`
@@ -180,14 +197,14 @@ export async function GET(request: NextRequest) {
       FROM creator_applications
       GROUP BY status
     `;
-    const statusCounts = await db.execute(statusCountsQuery);
+    const statusCounts = await db.execute(statusCountsQuery) as { status: string; count: string }[];
     const counts = {
       pending: 0,
       approved: 0,
       rejected: 0,
       all: 0,
     };
-    for (const row of statusCounts as any[]) {
+    for (const row of statusCounts) {
       counts[row.status as keyof typeof counts] = Number(row.count);
       counts.all += Number(row.count);
     }
@@ -202,11 +219,11 @@ export async function GET(request: NextRequest) {
       },
       counts,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching creator applications:', error);
     return NextResponse.json(
       { error: 'Failed to fetch applications' },
       { status: 500 }
     );
   }
-}
+});

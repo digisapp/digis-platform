@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { AdminService } from '@/lib/admin/admin-service';
-import { isAdminUser } from '@/lib/admin/check-admin';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
+import { withAdmin } from '@/lib/auth/withAdmin';
 import { nanoid } from 'nanoid';
 
 // Force Node.js runtime
@@ -11,22 +10,10 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/admin/analytics - Get platform analytics
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async () => {
   const requestId = nanoid(10);
 
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin (email first, then DB)
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const adminClient = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -94,16 +81,17 @@ export async function GET(request: NextRequest) {
 
     // Process user signups by day (last 30 days only)
     const signupsByDay: { [key: string]: number } = {};
-    recentUsers?.forEach((user: any) => {
-      const date = new Date(user.created_at).toISOString().split('T')[0];
+    recentUsers?.forEach((user: Record<string, unknown>) => {
+      const date = new Date(user.created_at as string).toISOString().split('T')[0];
       signupsByDay[date] = (signupsByDay[date] || 0) + 1;
     });
 
     // Process ALL users for role distribution
     const roleDistribution = { fan: 0, creator: 0, admin: 0 };
-    allUsersRoles?.forEach((user: any) => {
-      if (user.role && roleDistribution.hasOwnProperty(user.role)) {
-        roleDistribution[user.role as keyof typeof roleDistribution]++;
+    allUsersRoles?.forEach((user: Record<string, unknown>) => {
+      const role = user.role as string;
+      if (role && Object.prototype.hasOwnProperty.call(roleDistribution, role)) {
+        roleDistribution[role as keyof typeof roleDistribution]++;
       }
     });
 
@@ -128,10 +116,12 @@ export async function GET(request: NextRequest) {
 
     const contentTypeStats: { [key: string]: number } = {};
 
-    applications?.forEach((app: any) => {
-      applicationStats[app.status as keyof typeof applicationStats]++;
+    applications?.forEach((app: Record<string, unknown>) => {
+      const status = app.status as keyof typeof applicationStats;
+      applicationStats[status]++;
       if (app.content_type) {
-        contentTypeStats[app.content_type] = (contentTypeStats[app.content_type] || 0) + 1;
+        const contentType = app.content_type as string;
+        contentTypeStats[contentType] = (contentTypeStats[contentType] || 0) + 1;
       }
     });
 
@@ -155,12 +145,13 @@ export async function GET(request: NextRequest) {
       growthRate: Math.round(growthRate * 10) / 10,
       lastWeekSignups: lastWeekSignups || 0,
     });
-  } catch (error: any) {
-    console.error('[ADMIN/ANALYTICS]', { requestId, error: error?.message });
-    const isTimeout = error?.message?.includes('timeout');
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[ADMIN/ANALYTICS]', { requestId, error: errorMessage });
+    const isTimeout = errorMessage.includes('timeout');
     return NextResponse.json(
       { error: isTimeout ? 'Analytics temporarily unavailable' : 'Failed to fetch analytics' },
       { status: isTimeout ? 503 : 500, headers: { 'x-request-id': requestId } }
     );
   }
-}
+});

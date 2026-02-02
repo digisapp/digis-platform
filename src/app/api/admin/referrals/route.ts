@@ -1,28 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { referrals, referralCommissions } from '@/db/schema/referrals';
+import { referrals } from '@/db/schema/referrals';
 import { users } from '@/db/schema/users';
-import { eq, desc, sql } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { desc, inArray } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/admin/referrals - Get all referrals for admin view
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async () => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     // Get all referrals with referrer and referred user info
     const allReferrals = await db
       .select({
@@ -50,16 +38,19 @@ export async function GET(request: NextRequest) {
       if (r.referredId) userIds.add(r.referredId);
     });
 
-    const userDetails = await db.query.users.findMany({
-      where: sql`${users.id} = ANY(ARRAY[${sql.raw([...userIds].map(id => `'${id}'`).join(','))}]::uuid[])`,
-      columns: {
-        id: true,
-        username: true,
-        displayName: true,
-        avatarUrl: true,
-        email: true,
-      },
-    });
+    // Use Drizzle's inArray for safe parameterized query (no raw SQL string assembly)
+    const userDetails = userIds.size > 0
+      ? await db.query.users.findMany({
+          where: inArray(users.id, [...userIds]),
+          columns: {
+            id: true,
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+            email: true,
+          },
+        })
+      : [];
 
     const userMap = new Map(userDetails.map(u => [u.id, u]));
 
@@ -85,11 +76,11 @@ export async function GET(request: NextRequest) {
       referrals: formattedReferrals,
       stats,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching referrals:', error);
     return NextResponse.json(
       { error: 'Failed to fetch referrals' },
       { status: 500 }
     );
   }
-}
+});
