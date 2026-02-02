@@ -558,24 +558,27 @@ function FaceTimeVideoLayout({
 
       {/* Chat Overlay - floating messages on left side, positioned above wallet balance widget */}
       {showChat && (
-        <div className="absolute left-3 bottom-48 sm:bottom-52 z-30 w-64 sm:w-72 max-h-[40vh] overflow-hidden pointer-events-auto">
+        <div className="absolute left-0 bottom-48 sm:bottom-52 z-30 w-72 sm:w-80 max-h-[40vh] overflow-hidden pointer-events-auto">
+          {/* Gradient background for better readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent rounded-r-2xl pointer-events-none" />
+
           {/* Chat messages */}
-          <div className="space-y-1.5 overflow-y-auto max-h-[calc(40vh-60px)] scrollbar-hide">
+          <div className="relative space-y-1.5 overflow-y-auto max-h-[calc(40vh-60px)] scrollbar-hide px-3 py-2">
             {chatMessages.slice(-10).map((msg) => (
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
                 {msg.type === 'tip' ? (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/80 to-emerald-500/80 backdrop-blur-sm shadow-lg">
-                    <Coins className="w-3.5 h-3.5 text-emerald-300" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/90 to-emerald-500/90 shadow-lg shadow-green-500/20">
+                    <Coins className="w-3.5 h-3.5 text-emerald-200" />
                     <span className="text-white text-xs font-bold">{msg.senderName || 'You'}</span>
-                    <span className="text-emerald-300 text-xs font-bold">+{msg.amount}</span>
+                    <span className="text-emerald-200 text-xs font-bold">+{msg.amount}</span>
                   </div>
                 ) : msg.type === 'gift' ? (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-sm shadow-lg">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/90 to-purple-500/90 shadow-lg shadow-pink-500/20">
                     <span className="text-lg">{msg.giftEmoji}</span>
                     <span className="text-white text-xs font-bold">{msg.senderName || 'You'}</span>
                   </div>
                 ) : (
-                  <div className="inline-flex items-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-sm max-w-full">
+                  <div className="inline-flex items-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/70 max-w-full shadow-sm">
                     <span className="text-cyan-300 text-xs font-bold shrink-0">{msg.senderName || 'You'}:</span>
                     <span className="text-white text-xs break-words">{msg.content}</span>
                   </div>
@@ -586,14 +589,14 @@ function FaceTimeVideoLayout({
           </div>
 
           {/* Chat input */}
-          <div className="mt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="relative mt-2 flex gap-2 px-3 pb-2" onClick={(e) => e.stopPropagation()}>
             <input
               type="text"
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
               placeholder="Say something..."
-              className="flex-1 px-3 py-2 bg-black/60 backdrop-blur-sm border border-white/20 rounded-full text-white text-sm placeholder-white/50 focus:outline-none focus:border-cyan-400"
+              className="flex-1 px-3 py-2 bg-black/70 border border-white/20 rounded-full text-white text-sm placeholder-white/50 focus:outline-none focus:border-cyan-400"
               onClick={(e) => e.stopPropagation()}
             />
             <button
