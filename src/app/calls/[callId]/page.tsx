@@ -760,17 +760,17 @@ function FaceTimeVideoLayout({
             <button
               onClick={onEndCall}
               disabled={isEnding}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
+              className="px-6 py-3 sm:px-8 sm:py-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-red-500/30 disabled:opacity-50"
             >
-              {isEnding ? <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 animate-spin" /> : <PhoneOff className="w-6 h-6 sm:w-7 sm:h-7" />}
+              {isEnding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'End'}
             </button>
 
-            {/* Video toggle button */}
+            {/* Video toggle button - blinks when off to remind user to turn on */}
             <button
               onClick={toggleVideo}
               className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all shadow-lg ${
                 isVideoOff
-                  ? 'bg-red-500 text-white'
+                  ? 'bg-red-500 text-white animate-pulse'
                   : 'bg-white/20 backdrop-blur-xl text-white hover:bg-white/30 border border-white/30'
               }`}
             >
@@ -1046,10 +1046,10 @@ function VoiceCallUI({
         <button
           onClick={onEndCall}
           disabled={isEnding}
-          className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all disabled:opacity-50 shadow-lg shadow-red-500/30"
+          className="px-8 py-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-base transition-all disabled:opacity-50 shadow-lg shadow-red-500/30"
           title="End Call"
         >
-          {isEnding ? <Loader2 className="w-7 h-7 animate-spin" /> : <PhoneOff className="w-7 h-7" />}
+          {isEnding ? <Loader2 className="w-5 h-5 animate-spin" /> : 'End'}
         </button>
 
         {/* Gift button - for fans */}
