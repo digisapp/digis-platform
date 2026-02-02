@@ -54,28 +54,24 @@ export async function POST(request: NextRequest) {
       replyToId
     );
 
-    // Check if recipient has AI text chat enabled and auto-respond
-    let aiResponse = null;
-    try {
-      console.log('[AI Text] Attempting auto-respond for recipient:', recipientId);
-      aiResponse = await AiTextService.tryAutoRespond(
-        user.id,
-        recipientId,
-        content,
-        conversation.id
-      );
-      console.log('[AI Text] Auto-respond result:', aiResponse ? 'AI responded' : 'No AI response (disabled or error)');
-    } catch (aiError) {
-      // Don't fail the whole request if AI fails - just log it
+    // Fire and forget AI auto-respond (don't block message send)
+    // This runs in background so the user doesn't wait for AI generation
+    AiTextService.tryAutoRespond(
+      user.id,
+      recipientId,
+      content,
+      conversation.id
+    ).then(aiResponse => {
+      if (aiResponse) {
+        console.log('[AI Text] Auto-respond completed for conversation:', conversation.id);
+      }
+    }).catch(aiError => {
       console.error('[AI Text] Auto-respond error:', aiError);
-    }
+    });
 
     return NextResponse.json({
       message,
       conversationId: conversation.id,
-      aiResponse: aiResponse ? {
-        message: aiResponse.aiMessage,
-      } : null,
     });
   } catch (error) {
     // Log full error server-side, return generic message to client
