@@ -531,8 +531,8 @@ export function Navigation() {
         {/* Tron-themed background - pointer-events-none to not block touches */}
         <div className="absolute inset-0 bg-black/95 backdrop-blur-xl pointer-events-none" />
 
-        {/* Animated gradient line at top - pointer-events-none to not block touches */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse pointer-events-none" />
+        {/* Gradient line at top - pointer-events-none to not block touches */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400 to-cyan-500/0 shadow-[0_0_20px_rgba(34,211,238,0.8),0_0_40px_rgba(34,211,238,0.4)] pointer-events-none" />
 
         {/* Navigation content */}
@@ -823,10 +823,6 @@ export function Navigation() {
                 onClick={() => setShowCoinsMenu(false)}
               />
               <div className="fixed md:absolute md:left-full md:top-0 md:ml-2 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-auto md:w-52 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
-                {/* Animated gradient border effect */}
-                <div className="absolute inset-0 rounded-2xl md:rounded-xl overflow-hidden pointer-events-none">
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
-                </div>
 
                 {/* Balance Header */}
                 <div className="px-4 py-3 border-b border-green-500/20 relative">
