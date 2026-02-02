@@ -368,7 +368,7 @@ export function Navigation() {
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
             onClick={() => setShowProfileMenu(false)}
           />
-          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-2xl bg-gradient-to-br from-black/90 via-gray-900/95 to-black/90 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.15)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
+          <div className="fixed md:left-24 md:top-20 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-24 md:w-72 backdrop-blur-xl bg-gradient-to-br from-black/60 via-gray-900/70 to-black/60 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-y-auto shadow-[0_0_30px_rgba(34,211,238,0.15)] max-h-[calc(100vh-60px-env(safe-area-inset-bottom)-16px)] md:max-h-[calc(100vh-96px)]">
             {/* Profile Header */}
             <div className="p-6 md:p-5 border-b border-cyan-500/20 bg-transparent relative">
               {/* Hidden file input for avatar upload */}
@@ -822,7 +822,7 @@ export function Navigation() {
                 className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
                 onClick={() => setShowCoinsMenu(false)}
               />
-              <div className="fixed md:absolute md:left-full md:top-0 md:ml-2 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-auto md:w-52 backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
+              <div className="fixed md:absolute md:left-full md:top-0 md:ml-2 bottom-[calc(60px+env(safe-area-inset-bottom)+8px)] md:bottom-auto right-4 md:right-auto left-4 md:left-auto md:w-52 backdrop-blur-xl bg-gradient-to-br from-black/50 via-gray-900/60 to-black/50 border-2 border-cyan-500/30 rounded-2xl md:rounded-xl z-50 overflow-hidden shadow-[0_0_50px_rgba(34,211,238,0.3)]">
 
                 {/* Balance Header */}
                 <div className="px-4 py-3 border-b border-green-500/20 relative">
