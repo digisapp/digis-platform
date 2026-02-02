@@ -378,31 +378,7 @@ function FanDashboard() {
               ))}
             </div>
 
-            {/* Live Creators Section */}
-            {liveCreators.length > 0 && selectedFilter !== 'live' && (
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="relative">
-                    <Radio className="w-5 h-5 text-red-500" />
-                    <div className="absolute inset-0 w-5 h-5 text-red-500 animate-ping opacity-50">
-                      <Radio className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-bold text-white">Live Creators</h3>
-                  <span className="text-sm text-gray-400">({liveCreators.length})</span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {liveCreators.map((creator) => (
-                    <LiveCreatorCard
-                      key={creator.id}
-                      creator={creator}
-                      onClick={() => router.push(creator.liveStreamId ? `/live/${creator.liveStreamId}` : `/${creator.username}`)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Live Creators section removed - duplicated Live Now section above */}
 
             {/* Creators Grid */}
             {creatorsLoading ? (
@@ -423,10 +399,6 @@ function FanDashboard() {
               </div>
             ) : (
               <>
-                {liveCreators.length > 0 && selectedFilter !== 'live' && creators.length > 0 && (
-                  <h3 className="text-lg font-bold text-white mb-4">All Creators</h3>
-                )}
-
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                   {(selectedFilter === 'live' ? liveCreators : creators).map((creator) => (
                     <CreatorCard
