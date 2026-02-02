@@ -5,6 +5,7 @@ import { users, creatorApplications, creatorSettings, aiTwinSettings, creatorInv
 import { eq, and } from 'drizzle-orm';
 import { isAdminUser } from '@/lib/admin/check-admin';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,7 @@ export async function POST(
           columns: {
             id: true,
             username: true,
+            email: true,
           },
         },
       },
@@ -188,7 +190,31 @@ export async function POST(
       }
     }
 
-    // TODO: Send approval email notification to user
+    // 7. Send approval email notification to user
+    if (application.user?.email) {
+      const creatorData = {
+        email: application.user.email,
+        name: application.displayName || newUsername || application.user.username || 'Creator',
+        username: newUsername || application.user.username || '',
+      };
+
+      // Send emails in parallel (fire-and-forget, don't block the response)
+      Promise.all([
+        sendCreatorApprovalEmail(creatorData),
+        addCreatorToAudience(creatorData),
+      ]).then(([emailResult, audienceResult]) => {
+        if (emailResult.success) {
+          console.log(`[Creator Application] Approval email sent to ${creatorData.email}`);
+        } else {
+          console.error(`[Creator Application] Failed to send approval email:`, emailResult.error);
+        }
+        if (audienceResult.success) {
+          console.log(`[Creator Application] Added ${creatorData.email} to creators audience`);
+        }
+      }).catch((err) => {
+        console.error('[Creator Application] Email/audience error:', err);
+      });
+    }
 
     return NextResponse.json({
       success: true,
