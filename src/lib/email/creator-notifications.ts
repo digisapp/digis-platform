@@ -18,7 +18,7 @@ interface CreatorApprovalData {
  * Send email when creator application is approved
  */
 export async function sendCreatorApprovalEmail(data: CreatorApprovalData) {
-  const subject = "You're Approved! Digis x EXA Models";
+  const subject = "You're Approved as Digis Creator!";
 
   const html = `
 <!DOCTYPE html>
