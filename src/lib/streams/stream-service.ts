@@ -28,6 +28,7 @@ import {
 import { LiveKitEgressService } from '../services/livekit-egress-service';
 import { BlockService } from '../services/block-service';
 import { NotificationService } from '../services/notification-service';
+import { AblyRealtimeService } from './ably-realtime-service';
 
 /**
  * StreamService uses Drizzle ORM for complex streaming operations.
@@ -131,6 +132,31 @@ export class StreamService {
           console.error('[StreamService] Failed to send recording failure notification:', notifErr);
         });
       }
+
+      // Broadcast to platform:live channel so fans see the new stream instantly
+      const creator = await db.query.users.findFirst({
+        where: eq(users.id, creatorId),
+        columns: {
+          username: true,
+          displayName: true,
+          avatarUrl: true,
+        },
+      });
+
+      if (creator) {
+        AblyRealtimeService.broadcastStreamStarted({
+          streamId: stream.id,
+          creatorId,
+          creatorUsername: creator.username,
+          creatorDisplayName: creator.displayName,
+          creatorAvatarUrl: creator.avatarUrl,
+          title,
+          thumbnailUrl: thumbnailUrl || null,
+          category: category || null,
+        }).catch(err => {
+          console.error('[StreamService] Failed to broadcast stream started:', err);
+        });
+      }
     }
 
     return stream;
@@ -190,6 +216,11 @@ export class StreamService {
       })
       .where(eq(streams.id, streamId))
       .returning();
+
+    // Broadcast to platform:live channel so fans see the stream ended instantly
+    AblyRealtimeService.broadcastStreamEndedGlobal(streamId, stream.creatorId).catch(err => {
+      console.error('[StreamService] Failed to broadcast stream ended:', err);
+    });
 
     // Clear all viewers
     await db.delete(streamViewers).where(eq(streamViewers.streamId, streamId));

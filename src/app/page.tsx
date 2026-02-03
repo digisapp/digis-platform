@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { getAblyClient } from '@/lib/ably/client';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { SignupModal } from '@/components/auth/SignupModal';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -77,24 +78,53 @@ function FanDashboard() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch dashboard data (Live streams, Following)
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const res = await fetch('/api/fan/homepage');
-        if (res.ok) {
-          const json = await res.json();
-          setDashboardData(json);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setDashboardLoading(false);
+  const fetchDashboard = async () => {
+    try {
+      const res = await fetch('/api/fan/homepage');
+      if (res.ok) {
+        const json = await res.json();
+        setDashboardData(json);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setDashboardLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Subscribe to real-time live stream updates
+  useEffect(() => {
+    let channel: ReturnType<ReturnType<typeof getAblyClient>['channels']['get']> | null = null;
+
+    try {
+      const ably = getAblyClient();
+      channel = ably.channels.get('platform:live');
+
+      // When a creator goes live, refresh the dashboard
+      channel.subscribe('stream_started', () => {
+        fetchDashboard();
+      });
+
+      // When a stream ends, refresh the dashboard
+      channel.subscribe('stream_ended', () => {
+        fetchDashboard();
+      });
+    } catch (err) {
+      // Ably not available (e.g., no auth token) - fall back to polling only
+      console.debug('[Home] Ably not available, using polling only');
+    }
+
+    return () => {
+      if (channel) {
+        channel.unsubscribe();
+      }
+    };
   }, []);
 
   // Fetch creators when filter changes

@@ -335,4 +335,36 @@ export class AblyRealtimeService {
     );
     console.log('[AblyRealtimeService] Countdown update broadcast complete');
   }
+
+  /**
+   * Broadcast when a creator goes live (global platform event)
+   * Fans subscribed to platform:live channel will be notified instantly
+   */
+  static async broadcastStreamStarted(streamData: {
+    streamId: string;
+    creatorId: string;
+    creatorUsername: string;
+    creatorDisplayName: string | null;
+    creatorAvatarUrl: string | null;
+    title: string;
+    thumbnailUrl: string | null;
+    category: string | null;
+  }) {
+    await publishToChannel(
+      CHANNEL_NAMES.platformLive,
+      'stream_started',
+      { ...streamData, timestamp: Date.now() }
+    );
+  }
+
+  /**
+   * Broadcast when a stream ends (global platform event)
+   */
+  static async broadcastStreamEndedGlobal(streamId: string, creatorId: string) {
+    await publishToChannel(
+      CHANNEL_NAMES.platformLive,
+      'stream_ended',
+      { streamId, creatorId, timestamp: Date.now() }
+    );
+  }
 }

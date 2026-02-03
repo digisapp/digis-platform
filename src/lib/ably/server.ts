@@ -41,6 +41,7 @@ export async function publishToChannel(
  * - call:{callId} - Call signaling
  * - user:{userId}:notifications - User notifications
  * - dm:{conversationId} - Direct message updates
+ * - platform:live - Global channel for live stream notifications
  */
 export const CHANNEL_NAMES = {
   streamChat: (streamId: string) => `stream:${streamId}:chat`,
@@ -49,4 +50,5 @@ export const CHANNEL_NAMES = {
   call: (callId: string) => `call:${callId}`,
   userNotifications: (userId: string) => `user:${userId}:notifications`,
   dmConversation: (conversationId: string) => `dm:${conversationId}`,
+  platformLive: 'platform:live',
 };
