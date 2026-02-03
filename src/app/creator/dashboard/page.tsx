@@ -371,7 +371,8 @@ export default function CreatorDashboard() {
       const activities: Activity[] = [];
       const events: UpcomingEvent[] = [];
 
-      // Process notifications - focus on tips, follows, subscriptions
+      // Process notifications - only show meaningful activity (tips, follows, subscriptions)
+      // Skip system warnings like recording failures, errors, etc.
       if (notificationsRes?.ok) {
         try {
           const notificationsData = await notificationsRes.json();
@@ -380,31 +381,43 @@ export default function CreatorDashboard() {
             let icon: Activity['icon'] = 'coins';
             let color = 'text-gray-400';
             let type: Activity['type'] = 'notification';
+            let shouldInclude = false;
 
             if (notif.type === 'follow' || notif.type === 'followers') {
               icon = 'userplus';
               color = 'text-pink-400';
               type = 'follow';
+              shouldInclude = true;
             } else if (notif.type === 'subscribe' || notif.type === 'subscription') {
               icon = 'heart';
               color = 'text-purple-400';
               type = 'subscribe';
+              shouldInclude = true;
             } else if (notif.type === 'gift' || notif.type === 'tip' || notif.type === 'stream_tip' || notif.type === 'earnings') {
               icon = 'gift';
               color = 'text-yellow-400';
               type = 'tip';
+              shouldInclude = true;
+            } else if (notif.type === 'call_completed' || notif.type === 'call_earnings') {
+              icon = 'phone';
+              color = 'text-cyan-400';
+              type = 'tip';
+              shouldInclude = true;
             }
 
-            activities.push({
-              id: `notif-${notif.id}`,
-              type,
-              title: notif.title || 'Notification',
-              description: notif.message || '',
-              timestamp: notif.createdAt,
-              icon,
-              color,
-              amount: notif.amount,
-            });
+            // Only include meaningful activity, skip system warnings/errors
+            if (shouldInclude) {
+              activities.push({
+                id: `notif-${notif.id}`,
+                type,
+                title: notif.title || 'Notification',
+                description: notif.message || '',
+                timestamp: notif.createdAt,
+                icon,
+                color,
+                amount: notif.amount,
+              });
+            }
           });
         } catch (e) {
           console.error('Error parsing notifications data:', e);
@@ -897,44 +910,6 @@ export default function CreatorDashboard() {
               </button>
             </div>
           </div>
-
-          {/* Quick Stats Cards */}
-          {analytics && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Video className="w-4 h-4 text-red-400" />
-                  <span className="text-xs text-gray-400">Streams</span>
-                </div>
-                <p className="text-2xl font-bold text-white">{analytics.streams?.totalStreams || 0}</p>
-                <p className="text-xs text-gray-500">{(analytics.streams?.totalViews || 0).toLocaleString()} views</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Phone className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-gray-400">Calls</span>
-                </div>
-                <p className="text-2xl font-bold text-white">{analytics.calls?.totalCalls || 0}</p>
-                <p className="text-xs text-gray-500">{analytics.calls?.totalMinutes || 0} mins</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Gift className="w-4 h-4 text-yellow-400" />
-                  <span className="text-xs text-gray-400">Gifts</span>
-                </div>
-                <p className="text-2xl font-bold text-white">{analytics.gifts?.totalGifts || 0}</p>
-                <p className="text-xs text-gray-500">{(analytics.gifts?.totalCoins || 0).toLocaleString()} coins</p>
-              </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-4 h-4 text-green-400" />
-                  <span className="text-xs text-gray-400">Earnings</span>
-                </div>
-                <p className="text-2xl font-bold text-white">{(analytics.overview?.totalEarnings || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-500">≈ ${((analytics.overview?.totalEarnings || 0) * 0.1).toFixed(0)}</p>
-              </div>
-            </div>
-          )}
 
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (
