@@ -766,35 +766,6 @@ export default function CreatorDashboard() {
                     Set Pricing rates
                   </span>
                 </button>
-
-                {/* Earn Free Coins */}
-                <button
-                  onClick={() => router.push('/creator/share-rewards')}
-                  className="flex items-center gap-3 p-4 rounded-xl transition-all bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 hover:border-yellow-500/50"
-                >
-                  <Gift className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-                  <div className="text-left min-w-0">
-                    <span className="text-sm font-medium text-white block">Earn free coins</span>
-                    <span className="text-xs text-gray-400 block">Share on IG/TikTok for 100 coins</span>
-                  </div>
-                </button>
-
-                {/* Share Link on Instagram */}
-                <button
-                  onClick={copyProfileLink}
-                  className="flex items-center gap-3 p-4 rounded-xl transition-all bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/30 hover:border-pink-500/50"
-                >
-                  <Instagram className="w-5 h-5 text-pink-400 flex-shrink-0" />
-                  <div className="text-left min-w-0">
-                    <span className="text-sm font-medium text-white block">Share your link on Instagram</span>
-                    <span className="text-xs text-gray-400 truncate block">digis.cc/{userProfile.username}</span>
-                  </div>
-                  {copiedLink ? (
-                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 ml-auto" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-gray-400 flex-shrink-0 ml-auto" />
-                  )}
-                </button>
               </div>
 
               {/* Read Digis 101 */}
