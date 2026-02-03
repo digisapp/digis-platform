@@ -742,7 +742,7 @@ export default function SettingsPage() {
         <div className="space-y-4">
           {/* Banner Preview - Clickable - Creators Only */}
           {currentUser?.role === 'creator' && (
-            <label className="relative h-32 rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 cursor-pointer group block">
+            <label className="relative aspect-[3/1] md:aspect-[4/1] rounded-lg overflow-hidden bg-gradient-to-br from-digis-cyan/20 to-digis-pink/20 cursor-pointer group block">
               {(bannerPreview || bannerUrl) ? (
                 <>
                   <img src={bannerPreview || bannerUrl} alt="Banner" className="w-full h-full object-cover" />
@@ -832,22 +832,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Share Your Digis Section - Creators Only */}
-      {currentUser?.role === 'creator' && (
-        <div className="pt-6 border-t border-cyan-500/20">
-          <div className="flex items-center gap-2 mb-4">
-            <Share2 className="w-5 h-5 text-digis-cyan" />
-            <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
-          </div>
-          <ShareDigisCard
-            username={currentUser.username || ''}
-            displayName={currentUser.displayName || undefined}
-            profileImage={currentUser.avatarUrl}
-            bio={currentUser.bio}
-          />
-        </div>
-      )}
 
       {/* Profile Information */}
       <div className="pt-6 border-t border-cyan-500/20">
@@ -1061,237 +1045,257 @@ export default function SettingsPage() {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
-        </div>
-      </div>
-    </div>
-  );
 
-  // Account Section
-  const renderAccountSection = () => (
-    <div className="space-y-4">
-      {/* Username - Editable */}
-      <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <AtSign className="w-4 h-4 text-digis-purple" />
-          <p className="text-xs text-gray-400">Username</p>
-        </div>
-        {usernameCooldown && !usernameCooldown.canChange ? (
-          <p className="text-xs text-yellow-300 mb-2 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            Can change in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
-          </p>
-        ) : usernameCooldown && (
-          <p className="text-xs text-gray-400 mb-2">
-            {usernameCooldown.changesRemaining} of {usernameCooldown.maxChanges} changes left this month
-          </p>
-        )}
-        <div className="relative">
-          <input
-            type="text"
-            value={newUsername}
-            onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-            disabled={usernameCooldown?.canChange === false}
-            placeholder={currentUser?.username}
-            className={`w-full px-3 py-2 bg-black/30 border rounded-lg text-white text-sm font-medium placeholder-gray-500 focus:outline-none transition-all ${
-              !newUsername || newUsername === currentUser?.username || newUsername.length < 3
-                ? 'border-white/10 focus:border-digis-cyan'
-                : usernameStatus === 'checking'
-                ? 'border-yellow-400'
-                : usernameStatus === 'available'
-                ? 'border-green-500'
-                : usernameStatus === 'taken'
-                ? 'border-red-500'
-                : 'border-white/10'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-          />
-          {newUsername && newUsername !== currentUser?.username && newUsername.length >= 3 && (
-            <div className="absolute right-2 top-2">
-              {usernameStatus === 'checking' && (
-                <div className="flex items-center gap-1">
-                  <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />
-                  <span className="text-xs text-yellow-500">Checking...</span>
-                </div>
-              )}
-              {usernameStatus === 'available' && (
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-xs text-green-500">Available</span>
-                </div>
-              )}
-              {usernameStatus === 'taken' && (
-                <div className="flex items-center gap-1">
-                  <XCircle className="w-4 h-4 text-red-500" />
-                  <span className="text-xs text-red-500">Taken</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        {usernameError && newUsername.length >= 3 && (
-          <p className="text-xs text-red-400 mt-1">{usernameError}</p>
-        )}
-        {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
-          <button
-            type="button"
-            onClick={handleChangeUsername}
-            disabled={savingUsername}
-            className="mt-2 px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-purple text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {savingUsername ? 'Saving...' : 'Update Username'}
-          </button>
-        )}
-      </div>
-
-      {/* Email - Editable */}
-      <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Mail className="w-4 h-4 text-digis-cyan" />
-          <p className="text-xs text-gray-400">Email Address</p>
-        </div>
-        <div className="relative">
-          <input
-            type="email"
-            className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-digis-cyan transition-all"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          {currentUser?.email && email === currentUser.email && (
-            <span className="absolute right-2 top-2 text-xs text-green-400 flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" />
-            </span>
-          )}
-        </div>
-        {email !== currentUser?.email && (
-          <p className="text-xs text-yellow-400 mt-1">Click "Save Profile" below to receive a verification email</p>
-        )}
-      </div>
-
-      {/* Account Type & Member Since - Read Only */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-          <div className={`p-1.5 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-md`}>
-            {currentUser?.role === 'creator' ? (
-              <Crown className="w-3 h-3 text-white" />
-            ) : (
-              <User className="w-3 h-3 text-white" />
-            )}
-          </div>
           <div>
-            <p className="text-xs text-gray-400">Type</p>
-            <p className="text-sm font-medium text-white capitalize">{currentUser?.role}</p>
+            <label className="block text-sm font-medium mb-2 text-gray-300 flex items-center gap-2">
+              <Mail className="w-4 h-4 text-cyan-400" />
+              Contact Email
+            </label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            />
+            <p className="text-xs text-gray-400 mt-1">Contact email shown on your public profile</p>
           </div>
         </div>
-
-        {currentUser?.createdAt && (
-          <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
-            <div className="p-1.5 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-md">
-              <Calendar className="w-3 h-3 text-white" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Joined</p>
-              <p className="text-sm font-medium text-white">
-                {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Spend Tier Progress - Fans Only */}
-      {currentUser?.role === 'fan' && (() => {
-        const lifetimeSpending = currentUser?.lifetimeSpending || 0;
-        const spendTier = currentUser?.spendTier || 'none';
-        const progress = getNextTierProgress(lifetimeSpending);
-        const currentTierConfig = getTierConfig(spendTier as SpendTier);
+      {/* Account Details Section */}
+      <div className="pt-6 border-t border-cyan-500/20">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="w-5 h-5 text-digis-purple" />
+          <h3 className="text-lg font-semibold text-white">Account</h3>
+        </div>
 
-        return (
-          <div className="p-4 backdrop-blur-xl bg-white/5 rounded-lg border border-cyan-500/20">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-digis-cyan" />
-                <p className="text-xs text-gray-400">Spend Tier</p>
-              </div>
-              <p className={`text-sm font-bold ${currentTierConfig.color}`}>
-                {currentTierConfig.emoji && `${currentTierConfig.emoji} `}{currentTierConfig.displayName}
-              </p>
+        <div className="space-y-4">
+          {/* Username - Editable */}
+          <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AtSign className="w-4 h-4 text-digis-purple" />
+              <p className="text-xs text-gray-400">Username</p>
             </div>
-
-            {progress.nextTier && (
-              <>
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">{lifetimeSpending.toLocaleString()} coins</span>
-                    <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink transition-all duration-500"
-                      style={{ width: `${progress.progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400">
-                  {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
-                </p>
-              </>
-            )}
-
-            {!progress.nextTier && (
-              <p className="text-xs text-gray-400">
-                Maximum tier achieved! Total: {lifetimeSpending.toLocaleString()} coins
+            {usernameCooldown && !usernameCooldown.canChange ? (
+              <p className="text-xs text-yellow-300 mb-2 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Can change in {usernameCooldown.daysRemaining} day{usernameCooldown.daysRemaining !== 1 ? 's' : ''}
               </p>
+            ) : usernameCooldown && (
+              <p className="text-xs text-gray-400 mb-2">
+                {usernameCooldown.changesRemaining} of {usernameCooldown.maxChanges} changes left this month
+              </p>
+            )}
+            <div className="relative">
+              <input
+                type="text"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                disabled={usernameCooldown?.canChange === false}
+                placeholder={currentUser?.username}
+                className={`w-full px-3 py-2 bg-black/30 border rounded-lg text-white text-sm font-medium placeholder-gray-500 focus:outline-none transition-all ${
+                  !newUsername || newUsername === currentUser?.username || newUsername.length < 3
+                    ? 'border-white/10 focus:border-digis-cyan'
+                    : usernameStatus === 'checking'
+                    ? 'border-yellow-400'
+                    : usernameStatus === 'available'
+                    ? 'border-green-500'
+                    : usernameStatus === 'taken'
+                    ? 'border-red-500'
+                    : 'border-white/10'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              />
+              {newUsername && newUsername !== currentUser?.username && newUsername.length >= 3 && (
+                <div className="absolute right-2 top-2">
+                  {usernameStatus === 'checking' && (
+                    <div className="flex items-center gap-1">
+                      <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />
+                      <span className="text-xs text-yellow-500">Checking...</span>
+                    </div>
+                  )}
+                  {usernameStatus === 'available' && (
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-xs text-green-500">Available</span>
+                    </div>
+                  )}
+                  {usernameStatus === 'taken' && (
+                    <div className="flex items-center gap-1">
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-500">Taken</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {usernameError && newUsername.length >= 3 && (
+              <p className="text-xs text-red-400 mt-1">{usernameError}</p>
+            )}
+            {newUsername && newUsername !== currentUser?.username && usernameStatus === 'available' && (
+              <button
+                type="button"
+                onClick={handleChangeUsername}
+                disabled={savingUsername}
+                className="mt-2 px-3 py-1.5 bg-gradient-to-r from-digis-cyan to-digis-purple text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {savingUsername ? 'Saving...' : 'Update Username'}
+              </button>
             )}
           </div>
-        );
-      })()}
 
-      {/* Creator Tier Progress - Creators Only */}
-      {currentUser?.role === 'creator' && (() => {
-        const lifetimeTips = currentUser?.lifetimeTipsReceived || 0;
-        const progress = getCreatorNextTierProgress(lifetimeTips);
-        const currentTierConfig = progress.currentTier;
-
-        return (
-          <div className={`p-4 backdrop-blur-xl bg-gradient-to-br ${currentTierConfig.bgColor} rounded-lg border border-cyan-500/20`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <p className="text-xs text-gray-400">Creator Status</p>
-              </div>
-              <p className={`text-sm font-bold ${currentTierConfig.color}`}>
-                {currentTierConfig.emoji} {currentTierConfig.displayName}
-              </p>
+          {/* Login Email - Editable */}
+          <div className="p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Mail className="w-4 h-4 text-digis-cyan" />
+              <p className="text-xs text-gray-400">Login Email</p>
             </div>
-
-            {progress.nextTier && (
-              <>
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">{lifetimeTips.toLocaleString()} coins received</span>
-                    <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full bg-gradient-to-r from-purple-500 to-amber-500 transition-all duration-500`}
-                      style={{ width: `${progress.progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400">
-                  {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
-                </p>
-              </>
-            )}
-
-            {!progress.nextTier && (
-              <p className="text-xs text-gray-400">
-                Maximum status achieved! Total coins: {lifetimeTips.toLocaleString()}
-              </p>
+            <div className="relative">
+              <input
+                type="email"
+                className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-digis-cyan transition-all"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {currentUser?.email && email === currentUser.email && (
+                <span className="absolute right-2 top-2 text-xs text-green-400 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+            {email !== currentUser?.email && (
+              <p className="text-xs text-yellow-400 mt-1">Click "Save Profile" below to receive a verification email</p>
             )}
           </div>
-        );
-      })()}
+
+          {/* Account Type & Member Since - Read Only */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+              <div className={`p-1.5 bg-gradient-to-br ${currentUser?.role === 'creator' ? 'from-digis-pink to-purple-500' : 'from-digis-cyan to-blue-500'} rounded-md`}>
+                {currentUser?.role === 'creator' ? (
+                  <Crown className="w-3 h-3 text-white" />
+                ) : (
+                  <User className="w-3 h-3 text-white" />
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-gray-400">Type</p>
+                <p className="text-sm font-medium text-white capitalize">{currentUser?.role}</p>
+              </div>
+            </div>
+
+            {currentUser?.createdAt && (
+              <div className="flex items-center gap-2 p-3 backdrop-blur-xl bg-white/5 rounded-lg">
+                <div className="p-1.5 bg-gradient-to-br from-digis-purple to-digis-cyan rounded-md">
+                  <Calendar className="w-3 h-3 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">Joined</p>
+                  <p className="text-sm font-medium text-white">
+                    {new Date(currentUser.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Spend Tier Progress - Fans Only */}
+          {currentUser?.role === 'fan' && (() => {
+            const lifetimeSpending = currentUser?.lifetimeSpending || 0;
+            const spendTier = currentUser?.spendTier || 'none';
+            const progress = getNextTierProgress(lifetimeSpending);
+            const currentTierConfig = getTierConfig(spendTier as SpendTier);
+
+            return (
+              <div className="p-4 backdrop-blur-xl bg-white/5 rounded-lg border border-cyan-500/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-digis-cyan" />
+                    <p className="text-xs text-gray-400">Spend Tier</p>
+                  </div>
+                  <p className={`text-sm font-bold ${currentTierConfig.color}`}>
+                    {currentTierConfig.emoji && `${currentTierConfig.emoji} `}{currentTierConfig.displayName}
+                  </p>
+                </div>
+
+                {progress.nextTier && (
+                  <>
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-400">{lifetimeSpending.toLocaleString()} coins</span>
+                        <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-digis-cyan to-digis-pink transition-all duration-500"
+                          style={{ width: `${progress.progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
+                    </p>
+                  </>
+                )}
+
+                {!progress.nextTier && (
+                  <p className="text-xs text-gray-400">
+                    Maximum tier achieved! Total: {lifetimeSpending.toLocaleString()} coins
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Creator Tier Progress - Creators Only */}
+          {currentUser?.role === 'creator' && (() => {
+            const lifetimeTips = currentUser?.lifetimeTipsReceived || 0;
+            const progress = getCreatorNextTierProgress(lifetimeTips);
+            const currentTierConfig = progress.currentTier;
+
+            return (
+              <div className={`p-4 backdrop-blur-xl bg-gradient-to-br ${currentTierConfig.bgColor} rounded-lg border border-cyan-500/20`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    <p className="text-xs text-gray-400">Creator Status</p>
+                  </div>
+                  <p className={`text-sm font-bold ${currentTierConfig.color}`}>
+                    {currentTierConfig.emoji} {currentTierConfig.displayName}
+                  </p>
+                </div>
+
+                {progress.nextTier && (
+                  <>
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-400">{lifetimeTips.toLocaleString()} coins received</span>
+                        <span className="text-gray-400">{progress.nextTier.minCoins.toLocaleString()} coins</span>
+                      </div>
+                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full bg-gradient-to-r from-purple-500 to-amber-500 transition-all duration-500`}
+                          style={{ width: `${progress.progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {progress.coinsToNext.toLocaleString()} coins until {progress.nextTier.emoji} {progress.nextTier.displayName}
+                    </p>
+                  </>
+                )}
+
+                {!progress.nextTier && (
+                  <p className="text-xs text-gray-400">
+                    Maximum status achieved! Total coins: {lifetimeTips.toLocaleString()}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
     </div>
   );
 
@@ -1323,7 +1327,6 @@ export default function SettingsPage() {
       { key: 'snapchat', icon: null, svgPath: 'M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-.809-.329-1.224-.72-1.227-1.153-.015-.36.27-.69.72-.854.149-.06.314-.09.494-.09.12 0 .284.015.435.09.375.18.72.3 1.034.3.21 0 .314-.044.389-.074-.007-.18-.022-.345-.029-.525l-.006-.061c-.105-1.627-.225-3.654.3-4.848C7.849 1.069 11.205.793 12.191.793h.03z', color: 'yellow-400', value: snapchatHandle, setter: setSnapchatHandle, placeholder: 'username', extract: extractSnapchatHandle },
       { key: 'twitch', icon: Twitch, color: 'purple-500', value: twitchHandle, setter: setTwitchHandle, placeholder: 'username', extract: (v: string) => v.replace(/^@/, '') },
       { key: 'amazon', icon: ShoppingBag, color: 'orange-500', value: amazonHandle, setter: setAmazonHandle, placeholder: 'https://amazon.com/hz/wishlist/...', isUrl: true, label: 'Amazon Wishlist' },
-      { key: 'email', icon: Mail, color: 'cyan-400', value: contactEmail, setter: setContactEmail, placeholder: 'business@example.com', isEmail: true, label: 'Business Email' },
     ];
 
     const renderSocialInput = (platform: typeof primaryPlatforms[0] | typeof secondaryPlatforms[0]) => {
@@ -1556,33 +1559,35 @@ export default function SettingsPage() {
     );
   };
 
-  // Actions Section (Delete Account, Become Creator, Pricing)
+  // Rates Section - Only for Creators
+  const renderRatesSection = () => (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-green-400" />
+          Rates
+        </h3>
+        <p className="text-sm text-gray-400 mb-3">
+          Set your rates for video calls, voice calls, and messages. Toggle call availability on or off.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.push('/creator/pricing')}
+          className="w-full px-6 py-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 rounded-xl font-semibold text-white hover:scale-[1.01] transition-all flex items-center justify-center gap-3"
+        >
+          <div className="flex items-center gap-2">
+            <Video className="w-5 h-5 text-green-400" />
+            <Phone className="w-5 h-5 text-green-400" />
+          </div>
+          <span>Manage Rates & Call Settings</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // Actions Section (Delete Account, Become Creator)
   const renderActionsSection = () => (
     <div className="space-y-6">
-      {/* Pricing & Rates - Only for Creators */}
-      {currentUser?.role === 'creator' && (
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-green-400" />
-            Pricing & Rates
-          </h3>
-          <p className="text-sm text-gray-400 mb-3">
-            Set your rates for video calls, voice calls, and messages. Toggle call availability on or off.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push('/creator/pricing')}
-            className="w-full px-6 py-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 rounded-xl font-semibold text-white hover:scale-[1.01] transition-all flex items-center justify-center gap-3"
-          >
-            <div className="flex items-center gap-2">
-              <Video className="w-5 h-5 text-green-400" />
-              <Phone className="w-5 h-5 text-green-400" />
-            </div>
-            <span>Manage Pricing & Call Settings</span>
-          </button>
-        </div>
-      )}
-
       {/* Become Creator Button - Only for Fans */}
       {currentUser?.role === 'fan' && (
         <div>
@@ -1654,12 +1659,13 @@ export default function SettingsPage() {
       icon: User,
       content: renderProfileSection(),
     },
-    {
-      id: 'account',
-      label: 'Account',
-      icon: Shield,
-      content: renderAccountSection(),
-    },
+    // Rates tab - only for creators
+    ...(currentUser?.role === 'creator' ? [{
+      id: 'rates',
+      label: 'Rates',
+      icon: DollarSign,
+      content: renderRatesSection(),
+    }] : []),
     {
       id: 'social',
       label: 'Social',
@@ -1743,6 +1749,22 @@ export default function SettingsPage() {
             </GlassButton>
           </div>
         </form>
+
+        {/* Share Your Digis Section - Creators Only */}
+        {currentUser?.role === 'creator' && (
+          <div className="mt-6 p-6 backdrop-blur-xl bg-white/5 border border-cyan-500/20 rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Share2 className="w-5 h-5 text-digis-cyan" />
+              <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
+            </div>
+            <ShareDigisCard
+              username={currentUser.username || ''}
+              displayName={currentUser.displayName || undefined}
+              profileImage={currentUser.avatarUrl}
+              bio={currentUser.bio}
+            />
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Link Modal */}
