@@ -632,25 +632,8 @@ export default function CreatorDashboard() {
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
 
-          {/* Dashboard Header with Refresh */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-              {lastUpdated && (
-                <p className="text-xs text-gray-500">
-                  Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={refreshDashboard}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="text-sm text-gray-400 hidden sm:inline">Refresh</span>
-            </button>
-          </div>
+          {/* Dashboard Header */}
+          <h1 className="text-2xl font-bold text-white mb-4">Dashboard</h1>
 
           {/* Pending Orders Hero Card - Most Important Action */}
           {pendingOrders.length > 0 && (
