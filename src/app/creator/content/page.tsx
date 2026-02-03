@@ -143,6 +143,19 @@ export default function CreatorContentStudioPage() {
       <MobileHeader />
 
       <div className="container mx-auto px-4 pt-20 md:pt-10 pb-24 md:pb-8 max-w-7xl">
+        {/* Header with New Post button */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-white">Content</h1>
+          <GlassButton
+            variant="gradient"
+            onClick={() => router.push('/creator/content/new')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Post
+          </GlassButton>
+        </div>
+
         {/* Content List */}
         {content.length === 0 ? (
           <GlassCard className="p-16 text-center">
