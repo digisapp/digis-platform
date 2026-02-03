@@ -137,6 +137,10 @@ export async function PUT(request: NextRequest) {
       minimumMinutes,
       maxSessionMinutes,
       textPricePerMessage,
+      // Knowledge Base fields
+      knowledgeLocation,
+      knowledgeExpertise,
+      knowledgeBase,
     } = body;
 
     // Validate voice if provided
@@ -196,6 +200,10 @@ export async function PUT(request: NextRequest) {
     if (minimumMinutes !== undefined) updateData.minimumMinutes = minimumMinutes;
     if (maxSessionMinutes !== undefined) updateData.maxSessionMinutes = maxSessionMinutes;
     if (textPricePerMessage !== undefined) updateData.textPricePerMessage = textPricePerMessage;
+    // Knowledge Base fields
+    if (knowledgeLocation !== undefined) updateData.knowledgeLocation = knowledgeLocation;
+    if (knowledgeExpertise !== undefined) updateData.knowledgeExpertise = knowledgeExpertise;
+    if (knowledgeBase !== undefined) updateData.knowledgeBase = knowledgeBase;
 
     console.log('[AI Settings PUT] Update data:', updateData);
 

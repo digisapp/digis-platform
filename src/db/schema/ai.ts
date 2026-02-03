@@ -39,6 +39,11 @@ export const aiTwinSettings = pgTable('ai_twin_settings', {
   welcomeMessage: text('welcome_message'), // First message AI says
   boundaryPrompt: text('boundary_prompt'), // Things AI won't discuss
 
+  // Knowledge Base - deep context for AI to know the creator
+  knowledgeLocation: text('knowledge_location'), // Where they're from (city, country)
+  knowledgeExpertise: text('knowledge_expertise').array(), // Areas of expertise as tags
+  knowledgeBase: text('knowledge_base'), // Large free-form text about creator's life, background, expertise
+
   // Voice Pricing
   pricePerMinute: integer('price_per_minute').default(20).notNull(), // Coins per minute for voice
   minimumMinutes: integer('minimum_minutes').default(5).notNull(), // Minimum session length

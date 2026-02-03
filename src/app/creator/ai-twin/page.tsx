@@ -6,7 +6,8 @@ import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
   Bot, Mic, ToggleLeft, ToggleRight, Coins, Sparkles,
-  CheckCircle, AlertCircle, MessageSquare, Volume2
+  CheckCircle, AlertCircle, MessageSquare, Volume2,
+  MapPin, Brain, X, Plus
 } from 'lucide-react';
 import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
 
@@ -60,6 +61,26 @@ const BOUNDARY_OPTIONS = [
   { id: 'spicy', label: 'Spicy Allowed', emoji: '🔥', description: 'Adult conversations OK', prompt: 'Adult and suggestive conversations are allowed. Be flirty and spicy while staying within platform guidelines.' },
 ];
 
+// Common expertise areas for quick selection
+const EXPERTISE_PRESETS = [
+  { id: 'fitness', label: 'Fitness & Gym', emoji: '💪' },
+  { id: 'nutrition', label: 'Nutrition & Diet', emoji: '🥗' },
+  { id: 'fashion', label: 'Fashion & Style', emoji: '👗' },
+  { id: 'beauty', label: 'Beauty & Skincare', emoji: '💄' },
+  { id: 'dating', label: 'Dating & Relationships', emoji: '❤️' },
+  { id: 'travel', label: 'Travel', emoji: '✈️' },
+  { id: 'cooking', label: 'Cooking & Recipes', emoji: '👨‍🍳' },
+  { id: 'music', label: 'Music', emoji: '🎵' },
+  { id: 'gaming', label: 'Gaming', emoji: '🎮' },
+  { id: 'business', label: 'Business & Entrepreneurship', emoji: '💼' },
+  { id: 'tech', label: 'Technology', emoji: '💻' },
+  { id: 'art', label: 'Art & Design', emoji: '🎨' },
+  { id: 'photography', label: 'Photography', emoji: '📸' },
+  { id: 'wellness', label: 'Mental Health & Wellness', emoji: '🧘' },
+  { id: 'parenting', label: 'Parenting', emoji: '👶' },
+  { id: 'sports', label: 'Sports', emoji: '⚽' },
+];
+
 // Generate personality prompt from selections
 const generatePersonalityPrompt = (
   vibePreset: string | null,
@@ -108,6 +129,10 @@ interface AiSettings {
   totalEarnings: number;
   totalTextMessages: number;
   totalTextEarnings: number;
+  // Knowledge Base
+  knowledgeLocation: string | null;
+  knowledgeExpertise: string[] | null;
+  knowledgeBase: string | null;
 }
 
 export default function AiTwinPage() {
@@ -133,7 +158,13 @@ export default function AiTwinPage() {
     totalEarnings: 0,
     totalTextMessages: 0,
     totalTextEarnings: 0,
+    knowledgeLocation: null,
+    knowledgeExpertise: null,
+    knowledgeBase: null,
   });
+
+  // Knowledge Base state
+  const [customExpertise, setCustomExpertise] = useState('');
 
   // Personality builder state
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
@@ -148,6 +179,31 @@ export default function AiTwinPage() {
         ? prev.filter(id => id !== traitId)
         : [...prev, traitId]
     );
+  };
+
+  // Toggle an expertise area on/off
+  const toggleExpertise = (expertise: string) => {
+    setSettings(prev => {
+      const current = prev.knowledgeExpertise || [];
+      const updated = current.includes(expertise)
+        ? current.filter(e => e !== expertise)
+        : [...current, expertise];
+      return { ...prev, knowledgeExpertise: updated };
+    });
+  };
+
+  // Add custom expertise
+  const addCustomExpertise = () => {
+    if (customExpertise.trim()) {
+      setSettings(prev => {
+        const current = prev.knowledgeExpertise || [];
+        if (!current.includes(customExpertise.trim())) {
+          return { ...prev, knowledgeExpertise: [...current, customExpertise.trim()] };
+        }
+        return prev;
+      });
+      setCustomExpertise('');
+    }
   };
 
   // Select a vibe preset and auto-select its traits
@@ -246,6 +302,10 @@ export default function AiTwinPage() {
       welcomeMessage: settings.welcomeMessage,
       boundaryPrompt: generatedBoundary || settings.boundaryPrompt,
       pricePerMinute: settings.pricePerMinute,
+      // Knowledge Base
+      knowledgeLocation: settings.knowledgeLocation,
+      knowledgeExpertise: settings.knowledgeExpertise,
+      knowledgeBase: settings.knowledgeBase,
     };
 
     console.log('[AI Twin Save] Sending payload:', payload);
@@ -596,6 +656,121 @@ export default function AiTwinPage() {
                   placeholder="Example: Hey babe! So excited to chat with you! What's on your mind today?"
                   className="w-full px-4 py-3 bg-black/40 border border-green-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500 h-24 resize-none"
                 />
+              </GlassCard>
+
+              {/* Knowledge Base */}
+              <GlassCard className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Brain className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">Knowledge Base</h3>
+                    <p className="text-xs text-gray-400">Help your AI know you deeply</p>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div className="mb-5">
+                  <label className="text-xs text-gray-400 mb-2 font-medium flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Where are you from?
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.knowledgeLocation || ''}
+                    onChange={(e) => setSettings({ ...settings, knowledgeLocation: e.target.value })}
+                    placeholder="e.g., Miami, Florida or London, UK"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                  />
+                </div>
+
+                {/* Expertise Areas */}
+                <div className="mb-5">
+                  <p className="text-xs text-gray-400 mb-2 font-medium">What are you knowledgeable about?</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {EXPERTISE_PRESETS.map((expertise) => (
+                      <button
+                        key={expertise.id}
+                        onClick={() => toggleExpertise(expertise.label)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1 ${
+                          (settings.knowledgeExpertise || []).includes(expertise.label)
+                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                            : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                        }`}
+                      >
+                        <span>{expertise.emoji}</span>
+                        <span>{expertise.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Custom expertise input */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customExpertise}
+                      onChange={(e) => setCustomExpertise(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && addCustomExpertise()}
+                      placeholder="Add custom topic..."
+                      className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
+                    />
+                    <button
+                      onClick={addCustomExpertise}
+                      className="px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-blue-400 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Show selected expertise */}
+                  {(settings.knowledgeExpertise || []).length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(settings.knowledgeExpertise || []).map((exp) => (
+                        <span
+                          key={exp}
+                          className="px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full text-xs text-blue-300 flex items-center gap-1"
+                        >
+                          {exp}
+                          <button
+                            onClick={() => toggleExpertise(exp)}
+                            className="hover:text-white transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Deep Knowledge Textarea */}
+                <div>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Tell your AI everything about you</p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Background, life story, education, experiences, expertise details, opinions, catchphrases - anything you want your AI to know and share with fans.
+                  </p>
+                  <textarea
+                    value={settings.knowledgeBase || ''}
+                    onChange={(e) => setSettings({ ...settings, knowledgeBase: e.target.value })}
+                    placeholder={`Example:
+I grew up in Miami and moved to LA at 22 to pursue modeling. I have a degree in nutrition from Florida State.
+
+I'm really passionate about fitness - I work out 5 days a week and love weightlifting. My diet is mostly clean eating with a focus on high protein.
+
+I've been in a few serious relationships and learned a lot about communication and boundaries. I'm currently single and focused on my career.
+
+Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I always say "you got this babe!" to encourage people.`}
+                    className="w-full px-4 py-3 bg-black/40 border border-blue-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 h-48 resize-none text-sm"
+                  />
+                  <div className="flex justify-between mt-2">
+                    <p className="text-xs text-gray-500">
+                      The more detail you provide, the more authentic your AI will be
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {(settings.knowledgeBase || '').length} chars
+                    </p>
+                  </div>
+                </div>
               </GlassCard>
 
               {/* Boundaries */}
