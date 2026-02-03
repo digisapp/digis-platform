@@ -818,7 +818,7 @@ export class StreamService {
       .select({
         username: streamGifts.senderUsername,
         senderId: streamGifts.senderId,
-        totalCoins: sql<number>`SUM(${streamGifts.totalCoins})`,
+        totalCoins: sql<number>`COALESCE(SUM(${streamGifts.totalCoins}), 0)::int`,
       })
       .from(streamGifts)
       .where(eq(streamGifts.streamId, streamId))
@@ -826,7 +826,11 @@ export class StreamService {
       .orderBy(desc(sql`SUM(${streamGifts.totalCoins})`))
       .limit(limit);
 
-    return leaderboard;
+    // Ensure numeric values (PostgreSQL bigint can return as string)
+    return leaderboard.map(entry => ({
+      ...entry,
+      totalCoins: Number(entry.totalCoins) || 0,
+    }));
   }
 
   /**

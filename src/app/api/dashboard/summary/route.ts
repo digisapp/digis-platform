@@ -78,7 +78,7 @@ export async function GET() {
               .where(eq(users.id, user.id))
               .then((r) => r[0]?.count ?? 0),
             db
-              .select({ total: sql<number>`coalesce(sum(${walletTransactions.amount}), 0)` })
+              .select({ total: sql<number>`coalesce(sum(${walletTransactions.amount}), 0)::int` })
               .from(walletTransactions)
               .where(
                 and(
@@ -86,7 +86,7 @@ export async function GET() {
                   sql`${walletTransactions.amount} > 0`
                 )
               )
-              .then((r) => r[0]?.total ?? 0),
+              .then((r) => Number(r[0]?.total) || 0),
           ]);
 
           return {

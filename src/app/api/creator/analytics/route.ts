@@ -238,25 +238,41 @@ export async function GET(request: NextRequest) {
           const totalStreams = creatorStreams.length;
 
           // Process gift data
-          const totalGiftCoins = giftsReceived[0]?.totalCoins || 0;
-          const totalGifts = giftsReceived[0]?.giftCount || 0;
+          // Note: PostgreSQL SUM() on integer returns bigint, which Drizzle may return as string
+          // Explicitly convert to Number to prevent string concatenation issues
+          const totalGiftCoins = Number(giftsReceived[0]?.totalCoins) || 0;
+          const totalGifts = Number(giftsReceived[0]?.giftCount) || 0;
 
           // Process call data
           const totalCallMinutes = completedCalls.reduce((sum, call) => {
             return sum + (call.durationSeconds ? Math.ceil(call.durationSeconds / 60) : 0);
           }, 0);
           const totalCallEarnings = completedCalls.reduce((sum, call) => {
-            return sum + (call.actualCoins || 0);
+            return sum + Number(call.actualCoins || 0);
           }, 0);
           const totalCalls = completedCalls.length;
 
-          // Calculate total earnings
+          // Calculate total earnings (ensure numeric addition, not string concatenation)
           const totalEarnings = totalGiftCoins + totalCallEarnings;
 
+          // Debug logging for earnings calculation
+          console.log('[CREATOR_ANALYTICS]', {
+            requestId,
+            userId: user.id,
+            period,
+            breakdown: {
+              totalGiftCoins,
+              totalCallEarnings,
+              totalEarnings,
+              giftCount: totalGifts,
+              callCount: totalCalls,
+            }
+          });
+
           // Calculate previous period earnings for comparison
-          const prevGiftCoins = prevGiftsReceived[0]?.totalCoins || 0;
+          const prevGiftCoins = Number(prevGiftsReceived[0]?.totalCoins) || 0;
           const prevCallEarnings = prevCompletedCalls.reduce((sum, call) => {
-            return sum + (call.actualCoins || 0);
+            return sum + Number(call.actualCoins || 0);
           }, 0);
           const previousPeriodEarnings = prevGiftCoins + prevCallEarnings;
 
