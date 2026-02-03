@@ -143,7 +143,7 @@ export class StreamService {
         },
       });
 
-      if (creator) {
+      if (creator && creator.username) {
         AblyRealtimeService.broadcastStreamStarted({
           streamId: stream.id,
           creatorId,
