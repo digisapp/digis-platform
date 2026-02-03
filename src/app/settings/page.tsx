@@ -3,9 +3,9 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { GlassCard, GlassInput, GlassButton, LoadingSpinner, ResponsiveSettingsLayout } from '@/components/ui';
+import { GlassCard, GlassInput, GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Circle, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Circle, Settings, DollarSign, Video, Phone } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
@@ -76,6 +76,10 @@ export default function SettingsPage() {
   const [bannerPreview, setBannerPreview] = useState<string | undefined>();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
+
+  // Avatar cropper state
+  const [showAvatarCropper, setShowAvatarCropper] = useState(false);
+  const [avatarToCrop, setAvatarToCrop] = useState<string | null>(null);
 
   // Username change
   const [newUsername, setNewUsername] = useState('');
@@ -619,15 +623,32 @@ export default function SettingsPage() {
       return;
     }
 
+    // Read file and show cropper
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatarToCrop(reader.result as string);
+      setShowAvatarCropper(true);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset the input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const handleAvatarCropComplete = async (croppedBlob: Blob) => {
+    if (!currentUser) return;
+
+    setShowAvatarCropper(false);
+    setAvatarToCrop(null);
     setUploadingAvatar(true);
     setError('');
 
     try {
-      // Resize image to 512x512
-      const resizedFile = await resizeImage(file, 512, 512);
+      // Convert blob to file
+      const croppedFile = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
 
       // Upload to Supabase Storage
-      const url = await uploadImage(resizedFile, 'avatar', currentUser.id);
+      const url = await uploadImage(croppedFile, 'avatar', currentUser.id);
 
       // Update preview
       setAvatarPreview(url);
@@ -653,6 +674,11 @@ export default function SettingsPage() {
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  const handleAvatarCropCancel = () => {
+    setShowAvatarCropper(false);
+    setAvatarToCrop(null);
   };
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1530,9 +1556,33 @@ export default function SettingsPage() {
     );
   };
 
-  // Actions Section (Delete Account, Become Creator)
+  // Actions Section (Delete Account, Become Creator, Pricing)
   const renderActionsSection = () => (
     <div className="space-y-6">
+      {/* Pricing & Rates - Only for Creators */}
+      {currentUser?.role === 'creator' && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-400" />
+            Pricing & Rates
+          </h3>
+          <p className="text-sm text-gray-400 mb-3">
+            Set your rates for video calls, voice calls, and messages. Toggle call availability on or off.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push('/creator/pricing')}
+            className="w-full px-6 py-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 rounded-xl font-semibold text-white hover:scale-[1.01] transition-all flex items-center justify-center gap-3"
+          >
+            <div className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-green-400" />
+              <Phone className="w-5 h-5 text-green-400" />
+            </div>
+            <span>Manage Pricing & Call Settings</span>
+          </button>
+        </div>
+      )}
+
       {/* Become Creator Button - Only for Fans */}
       {currentUser?.role === 'fan' && (
         <div>
@@ -1891,6 +1941,18 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Avatar Cropper Modal */}
+      {showAvatarCropper && avatarToCrop && (
+        <ImageCropper
+          image={avatarToCrop}
+          onCropComplete={handleAvatarCropComplete}
+          onCancel={handleAvatarCropCancel}
+          cropShape="round"
+          aspectRatio={1}
+          title="Adjust Profile Photo"
+        />
       )}
     </div>
   );

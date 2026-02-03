@@ -1063,6 +1063,25 @@ export default function BroadcastStudioPage() {
         // Set menu enabled state from database (default to true if not set)
         setMenuEnabled(data.stream.tipMenuEnabled ?? true);
 
+        // Restore VIP mode state if active (handles page refresh)
+        if (data.stream.vipModeActive && data.stream.activeVipShow) {
+          setVipModeActive(true);
+          setAnnouncedTicketedStream({
+            id: data.stream.activeVipShow.id,
+            title: data.stream.activeVipShow.title,
+            ticketPrice: data.stream.activeVipShow.ticketPrice,
+            startsAt: new Date(data.stream.activeVipShow.startsAt),
+          });
+        } else if (data.stream.upcomingTicketedShow) {
+          // Restore pending/scheduled VIP show (not yet started)
+          setAnnouncedTicketedStream({
+            id: data.stream.upcomingTicketedShow.id,
+            title: data.stream.upcomingTicketedShow.title,
+            ticketPrice: data.stream.upcomingTicketedShow.ticketPrice,
+            startsAt: new Date(data.stream.upcomingTicketedShow.startsAt),
+          });
+        }
+
         // Fetch menu items for the creator (which is the current user)
         if (data.stream.creatorId) {
           fetch(`/api/tip-menu/${data.stream.creatorId}`)
@@ -2158,9 +2177,9 @@ export default function BroadcastStudioPage() {
                       adaptiveStream: true,
                       dynacast: true,
                       videoCaptureDefaults: {
-                        // Always capture in landscape 1080p (reliable across all devices)
-                        // Portrait display is achieved with object-cover CSS (like video calls)
-                        resolution: VideoPresets.h1080,
+                        // Capture at 2K (1440p) for maximum quality
+                        // Falls back to 1080p if device doesn't support 2K
+                        resolution: VideoPresets.h1440,
                         facingMode: 'user',
                         // Use same device from go-live preview for faster startup
                         deviceId: preferredVideoDevice,
@@ -2171,12 +2190,17 @@ export default function BroadcastStudioPage() {
                       },
                       publishDefaults: {
                         videoSimulcastLayers: [
-                          VideoPresets.h1080,
-                          VideoPresets.h720,
-                          VideoPresets.h360,
+                          VideoPresets.h1440, // 2K - max quality
+                          VideoPresets.h1080, // 1080p
+                          VideoPresets.h720,  // 720p fallback
                         ],
                         videoEncoding: {
-                          maxBitrate: 4_000_000,
+                          maxBitrate: 10_000_000, // 10 Mbps for 2K quality
+                          maxFramerate: 30,
+                          priority: 'high',
+                        },
+                        screenShareEncoding: {
+                          maxBitrate: 12_000_000, // 12 Mbps for crisp screen share
                           maxFramerate: 30,
                         },
                         dtx: true,
@@ -2268,14 +2292,8 @@ export default function BroadcastStudioPage() {
                       <span className="text-white font-semibold text-sm">{formatDuration()}</span>
                     </div>
 
-                    {/* Viewers - Compact on mobile */}
-                    <div className="hidden sm:block">
-                      <ViewerList streamId={streamId} currentViewers={viewerCount} activeGuestId={activeGuest?.userId} />
-                    </div>
-                    <div className="sm:hidden flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-black/70 rounded-full border border-white/30 shadow-lg">
-                      <Users className="w-4 h-4 text-white" />
-                      <span className="text-white text-sm font-bold">{viewerCount}</span>
-                    </div>
+                    {/* Viewers - Click to see list on all screens */}
+                    <ViewerList streamId={streamId} currentViewers={viewerCount} activeGuestId={activeGuest?.userId} />
 
                     {/* Coins Earned - Show on mobile too, next to viewers */}
                     <div className="flex items-center gap-1.5 px-3 py-2 backdrop-blur-xl bg-black/60 rounded-full border border-yellow-500/30">

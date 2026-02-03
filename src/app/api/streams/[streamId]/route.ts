@@ -74,13 +74,27 @@ export async function GET(
       where: eq(creatorSettings.userId, stream.creatorId),
     }) : null;
 
-    // Fetch upcoming ticketed show from this stream (for late-joining viewers)
+    // Fetch VIP mode info if active on this stream
+    let activeVipShow = null;
+    if (stream.activeVipShowId) {
+      activeVipShow = await db.query.shows.findFirst({
+        where: eq(shows.id, stream.activeVipShowId),
+        columns: {
+          id: true,
+          title: true,
+          ticketPrice: true,
+          scheduledStart: true,
+        },
+      });
+    }
+
+    // Fetch upcoming/pending ticketed show from this stream (for late-joining viewers)
     // This is set when creator announces a ticketed show from an active broadcast
-    const upcomingShow = stream.creatorId ? await db.query.shows.findFirst({
+    // Only look for scheduled shows if VIP mode is not already active
+    const upcomingShow = (!stream.activeVipShowId && stream.creatorId) ? await db.query.shows.findFirst({
       where: and(
         eq(shows.creatorId, stream.creatorId),
-        eq(shows.status, 'scheduled'),
-        gt(shows.scheduledStart, new Date())
+        eq(shows.status, 'scheduled')
       ),
       columns: {
         id: true,
@@ -118,6 +132,15 @@ export async function GET(
           ticketPrice: upcomingShow.ticketPrice,
           startsAt: upcomingShow.scheduledStart?.toISOString(),
         } : null,
+        // VIP mode state (for restoring after page refresh)
+        vipModeActive: !!stream.activeVipShowId,
+        activeVipShow: activeVipShow ? {
+          id: activeVipShow.id,
+          title: activeVipShow.title,
+          ticketPrice: activeVipShow.ticketPrice,
+          startsAt: activeVipShow.scheduledStart?.toISOString(),
+        } : null,
+        vipStartedAt: stream.vipStartedAt?.toISOString() || null,
       }
     });
   } catch (error: any) {

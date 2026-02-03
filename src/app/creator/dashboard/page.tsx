@@ -13,7 +13,7 @@ import {
   Gift, UserPlus, PhoneCall, Video, Clock, Ticket, Calendar, Coins, Radio,
   Upload, TrendingUp, Eye, Heart, Play, Image as ImageIcon, MessageCircle,
   CheckCircle, Circle, Sparkles, X, Instagram, Link2, Copy, Package, GraduationCap,
-  AlertCircle
+  AlertCircle, RefreshCw, ChevronDown, ArrowUpRight, ArrowDownRight, Phone, DollarSign
 } from 'lucide-react';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
 import { CreatorOnboardingModal } from '@/components/creator/CreatorOnboardingModal';
@@ -109,6 +109,15 @@ export default function CreatorDashboard() {
   const [dismissedChecklist, setDismissedChecklist] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+
+  // Dashboard enhancements
+  const [pendingOrders, setPendingOrders] = useState<Activity[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<'7' | '30' | '90' | 'all'>('30');
+  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [previousEarnings, setPreviousEarnings] = useState(0);
+  const [earningsChange, setEarningsChange] = useState<number | null>(null);
 
   // Redirect to homepage when user signs out
   useEffect(() => {
@@ -270,12 +279,29 @@ export default function CreatorDashboard() {
     }
   };
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (period?: string) => {
     try {
-      const response = await fetch('/api/creator/analytics');
+      const periodParam = period || selectedPeriod;
+      const url = periodParam === 'all'
+        ? '/api/creator/analytics'
+        : `/api/creator/analytics?period=${periodParam}`;
+      const response = await fetch(url);
       const result = await response.json();
       if (response.ok && result.data) {
         setAnalytics(result.data);
+        // Calculate earnings change percentage
+        if (result.data.previousPeriodEarnings !== undefined) {
+          setPreviousEarnings(result.data.previousPeriodEarnings);
+          const current = result.data.overview?.totalEarnings || 0;
+          const previous = result.data.previousPeriodEarnings || 0;
+          if (previous > 0) {
+            setEarningsChange(((current - previous) / previous) * 100);
+          } else if (current > 0) {
+            setEarningsChange(100);
+          } else {
+            setEarningsChange(null);
+          }
+        }
       } else if (result.degraded) {
         setAnalytics(result.data);
       }
@@ -447,11 +473,19 @@ export default function CreatorDashboard() {
       const orders = activities.filter(a => a.type === 'order');
       const nonOrders = activities.filter(a => a.type !== 'order');
       nonOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivities([...orders, ...nonOrders].slice(0, 10));
+
+      // Set pending orders separately for hero card
+      setPendingOrders(orders);
+
+      // Set activities without orders (they'll be shown in hero card)
+      setRecentActivities(nonOrders.slice(0, 10));
 
       // Sort events by scheduled time
       events.sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime());
       setUpcomingEvents(events.slice(0, 3));
+
+      // Update last updated timestamp
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     }
@@ -499,8 +533,9 @@ export default function CreatorDashboard() {
 
       if (response.ok) {
         showToast('Order fulfilled!', 'success');
-        // Remove the fulfilled order from activities
+        // Remove the fulfilled order from activities and pending orders
         setRecentActivities(prev => prev.filter(a => a.id !== `order-${orderId}`));
+        setPendingOrders(prev => prev.filter(a => a.id !== `order-${orderId}`));
       } else {
         const error = await response.json();
         showToast(error.error || 'Failed to fulfill order', 'error');
@@ -508,6 +543,42 @@ export default function CreatorDashboard() {
     } catch (error) {
       console.error('Error fulfilling order:', error);
       showToast('Failed to fulfill order', 'error');
+    }
+  };
+
+  // Refresh all dashboard data
+  const refreshDashboard = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchWalletBalance(),
+        fetchAnalytics(),
+        fetchAllDashboardData(),
+        fetchRecentContent(),
+      ]);
+      setLastUpdated(new Date());
+      showToast('Dashboard updated', 'success');
+    } catch (err) {
+      console.error('Error refreshing dashboard:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Handle period change
+  const handlePeriodChange = (period: '7' | '30' | '90' | 'all') => {
+    setSelectedPeriod(period);
+    setShowPeriodDropdown(false);
+    fetchAnalytics(period);
+  };
+
+  const getPeriodLabel = (period: string) => {
+    switch (period) {
+      case '7': return 'Last 7 days';
+      case '30': return 'Last 30 days';
+      case '90': return 'Last 90 days';
+      case 'all': return 'All time';
+      default: return 'Last 30 days';
     }
   };
 
@@ -547,6 +618,75 @@ export default function CreatorDashboard() {
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
+
+          {/* Dashboard Header with Refresh */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+              {lastUpdated && (
+                <p className="text-xs text-gray-500">
+                  Updated {formatDistanceToNow(lastUpdated, { addSuffix: true })}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={refreshDashboard}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="text-sm text-gray-400 hidden sm:inline">Refresh</span>
+            </button>
+          </div>
+
+          {/* Pending Orders Hero Card - Most Important Action */}
+          {pendingOrders.length > 0 && (
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-2 border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.2)]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-orange-500/30 animate-pulse">
+                    <Package className="w-6 h-6 text-orange-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {pendingOrders.length} Pending Order{pendingOrders.length > 1 ? 's' : ''}
+                    </h3>
+                    <p className="text-sm text-orange-300">Action required - fulfill to receive payment</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {pendingOrders.slice(0, 3).map((order) => (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 bg-black/30 rounded-xl"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{order.title.replace('📦 Order: ', '')}</p>
+                      <p className="text-xs text-gray-400">{order.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-3">
+                      <span className="text-sm font-bold text-orange-400">{order.amount} coins</span>
+                      <button
+                        onClick={() => order.action && handleFulfillOrder(order.action.orderId)}
+                        className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors"
+                      >
+                        Fulfill
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {pendingOrders.length > 3 && (
+                  <button
+                    onClick={() => router.push('/creator/orders')}
+                    className="w-full py-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    View all {pendingOrders.length} orders →
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Pending Verification Banner - Only for unverified creators */}
           {userProfile && userProfile.role === 'creator' && userProfile.isCreatorVerified === false && (
@@ -691,16 +831,64 @@ export default function CreatorDashboard() {
             </button>
           </div>
 
-          {/* Earnings Summary */}
+          {/* Earnings Summary with Period Selector */}
           <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
+            {/* Period Selector */}
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-400">Wallet Balance</p>
+              <div className="relative">
+                <button
+                  onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-green-500/30 transition-all text-sm"
+                >
+                  <span className="text-gray-300">{getPeriodLabel(selectedPeriod)}</span>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showPeriodDropdown ? 'rotate-180' : ''}`} />
+                </button>
+                {showPeriodDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowPeriodDropdown(false)} />
+                    <div className="absolute right-0 top-full mt-2 py-1 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl z-50 min-w-[140px]">
+                      {(['7', '30', '90', 'all'] as const).map((period) => (
+                        <button
+                          key={period}
+                          onClick={() => handlePeriodChange(period)}
+                          className={`w-full px-4 py-2 text-left text-sm transition-colors ${
+                            selectedPeriod === period
+                              ? 'text-green-400 bg-green-500/10'
+                              : 'text-gray-300 hover:bg-white/5'
+                          }`}
+                        >
+                          {getPeriodLabel(period)}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Balance</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-bold text-white">{monthlyEarnings.toLocaleString()}</span>
                   <span className="text-lg text-gray-400">coins</span>
                 </div>
-                <p className="text-sm text-green-400 mt-1">≈ ${(monthlyEarnings * 0.1).toFixed(2)} USD</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-sm text-green-400">≈ ${(monthlyEarnings * 0.1).toFixed(2)} USD</p>
+                  {earningsChange !== null && (
+                    <div className={`flex items-center gap-1 text-xs font-medium ${
+                      earningsChange >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {earningsChange >= 0 ? (
+                        <ArrowUpRight className="w-3 h-3" />
+                      ) : (
+                        <ArrowDownRight className="w-3 h-3" />
+                      )}
+                      <span>{Math.abs(earningsChange).toFixed(0)}%</span>
+                      <span className="text-gray-500">vs prev</span>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="hidden md:flex items-center gap-6">
                 <button
@@ -738,6 +926,44 @@ export default function CreatorDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Quick Stats Cards */}
+          {analytics && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Video className="w-4 h-4 text-red-400" />
+                  <span className="text-xs text-gray-400">Streams</span>
+                </div>
+                <p className="text-2xl font-bold text-white">{analytics.streams?.totalStreams || 0}</p>
+                <p className="text-xs text-gray-500">{(analytics.streams?.totalViews || 0).toLocaleString()} views</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Phone className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs text-gray-400">Calls</span>
+                </div>
+                <p className="text-2xl font-bold text-white">{analytics.calls?.totalCalls || 0}</p>
+                <p className="text-xs text-gray-500">{analytics.calls?.totalMinutes || 0} mins</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <Gift className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs text-gray-400">Gifts</span>
+                </div>
+                <p className="text-2xl font-bold text-white">{analytics.gifts?.totalGifts || 0}</p>
+                <p className="text-xs text-gray-500">{(analytics.gifts?.totalCoins || 0).toLocaleString()} coins</p>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-gray-400">Earnings</span>
+                </div>
+                <p className="text-2xl font-bold text-white">{(analytics.overview?.totalEarnings || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-500">≈ ${((analytics.overview?.totalEarnings || 0) * 0.1).toFixed(0)}</p>
+              </div>
+            </div>
+          )}
 
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && (

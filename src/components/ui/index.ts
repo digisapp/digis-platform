@@ -8,3 +8,4 @@ export { PasswordInput } from './PasswordInput';
 export { Tabs } from './Tabs';
 export { Accordion, AccordionSection } from './Accordion';
 export { ResponsiveSettingsLayout } from './ResponsiveSettingsLayout';
+export { ImageCropper } from './ImageCropper';

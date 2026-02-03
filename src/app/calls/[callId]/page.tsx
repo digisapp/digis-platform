@@ -2086,20 +2086,25 @@ export default function VideoCallPage() {
         video={false}
         className="h-full"
         options={{
+          adaptiveStream: true,  // Dynamically adjust quality based on network
+          dynacast: true,        // Only send video to active viewers (saves bandwidth)
           videoCaptureDefaults: {
-            resolution: VideoPresets.h1080, // 1080p default
+            resolution: VideoPresets.h1440, // 2K (1440p) for maximum quality
             facingMode: 'user',
           },
           publishDefaults: {
             videoSimulcastLayers: [
-              VideoPresets.h1080, // 1080p - max quality
-              VideoPresets.h720,  // 720p
-              VideoPresets.h360,  // 360p for low bandwidth
+              VideoPresets.h1440, // 2K - max quality
+              VideoPresets.h1080, // 1080p
+              VideoPresets.h720,  // 720p fallback
             ],
             videoEncoding: {
-              maxBitrate: 4_000_000, // 4 Mbps for 1080p quality
+              maxBitrate: 10_000_000, // 10 Mbps for 2K quality
               maxFramerate: 30,
+              priority: 'high',
             },
+            dtx: true,  // Discontinuous transmission - saves bandwidth during silence
+            red: true,  // Redundant encoding - helps with packet loss
           },
         }}
       >
