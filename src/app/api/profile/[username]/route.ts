@@ -150,19 +150,34 @@ export async function GET(
         : Promise.resolve([]),
     ]);
 
-    // Build call settings from result
+    // Build call settings from result - use defaults if settings don't exist yet
+    // This ensures call buttons show by default for new creators
     let callSettings = undefined;
     let messageRate = 0;
-    if (creatorSettings) {
-      callSettings = {
-        callRatePerMinute: creatorSettings.callRatePerMinute,
-        minimumCallDuration: creatorSettings.minimumCallDuration,
-        isAvailableForCalls: creatorSettings.isAvailableForCalls,
-        voiceCallRatePerMinute: creatorSettings.voiceCallRatePerMinute,
-        minimumVoiceCallDuration: creatorSettings.minimumVoiceCallDuration,
-        isAvailableForVoiceCalls: creatorSettings.isAvailableForVoiceCalls,
-      };
-      messageRate = creatorSettings.messageRate || 0;
+    if (user.role === 'creator') {
+      if (creatorSettings) {
+        callSettings = {
+          callRatePerMinute: creatorSettings.callRatePerMinute,
+          minimumCallDuration: creatorSettings.minimumCallDuration,
+          isAvailableForCalls: creatorSettings.isAvailableForCalls,
+          voiceCallRatePerMinute: creatorSettings.voiceCallRatePerMinute,
+          minimumVoiceCallDuration: creatorSettings.minimumVoiceCallDuration,
+          isAvailableForVoiceCalls: creatorSettings.isAvailableForVoiceCalls,
+        };
+        messageRate = creatorSettings.messageRate || 0;
+      } else {
+        // Default settings for creators who haven't configured their settings yet
+        // This ensures video/voice call buttons show by default until creator toggles them off
+        callSettings = {
+          callRatePerMinute: 25,           // Default: 25 coins/min ($2.50/min)
+          minimumCallDuration: 5,          // Default: 5 minutes minimum
+          isAvailableForCalls: true,       // Show video call button by default
+          voiceCallRatePerMinute: 15,      // Default: 15 coins/min ($1.50/min)
+          minimumVoiceCallDuration: 5,     // Default: 5 minutes minimum
+          isAvailableForVoiceCalls: true,  // Show voice call button by default
+        };
+        messageRate = 3; // Default: 3 coins per message
+      }
     }
 
     // Get user's likes and purchases for this content if authenticated
