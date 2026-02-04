@@ -46,39 +46,48 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Cleanup Holds] Found ${staleHolds.length} stale holds to release`);
 
-    // Release each stale hold
+    // Batch release all stale holds in a single transaction
+    const holdIds = staleHolds.map(h => h.id);
+
+    // Group amounts by userId for wallet updates
+    const amountsByUser = new Map<string, number>();
+    for (const hold of staleHolds) {
+      const current = amountsByUser.get(hold.userId) || 0;
+      amountsByUser.set(hold.userId, current + hold.amount);
+    }
+
     let cleaned = 0;
     const errors: string[] = [];
 
-    for (const hold of staleHolds) {
-      try {
-        await db.transaction(async (tx) => {
-          // Update hold status to released
-          await tx
-            .update(spendHolds)
-            .set({
-              status: 'released',
-              releasedAt: new Date(),
-            })
-            .where(eq(spendHolds.id, hold.id));
+    try {
+      await db.transaction(async (tx) => {
+        // Batch update all hold statuses in a single query
+        await tx
+          .update(spendHolds)
+          .set({
+            status: 'released',
+            releasedAt: new Date(),
+          })
+          .where(sql`${spendHolds.id} = ANY(${holdIds})`);
 
-          // Release the held balance
+        // Update each user's wallet (grouped by userId)
+        for (const [userId, totalAmount] of amountsByUser) {
           await tx
             .update(wallets)
             .set({
-              heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${hold.amount})`,
+              heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${totalAmount})`,
               updatedAt: new Date(),
             })
-            .where(eq(wallets.userId, hold.userId));
-        });
+            .where(eq(wallets.userId, userId));
+        }
+      });
 
-        console.log(`[Cleanup Holds] Released stale hold ${hold.id} for user ${hold.userId} (${hold.amount} coins)`);
-        cleaned++;
-      } catch (err) {
-        const errorMsg = `Failed to release hold ${hold.id}: ${err instanceof Error ? err.message : 'Unknown error'}`;
-        console.error(`[Cleanup Holds] ${errorMsg}`);
-        errors.push(errorMsg);
-      }
+      cleaned = staleHolds.length;
+      console.log(`[Cleanup Holds] Successfully released ${cleaned} stale holds for ${amountsByUser.size} users`);
+    } catch (err) {
+      const errorMsg = `Failed to release holds: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      console.error(`[Cleanup Holds] ${errorMsg}`);
+      errors.push(errorMsg);
     }
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ShowService } from '@/lib/shows/show-service';
+import { validateBody, createShowSchema } from '@/lib/validation/schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,11 +26,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only creators can create shows' }, { status: 403 });
     }
 
-    const body = await request.json();
+    // Validate request body with Zod schema
+    const validation = await validateBody(request, createShowSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const {
       title,
       description,
-      showType = 'other', // Default to 'other' category
+      showType,
       ticketPrice,
       maxTickets,
       scheduledStart,
@@ -40,15 +46,7 @@ export async function POST(request: NextRequest) {
       isPrivate,
       requiresApproval,
       tags,
-    } = body;
-
-    // Validate required fields
-    if (!title || ticketPrice === undefined || !scheduledStart) {
-      return NextResponse.json(
-        { error: 'Missing required fields: title, ticketPrice, scheduledStart' },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     // Create the show
     const show = await ShowService.createShow({

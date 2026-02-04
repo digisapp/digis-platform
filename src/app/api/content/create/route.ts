@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ContentService } from '@/lib/content/content-service';
 import { db, users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { validateBody, createContentSchema } from '@/lib/validation/schemas';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    // Validate request body with Zod schema
+    const validation = await validateBody(request, createContentSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const {
       title,
       description,
@@ -38,22 +44,7 @@ export async function POST(request: NextRequest) {
       thumbnailUrl,
       mediaUrl,
       durationSeconds,
-    } = body;
-
-    // Validate required fields
-    if (!title || !contentType || !thumbnailUrl || !mediaUrl) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    if (unlockPrice === undefined || unlockPrice < 0) {
-      return NextResponse.json(
-        { error: 'Invalid unlock price' },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     // Create content
     const content = await ContentService.createContent({

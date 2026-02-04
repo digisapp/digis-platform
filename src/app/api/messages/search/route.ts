@@ -88,27 +88,26 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(messages.createdAt))
       .limit(limit);
 
-    // Get conversation details for each result
+    // Get conversation details in a single batch query (avoiding N+1)
+    const uniqueConversationIds = [...new Set(results.map(r => r.conversationId))];
     const conversationDetailsMap = new Map<string, { otherUser: any }>();
 
-    for (const result of results) {
-      if (!conversationDetailsMap.has(result.conversationId)) {
-        const conv = await db.query.conversations.findFirst({
-          where: eq(conversations.id, result.conversationId),
-          with: {
-            user1: {
-              columns: { id: true, username: true, displayName: true, avatarUrl: true },
-            },
-            user2: {
-              columns: { id: true, username: true, displayName: true, avatarUrl: true },
-            },
+    if (uniqueConversationIds.length > 0) {
+      const convDetails = await db.query.conversations.findMany({
+        where: sql`${conversations.id} = ANY(${uniqueConversationIds})`,
+        with: {
+          user1: {
+            columns: { id: true, username: true, displayName: true, avatarUrl: true },
           },
-        });
+          user2: {
+            columns: { id: true, username: true, displayName: true, avatarUrl: true },
+          },
+        },
+      });
 
-        if (conv) {
-          const otherUser = conv.user1Id === user.id ? conv.user2 : conv.user1;
-          conversationDetailsMap.set(result.conversationId, { otherUser });
-        }
+      for (const conv of convDetails) {
+        const otherUser = conv.user1Id === user.id ? conv.user2 : conv.user1;
+        conversationDetailsMap.set(conv.id, { otherUser });
       }
     }
 

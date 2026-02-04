@@ -213,6 +213,61 @@ export const callRequestSchema = z.object({
 });
 
 // ============================================
+// Content Creation Schema
+// ============================================
+
+export const contentTypeSchema = z.enum(['photo', 'video', 'gallery']);
+
+export const createContentSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less'),
+  description: z.string().max(2000, 'Description too long').optional(),
+  contentType: contentTypeSchema,
+  unlockPrice: z
+    .number()
+    .int('Price must be a whole number')
+    .min(0, 'Price cannot be negative')
+    .max(100000, 'Price too high'),
+  thumbnailUrl: z.string().url('Invalid thumbnail URL'),
+  mediaUrl: z.string().url('Invalid media URL'),
+  durationSeconds: z.number().int().positive().optional(),
+});
+
+// ============================================
+// Show Creation Schema
+// ============================================
+
+export const showTypeSchema = z.enum([
+  'hangout', 'fitness', 'grwm', 'try_on_haul', 'qna',
+  'classes', 'tutorial', 'music', 'virtual_date', 'gaming', 'other'
+]);
+
+export const createShowSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less'),
+  description: z.string().max(2000, 'Description too long').optional(),
+  showType: showTypeSchema.default('other'),
+  ticketPrice: z
+    .number()
+    .int('Price must be a whole number')
+    .min(0, 'Price cannot be negative')
+    .max(100000, 'Price too high'),
+  maxTickets: z.number().int().positive().max(100000).optional(),
+  scheduledStart: z.string().datetime('Invalid date format'),
+  scheduledEnd: z.string().datetime('Invalid date format').optional(),
+  durationMinutes: z.number().int().positive().max(720).optional(), // Max 12 hours
+  coverImageUrl: z.string().url('Invalid cover image URL').optional(),
+  trailerUrl: z.string().url('Invalid trailer URL').optional(),
+  isPrivate: z.boolean().optional(),
+  requiresApproval: z.boolean().optional(),
+  tags: z.array(z.string().max(50)).max(20).optional(),
+});
+
+// ============================================
 // Helper function to validate request body
 // ============================================
 

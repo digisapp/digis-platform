@@ -158,13 +158,14 @@ export async function POST(request: NextRequest) {
       : null;
 
     // Check for existing invites with same Instagram handles
+    // Use parameterized query to prevent SQL injection
     const handlesList = validCreators.map((c: any) => c.instagramHandle.toLowerCase().replace('@', ''));
     const existingHandles = await db
       .select({ instagramHandle: creatorInvites.instagramHandle })
       .from(creatorInvites)
       .where(
         and(
-          sql`LOWER(${creatorInvites.instagramHandle}) = ANY(ARRAY[${sql.raw(handlesList.map((h: string) => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[])`,
+          sql`LOWER(${creatorInvites.instagramHandle}) IN (${sql.join(handlesList.map(h => sql`${h}`), sql`, `)})`,
           eq(creatorInvites.status, 'pending')
         )
       );
