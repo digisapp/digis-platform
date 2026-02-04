@@ -284,6 +284,9 @@ export function useStreamChat({
     let presenceChannel: Ably.RealtimeChannel | null = null;
     let mainChannel: Ably.RealtimeChannel | null = null;
 
+    // Store reference to the connection state handler for proper cleanup
+    let connectionStateHandler: ((stateChange: Ably.ConnectionStateChange) => void) | null = null;
+
     const setupChannels = async () => {
       try {
         const ably = getAblyClient();
@@ -326,7 +329,8 @@ export function useStreamChat({
           }
         };
 
-        // Subscribe to connection state changes
+        // Store handler reference for cleanup and subscribe to connection state changes
+        connectionStateHandler = handleConnectionStateChange;
         ably.connection.on(handleConnectionStateChange);
 
         // Wait for connection
@@ -482,10 +486,13 @@ export function useStreamChat({
         }
       };
 
-      // Cleanup connection state listener
+      // Cleanup connection state listener - only remove our specific handler
+      // Previously this used ably.connection.off() which removed ALL listeners
       try {
-        const ably = getAblyClient();
-        ably.connection.off();
+        if (connectionStateHandler) {
+          const ably = getAblyClient();
+          ably.connection.off(connectionStateHandler);
+        }
       } catch {
         // Ignore if ably client not available
       }

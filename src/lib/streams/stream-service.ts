@@ -380,6 +380,9 @@ export class StreamService {
   /**
    * Update viewer count (call after join/leave)
    * Cleans up stale viewers first, then counts active ones
+   *
+   * OPTIMIZED: Uses SQL COUNT() and single combined query instead of fetching all records
+   * This reduces N+1 query issues when many viewers join/leave rapidly
    */
   static async updateViewerCount(streamId: string) {
     // First, clean up stale viewers (no activity for 2+ minutes)
@@ -391,35 +394,31 @@ export class StreamService {
       )
     );
 
-    // Count remaining active viewers
-    const viewers = await db.query.streamViewers.findMany({
-      where: eq(streamViewers.streamId, streamId),
-    });
+    // Use SQL COUNT() instead of fetching all records - much more efficient
+    const [countResult] = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(streamViewers)
+      .where(eq(streamViewers.streamId, streamId));
 
-    const currentCount = viewers.length;
+    const currentCount = countResult?.count ?? 0;
 
-    const stream = await db.query.streams.findFirst({
-      where: eq(streams.id, streamId),
-    });
-
-    if (!stream) return;
-
-    const peakViewers = Math.max(stream.peakViewers, currentCount);
-
-    // Update database
-    await db
+    // Update stream with new count and peak in a single query using GREATEST
+    const [updatedStream] = await db
       .update(streams)
       .set({
         currentViewers: currentCount,
-        peakViewers,
+        peakViewers: sql`GREATEST(${streams.peakViewers}, ${currentCount})`,
         updatedAt: new Date(),
       })
-      .where(eq(streams.id, streamId));
+      .where(eq(streams.id, streamId))
+      .returning({ peakViewers: streams.peakViewers });
+
+    if (!updatedStream) return;
 
     // Also cache in Redis for fast reads
     await setCachedViewerCount(streamId, currentCount);
 
-    return { currentViewers: currentCount, peakViewers };
+    return { currentViewers: currentCount, peakViewers: updatedStream.peakViewers };
   }
 
   /**

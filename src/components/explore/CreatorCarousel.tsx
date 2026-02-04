@@ -4,6 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Verified, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GlassCard } from '@/components/ui';
 
@@ -92,11 +93,14 @@ export function CreatorCarousel({
                 <div className="relative w-full" style={{ paddingBottom: '133.33%' }}>
                   {creator.avatarUrl ? (
                     <>
-                      <img
+                      <Image
                         src={creator.avatarUrl}
                         alt={creator.displayName || creator.username}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        loading={index < 2 ? 'eager' : 'lazy'}
+                        fill
+                        sizes="(max-width: 640px) 28vw, (max-width: 768px) 18vw, 120px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        priority={index < 2}
+                        quality={80}
                       />
                       {/* Gradient overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

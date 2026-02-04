@@ -4,6 +4,7 @@ export { GlassInput } from './GlassInput';
 export { GlassModal } from './GlassModal';
 export { WalletWidget } from './WalletWidget';
 export { LoadingSpinner } from './LoadingSpinner';
+export { LoadingButton } from './LoadingButton';
 export { PasswordInput } from './PasswordInput';
 export { Tabs } from './Tabs';
 export { Accordion, AccordionSection } from './Accordion';

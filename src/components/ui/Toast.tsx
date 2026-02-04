@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertCircle, X, Sparkles } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -12,22 +12,47 @@ interface ToastProps {
   onClose: () => void;
 }
 
+/**
+ * Toast notification component with accessibility support
+ *
+ * Features:
+ * - Proper ARIA roles (alert for errors, status for success/info)
+ * - aria-live for screen reader announcements
+ * - Safe timeout cleanup to prevent memory leaks
+ */
 export function Toast({ message, type = 'info', duration = 3000, onClose }: ToastProps) {
   const [isExiting, setIsExiting] = useState(false);
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    exitTimerRef.current = setTimeout(() => {
       setIsExiting(true);
-      setTimeout(onClose, 300); // Wait for exit animation
+      closeTimerRef.current = setTimeout(onClose, 300); // Wait for exit animation
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
   }, [duration, onClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsExiting(true);
-    setTimeout(onClose, 300);
-  };
+    closeTimerRef.current = setTimeout(onClose, 300);
+  }, [onClose]);
+
+  // Accessibility: use "alert" role for errors (more urgent), "status" for others
+  const ariaRole = type === 'error' ? 'alert' : 'status';
+  const ariaLive = type === 'error' ? 'assertive' : 'polite';
 
   const getIcon = () => {
     switch (type) {
@@ -70,6 +95,9 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
   return (
     <div
+      role={ariaRole}
+      aria-live={ariaLive}
+      aria-atomic="true"
       className={`max-w-md w-full sm:w-auto ${
         isExiting ? 'animate-slide-out-right' : 'animate-slide-in-right'
       }`}
@@ -102,9 +130,10 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
         {/* Close button */}
         <button
           onClick={handleClose}
+          aria-label="Dismiss notification"
           className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
         >
-          <X className="w-4 h-4 text-white" />
+          <X className="w-4 h-4 text-white" aria-hidden="true" />
         </button>
 
         {/* Progress bar */}
