@@ -51,8 +51,8 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
   // Fetch featured creators
   useEffect(() => {
     fetchFeaturedCreators();
-    // Poll every 10 seconds for tip updates
-    const interval = setInterval(fetchFeaturedCreators, 10000);
+    // Poll every 30 seconds for tip updates (Ably handles real-time events)
+    const interval = setInterval(fetchFeaturedCreators, 30000);
     return () => clearInterval(interval);
   }, [streamId]);
 

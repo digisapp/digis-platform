@@ -835,11 +835,11 @@ export default function TheaterModePage() {
     fetchActiveGuest(); // Fetch active guest for late-joining viewers
   }, [streamId]);
 
-  // Poll for active poll vote updates (every 5 seconds) to keep vote counts in sync
+  // Poll for active poll vote updates (every 15 seconds) as fallback - Ably handles real-time updates
   useEffect(() => {
     if (!activePoll?.isActive) return;
 
-    const interval = setInterval(fetchPoll, 5000);
+    const interval = setInterval(fetchPoll, 15000);
     return () => clearInterval(interval);
   }, [activePoll?.isActive, streamId]);
 
@@ -936,8 +936,8 @@ export default function TheaterModePage() {
       }
     };
 
-    // Check every 10 seconds
-    const interval = setInterval(checkHeartbeat, 10000);
+    // Check every 30 seconds (BRB detection doesn't need to be instant)
+    const interval = setInterval(checkHeartbeat, 30000);
     // Also check immediately
     checkHeartbeat();
 
@@ -974,11 +974,11 @@ export default function TheaterModePage() {
 
     fetchViewers();
     fetchLeaderboard();
-    // Refresh every 10 seconds while open
+    // Refresh every 20 seconds while open
     const interval = setInterval(() => {
       fetchViewers();
       fetchLeaderboard();
-    }, 10000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [showViewerList, streamId]);

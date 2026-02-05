@@ -406,3 +406,50 @@ button[class*="lk-button"],
   visibility: hidden !important;
   opacity: 0 !important;
 }
+
+/* ===== REDUCED MOTION ACCESSIBILITY ===== */
+/* Respect user's motion preferences for better accessibility */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable Tailwind's built-in animations */
+  .animate-spin,
+  .animate-ping,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+
+  /* Reduce all transition durations */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep opacity transitions but make them instant */
+  .transition-opacity,
+  .transition-all {
+    transition: opacity 0.1s ease !important;
+  }
+
+  /* Disable hover scale effects */
+  .hover\:scale-105:hover,
+  .hover\:scale-110:hover,
+  .hover\:scale-\[1\.02\]:hover {
+    transform: none !important;
+  }
+
+  /* Disable floating/bouncing emojis - just show them statically */
+  [class*="animate-"] {
+    animation: none !important;
+  }
+
+  /* Reduce gift animation intensity */
+  .gift-animation,
+  .floating-emoji {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

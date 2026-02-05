@@ -1007,8 +1007,8 @@ export default function BroadcastStudioPage() {
 
     // Fetch immediately
     fetchTicketCount();
-    // Then poll every 10 seconds
-    const interval = setInterval(fetchTicketCount, 10000);
+    // Then poll every 30 seconds
+    const interval = setInterval(fetchTicketCount, 30000);
 
     return () => clearInterval(interval);
   }, [announcedTicketedStream?.id, vipModeActive]);
@@ -1049,11 +1049,11 @@ export default function BroadcastStudioPage() {
     return () => clearInterval(interval);
   }, [announcedTicketedStream, vipModeActive]);
 
-  // Poll for active poll vote updates (every 5 seconds)
+  // Poll for active poll vote updates (every 15 seconds) as fallback - Ably handles real-time updates
   useEffect(() => {
     if (!activePoll?.isActive) return;
 
-    const interval = setInterval(fetchPoll, 5000);
+    const interval = setInterval(fetchPoll, 15000);
     return () => clearInterval(interval);
   }, [activePoll?.isActive, streamId]);
 
