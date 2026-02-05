@@ -106,6 +106,20 @@ const limiters = {
     analytics: true,
     prefix: 'rl:financial-hourly',
   }),
+  // Chat messages: prevent spam (30 messages/min per user)
+  chat: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(30, '1 m'), // 30 messages/min
+    analytics: true,
+    prefix: 'rl:chat',
+  }),
+  // Guest request cooldown after rejection (1 request per 2 minutes)
+  guestRequest: new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(1, '2 m'), // 1 request per 2 min after rejection
+    analytics: true,
+    prefix: 'rl:guest-request',
+  }),
 };
 
 // Map buckets to limiters
@@ -265,4 +279,59 @@ export async function rateLimitCallRequest(userId: string) {
       daily: dailyRes.remaining,
     },
   };
+}
+
+/**
+ * Rate limit chat messages by user ID + stream ID
+ * Prevents spam: 30 messages/min per user per stream
+ */
+export async function rateLimitChat(userId: string, streamId: string) {
+  const key = `chat:${streamId}:${userId}`;
+
+  const res = await limiters.chat.limit(key);
+  if (!res.success) {
+    return {
+      ok: false,
+      error: 'Slow down! You\'re sending messages too fast.',
+      retryAfter: Math.ceil((res.reset - Date.now()) / 1000),
+    };
+  }
+
+  return {
+    ok: true,
+    remaining: res.remaining,
+  };
+}
+
+/**
+ * Apply cooldown after guest request rejection
+ * Prevents spam: 1 request per 2 minutes after being rejected
+ */
+export async function rateLimitGuestRequest(userId: string, streamId: string) {
+  const key = `guest-request:${streamId}:${userId}`;
+
+  const res = await limiters.guestRequest.limit(key);
+  if (!res.success) {
+    const retryAfter = Math.ceil((res.reset - Date.now()) / 1000);
+    return {
+      ok: false,
+      error: `Please wait ${retryAfter} seconds before requesting again.`,
+      retryAfter,
+    };
+  }
+
+  return {
+    ok: true,
+    remaining: res.remaining,
+  };
+}
+
+/**
+ * Set cooldown for a rejected guest request
+ * Called when host rejects a request to start the cooldown period
+ */
+export async function setGuestRequestCooldown(userId: string, streamId: string) {
+  const key = `guest-request:${streamId}:${userId}`;
+  // Consume a token to start the cooldown
+  await limiters.guestRequest.limit(key);
 }

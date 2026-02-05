@@ -447,15 +447,19 @@ export default function TheaterModePage() {
       });
     },
     onGift: (giftEvent) => {
-      // Add floating emoji for the gift animation
+      // Add floating emoji for the gift animation (limit to 50 to prevent memory issues)
       if (giftEvent.gift) {
-        setFloatingGifts(prev => [...prev, {
-          id: `gift-${Date.now()}-${Math.random()}`,
-          emoji: giftEvent.gift.emoji,
-          rarity: giftEvent.gift.rarity,
-          timestamp: Date.now(),
-          giftName: giftEvent.gift.name
-        }]);
+        setFloatingGifts(prev => {
+          const newGift = {
+            id: `gift-${Date.now()}-${Math.random()}`,
+            emoji: giftEvent.gift.emoji,
+            rarity: giftEvent.gift.rarity,
+            timestamp: Date.now(),
+            giftName: giftEvent.gift.name
+          };
+          const updated = [...prev, newGift];
+          return updated.length > 50 ? updated.slice(-50) : updated;
+        });
 
         // Add gift message to chat
         setMessages(prev => [...prev, {

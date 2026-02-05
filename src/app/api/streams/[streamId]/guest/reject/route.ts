@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamGuestRequests } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { setGuestRequestCooldown } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -64,6 +65,9 @@ export async function POST(
         updatedAt: new Date(),
       })
       .where(eq(streamGuestRequests.id, requestId));
+
+    // Set cooldown for the rejected user (2 minutes before they can request again)
+    await setGuestRequestCooldown(guestRequest.userId, streamId);
 
     // Notify the guest via Ably that they've been rejected
     await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-rejected', {

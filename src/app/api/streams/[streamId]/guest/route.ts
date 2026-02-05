@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamGuestRequests, users } from '@/lib/data/system';
 import { eq, and, or } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { rateLimitGuestRequest } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -49,6 +50,18 @@ export async function POST(
     // Can't request if you're the host
     if (stream.creatorId === user.id) {
       return NextResponse.json({ error: 'Host cannot request to join as guest' }, { status: 400 });
+    }
+
+    // Check cooldown (applies after rejection - 2 minute wait)
+    const rateCheck = await rateLimitGuestRequest(user.id, streamId);
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.retryAfter) }
+        }
+      );
     }
 
     // Check if user already has a pending or active request

@@ -810,15 +810,19 @@ export default function BroadcastStudioPage() {
     },
     onGift: (giftEvent) => {
       setTotalEarnings((prev) => prev + (giftEvent.streamGift.quantity || 1) * (giftEvent.gift.coinCost || 0));
-      // Add floating emoji for the gift
+      // Add floating emoji for the gift (limit to 50 to prevent memory issues on long streams)
       if (giftEvent.gift) {
-        setFloatingGifts(prev => [...prev, {
-          id: `gift-${Date.now()}-${Math.random()}`,
-          emoji: giftEvent.gift.emoji,
-          rarity: giftEvent.gift.rarity,
-          timestamp: Date.now(),
-          giftName: giftEvent.gift.name  // Include gift name for specific sounds
-        }]);
+        setFloatingGifts(prev => {
+          const newGift = {
+            id: `gift-${Date.now()}-${Math.random()}`,
+            emoji: giftEvent.gift.emoji,
+            rarity: giftEvent.gift.rarity,
+            timestamp: Date.now(),
+            giftName: giftEvent.gift.name  // Include gift name for specific sounds
+          };
+          const updated = [...prev, newGift];
+          return updated.length > 50 ? updated.slice(-50) : updated;
+        });
       }
       // Add gift message to chat so host can see it
       const giftMessage = {
@@ -893,13 +897,17 @@ export default function BroadcastStudioPage() {
       } as unknown as StreamMessage;
       setMessages((prev) => [...prev, tipMessage]);
 
-      // Add floating emoji for visual feedback
-      setFloatingGifts(prev => [...prev, {
-        id: `tip-${Date.now()}-${Math.random()}`,
-        emoji,
-        rarity: tipData.amount >= 100 ? 'epic' : tipData.amount >= 50 ? 'rare' : 'common',
-        timestamp: Date.now()
-      }]);
+      // Add floating emoji for visual feedback (limit to 50 to prevent memory issues)
+      setFloatingGifts(prev => {
+        const newTip = {
+          id: `tip-${Date.now()}-${Math.random()}`,
+          emoji,
+          rarity: tipData.amount >= 100 ? 'epic' : tipData.amount >= 50 ? 'rare' : 'common',
+          timestamp: Date.now()
+        };
+        const updated = [...prev, newTip];
+        return updated.length > 50 ? updated.slice(-50) : updated;
+      });
     },
     onViewerCount: (data) => {
       setViewerCount(data.currentViewers);
