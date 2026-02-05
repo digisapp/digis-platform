@@ -145,6 +145,8 @@ function AdminCommunityContent() {
   });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [creatorsTotal, setCreatorsTotal] = useState<number>(0);
+  const [fansTotal, setFansTotal] = useState<number>(0);
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean;
     title: string;
@@ -196,14 +198,17 @@ function AdminCommunityContent() {
       const result = await response.json();
 
       if (response.ok && result.data && result.pagination) {
+        const total = result.pagination?.total ?? 0;
         if (tab === 'creators') {
           setCreators(Array.isArray(result.data) ? result.data : []);
+          setCreatorsTotal(total);
         } else {
           setFans(Array.isArray(result.data) ? result.data : []);
+          setFansTotal(total);
         }
         setPagination((prev) => ({
           ...prev,
-          total: result.pagination?.total ?? 0,
+          total,
           totalPages: result.pagination?.totalPages ?? 0,
         }));
       } else if (!response.ok) {
@@ -538,7 +543,7 @@ function AdminCommunityContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {tab === 'creators' ? pagination.total : '--'}
+                    {creatorsTotal > 0 ? creatorsTotal.toLocaleString() : (tab === 'creators' ? '0' : '--')}
                   </p>
                   <p className="text-xs text-gray-400">Creators</p>
                 </div>
@@ -551,7 +556,7 @@ function AdminCommunityContent() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {tab === 'fans' ? pagination.total : '--'}
+                    {fansTotal > 0 ? fansTotal.toLocaleString() : (tab === 'fans' ? '0' : '--')}
                   </p>
                   <p className="text-xs text-gray-400">Fans</p>
                 </div>
