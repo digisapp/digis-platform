@@ -234,51 +234,65 @@ export async function POST(req: NextRequest) {
       messageCharge = creatorSetting?.messageRate || 0;
 
       if (messageCharge > 0) {
-        // Check sender's balance
-        const senderWallet = await db.query.wallets.findFirst({
-          where: eq(wallets.userId, user.id),
-        });
+        // Use transaction with FOR UPDATE to prevent race conditions
+        try {
+          await db.transaction(async (tx) => {
+            // Lock sender wallet row to prevent concurrent modifications
+            const lockedWalletResult = await tx.execute(
+              sql`SELECT balance FROM wallets WHERE user_id = ${user.id} FOR UPDATE`
+            );
 
-        if (!senderWallet || senderWallet.balance < messageCharge) {
-          return NextResponse.json(
-            {
-              error: 'Insufficient balance',
-              required: messageCharge,
-              balance: senderWallet?.balance || 0,
-              type: 'media'
-            },
-            { status: 402 }
-          );
+            const walletRows = lockedWalletResult as unknown as Array<{ balance: number }>;
+            const senderBalance = walletRows[0]?.balance ?? 0;
+
+            if (senderBalance < messageCharge) {
+              throw new Error(`INSUFFICIENT_BALANCE:${messageCharge}:${senderBalance}`);
+            }
+
+            // Deduct from sender
+            await tx
+              .update(wallets)
+              .set({ balance: sql`${wallets.balance} - ${messageCharge}` })
+              .where(eq(wallets.userId, user.id));
+
+            // Credit to creator
+            await tx
+              .update(wallets)
+              .set({ balance: sql`${wallets.balance} + ${messageCharge}` })
+              .where(eq(wallets.userId, recipientId));
+
+            // Create transaction records
+            await tx.insert(walletTransactions).values({
+              userId: user.id,
+              amount: -messageCharge,
+              type: 'message_charge',
+              status: 'completed',
+              description: 'Media message to creator',
+            });
+
+            await tx.insert(walletTransactions).values({
+              userId: recipientId,
+              amount: messageCharge,
+              type: 'message_earnings',
+              status: 'completed',
+              description: 'Media message from fan',
+            });
+          });
+        } catch (txError: any) {
+          if (txError.message?.startsWith('INSUFFICIENT_BALANCE:')) {
+            const [, required, current] = txError.message.split(':');
+            return NextResponse.json(
+              {
+                error: 'Insufficient balance',
+                required: Number(required),
+                balance: Number(current),
+                type: 'media'
+              },
+              { status: 402 }
+            );
+          }
+          throw txError;
         }
-
-        // Deduct from sender
-        await db
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} - ${messageCharge}` })
-          .where(eq(wallets.userId, user.id));
-
-        // Credit to creator
-        await db
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} + ${messageCharge}` })
-          .where(eq(wallets.userId, recipientId));
-
-        // Create transaction records
-        await db.insert(walletTransactions).values({
-          userId: user.id,
-          amount: -messageCharge,
-          type: 'message_charge',
-          status: 'completed',
-          description: 'Media message to creator',
-        });
-
-        await db.insert(walletTransactions).values({
-          userId: recipientId,
-          amount: messageCharge,
-          type: 'message_earnings',
-          status: 'completed',
-          description: 'Media message from fan',
-        });
       }
     }
 
