@@ -350,6 +350,7 @@ export default function CreatorApplyPage() {
                   placeholder="e.g. 103567"
                   required
                   min="0"
+                  max="1000000000"
                   className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter your exact follower count</p>

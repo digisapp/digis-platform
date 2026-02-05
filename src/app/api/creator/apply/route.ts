@@ -74,6 +74,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate follower count is a reasonable number
+    const parsedFollowerCount = parseInt(String(followerCount), 10);
+    if (isNaN(parsedFollowerCount) || parsedFollowerCount < 0 || parsedFollowerCount > 1000000000) {
+      return NextResponse.json(
+        { error: 'Please enter a valid follower count' },
+        { status: 400 }
+      );
+    }
+
     if (!ageConfirmed) {
       return NextResponse.json(
         { error: 'You must confirm you are 18 or older' },
@@ -116,7 +125,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       displayName: fullName.trim(),
       instagramHandle: instagramHandle.trim(),
-      followerCount: String(followerCount),
+      followerCount: String(parsedFollowerCount),
       bio: '', // Required field - provide empty string as default
       ageConfirmed: true,
       termsAccepted: true,
