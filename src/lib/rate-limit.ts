@@ -1,6 +1,9 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { redis } from './redis';
 
+// Slow mode key prefix
+const SLOW_MODE_KEY_PREFIX = 'stream:slow-mode:';
+
 /**
  * Rate Limiting Configuration
  *
@@ -334,4 +337,68 @@ export async function setGuestRequestCooldown(userId: string, streamId: string) 
   const key = `guest-request:${streamId}:${userId}`;
   // Consume a token to start the cooldown
   await limiters.guestRequest.limit(key);
+}
+
+// ============================================
+// Chat Slow Mode
+// ============================================
+
+/**
+ * Set slow mode for a stream
+ * @param streamId - The stream ID
+ * @param seconds - Seconds between messages (0 to disable)
+ */
+export async function setSlowMode(streamId: string, seconds: number) {
+  const key = `${SLOW_MODE_KEY_PREFIX}${streamId}`;
+  if (seconds <= 0) {
+    await redis.del(key);
+  } else {
+    // Store slow mode setting (expires when stream ends, max 24h)
+    await redis.set(key, seconds, { ex: 86400 });
+  }
+}
+
+/**
+ * Get slow mode setting for a stream
+ * @param streamId - The stream ID
+ * @returns Seconds between messages (0 if disabled)
+ */
+export async function getSlowMode(streamId: string): Promise<number> {
+  const key = `${SLOW_MODE_KEY_PREFIX}${streamId}`;
+  const value = await redis.get<number>(key);
+  return value || 0;
+}
+
+/**
+ * Check if user can send a message under slow mode
+ * @param userId - The user ID
+ * @param streamId - The stream ID
+ * @param slowModeSeconds - Current slow mode setting
+ * @returns Object with ok status and error message if rate limited
+ */
+export async function checkSlowMode(userId: string, streamId: string, slowModeSeconds: number) {
+  if (slowModeSeconds <= 0) {
+    return { ok: true };
+  }
+
+  const key = `slow-mode:${streamId}:${userId}`;
+  const lastMessage = await redis.get<number>(key);
+
+  if (lastMessage) {
+    const elapsed = Math.floor((Date.now() - lastMessage) / 1000);
+    const remaining = slowModeSeconds - elapsed;
+
+    if (remaining > 0) {
+      return {
+        ok: false,
+        error: `Slow mode is on. Wait ${remaining} second${remaining !== 1 ? 's' : ''} before sending another message.`,
+        retryAfter: remaining,
+      };
+    }
+  }
+
+  // Record this message timestamp
+  await redis.set(key, Date.now(), { ex: slowModeSeconds + 10 });
+
+  return { ok: true };
 }

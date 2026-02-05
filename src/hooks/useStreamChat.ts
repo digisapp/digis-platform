@@ -154,6 +154,12 @@ interface GuestInviteEvent {
   streamTitle: string;
 }
 
+interface SlowModeChangeEvent {
+  enabled: boolean;
+  seconds: number;
+  timestamp: number;
+}
+
 interface UseStreamChatOptions {
   streamId: string;
   isHost?: boolean; // If true, don't count this user in viewer count
@@ -179,6 +185,7 @@ interface UseStreamChatOptions {
   onGuestRemoved?: (event: GuestRemovedEvent) => void;
   onGuestRequestsToggle?: (event: GuestRequestsToggleEvent) => void;
   onGuestInvite?: (event: GuestInviteEvent) => void;
+  onSlowModeChange?: (event: SlowModeChangeEvent) => void;
 }
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'failed';
@@ -219,6 +226,7 @@ export function useStreamChat({
   onGuestRemoved,
   onGuestRequestsToggle,
   onGuestInvite,
+  onSlowModeChange,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [viewerCount, setViewerCount] = useState(0);
@@ -249,6 +257,7 @@ export function useStreamChat({
     onGuestRemoved,
     onGuestRequestsToggle,
     onGuestInvite,
+    onSlowModeChange,
   });
 
   useEffect(() => {
@@ -274,8 +283,9 @@ export function useStreamChat({
       onGuestRemoved,
       onGuestRequestsToggle,
       onGuestInvite,
+      onSlowModeChange,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle, onGuestInvite]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle, onGuestInvite, onSlowModeChange]);
 
   useEffect(() => {
     let mounted = true;
@@ -381,6 +391,10 @@ export function useStreamChat({
         chatChannel.subscribe('countdown_update', (message) => {
           console.log('[useStreamChat] Received countdown_update:', message.data);
           callbacksRef.current.onCountdownUpdate?.(message.data as CountdownUpdateEvent);
+        });
+        chatChannel.subscribe('slow-mode-change', (message) => {
+          console.log('[useStreamChat] Received slow-mode-change:', message.data);
+          callbacksRef.current.onSlowModeChange?.(message.data as SlowModeChangeEvent);
         });
 
         // Subscribe to tips channel (tips, gifts)

@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { BlockService } from '@/lib/services/block-service';
 import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
-import { rateLimitChat } from '@/lib/rate-limit';
+import { rateLimitChat, getSlowMode, checkSlowMode } from '@/lib/rate-limit';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -94,6 +94,21 @@ export async function POST(
       const isBlocked = await BlockService.isBlockedByCreator(stream.creatorId, user.id);
       if (isBlocked) {
         return NextResponse.json({ error: 'You cannot send messages in this stream' }, { status: 403 });
+      }
+
+      // Check slow mode (creator is exempt)
+      const slowModeSeconds = await getSlowMode(streamId);
+      if (slowModeSeconds > 0) {
+        const slowModeCheck = await checkSlowMode(user.id, streamId, slowModeSeconds);
+        if (!slowModeCheck.ok) {
+          return NextResponse.json(
+            { error: slowModeCheck.error },
+            {
+              status: 429,
+              headers: { 'Retry-After': String(slowModeCheck.retryAfter) }
+            }
+          );
+        }
       }
     }
 
