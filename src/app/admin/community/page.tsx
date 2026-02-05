@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
@@ -120,6 +120,12 @@ const FAN_FILTERS = [
   { key: 'inactive', label: 'Inactive (30d)' },
 ];
 
+// Constants
+const SEARCH_DEBOUNCE_MS = 300;
+const TOAST_TIMEOUT_MS = 3000;
+const ERROR_TOAST_TIMEOUT_MS = 5000;
+const DEFAULT_PAGE_LIMIT = 50;
+
 function AdminCommunityContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -133,11 +139,12 @@ function AdminCommunityContent() {
   const [filter, setFilter] = useState(initialFilter);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
-    limit: 50,
+    limit: DEFAULT_PAGE_LIMIT,
     total: 0,
     totalPages: 0,
   });
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean;
     title: string;
@@ -169,12 +176,13 @@ function AdminCommunityContent() {
     const timer = setTimeout(() => {
       setPagination((prev) => ({ ...prev, page: 1 }));
       fetchData();
-    }, 300);
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const params = new URLSearchParams({
         tab,
@@ -187,24 +195,30 @@ function AdminCommunityContent() {
       const response = await fetch(`/api/admin/community?${params}`);
       const result = await response.json();
 
-      if (response.ok) {
+      if (response.ok && result.data && result.pagination) {
         if (tab === 'creators') {
-          setCreators(result.data);
+          setCreators(Array.isArray(result.data) ? result.data : []);
         } else {
-          setFans(result.data);
+          setFans(Array.isArray(result.data) ? result.data : []);
         }
         setPagination((prev) => ({
           ...prev,
-          total: result.pagination.total,
-          totalPages: result.pagination.totalPages,
+          total: result.pagination?.total ?? 0,
+          totalPages: result.pagination?.totalPages ?? 0,
         }));
+      } else if (!response.ok) {
+        const errorMsg = result?.error || 'Failed to load data';
+        console.error('API error:', errorMsg);
+        setFetchError(errorMsg);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : 'Network error';
       console.error('Failed to fetch community data:', error);
+      setFetchError('Failed to load data. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [tab, pagination.page, pagination.limit, search, filter]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
@@ -282,10 +296,11 @@ function AdminCommunityContent() {
     }
   };
 
-  const showToast = (message: string, type: 'success' | 'error') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+    const timeout = type === 'error' ? ERROR_TOAST_TIMEOUT_MS : TOAST_TIMEOUT_MS;
+    setTimeout(() => setToast(null), timeout);
+  }, []);
 
   const handleVerifyCreator = (userId: string, isCurrentlyVerified: boolean) => {
     setActiveDropdown(null);
@@ -311,7 +326,8 @@ function AdminCommunityContent() {
             const data = await response.json();
             showToast(data.error || 'Failed to update verification', 'error');
           }
-        } catch {
+        } catch (error: unknown) {
+          console.error('Failed to update verification:', error);
           showToast('Failed to update verification', 'error');
         }
         setConfirmModal(null);
@@ -342,7 +358,8 @@ function AdminCommunityContent() {
             const data = await response.json();
             showToast(data.error || 'Failed to update visibility', 'error');
           }
-        } catch {
+        } catch (error: unknown) {
+          console.error('Failed to update visibility:', error);
           showToast('Failed to update visibility', 'error');
         }
         setConfirmModal(null);
@@ -374,7 +391,8 @@ function AdminCommunityContent() {
             const data = await response.json();
             showToast(data.error || 'Failed to update user', 'error');
           }
-        } catch {
+        } catch (error: unknown) {
+          console.error('Failed to update user:', error);
           showToast('Failed to update user', 'error');
         }
         setConfirmModal(null);
@@ -402,7 +420,8 @@ function AdminCommunityContent() {
             const data = await response.json();
             showToast(data.error || 'Failed to delete user', 'error');
           }
-        } catch {
+        } catch (error: unknown) {
+          console.error('Failed to delete user:', error);
           showToast('Failed to delete user', 'error');
         }
         setConfirmModal(null);
@@ -433,7 +452,8 @@ function AdminCommunityContent() {
             const data = await response.json();
             showToast(data.error || 'Failed to change role', 'error');
           }
-        } catch {
+        } catch (error: unknown) {
+          console.error('Failed to change role:', error);
           showToast('Failed to change role', 'error');
         }
         setConfirmModal(null);
@@ -476,6 +496,7 @@ function AdminCommunityContent() {
               <button
                 onClick={() => router.push('/admin')}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                aria-label="Back to admin dashboard"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-400" />
               </button>
@@ -494,12 +515,14 @@ function AdminCommunityContent() {
                   } else {
                     showToast('Failed to sync counts', 'error');
                   }
-                } catch {
+                } catch (error: unknown) {
+                  console.error('Failed to sync counts:', error);
                   showToast('Failed to sync counts', 'error');
                 }
               }}
               className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm text-gray-400 hover:text-white"
               title="Sync follower counts, spending, and offline status"
+              aria-label="Sync follower counts, spending, and offline status"
             >
               <RefreshCw className="w-4 h-4" />
               <span className="hidden md:inline">Sync Counts</span>
@@ -615,13 +638,17 @@ function AdminCommunityContent() {
           {/* Search */}
           <div className="mb-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <label htmlFor="community-search" className="sr-only">
+                Search {tab}
+              </label>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
               <input
+                id="community-search"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={`Search ${tab}...`}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
               />
             </div>
           </div>
@@ -630,6 +657,19 @@ function AdminCommunityContent() {
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <LoadingSpinner size="lg" />
+            </div>
+          ) : fetchError ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white/5 rounded-2xl border border-white/10">
+              <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+              <p className="text-white font-medium mb-2">Failed to load data</p>
+              <p className="text-gray-400 text-sm mb-4 text-center max-w-md">{fetchError}</p>
+              <button
+                onClick={() => fetchData()}
+                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
             </div>
           ) : tab === 'creators' ? (
             /* Creators Table */
@@ -805,7 +845,10 @@ function AdminCommunityContent() {
                                 e.stopPropagation();
                                 setActiveDropdown(activeDropdown === creator.id ? null : creator.id);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+                              aria-label={`Actions for ${creator.username}`}
+                              aria-haspopup="true"
+                              aria-expanded={activeDropdown === creator.id}
                             >
                               <MoreVertical className="w-4 h-4 text-gray-400" />
                             </button>
@@ -1079,7 +1122,10 @@ function AdminCommunityContent() {
                                 e.stopPropagation();
                                 setActiveDropdown(activeDropdown === fan.id ? null : fan.id);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+                              aria-label={`Actions for ${fan.username}`}
+                              aria-haspopup="true"
+                              aria-expanded={activeDropdown === fan.id}
                             >
                               <MoreVertical className="w-4 h-4 text-gray-400" />
                             </button>
@@ -1166,17 +1212,19 @@ function AdminCommunityContent() {
                 <button
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
                   disabled={pagination.page === 1}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+                  aria-label="Previous page"
                 >
                   <ChevronLeft className="w-5 h-5 text-gray-400" />
                 </button>
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-400" aria-live="polite">
                   Page {pagination.page} of {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
                   disabled={pagination.page === pagination.totalPages}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+                  aria-label="Next page"
                 >
                   <ChevronRight className="w-5 h-5 text-gray-400" />
                 </button>
