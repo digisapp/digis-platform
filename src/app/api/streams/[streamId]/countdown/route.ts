@@ -117,7 +117,12 @@ export async function POST(
       .returning();
 
     // Broadcast countdown creation to all viewers
-    await AblyRealtimeService.broadcastCountdownUpdate(streamId, countdown, 'created');
+    try {
+      await AblyRealtimeService.broadcastCountdownUpdate(streamId, countdown, 'created');
+    } catch (broadcastError) {
+      console.error('[Countdown Create] Broadcast failed (countdown still created):', broadcastError);
+      // Don't fail the request - countdown was created successfully in database
+    }
 
     return NextResponse.json({ countdown });
   } catch (error: any) {
@@ -166,7 +171,12 @@ export async function DELETE(
       ));
 
     // Broadcast countdown cancelled to all viewers
-    await AblyRealtimeService.broadcastCountdownUpdate(streamId, null, 'cancelled');
+    try {
+      await AblyRealtimeService.broadcastCountdownUpdate(streamId, null, 'cancelled');
+    } catch (broadcastError) {
+      console.error('[Countdown Cancel] Broadcast failed (countdown still cancelled):', broadcastError);
+      // Don't fail the request - countdown was cancelled successfully in database
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

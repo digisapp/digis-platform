@@ -70,10 +70,15 @@ export async function POST(
     await setGuestRequestCooldown(guestRequest.userId, streamId);
 
     // Notify the guest via Ably that they've been rejected
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-rejected', {
-      requestId,
-      userId: guestRequest.userId,
-    });
+    try {
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-rejected', {
+        requestId,
+        userId: guestRequest.userId,
+      });
+    } catch (broadcastError) {
+      console.error('[Guest Reject] Broadcast failed (rejection still recorded):', broadcastError);
+      // Don't fail the request - rejection was recorded successfully in database
+    }
 
     return NextResponse.json({
       success: true,

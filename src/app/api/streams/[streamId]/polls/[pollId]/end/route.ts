@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamPolls } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,14 @@ export async function POST(
 
     if (!updatedPoll) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 });
+    }
+
+    // Broadcast poll ended to all viewers
+    try {
+      await AblyRealtimeService.broadcastPollUpdate(streamId, updatedPoll, 'ended');
+    } catch (broadcastError) {
+      console.error('[Poll End] Broadcast failed (poll still ended):', broadcastError);
+      // Don't fail the request - poll was ended successfully in database
     }
 
     return NextResponse.json({ poll: updatedPoll });

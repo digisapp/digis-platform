@@ -124,6 +124,12 @@ interface GuestRejectedEvent {
   username: string;
 }
 
+interface GuestRequestExpiredEvent {
+  requestId: string;
+  userId: string;
+  reason: string;
+}
+
 interface GuestJoinedEvent {
   userId: string;
   username: string;
@@ -185,6 +191,7 @@ interface UseStreamChatOptions {
   onGuestRemoved?: (event: GuestRemovedEvent) => void;
   onGuestRequestsToggle?: (event: GuestRequestsToggleEvent) => void;
   onGuestInvite?: (event: GuestInviteEvent) => void;
+  onGuestRequestExpired?: (event: GuestRequestExpiredEvent) => void;
   onSlowModeChange?: (event: SlowModeChangeEvent) => void;
 }
 
@@ -226,6 +233,7 @@ export function useStreamChat({
   onGuestRemoved,
   onGuestRequestsToggle,
   onGuestInvite,
+  onGuestRequestExpired,
   onSlowModeChange,
 }: UseStreamChatOptions): UseStreamChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -257,6 +265,7 @@ export function useStreamChat({
     onGuestRemoved,
     onGuestRequestsToggle,
     onGuestInvite,
+    onGuestRequestExpired,
     onSlowModeChange,
   });
 
@@ -283,9 +292,10 @@ export function useStreamChat({
       onGuestRemoved,
       onGuestRequestsToggle,
       onGuestInvite,
+      onGuestRequestExpired,
       onSlowModeChange,
     };
-  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle, onGuestInvite, onSlowModeChange]);
+  }, [onMessage, onTip, onGift, onReaction, onViewerCount, onViewerJoined, onStreamEnded, onGoalUpdate, onSpotlightChanged, onTicketedAnnouncement, onVipModeChange, onMenuToggle, onPollUpdate, onCountdownUpdate, onGuestRequest, onGuestAccepted, onGuestRejected, onGuestJoined, onGuestRemoved, onGuestRequestsToggle, onGuestInvite, onGuestRequestExpired, onSlowModeChange]);
 
   useEffect(() => {
     let mounted = true;
@@ -440,6 +450,10 @@ export function useStreamChat({
         mainChannel.subscribe('guest-invite', (message) => {
           console.log('[useStreamChat] Received guest-invite event:', message.data);
           callbacksRef.current.onGuestInvite?.(message.data as GuestInviteEvent);
+        });
+        mainChannel.subscribe('guest-request-expired', (message) => {
+          console.log('[useStreamChat] Received guest-request-expired event:', message.data);
+          callbacksRef.current.onGuestRequestExpired?.(message.data as GuestRequestExpiredEvent);
         });
 
         // Subscribe to presence channel (viewer count, stream ended)

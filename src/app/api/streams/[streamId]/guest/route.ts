@@ -1,12 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamGuestRequests, users } from '@/lib/data/system';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, and, or, lt } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { rateLimitGuestRequest } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// Guest requests expire after 10 minutes
+const GUEST_REQUEST_TTL_MS = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+/**
+ * Expire stale pending guest requests (older than TTL)
+ * Returns the IDs and user info of expired requests for notification
+ */
+async function expireStaleRequests(streamId: string): Promise<Array<{ id: string; userId: string; username: string }>> {
+  const expirationTime = new Date(Date.now() - GUEST_REQUEST_TTL_MS);
+
+  // Find and update expired pending requests
+  const expiredRequests = await db
+    .update(streamGuestRequests)
+    .set({
+      status: 'ended',
+      endedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(
+      eq(streamGuestRequests.streamId, streamId),
+      eq(streamGuestRequests.status, 'pending'),
+      lt(streamGuestRequests.requestedAt, expirationTime)
+    ))
+    .returning({
+      id: streamGuestRequests.id,
+      userId: streamGuestRequests.userId,
+      username: streamGuestRequests.username,
+    });
+
+  // Notify via Ably if any requests expired
+  if (expiredRequests.length > 0) {
+    for (const request of expiredRequests) {
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-expired', {
+        requestId: request.id,
+        userId: request.userId,
+        reason: 'Request expired after 10 minutes',
+      }).catch(err => {
+        console.error('[Guest Request TTL] Failed to broadcast expiration:', err);
+      });
+    }
+    console.log(`[Guest Request TTL] Expired ${expiredRequests.length} stale requests for stream ${streamId}`);
+  }
+
+  return expiredRequests;
+}
 
 /**
  * POST - Viewer requests to join stream as guest
@@ -113,14 +159,19 @@ export async function POST(
     }).returning();
 
     // Notify the host via Ably
-    await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-new', {
-      requestId: guestRequest.id,
-      userId: user.id,
-      username: userProfile.username,
-      displayName: userProfile.displayName,
-      avatarUrl: userProfile.avatarUrl,
-      requestType,
-    });
+    try {
+      await AblyRealtimeService.broadcastToStream(streamId, 'guest-request-new', {
+        requestId: guestRequest.id,
+        userId: user.id,
+        username: userProfile.username,
+        displayName: userProfile.displayName,
+        avatarUrl: userProfile.avatarUrl,
+        requestType,
+      });
+    } catch (broadcastError) {
+      console.error('[Guest Request] Broadcast failed (request still created):', broadcastError);
+      // Don't fail the request - guest request was created successfully in database
+    }
 
     return NextResponse.json({
       success: true,
@@ -163,8 +214,11 @@ export async function GET(
 
     const isHost = stream.creatorId === user.id;
 
+    // Auto-expire stale pending requests (older than 10 minutes)
+    await expireStaleRequests(streamId);
+
     if (isHost) {
-      // Host gets all pending requests
+      // Host gets all pending requests (stale ones already expired above)
       const requests = await db.query.streamGuestRequests.findMany({
         where: and(
           eq(streamGuestRequests.streamId, streamId),
@@ -184,7 +238,7 @@ export async function GET(
         requests,
       });
     } else {
-      // Viewer gets their own request status
+      // Viewer gets their own request status (stale ones already expired above)
       const myRequest = await db.query.streamGuestRequests.findFirst({
         where: and(
           eq(streamGuestRequests.streamId, streamId),

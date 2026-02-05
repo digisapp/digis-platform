@@ -121,7 +121,12 @@ export async function POST(
       .returning();
 
     // Broadcast poll creation to all viewers
-    await AblyRealtimeService.broadcastPollUpdate(streamId, poll, 'created');
+    try {
+      await AblyRealtimeService.broadcastPollUpdate(streamId, poll, 'created');
+    } catch (broadcastError) {
+      console.error('[Poll Create] Broadcast failed (poll still created):', broadcastError);
+      // Don't fail the request - poll was created successfully in database
+    }
 
     return NextResponse.json({ poll });
   } catch (error: any) {

@@ -201,7 +201,9 @@ export default function TheaterModePage() {
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
-  const [completedGoal, setCompletedGoal] = useState<{ title: string; rewardText: string } | null>(null);
+  // Goal completion queue - shows all completed goals one by one
+  const [completedGoalsQueue, setCompletedGoalsQueue] = useState<Array<{ id: string; title: string; rewardText: string }>>([]);
+  const [celebratingGoal, setCelebratingGoal] = useState<{ id: string; title: string; rewardText: string } | null>(null);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
   const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
   const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number; fulfillmentType?: string } | null>(null);
@@ -515,14 +517,13 @@ export default function TheaterModePage() {
     onGoalUpdate: (update) => {
       // Refresh goals
       loadStream();
-      // Show celebration notification if goal completed
+      // Add to celebration queue if goal completed (queue processes one at a time)
       if (update.action === 'completed' && update.goal) {
-        setCompletedGoal({
+        setCompletedGoalsQueue(prev => [...prev, {
+          id: update.goal.id || `goal-${Date.now()}`,
           title: update.goal.title || 'Stream Goal',
           rewardText: update.goal.rewardText || 'Goal reached!',
-        });
-        // Auto-hide after 5 seconds
-        setTimeout(() => setCompletedGoal(null), 5000);
+        }]);
       }
     },
     onViewerCount: (count) => {
@@ -763,6 +764,22 @@ export default function TheaterModePage() {
   // Play waiting room music for non-ticket holders during ticketed streams
   const waitingRoomAudioRef = useRef<HTMLAudioElement | null>(null);
   const shouldPlayWaitingMusic = ticketedModeActive && !hasTicket && ticketedShowInfo;
+
+  // Process goal completion queue - show celebrations one at a time
+  useEffect(() => {
+    // If we're not celebrating and there are goals in queue, start celebrating the first one
+    if (!celebratingGoal && completedGoalsQueue.length > 0) {
+      const nextGoal = completedGoalsQueue[0];
+      setCelebratingGoal(nextGoal);
+      // Remove from queue
+      setCompletedGoalsQueue(prev => prev.slice(1));
+      // Auto-dismiss after 5 seconds
+      const timer = setTimeout(() => {
+        setCelebratingGoal(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [celebratingGoal, completedGoalsQueue]);
 
   useEffect(() => {
     if (shouldPlayWaitingMusic) {
@@ -2720,17 +2737,23 @@ export default function TheaterModePage() {
       {/* Floating Gift Emojis Animation */}
       <GiftFloatingEmojis gifts={floatingGifts} onComplete={removeFloatingGift} />
 
-      {/* Goal Completed Celebration */}
-      {completedGoal && (
+      {/* Goal Completed Celebration (Queue-based - shows all completed goals one by one) */}
+      {celebratingGoal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <div className="bg-black/80 backdrop-blur-xl rounded-2xl border-2 border-green-500 p-6 text-center animate-bounce shadow-[0_0_50px_rgba(34,197,94,0.5)]">
             <div className="text-6xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-green-400 mb-2">GOAL REACHED!</h2>
-            <p className="text-xl text-white font-bold mb-2">{completedGoal.title}</p>
+            <p className="text-xl text-white font-bold mb-2">{celebratingGoal.title}</p>
             <div className="flex items-center justify-center gap-2 text-pink-400">
               <span className="text-2xl">🎁</span>
-              <span className="text-lg">{completedGoal.rewardText}</span>
+              <span className="text-lg">{celebratingGoal.rewardText}</span>
             </div>
+            {/* Show queue indicator if more goals are pending */}
+            {completedGoalsQueue.length > 0 && (
+              <div className="mt-3 text-sm text-gray-400">
+                +{completedGoalsQueue.length} more goal{completedGoalsQueue.length > 1 ? 's' : ''} unlocked!
+              </div>
+            )}
           </div>
         </div>
       )}
