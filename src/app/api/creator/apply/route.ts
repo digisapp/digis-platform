@@ -194,13 +194,19 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (applications.length === 0) {
-      return NextResponse.json({ hasApplication: false, application: null });
+      return NextResponse.json(
+        { hasApplication: false, application: null },
+        { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+      );
     }
 
-    return NextResponse.json({
-      hasApplication: true,
-      application: applications[0],
-    });
+    return NextResponse.json(
+      {
+        hasApplication: true,
+        application: applications[0],
+      },
+      { headers: { 'Cache-Control': 'no-store, max-age=0' } }
+    );
   } catch (error: any) {
     console.error('Error fetching application status:', error?.message, error?.stack);
     return NextResponse.json(

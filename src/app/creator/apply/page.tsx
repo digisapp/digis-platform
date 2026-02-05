@@ -38,8 +38,8 @@ export default function CreatorApplyPage() {
         return;
       }
 
-      // Check for existing application
-      const response = await fetch('/api/creator/apply');
+      // Check for existing application (no-store to always get fresh status)
+      const response = await fetch('/api/creator/apply', { cache: 'no-store' });
 
       if (response.status === 401) {
         // Session expired or not authenticated
