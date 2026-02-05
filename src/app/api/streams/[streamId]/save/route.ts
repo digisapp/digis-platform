@@ -101,9 +101,9 @@ export async function POST(
         const egressInfo = await LiveKitEgressService.getEgressInfo(stream.egressId);
         if (egressInfo?.fileResults && egressInfo.fileResults.length > 0) {
           const fileResult = egressInfo.fileResults[0];
-          // Use the filepath to construct the public URL
-          if (fileResult.filename) {
-            videoUrl = LiveKitEgressService.getPublicUrl(fileResult.filename);
+          // Use the location (full path) to construct the public URL
+          if (fileResult.location) {
+            videoUrl = LiveKitEgressService.getPublicUrl(fileResult.location);
             console.log(`[Save Stream] Got video URL from egress: ${videoUrl}`);
           }
         }

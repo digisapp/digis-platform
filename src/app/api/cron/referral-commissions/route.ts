@@ -16,11 +16,12 @@ const PAYOUT_THRESHOLD = 100;
 export async function POST(request: NextRequest) {
   try {
     // Verify cron secret (for Vercel Cron jobs)
+    // SECURITY: Fail-closed - if CRON_SECRET not set, reject all requests
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      console.log('[Cron] Unauthorized cron request');
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      console.log('[Cron] Unauthorized cron request - missing or invalid secret');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

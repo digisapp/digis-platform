@@ -242,8 +242,8 @@ export async function submitPayout(payoutRequestId: string): Promise<PayoutResul
       return { success: false, error: 'Creator does not have an active Payoneer account' };
     }
 
-    // Convert coins to USD (100 coins = $1)
-    const amountUSD = payout.amount / 100;
+    // Convert coins to USD (10 coins = $1, so multiply by 0.10)
+    const amountUSD = payout.amount * 0.10;
 
     // Generate unique external reference
     const externalReference = `payout_${payoutRequestId}_${Date.now()}`;
