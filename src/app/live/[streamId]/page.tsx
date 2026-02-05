@@ -536,17 +536,12 @@ export default function TheaterModePage() {
       // Show the ticketed stream popup
       setTicketedAnnouncement(announcement);
     },
-    onVipModeChange: async (vipEvent) => {
+    onVipModeChange: (vipEvent) => {
       if (vipEvent.isActive) {
-        // Ticketed mode started - check if user has ticket
-        setTicketedModeActive(true);
-        setTicketedShowInfo({
-          showId: vipEvent.showId!,
-          showTitle: vipEvent.showTitle!,
-          ticketPrice: vipEvent.ticketPrice!,
-        });
-        // Check ticket access
-        await checkTicketAccess();
+        // Ticketed mode started - check if user has ticket via API
+        // IMPORTANT: Don't set state here before API call - let checkTicketAccess()
+        // handle all state updates to avoid double renders that can disconnect viewers
+        checkTicketAccess();
       } else {
         // Ticketed mode ended - return to free stream
         // Reset ALL ticketed-related state so viewer can see new announcements
@@ -560,23 +555,25 @@ export default function TheaterModePage() {
         setTicketedAnnouncement(null);
       }
     },
-    onMenuToggle: async (event) => {
+    onMenuToggle: (event) => {
       console.log('[Menu] Real-time toggle received:', event.enabled);
       setMenuEnabled(event.enabled);
 
       // Fetch menu items if we don't have them yet (for pinned display)
+      // Use non-blocking fetch to avoid async callback issues
       if (event.enabled && menuItems.length === 0) {
         const creatorId = stream?.creator?.id;
         if (creatorId) {
-          try {
-            const res = await fetch(`/api/tip-menu/${creatorId}`);
-            const menuData = await res.json();
-            if (menuData.items && menuData.items.length > 0) {
-              setMenuItems(menuData.items);
-            }
-          } catch (err) {
-            console.error('[Menu] Error fetching menu items on toggle:', err);
-          }
+          fetch(`/api/tip-menu/${creatorId}`)
+            .then(res => res.json())
+            .then(menuData => {
+              if (menuData.items && menuData.items.length > 0) {
+                setMenuItems(menuData.items);
+              }
+            })
+            .catch(err => {
+              console.error('[Menu] Error fetching menu items on toggle:', err);
+            });
         }
       }
     },
