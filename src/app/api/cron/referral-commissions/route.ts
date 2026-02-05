@@ -49,54 +49,81 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Cron] Processing ${activeReferrals.length} active referrals`);
 
+    if (activeReferrals.length === 0) {
+      return NextResponse.json({
+        success: true,
+        period: periodMonth,
+        processed: 0,
+        commissionsPaid: 0,
+        commissionsAccumulated: 0,
+      });
+    }
+
+    // Batch fetch existing commissions for this period (avoid N+1)
+    const referralIds = activeReferrals.map(r => r.id);
+    const existingCommissions = await db.query.referralCommissions.findMany({
+      where: and(
+        sql`${referralCommissions.referralId} = ANY(${referralIds})`,
+        eq(referralCommissions.periodMonth, periodMonth)
+      ),
+    });
+    const existingCommissionSet = new Set(existingCommissions.map(c => c.referralId));
+
+    // Filter out already processed referrals
+    const unprocessedReferrals = activeReferrals.filter(r => !existingCommissionSet.has(r.id) && r.referredId);
+
+    if (unprocessedReferrals.length === 0) {
+      console.log(`[Cron] All referrals already processed for ${periodMonth}`);
+      return NextResponse.json({
+        success: true,
+        period: periodMonth,
+        processed: 0,
+        commissionsPaid: 0,
+        commissionsAccumulated: 0,
+        message: 'All referrals already processed',
+      });
+    }
+
+    // Batch fetch all earnings for referred users (avoid N+1)
+    const referredUserIds = unprocessedReferrals.map(r => r.referredId!);
+    const earningTypes = [
+      'call_earnings', 'message_earnings', 'stream_tip', 'dm_tip',
+      'gift', 'ppv_unlock', 'subscription_earnings', 'ai_session_earnings', 'ai_text_earnings',
+    ];
+
+    const allEarnings = await db
+      .select({
+        userId: walletTransactions.userId,
+        total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)`,
+      })
+      .from(walletTransactions)
+      .where(
+        and(
+          sql`${walletTransactions.userId} = ANY(${referredUserIds})`,
+          eq(walletTransactions.status, 'completed'),
+          gte(walletTransactions.createdAt, periodStart),
+          lt(walletTransactions.createdAt, periodEnd),
+          inArray(walletTransactions.type, earningTypes as any)
+        )
+      )
+      .groupBy(walletTransactions.userId);
+
+    const earningsByUser = new Map(allEarnings.map(e => [e.userId, Number(e.total)]));
+
+    // Batch fetch wallets for referrers who may need payouts
+    const referrerIds = [...new Set(unprocessedReferrals.map(r => r.referrerId))];
+    const referrerWallets = await db.query.wallets.findMany({
+      where: sql`${wallets.userId} = ANY(${referrerIds})`,
+    });
+    const walletsByUser = new Map(referrerWallets.map(w => [w.userId, w]));
+
     let processed = 0;
     let commissionsPaid = 0;
     let commissionsAccumulated = 0;
 
-    for (const referral of activeReferrals) {
-      if (!referral.referredId) continue;
-
-      // Check if already processed
-      const existing = await db.query.referralCommissions.findFirst({
-        where: and(
-          eq(referralCommissions.referralId, referral.id),
-          eq(referralCommissions.periodMonth, periodMonth)
-        ),
-      });
-
-      if (existing) {
-        console.log(`[Cron] Referral ${referral.id} already processed for ${periodMonth}`);
-        continue;
-      }
-
-      // Calculate earnings from wallet transactions (all earning types)
-      // Types that represent creator earnings
-      const earningTypes = [
-        'call_earnings',
-        'message_earnings',
-        'stream_tip',
-        'dm_tip',
-        'gift',
-        'ppv_unlock',
-        'subscription_earnings',
-        'ai_session_earnings',
-        'ai_text_earnings',
-      ];
-
-      const earningsResult = await db
-        .select({ total: sql<number>`COALESCE(SUM(${walletTransactions.amount}), 0)` })
-        .from(walletTransactions)
-        .where(
-          and(
-            eq(walletTransactions.userId, referral.referredId),
-            eq(walletTransactions.status, 'completed'),
-            gte(walletTransactions.createdAt, periodStart),
-            lt(walletTransactions.createdAt, periodEnd),
-            inArray(walletTransactions.type, earningTypes as any)
-          )
-        );
-
-      const referredEarnings = Number(earningsResult[0]?.total || 0);
+    // Process each referral
+    for (const referral of unprocessedReferrals) {
+      const referredEarnings = earningsByUser.get(referral.referredId!) || 0;
 
       if (referredEarnings === 0) {
         console.log(`[Cron] Referral ${referral.id}: No earnings for period`);
@@ -124,10 +151,8 @@ export async function POST(request: NextRequest) {
       const newPending = (referral.pendingCommission || 0) + commissionAmount;
 
       if (newPending >= PAYOUT_THRESHOLD) {
-        // Pay out
-        const referrerWallet = await db.query.wallets.findFirst({
-          where: eq(wallets.userId, referral.referrerId),
-        });
+        // Pay out - use cached wallet data
+        const referrerWallet = walletsByUser.get(referral.referrerId);
 
         if (referrerWallet) {
           await db.update(wallets)

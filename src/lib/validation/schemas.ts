@@ -268,6 +268,49 @@ export const createShowSchema = z.object({
 });
 
 // ============================================
+// Stream Tip Schema
+// ============================================
+
+export const streamTipSchema = z.object({
+  amount: z
+    .number()
+    .int('Amount must be a whole number')
+    .min(1, 'Minimum tip is 1 coin')
+    .max(100000, 'Maximum tip is 100,000 coins'),
+  recipientCreatorId: uuidSchema.optional(),
+  recipientUsername: z.string().max(50).optional(),
+  tipMenuItemId: uuidSchema.optional(),
+  tipMenuItemLabel: z.string().max(100).optional(),
+  message: z.string().max(500, 'Message too long').optional(),
+});
+
+// ============================================
+// Profile Update Schema
+// ============================================
+
+export const updateProfileSchema = z.object({
+  displayName: z.string().max(50, 'Display name too long').optional(),
+  bio: z.string().max(500, 'Bio too long').optional(),
+  avatarUrl: z.string().url('Invalid avatar URL').optional().nullable(),
+  bannerUrl: z.string().url('Invalid banner URL').optional().nullable(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
+  phoneNumber: z.string().max(20).optional(),
+  primaryCategory: z.string().max(50).optional(),
+  secondaryCategory: z.string().max(50).optional(),
+  // Social media handles
+  twitterHandle: z.string().max(100).optional(),
+  instagramHandle: z.string().max(100).optional(),
+  tiktokHandle: z.string().max(100).optional(),
+  snapchatHandle: z.string().max(100).optional(),
+  youtubeHandle: z.string().max(100).optional(),
+  twitchHandle: z.string().max(100).optional(),
+  amazonHandle: z.string().max(200).optional(),
+  contactEmail: z.string().email('Invalid email').max(255).optional().or(z.literal('')),
+  showSocialLinks: z.boolean().optional(),
+});
+
+// ============================================
 // Helper function to validate request body
 // ============================================
 

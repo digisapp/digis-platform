@@ -5,6 +5,7 @@ import { users, profiles } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { extractInstagramHandle, extractTiktokHandle, extractTwitterHandle, extractSnapchatHandle, extractYoutubeHandle } from '@/lib/utils/social-handles';
 import { invalidateCreatorProfile } from '@/lib/cache/hot-data-cache';
+import { validateBody, updateProfileSchema } from '@/lib/validation/schemas';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -12,11 +13,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate request body with Zod schema
+    const validation = await validateBody(request, updateProfileSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
     const {
       displayName, bio, avatarUrl, bannerUrl, city, state, phoneNumber, primaryCategory, secondaryCategory,
-      // Social media fields
       twitterHandle, instagramHandle, tiktokHandle, snapchatHandle, youtubeHandle, twitchHandle, amazonHandle, contactEmail, showSocialLinks
-    } = await request.json();
+    } = validation.data;
 
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

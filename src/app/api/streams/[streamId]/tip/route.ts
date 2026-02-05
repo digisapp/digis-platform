@@ -9,6 +9,7 @@ import { rateLimitFinancial } from '@/lib/rate-limit';
 import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 import { notifyGiftReceived } from '@/lib/email/creator-earnings';
 import { getRequestMetadata } from '@/lib/request-id';
+import { validateBody, streamTipSchema } from '@/lib/validation/schemas';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -39,18 +40,14 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { amount, recipientCreatorId, recipientUsername, tipMenuItemId, tipMenuItemLabel, message } = await req.json();
 
-    if (!amount || amount < 1) {
-      return NextResponse.json({ error: 'Tip amount is required (minimum 1 coin)' }, { status: 400 });
+    // Validate request body with Zod schema
+    const validation = await validateBody(req, streamTipSchema);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    if (amount > 100000) {
-      return NextResponse.json(
-        { error: 'Maximum tip amount is 100,000 coins' },
-        { status: 400 }
-      );
-    }
+    const { amount, recipientCreatorId, recipientUsername, tipMenuItemId, tipMenuItemLabel, message } = validation.data;
 
     // Get user details for username
     const dbUser = await db.query.users.findFirst({
@@ -93,18 +90,21 @@ export async function POST(
     );
 
     // For manual fulfillment items, create a purchase record
-    if (menuItem && fulfillmentType === 'manual') {
-      await db.insert(menuPurchases).values({
-        buyerId: user.id,
-        creatorId: recipientCreatorId || result.recipientCreatorId,
-        menuItemId: tipMenuItemId,
-        streamId: streamId,
-        itemLabel: tipMenuItemLabel || menuItem.label,
-        itemCategory: itemCategory,
-        fulfillmentType: fulfillmentType,
-        coinsPaid: amount,
-        status: 'pending',
-      });
+    if (menuItem && fulfillmentType === 'manual' && tipMenuItemId) {
+      const creatorId = recipientCreatorId || result.recipientCreatorId;
+      if (creatorId) {
+        await db.insert(menuPurchases).values({
+          buyerId: user.id,
+          creatorId,
+          menuItemId: tipMenuItemId,
+          streamId: streamId,
+          itemLabel: tipMenuItemLabel || menuItem.label,
+          itemCategory: itemCategory,
+          fulfillmentType: fulfillmentType,
+          coinsPaid: amount,
+          status: 'pending',
+        });
+      }
     }
 
     // Broadcast tip to all viewers using Ably (scales to 50k+)
