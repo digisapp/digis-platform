@@ -289,7 +289,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                   className="w-full flex items-center gap-2 p-2 bg-white/5 hover:bg-purple-500/20 rounded-lg transition-colors text-left disabled:opacity-50"
                 >
                   {result.avatarUrl ? (
-                    <img src={result.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={result.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm">👤</div>
                   )}
@@ -349,6 +349,8 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                   className={`w-8 h-8 rounded-full object-cover border-2 ${
                     creator.isSpotlighted ? 'border-pink-500' : 'border-purple-500/30'
                   }`}
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center border-2 ${
