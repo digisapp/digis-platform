@@ -278,6 +278,39 @@ body {
   }
 }
 
+/* Glow pulse animation for CTA buttons */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.4), 0 0 60px rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(168, 85, 247, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+}
+
+/* Fade in up animation for feature pills */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+  opacity: 0;
+}
+
 /* Gradient background position utilities */
 .bg-size-200 {
   background-size: 200%;

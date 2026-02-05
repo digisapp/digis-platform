@@ -571,6 +571,7 @@ function MarketingPage({
             muted
             loop
             playsInline
+            poster="/images/hero-poster.jpg"
             className="absolute inset-0 w-full h-full object-cover"
           >
             <source src="/videos/digis-video-celebs.mp4" type="video/mp4" />
@@ -616,7 +617,7 @@ function MarketingPage({
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-4">
           <div className="text-center max-w-4xl mx-auto">
             <h1
-              className="text-3xl md:text-5xl lg:text-6xl font-black mb-8 md:mb-6 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
+              className="text-3xl md:text-5xl lg:text-6xl font-black mb-4 md:mb-3 pb-2 leading-normal font-[family-name:var(--font-poppins)]"
               style={{
                 background: 'linear-gradient(135deg, #00D4FF 0%, #FF006E 50%, #9D4EDD 100%)',
                 WebkitBackgroundClip: 'text',
@@ -628,44 +629,41 @@ function MarketingPage({
               what's your digis?
             </h1>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-5 md:gap-4 my-10 md:mb-12 md:mt-0">
+            {/* Supporting subheadline */}
+            <p className="text-white/70 text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-8 font-medium">
+              Connect with your favorite creators through live streams, video calls & exclusive content
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10">
               <button
                 onClick={() => onSignup('/explore')}
-                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300"
+                className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse"
               >
                 Start Exploring
               </button>
               <a
                 href="/become-creator"
-                className="w-full sm:w-auto px-10 py-5 md:py-4 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-lg hover:bg-white/20 hover:scale-105 transition-all duration-300 text-center"
+                className="w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-white/15 backdrop-blur-md border-2 border-white/40 text-white font-bold text-lg hover:bg-white/25 hover:border-white/60 hover:scale-105 transition-all duration-300 text-center"
               >
                 Become a Creator
               </a>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Live Streams
-              </span>
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Video Calls
-              </span>
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Chats
-              </span>
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Exclusive Events
-              </span>
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Virtual Gifts
-              </span>
-              <span className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium">
-                Digitals
-              </span>
+              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events', 'Virtual Gifts', 'Digitals'].map((feature, index) => (
+                <span
+                  key={feature}
+                  className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium animate-fade-in-up hover:bg-white/20 hover:border-white/30 transition-all cursor-default"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  {feature}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+            <span className="text-white/50 text-xs font-medium tracking-wide uppercase">See how it works</span>
             <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2">
               <div className="w-1.5 h-3 bg-white/60 rounded-full animate-pulse" />
             </div>
