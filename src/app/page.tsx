@@ -66,7 +66,6 @@ function FanDashboard() {
 
   // Explore/Discover state
   const [creators, setCreators] = useState<Creator[]>([]);
-  const [liveCreators, setLiveCreators] = useState<Creator[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
@@ -194,10 +193,8 @@ function FanDashboard() {
         const allCreators = result.data.creators || [];
 
         if (isReset) {
-          const live = allCreators.filter((c: Creator) => c.isLive);
-          const notLive = selectedFilter === 'live' ? [] : allCreators.filter((c: Creator) => !c.isLive);
-          setLiveCreators(live);
-          setCreators(notLive);
+          // Don't split live/non-live - API already filters correctly
+          setCreators(allCreators);
         } else {
           setCreators(prev => {
             const existingIds = new Set(prev.map(c => c.id));
@@ -413,7 +410,7 @@ function FanDashboard() {
                   <SkeletonCard key={i} />
                 ))}
               </div>
-            ) : creators.length === 0 && liveCreators.length === 0 ? (
+            ) : creators.length === 0 ? (
               <div className="py-16 text-center">
                 <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">
@@ -426,7 +423,7 @@ function FanDashboard() {
             ) : (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                  {(selectedFilter === 'live' ? liveCreators : creators).map((creator) => (
+                  {creators.map((creator) => (
                     <CreatorCard
                       key={creator.id}
                       creator={creator}

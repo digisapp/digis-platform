@@ -65,6 +65,8 @@ export async function GET(request: NextRequest) {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const tenMinutesAgo = new Date();
+    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
 
     // Start auth check but don't block on it
     const authPromise = createClient()
@@ -103,9 +105,14 @@ export async function GET(request: NextRequest) {
               );
             }
 
-            // Add online filter in SQL
+            // Add online filter in SQL - must be online AND recently active
             if (filter === 'online') {
-              conditions.push(eq(users.isOnline, true));
+              conditions.push(
+                and(
+                  eq(users.isOnline, true),
+                  sql`${users.lastSeenAt} >= ${tenMinutesAgo.toISOString()}`
+                )!
+              );
             }
 
             // Add new creator filter - joined within last 30 days
@@ -124,6 +131,7 @@ export async function GET(request: NextRequest) {
                 isCreatorVerified: users.isCreatorVerified,
                 followerCount: users.followerCount,
                 isOnline: users.isOnline,
+                lastSeenAt: users.lastSeenAt,
                 createdAt: users.createdAt,
               })
               .from(users)
@@ -207,10 +215,14 @@ export async function GET(request: NextRequest) {
         const liveStreamId = liveStreamIdMap.get(creator.id) || null;
         const isNewCreator = creator.createdAt && new Date(creator.createdAt) >= thirtyDaysAgo;
 
+        // Only show as online if recently active (within 10 min) or currently live
+        const isRecentlyActive = creator.lastSeenAt && new Date(creator.lastSeenAt) >= tenMinutesAgo;
+        const isOnline = isLive || (creator.isOnline && isRecentlyActive);
+
         const creatorData = {
           ...creator,
           isFollowing: false,
-          isOnline: creator.isOnline || isLive,
+          isOnline,
           isLive,
           liveStreamId,
         };
@@ -239,7 +251,8 @@ export async function GET(request: NextRequest) {
 
     // Pagination in JS since we sorted in JS
     const hasMore = creators.length > offset + limit;
-    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, ...c }) => c);
+    // Remove internal fields from response
+    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, lastSeenAt, ...c }) => c);
 
     return NextResponse.json(
       success({
