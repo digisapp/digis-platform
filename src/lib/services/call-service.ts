@@ -8,6 +8,8 @@ import { FinancialAuditService } from '@/lib/services/financial-audit-service';
 
 // Call timeout settings
 const PENDING_CALL_TIMEOUT_MINUTES = 5; // Calls auto-expire after 5 minutes
+const ACCEPTED_CALL_TIMEOUT_MINUTES = 30; // Accepted calls that never started
+const ACTIVE_CALL_MAX_DURATION_MINUTES = 240; // 4 hours max call duration
 
 export class CallService {
   /**
@@ -664,5 +666,100 @@ export class CallService {
 
     const timeoutThreshold = new Date(Date.now() - PENDING_CALL_TIMEOUT_MINUTES * 60 * 1000);
     return call.requestedAt < timeoutThreshold;
+  }
+
+  /**
+   * Cleanup stale accepted calls that were never started
+   * These calls should have their holds released
+   */
+  static async cleanupStaleAcceptedCalls(): Promise<number> {
+    const timeoutThreshold = new Date(Date.now() - ACCEPTED_CALL_TIMEOUT_MINUTES * 60 * 1000);
+
+    const staleCalls = await db.query.calls.findMany({
+      where: and(
+        eq(calls.status, 'accepted'),
+        lt(calls.acceptedAt, timeoutThreshold)
+      ),
+    });
+
+    let cleanedCount = 0;
+
+    for (const call of staleCalls) {
+      try {
+        // Release the hold
+        if (call.holdId) {
+          try {
+            await WalletService.releaseHold(call.holdId);
+          } catch (error) {
+            console.error(`[CallService] Failed to release hold for stale accepted call ${call.id}:`, error);
+          }
+        }
+
+        // Mark as cancelled
+        await db
+          .update(calls)
+          .set({
+            status: 'cancelled',
+            cancellationReason: 'Call was accepted but never started (auto-cancelled)',
+            updatedAt: new Date(),
+          })
+          .where(eq(calls.id, call.id));
+
+        cleanedCount++;
+        console.log(`[CallService] Auto-cancelled stale accepted call ${call.id}`);
+      } catch (error) {
+        console.error(`[CallService] Failed to cleanup stale accepted call ${call.id}:`, error);
+      }
+    }
+
+    return cleanedCount;
+  }
+
+  /**
+   * Cleanup stale active calls that exceeded maximum duration
+   * These calls will be forcibly ended and billed based on duration
+   */
+  static async cleanupStaleActiveCalls(): Promise<number> {
+    const maxDurationThreshold = new Date(Date.now() - ACTIVE_CALL_MAX_DURATION_MINUTES * 60 * 1000);
+
+    const staleCalls = await db.query.calls.findMany({
+      where: and(
+        eq(calls.status, 'active'),
+        lt(calls.startedAt, maxDurationThreshold)
+      ),
+    });
+
+    let cleanedCount = 0;
+
+    for (const call of staleCalls) {
+      try {
+        // Use endCall to properly bill the call
+        // We pass the creator ID so either party can end
+        await this.endCall(call.id, call.creatorId);
+        cleanedCount++;
+        console.log(`[CallService] Force-ended stale active call ${call.id} (exceeded ${ACTIVE_CALL_MAX_DURATION_MINUTES} min)`);
+      } catch (error) {
+        console.error(`[CallService] Failed to force-end stale active call ${call.id}:`, error);
+      }
+    }
+
+    return cleanedCount;
+  }
+
+  /**
+   * Run all cleanup tasks (call this from cron)
+   */
+  static async runAllCleanup(): Promise<{ pending: number; accepted: number; active: number }> {
+    const [pending, accepted, active] = await Promise.all([
+      this.cleanupExpiredCalls(),
+      this.cleanupStaleAcceptedCalls(),
+      this.cleanupStaleActiveCalls(),
+    ]);
+
+    if (pending > 0 || accepted > 0 || active > 0) {
+      console.log(`[CallService] Cleanup complete: ${pending} pending, ${accepted} accepted, ${active} active calls cleaned`);
+    }
+
+    return { pending, accepted, active };
   }
 }

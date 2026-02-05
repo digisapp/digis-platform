@@ -30,6 +30,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Audio file and recipient required' }, { status: 400 });
     }
 
+    // Validate recipientId is a valid UUID to prevent path traversal attacks
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(recipientId)) {
+      return NextResponse.json({ error: 'Invalid recipient ID' }, { status: 400 });
+    }
+
     // Validate file type
     if (!file.type.startsWith('audio/')) {
       return NextResponse.json({ error: 'Invalid file type. Only audio files allowed.' }, { status: 400 });

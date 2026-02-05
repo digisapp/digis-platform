@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { spendHolds, wallets } from '@/db/schema';
 import { eq, and, lt, sql } from 'drizzle-orm';
+import { CallService } from '@/lib/services/call-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,7 @@ const CRON_SECRET = process.env.CRON_SECRET;
 /**
  * POST /api/cron/cleanup-holds
  * Clean up stale holds that have been active for more than 24 hours.
+ * Also cleans up stale calls (pending, accepted, active).
  * This prevents coins from being permanently locked if a call/stream
  * doesn't properly release its hold.
  *
@@ -19,9 +21,9 @@ const CRON_SECRET = process.env.CRON_SECRET;
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify cron secret
+    // Verify cron secret (fail-closed: reject if secret not configured)
     const authHeader = request.headers.get('authorization');
-    if (CRON_SECRET && authHeader !== `Bearer ${CRON_SECRET}`) {
+    if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -90,11 +92,21 @@ export async function POST(request: NextRequest) {
       errors.push(errorMsg);
     }
 
+    // Also cleanup stale calls (pending, accepted, active)
+    let callCleanup = { pending: 0, accepted: 0, active: 0 };
+    try {
+      callCleanup = await CallService.runAllCleanup();
+    } catch (callErr) {
+      console.error('[Cleanup Holds] Call cleanup error:', callErr);
+      errors.push(`Call cleanup failed: ${callErr instanceof Error ? callErr.message : 'Unknown error'}`);
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Released ${cleaned} stale holds`,
+      message: `Released ${cleaned} stale holds, cleaned ${callCleanup.pending + callCleanup.accepted + callCleanup.active} stale calls`,
       cleaned,
       total: staleHolds.length,
+      callCleanup,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
