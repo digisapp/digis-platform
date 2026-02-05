@@ -406,9 +406,9 @@ export default function SettingsPage() {
         throw new Error(data.error || 'Failed to delete account');
       }
 
-      // Sign out and redirect to home
+      // Sign out and redirect to home with hard navigation
       await signOut();
-      router.push('/?deleted=true');
+      window.location.href = '/?deleted=true';
     } catch (err: any) {
       setDeleteError(err.message);
       setDeleting(false);

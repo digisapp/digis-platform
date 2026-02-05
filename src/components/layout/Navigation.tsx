@@ -236,8 +236,9 @@ export function Navigation() {
     // Use context's signOut - this triggers onAuthStateChange which clears state
     await signOut();
 
-    // Navigate to home after signout
-    router.replace('/');
+    // Hard redirect to homepage - router.replace() doesn't work reliably
+    // when auth state changes simultaneously, so use window.location
+    window.location.href = '/';
   };
 
   const isActive = (path: string) => {
