@@ -2190,8 +2190,8 @@ export default function BroadcastStudioPage() {
               className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
                 streamOrientation === 'portrait'
                   ? isLandscape
-                    ? 'h-[calc(100vh-120px)] w-auto mx-auto aspect-[9/16]' // Landscape device viewing portrait stream
-                    : 'aspect-[9/16] max-h-[80vh] sm:max-h-[70vh]' // Portrait device viewing portrait stream
+                    ? 'h-[calc(100dvh-120px)] w-auto mx-auto aspect-[9/16]' // Landscape device viewing portrait stream
+                    : 'aspect-[9/16] max-h-[80dvh] sm:max-h-[70dvh]' // Portrait device viewing portrait stream
                   : 'aspect-video'
               }`}
               data-lk-video-container

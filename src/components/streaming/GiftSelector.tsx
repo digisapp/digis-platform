@@ -312,7 +312,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
                 setTipAmount(null);
               }}
               placeholder="Custom amount..."
-              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50"
+              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 text-[16px]"
             />
           </div>
 
@@ -327,7 +327,7 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
               placeholder="Say something to the creator..."
               maxLength={200}
               rows={2}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none text-[16px]"
             />
             {tipMessage && (
               <div className="text-xs text-amber-400 flex items-center gap-1">

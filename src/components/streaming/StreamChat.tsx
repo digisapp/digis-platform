@@ -339,9 +339,9 @@ const ChatMessage = memo(function ChatMessage({
         </p>
       </div>
 
-      {/* Creator gets full moderation tools */}
+      {/* Creator gets full moderation tools - visible on hover (desktop) or focus-within (mobile) */}
       {isCreator && (
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 sm:group-focus-within:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
           <ModerationTools
             message={msg}
             streamId={streamId}
@@ -352,15 +352,15 @@ const ChatMessage = memo(function ChatMessage({
         </div>
       )}
 
-      {/* Non-creators can delete their own messages */}
+      {/* Non-creators can delete their own messages - visible on hover or active touch */}
       {!isCreator && isOwnMessage && (
         <button
           onClick={handleDeleteOwnMessage}
           disabled={isDeleting}
-          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-red-400 disabled:opacity-50"
+          className="opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex-shrink-0 p-2 min-w-[44px] min-h-[44px] rounded-lg hover:bg-white/10 active:bg-white/20 text-gray-500 hover:text-red-400 active:text-red-400 disabled:opacity-50 touch-manipulation flex items-center justify-center"
           title="Delete message"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-5 h-5" />
         </button>
       )}
     </div>
@@ -406,11 +406,11 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
     }
   };
 
-  const insertEmoji = (emoji: string) => {
+  const insertEmoji = useCallback((emoji: string) => {
     setNewMessage(prev => prev + emoji);
     setShowEmojis(false);
     inputRef.current?.focus();
-  };
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
@@ -529,7 +529,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
                 <button
                   key={emoji}
                   onClick={() => insertEmoji(emoji)}
-                  className="w-8 h-8 rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center text-lg"
+                  className="w-10 h-10 sm:w-8 sm:h-8 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors flex items-center justify-center text-lg touch-manipulation"
                 >
                   {emoji}
                 </button>

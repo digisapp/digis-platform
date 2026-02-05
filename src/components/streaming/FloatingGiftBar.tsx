@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { VirtualGift } from '@/db/schema';
 import { X, Minus, Plus, Coins, ChevronUp } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
@@ -33,8 +33,8 @@ export function FloatingGiftBar({
   const [isSending, setIsSending] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Featured gifts to show in the floating bar (mix of rarities)
-  const featuredGifts = gifts.slice(0, 6);
+  // Featured gifts to show in the floating bar (mix of rarities) - memoized
+  const featuredGifts = useMemo(() => gifts.slice(0, 6), [gifts]);
 
   useEffect(() => {
     fetchGifts();
@@ -104,10 +104,13 @@ export function FloatingGiftBar({
   return (
     <>
       {/* Gift Bar - inline or floating based on prop */}
-      <div className={inline
-        ? "w-full relative"
-        : "fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
-      }>
+      <div
+        className={inline
+          ? "w-full relative"
+          : "fixed left-1/2 -translate-x-1/2 z-50"
+        }
+        style={inline ? undefined : { bottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+      >
         {/* Quick Send Modal */}
         {selectedGift && (
           <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-72 sm:w-80 z-[9999]">
@@ -133,14 +136,14 @@ export function FloatingGiftBar({
               <div className="flex items-center justify-center gap-4 mb-4">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 flex items-center justify-center text-white transition-all touch-manipulation"
                 >
                   <Minus className="w-5 h-5" />
                 </button>
                 <div className="text-2xl font-bold text-white w-12 text-center">{quantity}</div>
                 <button
                   onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 flex items-center justify-center text-white transition-all touch-manipulation"
                 >
                   <Plus className="w-5 h-5" />
                 </button>

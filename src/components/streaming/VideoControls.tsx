@@ -96,7 +96,7 @@ export function VideoControls({
           {onToggleMute && (
             <button
               onClick={onToggleMute}
-              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center"
+              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation"
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? (
@@ -130,7 +130,7 @@ export function VideoControls({
           {showTheaterMode && onToggleTheater && (
             <button
               onClick={onToggleTheater}
-              className={`text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center ${
+              className={`text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation ${
                 isTheaterMode ? 'bg-white/20' : ''
               }`}
               title={isTheaterMode ? 'Exit Theater Mode' : 'Theater Mode'}
@@ -145,7 +145,7 @@ export function VideoControls({
           {onToggleFullscreen && (
             <button
               onClick={onToggleFullscreen}
-              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center"
+              className="text-white hover:text-digis-cyan transition-colors p-2 hover:bg-white/10 rounded-lg touch-target flex items-center justify-center min-w-[44px] min-h-[44px] touch-manipulation"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
             >
               {isFullscreen ? (

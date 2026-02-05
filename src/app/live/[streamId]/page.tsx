@@ -1718,8 +1718,8 @@ export default function TheaterModePage() {
           {/* Video - use portrait or landscape aspect ratio based on stream orientation */}
           <div className={`relative ${
             streamOrientation === 'portrait'
-              ? 'aspect-[9/16] max-h-[85vh] w-auto mx-auto'
-              : 'aspect-video landscape:aspect-auto landscape:max-h-[55vh] lg:aspect-auto lg:flex-1 lg:min-h-[75vh] w-full'
+              ? 'aspect-[9/16] max-h-[85dvh] w-auto mx-auto'
+              : 'aspect-video landscape:aspect-auto landscape:max-h-[55dvh] lg:aspect-auto lg:flex-1 lg:min-h-[75dvh] w-full'
           }`}>
             {streamEnded ? (
               /* Stream Ended State */
