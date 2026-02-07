@@ -9,3 +9,6 @@ export { RemoteControlQRModal } from './RemoteControlQRModal';
 export { TopGiftersLeaderboard } from './TopGiftersLeaderboard';
 export { ReconnectionOverlay } from './ReconnectionOverlay';
 export { VipShowIndicator } from './VipShowIndicator';
+export { BroadcasterVideoArea } from './BroadcasterVideoArea';
+export { BroadcasterModals } from './BroadcasterModals';
+export { BroadcasterFloatingElements } from './BroadcasterFloatingElements';
