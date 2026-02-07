@@ -61,6 +61,7 @@ export default function CreatorApplicationsPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -93,6 +94,7 @@ export default function CreatorApplicationsPage() {
   const handleApprove = async () => {
     if (!selectedApp) return;
     setActionLoading(true);
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/creator-applications/${selectedApp.id}/approve`, {
         method: 'POST',
@@ -100,14 +102,20 @@ export default function CreatorApplicationsPage() {
         body: JSON.stringify({ adminNotes }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         setShowApproveModal(false);
         setSelectedApp(null);
         setAdminNotes('');
         fetchApplications();
+      } else {
+        setActionError(data.error || `Failed to approve (${res.status})`);
+        console.error('Error approving application:', data);
       }
     } catch (error) {
       console.error('Error approving application:', error);
+      setActionError('Network error - please try again');
     } finally {
       setActionLoading(false);
     }
@@ -116,6 +124,7 @@ export default function CreatorApplicationsPage() {
   const handleReject = async () => {
     if (!selectedApp || !rejectionReason) return;
     setActionLoading(true);
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/creator-applications/${selectedApp.id}/reject`, {
         method: 'POST',
@@ -123,15 +132,21 @@ export default function CreatorApplicationsPage() {
         body: JSON.stringify({ rejectionReason, adminNotes }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         setShowRejectModal(false);
         setSelectedApp(null);
         setRejectionReason('');
         setAdminNotes('');
         fetchApplications();
+      } else {
+        setActionError(data.error || `Failed to reject (${res.status})`);
+        console.error('Error rejecting application:', data);
       }
     } catch (error) {
       console.error('Error rejecting application:', error);
+      setActionError('Network error - please try again');
     } finally {
       setActionLoading(false);
     }
@@ -396,7 +411,7 @@ export default function CreatorApplicationsPage() {
       {/* Approve Modal */}
       <GlassModal
         isOpen={showApproveModal}
-        onClose={() => { setShowApproveModal(false); setSelectedApp(null); setAdminNotes(''); }}
+        onClose={() => { setShowApproveModal(false); setSelectedApp(null); setAdminNotes(''); setActionError(null); }}
         title="Approve Application"
         size="sm"
       >
@@ -404,6 +419,14 @@ export default function CreatorApplicationsPage() {
           <p className="text-gray-300">
             Approve <span className="text-white font-semibold">@{selectedApp?.username}</span>'s creator application?
           </p>
+          {actionError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-400 text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                {actionError}
+              </p>
+            </div>
+          )}
           <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
             <p className="text-green-400 text-sm">
               This will upgrade the user to a creator account and grant them access to all creator features.
@@ -423,7 +446,7 @@ export default function CreatorApplicationsPage() {
           </div>
           <div className="flex gap-3 pt-2">
             <button
-              onClick={() => { setShowApproveModal(false); setSelectedApp(null); setAdminNotes(''); }}
+              onClick={() => { setShowApproveModal(false); setSelectedApp(null); setAdminNotes(''); setActionError(null); }}
               className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
             >
               Cancel
@@ -443,7 +466,7 @@ export default function CreatorApplicationsPage() {
       {/* Reject Modal */}
       <GlassModal
         isOpen={showRejectModal}
-        onClose={() => { setShowRejectModal(false); setSelectedApp(null); setRejectionReason(''); setAdminNotes(''); }}
+        onClose={() => { setShowRejectModal(false); setSelectedApp(null); setRejectionReason(''); setAdminNotes(''); setActionError(null); }}
         title="Reject Application"
         size="sm"
       >
@@ -451,6 +474,14 @@ export default function CreatorApplicationsPage() {
           <p className="text-gray-300">
             Reject <span className="text-white font-semibold">@{selectedApp?.username}</span>'s creator application?
           </p>
+          {actionError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-400 text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                {actionError}
+              </p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Rejection Reason <span className="text-red-400">*</span>
@@ -478,7 +509,7 @@ export default function CreatorApplicationsPage() {
           </div>
           <div className="flex gap-3 pt-2">
             <button
-              onClick={() => { setShowRejectModal(false); setSelectedApp(null); setRejectionReason(''); setAdminNotes(''); }}
+              onClick={() => { setShowRejectModal(false); setSelectedApp(null); setRejectionReason(''); setAdminNotes(''); setActionError(null); }}
               className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
             >
               Cancel
