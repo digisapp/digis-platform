@@ -117,42 +117,53 @@ export async function POST(req: NextRequest, context: RouteContext) {
       );
     }
 
-    // Check if user already has a ticket
-    const existingTicket = await db.query.streamTickets.findFirst({
-      where: and(
-        eq(streamTickets.streamId, streamId),
-        eq(streamTickets.userId, authUser.id)
-      ),
-    });
-
-    if (existingTicket) {
-      return NextResponse.json(
-        { error: 'You already have a ticket for this stream' },
-        { status: 400 }
-      );
-    }
-
     // Get buyer username for notification (outside transaction)
     const buyer = await db.query.users.findFirst({
       where: eq(users.id, authUser.id),
       columns: { username: true },
     });
 
-    // Generate idempotency key
-    const idempotencyKey = `ticket_${authUser.id}_${streamId}_${Date.now()}`;
+    // Deterministic idempotency key - same user+stream always generates same key
+    // This prevents double-spend even with concurrent requests
+    const idempotencyKey = `stream_ticket_${authUser.id}_${streamId}`;
 
     // Execute all financial operations in a single atomic transaction
+    // Uses FOR UPDATE row locking to prevent race conditions
     const result = await db.transaction(async (tx) => {
-      // 1. Check user's wallet balance inside transaction to prevent race conditions
-      const userWallet = await tx.query.wallets.findFirst({
-        where: eq(wallets.userId, authUser.id),
-      });
+      // 1. Lock buyer's wallet row to serialize concurrent purchases
+      const lockedWalletResult = await tx.execute(
+        sql`SELECT * FROM wallets WHERE user_id = ${authUser.id} FOR UPDATE`
+      );
+      const walletRows = lockedWalletResult as unknown as Array<{
+        id: string; user_id: string; balance: number; held_balance: number;
+      }>;
+      const userWallet = walletRows[0];
 
       if (!userWallet || userWallet.balance < price) {
         throw new Error(`INSUFFICIENT_BALANCE:${price}:${userWallet?.balance || 0}`);
       }
 
-      // 2. Deduct from buyer using SQL expression
+      // 2. Check for existing ticket INSIDE transaction (after lock) to prevent duplicates
+      const existingTicket = await tx.query.streamTickets.findFirst({
+        where: and(
+          eq(streamTickets.streamId, streamId),
+          eq(streamTickets.userId, authUser.id)
+        ),
+      });
+
+      if (existingTicket) {
+        throw new Error('ALREADY_HAS_TICKET');
+      }
+
+      // 3. Check idempotency - skip if already processed
+      const existingTx = await tx.query.walletTransactions.findFirst({
+        where: eq(walletTransactions.idempotencyKey, idempotencyKey),
+      });
+      if (existingTx) {
+        throw new Error('ALREADY_PROCESSED');
+      }
+
+      // 4. Deduct from buyer using SQL expression (wallet is locked)
       await tx
         .update(wallets)
         .set({
@@ -161,12 +172,15 @@ export async function POST(req: NextRequest, context: RouteContext) {
         })
         .where(eq(wallets.userId, authUser.id));
 
-      // 3. Get or create creator wallet and credit atomically
-      const creatorWallet = await tx.query.wallets.findFirst({
-        where: eq(wallets.userId, stream.creatorId),
-      });
+      // 5. Lock creator wallet and credit atomically
+      const lockedCreatorResult = await tx.execute(
+        sql`SELECT * FROM wallets WHERE user_id = ${stream.creatorId} FOR UPDATE`
+      );
+      const creatorRows = lockedCreatorResult as unknown as Array<{
+        id: string; user_id: string; balance: number; held_balance: number;
+      }>;
 
-      if (!creatorWallet) {
+      if (!creatorRows[0]) {
         await tx.insert(wallets).values({
           userId: stream.creatorId,
           balance: price,
@@ -182,7 +196,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
           .where(eq(wallets.userId, stream.creatorId));
       }
 
-      // 4. Create wallet transactions for both parties
+      // 6. Create wallet transactions for both parties
       const [buyerTransaction] = await tx.insert(walletTransactions).values({
         userId: authUser.id,
         amount: -price,
@@ -204,13 +218,14 @@ export async function POST(req: NextRequest, context: RouteContext) {
         status: 'completed',
         description: `Ticket sold for stream: ${stream.title}`,
         relatedTransactionId: buyerTransaction.id,
+        idempotencyKey: `stream_ticket_credit_${authUser.id}_${streamId}`,
         metadata: JSON.stringify({
           streamId: stream.id,
           buyerId: authUser.id,
         }),
       });
 
-      // 5. Create ticket record
+      // 7. Create ticket record
       const [ticket] = await tx.insert(streamTickets).values({
         streamId: stream.id,
         userId: authUser.id,
@@ -218,7 +233,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         transactionId: buyerTransaction.id,
       }).returning();
 
-      // 6. Update stream ticket stats using SQL expressions
+      // 8. Update stream ticket stats using SQL expressions
       await tx
         .update(streams)
         .set({
@@ -228,7 +243,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         })
         .where(eq(streams.id, streamId));
 
-      // 7. Create notification for creator
+      // 9. Create notification for creator
       await tx.insert(notifications).values({
         userId: stream.creatorId,
         type: 'stream_ticket',
@@ -262,13 +277,27 @@ export async function POST(req: NextRequest, context: RouteContext) {
   } catch (error) {
     console.error('[streams/ticket] POST Error:', error);
 
-    // Handle insufficient balance error from transaction
-    if (error instanceof Error && error.message.startsWith('INSUFFICIENT_BALANCE:')) {
-      const [, required, current] = error.message.split(':');
-      return NextResponse.json(
-        { error: 'Insufficient balance', required: Number(required), current: Number(current) },
-        { status: 400 }
-      );
+    // Handle specific transaction errors
+    if (error instanceof Error) {
+      if (error.message.startsWith('INSUFFICIENT_BALANCE:')) {
+        const [, required, current] = error.message.split(':');
+        return NextResponse.json(
+          { error: 'Insufficient balance', required: Number(required), current: Number(current) },
+          { status: 400 }
+        );
+      }
+      if (error.message === 'ALREADY_HAS_TICKET') {
+        return NextResponse.json(
+          { error: 'You already have a ticket for this stream' },
+          { status: 400 }
+        );
+      }
+      if (error.message === 'ALREADY_PROCESSED') {
+        return NextResponse.json(
+          { error: 'Ticket purchase already processed' },
+          { status: 400 }
+        );
+      }
     }
 
     return NextResponse.json(

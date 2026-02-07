@@ -54,13 +54,15 @@ export async function GET(
 
     const username = dbUser.username || dbUser.displayName || 'Creator';
 
-    // Create LiveKit token for broadcaster
+    // Create LiveKit token for broadcaster (6 hour TTL for long streams)
+    const SIX_HOURS = 6 * 60 * 60;
     const at = new AccessToken(
       process.env.LIVEKIT_API_KEY,
       process.env.LIVEKIT_API_SECRET,
       {
         identity: user.id,
         name: username,
+        ttl: SIX_HOURS,
       }
     );
 

@@ -77,9 +77,11 @@ export async function GET(
       return NextResponse.json({ error: 'LiveKit not configured' }, { status: 500 });
     }
 
+    const TWO_HOURS = 2 * 60 * 60;
     const at = new AccessToken(apiKey, apiSecret, {
       identity: user.id,
       name: displayName,
+      ttl: TWO_HOURS,
       metadata: JSON.stringify({
         role: 'guest',
         requestType: guestRequest.requestType,

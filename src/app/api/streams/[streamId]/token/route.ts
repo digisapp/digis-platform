@@ -55,13 +55,15 @@ export async function GET(
 
     const username = dbUser.username || dbUser.displayName || 'Anonymous';
 
-    // Create LiveKit token for viewer
+    // Create LiveKit token for viewer (6 hour TTL for long streams)
+    const SIX_HOURS = 6 * 60 * 60;
     const at = new AccessToken(
       process.env.LIVEKIT_API_KEY,
       process.env.LIVEKIT_API_SECRET,
       {
         identity: user.id,
         name: username,
+        ttl: SIX_HOURS,
       }
     );
 

@@ -690,7 +690,7 @@ The Digis Team
   }
 
   /**
-   * Cancel a show (no automatic refunds - creator handles it manually)
+   * Cancel a show with automatic refunds for all ticket holders
    */
   static async cancelShow(showId: string, creatorId: string) {
     return await db.transaction(async (tx) => {
@@ -710,13 +710,44 @@ The Digis Team
         throw new Error('Can only cancel scheduled streams');
       }
 
-      // Get ticket count for return info
+      // Get all valid tickets for refunds
       const tickets = await tx.query.showTickets.findMany({
-        where: eq(showTickets.showId, showId),
+        where: and(
+          eq(showTickets.showId, showId),
+          eq(showTickets.isValid, true)
+        ),
       });
 
-      // Invalidate tickets (no refunds - creator keeps earnings and handles it manually)
+      // Refund each ticket holder and invalidate tickets
+      let refundedCount = 0;
       for (const ticket of tickets) {
+        try {
+          // Refund buyer
+          await WalletService.createTransaction({
+            userId: ticket.userId,
+            amount: ticket.coinsPaid,
+            type: 'refund',
+            description: `Refund: "${show.title}" was cancelled by creator`,
+            metadata: { showId: show.id, ticketId: ticket.id, reason: 'creator_cancelled' },
+            idempotencyKey: `refund_cancel_${ticket.id}`,
+          });
+
+          // Deduct from creator
+          await WalletService.createTransaction({
+            userId: creatorId,
+            amount: -ticket.coinsPaid,
+            type: 'refund',
+            description: `Refund issued: "${show.title}" cancelled`,
+            metadata: { showId: show.id, ticketId: ticket.id, reason: 'creator_cancelled' },
+            idempotencyKey: `refund_cancel_creator_${ticket.id}`,
+          });
+
+          refundedCount++;
+        } catch (err) {
+          console.error(`[ShowService] Failed to refund ticket ${ticket.id}:`, err);
+        }
+
+        // Invalidate ticket regardless of refund success
         await tx
           .update(showTickets)
           .set({ isValid: false })
@@ -732,7 +763,9 @@ The Digis Team
         })
         .where(eq(shows.id, showId));
 
-      return { cancelledTickets: tickets.length };
+      console.log(`[ShowService] Show "${show.title}" cancelled, refunded ${refundedCount}/${tickets.length} tickets`);
+
+      return { cancelledTickets: tickets.length, refundedTickets: refundedCount };
     });
   }
 

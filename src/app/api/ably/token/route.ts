@@ -46,13 +46,23 @@ export async function GET(req: NextRequest) {
 
     // Generate token with user's ID as client ID
     // This allows us to identify who sent messages
+    // Channel capabilities are scoped per pattern to prevent cross-channel attacks
     const tokenRequest = await ably.auth.createTokenRequest({
       clientId: user.id,
-      // Token valid for 1 hour
-      ttl: 3600000,
-      // Allow all capabilities (can be restricted if needed)
+      ttl: 3600000, // 1 hour
       capability: {
-        '*': ['subscribe', 'publish', 'presence'],
+        // Stream channels - subscribe only (server publishes via API key)
+        'stream:*:chat': ['subscribe'],
+        'stream:*:tips': ['subscribe'],
+        'stream:*:presence': ['subscribe', 'presence'],
+        // Call channels - subscribe + publish (real-time chat during calls)
+        'call:*': ['subscribe', 'publish'],
+        // Own notifications only - prevents eavesdropping on other users
+        [`user:${user.id}:notifications`]: ['subscribe'],
+        // DM channels - subscribe + publish (typing indicators)
+        'dm:*': ['subscribe', 'publish'],
+        // Platform-wide events - subscribe only
+        'platform:live': ['subscribe'],
       },
     });
 
