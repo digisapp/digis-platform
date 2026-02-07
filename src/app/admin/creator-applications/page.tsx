@@ -362,17 +362,17 @@ export default function CreatorApplicationsPage() {
                         <>
                           <button
                             onClick={() => { setSelectedApp(app); setShowApproveModal(true); }}
-                            className="p-2 bg-green-500/10 hover:bg-green-500/20 rounded-lg text-green-400 transition-colors"
-                            title="Approve"
+                            className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-xl text-green-400 font-medium transition-colors flex items-center gap-2"
                           >
-                            <CheckCircle className="w-4 h-4" />
+                            <CheckCircle className="w-5 h-5" />
+                            Approve
                           </button>
                           <button
                             onClick={() => { setSelectedApp(app); setShowRejectModal(true); }}
-                            className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors"
-                            title="Reject"
+                            className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 font-medium transition-colors flex items-center gap-2"
                           >
-                            <XCircle className="w-4 h-4" />
+                            <XCircle className="w-5 h-5" />
+                            Decline
                           </button>
                         </>
                       )}
