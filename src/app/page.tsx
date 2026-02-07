@@ -637,12 +637,12 @@ function MarketingPage({
               >
                 Start Exploring
               </button>
-              <a
+              <Link
                 href="/become-creator"
                 className="w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-white/15 backdrop-blur-md border-2 border-white/40 text-white font-bold text-lg hover:bg-white/25 hover:border-white/60 hover:scale-105 transition-all duration-300 text-center"
               >
                 Become a Creator
-              </a>
+              </Link>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
