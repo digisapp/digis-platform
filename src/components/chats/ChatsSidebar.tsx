@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -366,9 +367,9 @@ export function ChatsSidebar() {
                   className="flex items-center gap-4 p-4 rounded-xl backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 border-2 border-pink-500/30 hover:border-pink-500/50 cursor-pointer transition-all"
                 >
                   <div className="relative flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                    <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
                       {creator.avatarUrl ? (
-                        <img src={creator.avatarUrl} alt={creator.username} className="w-full h-full rounded-full object-cover" />
+                        <Image src={creator.avatarUrl} alt={creator.username} fill className="rounded-full object-cover" unoptimized />
                       ) : (
                         <span className="text-white font-bold">{creator.username?.[0]?.toUpperCase() || '?'}</span>
                       )}
@@ -403,12 +404,14 @@ export function ChatsSidebar() {
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl font-bold">
+                  <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xl font-bold">
                     {conversation.otherUser.avatarUrl ? (
-                      <img
+                      <Image
                         src={conversation.otherUser.avatarUrl}
                         alt={conversation.otherUser.username || 'User'}
-                        className="w-full h-full rounded-full object-cover"
+                        fill
+                        className="rounded-full object-cover"
+                        unoptimized
                       />
                     ) : (
                       <span className="text-white">

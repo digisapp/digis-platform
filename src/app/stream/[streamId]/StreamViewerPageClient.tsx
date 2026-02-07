@@ -1092,7 +1092,7 @@ export default function StreamViewerPageClient() {
                   className="relative group"
                 >
                   {stream.creator?.avatarUrl ? (
-                    <img src={stream.creator.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-red-500 ring-offset-2 ring-offset-black" />
+                    <Image src={stream.creator.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover ring-2 ring-red-500 ring-offset-2 ring-offset-black" unoptimized />
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold ring-2 ring-red-500 ring-offset-2 ring-offset-black">
                       {stream.creator?.username?.[0] || '?'}
@@ -1121,13 +1121,14 @@ export default function StreamViewerPageClient() {
 
               {/* Stats */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-full">
+                <div className="flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-full" aria-live="polite">
                   <Eye className="w-4 h-4 text-red-400" />
                   <span className="text-sm font-bold">{viewerCount.toLocaleString()}</span>
                 </div>
                 <button
                   onClick={shareStream}
                   className="p-2 bg-black/60 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
+                  aria-label="Share stream"
                 >
                   <Share2 className="w-5 h-5" />
                 </button>
@@ -1135,6 +1136,7 @@ export default function StreamViewerPageClient() {
                   <button
                     onClick={() => setShowChat(!showChat)}
                     className={`p-2 rounded-full transition-colors ${showChat ? 'bg-digis-cyan text-black' : 'bg-black/60 backdrop-blur-sm hover:bg-white/20'}`}
+                    aria-label="Toggle chat"
                   >
                     <MessageCircle className="w-5 h-5" />
                   </button>
@@ -1396,6 +1398,7 @@ export default function StreamViewerPageClient() {
                   <button
                     onClick={toggleMute}
                     className="p-3 bg-black/60 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
+                    aria-label={isMuted ? "Unmute" : "Mute"}
                   >
                     {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                   </button>
@@ -1423,6 +1426,7 @@ export default function StreamViewerPageClient() {
                   <button
                     onClick={toggleFullscreen}
                     className="p-3 bg-black/60 backdrop-blur-sm rounded-full hover:bg-white/20 transition-colors"
+                    aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
                   >
                     {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
                   </button>
@@ -1443,7 +1447,7 @@ export default function StreamViewerPageClient() {
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <button onClick={() => router.push(`/${stream.creator?.username}`)} className="flex-shrink-0">
                       {stream.creator?.avatarUrl ? (
-                        <img src={stream.creator.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" />
+                        <Image src={stream.creator.avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" unoptimized />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold ring-2 ring-red-500">
                           {stream.creator?.username?.[0] || '?'}

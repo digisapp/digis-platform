@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ interface AdminChartsProps {
 
 const COLORS = ['#06b6d4', '#ec4899', '#8b5cf6'];
 
-export default function AdminCharts({ analytics }: AdminChartsProps) {
+export default memo(function AdminCharts({ analytics }: AdminChartsProps) {
   return (
     <div className="space-y-6">
       {/* User Signups Timeline */}
@@ -127,4 +128,4 @@ export default function AdminCharts({ analytics }: AdminChartsProps) {
       )}
     </div>
   );
-}
+})

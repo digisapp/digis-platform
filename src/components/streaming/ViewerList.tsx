@@ -102,6 +102,7 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
           <div
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
+            aria-hidden="true"
           />
           <div className="absolute left-0 top-12 w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-xl border-2 border-white/20 z-50 shadow-2xl max-h-[70vh] overflow-hidden">
             {/* Header */}
@@ -113,6 +114,7 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-gray-400 hover:text-white transition-colors p-1"
+                aria-label="Close viewer list"
               >
                 ✕
               </button>
@@ -196,6 +198,7 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
                               onClick={() => handleInvite(viewer.id, 'video')}
                               className="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/40 rounded-lg transition-colors"
                               title="Invite with Video"
+                              aria-label="Invite to video"
                             >
                               <Video className="w-4 h-4 text-cyan-400" />
                             </button>
@@ -204,6 +207,7 @@ export function ViewerList({ streamId, currentViewers, activeGuestId, onInviteSe
                               onClick={() => handleInvite(viewer.id, 'voice')}
                               className="p-1.5 bg-purple-500/20 hover:bg-purple-500/40 rounded-lg transition-colors"
                               title="Invite Voice Only"
+                              aria-label="Invite to voice"
                             >
                               <Mic className="w-4 h-4 text-purple-400" />
                             </button>

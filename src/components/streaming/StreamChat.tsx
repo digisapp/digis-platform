@@ -32,27 +32,23 @@ type StreamChatProps = {
 // Quick emojis for chat
 const CHAT_EMOJIS = ['❤️', '🔥', '😂', '👏', '🎉', '💯', '😍', '🙌'];
 
+// Static tier ring/glow styles - defined once at module level to avoid re-creation
+const TIER_RING_MAP: Record<string, { ring: string; glow: string }> = {
+  diamond: { ring: 'ring-2 ring-cyan-400', glow: 'shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
+  platinum: { ring: 'ring-2 ring-purple-400', glow: 'shadow-[0_0_8px_rgba(192,132,252,0.6)]' },
+  gold: { ring: 'ring-2 ring-yellow-400', glow: 'shadow-[0_0_8px_rgba(250,204,21,0.6)]' },
+  silver: { ring: 'ring-2 ring-gray-300', glow: 'shadow-[0_0_6px_rgba(209,213,219,0.4)]' },
+  bronze: { ring: 'ring-2 ring-orange-400', glow: 'shadow-[0_0_6px_rgba(251,146,60,0.5)]' },
+};
+
+const DEFAULT_TIER_STYLE = { color: 'text-white/80', ringClass: '', glowClass: '' };
+
 // Helper to get username and avatar ring styling based on spend tier
 function getTierStyle(spendTier?: SpendTier | null) {
-  if (!spendTier || spendTier === 'none') {
-    return {
-      color: 'text-white/80',
-      ringClass: '',
-      glowClass: '',
-    };
-  }
+  if (!spendTier || spendTier === 'none') return DEFAULT_TIER_STYLE;
+
   const config = getTierConfig(spendTier);
-
-  // Map tier to ring and glow classes
-  const ringMap: Record<string, { ring: string; glow: string }> = {
-    diamond: { ring: 'ring-2 ring-cyan-400', glow: 'shadow-[0_0_8px_rgba(34,211,238,0.6)]' },
-    platinum: { ring: 'ring-2 ring-purple-400', glow: 'shadow-[0_0_8px_rgba(192,132,252,0.6)]' },
-    gold: { ring: 'ring-2 ring-yellow-400', glow: 'shadow-[0_0_8px_rgba(250,204,21,0.6)]' },
-    silver: { ring: 'ring-2 ring-gray-300', glow: 'shadow-[0_0_6px_rgba(209,213,219,0.4)]' },
-    bronze: { ring: 'ring-2 ring-orange-400', glow: 'shadow-[0_0_6px_rgba(251,146,60,0.5)]' },
-  };
-
-  const styles = ringMap[spendTier] || { ring: '', glow: '' };
+  const styles = TIER_RING_MAP[spendTier] || { ring: '', glow: '' };
 
   return {
     color: config.color,
@@ -543,6 +539,8 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               type="button"
               onClick={() => setShowEmojis(!showEmojis)}
               className={`p-2 rounded-lg transition-colors flex-shrink-0 ${showEmojis ? 'bg-digis-cyan text-black' : 'hover:bg-white/10 text-gray-400'}`}
+              aria-label={showEmojis ? 'Hide emojis' : 'Show emojis'}
+              aria-expanded={showEmojis}
             >
               <Smile className="w-5 h-5" />
             </button>
@@ -565,6 +563,7 @@ export function StreamChat({ streamId, messages, onSendMessage, isCreator = fals
               type="submit"
               disabled={!newMessage.trim() || isSending}
               className="p-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full text-white hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex-shrink-0"
+              aria-label="Send message"
             >
               <Send className="w-5 h-5" />
             </button>

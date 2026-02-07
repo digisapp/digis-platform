@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRemoteParticipants, useLocalParticipant, useTracks, VideoTrack, AudioTrack } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
@@ -419,9 +420,9 @@ function FaceTimeVideoLayout({
             <div className="text-center">
               {hasRemoteParticipant ? (
                 <>
-                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
+                  <div className="relative w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
                     {otherParticipant?.avatarUrl ? (
-                      <img src={otherParticipant.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      <Image src={otherParticipant.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                     ) : (
                       <span className="text-4xl font-bold text-white">
                         {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}

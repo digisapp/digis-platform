@@ -1615,7 +1615,7 @@ export default function SettingsPage() {
 
         {/* Global Messages */}
         {message && (
-          <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-500 text-green-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300" aria-live="polite">
             <div className="p-2 bg-green-500 rounded-lg">
               <CheckCircle className="w-5 h-5 text-white" />
             </div>
@@ -1624,7 +1624,7 @@ export default function SettingsPage() {
         )}
 
         {error && (
-          <div className="glass p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-pink-500/10 border-2 border-red-500 text-red-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="glass p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-pink-500/10 border-2 border-red-500 text-red-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300" aria-live="polite">
             <div className="p-2 bg-red-500 rounded-lg">
               <AlertCircle className="w-5 h-5 text-white" />
             </div>
@@ -1674,7 +1674,7 @@ export default function SettingsPage() {
             onClick={handleCloseLinkModal}
           />
 
-          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-white/10 rounded-2xl max-w-md w-full shadow-2xl">
+          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-white/10 rounded-2xl max-w-md w-full shadow-2xl" role="dialog" aria-modal="true" aria-label="Add link">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <h2 className="text-lg font-bold text-white">
@@ -1780,7 +1780,7 @@ export default function SettingsPage() {
             onClick={() => !deleting && setShowDeleteModal(false)}
           />
 
-          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-red-500/30 rounded-2xl max-w-md w-full shadow-2xl">
+          <div className="relative bg-gradient-to-b from-neutral-900 to-black border border-red-500/30 rounded-2xl max-w-md w-full shadow-2xl" role="dialog" aria-modal="true" aria-label="Delete account">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-red-500/20">
               <h2 className="text-lg font-bold text-red-400 flex items-center gap-2">

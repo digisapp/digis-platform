@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Star, StarOff, Users, Coins, ChevronUp, ChevronDown, Search, X, UserPlus } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToastContext } from '@/context/ToastContext';
@@ -270,6 +271,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
               placeholder="Search creators to add..."
               className="w-full pl-9 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-gray-400 focus:outline-none focus:border-purple-500/50"
               autoFocus
+              aria-label="Search creators"
             />
             {isSearching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -289,7 +291,7 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
                   className="w-full flex items-center gap-2 p-2 bg-white/5 hover:bg-purple-500/20 rounded-lg transition-colors text-left disabled:opacity-50"
                 >
                   {result.avatarUrl ? (
-                    <img src={result.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" loading="lazy" decoding="async" />
+                    <Image src={result.avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover" unoptimized />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm">👤</div>
                   )}
@@ -343,14 +345,15 @@ export function FeaturedCreatorsPanel({ streamId, onSpotlightChange, isHost = fa
 
               {/* Avatar */}
               {creator.avatarUrl ? (
-                <img
+                <Image
                   src={creator.avatarUrl}
                   alt={creator.username}
+                  width={32}
+                  height={32}
                   className={`w-8 h-8 rounded-full object-cover border-2 ${
                     creator.isSpotlighted ? 'border-pink-500' : 'border-purple-500/30'
                   }`}
-                  loading="lazy"
-                  decoding="async"
+                  unoptimized
                 />
               ) : (
                 <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center border-2 ${

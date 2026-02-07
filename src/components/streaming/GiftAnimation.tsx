@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import type { VirtualGift, StreamGift } from '@/db/schema';
 
 type GiftFeedItemProps = {
@@ -11,8 +11,8 @@ type GiftFeedItemProps = {
   onComplete: () => void;
 };
 
-// Individual gift item in the feed
-function GiftFeedItem({ gift, streamGift, index, style, onComplete }: GiftFeedItemProps) {
+// Individual gift item in the feed - memoized to prevent re-renders when sibling gifts change
+const GiftFeedItem = memo(function GiftFeedItem({ gift, streamGift, index, style, onComplete }: GiftFeedItemProps) {
   const [state, setState] = useState<'entering' | 'visible' | 'exiting'>('entering');
   const totalValue = gift.coinCost * (streamGift.quantity || 1);
 
@@ -125,7 +125,7 @@ function GiftFeedItem({ gift, streamGift, index, style, onComplete }: GiftFeedIt
       )}
     </div>
   );
-}
+});
 
 // Container to manage multiple gift animations as a feed
 type GiftAnimationManagerProps = {

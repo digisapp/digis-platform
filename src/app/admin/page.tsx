@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassInput, LoadingSpinner } from '@/components/ui';
 import { Users, UserCheck, Clock, CheckCircle, XCircle, Search, Shield, Star, TrendingUp, TrendingDown, BarChart3, Ban, Pause, Trash2, UserPlus, DollarSign, RefreshCw, Coins, CreditCard, Eye, Smartphone, Monitor, Tablet, Mail, Wrench, Gift, ClipboardList } from 'lucide-react';
@@ -1235,9 +1236,9 @@ export default function AdminDashboard() {
                                 className="flex items-center justify-between p-4 bg-red-500/10 rounded-lg border border-red-500/30"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-lg font-bold shrink-0">
+                                  <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-lg font-bold shrink-0">
                                     {user.avatarUrl ? (
-                                      <img src={user.avatarUrl} alt={user.username || ''} className="w-full h-full rounded-full object-cover" />
+                                      <Image src={user.avatarUrl} alt={user.username || ''} fill className="rounded-full object-cover" unoptimized />
                                     ) : (
                                       user.username?.[0]?.toUpperCase() || '?'
                                     )}
@@ -1281,9 +1282,9 @@ export default function AdminDashboard() {
                               <div className="flex items-center gap-4">
                                 {/* Blocker */}
                                 <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
+                                  <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
                                     {block.blocker?.avatarUrl ? (
-                                      <img src={block.blocker.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                                      <Image src={block.blocker.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                                     ) : (
                                       block.blocker?.username?.[0]?.toUpperCase() || '?'
                                     )}
@@ -1295,9 +1296,9 @@ export default function AdminDashboard() {
 
                                 {/* Blocked */}
                                 <div className="flex items-center gap-2">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
+                                  <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
                                     {block.blocked?.avatarUrl ? (
-                                      <img src={block.blocked.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                                      <Image src={block.blocked.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                                     ) : (
                                       block.blocked?.username?.[0]?.toUpperCase() || '?'
                                     )}
@@ -1338,9 +1339,9 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-4">
                               {/* Banned User */}
                               <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
+                                <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
                                   {ban.bannedUser?.avatarUrl ? (
-                                    <img src={ban.bannedUser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                                    <Image src={ban.bannedUser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                                   ) : (
                                     ban.bannedUser?.username?.[0]?.toUpperCase() || '?'
                                   )}
@@ -1501,9 +1502,9 @@ export default function AdminDashboard() {
                           }`}>
                             {index + 1}
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
                             {creator.avatarUrl ? (
-                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                              <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                             ) : (
                               creator.username?.[0]?.toUpperCase() || '?'
                             )}
@@ -1539,9 +1540,9 @@ export default function AdminDashboard() {
                           }`}>
                             {index + 1}
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
                             {creator.avatarUrl ? (
-                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                              <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                             ) : (
                               creator.username?.[0]?.toUpperCase() || '?'
                             )}
@@ -1577,9 +1578,9 @@ export default function AdminDashboard() {
                           }`}>
                             {index + 1}
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold shrink-0">
                             {creator.avatarUrl ? (
-                              <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                              <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                             ) : (
                               creator.username?.[0]?.toUpperCase() || '?'
                             )}
@@ -1617,9 +1618,9 @@ export default function AdminDashboard() {
                           }`}>
                             {index + 1}
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold shrink-0">
+                          <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold shrink-0">
                             {purchaser.avatarUrl ? (
-                              <img src={purchaser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                              <Image src={purchaser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                             ) : (
                               purchaser.username?.[0]?.toUpperCase() || '?'
                             )}
@@ -1781,9 +1782,9 @@ export default function AdminDashboard() {
                           onClick={() => router.push(`/${creator.username}`)}
                         >
                           <div className="flex items-center gap-3 md:gap-4">
-                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-base md:text-lg font-bold shrink-0">
+                            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-base md:text-lg font-bold shrink-0">
                               {creator.avatarUrl ? (
-                                <img src={creator.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                                <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                               ) : (
                                 creator.username?.[0]?.toUpperCase() || '?'
                               )}
@@ -1885,9 +1886,9 @@ export default function AdminDashboard() {
                 <div className="space-y-4">
                   <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold shrink-0">
+                      <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold shrink-0">
                         {foundUser.avatarUrl ? (
-                          <img src={foundUser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                          <Image src={foundUser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
                         ) : (
                           foundUser.username?.[0]?.toUpperCase() || foundUser.email[0].toUpperCase()
                         )}

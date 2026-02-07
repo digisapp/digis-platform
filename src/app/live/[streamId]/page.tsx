@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
@@ -30,6 +31,8 @@ import { useTicketCountdown } from '@/hooks/useTicketCountdown';
 import { useViewerKeyboardShortcuts } from '@/hooks/useViewerKeyboardShortcuts';
 import { useBRBDetection } from '@/hooks/useBRBDetection';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
+import { TipModal } from '@/components/streaming/TipModal';
+import { MenuModal } from '@/components/streaming/MenuModal';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
@@ -205,13 +208,9 @@ export default function TheaterModePage() {
   const [showTipModal, setShowTipModal] = useState(false);
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
-  const [tipAmount, setTipAmount] = useState('');
-  const [tipNote, setTipNote] = useState('');
   const { celebratingGoal, completedGoalsQueue, addCompletedGoal } = useGoalCelebrations();
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
   const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
-  const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number; fulfillmentType?: string } | null>(null);
-  const [menuNote, setMenuNote] = useState('');
 
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -1914,7 +1913,7 @@ export default function TheaterModePage() {
                   msg.messageType === 'tip' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-green-400 flex items-center justify-center text-[10px] font-bold text-green-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -1927,7 +1926,7 @@ export default function TheaterModePage() {
                   ) : msg.messageType === 'gift' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -1950,7 +1949,7 @@ export default function TheaterModePage() {
                   ) : msg.messageType === 'ticket_purchase' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -1963,7 +1962,7 @@ export default function TheaterModePage() {
                   ) : (
                     <div key={msg.id} className="flex gap-2">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover flex-shrink-0" unoptimized />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2221,7 +2220,7 @@ export default function TheaterModePage() {
                         <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                           <div className="flex items-center gap-2">
                             {msg.avatarUrl ? (
-                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-xs font-bold">
                                 {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2237,7 +2236,7 @@ export default function TheaterModePage() {
                         <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
                           <div className="flex items-center gap-2">
                             {msg.avatarUrl ? (
-                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-xs font-bold">
                                 {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2263,7 +2262,7 @@ export default function TheaterModePage() {
                         <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                           <div className="flex items-center gap-2">
                             {msg.avatarUrl ? (
-                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center text-xs font-bold text-black">
                                 {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2285,7 +2284,7 @@ export default function TheaterModePage() {
                         <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                           <div className="flex items-start gap-2">
                             {msg.avatarUrl ? (
-                              <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
+                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
                             ) : (
                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold">
                                 {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2307,10 +2306,13 @@ export default function TheaterModePage() {
                       // Regular chat message
                       <div key={msg.id} className="flex gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
                         {msg.avatarUrl ? (
-                          <img
+                          <Image
                             src={msg.avatarUrl}
                             alt={msg.username}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-cyan-400/30"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">
@@ -2452,7 +2454,7 @@ export default function TheaterModePage() {
                             {index + 1}
                           </span>
                           {supporter.avatarUrl ? (
-                            <img src={supporter.avatarUrl} alt={supporter.username} className="w-7 h-7 rounded-full object-cover" />
+                            <Image src={supporter.avatarUrl} alt={supporter.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" unoptimized />
                           ) : (
                             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
                               {supporter.username?.[0]?.toUpperCase()}
@@ -2638,268 +2640,24 @@ export default function TheaterModePage() {
 
       {/* Tip Modal with Optional Note */}
       {showTipModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Send tip">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={() => {
-              setShowTipModal(false);
-              setTipAmount('');
-              setTipNote('');
-            }}
-          />
-          {/* Modal */}
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-cyan-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-cyan-400/60 shadow-[0_0_60px_rgba(34,211,238,0.4)] p-6 animate-slideUp">
-            {/* Corner accents - Tron style */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-xl" />
-
-            {/* Close button */}
-            <button
-              onClick={() => {
-                setShowTipModal(false);
-                setTipAmount('');
-                setTipNote('');
-              }}
-              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Header */}
-            <div className="flex justify-center mb-4">
-              <div className="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/30">
-                <Coins className="w-4 h-4" />
-                SEND TIP
-              </div>
-            </div>
-
-            {/* Creator Name */}
-            <p className="text-white/80 text-center text-sm mb-4">
-              Tip <span className="font-bold text-cyan-300">@{stream?.creator.username}</span>
-            </p>
-
-            {/* Amount Input */}
-            <div className="mb-4">
-              <label className="block text-cyan-300 text-xs font-semibold mb-2">Amount (coins)</label>
-              <input
-                type="number"
-                value={tipAmount}
-                onChange={(e) => setTipAmount(e.target.value)}
-                placeholder="Enter amount..."
-                min="1"
-                max={userBalance}
-                className="w-full px-4 py-3 bg-white/10 border-2 border-cyan-400/40 rounded-xl text-white text-lg font-bold placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_20px_rgba(34,211,238,0.3)] transition-all text-center"
-              />
-            </div>
-
-            {/* Quick Amount Buttons */}
-            <div className="flex gap-2 mb-4">
-              {[10, 50, 100, 500].map((amt) => (
-                <button
-                  key={amt}
-                  onClick={() => setTipAmount(amt.toString())}
-                  disabled={userBalance < amt}
-                  className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
-                    tipAmount === amt.toString()
-                      ? 'bg-cyan-500 text-black'
-                      : 'bg-white/10 text-white hover:bg-white/20'
-                  } ${userBalance < amt ? 'opacity-40 cursor-not-allowed' : ''}`}
-                >
-                  {amt}
-                </button>
-              ))}
-            </div>
-
-            {/* Private Note Input */}
-            <div className="mb-4">
-              <label className="block text-cyan-300 text-xs font-semibold mb-1.5">
-                Private Note <span className="text-white/40">(optional)</span>
-              </label>
-              <textarea
-                value={tipNote}
-                onChange={(e) => setTipNote(e.target.value.slice(0, 200))}
-                placeholder="Write a private message..."
-                rows={2}
-                className="w-full px-3 py-2 bg-white/10 border border-cyan-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all resize-none text-sm"
-              />
-              <div className="flex items-center justify-between mt-1.5">
-                <div className="flex items-center gap-1.5 text-xs text-cyan-400/70">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span>Only the creator will see this</span>
-                </div>
-                <span className="text-xs text-white/40">{tipNote.length}/200</span>
-              </div>
-            </div>
-
-            {/* Send Button */}
-            <button
-              onClick={async () => {
-                const amount = parseInt(tipAmount);
-                if (amount > 0 && amount <= userBalance) {
-                  await handleTip(amount, tipNote || undefined, null);
-                  setShowTipModal(false);
-                  setTipAmount('');
-                  setTipNote('');
-                }
-              }}
-              disabled={!tipAmount || parseInt(tipAmount) <= 0 || parseInt(tipAmount) > userBalance}
-              className="w-full py-4 bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 hover:from-cyan-400 hover:via-cyan-300 hover:to-cyan-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              <Coins className="w-5 h-5" />
-              {tipAmount ? `Send ${parseInt(tipAmount).toLocaleString()} Coins` : 'Enter Amount'}
-            </button>
-
-            {/* Cancel text */}
-            <p className="text-center text-gray-500 text-xs mt-3">
-              Tap outside to cancel
-            </p>
-          </div>
-        </div>
+        <TipModal
+          creatorUsername={stream?.creator.username || ''}
+          userBalance={userBalance}
+          onSendTip={(amount, note) => handleTip(amount, note, null)}
+          onClose={() => setShowTipModal(false)}
+        />
       )}
 
       {/* Menu Modal - Purple/Pink themed */}
       {showMenuModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Creator menu">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={() => {
-              setShowMenuModal(false);
-              setSelectedMenuItem(null);
-              setMenuNote('');
-            }}
-          />
-          {/* Modal */}
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-purple-900/95 via-black/98 to-pink-900/95 rounded-2xl border-2 border-pink-400/60 shadow-[0_0_60px_rgba(236,72,153,0.4)] p-6 animate-slideUp">
-            {/* Corner accents - Pink style */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-pink-400 rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-pink-400 rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-pink-400 rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-pink-400 rounded-br-xl" />
-
-            {/* Close button */}
-            <button
-              onClick={() => {
-                setShowMenuModal(false);
-                setSelectedMenuItem(null);
-                setMenuNote('');
-              }}
-              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Header */}
-            <div className="flex justify-center mb-4">
-              <div className="px-4 py-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-pink-500/30">
-                <List className="w-4 h-4" />
-                MENU
-              </div>
-            </div>
-
-            {/* Creator Name */}
-            <p className="text-white/80 text-center text-sm mb-4">
-              Purchase from <span className="font-bold text-pink-300">@{stream?.creator.username}</span>
-            </p>
-
-            {/* Balance Display */}
-            <div className="flex items-center justify-center gap-2 mb-4 text-sm">
-              <Coins className="w-4 h-4 text-yellow-400" />
-              <span className="text-white">Your balance: <span className="font-bold text-yellow-400">{userBalance.toLocaleString()}</span></span>
-            </div>
-
-            {/* Menu Items Grid */}
-            <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedMenuItem({ id: item.id, label: item.label, price: item.price, fulfillmentType: item.fulfillmentType })}
-                  disabled={userBalance < item.price}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                    selectedMenuItem?.id === item.id
-                      ? 'bg-pink-500/30 border-2 border-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.3)]'
-                      : 'bg-white/5 hover:bg-white/10 border-2 border-transparent'
-                  } ${userBalance < item.price ? 'opacity-40 cursor-not-allowed' : ''}`}
-                >
-                  <span className="text-2xl">{item.emoji || '🎁'}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white font-medium truncate">{item.label}</div>
-                    {item.description && (
-                      <div className="text-gray-400 text-xs truncate">{item.description}</div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-yellow-400 font-bold">
-                    <Coins className="w-4 h-4" />
-                    {item.price}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {/* Optional Note - shows when item is selected */}
-            {selectedMenuItem && (
-              <div className="mb-4">
-                <label className="block text-pink-300 text-xs font-semibold mb-1.5">
-                  Message to Creator <span className="text-white/40">(optional)</span>
-                </label>
-                <textarea
-                  value={menuNote}
-                  onChange={(e) => setMenuNote(e.target.value.slice(0, 300))}
-                  placeholder={
-                    selectedMenuItem.fulfillmentType === 'manual'
-                      ? "Add details (shipping address, special requests, etc.)..."
-                      : "Say thanks or add a message..."
-                  }
-                  rows={2}
-                  className="w-full px-3 py-2 bg-white/10 border border-pink-400/40 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-pink-400 focus:shadow-[0_0_15px_rgba(236,72,153,0.2)] transition-all resize-none text-sm"
-                />
-                <div className="flex justify-end mt-1">
-                  <span className="text-xs text-white/40">{menuNote.length}/300</span>
-                </div>
-              </div>
-            )}
-
-            {/* Purchase Button */}
-            <button
-              onClick={async () => {
-                if (selectedMenuItem && userBalance >= selectedMenuItem.price) {
-                  await handleTip(selectedMenuItem.price, menuNote || undefined, selectedMenuItem);
-                  setShowMenuModal(false);
-                  setSelectedMenuItem(null);
-                  setMenuNote('');
-                }
-              }}
-              disabled={!selectedMenuItem || userBalance < (selectedMenuItem?.price || 0)}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 hover:from-pink-400 hover:via-purple-400 hover:to-pink-400 rounded-xl font-bold text-white text-lg transition-all hover:scale-105 shadow-lg shadow-pink-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              <Coins className="w-5 h-5" />
-              {selectedMenuItem ? `Purchase for ${selectedMenuItem.price} Coins` : 'Select an Item'}
-            </button>
-
-            {/* Buy More Coins Link */}
-            {selectedMenuItem && userBalance < selectedMenuItem.price && (
-              <button
-                onClick={() => {
-                  setShowMenuModal(false);
-                  setShowBuyCoinsModal(true);
-                }}
-                className="w-full mt-2 text-center text-pink-400 hover:text-pink-300 text-sm"
-              >
-                Need more coins? Buy now →
-              </button>
-            )}
-
-            {/* Cancel text */}
-            <p className="text-center text-gray-500 text-xs mt-3">
-              Tap outside to cancel
-            </p>
-          </div>
-        </div>
+        <MenuModal
+          creatorUsername={stream?.creator.username || ''}
+          userBalance={userBalance}
+          menuItems={menuItems}
+          onPurchase={(price, note, item) => handleTip(price, note, item)}
+          onClose={() => setShowMenuModal(false)}
+          onBuyCoins={() => setShowBuyCoinsModal(true)}
+        />
       )}
 
       {/* Ticketed Show Announcement Popup */}

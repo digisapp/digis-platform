@@ -363,7 +363,7 @@ export default function WatchPage() {
                         {/* Thumbnail */}
                         <div className="aspect-video bg-gradient-to-br from-gray-900/40 to-slate-900 relative overflow-hidden">
                           {(stream.thumbnailUrl || stream.coverImageUrl) ? (
-                            <img src={stream.thumbnailUrl || stream.coverImageUrl!} alt={stream.title} className="w-full h-full object-cover" />
+                            <Image src={stream.thumbnailUrl || stream.coverImageUrl!} alt={stream.title} fill className="object-cover" unoptimized />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="text-6xl opacity-50">{stream.creator.displayName?.[0] || '🎥'}</div>
@@ -480,7 +480,7 @@ export default function WatchPage() {
                         {/* Cover Image */}
                         <div className="aspect-video bg-gradient-to-br from-amber-900/40 to-slate-900 relative overflow-hidden">
                           {show.coverImageUrl ? (
-                            <img src={show.coverImageUrl} alt={show.title} className="w-full h-full object-cover" />
+                            <Image src={show.coverImageUrl} alt={show.title} fill className="object-cover" unoptimized />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="text-6xl opacity-50">🎟️</div>
@@ -569,7 +569,7 @@ export default function WatchPage() {
                         {/* Thumbnail */}
                         <div className="aspect-video bg-gradient-to-br from-purple-900/40 to-slate-900 relative overflow-hidden">
                           {vod.thumbnailUrl ? (
-                            <img src={vod.thumbnailUrl} alt={vod.title} className="w-full h-full object-cover" />
+                            <Image src={vod.thumbnailUrl} alt={vod.title} fill className="object-cover" unoptimized />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                               <Play className="w-16 h-16 text-purple-400 opacity-50" />
