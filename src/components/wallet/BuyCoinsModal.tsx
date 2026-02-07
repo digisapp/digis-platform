@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GlassModal, GlassButton, LoadingSpinner } from '@/components/ui';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { Coins, ArrowLeft, CheckCircle } from 'lucide-react';
 import { COIN_PACKAGES } from '@/lib/stripe/constants';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface BuyCoinsModalProps {
   isOpen: boolean;
@@ -37,6 +35,14 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkoutComplete, setCheckoutComplete] = useState(false);
+  const stripePromiseRef = useRef<Promise<Stripe | null> | null>(null);
+
+  // Lazily load Stripe only when the modal opens
+  useEffect(() => {
+    if (isOpen && !stripePromiseRef.current) {
+      stripePromiseRef.current = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+    }
+  }, [isOpen]);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -146,7 +152,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
             {/* Stripe Embedded Checkout */}
             <div className="min-h-[400px] pb-16 sm:pb-0">
               <EmbeddedCheckoutProvider
-                stripe={stripePromise}
+                stripe={stripePromiseRef.current}
                 options={{
                   clientSecret,
                   onComplete: handleCheckoutComplete,

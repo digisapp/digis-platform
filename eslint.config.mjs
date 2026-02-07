@@ -14,7 +14,7 @@ const eslintConfig = [
   {
     rules: {
       // Prevent unused variables (warn, not error, to avoid breaking builds)
-      "@typescript-eslint/no-unused-vars": ["warn", {
+      "no-unused-vars": ["warn", {
         argsIgnorePattern: "^_",
         varsIgnorePattern: "^_",
       }],
@@ -22,8 +22,8 @@ const eslintConfig = [
       "react-hooks/exhaustive-deps": "warn",
       // Prevent using img instead of next/image
       "@next/next/no-img-element": "warn",
-      // Allow any type (too many existing usages to enforce immediately)
-      "@typescript-eslint/no-explicit-any": "off",
+      // Downgrade unescaped entities - doesn't affect functionality
+      "react/no-unescaped-entities": "warn",
     },
   },
   {

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { toPng } from 'html-to-image';
+
 import Image from 'next/image';
 import { Download, Share2, Check } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export function ShareDigisCard({
 
     setDownloading(true);
     try {
+      const { toPng } = await import('html-to-image');
       const dataUrl = await toPng(cardRef.current, {
         quality: 1,
         pixelRatio: 3, // High resolution

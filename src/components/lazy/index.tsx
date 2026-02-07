@@ -57,3 +57,19 @@ export const LazyGuestVideoOverlay = dynamic(
     ssr: false,
   }
 );
+
+// Loading fallback for charts
+const ChartLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[200px]">
+    <LoadingSpinner size="lg" label="Loading charts..." />
+  </div>
+);
+
+// Lazy load AdminCharts component (recharts adds ~200KB+ to the bundle)
+export const LazyAdminCharts = dynamic(
+  () => import('@/components/charts/AdminCharts'),
+  {
+    loading: ChartLoadingFallback,
+    ssr: false,
+  }
+);

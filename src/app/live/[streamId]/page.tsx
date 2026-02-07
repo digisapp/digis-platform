@@ -24,6 +24,11 @@ import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { useStreamClipper } from '@/hooks/useStreamClipper';
 import { useGoalCelebrations } from '@/hooks/useGoalCelebrations';
+import { useViewerHeartbeat } from '@/hooks/useViewerHeartbeat';
+import { useWaitingRoomMusic } from '@/hooks/useWaitingRoomMusic';
+import { useTicketCountdown } from '@/hooks/useTicketCountdown';
+import { useViewerKeyboardShortcuts } from '@/hooks/useViewerKeyboardShortcuts';
+import { useBRBDetection } from '@/hooks/useBRBDetection';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
@@ -247,9 +252,6 @@ export default function TheaterModePage() {
     startsAt: string;
   } | null>(null);
 
-  // Countdown timer for ticketed stream
-  const [ticketCountdown, setTicketCountdown] = useState<string>('');
-
   // Quick buy modal state (for simple ticket purchase)
   const [showQuickBuyModal, setShowQuickBuyModal] = useState(false);
 
@@ -278,6 +280,9 @@ export default function TheaterModePage() {
     ticketPrice: number;
     startsAt: string;
   } | null>(null);
+
+  // Countdown timer for ticketed stream (computed from startsAt)
+  const ticketCountdown = useTicketCountdown(upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt || null);
 
   // Ticketed stream mode state (when host activates ticketed stream)
   const [ticketedModeActive, setTicketedModeActive] = useState(false);
@@ -761,54 +766,9 @@ export default function TheaterModePage() {
   const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
 
   // Play waiting room music for non-ticket holders during ticketed streams
-  const waitingRoomAudioRef = useRef<HTMLAudioElement | null>(null);
-  const shouldPlayWaitingMusic = ticketedModeActive && !hasTicket && ticketedShowInfo;
-
-  // Goal celebrations handled by useGoalCelebrations hook
-
-  useEffect(() => {
-    if (shouldPlayWaitingMusic) {
-      // Only create new audio if we don't have one playing
-      if (!waitingRoomAudioRef.current) {
-        console.log('[WaitingRoom] Starting waiting room music');
-        const audio = new Audio('/sounds/waiting-room.mp3');
-        audio.volume = 0.3;
-        audio.loop = true;
-        waitingRoomAudioRef.current = audio;
-
-        // Try to play - may fail due to autoplay policies
-        audio.play().catch((err) => {
-          console.log('[WaitingRoom] Autoplay blocked, will retry on user interaction:', err.message);
-          // Add one-time click handler to start music on user interaction
-          const startOnInteraction = () => {
-            if (waitingRoomAudioRef.current) {
-              waitingRoomAudioRef.current.play().catch(() => {});
-            }
-            document.removeEventListener('click', startOnInteraction);
-            document.removeEventListener('touchstart', startOnInteraction);
-          };
-          document.addEventListener('click', startOnInteraction, { once: true });
-          document.addEventListener('touchstart', startOnInteraction, { once: true });
-        });
-      }
-    } else {
-      // Stop music if conditions no longer apply
-      if (waitingRoomAudioRef.current) {
-        console.log('[WaitingRoom] Stopping waiting room music');
-        waitingRoomAudioRef.current.pause();
-        waitingRoomAudioRef.current.currentTime = 0;
-        waitingRoomAudioRef.current = null;
-      }
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (waitingRoomAudioRef.current) {
-        waitingRoomAudioRef.current.pause();
-        waitingRoomAudioRef.current = null;
-      }
-    };
-  }, [shouldPlayWaitingMusic]);
+  useWaitingRoomMusic({
+    shouldPlay: !!(ticketedModeActive && !hasTicket && ticketedShowInfo),
+  });
 
   // Load stream data
   useEffect(() => {
@@ -893,41 +853,13 @@ export default function TheaterModePage() {
   }, []);
 
   // Poll heartbeat to detect BRB state (creator disconnected)
-  useEffect(() => {
-    if (!stream || stream.status !== 'live' || streamEnded) return;
-
-    const checkHeartbeat = async () => {
-      try {
-        const res = await fetch(`/api/streams/${streamId}/heartbeat`);
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        if (data.shouldAutoEnd) {
-          // Stream has exceeded grace period - trigger auto-end
-          setShowBRB(false);
-          setStreamEnded(true);
-          // Call auto-end endpoint to officially end the stream
-          fetch(`/api/streams/${streamId}/auto-end`, { method: 'POST' }).catch(() => {});
-        } else if (data.isBRB) {
-          // Creator disconnected but within grace period
-          setShowBRB(true);
-        } else {
-          // Creator is connected normally
-          setShowBRB(false);
-        }
-      } catch (e) {
-        console.error('[Stream] Failed to check heartbeat:', e);
-      }
-    };
-
-    // Check every 30 seconds (BRB detection doesn't need to be instant)
-    const interval = setInterval(checkHeartbeat, 30000);
-    // Also check immediately
-    checkHeartbeat();
-
-    return () => clearInterval(interval);
-  }, [stream, streamId, streamEnded]);
+  useBRBDetection({
+    streamId,
+    isLive: stream?.status === 'live',
+    streamEnded,
+    onBRBChange: setShowBRB,
+    onStreamAutoEnd: () => setStreamEnded(true),
+  });
 
   // Fetch viewers and leaderboard when viewer list is opened
   useEffect(() => {
@@ -969,72 +901,17 @@ export default function TheaterModePage() {
   }, [showViewerList, streamId]);
 
   // Viewer heartbeat - keeps viewer active and updates viewer count
-  useEffect(() => {
-    if (!stream || stream.status !== 'live' || streamEnded || !currentUser) return;
+  useViewerHeartbeat({
+    streamId,
+    isLive: stream?.status === 'live',
+    streamEnded,
+    isAuthenticated: !!currentUser,
+    onViewerCount: (currentViewers, peakViewers) => {
+      setStream(prev => prev ? { ...prev, currentViewers, peakViewers } : null);
+    },
+  });
 
-    const sendViewerHeartbeat = async () => {
-      try {
-        const res = await fetch(`/api/streams/${streamId}/viewer-heartbeat`, {
-          method: 'POST',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // Update stream viewer count
-          setStream(prev => prev ? {
-            ...prev,
-            currentViewers: data.currentViewers,
-            peakViewers: data.peakViewers,
-          } : null);
-        }
-      } catch (e) {
-        console.error('[Stream] Viewer heartbeat failed:', e);
-      }
-    };
-
-    // Send heartbeat every 30 seconds (stale threshold is 2 minutes)
-    const interval = setInterval(sendViewerHeartbeat, 30000);
-    // Also send immediately
-    sendViewerHeartbeat();
-
-    return () => clearInterval(interval);
-  }, [stream?.status, streamId, streamEnded, currentUser]);
-
-  // Countdown timer for ticketed stream
-  useEffect(() => {
-    const startsAt = upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt;
-    if (!startsAt) {
-      setTicketCountdown('');
-      return;
-    }
-
-    const updateCountdown = () => {
-      const now = new Date().getTime();
-      const startTime = new Date(startsAt).getTime();
-      const diff = startTime - now;
-
-      if (diff <= 0) {
-        setTicketCountdown('Starting...');
-        return;
-      }
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setTicketCountdown(`${hours}h ${minutes}m`);
-      } else if (minutes > 0) {
-        setTicketCountdown(`${minutes}m ${seconds}s`);
-      } else {
-        setTicketCountdown(`${seconds}s`);
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
-  }, [upcomingTicketedShow?.startsAt, dismissedTicketedStream?.startsAt]);
+  // Ticket countdown handled by useTicketCountdown hook
 
   const loadStream = async () => {
     try {
@@ -1208,39 +1085,13 @@ export default function TheaterModePage() {
     }
   };
 
-  // Desktop keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts when typing in input fields
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      switch (e.key.toLowerCase()) {
-        case 'm':
-          // M to toggle mute
-          toggleMute();
-          break;
-        case 'f':
-          // F to toggle fullscreen
-          toggleFullscreen();
-          break;
-        case 'c':
-          // C to toggle chat sidebar
-          setShowChat(prev => !prev);
-          break;
-        case 'escape':
-          // Escape to close modals or exit fullscreen
-          if (isFullscreen) {
-            toggleFullscreen();
-          }
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [muted, isFullscreen]);
+  // Desktop keyboard shortcuts (M=mute, F=fullscreen, C=chat, Esc=exit fullscreen)
+  useViewerKeyboardShortcuts({
+    onToggleMute: toggleMute,
+    onToggleFullscreen: toggleFullscreen,
+    onToggleChat: () => setShowChat(prev => !prev),
+    isFullscreen,
+  });
 
   // Send chat message
   const sendMessage = async () => {
@@ -2063,7 +1914,7 @@ export default function TheaterModePage() {
                   msg.messageType === 'tip' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-green-400 flex items-center justify-center text-[10px] font-bold text-green-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2076,7 +1927,7 @@ export default function TheaterModePage() {
                   ) : msg.messageType === 'gift' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2099,7 +1950,7 @@ export default function TheaterModePage() {
                   ) : msg.messageType === 'ticket_purchase' ? (
                     <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover" />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-900">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2112,7 +1963,7 @@ export default function TheaterModePage() {
                   ) : (
                     <div key={msg.id} className="flex gap-2">
                       {msg.avatarUrl ? (
-                        <img src={msg.avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                        <img src={msg.avatarUrl} alt={msg.username} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
                           {msg.username?.[0]?.toUpperCase() || '?'}
@@ -2787,7 +2638,7 @@ export default function TheaterModePage() {
 
       {/* Tip Modal with Optional Note */}
       {showTipModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Send tip">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
@@ -2913,7 +2764,7 @@ export default function TheaterModePage() {
 
       {/* Menu Modal - Purple/Pink themed */}
       {showMenuModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Creator menu">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
@@ -3053,7 +2904,7 @@ export default function TheaterModePage() {
 
       {/* Ticketed Show Announcement Popup */}
       {ticketedAnnouncement && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Ticketed show announcement">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
@@ -3158,7 +3009,7 @@ export default function TheaterModePage() {
 
       {/* Simple Quick Buy Modal - for persistent button */}
       {showQuickBuyModal && quickBuyInfo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Buy ticket">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => {
