@@ -21,6 +21,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
+import { StreamErrorBoundary } from '@/components/error-boundaries';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users, Heart, Share2,
   MessageCircle, Gift, ChevronDown, ChevronUp, X, Coins, Crown,
@@ -1047,17 +1048,19 @@ export default function StreamViewerPageClient() {
 
             {/* LiveKit Video - Shows only the broadcaster */}
             {token && serverUrl ? (
-              <LiveKitRoom
-                video={false}
-                audio={true}
-                token={token}
-                serverUrl={serverUrl}
-                className="h-full w-full flex items-center justify-center"
-                options={{ adaptiveStream: true, dynacast: true }}
-              >
-                <BroadcasterVideo />
-                <RoomAudioRenderer />
-              </LiveKitRoom>
+              <StreamErrorBoundary streamId={streamId} creatorName={stream?.creator?.displayName || stream?.creator?.username || undefined} onLeave={() => window.location.href = '/'}>
+                <LiveKitRoom
+                  video={false}
+                  audio={true}
+                  token={token}
+                  serverUrl={serverUrl}
+                  className="h-full w-full flex items-center justify-center"
+                  options={{ adaptiveStream: true, dynacast: true }}
+                >
+                  <BroadcasterVideo />
+                  <RoomAudioRenderer />
+                </LiveKitRoom>
+              </StreamErrorBoundary>
             ) : (
               <div className="h-full flex items-center justify-center">
                 <LoadingSpinner size="lg" />

@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import * as Sentry from '@sentry/nextjs';
-import { RefreshCw, Phone, PhoneOff, AlertTriangle } from 'lucide-react';
+import { RefreshCw, PhoneOff, AlertTriangle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;

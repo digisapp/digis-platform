@@ -12,6 +12,7 @@ import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
 import { StreamSummaryModal, type StreamSummaryData } from '@/components/streaming/StreamSummaryModal';
+import { StreamErrorBoundary } from '@/components/error-boundaries';
 // VideoControls import removed - not needed for broadcaster view
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
@@ -1667,7 +1668,8 @@ export default function BroadcastStudioPage() {
             >
               {token && serverUrl ? (
                 <>
-                  <LiveKitRoom
+                  <StreamErrorBoundary streamId={streamId} onLeave={() => router.push('/creator/dashboard')}>
+                    <LiveKitRoom
                     video={true}
                     audio={true}
                     token={token}
@@ -1784,6 +1786,7 @@ export default function BroadcastStudioPage() {
                       />
                     </div>
                   </LiveKitRoom>
+                  </StreamErrorBoundary>
                   {/* Top Left Overlay - Live Indicator + Timer */}
                   <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
                     {/* Red Dot + Timer */}

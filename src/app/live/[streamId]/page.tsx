@@ -33,6 +33,7 @@ import { useBRBDetection } from '@/hooks/useBRBDetection';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { TipModal } from '@/components/streaming/TipModal';
 import { MenuModal } from '@/components/streaming/MenuModal';
+import { StreamErrorBoundary } from '@/components/error-boundaries';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
@@ -1584,18 +1585,20 @@ export default function TheaterModePage() {
               </div>
             ) : token && serverUrl ? (
               <>
-                <LiveKitRoom
-                  token={token}
-                  serverUrl={serverUrl}
-                  className="h-full"
-                  options={{
-                    adaptiveStream: { pixelDensity: 'screen' },
-                    dynacast: true,
-                  }}
-                >
-                  <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
-                  <RoomAudioRenderer muted={muted} />
-                </LiveKitRoom>
+                <StreamErrorBoundary streamId={streamId} creatorName={stream?.creator.displayName || stream?.creator.username} onLeave={() => router.push('/')}>
+                  <LiveKitRoom
+                    token={token}
+                    serverUrl={serverUrl}
+                    className="h-full"
+                    options={{
+                      adaptiveStream: { pixelDensity: 'screen' },
+                      dynacast: true,
+                    }}
+                  >
+                    <ViewerVideo onBroadcasterLeft={handleBroadcasterLeft} />
+                    <RoomAudioRenderer muted={muted} />
+                  </LiveKitRoom>
+                </StreamErrorBoundary>
                 {/* BRB Overlay - shown when creator disconnects */}
                 {showBRB && (
                   <BRBOverlay

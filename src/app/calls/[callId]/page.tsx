@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToastContext } from '@/context/ToastContext';
 import { getAblyClient } from '@/lib/ably/client';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
+import { CallErrorBoundary } from '@/components/error-boundaries';
 import type Ably from 'ably';
 
 interface CallToken {
@@ -2078,6 +2079,7 @@ export default function VideoCallPage() {
         </div>
       )}
 
+      <CallErrorBoundary callId={callId} participantName={callData?.creator.displayName || callData?.creator.username} onEndCall={() => router.push('/dashboard')}>
       <LiveKitRoom
         token={callToken.token}
         serverUrl={callToken.wsUrl}
@@ -2159,6 +2161,7 @@ export default function VideoCallPage() {
           </>
         )}
       </LiveKitRoom>
+      </CallErrorBoundary>
 
       {/* Custom LiveKit Styles */}
       <style jsx global>{`
