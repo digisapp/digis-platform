@@ -200,8 +200,9 @@ export const POST = withAdminParams<{ id: string }>(async ({ user, params, reque
     });
   } catch (error: unknown) {
     console.error('Error approving creator application:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to approve application' },
+      { error: `Failed to approve application: ${errorMessage}` },
       { status: 500 }
     );
   }
