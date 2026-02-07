@@ -29,11 +29,18 @@ import { SaveRecordingsModal } from '@/components/streaming/SaveRecordingsModal'
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { useStreamRecorder } from '@/hooks/useStreamRecorder';
 import { useStreamClipper } from '@/hooks/useStreamClipper';
+import { useStreamNavPrevention } from '@/hooks/useStreamNavPrevention';
+import { usePrivateTips } from '@/hooks/usePrivateTips';
+import { useGoalCelebrations } from '@/hooks/useGoalCelebrations';
+import { useStreamDuration, formatDurationFromSeconds } from '@/hooks/useStreamDuration';
+import { useDeviceOrientation } from '@/hooks/useDeviceOrientation';
+import { useStreamHeartbeat } from '@/hooks/useStreamHeartbeat';
+import { useStreamAutoEnd } from '@/hooks/useStreamAutoEnd';
+import { useConnectionTimeout } from '@/hooks/useConnectionTimeout';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
-import { getAblyClient } from '@/lib/ably/client';
 import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff, Plus } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
@@ -215,14 +222,20 @@ export default function BroadcastStudioPage() {
   const [isEnding, setIsEnding] = useState(false);
   // giftAnimations state removed - gifts now show in chat messages
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [showEndConfirm, setShowEndConfirm] = useState(false);
-  const [isLeaveAttempt, setIsLeaveAttempt] = useState(false); // true = accidental navigation, false = intentional end
   const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<StreamGoal | null>(null);
   const [completedGoalIds, setCompletedGoalIds] = useState<Set<string>>(new Set());
+  // Extracted hooks
+  const { showEndConfirm, setShowEndConfirm, isLeaveAttempt, setIsLeaveAttempt } = useStreamNavPrevention({
+    isLive: !!stream && stream.status === 'live',
+    hasManuallyEnded,
+  });
+  const { celebratingGoal, completedGoalsQueue, addCompletedGoal } = useGoalCelebrations();
+  const { isPortraitDevice, isLandscape, isSafari } = useDeviceOrientation();
+  const { currentTime, formattedDuration: liveDuration, formatDuration } = useStreamDuration(stream?.startedAt);
+
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
@@ -266,35 +279,29 @@ export default function BroadcastStudioPage() {
     };
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
-  const [isPortraitDevice, setIsPortraitDevice] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
-  const [isSafari, setIsSafari] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [isFlippingCamera, setIsFlippingCamera] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
+
+  // Heartbeat, auto-end, and connection timeout hooks
+  useStreamHeartbeat({ streamId, isLive: !!stream && stream.status === 'live' });
+  useStreamAutoEnd({ streamId, isLive: !!stream && stream.status === 'live', hasManuallyEnded });
+  useConnectionTimeout({ status: connectionStatus, setStatus: setConnectionStatus });
   const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
-  const [privateTips, setPrivateTips] = useState<Array<{
-    id: string;
-    senderId: string;
-    senderUsername: string;
-    amount: number;
-    note: string;
-    timestamp: number;
-  }>>([]);
   const [showPrivateTips, setShowPrivateTips] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [hasNewPrivateTips, setHasNewPrivateTips] = useState(false);
+  const { privateTips, hasNewPrivateTips, setHasNewPrivateTips } = usePrivateTips({
+    userId: currentUserId,
+    isVisible: showPrivateTips,
+  });
   const [menuEnabled, setMenuEnabled] = useState(true);
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
   const [showMobileTools, setShowMobileTools] = useState(true); // Expanded by default for host
-  // Goal completion queue - shows all completed goals one by one
-  const [completedGoalsQueue, setCompletedGoalsQueue] = useState<Array<{ id: string; title: string; rewardText: string }>>([]);
-  const [celebratingGoal, setCelebratingGoal] = useState<{ id: string; title: string; rewardText: string } | null>(null);
 
   // Poll and Countdown state
   const [activePoll, setActivePoll] = useState<{
@@ -415,13 +422,6 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  // Detect Safari browser
-  useEffect(() => {
-    const ua = navigator.userAgent.toLowerCase();
-    const isSafariBrowser = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('chromium');
-    setIsSafari(isSafariBrowser);
-  }, []);
-
   // Get current user ID and username for private tips subscription and branding
   useEffect(() => {
     const fetchUser = async () => {
@@ -444,249 +444,9 @@ export default function BroadcastStudioPage() {
     fetchUser();
   }, []);
 
-  // Subscribe to private tip notifications via Ably
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    let mounted = true;
-    let notificationsChannel: any = null;
-
-    const subscribeToPrivateTips = async () => {
-      try {
-        const ably = getAblyClient();
-
-        // Wait for connection
-        if (ably.connection.state !== 'connected') {
-          await new Promise<void>((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
-            ably.connection.once('connected', () => {
-              clearTimeout(timeout);
-              resolve();
-            });
-            ably.connection.once('failed', () => {
-              clearTimeout(timeout);
-              reject(new Error('Connection failed'));
-            });
-          });
-        }
-
-        if (!mounted) return;
-
-        // Subscribe to user notifications channel for private tips
-        notificationsChannel = ably.channels.get(`user:${currentUserId}:notifications`);
-        notificationsChannel.subscribe('private_tip', (message: any) => {
-          const tipData = message.data;
-          if (mounted && tipData.note) {
-            setPrivateTips((prev) => [
-              {
-                id: `tip-${Date.now()}-${Math.random()}`,
-                senderId: tipData.senderId,
-                senderUsername: tipData.senderUsername,
-                amount: tipData.amount,
-                note: tipData.note,
-                timestamp: tipData.timestamp || Date.now(),
-              },
-              ...prev,
-            ].slice(0, 50)); // Keep last 50 tips
-
-            // Play notification sound - tiered based on amount (1 coin = $0.10)
-            // Common: $0.10-$0.99 (1-9 coins)
-            // Nice: $1.00-$4.99 (10-49 coins)
-            // Super: $5-$19.99 (50-199 coins)
-            // Rare: $20-$49.99 (200-499 coins)
-            // Epic: $50-$99.99 (500-999 coins)
-            // Legendary: $100+ (1000+ coins)
-            let soundFile = '/sounds/coin-common.mp3';
-            if (tipData.amount >= 1000) {
-              soundFile = '/sounds/coin-legendary.mp3';
-            } else if (tipData.amount >= 500) {
-              soundFile = '/sounds/coin-epic.mp3';
-            } else if (tipData.amount >= 200) {
-              soundFile = '/sounds/coin-rare.mp3';
-            } else if (tipData.amount >= 50) {
-              soundFile = '/sounds/coin-super.mp3';
-            } else if (tipData.amount >= 10) {
-              soundFile = '/sounds/coin-nice.mp3';
-            }
-            const audio = new Audio(soundFile);
-            audio.volume = 0.6;
-            audio.play().catch(() => {});
-
-            // Set flag for new tips if panel is closed
-            if (!showPrivateTips) {
-              setHasNewPrivateTips(true);
-            }
-          }
-        });
-      } catch (err) {
-        console.error('[PrivateTips] Error subscribing:', err);
-      }
-    };
-
-    subscribeToPrivateTips();
-
-    return () => {
-      mounted = false;
-      if (notificationsChannel && notificationsChannel.state === 'attached') {
-        notificationsChannel.unsubscribe();
-        notificationsChannel.detach().catch(() => {});
-      }
-    };
-  }, [currentUserId, showPrivateTips]);
-
-  // Prevent accidental navigation away from stream (swipe, back button, refresh, keyboard shortcuts)
-  useEffect(() => {
-    // Only add prevention if stream is active and not manually ended
-    if (!stream || stream.status !== 'live' || hasManuallyEnded) return;
-
-    // Prevent browser back/forward navigation
-    const handlePopState = (e: PopStateEvent) => {
-      e.preventDefault();
-      // Push state back to prevent navigation
-      window.history.pushState(null, '', window.location.href);
-      setIsLeaveAttempt(true);
-      setShowEndConfirm(true);
-    };
-
-    // Prevent page refresh/close
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = 'You are currently streaming. Are you sure you want to leave?';
-      return e.returnValue;
-    };
-
-    // Prevent keyboard shortcuts that navigate away (Cmd+Left, Alt+Left, Backspace, etc.)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + Left Arrow (go back) or Cmd/Ctrl + Right Arrow (go forward)
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-        e.preventDefault();
-        setIsLeaveAttempt(true);
-        setShowEndConfirm(true);
-        return;
-      }
-      // Alt + Left Arrow (go back in some browsers)
-      if (e.altKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-        e.preventDefault();
-        setIsLeaveAttempt(true);
-        setShowEndConfirm(true);
-        return;
-      }
-      // Backspace when not in an input (some browsers navigate back)
-      if (e.key === 'Backspace') {
-        const target = e.target as HTMLElement;
-        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-        if (!isInput) {
-          e.preventDefault();
-        }
-      }
-    };
-
-    // Prevent swipe gestures on touch devices
-    const handleTouchStart = (e: TouchEvent) => {
-      // Store the initial touch position
-      const touch = e.touches[0];
-      (window as any).__streamTouchStartX = touch.clientX;
-      (window as any).__streamTouchStartY = touch.clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!('__streamTouchStartX' in window)) return;
-
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - (window as any).__streamTouchStartX;
-      const deltaY = touch.clientY - (window as any).__streamTouchStartY;
-
-      // If horizontal swipe is greater than vertical (potential back gesture)
-      // and starts from left edge, prevent it
-      if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 50 && (window as any).__streamTouchStartX < 30) {
-        e.preventDefault();
-      }
-    };
-
-    // Prevent mouse wheel horizontal navigation (trackpad two-finger swipe)
-    const handleWheel = (e: WheelEvent) => {
-      // Large horizontal scroll with minimal vertical = likely trackpad swipe gesture
-      if (Math.abs(e.deltaX) > 50 && Math.abs(e.deltaX) > Math.abs(e.deltaY) * 2) {
-        // Check if we're at the edge of scrollable content (where browser would navigate)
-        const target = e.target as HTMLElement;
-        const scrollable = target.closest('[data-scrollable]') || document.scrollingElement;
-
-        if (scrollable) {
-          const atLeftEdge = scrollable.scrollLeft === 0;
-          const atRightEdge = scrollable.scrollLeft >= scrollable.scrollWidth - scrollable.clientWidth;
-
-          // If at edge and swiping in direction that would navigate, prevent it
-          if ((atLeftEdge && e.deltaX < 0) || (atRightEdge && e.deltaX > 0)) {
-            e.preventDefault();
-          }
-        }
-      }
-    };
-
-    // Push initial state to enable popstate detection
-    window.history.pushState(null, '', window.location.href);
-
-    window.addEventListener('popstate', handlePopState);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      delete (window as any).__streamTouchStartX;
-      delete (window as any).__streamTouchStartY;
-    };
-  }, [stream, hasManuallyEnded]);
-
-  // Update timer every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Safety timeout: if still 'connecting' after 30 seconds, show disconnected
-  useEffect(() => {
-    if (connectionStatus !== 'connecting') return;
-    const timeout = setTimeout(() => {
-      setConnectionStatus(prev => {
-        if (prev === 'connecting') {
-          console.warn('[LiveKit] Initial connection timed out after 30s');
-          return 'disconnected';
-        }
-        return prev;
-      });
-    }, 30000);
-    return () => clearTimeout(timeout);
-  }, [connectionStatus]);
-
-  // Send heartbeat every 30 seconds to keep stream alive
-  useEffect(() => {
-    if (!stream || stream.status !== 'live') return;
-
-    const sendHeartbeat = async () => {
-      try {
-        await fetch(`/api/streams/${streamId}/heartbeat`, { method: 'POST' });
-      } catch (error) {
-        console.error('Heartbeat failed:', error);
-      }
-    };
-
-    // Send immediately and then every 30 seconds
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 30000);
-
-    return () => clearInterval(interval);
-  }, [stream, streamId]);
+  // Navigation prevention, heartbeat, auto-end handled by extracted hooks above
+  // Nav prevention, timer, connection timeout, heartbeat, auto-end
+  // are all handled by the extracted hooks declared above.
 
   // Fetch stream details and token
   useEffect(() => {
@@ -699,74 +459,7 @@ export default function BroadcastStudioPage() {
     fetchCountdown();
   }, [streamId]);
 
-  // Check device orientation on mount and window resize
-  useEffect(() => {
-    const checkOrientation = () => {
-      // Only detect portrait mode on mobile devices (max-width: 768px)
-      const isMobile = window.innerWidth <= 768;
-      setIsPortraitDevice(isMobile && window.innerHeight > window.innerWidth);
-      const isLandscapeOrientation = window.matchMedia('(orientation: landscape)').matches;
-      setIsLandscape(isLandscapeOrientation);
-    };
-
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
-
-    return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
-    };
-  }, []);
-
-  // Auto-end stream on navigation or browser close
-  useEffect(() => {
-    if (!stream || stream.status !== 'live') return;
-
-    let hasCleanedUp = false;
-
-    const endStreamCleanup = () => {
-      // Skip if user manually ended the stream or already cleaned up
-      if (hasManuallyEnded || hasCleanedUp) return;
-      hasCleanedUp = true;
-
-      // Use sendBeacon for reliable delivery during page unload
-      // This is more reliable than fetch with keepalive
-      const url = `/api/streams/${streamId}/end`;
-      const success = navigator.sendBeacon(url);
-      if (!success) {
-        // Fallback to fetch if sendBeacon fails
-        fetch(url, { method: 'POST', keepalive: true }).catch(() => {});
-      }
-    };
-
-    // Handle browser close/refresh
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      endStreamCleanup();
-      // Show confirmation dialog to warn user
-      e.preventDefault();
-      return '';
-    };
-
-    // Handle visibility change (user switches tabs or minimizes browser)
-    const handleVisibilityChange = () => {
-      // Only end if document is hidden for a while (handled by heartbeat timeout instead)
-      // This is just for logging/debugging
-      if (document.visibilityState === 'hidden') {
-        console.log('[Broadcast] Tab hidden, heartbeat will keep stream alive');
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Cleanup on component unmount (navigation away)
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      endStreamCleanup();
-    };
-  }, [stream, streamId, hasManuallyEnded]);
+  // Device orientation and auto-end handled by extracted hooks
 
   // Setup real-time subscriptions with Ably
   // isHost: true prevents the host from being counted as a viewer
@@ -925,11 +618,11 @@ export default function BroadcastStudioPage() {
       fetchGoals();
       // Add to celebration queue if goal completed (queue processes one at a time)
       if (update.action === 'completed' && update.goal) {
-        setCompletedGoalsQueue(prev => [...prev, {
+        addCompletedGoal({
           id: update.goal.id || `goal-${Date.now()}`,
           title: update.goal.title || 'Stream Goal',
           rewardText: update.goal.rewardText || 'Goal reached!',
-        }]);
+        });
       }
     },
     // Poll updates (from remote control)
@@ -1056,22 +749,6 @@ export default function BroadcastStudioPage() {
     const interval = setInterval(fetchPoll, 15000);
     return () => clearInterval(interval);
   }, [activePoll?.isActive, streamId]);
-
-  // Process goal completion queue - show celebrations one at a time
-  useEffect(() => {
-    // If we're not celebrating and there are goals in queue, start celebrating the first one
-    if (!celebratingGoal && completedGoalsQueue.length > 0) {
-      const nextGoal = completedGoalsQueue[0];
-      setCelebratingGoal(nextGoal);
-      // Remove from queue
-      setCompletedGoalsQueue(prev => prev.slice(1));
-      // Auto-dismiss after 5 seconds
-      const timer = setTimeout(() => {
-        setCelebratingGoal(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [celebratingGoal, completedGoalsQueue]);
 
   const fetchStreamDetails = async () => {
     try {
@@ -1504,16 +1181,7 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  const formatDurationFromSeconds = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+  // formatDurationFromSeconds imported from useStreamDuration hook
 
   // Note: All gift sounds are now centralized in GiftFloatingEmojis component
   // to prevent multiple overlapping sounds when gifts are received
@@ -1569,19 +1237,7 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  const formatDuration = () => {
-    if (!stream?.startedAt) return '0:00';
-    const start = new Date(stream.startedAt);
-    const diff = Math.floor((currentTime.getTime() - start.getTime()) / 1000);
-    const hours = Math.floor(diff / 3600);
-    const minutes = Math.floor((diff % 3600) / 60);
-    const seconds = diff % 60;
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  // formatDuration provided by useStreamDuration hook
 
   const handleToggleMute = () => {
     setIsMuted(!isMuted);

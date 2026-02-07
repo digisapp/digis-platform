@@ -8,6 +8,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag, Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Circle, Settings, DollarSign, Video, Phone } from 'lucide-react';
 import { validateUsername } from '@/lib/utils/username';
 import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
+import { useSettingsForm } from '@/hooks/useSettingsForm';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 import { getCreatorNextTierProgress, getCreatorTierConfig, type CreatorTier } from '@/lib/tiers/creator-tiers';
@@ -44,32 +45,15 @@ export default function SettingsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Form fields - track initial values for change detection
-  const [initialFormState, setInitialFormState] = useState<any>(null);
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [bannerUrl, setBannerUrl] = useState('');
-  const [primaryCategory, setPrimaryCategory] = useState('');
-  const [secondaryCategory, setSecondaryCategory] = useState('');
-
-  // Social media handles
-  const [instagramHandle, setInstagramHandle] = useState('');
-  const [tiktokHandle, setTiktokHandle] = useState('');
-  const [twitterHandle, setTwitterHandle] = useState('');
-  const [snapchatHandle, setSnapchatHandle] = useState('');
-  const [youtubeHandle, setYoutubeHandle] = useState('');
-  const [twitchHandle, setTwitchHandle] = useState('');
-  const [amazonHandle, setAmazonHandle] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [showSocialLinks, setShowSocialLinks] = useState(true);
+  // Form state consolidated into a single hook
+  const { form, setField, populateFromApi, markAsSaved, hasUnsavedChanges } = useSettingsForm();
   const [showAllSocials, setShowAllSocials] = useState(false);
 
-  // Email change
-  const [email, setEmail] = useState('');
+  // Destructure for backwards compatibility with existing JSX
+  const { displayName, bio, city, state, phoneNumber, avatarUrl, bannerUrl,
+    primaryCategory, secondaryCategory, email, instagramHandle, tiktokHandle,
+    twitterHandle, snapchatHandle, youtubeHandle, twitchHandle, amazonHandle,
+    contactEmail, showSocialLinks } = form;
 
   // Image upload states
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>();
@@ -112,34 +96,7 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  // Track unsaved changes
-  const hasUnsavedChanges = useMemo(() => {
-    if (!initialFormState) return false;
-    return (
-      displayName !== initialFormState.displayName ||
-      bio !== initialFormState.bio ||
-      city !== initialFormState.city ||
-      state !== initialFormState.state ||
-      phoneNumber !== initialFormState.phoneNumber ||
-      primaryCategory !== initialFormState.primaryCategory ||
-      secondaryCategory !== initialFormState.secondaryCategory ||
-      email !== initialFormState.email ||
-      instagramHandle !== initialFormState.instagramHandle ||
-      tiktokHandle !== initialFormState.tiktokHandle ||
-      twitterHandle !== initialFormState.twitterHandle ||
-      snapchatHandle !== initialFormState.snapchatHandle ||
-      youtubeHandle !== initialFormState.youtubeHandle ||
-      twitchHandle !== initialFormState.twitchHandle ||
-      amazonHandle !== initialFormState.amazonHandle ||
-      contactEmail !== initialFormState.contactEmail ||
-      showSocialLinks !== initialFormState.showSocialLinks
-    );
-  }, [
-    displayName, bio, city, state, phoneNumber, primaryCategory, secondaryCategory,
-    email, instagramHandle, tiktokHandle, twitterHandle, snapchatHandle,
-    youtubeHandle, twitchHandle, amazonHandle, contactEmail, showSocialLinks,
-    initialFormState
-  ]);
+  // hasUnsavedChanges provided by useSettingsForm hook
 
   useEffect(() => {
     // Fetch all data in parallel to avoid waterfall
@@ -175,48 +132,8 @@ export default function SettingsPage() {
       }
 
       setCurrentUser(data);
-      setDisplayName(data.displayName || '');
-      setBio(data.bio || '');
-      setCity(data.profile?.city || '');
-      setState(data.profile?.state || '');
-      setPhoneNumber(data.profile?.phoneNumber || '');
-      setAvatarUrl(data.avatarUrl || '');
-      setBannerUrl(data.bannerUrl || '');
+      populateFromApi(data);
       setNewUsername(data.username || '');
-      setPrimaryCategory(data.primaryCategory || '');
-      setSecondaryCategory(data.secondaryCategory || '');
-      setEmail(data.email || '');
-      // Social media handles
-      setInstagramHandle(data.profile?.instagramHandle || '');
-      setTiktokHandle(data.profile?.tiktokHandle || '');
-      setTwitterHandle(data.profile?.twitterHandle || '');
-      setSnapchatHandle(data.profile?.snapchatHandle || '');
-      setYoutubeHandle(data.profile?.youtubeHandle || '');
-      setTwitchHandle(data.profile?.twitchHandle || '');
-      setAmazonHandle(data.profile?.amazonHandle || '');
-      setContactEmail(data.profile?.contactEmail || '');
-      setShowSocialLinks(data.profile?.showSocialLinks ?? true);
-
-      // Store initial form state for change detection
-      setInitialFormState({
-        displayName: data.displayName || '',
-        bio: data.bio || '',
-        city: data.profile?.city || '',
-        state: data.profile?.state || '',
-        phoneNumber: data.profile?.phoneNumber || '',
-        primaryCategory: data.primaryCategory || '',
-        secondaryCategory: data.secondaryCategory || '',
-        email: data.email || '',
-        instagramHandle: data.profile?.instagramHandle || '',
-        tiktokHandle: data.profile?.tiktokHandle || '',
-        twitterHandle: data.profile?.twitterHandle || '',
-        snapchatHandle: data.profile?.snapchatHandle || '',
-        youtubeHandle: data.profile?.youtubeHandle || '',
-        twitchHandle: data.profile?.twitchHandle || '',
-        amazonHandle: data.profile?.amazonHandle || '',
-        contactEmail: data.profile?.contactEmail || '',
-        showSocialLinks: data.profile?.showSocialLinks ?? true,
-      });
     } catch (err: any) {
       console.error('Error fetching user:', err);
       setError(err.message);
@@ -532,25 +449,7 @@ export default function SettingsPage() {
       }
 
       // Update initial form state after successful save
-      setInitialFormState({
-        displayName,
-        bio,
-        city,
-        state,
-        phoneNumber,
-        primaryCategory,
-        secondaryCategory,
-        email,
-        instagramHandle,
-        tiktokHandle,
-        twitterHandle,
-        snapchatHandle,
-        youtubeHandle,
-        twitchHandle,
-        amazonHandle,
-        contactEmail,
-        showSocialLinks,
-      });
+      markAsSaved();
 
       setLastSaved(new Date());
 
@@ -665,7 +564,7 @@ export default function SettingsPage() {
         throw new Error(data.error || 'Failed to save avatar');
       }
 
-      setAvatarUrl(url);
+      setField('avatarUrl', url);
       setMessage('Avatar updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
@@ -717,7 +616,7 @@ export default function SettingsPage() {
         throw new Error(data.error || 'Failed to save banner');
       }
 
-      setBannerUrl(url);
+      setField('bannerUrl', url);
       setMessage('Banner updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
@@ -846,7 +745,7 @@ export default function SettingsPage() {
             label="Display Name"
             placeholder="Your name"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            onChange={(e) => setField('displayName', e.target.value)}
           />
 
           <div>
@@ -859,7 +758,7 @@ export default function SettingsPage() {
               placeholder="Tell us about yourself..."
               rows={4}
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={(e) => setField('bio', e.target.value)}
               maxLength={500}
             />
             <p className="text-xs text-gray-400 mt-1">{bio.length}/500 characters</p>
@@ -914,11 +813,11 @@ export default function SettingsPage() {
                           key={cat.value}
                           type="button"
                           onClick={() => {
-                            setPrimaryCategory(cat.value);
+                            setField('primaryCategory', cat.value);
                             setShowPrimaryCategoryDropdown(false);
                             // Clear secondary if it matches primary
                             if (secondaryCategory === cat.value) {
-                              setSecondaryCategory('');
+                              setField('secondaryCategory', '');
                             }
                           }}
                           className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
@@ -982,7 +881,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setSecondaryCategory('');
+                          setField('secondaryCategory', '');
                           setShowSecondaryCategoryDropdown(false);
                         }}
                         className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
@@ -999,7 +898,7 @@ export default function SettingsPage() {
                           key={cat.value}
                           type="button"
                           onClick={() => {
-                            setSecondaryCategory(cat.value);
+                            setField('secondaryCategory', cat.value);
                             setShowSecondaryCategoryDropdown(false);
                           }}
                           className={`w-full px-4 py-2.5 text-left flex items-center gap-3 transition-all duration-200 ${
@@ -1026,7 +925,7 @@ export default function SettingsPage() {
               label="City"
               placeholder="Los Angeles"
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => setField('city', e.target.value)}
             />
 
             <GlassInput
@@ -1034,7 +933,7 @@ export default function SettingsPage() {
               label="State"
               placeholder="California"
               value={state}
-              onChange={(e) => setState(e.target.value)}
+              onChange={(e) => setField('state', e.target.value)}
             />
           </div>
 
@@ -1043,7 +942,7 @@ export default function SettingsPage() {
             label="Phone Number"
             placeholder="+1 (555) 123-4567"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={(e) => setField('phoneNumber', e.target.value)}
           />
 
           <div>
@@ -1055,7 +954,7 @@ export default function SettingsPage() {
               type="email"
               placeholder="your@email.com"
               value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
+              onChange={(e) => setField('contactEmail', e.target.value)}
               className="w-full px-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
             />
             <p className="text-xs text-gray-400 mt-1">Contact email shown on your public profile</p>
@@ -1156,7 +1055,7 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-digis-cyan transition-all"
                 placeholder="your@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setField('email', e.target.value)}
               />
               {currentUser?.email && email === currentUser.email && (
                 <span className="absolute right-2 top-2 text-xs text-green-400 flex items-center gap-1">
@@ -1317,16 +1216,16 @@ export default function SettingsPage() {
     }
 
     const primaryPlatforms = [
-      { key: 'instagram', icon: Instagram, color: 'pink-500', value: instagramHandle, setter: setInstagramHandle, placeholder: 'username', extract: extractInstagramHandle },
-      { key: 'tiktok', icon: null, svgPath: 'M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z', color: 'cyan-500', value: tiktokHandle, setter: setTiktokHandle, placeholder: 'username', extract: extractTiktokHandle },
-      { key: 'youtube', icon: Youtube, color: 'red-500', value: youtubeHandle, setter: setYoutubeHandle, placeholder: 'channel', extract: extractYoutubeHandle },
+      { key: 'instagram', icon: Instagram, color: 'pink-500', value: instagramHandle, fieldKey: 'instagramHandle' as const, placeholder: 'username', extract: extractInstagramHandle },
+      { key: 'tiktok', icon: null, svgPath: 'M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z', color: 'cyan-500', value: tiktokHandle, fieldKey: 'tiktokHandle' as const, placeholder: 'username', extract: extractTiktokHandle },
+      { key: 'youtube', icon: Youtube, color: 'red-500', value: youtubeHandle, fieldKey: 'youtubeHandle' as const, placeholder: 'channel', extract: extractYoutubeHandle },
     ];
 
     const secondaryPlatforms = [
-      { key: 'twitter', icon: null, svgPath: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z', color: 'gray-500', value: twitterHandle, setter: setTwitterHandle, placeholder: 'username', extract: extractTwitterHandle, label: 'X (Twitter)' },
-      { key: 'snapchat', icon: null, svgPath: 'M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-.809-.329-1.224-.72-1.227-1.153-.015-.36.27-.69.72-.854.149-.06.314-.09.494-.09.12 0 .284.015.435.09.375.18.72.3 1.034.3.21 0 .314-.044.389-.074-.007-.18-.022-.345-.029-.525l-.006-.061c-.105-1.627-.225-3.654.3-4.848C7.849 1.069 11.205.793 12.191.793h.03z', color: 'yellow-400', value: snapchatHandle, setter: setSnapchatHandle, placeholder: 'username', extract: extractSnapchatHandle },
-      { key: 'twitch', icon: Twitch, color: 'purple-500', value: twitchHandle, setter: setTwitchHandle, placeholder: 'username', extract: (v: string) => v.replace(/^@/, '') },
-      { key: 'amazon', icon: ShoppingBag, color: 'orange-500', value: amazonHandle, setter: setAmazonHandle, placeholder: 'https://amazon.com/hz/wishlist/...', isUrl: true, label: 'Amazon Wishlist' },
+      { key: 'twitter', icon: null, svgPath: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z', color: 'gray-500', value: twitterHandle, fieldKey: 'twitterHandle' as const, placeholder: 'username', extract: extractTwitterHandle, label: 'X (Twitter)' },
+      { key: 'snapchat', icon: null, svgPath: 'M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.791 4.014.255.044.435.27.42.509 0 .075-.015.149-.045.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.134.553-.076.271-.27.405-.555.405h-.03c-.135 0-.313-.031-.538-.074-.36-.075-.765-.135-1.273-.135-.3 0-.599.015-.913.074-.6.104-1.123.464-1.723.884-.853.599-1.826 1.288-3.294 1.288-.06 0-.119-.015-.18-.015h-.149c-1.468 0-2.427-.675-3.279-1.288-.599-.42-1.107-.779-1.707-.884-.314-.045-.629-.074-.928-.074-.54 0-.958.089-1.272.149-.211.043-.391.074-.54.074-.374 0-.523-.224-.583-.42-.061-.192-.09-.389-.135-.567-.046-.181-.105-.494-.166-.57-1.918-.222-2.95-.642-3.189-1.226-.031-.063-.052-.15-.055-.225-.015-.243.165-.465.42-.509 3.264-.54 4.73-3.879 4.791-4.02l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.121-.029-.24-.074-.346-.119-.809-.329-1.224-.72-1.227-1.153-.015-.36.27-.69.72-.854.149-.06.314-.09.494-.09.12 0 .284.015.435.09.375.18.72.3 1.034.3.21 0 .314-.044.389-.074-.007-.18-.022-.345-.029-.525l-.006-.061c-.105-1.627-.225-3.654.3-4.848C7.849 1.069 11.205.793 12.191.793h.03z', color: 'yellow-400', value: snapchatHandle, fieldKey: 'snapchatHandle' as const, placeholder: 'username', extract: extractSnapchatHandle },
+      { key: 'twitch', icon: Twitch, color: 'purple-500', value: twitchHandle, fieldKey: 'twitchHandle' as const, placeholder: 'username', extract: (v: string) => v.replace(/^@/, '') },
+      { key: 'amazon', icon: ShoppingBag, color: 'orange-500', value: amazonHandle, fieldKey: 'amazonHandle' as const, placeholder: 'https://amazon.com/hz/wishlist/...', isUrl: true, label: 'Amazon Wishlist' },
     ];
 
     const renderSocialInput = (platform: typeof primaryPlatforms[0] | typeof secondaryPlatforms[0]) => {
@@ -1356,7 +1255,7 @@ export default function SettingsPage() {
               value={platform.value}
               onChange={(e) => {
                 const extract = 'extract' in platform ? platform.extract : undefined;
-                platform.setter(extract ? extract(e.target.value) : e.target.value);
+                setField(platform.fieldKey, extract ? extract(e.target.value) : e.target.value);
               }}
               className={`w-full ${!isUrl && !isEmail ? 'pl-8' : 'pl-4'} pr-4 py-3 backdrop-blur-xl bg-white/5 border border-cyan-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-${platform.color}/50`}
             />
@@ -1380,7 +1279,7 @@ export default function SettingsPage() {
                 <input
                   type="checkbox"
                   checked={showSocialLinks}
-                  onChange={(e) => setShowSocialLinks(e.target.checked)}
+                  onChange={(e) => setField('showSocialLinks', e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-digis-cyan peer-checked:to-digis-purple transition-all"></div>

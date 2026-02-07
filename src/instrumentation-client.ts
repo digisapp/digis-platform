@@ -57,3 +57,6 @@ Sentry.init({
     }),
   ],
 });
+
+// Required by Sentry SDK for Next.js 15+ navigation instrumentation
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

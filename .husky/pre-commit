@@ -1,0 +1,21 @@
+# Prevent committing secrets
+SECRET_PATTERNS='SUPABASE_SERVICE_ROLE_KEY=ey|STRIPE_SECRET_KEY=sk_|LIVEKIT_API_SECRET=|VAPID_PRIVATE_KEY=|SUPABASE_S3_SECRET_KEY=|RESEND_API_KEY=re_|ABLY_API_KEY=|SENTRY_AUTH_TOKEN=sntryu_|XAI_API_KEY=xai-|INNGEST_SIGNING_KEY=signkey|UPSTASH_REDIS_REST_TOKEN='
+
+# Check staged files for secrets (exclude this hook file from the scan)
+if git diff --cached --diff-filter=ACM -- ':!.husky/pre-commit' | grep -qE "$SECRET_PATTERNS"; then
+  echo "ERROR: Detected potential secrets in staged files!"
+  echo "Please remove sensitive values before committing."
+  echo ""
+  echo "Matches found:"
+  git diff --cached --diff-filter=ACM -- ':!.husky/pre-commit' | grep -nE "$SECRET_PATTERNS" | head -10
+  exit 1
+fi
+
+# Prevent committing .env files with actual values (allow deletions)
+for envfile in .env .env.local .env.production .env.development; do
+  if git diff --cached --diff-filter=ACM --name-only | grep -q "^${envfile}$"; then
+    echo "ERROR: Attempting to commit ${envfile}!"
+    echo "Environment files with secrets should never be committed."
+    exit 1
+  fi
+done

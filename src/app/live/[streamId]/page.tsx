@@ -23,6 +23,7 @@ import { StreamCountdown } from '@/components/streaming/StreamCountdown';
 import { GuestVideoOverlay } from '@/components/streaming/GuestVideoOverlay';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { useStreamClipper } from '@/hooks/useStreamClipper';
+import { useGoalCelebrations } from '@/hooks/useGoalCelebrations';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
@@ -201,9 +202,7 @@ export default function TheaterModePage() {
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const [tipAmount, setTipAmount] = useState('');
   const [tipNote, setTipNote] = useState('');
-  // Goal completion queue - shows all completed goals one by one
-  const [completedGoalsQueue, setCompletedGoalsQueue] = useState<Array<{ id: string; title: string; rewardText: string }>>([]);
-  const [celebratingGoal, setCelebratingGoal] = useState<{ id: string; title: string; rewardText: string } | null>(null);
+  const { celebratingGoal, completedGoalsQueue, addCompletedGoal } = useGoalCelebrations();
   const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
   const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
   const [selectedMenuItem, setSelectedMenuItem] = useState<{ id: string; label: string; price: number; fulfillmentType?: string } | null>(null);
@@ -519,11 +518,11 @@ export default function TheaterModePage() {
       loadStream();
       // Add to celebration queue if goal completed (queue processes one at a time)
       if (update.action === 'completed' && update.goal) {
-        setCompletedGoalsQueue(prev => [...prev, {
+        addCompletedGoal({
           id: update.goal.id || `goal-${Date.now()}`,
           title: update.goal.title || 'Stream Goal',
           rewardText: update.goal.rewardText || 'Goal reached!',
-        }]);
+        });
       }
     },
     onViewerCount: (count) => {
@@ -765,21 +764,7 @@ export default function TheaterModePage() {
   const waitingRoomAudioRef = useRef<HTMLAudioElement | null>(null);
   const shouldPlayWaitingMusic = ticketedModeActive && !hasTicket && ticketedShowInfo;
 
-  // Process goal completion queue - show celebrations one at a time
-  useEffect(() => {
-    // If we're not celebrating and there are goals in queue, start celebrating the first one
-    if (!celebratingGoal && completedGoalsQueue.length > 0) {
-      const nextGoal = completedGoalsQueue[0];
-      setCelebratingGoal(nextGoal);
-      // Remove from queue
-      setCompletedGoalsQueue(prev => prev.slice(1));
-      // Auto-dismiss after 5 seconds
-      const timer = setTimeout(() => {
-        setCelebratingGoal(null);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [celebratingGoal, completedGoalsQueue]);
+  // Goal celebrations handled by useGoalCelebrations hook
 
   useEffect(() => {
     if (shouldPlayWaitingMusic) {
