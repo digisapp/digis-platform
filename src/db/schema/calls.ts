@@ -1,4 +1,4 @@
-import { pgTable, uuid, timestamp, integer, text, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, timestamp, integer, text, pgEnum, index, boolean, jsonb } from 'drizzle-orm/pg-core';
 import { users } from './users';
 import { spendHolds } from './wallet';
 import { relations } from 'drizzle-orm';
@@ -46,6 +46,9 @@ export const calls = pgTable('calls', {
 
   // Hold tracking - FK to spend_holds for financial audit trail
   holdId: uuid('hold_id').references(() => spendHolds.id, { onDelete: 'set null' }),
+
+  // Chat log - saved on call end so messages survive page refresh
+  chatLog: jsonb('chat_log'),
 
   // Cancellation/rejection
   cancelledBy: uuid('cancelled_by'), // user_id who cancelled

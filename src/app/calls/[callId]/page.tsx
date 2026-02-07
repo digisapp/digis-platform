@@ -1475,6 +1475,7 @@ export default function VideoCallPage() {
   const callEndHandledRef = useRef(false); // Prevent multiple handlers from running
   const callDataRef = useRef(callData);
   const userIdRef = useRef(user?.id);
+  const chatMessagesRef = useRef(chatMessages);
 
   useEffect(() => { durationRef.current = duration; }, [duration]);
   useEffect(() => { totalTipsReceivedRef.current = totalTipsReceived; }, [totalTipsReceived]);
@@ -1482,6 +1483,20 @@ export default function VideoCallPage() {
   useEffect(() => { showCreatorSummaryRef.current = showCreatorSummary; }, [showCreatorSummary]);
   useEffect(() => { callDataRef.current = callData; }, [callData]);
   useEffect(() => { userIdRef.current = user?.id; }, [user?.id]);
+  useEffect(() => { chatMessagesRef.current = chatMessages; }, [chatMessages]);
+
+  // Save chat log to server (best-effort, uses sendBeacon as fallback)
+  const saveChatLog = useCallback((msgs: typeof chatMessages) => {
+    if (!msgs.length) return;
+    const body = JSON.stringify({ messages: msgs });
+    const url = `/api/calls/${callId}/chat-log`;
+    // Try sendBeacon first (works during unload), fall back to fetch
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    }
+  }, [callId]);
 
   // Subscribe to call events via Ably
   useEffect(() => {
@@ -1544,6 +1559,9 @@ export default function VideoCallPage() {
           console.log('[Ably call_ended] isCreator:', isCreator, 'callHasStarted:', callHasStarted, 'duration:', durationRef.current, 'userId:', currentUserId, 'creatorId:', currentCallData?.creatorId);
 
           callEndHandledRef.current = true; // Mark as handled
+
+          // Save chat log before navigating away
+          saveChatLog(chatMessagesRef.current);
 
           if (isCreator && callHasStarted) {
             // Save final stats for summary using refs for latest values
@@ -1728,6 +1746,9 @@ export default function VideoCallPage() {
   const confirmEndCall = async () => {
     setIsEnding(true);
     setShowEndConfirm(false);
+
+    // Save chat log before ending the call
+    saveChatLog(chatMessages);
 
     // Check if current user is creator
     const isCreator = user?.id && callData && user.id === callData.creatorId;
