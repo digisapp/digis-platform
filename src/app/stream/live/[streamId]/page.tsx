@@ -3,20 +3,17 @@
 import { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant, useRoomContext, VideoTrack } from '@livekit/components-react';
-import { VideoPresets, Room, Track, LocalParticipant } from 'livekit-client';
+import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
+import { VideoPresets } from 'livekit-client';
 import { StreamChat } from '@/components/streaming/StreamChat';
-// GiftAnimationManager removed - gifts now show in chat messages
-import { GoalProgressBar } from '@/components/streaming/GoalProgressBar';
 import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
-import { StreamSummaryModal, type StreamSummaryData } from '@/components/streaming/StreamSummaryModal';
+import { StreamSummaryModal } from '@/components/streaming/StreamSummaryModal';
 import { StreamEndConfirmationModal } from '@/components/streaming/StreamEndConfirmationModal';
 import { VipShowChoiceModal } from '@/components/streaming/VipShowChoiceModal';
 import { MobileToolsPanel } from '@/components/streaming/MobileToolsPanel';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
-// VideoControls import removed - not needed for broadcaster view
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { AlertManager, type Alert } from '@/components/streaming/AlertManager';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
@@ -32,179 +29,36 @@ import { CreateCountdownModal } from '@/components/streaming/CreateCountdownModa
 import { StreamRecordButton } from '@/components/streaming/StreamRecordButton';
 import { StreamClipButton } from '@/components/streaming/StreamClipButton';
 import { SaveRecordingsModal } from '@/components/streaming/SaveRecordingsModal';
+import {
+  LocalCameraPreview,
+  ScreenShareControl,
+  CameraFlipControl,
+  RemoteControlQRModal,
+  PrivateTipsButton,
+  PrivateTipsPanel,
+  TopGiftersLeaderboard,
+  ReconnectionOverlay,
+  VipShowIndicator,
+} from '@/components/streaming/broadcast';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { useStreamRecorder } from '@/hooks/useStreamRecorder';
 import { useStreamClipper } from '@/hooks/useStreamClipper';
 import { useStreamNavPrevention } from '@/hooks/useStreamNavPrevention';
 import { usePrivateTips } from '@/hooks/usePrivateTips';
 import { useGoalCelebrations } from '@/hooks/useGoalCelebrations';
-import { useStreamDuration, formatDurationFromSeconds } from '@/hooks/useStreamDuration';
+import { useStreamDuration } from '@/hooks/useStreamDuration';
 import { useStreamEndHandling } from '@/hooks/useStreamEndHandling';
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation';
 import { useStreamHeartbeat } from '@/hooks/useStreamHeartbeat';
 import { useStreamAutoEnd } from '@/hooks/useStreamAutoEnd';
 import { useConnectionTimeout } from '@/hooks/useConnectionTimeout';
+import { useBroadcasterData, MAX_CHAT_MESSAGES } from '@/hooks/useBroadcasterData';
+import { useVipShow } from '@/hooks/useVipShow';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
-import { createClient } from '@/lib/supabase/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
+import { Coins, Target, Ticket, Lock, List, BarChart2, Clock, Smartphone, Monitor } from 'lucide-react';
+import type { StreamMessage, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
-
-// Component to show local video preview (camera or screen share)
-// isMirrored: true for front camera to match iPhone camera app behavior
-function LocalCameraPreview({ isMirrored = true }: { isMirrored?: boolean }) {
-  const { localParticipant } = useLocalParticipant();
-
-  // Check for screen share first (takes priority when active)
-  const screenShareTrack = localParticipant.getTrackPublication(Track.Source.ScreenShare);
-  const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
-
-  // Show screen share if active (never mirrored)
-  if (screenShareTrack?.track) {
-    return (
-      <VideoTrack
-        trackRef={{ participant: localParticipant, source: Track.Source.ScreenShare, publication: screenShareTrack }}
-        className="h-full w-full object-contain"
-      />
-    );
-  }
-
-  // Show camera with optional mirror for front camera
-  // Use object-cover to fill portrait containers (like video calls do)
-  if (cameraTrack?.track) {
-    return (
-      <VideoTrack
-        trackRef={{ participant: localParticipant, source: Track.Source.Camera, publication: cameraTrack }}
-        className="h-full w-full object-cover"
-        style={isMirrored ? { transform: 'scaleX(-1)' } : undefined}
-      />
-    );
-  }
-
-  // Loading state
-  return (
-    <div className="h-full w-full flex items-center justify-center bg-black">
-      <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-          <svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <p className="text-white/60 text-sm">Starting camera...</p>
-      </div>
-    </div>
-  );
-}
-
-// Component to control screen sharing (must be inside LiveKitRoom)
-function ScreenShareControl({
-  isScreenSharing,
-  onScreenShareChange
-}: {
-  isScreenSharing: boolean;
-  onScreenShareChange: (sharing: boolean) => void;
-}) {
-  const { localParticipant } = useLocalParticipant();
-  const [isToggling, setIsToggling] = useState(false);
-
-  const toggleScreenShare = async () => {
-    if (isToggling) return;
-    setIsToggling(true);
-
-    try {
-      const newState = !isScreenSharing;
-      await localParticipant.setScreenShareEnabled(newState);
-      onScreenShareChange(newState);
-    } catch (error) {
-      console.error('Failed to toggle screen share:', error);
-      // User may have cancelled the screen share picker
-    } finally {
-      setIsToggling(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={toggleScreenShare}
-      disabled={isToggling}
-      className={`flex items-center gap-1.5 px-3 py-1.5 backdrop-blur-xl rounded-full border font-semibold text-sm transition-all ${
-        isScreenSharing
-          ? 'bg-green-500/30 border-green-500/60 text-green-400 hover:bg-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.3)]'
-          : 'bg-black/60 border-white/20 text-white hover:border-green-500/60 hover:bg-black/80'
-      } ${isToggling ? 'opacity-50 cursor-wait' : ''}`}
-      title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen'}
-    >
-      {isScreenSharing ? (
-        <MonitorOff className="w-4 h-4 text-green-400" />
-      ) : (
-        <Monitor className="w-4 h-4 text-white" />
-      )}
-      <span className="text-sm hidden sm:inline">{isScreenSharing ? 'Stop Share' : 'Screen'}</span>
-    </button>
-  );
-}
-
-// Component to flip camera between front and back (must be inside LiveKitRoom)
-function CameraFlipControl({
-  facingMode,
-  onFacingModeChange,
-  isPortrait
-}: {
-  facingMode: 'user' | 'environment';
-  onFacingModeChange: (mode: 'user' | 'environment') => void;
-  isPortrait: boolean;
-}) {
-  const { localParticipant } = useLocalParticipant();
-  const [isFlipping, setIsFlipping] = useState(false);
-
-  const flipCamera = async () => {
-    if (isFlipping) return;
-    setIsFlipping(true);
-
-    try {
-      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-
-      // Get the camera track
-      const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
-
-      if (cameraTrack?.track) {
-        // Stop current camera
-        await localParticipant.setCameraEnabled(false);
-
-        // Small delay for camera release
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Restart camera with new facing mode
-        await localParticipant.setCameraEnabled(true, {
-          facingMode: newFacingMode,
-          resolution: isPortrait
-            ? { width: 1080, height: 1920, frameRate: 30 }
-            : { width: 1920, height: 1080, frameRate: 30 }
-        });
-
-        onFacingModeChange(newFacingMode);
-      }
-    } catch (error) {
-      console.error('Failed to flip camera:', error);
-    } finally {
-      setIsFlipping(false);
-    }
-  };
-
-  return (
-    <button
-      onClick={flipCamera}
-      disabled={isFlipping}
-      className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-white hover:bg-black/80 transition-all disabled:opacity-50"
-      title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
-    >
-      <RefreshCw className={`w-5 h-5 ${isFlipping ? 'animate-spin' : ''}`} />
-    </button>
-  );
-}
 
 export default function BroadcastStudioPage() {
   const params = useParams() as { streamId: string };
@@ -217,23 +71,43 @@ export default function BroadcastStudioPage() {
   const preferredVideoDevice = searchParams.get('video') || undefined;
   const preferredAudioDevice = searchParams.get('audio') || undefined;
 
-  const [stream, setStream] = useState<Stream | null>(null);
-  const MAX_CHAT_MESSAGES = 200;
-  const [messages, setMessages] = useState<StreamMessage[]>([]);
-  const [token, setToken] = useState<string>('');
-  const [serverUrl, setServerUrl] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [viewerCount, setViewerCount] = useState(0);
-  const [peakViewers, setPeakViewers] = useState(0);
-  const [totalEarnings, setTotalEarnings] = useState(0);
-  // giftAnimations state removed - gifts now show in chat messages
+  // --- Consolidated data hook (state + fetching) ---
+  const {
+    stream, setStream,
+    messages, setMessages,
+    token, setToken,
+    serverUrl,
+    loading,
+    error, setError,
+    viewerCount, setViewerCount,
+    peakViewers, setPeakViewers,
+    totalEarnings, setTotalEarnings,
+    goals, setGoals,
+    completedGoalIds,
+    activePoll, setActivePoll,
+    activeCountdown, setActiveCountdown,
+    menuEnabled, setMenuEnabled,
+    menuItems,
+    leaderboard,
+    streamOrientation,
+    announcedTicketedStream, setAnnouncedTicketedStream,
+    vipModeActive, setVipModeActive,
+    currentUserId,
+    currentUsername,
+    fetchGoals,
+    fetchLeaderboard,
+    fetchPoll,
+    fetchCountdown,
+    fetchMessages,
+    fetchBroadcastToken,
+  } = useBroadcasterData({ streamId, showError });
+
+  // --- UI-only state ---
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
-  const [goals, setGoals] = useState<StreamGoal[]>([]);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<StreamGoal | null>(null);
-  const [completedGoalIds, setCompletedGoalIds] = useState<Set<string>>(new Set());
+
   // Extracted hooks
   const { showEndConfirm, setShowEndConfirm, isLeaveAttempt, setIsLeaveAttempt } = useStreamNavPrevention({
     isLive: !!stream && stream.status === 'live',
@@ -243,27 +117,11 @@ export default function BroadcastStudioPage() {
   const { isPortraitDevice, isLandscape, isSafari } = useDeviceOrientation();
   const { currentTime, formattedDuration: liveDuration, formatDuration } = useStreamDuration(stream?.startedAt);
 
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [showStreamSummary, setShowStreamSummary] = useState(false);
   const [showSaveStreamModal, setShowSaveStreamModal] = useState(false);
   const [showAnnounceModal, setShowAnnounceModal] = useState(false);
-  const [announcedTicketedStream, setAnnouncedTicketedStream] = useState<{
-    id: string;
-    title: string;
-    ticketPrice: number;
-    startsAt: Date;
-  } | null>(null);
-  const [ticketedCountdown, setTicketedCountdown] = useState<string>('');
-  const [startingVipStream, setStartingVipStream] = useState(false);
-  const [vipModeActive, setVipModeActive] = useState(false);
-  const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  const [isFlippingCamera, setIsFlippingCamera] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
 
@@ -273,32 +131,12 @@ export default function BroadcastStudioPage() {
   useConnectionTimeout({ status: connectionStatus, setStatus: setConnectionStatus });
   const [pinnedMessage, setPinnedMessage] = useState<StreamMessage | null>(null);
   const [showPrivateTips, setShowPrivateTips] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const { privateTips, hasNewPrivateTips, setHasNewPrivateTips } = usePrivateTips({
     userId: currentUserId,
     isVisible: showPrivateTips,
   });
-  const [menuEnabled, setMenuEnabled] = useState(true);
-  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number }>>([]);
   const [showMobileTools, setShowMobileTools] = useState(true); // Expanded by default for host
 
-  // Poll and Countdown state
-  const [activePoll, setActivePoll] = useState<{
-    id: string;
-    question: string;
-    options: string[];
-    voteCounts: number[];
-    totalVotes: number;
-    endsAt: string;
-    isActive: boolean;
-  } | null>(null);
-  const [activeCountdown, setActiveCountdown] = useState<{
-    id: string;
-    label: string;
-    endsAt: string;
-    isActive: boolean;
-  } | null>(null);
   const [showCreatePollModal, setShowCreatePollModal] = useState(false);
 
   // Guest call-in state
@@ -367,6 +205,22 @@ export default function BroadcastStudioPage() {
     setAnnouncedTicketedStream: (s) => setAnnouncedTicketedStream(s),
   });
 
+  // VIP show hook (countdown, ticket polling, start/end handlers)
+  const {
+    ticketedCountdown,
+    startingVipStream,
+    handleStartVipStream,
+    handleEndVipStream,
+  } = useVipShow({
+    streamId,
+    announcedTicketedStream,
+    vipModeActive,
+    setVipModeActive,
+    setAnnouncedTicketedStream,
+    setVipTicketCount,
+    showError,
+  });
+
   // Memoize watermark config for clip branding (Digis logo + creator URL)
   const clipWatermark = useMemo(() =>
     currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
@@ -431,62 +285,12 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  // Get current user ID and username for private tips subscription and branding
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-        // Fetch username for branding watermark
-        try {
-          const profileRes = await fetch('/api/user/profile');
-          if (profileRes.ok) {
-            const profileData = await profileRes.json();
-            setCurrentUsername(profileData.user?.username || null);
-          }
-        } catch (err) {
-          console.error('Error fetching username:', err);
-        }
-      }
-    };
-    fetchUser();
-  }, []);
-
   // Clear pinned message if the source message was deleted
   useEffect(() => {
     if (pinnedMessage && !messages.some(m => m.id === pinnedMessage.id)) {
       setPinnedMessage(null);
     }
   }, [messages, pinnedMessage]);
-
-  // Navigation prevention, heartbeat, auto-end handled by extracted hooks above
-  // Nav prevention, timer, connection timeout, heartbeat, auto-end
-  // are all handled by the extracted hooks declared above.
-
-  // Fetch stream details and token
-  useEffect(() => {
-    fetchStreamDetails();
-    fetchMessages();
-    fetchBroadcastToken();
-    fetchGoals();
-    fetchLeaderboard();
-    fetchPoll();
-    fetchCountdown();
-  }, [streamId]);
-
-  // Refresh LiveKit token before 6-hour TTL expires
-  useEffect(() => {
-    if (!token) return;
-    const REFRESH_MS = 5.5 * 60 * 60 * 1000; // 5.5 hours
-    const timer = setTimeout(() => {
-      console.log('[Broadcast] Proactively refreshing token before TTL expiry');
-      fetchBroadcastToken();
-    }, REFRESH_MS);
-    return () => clearTimeout(timer);
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Device orientation and auto-end handled by extracted hooks
 
   // Setup real-time subscriptions with Ably
   // isHost: true prevents the host from being counted as a viewer
@@ -716,280 +520,6 @@ export default function BroadcastStudioPage() {
     }
   }, [ablyViewerCount]);
 
-  // Poll for ticket count when there's an announced ticketed stream
-  useEffect(() => {
-    if (!announcedTicketedStream || vipModeActive) return;
-
-    const fetchTicketCount = async () => {
-      try {
-        const res = await fetch(`/api/shows/${announcedTicketedStream.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setVipTicketCount(data.show?.ticketsSold || 0);
-        }
-      } catch (e) {
-        console.error('[Ticketed] Failed to fetch ticket count:', e);
-      }
-    };
-
-    // Fetch immediately
-    fetchTicketCount();
-    // Then poll every 30 seconds
-    const interval = setInterval(fetchTicketCount, 30000);
-
-    return () => clearInterval(interval);
-  }, [announcedTicketedStream?.id, vipModeActive]);
-
-  // Countdown timer for announced ticketed stream
-  useEffect(() => {
-    if (!announcedTicketedStream || vipModeActive) {
-      setTicketedCountdown('');
-      return;
-    }
-
-    const updateCountdown = () => {
-      const now = new Date();
-      const startsAt = new Date(announcedTicketedStream.startsAt);
-      const diff = startsAt.getTime() - now.getTime();
-
-      if (diff <= 0) {
-        setTicketedCountdown('Starting soon');
-        return;
-      }
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      if (hours > 0) {
-        setTicketedCountdown(`${hours}h ${minutes}m ${seconds}s`);
-      } else if (minutes > 0) {
-        setTicketedCountdown(`${minutes}m ${seconds}s`);
-      } else {
-        setTicketedCountdown(`${seconds}s`);
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
-  }, [announcedTicketedStream, vipModeActive]);
-
-  // Fetch poll data once when poll becomes active (Ably handles real-time updates via onPollUpdate)
-  useEffect(() => {
-    if (!activePoll?.isActive) return;
-    fetchPoll();
-  }, [activePoll?.isActive, streamId]);
-
-  const fetchStreamDetails = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setStream(data.stream);
-        setViewerCount(data.stream.currentViewers);
-        setPeakViewers(data.stream.peakViewers);
-        setTotalEarnings(data.stream.totalGiftsReceived);
-        // Set stream orientation from database
-        setStreamOrientation(data.stream.orientation || 'landscape');
-        // Set menu enabled state from database (default to true if not set)
-        setMenuEnabled(data.stream.tipMenuEnabled ?? true);
-
-        // Restore VIP mode state if active (handles page refresh)
-        if (data.stream.vipModeActive && data.stream.activeVipShow) {
-          setVipModeActive(true);
-          setAnnouncedTicketedStream({
-            id: data.stream.activeVipShow.id,
-            title: data.stream.activeVipShow.title,
-            ticketPrice: data.stream.activeVipShow.ticketPrice,
-            startsAt: new Date(data.stream.activeVipShow.startsAt),
-          });
-        } else if (data.stream.upcomingTicketedShow) {
-          // Restore pending/scheduled VIP show (not yet started)
-          setAnnouncedTicketedStream({
-            id: data.stream.upcomingTicketedShow.id,
-            title: data.stream.upcomingTicketedShow.title,
-            ticketPrice: data.stream.upcomingTicketedShow.ticketPrice,
-            startsAt: new Date(data.stream.upcomingTicketedShow.startsAt),
-          });
-        }
-
-        // Fetch menu items for the creator (which is the current user)
-        if (data.stream.creatorId) {
-          fetch(`/api/tip-menu/${data.stream.creatorId}`)
-            .then(res => res.json())
-            .then(menuData => {
-              if (menuData.items && menuData.items.length > 0) {
-                setMenuItems(menuData.items);
-              }
-            })
-            .catch(err => console.error('Error fetching menu items:', err));
-        }
-      } else {
-        setError(data.error || 'Stream not found');
-      }
-    } catch (err) {
-      setError('Failed to load stream');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMessages = async () => {
-    try {
-      const response = await fetchWithRetry(`/api/streams/${streamId}/messages`, {
-        retries: 3,
-        backoffMs: 1000,
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setMessages(data.messages.reverse());
-      }
-    } catch (err) {
-      if (isOnline()) {
-        console.error('Error fetching messages:', err);
-        showError('Failed to load messages');
-      }
-    }
-  };
-
-  const fetchBroadcastToken = async (retryCount = 0) => {
-    const maxRetries = 3;
-
-    try {
-      console.log(`[Broadcast] Fetching token (attempt ${retryCount + 1}/${maxRetries + 1})...`);
-      const response = await fetch(`/api/streams/${streamId}/broadcast-token`, {
-        credentials: 'same-origin', // Explicitly include cookies (Safari compatibility)
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log('[Broadcast] Token received successfully');
-        setToken(data.token);
-        setServerUrl(data.serverUrl);
-      } else if (response.status === 401 && retryCount < maxRetries) {
-        // Auth may not be ready yet (common on Safari) - retry with backoff
-        console.warn(`[Broadcast] Auth not ready (401), retrying in ${(retryCount + 1)}s...`);
-        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
-        return fetchBroadcastToken(retryCount + 1);
-      } else {
-        console.error(`[Broadcast] Token fetch failed: ${data.error} (status ${response.status})`);
-        setError(data.error || 'Not authorized to broadcast');
-      }
-    } catch (err) {
-      if (retryCount < maxRetries) {
-        // Network error - retry with backoff
-        console.warn(`[Broadcast] Token fetch error, retrying in ${(retryCount + 1)}s...`, err);
-        await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 1000));
-        return fetchBroadcastToken(retryCount + 1);
-      }
-      console.error('[Broadcast] Token fetch failed after all retries:', err);
-      setError('Failed to get broadcast token. Please check your connection and try again.');
-    }
-  };
-
-  const fetchGoals = async () => {
-    try {
-      const response = await fetchWithRetry(`/api/streams/${streamId}/goals`, {
-        retries: 3,
-        backoffMs: 1000,
-      });
-      const data = await response.json();
-      if (response.ok) {
-        const newGoals = data.goals;
-
-        // Check for newly completed goals
-        newGoals.forEach((goal: StreamGoal) => {
-          const isComplete = goal.currentAmount >= goal.targetAmount;
-          const wasAlreadyCompleted = completedGoalIds.has(goal.id);
-
-          if (isComplete && !wasAlreadyCompleted && goal.isActive) {
-            // This goal was just completed!
-            setCompletedGoalIds(prev => new Set(prev).add(goal.id));
-
-            // Play celebration sound
-            const audio = new Audio('/sounds/goal-complete.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(() => {});
-
-            // Add goal completion message to chat instead of popup
-            const goalCompleteMessage = {
-              id: `goal-complete-${goal.id}-${Date.now()}`,
-              streamId,
-              userId: 'system',
-              username: '🎯 Goal Complete!',
-              message: `🎉 ${goal.description || 'Stream Goal'} reached! (${goal.targetAmount}/${goal.targetAmount} coins) 🎉`,
-              messageType: 'system' as const,
-              giftId: null,
-              giftAmount: null,
-              createdAt: new Date(),
-            };
-            setMessages((prev) => {
-              const next = [...prev, goalCompleteMessage as StreamMessage];
-              return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
-            });
-          }
-        });
-
-        setGoals(newGoals);
-      }
-    } catch (err) {
-      if (isOnline()) {
-        console.error('Error fetching goals:', err);
-        showError('Failed to load goals');
-      }
-    }
-  };
-
-  const fetchPoll = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/polls`);
-      const data = await response.json();
-      if (response.ok) {
-        setActivePoll(data.poll);
-      }
-    } catch (err) {
-      if (isOnline()) {
-        console.error('Error fetching poll:', err);
-        showError('Failed to load poll');
-      }
-    }
-  };
-
-  const fetchCountdown = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/countdown`);
-      const data = await response.json();
-      if (response.ok) {
-        setActiveCountdown(data.countdown);
-      }
-    } catch (err) {
-      if (isOnline()) {
-        console.error('Error fetching countdown:', err);
-        showError('Failed to load countdown');
-      }
-    }
-  };
-
-  const fetchLeaderboard = async () => {
-    try {
-      const response = await fetchWithRetry(`/api/streams/${streamId}/leaderboard`, {
-        retries: 3,
-        backoffMs: 1000,
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setLeaderboard(data.leaderboard || []);
-      }
-    } catch (err) {
-      if (isOnline()) {
-        console.error('Error fetching leaderboard:', err);
-      }
-    }
-  };
-
   // handleEndStream, handleEndStreamKeepVip, handleEndStreamCancelVip, fetchStreamSummary
   // are now provided by useStreamEndHandling hook
 
@@ -1048,54 +578,6 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  // formatDuration provided by useStreamDuration hook
-
-  const handleToggleMute = () => {
-    setIsMuted(!isMuted);
-    // Note: Muting is handled by volume control in VideoControls
-  };
-
-  const handleToggleFullscreen = () => {
-    const videoContainer = document.querySelector('[data-lk-video-container]');
-    if (!videoContainer) return;
-
-    if (!document.fullscreenElement) {
-      videoContainer.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
-
-  const handleToggleTheater = () => {
-    setIsTheaterMode(!isTheaterMode);
-  };
-
-  const handleFlipCamera = async () => {
-    if (isFlippingCamera) return;
-    setIsFlippingCamera(true);
-
-    try {
-      const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
-      setFacingMode(newFacingMode);
-
-      // The LiveKit room will need to restart video with new facing mode
-      // This is handled by the room's video capture defaults
-      // For now, we'll trigger a re-publish by toggling video
-
-      // Note: Full implementation would require accessing the room instance
-      // and calling room.localParticipant.setCameraEnabled(false) then true
-      // with new constraints. For MVP, this sets the state for next stream.
-
-      console.log(`Camera switched to ${newFacingMode} mode`);
-    } catch (err) {
-      console.error('Failed to flip camera:', err);
-    } finally {
-      setTimeout(() => setIsFlippingCamera(false), 500);
-    }
-  };
-
   // Toggle menu visibility for viewers
   const handleToggleMenu = async () => {
     const newEnabled = !menuEnabled;
@@ -1121,54 +603,6 @@ export default function BroadcastStudioPage() {
       // Revert on error
       setMenuEnabled(!newEnabled);
       console.error('[Menu] Error toggling menu:', err);
-    }
-  };
-
-  // Start the VIP ticketed stream immediately (activates VIP mode on current stream)
-  const handleStartVipStream = async () => {
-    if (!announcedTicketedStream || startingVipStream) return;
-    setStartingVipStream(true);
-
-    try {
-      const response = await fetch(`/api/streams/${streamId}/vip`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ showId: announcedTicketedStream.id }),
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to start VIP stream');
-      }
-
-      // VIP mode is now active - update UI
-      setVipModeActive(true);
-      setStartingVipStream(false);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to start VIP stream');
-      setStartingVipStream(false);
-    }
-  };
-
-  // End VIP mode and return to free stream
-  const handleEndVipStream = async () => {
-    if (!vipModeActive) return;
-
-    try {
-      const response = await fetch(`/api/streams/${streamId}/vip`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to end VIP stream');
-      }
-
-      // VIP mode ended - return to free stream
-      setVipModeActive(false);
-      setAnnouncedTicketedStream(null);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : 'Failed to end VIP stream');
     }
   };
 
@@ -1397,38 +831,13 @@ export default function BroadcastStudioPage() {
                     }}
                   >
                     {/* Reconnection Overlay */}
-                    {(connectionStatus === 'reconnecting' || connectionStatus === 'disconnected') && (
-                      <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm">
-                        {connectionStatus === 'reconnecting' ? (
-                          <>
-                            <div className="w-16 h-16 mb-4 rounded-full bg-yellow-500/20 flex items-center justify-center animate-pulse">
-                              <RefreshCw className="w-8 h-8 text-yellow-500 animate-spin" />
-                            </div>
-                            <p className="text-white text-lg font-semibold mb-2">Reconnecting...</p>
-                            <p className="text-white/60 text-sm">Please wait while we restore your connection</p>
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-16 h-16 mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
-                              <X className="w-8 h-8 text-red-500" />
-                            </div>
-                            <p className="text-white text-lg font-semibold mb-2">Connection Lost</p>
-                            <p className="text-white/60 text-sm mb-4">Unable to maintain stream connection</p>
-                            <button
-                              onClick={() => {
-                                setConnectionStatus('connecting');
-                                // Force re-fetch token and reconnect
-                                window.location.reload();
-                              }}
-                              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full transition-colors"
-                            >
-                              <RefreshCw className="w-4 h-4" />
-                              Reconnect
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <ReconnectionOverlay
+                      connectionStatus={connectionStatus}
+                      onReconnect={() => {
+                        setConnectionStatus('connecting');
+                        window.location.reload();
+                      }}
+                    />
                     <LocalCameraPreview isMirrored={facingMode === 'user'} />
                     <RoomAudioRenderer />
                     {/* Screen Share Control - Desktop only, positioned in bottom right of video */}
@@ -1642,65 +1051,15 @@ export default function BroadcastStudioPage() {
                   {/* Ticketed Stream Indicator - Shows on both mobile and desktop */}
                   {announcedTicketedStream && (
                     <div className="absolute top-52 md:top-auto md:bottom-14 left-3 z-20">
-                      {vipModeActive ? (
-                        // Ticketed Mode Active
-                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-red-500/30 rounded-xl border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse">
-                          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                          <div className="text-left min-w-0">
-                            <div className="text-red-400 font-bold text-xs uppercase">LIVE</div>
-                            <div className="text-white text-xs truncate max-w-[120px] sm:max-w-[180px]">
-                              {announcedTicketedStream.title}
-                            </div>
-                          </div>
-                          <button
-                            onClick={handleEndVipStream}
-                            className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-red-500/80 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-all shadow-lg flex-shrink-0"
-                          >
-                            <Square className="w-3 h-3" />
-                            End
-                          </button>
-                        </div>
-                      ) : (
-                        // Ticketed Mode Not Started Yet - with countdown
-                        <div className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl bg-amber-500/20 rounded-xl border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.3)]">
-                          <Ticket className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                          <div className="text-left min-w-0">
-                            <div className="text-white text-xs font-medium truncate max-w-[100px] sm:max-w-[150px]">
-                              {announcedTicketedStream.title}
-                            </div>
-                            <div className="flex items-center gap-2 text-[10px]">
-                              <span className="text-amber-400/80">
-                                <Coins className="w-3 h-3 inline" /> {announcedTicketedStream.ticketPrice}
-                              </span>
-                              {vipTicketCount > 0 && (
-                                <span className="text-green-400 font-medium">
-                                  {vipTicketCount} sold
-                                </span>
-                              )}
-                            </div>
-                            {/* Countdown Timer */}
-                            {ticketedCountdown && (
-                              <div className="text-cyan-400 text-[10px] font-mono font-semibold mt-0.5">
-                                ⏱ {ticketedCountdown}
-                              </div>
-                            )}
-                          </div>
-                          <button
-                            onClick={handleStartVipStream}
-                            disabled={startingVipStream}
-                            className="ml-1 flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 shadow-lg flex-shrink-0"
-                          >
-                            {startingVipStream ? (
-                              <LoadingSpinner size="sm" />
-                            ) : (
-                              <>
-                                <Play className="w-3 h-3" />
-                                <span className="hidden sm:inline">Start</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
+                      <VipShowIndicator
+                        announcedTicketedStream={announcedTicketedStream}
+                        vipModeActive={vipModeActive}
+                        ticketedCountdown={ticketedCountdown}
+                        vipTicketCount={vipTicketCount}
+                        startingVipStream={startingVipStream}
+                        onStartVip={handleStartVipStream}
+                        onEndVip={handleEndVipStream}
+                      />
                     </div>
                   )}
 
@@ -1887,61 +1246,8 @@ export default function BroadcastStudioPage() {
             </div>
 
             {/* Top Gifters Leaderboard - Desktop only */}
-            <div className="hidden lg:block backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
-              <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                Top Gifters
-              </h3>
-              <div className="space-y-1.5 max-h-[300px] lg:max-h-[180px] overflow-y-auto">
-                {leaderboard.length > 0 ? (
-                  leaderboard.slice(0, 5).map((supporter, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm group hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="font-bold w-5 flex-shrink-0" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
-                          #{index + 1}
-                        </span>
-                        <a
-                          href={`/${supporter.username}`}
-                          className="font-medium text-white truncate hover:text-cyan-400 transition-colors"
-                          title={supporter.username}
-                        >
-                          {supporter.username}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
-                        {/* Action buttons - show on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => window.open(`/chats?userId=${supporter.senderId}`, '_blank')}
-                            className="p-1 hover:bg-cyan-500/20 rounded transition-colors"
-                            title="Message (opens in new tab)"
-                          >
-                            <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
-                          </button>
-                          <button
-                            onClick={() => window.open(`/${supporter.username}`, '_blank')}
-                            className="p-1 hover:bg-pink-500/20 rounded transition-colors"
-                            title="View Profile (opens in new tab)"
-                          >
-                            <UserPlus className="w-3.5 h-3.5 text-pink-400" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-3 text-gray-300">
-                    <svg className="w-6 h-6 mx-auto text-yellow-400 mb-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                    </svg>
-                    <p className="text-white text-xs font-medium">No gifts yet</p>
-                  </div>
-                )}
-              </div>
+            <div className="hidden lg:block">
+              <TopGiftersLeaderboard leaderboard={leaderboard} maxHeight="180px" />
             </div>
           </div>
         </div>
@@ -1952,58 +1258,8 @@ export default function BroadcastStudioPage() {
         </div>
 
         {/* Top Gifters Leaderboard - Mobile only (below chat) */}
-        <div className="lg:hidden mt-4 mb-8 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-3">
-          <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            Top Gifters
-          </h3>
-          <div className="space-y-1.5 max-h-[200px] overflow-y-auto">
-            {leaderboard.length > 0 ? (
-              leaderboard.slice(0, 5).map((supporter, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="font-bold w-5 flex-shrink-0" style={{ color: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : '#9CA3AF' }}>
-                      #{index + 1}
-                    </span>
-                    <a
-                      href={`/${supporter.username}`}
-                      className="font-medium text-white truncate hover:text-cyan-400 transition-colors"
-                    >
-                      {supporter.username}
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-cyan-400 font-bold text-xs">{supporter.totalCoins}</span>
-                    {/* Action buttons - always visible on mobile, open in new tab to avoid leaving stream */}
-                    <button
-                      onClick={() => window.open(`/chats?userId=${supporter.senderId}`, '_blank')}
-                      className="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 rounded transition-colors"
-                      title="Message (opens in new tab)"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
-                    </button>
-                    <button
-                      onClick={() => window.open(`/${supporter.username}`, '_blank')}
-                      className="p-1.5 bg-pink-500/20 hover:bg-pink-500/30 rounded transition-colors"
-                      title="View Profile (opens in new tab)"
-                    >
-                      <UserPlus className="w-3.5 h-3.5 text-pink-400" />
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-300">
-                <svg className="w-8 h-8 mx-auto text-yellow-400 mb-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                </svg>
-                <p className="text-white text-xs font-medium">No gifts yet</p>
-              </div>
-            )}
-          </div>
+        <div className="lg:hidden mt-4 mb-8">
+          <TopGiftersLeaderboard leaderboard={leaderboard} compact />
         </div>
       </div>
       </div>
@@ -2057,161 +1313,28 @@ export default function BroadcastStudioPage() {
       )}
 
       {/* QR Code Modal - Monitor on Phone */}
-      {showQRCode && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-          onClick={() => setShowQRCode(false)}
-        >
-          <div
-            className="bg-gray-900 rounded-2xl p-6 max-w-sm mx-4 border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Smartphone className="w-5 h-5 text-green-400" />
-                <h3 className="text-lg font-semibold text-white">Remote Control</h3>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                Scan with your phone to control your stream remotely
-              </p>
-              <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                <QRCodeSVG
-                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/stream/control/${streamId}`}
-                  size={180}
-                  level="M"
-                />
-              </div>
-              <p className="text-gray-500 text-xs mb-4">
-                Chat, goals, polls, VIP shows & moderation from your phone
-              </p>
-              <button
-                onClick={() => setShowQRCode(false)}
-                className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RemoteControlQRModal
+        isOpen={showQRCode}
+        onClose={() => setShowQRCode(false)}
+        streamId={streamId}
+      />
 
       {/* Private Tips Button - Floating */}
-      <button
+      <PrivateTipsButton
         onClick={() => {
           setShowPrivateTips(!showPrivateTips);
           setHasNewPrivateTips(false);
         }}
-        className={`fixed bottom-24 right-4 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
-          privateTips.length > 0
-            ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
-            : 'bg-white/10 text-white/60 border border-white/20 backdrop-blur-xl'
-        }`}
-        title="Private Tip Notes"
-      >
-        <Lock className="w-5 h-5" />
-        {hasNewPrivateTips && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse" />
-        )}
-        {privateTips.length > 0 && (
-          <span className="absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 bg-cyan-500 rounded-full text-xs font-bold flex items-center justify-center">
-            {privateTips.length}
-          </span>
-        )}
-      </button>
+        tipCount={privateTips.length}
+        hasNewTips={hasNewPrivateTips}
+      />
 
       {/* Private Tips Panel - Slide-in from right */}
-      {showPrivateTips && (
-        <div className="fixed inset-y-0 right-0 z-[60] w-full max-w-sm">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm -left-full"
-            style={{ width: '200vw' }}
-            onClick={() => setShowPrivateTips(false)}
-          />
-          {/* Panel */}
-          <div className="relative h-full bg-gradient-to-br from-slate-900/98 via-purple-900/98 to-slate-900/98 backdrop-blur-xl border-l border-cyan-500/30 shadow-[-4px_0_30px_rgba(34,211,238,0.2)] flex flex-col animate-slideInRight">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-cyan-500/20">
-              <div className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-bold text-white">Private Tip Notes</h3>
-              </div>
-              <button
-                onClick={() => setShowPrivateTips(false)}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-white/60" />
-              </button>
-            </div>
-
-            {/* Tips List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {privateTips.length === 0 ? (
-                <div className="text-center py-10">
-                  <Lock className="w-12 h-12 mx-auto text-cyan-400/40 mb-4" />
-                  <p className="text-white/60 text-sm">
-                    Private notes from fans will appear here
-                  </p>
-                  <p className="text-white/40 text-xs mt-2">
-                    Only you can see these messages
-                  </p>
-                </div>
-              ) : (
-                privateTips.map((tip) => (
-                  <div
-                    key={tip.id}
-                    className="p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/30"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-purple-400 flex items-center justify-center text-xs font-bold text-white">
-                          {tip.senderUsername?.[0]?.toUpperCase() || '?'}
-                        </div>
-                        <div>
-                          <span className="font-bold text-cyan-300 text-sm">@{tip.senderUsername}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 px-2 py-0.5 bg-green-500/20 rounded-full border border-green-500/30">
-                        <Coins className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-green-400 text-sm font-bold">{tip.amount}</span>
-                      </div>
-                    </div>
-                    <p className="text-white/90 text-sm italic pl-10">"{tip.note}"</p>
-                    <div className="flex items-center justify-end mt-2">
-                      <span className="text-white/40 text-xs">
-                        {new Date(tip.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Info Footer */}
-            <div className="p-4 border-t border-cyan-500/20 bg-black/30">
-              <div className="flex items-center gap-2 text-white/50 text-xs">
-                <Lock className="w-3.5 h-3.5" />
-                <span>Private notes are only visible to you</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CSS for slide animation */}
-      <style jsx>{`
-        @keyframes slideInRight {
-          from {
-            transform: translateX(100%);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-        .animate-slideInRight {
-          animation: slideInRight 0.3s ease-out;
-        }
-      `}</style>
+      <PrivateTipsPanel
+        isOpen={showPrivateTips}
+        onClose={() => setShowPrivateTips(false)}
+        tips={privateTips}
+      />
 
       {/* Floating Tron Goal Bar - mobile only (desktop shows inline below video) */}
       {goals.length > 0 && goals.some(g => g.isActive && !g.isCompleted) && (
