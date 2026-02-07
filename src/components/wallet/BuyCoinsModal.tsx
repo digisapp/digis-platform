@@ -6,6 +6,7 @@ import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { Coins, ArrowLeft, CheckCircle } from 'lucide-react';
 import { COIN_PACKAGES } from '@/lib/stripe/constants';
+import { PaymentErrorBoundary } from '@/components/error-boundaries';
 
 interface BuyCoinsModalProps {
   isOpen: boolean;
@@ -151,15 +152,21 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
 
             {/* Stripe Embedded Checkout */}
             <div className="min-h-[400px] pb-16 sm:pb-0">
-              <EmbeddedCheckoutProvider
-                stripe={stripePromiseRef.current}
-                options={{
-                  clientSecret,
-                  onComplete: handleCheckoutComplete,
-                }}
+              <PaymentErrorBoundary
+                transactionType="purchase"
+                onRetry={handleBack}
+                onClose={onClose}
               >
-                <EmbeddedCheckout />
-              </EmbeddedCheckoutProvider>
+                <EmbeddedCheckoutProvider
+                  stripe={stripePromiseRef.current}
+                  options={{
+                    clientSecret,
+                    onComplete: handleCheckoutComplete,
+                  }}
+                >
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              </PaymentErrorBoundary>
             </div>
           </div>
         ) : loading ? (

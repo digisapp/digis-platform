@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Coins, X } from 'lucide-react';
+import { PaymentErrorBoundary } from '@/components/error-boundaries';
 
 interface TipModalProps {
   creatorUsername: string;
@@ -29,6 +30,7 @@ export function TipModal({ creatorUsername, userBalance, onSendTip, onClose }: T
       />
       {/* Modal */}
       <div className="relative w-full max-w-sm bg-gradient-to-br from-cyan-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-cyan-400/60 shadow-[0_0_60px_rgba(34,211,238,0.4)] p-6 animate-slideUp">
+      <PaymentErrorBoundary transactionType="tip" onClose={handleClose}>
         {/* Corner accents - Tron style */}
         <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-xl" />
         <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-xl" />
@@ -131,6 +133,7 @@ export function TipModal({ creatorUsername, userBalance, onSendTip, onClose }: T
         <p className="text-center text-gray-500 text-xs mt-3">
           Tap outside to cancel
         </p>
+      </PaymentErrorBoundary>
       </div>
     </div>
   );

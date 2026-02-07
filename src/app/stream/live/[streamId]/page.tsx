@@ -12,6 +12,9 @@ import { TronGoalBar } from '@/components/streaming/TronGoalBar';
 import { SetGoalModal } from '@/components/streaming/SetGoalModal';
 import { SaveStreamModal } from '@/components/streaming/SaveStreamModal';
 import { StreamSummaryModal, type StreamSummaryData } from '@/components/streaming/StreamSummaryModal';
+import { StreamEndConfirmationModal } from '@/components/streaming/StreamEndConfirmationModal';
+import { VipShowChoiceModal } from '@/components/streaming/VipShowChoiceModal';
+import { MobileToolsPanel } from '@/components/streaming/MobileToolsPanel';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
 // VideoControls import removed - not needed for broadcaster view
 import { ViewerList } from '@/components/streaming/ViewerList';
@@ -36,6 +39,7 @@ import { useStreamNavPrevention } from '@/hooks/useStreamNavPrevention';
 import { usePrivateTips } from '@/hooks/usePrivateTips';
 import { useGoalCelebrations } from '@/hooks/useGoalCelebrations';
 import { useStreamDuration, formatDurationFromSeconds } from '@/hooks/useStreamDuration';
+import { useStreamEndHandling } from '@/hooks/useStreamEndHandling';
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation';
 import { useStreamHeartbeat } from '@/hooks/useStreamHeartbeat';
 import { useStreamAutoEnd } from '@/hooks/useStreamAutoEnd';
@@ -44,7 +48,7 @@ import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { fetchWithRetry, isOnline } from '@/lib/utils/fetchWithRetry';
 import { createClient } from '@/lib/supabase/client';
-import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, Calendar, RotateCcw, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff, Plus } from 'lucide-react';
+import { Coins, MessageCircle, UserPlus, RefreshCw, Users, Target, Ticket, X, Lock, Play, Square, List, BarChart2, Clock, Smartphone, Monitor, MonitorOff } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Stream, StreamMessage, VirtualGift, StreamGift, StreamGoal } from '@/db/schema';
 import { useToastContext } from '@/context/ToastContext';
@@ -222,7 +226,6 @@ export default function BroadcastStudioPage() {
   const [viewerCount, setViewerCount] = useState(0);
   const [peakViewers, setPeakViewers] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
-  const [isEnding, setIsEnding] = useState(false);
   // giftAnimations state removed - gifts now show in chat messages
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [hasManuallyEnded, setHasManuallyEnded] = useState(false);
@@ -254,33 +257,6 @@ export default function BroadcastStudioPage() {
   const [ticketedCountdown, setTicketedCountdown] = useState<string>('');
   const [startingVipStream, setStartingVipStream] = useState(false);
   const [vipModeActive, setVipModeActive] = useState(false);
-  const [showVipEndChoice, setShowVipEndChoice] = useState(false);
-  const [vipTicketCount, setVipTicketCount] = useState(0);
-  const [streamSummary, setStreamSummary] = useState<{
-    duration: string;
-    totalViewers: number;
-    peakViewers: number;
-    totalEarnings: number;
-    topSupporters: Array<{ username: string; totalCoins: number }>;
-    // Ticket stats (if ticketed show was active)
-    ticketStats?: {
-      ticketsSold: number;
-      ticketRevenue: number;
-      ticketBuyers: Array<{ username: string; displayName: string | null; avatarUrl: string | null }>;
-    };
-    // Tip menu stats
-    tipMenuStats?: {
-      totalTipMenuCoins: number;
-      totalPurchases: number;
-      items: Array<{
-        id: string;
-        label: string;
-        totalCoins: number;
-        purchaseCount: number;
-        purchasers: Array<{ username: string; amount: number }>;
-      }>;
-    };
-  } | null>(null);
   const [leaderboard, setLeaderboard] = useState<Array<{ username: string; senderId: string; totalCoins: number }>>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
@@ -359,6 +335,35 @@ export default function BroadcastStudioPage() {
     onError: (error) => {
       showError(error);
     },
+  });
+
+  // Stream end handling hook
+  const {
+    isEnding,
+    vipTicketCount,
+    showVipEndChoice,
+    setShowVipEndChoice,
+    setVipTicketCount,
+    streamSummary,
+    handleEndStream,
+    handleEndStreamKeepVip,
+    handleEndStreamCancelVip,
+  } = useStreamEndHandling({
+    streamId,
+    announcedTicketedStream,
+    vipModeActive,
+    peakViewers,
+    viewerCount,
+    totalEarnings,
+    formatDuration,
+    recordings,
+    showError,
+    setToken,
+    setHasManuallyEnded,
+    setShowEndConfirm,
+    setShowSaveRecordingsModal,
+    setShowStreamSummary,
+    setAnnouncedTicketedStream: (s) => setAnnouncedTicketedStream(s),
   });
 
   // Memoize watermark config for clip branding (Digis logo + creator URL)
@@ -954,237 +959,8 @@ export default function BroadcastStudioPage() {
     }
   };
 
-  const handleEndStream = async () => {
-    // Check if there's a pending VIP show that hasn't started yet
-    if (announcedTicketedStream && !vipModeActive && !showVipEndChoice) {
-      // Fetch ticket count for the VIP show
-      try {
-        const res = await fetch(`/api/shows/${announcedTicketedStream.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setVipTicketCount(data.show?.ticketsSold || 0);
-        }
-      } catch (e) {
-        console.error('Failed to fetch VIP show info:', e);
-      }
-      // Show VIP choice dialog instead of ending immediately
-      setShowEndConfirm(false);
-      setShowVipEndChoice(true);
-      return;
-    }
-
-    setIsEnding(true);
-    setHasManuallyEnded(true); // Prevent auto-end from triggering
-
-    // Disconnect from LiveKit immediately by clearing token
-    setToken('');
-
-    try {
-      const response = await fetch(`/api/streams/${streamId}/end`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        // Fetch stream summary data
-        await fetchStreamSummary();
-        setShowEndConfirm(false);
-        setShowVipEndChoice(false);
-
-        // If there are recordings, show the save modal first
-        if (recordings.length > 0) {
-          setShowSaveRecordingsModal(true);
-        } else {
-          setShowStreamSummary(true);
-        }
-      } else {
-        const data = await response.json();
-        showError(data.error || 'Failed to end stream');
-        setHasManuallyEnded(false); // Reset if failed
-        setShowEndConfirm(false);
-        setShowVipEndChoice(false);
-      }
-    } catch (err) {
-      showError('Failed to end stream');
-      setHasManuallyEnded(false); // Reset if failed
-      setShowEndConfirm(false);
-      setShowVipEndChoice(false);
-    } finally {
-      setIsEnding(false);
-    }
-  };
-
-  // End stream and keep VIP show scheduled
-  const handleEndStreamKeepVip = async () => {
-    setShowVipEndChoice(false);
-    setIsEnding(true);
-    setHasManuallyEnded(true);
-
-    // Disconnect from LiveKit immediately by clearing token
-    setToken('');
-
-    try {
-      const response = await fetch(`/api/streams/${streamId}/end`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        await fetchStreamSummary();
-        setShowStreamSummary(true);
-      } else {
-        const data = await response.json();
-        showError(data.error || 'Failed to end stream');
-        setHasManuallyEnded(false);
-      }
-    } catch (err) {
-      showError('Failed to end stream');
-      setHasManuallyEnded(false);
-    } finally {
-      setIsEnding(false);
-    }
-  };
-
-  // End stream and cancel VIP show with refunds
-  const handleEndStreamCancelVip = async () => {
-    if (!announcedTicketedStream) return;
-
-    setShowVipEndChoice(false);
-    setIsEnding(true);
-    setHasManuallyEnded(true);
-
-    // Disconnect from LiveKit immediately by clearing token
-    setToken('');
-
-    try {
-      // First cancel the VIP show (this will refund tickets)
-      const cancelRes = await fetch(`/api/shows/${announcedTicketedStream.id}/cancel`, {
-        method: 'POST',
-      });
-
-      if (!cancelRes.ok) {
-        const data = await cancelRes.json();
-        showError(data.error || 'Failed to cancel VIP show');
-        setHasManuallyEnded(false);
-        setIsEnding(false);
-        return;
-      }
-
-      // Then end the stream
-      const response = await fetch(`/api/streams/${streamId}/end`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        await fetchStreamSummary();
-        setAnnouncedTicketedStream(null);
-        setShowStreamSummary(true);
-      } else {
-        const data = await response.json();
-        showError(data.error || 'Failed to end stream');
-        setHasManuallyEnded(false);
-      }
-    } catch (err) {
-      showError('Failed to end stream');
-      setHasManuallyEnded(false);
-    } finally {
-      setIsEnding(false);
-    }
-  };
-
-  const fetchStreamSummary = async () => {
-    try {
-      // Fetch final stream data
-      const streamResponse = await fetch(`/api/streams/${streamId}`);
-      const streamData = await streamResponse.json();
-
-      // Fetch top supporters
-      const leaderboardResponse = await fetch(`/api/streams/${streamId}/leaderboard`);
-      const leaderboardData = await leaderboardResponse.json();
-
-      // Fetch menu stats
-      let tipMenuStats: {
-        totalTipMenuCoins: number;
-        totalPurchases: number;
-        items: Array<{
-          id: string;
-          label: string;
-          totalCoins: number;
-          purchaseCount: number;
-          purchasers: Array<{ username: string; amount: number }>;
-        }>;
-      } | undefined;
-
-      try {
-        const tipMenuResponse = await fetch(`/api/streams/${streamId}/tip-menu-stats`);
-        if (tipMenuResponse.ok) {
-          const tipMenuData = await tipMenuResponse.json();
-          if (tipMenuData.totalPurchases > 0) {
-            tipMenuStats = tipMenuData;
-          }
-        }
-      } catch (tipMenuErr) {
-        console.error('Failed to fetch menu stats:', tipMenuErr);
-      }
-
-      // Fetch ticket stats if there was a ticketed show
-      let ticketStats: {
-        ticketsSold: number;
-        ticketRevenue: number;
-        ticketBuyers: Array<{ username: string; displayName: string | null; avatarUrl: string | null }>;
-      } | undefined;
-
-      if (announcedTicketedStream) {
-        try {
-          const [statsRes, attendeesRes] = await Promise.all([
-            fetch(`/api/shows/${announcedTicketedStream.id}/stats`),
-            fetch(`/api/shows/${announcedTicketedStream.id}/attendees`),
-          ]);
-
-          if (statsRes.ok && attendeesRes.ok) {
-            const statsData = await statsRes.json();
-            const attendeesData = await attendeesRes.json();
-
-            ticketStats = {
-              ticketsSold: statsData.stats?.ticketsSold || vipTicketCount,
-              ticketRevenue: statsData.stats?.totalRevenue || 0,
-              ticketBuyers: attendeesData.attendees?.map((a: any) => ({
-                username: a.user?.username || 'Unknown',
-                displayName: a.user?.displayName || null,
-                avatarUrl: a.user?.avatarUrl || null,
-              })) || [],
-            };
-          }
-        } catch (ticketErr) {
-          console.error('Failed to fetch ticket stats:', ticketErr);
-        }
-      }
-
-      if (streamResponse.ok) {
-        const finalStream = streamData.stream;
-        const duration = finalStream.durationSeconds
-          ? formatDurationFromSeconds(finalStream.durationSeconds)
-          : formatDuration();
-
-        // Use local state values as fallbacks when DB values are 0
-        // This handles cases where presence tracking worked but DB wasn't updated
-        const dbTotalViews = finalStream.totalViews || 0;
-        const dbPeakViewers = finalStream.peakViewers || 0;
-
-        setStreamSummary({
-          duration,
-          totalViewers: Math.max(dbTotalViews, peakViewers, viewerCount),
-          peakViewers: Math.max(dbPeakViewers, peakViewers),
-          totalEarnings: finalStream.totalGiftsReceived || totalEarnings,
-          topSupporters: leaderboardData.leaderboard?.slice(0, 3) || [],
-          ticketStats,
-          tipMenuStats,
-        });
-      }
-    } catch (err) {
-      console.error('Failed to fetch stream summary:', err);
-    }
-  };
-
-  // formatDurationFromSeconds imported from useStreamDuration hook
+  // handleEndStream, handleEndStreamKeepVip, handleEndStreamCancelVip, fetchStreamSummary
+  // are now provided by useStreamEndHandling hook
 
   // Note: All gift sounds are now centralized in GiftFloatingEmojis component
   // to prevent multiple overlapping sounds when gifts are received
@@ -1470,171 +1246,24 @@ export default function BroadcastStudioPage() {
 
       {/* End Stream Confirmation Modal */}
       {showEndConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowEndConfirm(false)} />
-          <div className="relative backdrop-blur-xl bg-black/80 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-sm w-full">
-              {/* Warning Icon */}
-              <div className="flex justify-center mb-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isLeaveAttempt ? 'bg-yellow-500/20' : 'bg-red-500/20'}`}>
-                  {isLeaveAttempt ? (
-                    <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  ) : (
-                    <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-
-              {/* Title and Description */}
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {isLeaveAttempt ? 'Wait! You\'re Still Live' : 'End Your Stream?'}
-                </h3>
-                <p className="text-gray-300 text-sm">
-                  {isLeaveAttempt
-                    ? 'If you leave now, your stream will end and your viewers will be disconnected.'
-                    : 'Are you sure you want to end your stream? This will disconnect all viewers.'}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {isLeaveAttempt && (
-                  <GlassButton
-                    variant="gradient"
-                    size="lg"
-                    onClick={() => setShowEndConfirm(false)}
-                    shimmer
-                    glow
-                    className="w-full text-white font-semibold"
-                  >
-                    Stay on Stream
-                  </GlassButton>
-                )}
-                <GlassButton
-                  variant={isLeaveAttempt ? 'ghost' : 'gradient'}
-                  size="lg"
-                  onClick={handleEndStream}
-                  disabled={isEnding}
-                  shimmer={!isLeaveAttempt}
-                  glow={!isLeaveAttempt}
-                  className={`w-full font-semibold ${isLeaveAttempt ? '!text-red-400 !bg-red-500/10 !border-red-500/50 hover:!bg-red-500/20' : 'text-white bg-gradient-to-r from-red-600 to-pink-600'}`}
-                >
-                  {isEnding ? 'Ending...' : (isLeaveAttempt ? 'End Stream Anyway' : 'End Stream')}
-                </GlassButton>
-                {!isLeaveAttempt && (
-                  <GlassButton
-                    variant="ghost"
-                    size="lg"
-                    onClick={() => setShowEndConfirm(false)}
-                    className="w-full font-semibold !text-white !bg-white/10 !border-white/40 hover:!bg-white/20"
-                  >
-                    Cancel
-                  </GlassButton>
-                )}
-              </div>
-            </div>
-          </div>
+        <StreamEndConfirmationModal
+          isLeaveAttempt={isLeaveAttempt}
+          isEnding={isEnding}
+          onEndStream={handleEndStream}
+          onCancel={() => setShowEndConfirm(false)}
+        />
       )}
 
       {/* VIP Show Choice Modal - When ending stream with pending VIP show */}
       {showVipEndChoice && announcedTicketedStream && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setShowVipEndChoice(false)} />
-          <div className="relative backdrop-blur-xl bg-black/90 rounded-3xl border border-white/20 shadow-2xl p-6 max-w-md w-full">
-            {/* Close button */}
-            <button
-              onClick={() => setShowVipEndChoice(false)}
-              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Header */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                <Ticket className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                You Have a Pending VIP Show
-              </h3>
-              <p className="text-gray-300 text-sm">
-                "{announcedTicketedStream.title}" is scheduled but hasn't started yet.
-                {vipTicketCount > 0 && (
-                  <span className="block mt-2 text-amber-400 font-medium">
-                    {vipTicketCount} {vipTicketCount === 1 ? 'person has' : 'people have'} already purchased tickets!
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Options */}
-            <div className="space-y-3">
-              {/* Keep Scheduled Option */}
-              <button
-                onClick={handleEndStreamKeepVip}
-                disabled={isEnding}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-emerald-600/20 to-green-600/20 border border-emerald-500/50 hover:border-emerald-400 hover:bg-emerald-600/30 transition-all text-left group"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-emerald-500/20 group-hover:bg-emerald-500/30 transition-colors">
-                    <Calendar className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-white mb-1">Keep Scheduled</h4>
-                    <p className="text-xs text-gray-400">
-                      End your stream but keep the VIP show scheduled. You can start it in a future stream.
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Cancel & Refund Option */}
-              <button
-                onClick={handleEndStreamCancelVip}
-                disabled={isEnding}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-red-600/20 to-pink-600/20 border border-red-500/50 hover:border-red-400 hover:bg-red-600/30 transition-all text-left group"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-red-500/20 group-hover:bg-red-500/30 transition-colors">
-                    <RotateCcw className="w-5 h-5 text-red-400" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-white mb-1">Cancel & Refund</h4>
-                    <p className="text-xs text-gray-400">
-                      Cancel the VIP show and automatically refund all ticket purchases.
-                      {vipTicketCount > 0 && ` (${vipTicketCount} refund${vipTicketCount === 1 ? '' : 's'})`}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* Loading State */}
-            {isEnding && (
-              <div className="mt-4 flex items-center justify-center gap-2 text-gray-400">
-                <LoadingSpinner size="sm" />
-                <span className="text-sm">Processing...</span>
-              </div>
-            )}
-
-            {/* Cancel Button */}
-            <div className="mt-4">
-              <GlassButton
-                variant="ghost"
-                size="md"
-                onClick={() => setShowVipEndChoice(false)}
-                disabled={isEnding}
-                className="w-full !text-gray-400 !border-gray-600 hover:!text-white"
-              >
-                Go Back to Stream
-              </GlassButton>
-            </div>
-          </div>
-        </div>
+        <VipShowChoiceModal
+          announcedTicketedStream={announcedTicketedStream}
+          vipTicketCount={vipTicketCount}
+          isEnding={isEnding}
+          onKeepVip={handleEndStreamKeepVip}
+          onCancelVip={handleEndStreamCancelVip}
+          onClose={() => setShowVipEndChoice(false)}
+        />
       )}
 
       {/* Stream Summary Modal */}
@@ -1961,102 +1590,21 @@ export default function BroadcastStudioPage() {
 
                   {/* Mobile Bottom Tools - Collapsible + button */}
                   <div className="absolute bottom-3 left-3 z-50 md:hidden">
-                    {showMobileTools ? (
-                      /* Expanded tools menu */
-                      <div className="flex flex-col gap-3 p-4 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">
-                        {/* Close button */}
-                        <button
-                          onClick={() => setShowMobileTools(false)}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all"
-                        >
-                          <X className="w-6 h-6 text-white" />
-                          <span className="text-white text-base font-medium">Close</span>
-                        </button>
-
-                        {/* Goal Button */}
-                        {(() => {
-                          const hasActiveGoal = goals.some(g => g.isActive && !g.isCompleted);
-                          return (
-                            <button
-                              onClick={() => {
-                                if (hasActiveGoal) return;
-                                setEditingGoal(null);
-                                setShowGoalModal(true);
-                                setShowMobileTools(false);
-                              }}
-                              disabled={hasActiveGoal}
-                              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                                hasActiveGoal
-                                  ? 'bg-gray-600/30 opacity-50'
-                                  : 'bg-cyan-500/20 hover:bg-cyan-500/30'
-                              }`}
-                            >
-                              <Target className={`w-6 h-6 ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`} />
-                              <span className={`text-base font-medium ${hasActiveGoal ? 'text-gray-500' : 'text-cyan-400'}`}>Goal</span>
-                            </button>
-                          );
-                        })()}
-
-                        {/* Poll Button */}
-                        <button
-                          onClick={() => {
-                            setShowCreatePollModal(true);
-                            setShowMobileTools(false);
-                          }}
-                          disabled={!!activePoll?.isActive}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                            activePoll?.isActive
-                              ? 'bg-purple-500/30'
-                              : 'bg-purple-500/20 hover:bg-purple-500/30'
-                          }`}
-                        >
-                          <BarChart2 className="w-6 h-6 text-purple-400" />
-                          <span className="text-base font-medium text-purple-400">Poll</span>
-                        </button>
-
-                        {/* Timer Button */}
-                        <button
-                          onClick={() => {
-                            setShowCreateCountdownModal(true);
-                            setShowMobileTools(false);
-                          }}
-                          disabled={!!activeCountdown?.isActive}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                            activeCountdown?.isActive
-                              ? 'bg-cyan-500/30'
-                              : 'bg-cyan-500/20 hover:bg-cyan-500/30'
-                          }`}
-                        >
-                          <Clock className="w-6 h-6 text-cyan-400" />
-                          <span className="text-base font-medium text-cyan-400">Timer</span>
-                        </button>
-
-                        {/* VIP Button */}
-                        {!announcedTicketedStream && (
-                          <button
-                            onClick={() => {
-                              setShowAnnounceModal(true);
-                              setShowMobileTools(false);
-                            }}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 transition-all"
-                          >
-                            <Ticket className="w-6 h-6 text-amber-400" />
-                            <span className="text-base font-medium text-amber-400">VIP</span>
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      /* Collapsed Tools button - prominent with label */
-                      <button
-                        onClick={() => setShowMobileTools(true)}
-                        className="flex items-center gap-2 px-4 py-3 backdrop-blur-xl bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border-2 border-cyan-400/50 hover:border-cyan-400 active:scale-95 transition-all shadow-xl shadow-cyan-500/20"
-                        title="Stream Tools"
-                        aria-label="Open stream tools menu"
-                      >
-                        <Plus className="w-6 h-6 text-white" />
-                        <span className="text-white font-semibold text-sm">Tools</span>
-                      </button>
-                    )}
+                    <MobileToolsPanel
+                      showMobileTools={showMobileTools}
+                      onToggle={setShowMobileTools}
+                      goals={goals}
+                      activePoll={activePoll}
+                      activeCountdown={activeCountdown}
+                      announcedTicketedStream={announcedTicketedStream}
+                      onGoalClick={() => {
+                        setEditingGoal(null);
+                        setShowGoalModal(true);
+                      }}
+                      onPollClick={() => setShowCreatePollModal(true)}
+                      onCountdownClick={() => setShowCreateCountdownModal(true)}
+                      onVipClick={() => setShowAnnounceModal(true)}
+                    />
                   </div>
 
                   {/* Ticketed Stream Indicator - Shows on both mobile and desktop */}

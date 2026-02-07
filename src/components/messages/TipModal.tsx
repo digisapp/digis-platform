@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Gift, Coins, Sparkles, Zap, Crown, Star } from 'lucide-react';
+import { PaymentErrorBoundary } from '@/components/error-boundaries';
 
 interface VirtualGift {
   id: string;
@@ -161,6 +162,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/0 via-yellow-500/20 to-yellow-500/0 animate-shimmer" style={{animation: 'shimmer 3s infinite'}} />
         </div>
 
+        <PaymentErrorBoundary transactionType="gift" onClose={onClose}>
         <div className="relative flex flex-col flex-1 min-h-0">
           {/* Close Button */}
           <button
@@ -312,6 +314,7 @@ export function TipModal({ onClose, onSend, receiverName }: TipModalProps) {
             )}
           </button>
         </div>
+        </PaymentErrorBoundary>
       </div>
     </div>
   );

@@ -9,8 +9,8 @@ import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } fro
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  Share2, X, Send, Ticket, Coins, List,
-  Download, CheckCircle, Lock, UserPlus, CreditCard, Scissors
+  X, Send, Ticket, Coins, List,
+  Download, CheckCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -36,6 +36,10 @@ import { MenuModal } from '@/components/streaming/MenuModal';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
 import { useToastContext } from '@/context/ToastContext';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
+import { useTicketPurchaseFlow } from '@/hooks/useTicketPurchaseFlow';
+import { AccessDeniedScreen } from '@/components/streaming/AccessDeniedScreen';
+import { TicketedStreamBlockScreen } from '@/components/streaming/TicketedStreamBlockScreen';
+import { StreamHeaderBar } from '@/components/streaming/StreamHeaderBar';
 
 interface StreamData {
   id: string;
@@ -235,25 +239,32 @@ export default function TheaterModePage() {
   // Floating gift emojis state
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
 
-  // Ticketed show announcement state
-  const [ticketedAnnouncement, setTicketedAnnouncement] = useState<{
-    ticketedStreamId: string;
-    title: string;
-    ticketPrice: number;
-    startsAt: string;
-    minutesUntilStart: number;
-  } | null>(null);
-
-  // Track dismissed ticketed stream for persistent button
-  const [dismissedTicketedStream, setDismissedTicketedStream] = useState<{
-    ticketedStreamId: string;
-    title: string;
-    ticketPrice: number;
-    startsAt: string;
-  } | null>(null);
-
-  // Quick buy modal state (for simple ticket purchase)
-  const [showQuickBuyModal, setShowQuickBuyModal] = useState(false);
+  // Ticket purchase flow (ticketed streams, announcements, quick buy)
+  const {
+    ticketedModeActive, setTicketedModeActive,
+    hasTicket, setHasTicket,
+    ticketedShowInfo, setTicketedShowInfo,
+    purchasingTicket,
+    showQuickBuyModal, setShowQuickBuyModal,
+    quickBuyInfo, setQuickBuyInfo,
+    quickBuyLoading,
+    hasPurchasedUpcomingTicket, setHasPurchasedUpcomingTicket,
+    showTicketPurchaseSuccess,
+    ticketedAnnouncement, setTicketedAnnouncement,
+    dismissedTicketedStream, setDismissedTicketedStream,
+    upcomingTicketedShow, setUpcomingTicketedShow,
+    checkTicketAccess,
+    handleInstantTicketPurchase,
+    handleQuickBuyTicket,
+  } = useTicketPurchaseFlow({
+    streamId,
+    currentUser,
+    userBalance,
+    setUserBalance,
+    showError,
+    setShowBuyCoinsModal: (show: boolean) => setShowBuyCoinsModal(show),
+    routerPush: (path: string) => router.push(path),
+  });
 
   // Digital download confirmation state
   const [digitalDownload, setDigitalDownload] = useState<{
@@ -262,37 +273,9 @@ export default function TheaterModePage() {
     itemLabel: string;
     amount: number;
   } | null>(null);
-  const [quickBuyInfo, setQuickBuyInfo] = useState<{
-    showId: string;
-    title: string;
-    price: number;
-  } | null>(null);
-  const [quickBuyLoading, setQuickBuyLoading] = useState(false);
-
-  // Track if user has purchased ticket for upcoming show (before it starts)
-  const [hasPurchasedUpcomingTicket, setHasPurchasedUpcomingTicket] = useState(false);
-  const [showTicketPurchaseSuccess, setShowTicketPurchaseSuccess] = useState(false);
-
-  // Upcoming ticketed show from creator (for late-joining viewers)
-  const [upcomingTicketedShow, setUpcomingTicketedShow] = useState<{
-    id: string;
-    title: string;
-    ticketPrice: number;
-    startsAt: string;
-  } | null>(null);
 
   // Countdown timer for ticketed stream (computed from startsAt)
   const ticketCountdown = useTicketCountdown(upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt || null);
-
-  // Ticketed stream mode state (when host activates ticketed stream)
-  const [ticketedModeActive, setTicketedModeActive] = useState(false);
-  const [hasTicket, setHasTicket] = useState(false);
-  const [ticketedShowInfo, setTicketedShowInfo] = useState<{
-    showId: string;
-    showTitle: string;
-    ticketPrice: number;
-  } | null>(null);
-  const [purchasingTicket, setPurchasingTicket] = useState(false);
 
   // Poll and Countdown state (shared with broadcaster)
   const [activePoll, setActivePoll] = useState<{
@@ -623,144 +606,6 @@ export default function TheaterModePage() {
       setActiveGuest(null);
     },
   });
-
-  // Check ticketed stream access for current user
-  const checkTicketAccess = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/vip`);
-      if (response.ok) {
-        const data = await response.json();
-        setTicketedModeActive(data.vipActive);
-        setHasTicket(data.hasAccess);
-        if (data.vipActive && data.showId) {
-          setTicketedShowInfo({
-            showId: data.showId,
-            showTitle: data.showTitle,
-            ticketPrice: data.ticketPrice,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('[Ticketed] Error checking ticket access:', error);
-    }
-  };
-
-  // Instant ticket purchase - deducts coins and grants immediate access
-  const handleInstantTicketPurchase = async () => {
-    if (!ticketedShowInfo || !currentUser) {
-      if (!currentUser) {
-        router.push('/login');
-      }
-      return;
-    }
-
-    // Check if user has enough coins
-    if (userBalance < ticketedShowInfo.ticketPrice) {
-      setShowBuyCoinsModal(true);
-      return;
-    }
-
-    setPurchasingTicket(true);
-    try {
-      const response = await fetch(`/api/shows/${ticketedShowInfo.showId}/purchase`, {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        const successData = await response.json();
-        // Play ticket purchase sound
-        const audio = new Audio('/sounds/ticket-purchase.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
-        // Update balance and grant access - use server balance if available
-        if (typeof successData.newBalance === 'number') {
-          setUserBalance(successData.newBalance);
-        } else {
-          setUserBalance(prev => prev - ticketedShowInfo.ticketPrice);
-        }
-        setHasTicket(true);
-      } else {
-        const data = await response.json();
-        if (data.error?.includes('Insufficient')) {
-          setShowBuyCoinsModal(true);
-        } else {
-          showError(data.error || 'Failed to purchase ticket');
-        }
-      }
-    } catch (error) {
-      console.error('[Ticketed] Error purchasing ticket:', error);
-      showError('Failed to purchase ticket. Please try again.');
-    } finally {
-      setPurchasingTicket(false);
-    }
-  };
-
-  // Quick buy ticket - instant purchase from announcement or persistent button
-  const handleQuickBuyTicket = async (showId: string, price: number) => {
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-
-    // Check if user has enough coins
-    if (userBalance < price) {
-      setShowBuyCoinsModal(true);
-      return;
-    }
-
-    setQuickBuyLoading(true);
-    try {
-      const response = await fetch(`/api/shows/${showId}/purchase`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ streamId }), // Pass streamId for chat broadcast
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Play ticket purchase sound
-        const audio = new Audio('/sounds/ticket-purchase.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
-
-        // Update balance
-        setUserBalance(prev => prev - price);
-        // Close any modals/popups
-        setShowQuickBuyModal(false);
-        setQuickBuyInfo(null);
-        setTicketedAnnouncement(null);
-        setDismissedTicketedStream(null);
-        setUpcomingTicketedShow(null);
-        // Mark as purchased
-        setHasPurchasedUpcomingTicket(true);
-        setHasTicket(true);
-        // Show success message
-        setShowTicketPurchaseSuccess(true);
-        setTimeout(() => setShowTicketPurchaseSuccess(false), 3000);
-      } else {
-        if (data.error?.includes('Insufficient')) {
-          setShowBuyCoinsModal(true);
-        } else if (data.error?.includes('already')) {
-          // Already has ticket - just close and grant access
-          setShowQuickBuyModal(false);
-          setQuickBuyInfo(null);
-          setTicketedAnnouncement(null);
-          setDismissedTicketedStream(null);
-          setUpcomingTicketedShow(null);
-          setHasPurchasedUpcomingTicket(true);
-          setHasTicket(true);
-        } else {
-          showError(data.error || 'Failed to purchase ticket');
-        }
-      }
-    } catch (error) {
-      console.error('[Ticketed] Error purchasing ticket:', error);
-      showError('Failed to purchase ticket. Please try again.');
-    } finally {
-      setQuickBuyLoading(false);
-    }
-  };
 
   // Use real-time viewer count from Ably if available, otherwise use stream data
   const displayViewerCount = realtimeViewerCount > 0 ? realtimeViewerCount : (stream?.currentViewers || 0);
@@ -1288,107 +1133,15 @@ export default function TheaterModePage() {
   // Access denied - show clear instructions on how to access the stream
   if (accessDenied) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-purple-900 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="mb-6 p-4 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 inline-block">
-            <Lock className="w-12 h-12 text-pink-400" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-3">
-            This Stream is Private
-          </h1>
-          <p className="text-gray-400 mb-4">
-            {accessDenied.requiresSubscription
-              ? 'You must be an active subscriber to watch this stream.'
-              : accessDenied.requiresFollow
-                ? 'You must be following this creator to watch this stream.'
-                : accessDenied.requiresTicket
-                  ? 'This is a ticketed show. Purchase a ticket to watch.'
-                  : accessDenied.reason}
-          </p>
-
-          {/* Action buttons based on what's required */}
-          <div className="space-y-3">
-            {accessDenied.requiresFollow && accessDenied.creatorUsername && (
-              <button
-                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-purple text-white rounded-xl font-semibold hover:scale-105 transition-all"
-              >
-                <UserPlus className="w-5 h-5" />
-                Follow @{accessDenied.creatorUsername}
-              </button>
-            )}
-
-            {accessDenied.requiresSubscription && accessDenied.creatorUsername && (
-              <button
-                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full flex flex-col items-center justify-center gap-1 px-6 py-3 bg-gradient-to-r from-digis-purple to-digis-pink text-white rounded-xl font-semibold hover:scale-105 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Subscribe to @{accessDenied.creatorUsername}
-                </div>
-                {accessDenied.subscriptionPrice && (
-                  <span className="text-sm opacity-90 flex items-center gap-1">
-                    <Coins className="w-4 h-4" /> {accessDenied.subscriptionPrice} coins/month
-                  </span>
-                )}
-              </button>
-            )}
-
-            {accessDenied.requiresTicket && accessDenied.creatorUsername && (
-              <button
-                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full flex flex-col items-center justify-center gap-1 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Ticket className="w-5 h-5" />
-                  Buy Ticket
-                </div>
-                {accessDenied.ticketPrice && (
-                  <span className="text-sm opacity-90 flex items-center gap-1">
-                    <Coins className="w-4 h-4" /> {accessDenied.ticketPrice} coins
-                  </span>
-                )}
-              </button>
-            )}
-
-            {/* Already subscribed? Retry access check */}
-            {(accessDenied.requiresSubscription || accessDenied.requiresTicket) && (
-              <button
-                onClick={() => {
-                  setAccessDenied(null);
-                  setLoading(true);
-                  loadStream();
-                }}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-green-400 rounded-xl font-medium transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Already Subscribed? Try Again
-              </button>
-            )}
-
-            {/* Visit creator profile if username available */}
-            {accessDenied.creatorUsername && (
-              <button
-                onClick={() => router.push(`/${accessDenied.creatorUsername}`)}
-                className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-all"
-              >
-                Visit Creator Profile
-              </button>
-            )}
-
-            {/* Browse other streams */}
-            <button
-              onClick={() => router.push('/watch')}
-              className="w-full px-6 py-3 text-gray-400 hover:text-white transition-colors"
-            >
-              Browse Other Streams
-            </button>
-          </div>
-        </div>
-      </div>
+      <AccessDeniedScreen
+        accessDenied={accessDenied}
+        onRetryAccess={() => {
+          setAccessDenied(null);
+          setLoading(true);
+          loadStream();
+        }}
+        onNavigate={(path) => router.push(path)}
+      />
     );
   }
 
@@ -1432,120 +1185,23 @@ export default function TheaterModePage() {
       </div>
 
       {/* Header Bar - creator info */}
-      <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 glass-dark border-b border-cyan-400/20 backdrop-blur-xl shadow-[0_0_15px_rgba(34,211,238,0.1)]">
-        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-          <button
-            onClick={() => router.back()}
-            className="hidden lg:block p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          {/* Creator Info - compact on mobile */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            {stream.creator.avatarUrl ? (
-              <img
-                src={stream.creator.avatarUrl}
-                alt={stream.creator.displayName || stream.creator.username}
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
-              />
-            ) : (
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center font-bold text-sm flex-shrink-0">
-                {stream.creator.displayName?.[0] || stream.creator.username?.[0] || '?'}
-              </div>
-            )}
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <span className="font-bold text-sm sm:text-base truncate">
-                  {stream.creator.displayName || stream.creator.username}
-                </span>
-                {stream.creator.isVerified && (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </div>
-              <div className="text-xs text-white/60">
-                {displayViewerCount.toLocaleString()} watching
-              </div>
-            </div>
-          </div>
-
-          {/* Live Badge */}
-          <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 bg-red-600 rounded-lg flex-shrink-0">
-            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-pulse" />
-            <span className="text-xs sm:text-sm font-bold">LIVE</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {/* Mute Toggle Button - mobile only */}
-          <button
-            onClick={toggleMute}
-            className={`lg:hidden p-2.5 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${muted ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
-            title={muted ? 'Unmute' : 'Mute'}
-            aria-label={muted ? 'Unmute audio' : 'Mute audio'}
-          >
-            {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-          </button>
-
-          {/* Share Button */}
-          <button
-            onClick={shareStream}
-            className="p-2.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-            title="Share"
-            aria-label="Share stream"
-          >
-            <Share2 className="w-5 h-5" />
-          </button>
-
-          {/* Clip Button - viewers can clip the last 30 seconds */}
-          {clipIsSupported && !streamEnded && (
-            <button
-              onClick={handleCreateClip}
-              disabled={!canClip || clipIsClipping}
-              className={`p-2.5 sm:p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
-                clipIsClipping
-                  ? 'bg-green-500/20 text-green-400 animate-pulse'
-                  : clipCooldownRemaining > 0
-                    ? 'text-gray-600 cursor-not-allowed'
-                    : canClip
-                      ? 'hover:bg-green-500/20 text-green-400'
-                      : 'text-gray-600'
-              }`}
-              title={
-                clipIsClipping ? 'Creating clip...'
-                  : clipCooldownRemaining > 0 ? `Wait ${clipCooldownRemaining}s`
-                    : canClip ? `Clip last ${clipBufferSeconds}s`
-                      : 'Buffering...'
-              }
-              aria-label={
-                clipIsClipping ? 'Creating clip...'
-                  : clipCooldownRemaining > 0 ? `Clip cooldown: ${clipCooldownRemaining} seconds`
-                    : canClip ? `Clip last ${clipBufferSeconds} seconds`
-                      : 'Clip not available'
-              }
-            >
-              {clipCooldownRemaining > 0 ? (
-                <span className="text-xs font-bold tabular-nums">{clipCooldownRemaining}s</span>
-              ) : (
-                <Scissors className="w-5 h-5" />
-              )}
-            </button>
-          )}
-
-          {/* Toggle Chat Button - desktop only since chat is always visible below video on mobile */}
-          <button
-            onClick={() => setShowChat(!showChat)}
-            className={`hidden sm:flex p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] items-center justify-center ${showChat ? 'bg-cyan-500/20 text-cyan-400' : 'hover:bg-white/10'}`}
-            title={showChat ? 'Hide Chat' : 'Show Chat'}
-            aria-label={showChat ? 'Hide chat panel' : 'Show chat panel'}
-          >
-            <Users className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+      <StreamHeaderBar
+        creator={stream.creator}
+        viewerCount={displayViewerCount}
+        muted={muted}
+        showChat={showChat}
+        streamEnded={streamEnded}
+        clipIsSupported={clipIsSupported}
+        canClip={canClip}
+        clipIsClipping={clipIsClipping}
+        clipBufferSeconds={clipBufferSeconds}
+        clipCooldownRemaining={clipCooldownRemaining}
+        onBack={() => router.back()}
+        onToggleMute={toggleMute}
+        onShare={shareStream}
+        onCreateClip={handleCreateClip}
+        onToggleChat={() => setShowChat(!showChat)}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
@@ -1650,69 +1306,14 @@ export default function TheaterModePage() {
 
                 {/* Ticketed Stream Blocked Screen - compact overlay for non-ticket holders */}
                 {ticketedModeActive && !hasTicket && ticketedShowInfo && (
-                  <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6">
-                    {/* Compact layout for mobile */}
-                    <div className="flex flex-col items-center max-w-xs w-full">
-                      {/* Lock Icon + Badge combined */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 mb-3 rounded-full bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-500/50 flex items-center justify-center">
-                        <svg className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      </div>
-
-                      {/* Title */}
-                      <h2 className="text-lg sm:text-xl font-bold text-white mb-1 text-center line-clamp-2">
-                        {ticketedShowInfo.showTitle}
-                      </h2>
-
-                      {/* Ticketed Stream Badge */}
-                      <div className="mb-3 px-3 py-1 bg-amber-500/20 border border-amber-500/50 rounded-full">
-                        <span className="text-amber-400 font-semibold text-xs">TICKETED STREAM</span>
-                      </div>
-
-                      {/* Price + Buy Button combined */}
-                      <button
-                        onClick={handleInstantTicketPurchase}
-                        disabled={purchasingTicket}
-                        className="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-base hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {purchasingTicket ? (
-                          <>
-                            <LoadingSpinner size="sm" />
-                            <span>Purchasing...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Ticket className="w-4 h-4" />
-                            <span>Buy Ticket</span>
-                            <span className="mx-1">•</span>
-                            <Coins className="w-4 h-4 text-yellow-200" />
-                            <span>{ticketedShowInfo.ticketPrice}</span>
-                          </>
-                        )}
-                      </button>
-
-                      {/* Balance indicator */}
-                      {currentUser && (
-                        <p className="mt-2 text-xs text-gray-400">
-                          Your balance: <Coins className="w-3 h-3 inline text-yellow-400" /> {userBalance}
-                          {userBalance < ticketedShowInfo.ticketPrice && (
-                            <button
-                              onClick={() => setShowBuyCoinsModal(true)}
-                              className="ml-2 text-cyan-400 hover:underline"
-                            >
-                              Get more
-                            </button>
-                          )}
-                        </p>
-                      )}
-
-                      {/* FOMO message - compact */}
-                      <p className="mt-3 text-gray-500 text-xs text-center">
-                        Chat visible below
-                      </p>
-                    </div>
-                  </div>
+                  <TicketedStreamBlockScreen
+                    ticketedShowInfo={ticketedShowInfo}
+                    purchasingTicket={purchasingTicket}
+                    userBalance={userBalance}
+                    currentUser={currentUser}
+                    onPurchase={handleInstantTicketPurchase}
+                    onBuyCoins={() => setShowBuyCoinsModal(true)}
+                  />
                 )}
               </>
             ) : (
