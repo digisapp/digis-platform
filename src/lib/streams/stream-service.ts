@@ -1047,7 +1047,8 @@ export class StreamService {
       const ticket = await db.query.streamTickets.findFirst({
         where: and(
           eq(streamTickets.streamId, streamId),
-          eq(streamTickets.userId, userId)
+          eq(streamTickets.userId, userId),
+          eq(streamTickets.isValid, true)
         ),
       });
 

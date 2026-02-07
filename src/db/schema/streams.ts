@@ -241,6 +241,9 @@ export const streamTickets = pgTable('stream_tickets', {
   pricePaid: integer('price_paid').notNull(), // Coins paid at time of purchase
   purchasedAt: timestamp('purchased_at').defaultNow().notNull(),
 
+  // Validity (can be invalidated on refund/cancellation)
+  isValid: boolean('is_valid').default(true).notNull(),
+
   // Transaction reference
   transactionId: uuid('transaction_id'),
 

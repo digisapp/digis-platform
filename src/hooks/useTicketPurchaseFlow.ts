@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface TicketedShowInfo {
   showId: string;
@@ -60,9 +60,20 @@ export function useTicketPurchaseFlow({
     startsAt: string;
   } | null>(null);
 
+  // AbortController ref to cancel in-flight ticket access checks
+  // Prevents stale responses from overwriting state after rapid VIP mode toggles
+  const ticketCheckAbortRef = useRef<AbortController | null>(null);
+
   const checkTicketAccess = async () => {
+    // Abort any in-flight check before starting a new one
+    ticketCheckAbortRef.current?.abort();
+    const controller = new AbortController();
+    ticketCheckAbortRef.current = controller;
+
     try {
-      const response = await fetch(`/api/streams/${streamId}/vip`);
+      const response = await fetch(`/api/streams/${streamId}/vip`, {
+        signal: controller.signal,
+      });
       if (response.ok) {
         const data = await response.json();
         setTicketedModeActive(data.vipActive);
@@ -76,8 +87,16 @@ export function useTicketPurchaseFlow({
         }
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return; // Request was intentionally cancelled
+      }
       console.error('[Ticketed] Error checking ticket access:', error);
     }
+  };
+
+  const abortPendingTicketCheck = () => {
+    ticketCheckAbortRef.current?.abort();
+    ticketCheckAbortRef.current = null;
   };
 
   const handleInstantTicketPurchase = async () => {
@@ -211,6 +230,7 @@ export function useTicketPurchaseFlow({
     setUpcomingTicketedShow,
     // Actions
     checkTicketAccess,
+    abortPendingTicketCheck,
     handleInstantTicketPurchase,
     handleQuickBuyTicket,
   };

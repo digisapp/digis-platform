@@ -26,11 +26,12 @@ export async function GET(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ hasTicket: false });
     }
 
-    // Check if user has a ticket
+    // Check if user has a valid ticket
     const ticket = await db.query.streamTickets.findFirst({
       where: and(
         eq(streamTickets.streamId, streamId),
-        eq(streamTickets.userId, authUser.id)
+        eq(streamTickets.userId, authUser.id),
+        eq(streamTickets.isValid, true)
       ),
     });
 

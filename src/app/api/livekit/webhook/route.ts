@@ -3,6 +3,7 @@ import { WebhookReceiver } from 'livekit-server-sdk';
 import { db } from '@/lib/data/system';
 import { streams, calls } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
+import { LiveKitService } from '@/lib/services/livekit-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -92,6 +93,8 @@ async function handleRoomFinished(roomName: string) {
         })
         .where(eq(streams.id, stream.id));
     }
+    // Delete the room to free LiveKit server resources
+    await LiveKitService.deleteRoom(roomName);
     return;
   }
 
@@ -117,6 +120,8 @@ async function handleRoomFinished(roomName: string) {
         })
         .where(eq(calls.id, call.id));
     }
+    // Delete the room to free LiveKit server resources
+    await LiveKitService.deleteRoom(roomName);
     return;
   }
 
@@ -124,6 +129,7 @@ async function handleRoomFinished(roomName: string) {
   if (roomName.startsWith('show_')) {
     // Shows are managed by ShowService - just log for monitoring
     console.log(`[LiveKit Webhook] Show room finished: ${roomName}`);
+    await LiveKitService.deleteRoom(roomName);
   }
 }
 

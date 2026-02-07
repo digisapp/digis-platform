@@ -11,6 +11,27 @@ const PENDING_CALL_TIMEOUT_MINUTES = 5; // Calls auto-expire after 5 minutes
 const ACCEPTED_CALL_TIMEOUT_MINUTES = 30; // Accepted calls that never started
 const ACTIVE_CALL_MAX_DURATION_MINUTES = 240; // 4 hours max call duration
 
+/**
+ * Attempt to release a hold with retries
+ * Returns true if successful, false if all retries failed
+ */
+async function releaseHoldWithRetry(holdId: string, context: string, maxRetries = 3): Promise<boolean> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await WalletService.releaseHold(holdId);
+      return true;
+    } catch (error) {
+      console.error(`[CallService] Hold release attempt ${attempt}/${maxRetries} failed (${context}):`, error);
+      if (attempt < maxRetries) {
+        // Exponential backoff: 100ms, 200ms, 400ms
+        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt - 1)));
+      }
+    }
+  }
+  console.error(`[CallService] CRITICAL: Hold ${holdId} release failed after ${maxRetries} retries (${context}). Will be cleaned up by cron.`);
+  return false;
+}
+
 export class CallService {
   /**
    * Get or create creator settings
@@ -187,15 +208,9 @@ export class CallService {
       throw new Error('Call is not pending');
     }
 
-    // Release the hold using WalletService for proper transaction handling
+    // Release the hold with retry logic
     if (call.holdId) {
-      try {
-        await WalletService.releaseHold(call.holdId);
-      } catch (error) {
-        console.error('[CallService] Failed to release hold on reject:', error);
-        // Continue with rejecting the call even if hold release fails
-        // The hold will be cleaned up by reconciliation
-      }
+      await releaseHoldWithRetry(call.holdId, `reject call ${callId}`);
     }
 
     const [updated] = await db
@@ -232,14 +247,9 @@ export class CallService {
       throw new Error('Cannot cancel a call that has already started or completed');
     }
 
-    // Release the hold using WalletService for proper transaction handling
+    // Release the hold with retry logic
     if (call.holdId) {
-      try {
-        await WalletService.releaseHold(call.holdId);
-      } catch (error) {
-        console.error('[CallService] Failed to release hold on cancel:', error);
-        // Continue with cancelling the call
-      }
+      await releaseHoldWithRetry(call.holdId, `cancel call ${callId}`);
     }
 
     const [updated] = await db
@@ -598,15 +608,9 @@ export class CallService {
       throw new Error('Call is not pending');
     }
 
-    // Release the hold using WalletService for proper transaction handling
+    // Release the hold with retry logic
     if (call.holdId) {
-      try {
-        await WalletService.releaseHold(call.holdId);
-      } catch (error) {
-        console.error('[CallService] Failed to release hold on missed call:', error);
-        // Continue with marking call as missed even if hold release fails
-        // The hold will be cleaned up by reconciliation
-      }
+      await releaseHoldWithRetry(call.holdId, `missed call ${callId}`);
     }
 
     // Update call status to missed
@@ -686,13 +690,9 @@ export class CallService {
 
     for (const call of staleCalls) {
       try {
-        // Release the hold
+        // Release the hold with retry
         if (call.holdId) {
-          try {
-            await WalletService.releaseHold(call.holdId);
-          } catch (error) {
-            console.error(`[CallService] Failed to release hold for stale accepted call ${call.id}:`, error);
-          }
+          await releaseHoldWithRetry(call.holdId, `stale accepted call ${call.id}`);
         }
 
         // Mark as cancelled

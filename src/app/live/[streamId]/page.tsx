@@ -254,6 +254,7 @@ export default function TheaterModePage() {
     dismissedTicketedStream, setDismissedTicketedStream,
     upcomingTicketedShow, setUpcomingTicketedShow,
     checkTicketAccess,
+    abortPendingTicketCheck,
     handleInstantTicketPurchase,
     handleQuickBuyTicket,
   } = useTicketPurchaseFlow({
@@ -535,7 +536,8 @@ export default function TheaterModePage() {
         // handle all state updates to avoid double renders that can disconnect viewers
         checkTicketAccess();
       } else {
-        // Ticketed mode ended - return to free stream
+        // Ticketed mode ended - cancel any in-flight ticket check first
+        abortPendingTicketCheck();
         // Reset ALL ticketed-related state so viewer can see new announcements
         setTicketedModeActive(false);
         setTicketedShowInfo(null);
