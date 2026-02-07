@@ -1,16 +1,13 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { streamAnalytics } from '@/lib/utils/analytics';
 import { LiveKitRoom, RoomAudioRenderer, useRemoteParticipants, VideoTrack } from '@livekit/components-react';
 import '@livekit/components-styles';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
-  X, Send, Ticket, Coins, List,
-  Download, CheckCircle
+  Ticket, Coins, List,
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
@@ -30,6 +27,7 @@ import { useWaitingRoomMusic } from '@/hooks/useWaitingRoomMusic';
 import { useTicketCountdown } from '@/hooks/useTicketCountdown';
 import { useViewerKeyboardShortcuts } from '@/hooks/useViewerKeyboardShortcuts';
 import { useBRBDetection } from '@/hooks/useBRBDetection';
+import { useViewerData } from '@/hooks/useViewerData';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { TipModal } from '@/components/streaming/TipModal';
 import { MenuModal } from '@/components/streaming/MenuModal';
@@ -40,54 +38,16 @@ import { useTicketPurchaseFlow } from '@/hooks/useTicketPurchaseFlow';
 import { AccessDeniedScreen } from '@/components/streaming/AccessDeniedScreen';
 import { TicketedStreamBlockScreen } from '@/components/streaming/TicketedStreamBlockScreen';
 import { StreamHeaderBar } from '@/components/streaming/StreamHeaderBar';
-
-interface StreamData {
-  id: string;
-  title: string;
-  description: string | null;
-  status: 'live' | 'ended';
-  privacy: 'public' | 'private' | 'followers';
-  currentViewers: number;
-  peakViewers: number;
-  totalViews: number;
-  totalGiftsReceived: number;
-  tipMenuEnabled?: boolean;
-  // Category & Tags for discoverability
-  category?: string | null;
-  tags?: string[] | null;
-  // Go Private settings (stream-specific)
-  goPrivateEnabled?: boolean;
-  goPrivateRate?: number | null;
-  goPrivateMinDuration?: number | null;
-  creator: {
-    id: string;
-    username: string;
-    displayName: string | null;
-    avatarUrl: string | null;
-    isVerified: boolean;
-  };
-  goals?: {
-    id: string;
-    description: string;
-    targetAmount: number;
-    currentAmount: number;
-  }[];
-  creatorCallSettings?: {
-    isAvailableForCalls: boolean;
-    isAvailableForVoiceCalls: boolean;
-    callRatePerMinute: number;
-    voiceCallRatePerMinute: number;
-    minimumCallDuration: number;
-    minimumVoiceCallDuration: number;
-    messageRate?: number;
-  } | null;
-  upcomingTicketedShow?: {
-    id: string;
-    title: string;
-    ticketPrice: number;
-    startsAt: string;
-  } | null;
-}
+import {
+  StreamEndedOverlay,
+  TicketAnnouncementModal,
+  QuickBuyTicketModal,
+  DigitalDownloadModal,
+  ViewerListPanel,
+  PinnedMenuPreview,
+  ViewerChatMessages,
+  ViewerChatInput,
+} from '@/components/streaming/viewer';
 
 interface ChatMessage {
   id: string;
@@ -106,25 +66,6 @@ interface ChatMessage {
   giftQuantity?: number;
   ticketPrice?: number;
   showTitle?: string;
-}
-
-interface Viewer {
-  id: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-}
-
-// Helper to validate URLs for security (prevent javascript: and other malicious protocols)
-function isValidDownloadUrl(url: string | undefined | null): boolean {
-  if (!url) return false;
-  try {
-    const parsed = new URL(url);
-    // Only allow http and https protocols
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
 }
 
 // Component to render the remote video from broadcaster
@@ -182,31 +123,6 @@ export default function TheaterModePage() {
   const { showSuccess, showError, showInfo } = useToastContext();
   const streamId = params.streamId as string;
 
-  const [stream, setStream] = useState<StreamData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [accessDenied, setAccessDenied] = useState<{
-    reason: string;
-    creatorId?: string;
-    creatorUsername?: string;
-    requiresSubscription?: boolean;
-    requiresFollow?: boolean;
-    requiresTicket?: boolean;
-    ticketPrice?: number;
-    subscriptionPrice?: number;
-  } | null>(null);
-
-  // Video player state
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [streamEnded, setStreamEnded] = useState(false);
-  const [showBRB, setShowBRB] = useState(false);
-  const [streamOrientation, setStreamOrientation] = useState<'landscape' | 'portrait'>('landscape');
-  const [showUnmutePrompt, setShowUnmutePrompt] = useState(true); // Show tap to unmute prompt on mobile
-
   // UI state
   const [showChat, setShowChat] = useState(true);
   const [showViewerList, setShowViewerList] = useState(false);
@@ -214,8 +130,14 @@ export default function TheaterModePage() {
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [showBuyCoinsModal, setShowBuyCoinsModal] = useState(false);
   const { celebratingGoal, completedGoalsQueue, addCompletedGoal } = useGoalCelebrations();
-  const [menuItems, setMenuItems] = useState<Array<{ id: string; label: string; emoji: string | null; price: number; description: string | null; itemCategory?: string; fulfillmentType?: string }>>([]);
-  const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
+
+  // Video player state
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [streamEnded, setStreamEnded] = useState(false);
+  const [showBRB, setShowBRB] = useState(false);
+  const [showUnmutePrompt, setShowUnmutePrompt] = useState(true);
 
   // Chat state
   const MAX_CHAT_MESSAGES = 200;
@@ -229,16 +151,12 @@ export default function TheaterModePage() {
     return [...messages].slice(-50).reverse();
   }, [messages]);
 
-  // Viewers state
-  const [viewers, setViewers] = useState<Viewer[]>([]);
-  const [leaderboard, setLeaderboard] = useState<Array<{ id: string; username: string; avatarUrl?: string; totalSpent: number }>>([]);
-
-  // User state
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userBalance, setUserBalance] = useState(0);
-
   // Floating gift emojis state
   const [floatingGifts, setFloatingGifts] = useState<Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>>([]);
+
+  // User state (shared between useViewerData and useTicketPurchaseFlow)
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userBalance, setUserBalance] = useState(0);
 
   // Ticket purchase flow (ticketed streams, announcements, quick buy)
   const {
@@ -268,6 +186,31 @@ export default function TheaterModePage() {
     routerPush: (path: string) => router.push(path),
   });
 
+  // Consolidated data fetching (stream, token, polls, countdowns, guests, viewers, menu)
+  const {
+    stream, setStream,
+    loading, setLoading,
+    error,
+    accessDenied, setAccessDenied,
+    token, serverUrl,
+    streamOrientation,
+    menuItems, setMenuItems,
+    menuEnabled, setMenuEnabled,
+    activePoll, setActivePoll,
+    activeCountdown, setActiveCountdown,
+    activeGuest, setActiveGuest,
+    viewers, leaderboard,
+    loadStream, loadCurrentUser, fetchPoll, fetchCountdown,
+  } = useViewerData({
+    streamId,
+    showViewerList,
+    dismissedTicketedStream,
+    ticketedAnnouncement,
+    setUpcomingTicketedShow,
+    setCurrentUser,
+    setUserBalance,
+  });
+
   // Digital download confirmation state
   const [digitalDownload, setDigitalDownload] = useState<{
     show: boolean;
@@ -278,32 +221,6 @@ export default function TheaterModePage() {
 
   // Countdown timer for ticketed stream (computed from startsAt)
   const ticketCountdown = useTicketCountdown(upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt || null);
-
-  // Poll and Countdown state (shared with broadcaster)
-  const [activePoll, setActivePoll] = useState<{
-    id: string;
-    question: string;
-    options: string[];
-    voteCounts: number[];
-    totalVotes: number;
-    endsAt: string;
-    isActive: boolean;
-  } | null>(null);
-  const [activeCountdown, setActiveCountdown] = useState<{
-    id: string;
-    label: string;
-    endsAt: string;
-    isActive: boolean;
-  } | null>(null);
-
-  // Guest call-in state (when host brings a viewer on stream)
-  const [activeGuest, setActiveGuest] = useState<{
-    userId: string;
-    username: string;
-    displayName?: string | null;
-    avatarUrl?: string | null;
-    requestType: 'video' | 'voice';
-  } | null>(null);
 
   // Remove completed floating gift
   const removeFloatingGift = useCallback((id: string) => {
@@ -625,23 +542,10 @@ export default function TheaterModePage() {
     shouldPlay: !!(ticketedModeActive && !hasTicket && ticketedShowInfo),
   });
 
-  // Load stream data
+  // Check ticket access on mount
   useEffect(() => {
-    loadStream();
-    loadCurrentUser();
-    checkTicketAccess(); // Check if ticketed stream mode is active
-    fetchPoll(); // Fetch active poll for late-joining viewers
-    fetchCountdown(); // Fetch active countdown for late-joining viewers
-    fetchActiveGuest(); // Fetch active guest for late-joining viewers
+    checkTicketAccess();
   }, [streamId]);
-
-  // Poll for active poll vote updates (every 15 seconds) as fallback - Ably handles real-time updates
-  useEffect(() => {
-    if (!activePoll?.isActive) return;
-
-    const interval = setInterval(fetchPoll, 15000);
-    return () => clearInterval(interval);
-  }, [activePoll?.isActive, streamId]);
 
   // Join stream when viewer loads (adds to database for viewer list)
   useEffect(() => {
@@ -670,47 +574,14 @@ export default function TheaterModePage() {
   // Auto-scroll chat - desktop scrolls to bottom (oldest first), mobile scrolls to top (newest first)
   useEffect(() => {
     if (chatContainerRef.current) {
-      // Check if we're on mobile (lg breakpoint is 1024px)
       const isMobile = window.innerWidth < 1024;
       if (isMobile) {
-        // Mobile shows newest first (reversed), so scroll to top
         chatContainerRef.current.scrollTop = 0;
       } else {
-        // Desktop shows oldest first, so scroll to bottom
         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
     }
   }, [messages]);
-
-  // Load LiveKit token for viewing
-  const loadToken = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/token`);
-      if (response.ok) {
-        const data = await response.json();
-        setToken(data.token);
-        setServerUrl(data.serverUrl);
-      }
-    } catch (error) {
-      console.error('[TheaterMode] Error loading token:', error);
-    }
-  }, [streamId]);
-
-  useEffect(() => {
-    if (!stream || stream.status !== 'live') return;
-    loadToken();
-  }, [stream, streamId, loadToken]);
-
-  // Refresh LiveKit token before 6-hour TTL expires
-  useEffect(() => {
-    if (!token) return;
-    const REFRESH_MS = 5.5 * 60 * 60 * 1000; // 5.5 hours
-    const timer = setTimeout(() => {
-      console.log('[Viewer] Proactively refreshing token before TTL expiry');
-      loadToken();
-    }, REFRESH_MS);
-    return () => clearTimeout(timer);
-  }, [token, loadToken]);
 
   // Handle when broadcaster leaves the room (stream ended)
   const handleBroadcasterLeft = useCallback(() => {
@@ -726,45 +597,6 @@ export default function TheaterModePage() {
     onStreamAutoEnd: () => setStreamEnded(true),
   });
 
-  // Fetch viewers and leaderboard when viewer list is opened
-  useEffect(() => {
-    if (!showViewerList || !streamId) return;
-
-    const fetchViewers = async () => {
-      try {
-        const res = await fetch(`/api/streams/${streamId}/viewers`);
-        if (res.ok) {
-          const data = await res.json();
-          setViewers(data.viewers || []);
-        }
-      } catch (e) {
-        console.error('[Stream] Failed to fetch viewers:', e);
-      }
-    };
-
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await fetch(`/api/streams/${streamId}/leaderboard?limit=5`);
-        if (res.ok) {
-          const data = await res.json();
-          setLeaderboard(data.leaderboard || []);
-        }
-      } catch (e) {
-        console.error('[Stream] Failed to fetch leaderboard:', e);
-      }
-    };
-
-    fetchViewers();
-    fetchLeaderboard();
-    // Refresh every 20 seconds while open
-    const interval = setInterval(() => {
-      fetchViewers();
-      fetchLeaderboard();
-    }, 20000);
-
-    return () => clearInterval(interval);
-  }, [showViewerList, streamId]);
-
   // Viewer heartbeat - keeps viewer active and updates viewer count
   useViewerHeartbeat({
     streamId,
@@ -775,148 +607,6 @@ export default function TheaterModePage() {
       setStream(prev => prev ? { ...prev, currentViewers, peakViewers } : null);
     },
   });
-
-  // Ticket countdown handled by useTicketCountdown hook
-
-  const loadStream = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}`);
-
-      // Handle 403 Access Denied with detailed info
-      if (response.status === 403) {
-        const data = await response.json();
-        setAccessDenied({
-          reason: data.error || 'Access denied',
-          creatorId: data.creatorId,
-          creatorUsername: data.creatorUsername,
-          requiresSubscription: data.requiresSubscription,
-          requiresFollow: data.requiresFollow,
-          requiresTicket: data.requiresTicket,
-          ticketPrice: data.ticketPrice,
-          subscriptionPrice: data.subscriptionPrice,
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Stream not found');
-      }
-
-      const data = await response.json();
-      const streamData = data.stream || data; // Handle both { stream } and direct stream object
-      setStream(streamData);
-
-      // Set stream orientation from database (default to landscape for backwards compatibility)
-      if (streamData.orientation === 'portrait') {
-        setStreamOrientation('portrait');
-      } else {
-        setStreamOrientation('landscape');
-      }
-
-      // Set menu enabled state from stream data (database column is tipMenuEnabled)
-      // Only update if we get a definitive boolean value to avoid race conditions
-      if (typeof streamData.tipMenuEnabled === 'boolean') {
-        console.log('[Menu] Stream tipMenuEnabled:', streamData.tipMenuEnabled);
-        setMenuEnabled(streamData.tipMenuEnabled);
-      }
-
-      // Fetch menu items for this creator (for pinned menu display)
-      const creatorId = streamData.creator?.id || streamData.creatorId;
-      console.log('[Menu] Creator ID:', creatorId);
-      if (creatorId) {
-        fetch(`/api/tip-menu/${creatorId}`)
-          .then(res => res.json())
-          .then(menuData => {
-            console.log('[Menu] Menu items fetched:', menuData.items?.length || 0, 'items');
-            if (menuData.items && menuData.items.length > 0) {
-              setMenuItems(menuData.items);
-            }
-          })
-          .catch(err => console.error('Error fetching menu:', err));
-      }
-
-      // Set upcoming ticketed show for late-joining viewers
-      if (streamData.upcomingTicketedShow && !dismissedTicketedStream && !ticketedAnnouncement) {
-        setUpcomingTicketedShow(streamData.upcomingTicketedShow);
-      }
-
-      if (streamData.status === 'ended') {
-        setError('This stream has ended');
-      }
-    } catch (err) {
-      setError('Failed to load stream');
-      console.error('[TheaterMode] Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch active poll for late-joining viewers
-  const fetchPoll = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/polls`);
-      const data = await response.json();
-      if (response.ok && data.poll) {
-        console.log('[Viewer] Poll fetched:', data.poll);
-        setActivePoll(data.poll);
-      } else {
-        setActivePoll(null);
-      }
-    } catch (err) {
-      console.error('[Viewer] Error fetching poll:', err);
-    }
-  };
-
-  // Fetch active countdown for late-joining viewers
-  const fetchCountdown = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/countdown`);
-      const data = await response.json();
-      if (response.ok && data.countdown) {
-        console.log('[Viewer] Countdown fetched:', data.countdown);
-        setActiveCountdown(data.countdown);
-      } else {
-        setActiveCountdown(null);
-      }
-    } catch (err) {
-      console.error('[Viewer] Error fetching countdown:', err);
-    }
-  };
-
-  // Fetch active guest for late-joining viewers
-  const fetchActiveGuest = async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/guest`);
-      const data = await response.json();
-      if (response.ok && data.activeGuest) {
-        console.log('[Viewer] Active guest fetched:', data.activeGuest);
-        setActiveGuest(data.activeGuest);
-      }
-    } catch (err) {
-      console.error('[Viewer] Error fetching active guest:', err);
-    }
-  };
-
-  const loadCurrentUser = async () => {
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const response = await fetch('/api/user/profile');
-        const data = await response.json();
-        setCurrentUser(data.user);
-
-        // Load wallet balance
-        const walletResponse = await fetch('/api/wallet/balance');
-        const walletData = await walletResponse.json();
-        setUserBalance(walletData.balance || 0);
-      }
-    } catch (error) {
-      console.error('[TheaterMode] Error loading user:', error);
-    }
-  };
 
   // Toggle mute
   const toggleMute = () => {
@@ -1494,189 +1184,23 @@ export default function TheaterModePage() {
 
           {/* Mobile Chat Section - below action bar */}
           <div className="lg:hidden flex-1 flex flex-col min-h-0 bg-black/40">
-            {/* Pinned Menu Preview - always visible when menu is enabled */}
             {menuEnabled && menuItems.length > 0 && (
-              <div className="px-3 pt-2 flex-shrink-0">
-                <div
-                  className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
-                  onClick={() => setShowMenuModal(true)}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
-                      <List className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="font-bold text-pink-300 text-xs">Menu</span>
-                  </div>
-                  <div className="space-y-1 ml-8">
-                    {menuItems.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="text-white/90 truncate">
-                          {item.emoji || '🎁'} {item.label}
-                        </span>
-                        <span className="text-yellow-400 font-bold ml-2 flex items-center gap-0.5">
-                          <Coins className="w-3 h-3" />
-                          {item.price}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {menuItems.length > 3 && (
-                    <div className="text-white/50 text-[10px] ml-8 mt-1">{menuItems.length - 3} more item{menuItems.length - 3 > 1 ? 's' : ''} available...</div>
-                  )}
-                </div>
-              </div>
+              <PinnedMenuPreview menuItems={menuItems} onOpenMenu={() => setShowMenuModal(true)} variant="mobile" />
             )}
-            {/* Chat Messages - use more height in landscape mode */}
-            <div
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[35dvh] min-h-[150px] landscape:max-h-[45dvh] landscape:min-h-[120px]"
-            >
-              {messages.length === 0 ? (
-                <div className="text-center text-gray-400 text-xs py-4">
-                  No messages yet. Be the first to chat!
-                </div>
-              ) : (
-                displayMessages.map((msg) => (
-                  msg.messageType === 'tip' ? (
-                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
-                      {msg.avatarUrl ? (
-                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-green-400 flex items-center justify-center text-[10px] font-bold text-green-900">
-                          {msg.username?.[0]?.toUpperCase() || '?'}
-                        </div>
-                      )}
-                      <span className="font-bold text-green-300 text-xs">@{msg.username}</span>
-                      <Coins className="w-3 h-3 text-green-400" />
-                      <span className="font-bold text-green-400 text-xs">{msg.tipAmount}</span>
-                    </div>
-                  ) : msg.messageType === 'gift' ? (
-                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30">
-                      {msg.avatarUrl ? (
-                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-[10px] font-bold text-pink-900">
-                          {msg.username?.[0]?.toUpperCase() || '?'}
-                        </div>
-                      )}
-                      <span className="font-bold text-pink-300 text-xs">@{msg.username}</span>
-                      {msg.giftName ? (
-                        <>
-                          <span className="text-white/70 text-xs">sent</span>
-                          {msg.giftQuantity && msg.giftQuantity > 1 && (
-                            <span className="font-bold text-pink-400 text-xs">{msg.giftQuantity}x</span>
-                          )}
-                          <span className="text-base">{msg.giftEmoji}</span>
-                          <span className="font-bold text-pink-200 text-xs">{msg.giftName}</span>
-                        </>
-                      ) : (
-                        <span className="text-white/90 text-xs">{msg.content}</span>
-                      )}
-                    </div>
-                  ) : msg.messageType === 'ticket_purchase' ? (
-                    <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
-                      {msg.avatarUrl ? (
-                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-bold text-amber-900">
-                          {msg.username?.[0]?.toUpperCase() || '?'}
-                        </div>
-                      )}
-                      <span className="font-bold text-amber-300 text-xs">@{msg.username}</span>
-                      <span className="text-white/70 text-xs">bought a ticket</span>
-                      <Ticket className="w-3 h-3 text-amber-400" />
-                    </div>
-                  ) : (
-                    <div key={msg.id} className="flex gap-2">
-                      {msg.avatarUrl ? (
-                        <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover flex-shrink-0" unoptimized />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
-                          {msg.username?.[0]?.toUpperCase() || '?'}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <span className={`font-bold text-xs ${msg.isCreator ? 'text-yellow-400' : 'text-cyan-300'}`}>
-                          @{msg.username}
-                        </span>
-                        {msg.isCreator && (
-                          <span className="ml-1 text-[9px] px-1 py-0.5 bg-yellow-500/30 text-yellow-300 rounded">Creator</span>
-                        )}
-                        <p className="text-white text-xs break-words">{msg.content}</p>
-                      </div>
-                    </div>
-                  )
-                ))
-              )}
-            </div>
-
-            {/* Mobile Chat Input */}
-            <div className="px-3 py-2 border-t border-cyan-400/20 bg-black/60 pb-[calc(60px+env(safe-area-inset-bottom))]">
-              {/* Ticketed Mode - Chat disabled for non-ticket holders */}
-              {ticketedModeActive && !hasTicket ? (
-                <div className="flex items-center justify-center gap-3 py-3">
-                  <Ticket className="w-5 h-5 text-amber-400" />
-                  <span className="text-amber-300 font-medium">Buy a ticket to chat</span>
-                </div>
-              ) : currentUser ? (
-                userBalance > 0 ? (
-                  <div className="space-y-2">
-                    {/* Balance indicator */}
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-[10px] text-white/50">Chat is free for coin holders</span>
-                      <button
-                        onClick={() => setShowBuyCoinsModal(true)}
-                        className="flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300"
-                      >
-                        <Coins className="w-3 h-3" />
-                        <span className="font-semibold">{userBalance.toLocaleString()}</span>
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                        placeholder="Say something..."
-                        disabled={sendingMessage}
-                        className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 disabled:opacity-50 text-[16px]"
-                      />
-                      <button
-                        onClick={sendMessage}
-                        disabled={!messageInput.trim() || sendingMessage}
-                        className="min-w-[48px] min-h-[48px] p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full disabled:opacity-50 flex items-center justify-center shadow-lg shadow-cyan-500/30"
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <Coins className="w-4 h-4 text-amber-400" />
-                      <span className="text-amber-300 font-medium text-sm">Buy coins to chat</span>
-                    </div>
-                    <button
-                      onClick={() => setShowBuyCoinsModal(true)}
-                      className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-full text-sm shadow-lg"
-                    >
-                      Get Coins
-                    </button>
-                  </div>
-                )
-              ) : (
-                <div className="flex items-center justify-center gap-2 py-3 text-sm">
-                  <button
-                    onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
-                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-full shadow-lg"
-                  >
-                    Sign in
-                  </button>{' '}
-                  to chat
-                </div>
-              )}
-            </div>
+            <ViewerChatMessages messages={displayMessages} chatContainerRef={chatContainerRef} variant="mobile" />
+            <ViewerChatInput
+              messageInput={messageInput}
+              onMessageChange={setMessageInput}
+              onSend={sendMessage}
+              sendingMessage={sendingMessage}
+              currentUser={currentUser}
+              userBalance={userBalance}
+              ticketedModeActive={ticketedModeActive}
+              hasTicket={hasTicket}
+              onBuyCoins={() => setShowBuyCoinsModal(true)}
+              onLogin={() => router.push(`/login?redirect=/live/${streamId}`)}
+              variant="mobile"
+            />
           </div>
 
           {/* Action Buttons Bar - desktop only */}
@@ -1799,346 +1323,29 @@ export default function TheaterModePage() {
             {/* Chat View */}
             {!showViewerList && (
               <>
-                {/* Pinned Menu Preview - always visible when menu is enabled */}
                 {menuEnabled && menuItems.length > 0 && (
-                  <div className="p-3 flex-shrink-0 border-b border-pink-400/20">
-                    <div
-                      className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-pink-500/20 border border-pink-400/40 cursor-pointer hover:border-pink-400/60 transition-all"
-                      onClick={() => setShowMenuModal(true)}
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                          <List className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="font-bold text-pink-300">Menu</span>
-                      </div>
-                      <div className="space-y-2 ml-10">
-                        {menuItems.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
-                            <span className="text-white/90 truncate">
-                              {item.emoji || '🎁'} {item.label}
-                            </span>
-                            <span className="text-yellow-400 font-bold ml-3 flex items-center gap-1">
-                              <Coins className="w-3.5 h-3.5" />
-                              {item.price}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {menuItems.length > 3 && (
-                        <div className="text-white/50 text-xs ml-10 mt-1">{menuItems.length - 3} more item{menuItems.length - 3 > 1 ? 's' : ''} available...</div>
-                      )}
-                    </div>
-                  </div>
+                  <PinnedMenuPreview menuItems={menuItems} onOpenMenu={() => setShowMenuModal(true)} variant="desktop" />
                 )}
-                {/* Messages */}
-                <div
-                  ref={chatContainerRef}
-                  className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-cyan-500/5 to-transparent"
-                >
-                  {messages.length === 0 ? (
-                    <div className="text-center text-gray-400 text-sm mt-10 font-medium">
-                      No messages yet. Be the first to chat!
-                    </div>
-                  ) : (
-                    messages.map((msg) => (
-                      msg.messageType === 'tip' ? (
-                        // Tip message - highlighted
-                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                          <div className="flex items-center gap-2">
-                            {msg.avatarUrl ? (
-                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-xs font-bold">
-                                {msg.username?.[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                            <span className="font-bold text-green-300">@{msg.username}</span>
-                            <Coins className="w-4 h-4 text-green-400" />
-                            <span className="font-bold text-green-400">{msg.tipAmount}</span>
-                          </div>
-                        </div>
-                      ) : msg.messageType === 'gift' ? (
-                        // Gift message - highlighted with emoji
-                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
-                          <div className="flex items-center gap-2">
-                            {msg.avatarUrl ? (
-                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-xs font-bold">
-                                {msg.username?.[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                            <span className="font-bold text-pink-300">@{msg.username}</span>
-                            {msg.giftName ? (
-                              <>
-                                <span className="text-white/70">sent</span>
-                                {msg.giftQuantity && msg.giftQuantity > 1 && (
-                                  <span className="font-bold text-pink-400">{msg.giftQuantity}x</span>
-                                )}
-                                <span className="text-xl">{msg.giftEmoji}</span>
-                                <span className="font-bold text-pink-400">{msg.giftName}</span>
-                              </>
-                            ) : (
-                              <span className="text-white/90">{msg.content}</span>
-                            )}
-                          </div>
-                        </div>
-                      ) : msg.messageType === 'ticket_purchase' ? (
-                        // Ticket purchase message - highlighted with amber/gold
-                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                          <div className="flex items-center gap-2">
-                            {msg.avatarUrl ? (
-                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center text-xs font-bold text-black">
-                                {msg.username?.[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                            <span className="font-bold text-amber-300">@{msg.username}</span>
-                            <span className="text-white/70">bought a ticket</span>
-                            <Ticket className="w-4 h-4 text-amber-400" />
-                            {msg.ticketPrice && (
-                              <>
-                                <Coins className="w-3 h-3 text-amber-400" />
-                                <span className="font-bold text-amber-400">{msg.ticketPrice}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ) : msg.messageType === 'menu_purchase' || msg.messageType === 'menu_order' || msg.messageType === 'menu_tip' ? (
-                        // Menu item purchase/order - highlighted with purple/pink gradient
-                        <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                          <div className="flex items-start gap-2">
-                            {msg.avatarUrl ? (
-                              <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold">
-                                {msg.username?.[0]?.toUpperCase() || '?'}
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <span className="font-bold text-purple-300">@{msg.username}</span>
-                              <p className="text-sm text-white/90 mt-0.5">{msg.content}</p>
-                              {msg.tipAmount && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Coins className="w-3 h-3 text-purple-400" />
-                                  <span className="font-bold text-purple-400">{msg.tipAmount}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                      // Regular chat message
-                      <div key={msg.id} className="flex gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
-                        {msg.avatarUrl ? (
-                          <Image
-                            src={msg.avatarUrl}
-                            alt={msg.username}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-cyan-400/30"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">
-                            {msg.username?.[0]?.toUpperCase() || '?'}
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-sm font-bold ${
-                                msg.isCreator ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-cyan-100'
-                              }`}
-                            >
-                              @{msg.username}
-                            </span>
-                            {msg.isCreator && (
-                              <span className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 text-yellow-300 rounded border border-yellow-400/30 font-semibold">
-                                Creator
-                              </span>
-                            )}
-                            {msg.isModerator && (
-                              <span className="text-xs px-1.5 py-0.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-purple-300 rounded border border-purple-400/30 font-semibold">
-                                Mod
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-white/95 break-words leading-relaxed">
-                            {msg.content}
-                          </p>
-                        </div>
-                      </div>
-                      )
-                    ))
-                  )}
-                </div>
-
-                {/* Message Input - extra padding on mobile for floating gift bar */}
-                <div className="p-4 pb-20 lg:pb-4 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5 backdrop-blur-xl">
-                  {/* Ticketed Mode - Chat disabled for non-ticket holders */}
-                  {ticketedModeActive && !hasTicket ? (
-                    <div className="text-center py-3">
-                      <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                        <p className="text-amber-300 font-medium">
-                          <Ticket className="w-4 h-4 inline mr-1" />
-                          Buy a ticket to chat
-                        </p>
-                      </div>
-                    </div>
-                  ) : currentUser ? (
-                    userBalance > 0 ? (
-                      <div className="space-y-2">
-                        {/* Balance indicator - desktop */}
-                        <div className="hidden lg:flex items-center justify-between px-1">
-                          <span className="text-xs text-white/50">Chat is free for coin holders</span>
-                          <button
-                            onClick={() => setShowBuyCoinsModal(true)}
-                            className="flex items-center gap-1 text-xs text-yellow-400 hover:text-yellow-300 transition-colors"
-                          >
-                            <Coins className="w-3 h-3" />
-                            <span className="font-semibold">{userBalance.toLocaleString()}</span>
-                          </button>
-                        </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                            placeholder="Send a message..."
-                            disabled={sendingMessage}
-                            className="flex-1 px-4 py-3 bg-white/10 border border-cyan-400/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.3)] disabled:opacity-50 backdrop-blur-sm transition-all text-base"
-                          />
-                          <button
-                            onClick={sendMessage}
-                            disabled={!messageInput.trim() || sendingMessage}
-                            className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
-                          >
-                            <Send className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center text-sm pb-12 lg:pb-0">
-                        <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                          <p className="text-amber-300 font-medium">
-                            <Coins className="w-4 h-4 inline mr-1" />
-                            Buy coins to chat
-                          </p>
-                          <button
-                            onClick={() => setShowBuyCoinsModal(true)}
-                            className="mt-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold rounded-full text-sm transition-all hover:scale-105"
-                          >
-                            Get Coins
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  ) : (
-                    <div className="text-center py-3">
-                      <button
-                        onClick={() => router.push(`/login?redirect=/live/${streamId}`)}
-                        className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-all"
-                      >
-                        Sign in to chat
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <ViewerChatMessages messages={messages} chatContainerRef={chatContainerRef} variant="desktop" />
+                <ViewerChatInput
+                  messageInput={messageInput}
+                  onMessageChange={setMessageInput}
+                  onSend={sendMessage}
+                  sendingMessage={sendingMessage}
+                  currentUser={currentUser}
+                  userBalance={userBalance}
+                  ticketedModeActive={ticketedModeActive}
+                  hasTicket={hasTicket}
+                  onBuyCoins={() => setShowBuyCoinsModal(true)}
+                  onLogin={() => router.push(`/login?redirect=/live/${streamId}`)}
+                  variant="desktop"
+                />
               </>
             )}
 
             {/* Viewer List View */}
             {showViewerList && (
-              <div className="flex-1 overflow-y-auto bg-gradient-to-b from-cyan-500/5 to-transparent">
-                {/* Top Supporters Section */}
-                {leaderboard && leaderboard.length > 0 && (
-                  <div className="p-4 border-b border-cyan-400/20">
-                    <h3 className="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2">
-                      <span className="text-lg">🏆</span> Top Supporters
-                    </h3>
-                    <div className="space-y-2">
-                      {leaderboard.slice(0, 5).map((supporter, index) => (
-                        <div
-                          key={supporter.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg ${
-                            index === 0 ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30' :
-                            index === 1 ? 'bg-gradient-to-r from-gray-400/20 to-gray-300/20 border border-gray-400/30' :
-                            index === 2 ? 'bg-gradient-to-r from-orange-600/20 to-orange-500/20 border border-orange-500/30' :
-                            'bg-white/5'
-                          }`}
-                        >
-                          <span className={`text-sm font-bold w-5 ${
-                            index === 0 ? 'text-yellow-400' :
-                            index === 1 ? 'text-gray-300' :
-                            index === 2 ? 'text-orange-400' :
-                            'text-white/50'
-                          }`}>
-                            {index + 1}
-                          </span>
-                          {supporter.avatarUrl ? (
-                            <Image src={supporter.avatarUrl} alt={supporter.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" unoptimized />
-                          ) : (
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
-                              {supporter.username?.[0]?.toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-sm font-medium text-white truncate flex-1">{supporter.username}</span>
-                          <div className="flex items-center gap-1 text-xs">
-                            <Coins className="w-3 h-3 text-yellow-400" />
-                            <span className="text-yellow-400 font-bold">{supporter.totalSpent?.toLocaleString() || 0}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Active Viewers */}
-                <div className="p-4">
-                  <h3 className="text-sm font-bold text-white/70 mb-3 flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Watching Now
-                  </h3>
-                  {viewers.length === 0 ? (
-                    <div className="text-center text-gray-400 text-sm py-4">
-                      Loading viewers...
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {viewers.map((viewer) => (
-                        <div
-                          key={viewer.id}
-                          className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-cyan-400/20"
-                        >
-                          {viewer.avatarUrl ? (
-                            <img
-                              src={viewer.avatarUrl}
-                              alt={viewer.username}
-                              className="w-8 h-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
-                              {viewer.displayName?.[0] || viewer.username?.[0] || '?'}
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium truncate text-white">
-                              {viewer.displayName || viewer.username}
-                            </div>
-                            <div className="text-xs text-white/50 truncate">
-                              @{viewer.username}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ViewerListPanel viewers={viewers} leaderboard={leaderboard} />
             )}
           </div>
         )}
@@ -2167,36 +1374,10 @@ export default function TheaterModePage() {
 
       {/* Stream Ended Full-Screen Overlay */}
       {streamEnded && (
-        <div className="fixed inset-0 z-[200] bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-          <div className="text-center p-8 max-w-md mx-auto">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-8">Stream has ended</h2>
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={() => router.push(`/${stream?.creator.username}`)}
-                className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-semibold hover:scale-105 transition-all text-lg"
-              >
-                View Creator Profile
-              </button>
-              <button
-                onClick={() => router.push('/watch')}
-                className="w-full px-6 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all text-lg"
-              >
-                Browse Live Streams
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className="w-full px-6 py-3 text-gray-400 hover:text-white transition-colors"
-              >
-                Go Home
-              </button>
-            </div>
-          </div>
-        </div>
+        <StreamEndedOverlay
+          creatorUsername={stream?.creator.username || ''}
+          onNavigate={(path) => router.push(path)}
+        />
       )}
 
       {/* Floating Gift Emojis Animation */}
@@ -2289,184 +1470,35 @@ export default function TheaterModePage() {
 
       {/* Ticketed Show Announcement Popup */}
       {ticketedAnnouncement && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-safe" role="dialog" aria-modal="true" aria-label="Ticketed show announcement">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-md"
-            onClick={() => {
-              // Save the ticketed stream info before dismissing
-              setDismissedTicketedStream({
-                ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
-                title: ticketedAnnouncement.title,
-                ticketPrice: ticketedAnnouncement.ticketPrice,
-                startsAt: ticketedAnnouncement.startsAt,
-              });
-              setTicketedAnnouncement(null);
-            }}
-          />
-          {/* Modal */}
-          <div className="relative w-full max-w-sm bg-gradient-to-br from-amber-900/95 via-black/98 to-purple-900/95 rounded-2xl border-2 border-amber-500/60 shadow-[0_0_60px_rgba(245,158,11,0.4)] p-6 animate-slideUp">
-            {/* Close button */}
-            <button
-              onClick={() => {
-                // Save the ticketed stream info before dismissing
-                setDismissedTicketedStream({
-                  ticketedStreamId: ticketedAnnouncement.ticketedStreamId,
-                  title: ticketedAnnouncement.title,
-                  ticketPrice: ticketedAnnouncement.ticketPrice,
-                  startsAt: ticketedAnnouncement.startsAt,
-                });
-                setTicketedAnnouncement(null);
-              }}
-              className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Ticketed Badge */}
-            <div className="flex justify-center mb-3">
-              <div className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full text-black font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/30">
-                <Ticket className="w-4 h-4" />
-                PRIVATE STREAM
-              </div>
-            </div>
-
-            {/* Title */}
-            <h3 className="text-xl font-bold text-white text-center mb-2">
-              {ticketedAnnouncement.title}
-            </h3>
-
-            {/* Time */}
-            <p className="text-amber-300 text-center text-sm mb-4">
-              Starts in {ticketedAnnouncement.minutesUntilStart} minutes
-            </p>
-
-            {/* Price + Balance */}
-            <div className="flex flex-col items-center gap-1 mb-4">
-              <div className="flex items-center gap-2">
-                <Coins className="w-6 h-6 text-yellow-400" />
-                <span className="text-3xl font-bold text-white">
-                  {ticketedAnnouncement.ticketPrice}
-                </span>
-                <span className="text-gray-400">coins</span>
-              </div>
-              {currentUser && (
-                <p className="text-xs text-gray-400">
-                  Your balance: {userBalance} coins
-                  {userBalance < ticketedAnnouncement.ticketPrice && (
-                    <button
-                      onClick={() => setShowBuyCoinsModal(true)}
-                      className="ml-2 text-cyan-400 hover:underline"
-                    >
-                      Get more
-                    </button>
-                  )}
-                </p>
-              )}
-            </div>
-
-            {/* Buy Button - Instant Purchase */}
-            <button
-              onClick={() => handleQuickBuyTicket(ticketedAnnouncement.ticketedStreamId, ticketedAnnouncement.ticketPrice)}
-              disabled={quickBuyLoading}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:via-yellow-400 hover:to-amber-400 rounded-xl font-bold text-black text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {quickBuyLoading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  <span>Purchasing...</span>
-                </>
-              ) : (
-                <>
-                  <Ticket className="w-5 h-5" />
-                  Buy Ticket
-                </>
-              )}
-            </button>
-
-            {/* Dismiss text */}
-            <p className="text-center text-gray-500 text-xs mt-3">
-              Tap outside to dismiss
-            </p>
-          </div>
-        </div>
+        <TicketAnnouncementModal
+          announcement={ticketedAnnouncement}
+          userBalance={userBalance}
+          currentUser={currentUser}
+          quickBuyLoading={quickBuyLoading}
+          onPurchase={handleQuickBuyTicket}
+          onDismiss={(dismissed) => {
+            setDismissedTicketedStream(dismissed);
+            setTicketedAnnouncement(null);
+          }}
+          onBuyCoins={() => setShowBuyCoinsModal(true)}
+        />
       )}
 
       {/* Simple Quick Buy Modal - for persistent button */}
       {showQuickBuyModal && quickBuyInfo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Buy ticket">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => {
-              setShowQuickBuyModal(false);
-              setQuickBuyInfo(null);
-            }}
-          />
-          <div className="relative w-full max-w-xs bg-gradient-to-br from-amber-900/95 via-black/98 to-black/95 rounded-2xl border border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)] p-5">
-            {/* Close button */}
-            <button
-              onClick={() => {
-                setShowQuickBuyModal(false);
-                setQuickBuyInfo(null);
-              }}
-              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Title */}
-            <h3 className="text-lg font-bold text-white text-center mb-1 pr-6">
-              {quickBuyInfo.title}
-            </h3>
-
-            {/* Countdown */}
-            {ticketCountdown && (
-              <p className="text-amber-400 text-center text-sm mb-4">
-                Starts in {ticketCountdown}
-              </p>
-            )}
-
-            {/* Price */}
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Coins className="w-7 h-7 text-yellow-400" />
-              <span className="text-4xl font-bold text-white">{quickBuyInfo.price}</span>
-            </div>
-
-            {/* Balance */}
-            {currentUser && (
-              <p className="text-center text-xs text-gray-400 mb-4">
-                Your balance: {userBalance} coins
-                {userBalance < quickBuyInfo.price && (
-                  <button
-                    onClick={() => setShowBuyCoinsModal(true)}
-                    className="ml-2 text-cyan-400 hover:underline"
-                  >
-                    Get more
-                  </button>
-                )}
-              </p>
-            )}
-
-            {/* Buy Button */}
-            <button
-              onClick={() => handleQuickBuyTicket(quickBuyInfo.showId, quickBuyInfo.price)}
-              disabled={quickBuyLoading}
-              className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 rounded-xl font-bold text-black text-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {quickBuyLoading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  <span>Buying...</span>
-                </>
-              ) : (
-                <>
-                  <Ticket className="w-5 h-5" />
-                  Buy Now
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+        <QuickBuyTicketModal
+          quickBuyInfo={quickBuyInfo}
+          ticketCountdown={ticketCountdown}
+          userBalance={userBalance}
+          currentUser={currentUser}
+          quickBuyLoading={quickBuyLoading}
+          onPurchase={handleQuickBuyTicket}
+          onClose={() => {
+            setShowQuickBuyModal(false);
+            setQuickBuyInfo(null);
+          }}
+          onBuyCoins={() => setShowBuyCoinsModal(true)}
+        />
       )}
 
       {/* Buy Coins Modal */}
@@ -2482,44 +1514,10 @@ export default function TheaterModePage() {
 
       {/* Digital Download Confirmation Modal */}
       {digitalDownload?.show && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-gray-900 to-black border border-green-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                <CheckCircle className="w-10 h-10 text-green-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Purchase Complete!</h3>
-              <p className="text-gray-400 mb-4">
-                You purchased <span className="text-green-400 font-semibold">{digitalDownload.itemLabel}</span> for {digitalDownload.amount} coins
-              </p>
-              {isValidDownloadUrl(digitalDownload.url) ? (
-                <a
-                  href={digitalDownload.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-semibold rounded-xl transition-all mb-3"
-                >
-                  <Download className="w-5 h-5" />
-                  Download Now
-                </a>
-              ) : (
-                <div className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-gray-600 text-gray-300 font-semibold rounded-xl mb-3">
-                  <Download className="w-5 h-5" />
-                  Download unavailable
-                </div>
-              )}
-              <p className="text-xs text-gray-500 mb-4">
-                This link will also be saved in your purchase history
-              </p>
-              <button
-                onClick={() => setDigitalDownload(null)}
-                className="text-gray-400 hover:text-white text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <DigitalDownloadModal
+          digitalDownload={digitalDownload}
+          onClose={() => setDigitalDownload(null)}
+        />
       )}
     </div>
   );
