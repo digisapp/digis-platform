@@ -138,16 +138,16 @@ describe('StreamErrorBoundary', () => {
 
     // Retry 3 times (0 -> 1, 1 -> 2, 2 -> 3)
     boundary.handleRetry();
-    boundary.state.hasError = true; // simulating re-error
+    Object.assign(boundary.state, { hasError: true }); // simulating re-error
     boundary.handleRetry();
-    boundary.state.hasError = true;
+    Object.assign(boundary.state, { hasError: true });
     boundary.handleRetry();
 
     expect(boundary.state.retryCount).toBe(3);
     expect(onRetry).toHaveBeenCalledTimes(3);
 
     // 4th retry should no-op
-    boundary.state.hasError = true;
+    Object.assign(boundary.state, { hasError: true });
     boundary.handleRetry();
     expect(boundary.state.retryCount).toBe(3);
     expect(onRetry).toHaveBeenCalledTimes(3);
@@ -294,8 +294,7 @@ describe('PaymentErrorBoundary', () => {
     expect(onRetry).toHaveBeenCalledOnce();
 
     // Retry again - still works
-    boundary.state.hasError = true;
-    boundary.state.error = new Error('fail again');
+    Object.assign(boundary.state, { hasError: true, error: new Error('fail again') });
     boundary.handleRetry();
     expect(onRetry).toHaveBeenCalledTimes(2);
   });
