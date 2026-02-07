@@ -218,6 +218,7 @@ export default function TheaterModePage() {
   const [menuEnabled, setMenuEnabled] = useState(true); // Menu enabled by default
 
   // Chat state
+  const MAX_CHAT_MESSAGES = 200;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
@@ -433,7 +434,8 @@ export default function TheaterModePage() {
         if (recentDuplicate) {
           return prev;
         }
-        return [...prev, chatMessage];
+        const next = [...prev, chatMessage];
+        return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
       });
     },
     onGift: (giftEvent) => {
@@ -452,19 +454,22 @@ export default function TheaterModePage() {
         });
 
         // Add gift message to chat
-        setMessages(prev => [...prev, {
-          id: `gift-${Date.now()}`,
-          userId: giftEvent.streamGift.senderId,
-          username: giftEvent.streamGift.senderUsername,
-          displayName: null,
-          avatarUrl: giftEvent.streamGift.senderAvatarUrl || null,
-          content: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.name}`,
-          timestamp: Date.now(),
-          messageType: 'gift',
-          giftEmoji: giftEvent.gift.emoji,
-          giftName: giftEvent.gift.name,
-          giftQuantity: giftEvent.streamGift.quantity,
-        }]);
+        setMessages(prev => {
+          const next = [...prev, {
+            id: `gift-${Date.now()}`,
+            userId: giftEvent.streamGift.senderId,
+            username: giftEvent.streamGift.senderUsername,
+            displayName: null,
+            avatarUrl: giftEvent.streamGift.senderAvatarUrl || null,
+            content: `sent ${giftEvent.streamGift.quantity > 1 ? giftEvent.streamGift.quantity + 'x ' : ''}${giftEvent.gift.name}`,
+            timestamp: Date.now(),
+            messageType: 'gift' as const,
+            giftEmoji: giftEvent.gift.emoji,
+            giftName: giftEvent.gift.name,
+            giftQuantity: giftEvent.streamGift.quantity,
+          }];
+          return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+        });
       }
       // Refresh goals when gift received
       loadStream();
@@ -488,17 +493,20 @@ export default function TheaterModePage() {
       }
 
       // Add tip message to chat
-      setMessages(prev => [...prev, {
-        id: `tip-${Date.now()}`,
-        userId: tipEvent.senderId,
-        username: tipEvent.senderUsername,
-        displayName: null,
-        avatarUrl: tipEvent.senderAvatarUrl || null,
-        content,
-        timestamp: Date.now(),
-        messageType,
-        tipAmount: tipEvent.amount,
-      }]);
+      setMessages(prev => {
+        const next = [...prev, {
+          id: `tip-${Date.now()}`,
+          userId: tipEvent.senderId,
+          username: tipEvent.senderUsername,
+          displayName: null,
+          avatarUrl: tipEvent.senderAvatarUrl || null,
+          content,
+          timestamp: Date.now(),
+          messageType,
+          tipAmount: tipEvent.amount,
+        }];
+        return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+      });
       // Refresh goals when tip received
       loadStream();
     },
@@ -955,7 +963,10 @@ export default function TheaterModePage() {
       isCreator: currentUser.id === stream?.creator.id,
     };
 
-    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessages((prev) => {
+      const next = [...prev, optimisticMessage];
+      return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+    });
     setMessageInput('');
     setSendingMessage(true);
 

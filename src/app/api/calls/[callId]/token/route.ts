@@ -4,6 +4,7 @@ import { db } from '@/lib/data/system';
 import { calls } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { LiveKitService } from '@/lib/services/livekit-service';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -14,6 +15,15 @@ export async function GET(
   { params }: { params: Promise<{ callId: string }> }
 ) {
   try {
+    // Rate limit token requests to prevent abuse (10/min per IP)
+    const rateLimitResult = await rateLimit(request, 'call-token');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { error: 'Too many token requests' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const { callId } = await params;
     const supabase = await createClient();
     const {

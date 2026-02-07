@@ -331,9 +331,16 @@ export class CallService {
     const endTime = new Date();
     const startTime = call.startedAt || call.acceptedAt || new Date();
     const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
-    const durationMinutes = Math.ceil(durationSeconds / 60);
+    const actualMinutes = Math.ceil(durationSeconds / 60);
 
-    // Calculate what we'd ideally charge based on duration
+    // Enforce minimum call duration billing if the call actually started
+    // The hold was pre-calculated for the minimum duration, so coins are already reserved
+    const minimumBilledMinutes = call.startedAt
+      ? Math.ceil((call.estimatedCoins || 0) / (call.ratePerMinute || 1))
+      : 0;
+    const durationMinutes = Math.max(actualMinutes, minimumBilledMinutes);
+
+    // Calculate what we'd ideally charge based on duration (with minimum enforced)
     const calculatedCoins = call.ratePerMinute * durationMinutes;
 
     // Use a single transaction with FOR UPDATE locks to prevent race conditions

@@ -135,6 +135,7 @@ const bucketToLimiter: Record<string, keyof typeof limiters> = {
   // CRITICAL: Call operations
   'calls:request': 'callRequest',
   'calls:initiate': 'callRequest',
+  'call-token': 'strict',           // 10 req/min - token generation
   // Auth endpoints
   'auth:otp': 'strict',
   'auth:login': 'authLogin',

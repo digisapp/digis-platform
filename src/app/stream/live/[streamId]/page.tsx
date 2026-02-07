@@ -218,6 +218,7 @@ export default function BroadcastStudioPage() {
   const preferredAudioDevice = searchParams.get('audio') || undefined;
 
   const [stream, setStream] = useState<Stream | null>(null);
+  const MAX_CHAT_MESSAGES = 200;
   const [messages, setMessages] = useState<StreamMessage[]>([]);
   const [token, setToken] = useState<string>('');
   const [serverUrl, setServerUrl] = useState<string>('');
@@ -508,7 +509,8 @@ export default function BroadcastStudioPage() {
         if (prev.some(m => m.id === streamMessage.id)) {
           return prev;
         }
-        return [...prev, streamMessage];
+        const next = [...prev, streamMessage];
+        return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
       });
     },
     onGift: (giftEvent) => {
@@ -545,7 +547,10 @@ export default function BroadcastStudioPage() {
         user: { avatarUrl: giftEvent.streamGift.senderAvatarUrl || null },
         createdAt: new Date(),
       };
-      setMessages((prev) => [...prev, giftMessage as unknown as StreamMessage]);
+      setMessages((prev) => {
+        const next = [...prev, giftMessage as unknown as StreamMessage];
+        return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+      });
       // Update goals progress and leaderboard
       fetchGoals();
       fetchLeaderboard();
@@ -598,7 +603,10 @@ export default function BroadcastStudioPage() {
           avatarUrl: tipData.senderAvatarUrl || null,
         },
       } as unknown as StreamMessage;
-      setMessages((prev) => [...prev, tipMessage]);
+      setMessages((prev) => {
+        const next = [...prev, tipMessage];
+        return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+      });
 
       // Add floating emoji for visual feedback (limit to 50 to prevent memory issues)
       setFloatingGifts(prev => {
@@ -750,12 +758,10 @@ export default function BroadcastStudioPage() {
     return () => clearInterval(interval);
   }, [announcedTicketedStream, vipModeActive]);
 
-  // Poll for active poll vote updates (every 15 seconds) as fallback - Ably handles real-time updates
+  // Fetch poll data once when poll becomes active (Ably handles real-time updates via onPollUpdate)
   useEffect(() => {
     if (!activePoll?.isActive) return;
-
-    const interval = setInterval(fetchPoll, 15000);
-    return () => clearInterval(interval);
+    fetchPoll();
   }, [activePoll?.isActive, streamId]);
 
   const fetchStreamDetails = async () => {
@@ -901,7 +907,10 @@ export default function BroadcastStudioPage() {
               giftAmount: null,
               createdAt: new Date(),
             };
-            setMessages((prev) => [...prev, goalCompleteMessage as StreamMessage]);
+            setMessages((prev) => {
+              const next = [...prev, goalCompleteMessage as StreamMessage];
+              return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
+            });
           }
         });
 
@@ -998,7 +1007,8 @@ export default function BroadcastStudioPage() {
           if (prev.some(m => m.id === data.message.id)) {
             return prev;
           }
-          return [...prev, data.message as StreamMessage];
+          const next = [...prev, data.message as StreamMessage];
+          return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next;
         });
       }
     } catch (err: any) {

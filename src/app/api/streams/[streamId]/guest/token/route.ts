@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, streams, streamGuestRequests, users } from '@/lib/data/system';
 import { eq, and, or } from 'drizzle-orm';
 import { AccessToken } from 'livekit-server-sdk';
+import { TrackSource } from '@livekit/protocol';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
 export const runtime = 'nodejs';
@@ -95,10 +96,13 @@ export async function GET(
     at.addGrant({
       roomJoin: true,
       room: stream.roomName,
-      canPublish: true, // Guests can publish
+      canPublish: true,
       canPublishData: true,
       canSubscribe: true,
-      // For voice-only, they can still publish (audio only) - UI will handle video toggle
+      // Restrict publish sources based on request type (least privilege)
+      canPublishSources: canPublishVideo
+        ? [TrackSource.CAMERA, TrackSource.MICROPHONE, TrackSource.SCREEN_SHARE]
+        : [TrackSource.MICROPHONE],
     });
 
     const token = await at.toJwt();
