@@ -6,3 +6,5 @@ export { ViewerListPanel } from './ViewerListPanel';
 export { PinnedMenuPreview } from './PinnedMenuPreview';
 export { ViewerChatMessages } from './ViewerChatMessages';
 export { ViewerChatInput } from './ViewerChatInput';
+export { ViewerVideoArea } from './ViewerVideoArea';
+export { ViewerFloatingElements } from './ViewerFloatingElements';
