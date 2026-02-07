@@ -683,24 +683,34 @@ export default function TheaterModePage() {
   }, [messages]);
 
   // Load LiveKit token for viewing
+  const loadToken = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/streams/${streamId}/token`);
+      if (response.ok) {
+        const data = await response.json();
+        setToken(data.token);
+        setServerUrl(data.serverUrl);
+      }
+    } catch (error) {
+      console.error('[TheaterMode] Error loading token:', error);
+    }
+  }, [streamId]);
+
   useEffect(() => {
     if (!stream || stream.status !== 'live') return;
-
-    const loadToken = async () => {
-      try {
-        const response = await fetch(`/api/streams/${streamId}/token`);
-        if (response.ok) {
-          const data = await response.json();
-          setToken(data.token);
-          setServerUrl(data.serverUrl);
-        }
-      } catch (error) {
-        console.error('[TheaterMode] Error loading token:', error);
-      }
-    };
-
     loadToken();
-  }, [stream, streamId]);
+  }, [stream, streamId, loadToken]);
+
+  // Refresh LiveKit token before 6-hour TTL expires
+  useEffect(() => {
+    if (!token) return;
+    const REFRESH_MS = 5.5 * 60 * 60 * 1000; // 5.5 hours
+    const timer = setTimeout(() => {
+      console.log('[Viewer] Proactively refreshing token before TTL expiry');
+      loadToken();
+    }, REFRESH_MS);
+    return () => clearTimeout(timer);
+  }, [token, loadToken]);
 
   // Handle when broadcaster leaves the room (stream ended)
   const handleBroadcasterLeft = useCallback(() => {

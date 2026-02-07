@@ -1257,7 +1257,10 @@ export default function VideoCallPage() {
     ? Math.ceil(duration / 60) * callData.ratePerMinute
     : 0;
 
-  // Fetch user balance
+  // Determine if current user is the fan (can send tips to creator)
+  const isFan = user?.id && callData && user.id === callData.fanId;
+
+  // Fetch user balance (once on mount, then poll every 30s during active calls for fans)
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -1271,7 +1274,13 @@ export default function VideoCallPage() {
       }
     };
     fetchBalance();
-  }, []);
+
+    // Poll balance during active calls so the fan sees up-to-date balance
+    if (hasStarted && isFan) {
+      const interval = setInterval(fetchBalance, 30_000);
+      return () => clearInterval(interval);
+    }
+  }, [hasStarted, isFan]);
 
   // Fetch virtual gifts from API (same as live streams)
   useEffect(() => {
@@ -1288,9 +1297,6 @@ export default function VideoCallPage() {
     };
     fetchGifts();
   }, []);
-
-  // Determine if current user is the fan (can send tips to creator)
-  const isFan = user?.id && callData && user.id === callData.fanId;
 
   // Send tip to creator
   const handleSendTip = async (amount: number) => {

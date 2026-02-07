@@ -453,6 +453,13 @@ export default function BroadcastStudioPage() {
     fetchUser();
   }, []);
 
+  // Clear pinned message if the source message was deleted
+  useEffect(() => {
+    if (pinnedMessage && !messages.some(m => m.id === pinnedMessage.id)) {
+      setPinnedMessage(null);
+    }
+  }, [messages, pinnedMessage]);
+
   // Navigation prevention, heartbeat, auto-end handled by extracted hooks above
   // Nav prevention, timer, connection timeout, heartbeat, auto-end
   // are all handled by the extracted hooks declared above.
@@ -467,6 +474,17 @@ export default function BroadcastStudioPage() {
     fetchPoll();
     fetchCountdown();
   }, [streamId]);
+
+  // Refresh LiveKit token before 6-hour TTL expires
+  useEffect(() => {
+    if (!token) return;
+    const REFRESH_MS = 5.5 * 60 * 60 * 1000; // 5.5 hours
+    const timer = setTimeout(() => {
+      console.log('[Broadcast] Proactively refreshing token before TTL expiry');
+      fetchBroadcastToken();
+    }, REFRESH_MS);
+    return () => clearTimeout(timer);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Device orientation and auto-end handled by extracted hooks
 
@@ -832,6 +850,7 @@ export default function BroadcastStudioPage() {
     } catch (err) {
       if (isOnline()) {
         console.error('Error fetching messages:', err);
+        showError('Failed to load messages');
       }
     }
   };
@@ -919,6 +938,7 @@ export default function BroadcastStudioPage() {
     } catch (err) {
       if (isOnline()) {
         console.error('Error fetching goals:', err);
+        showError('Failed to load goals');
       }
     }
   };
@@ -933,6 +953,7 @@ export default function BroadcastStudioPage() {
     } catch (err) {
       if (isOnline()) {
         console.error('Error fetching poll:', err);
+        showError('Failed to load poll');
       }
     }
   };
@@ -947,6 +968,7 @@ export default function BroadcastStudioPage() {
     } catch (err) {
       if (isOnline()) {
         console.error('Error fetching countdown:', err);
+        showError('Failed to load countdown');
       }
     }
   };

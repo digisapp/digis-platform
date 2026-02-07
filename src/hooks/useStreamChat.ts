@@ -308,6 +308,15 @@ export function useStreamChat({
     let connectionStateHandler: ((stateChange: Ably.ConnectionStateChange) => void) | null = null;
 
     const setupChannels = async () => {
+      // Helper to attach a channel with a timeout
+      const attachChannel = (ch: Ably.RealtimeChannel) =>
+        ch.state !== 'attached'
+          ? Promise.race([
+              ch.attach(),
+              new Promise<void>((_, reject) => setTimeout(() => reject(new Error('Channel attach timeout')), 10000)),
+            ])
+          : Promise.resolve();
+
       try {
         const ably = getAblyClient();
 
@@ -375,6 +384,7 @@ export function useStreamChat({
 
         // Subscribe to chat channel (messages, reactions, goals)
         chatChannel = ably.channels.get(`stream:${streamId}:chat`);
+        await attachChannel(chatChannel);
         chatChannel.subscribe('chat', (message) => {
           const chatMsg = message.data as ChatMessage;
           if (mounted) {
@@ -409,6 +419,7 @@ export function useStreamChat({
 
         // Subscribe to tips channel (tips, gifts)
         tipsChannel = ably.channels.get(`stream:${streamId}:tips`);
+        await attachChannel(tipsChannel);
         tipsChannel.subscribe('tip', (message) => {
           callbacksRef.current.onTip?.(message.data as TipEvent);
         });
@@ -458,6 +469,7 @@ export function useStreamChat({
 
         // Subscribe to presence channel (viewer count, stream ended)
         presenceChannel = ably.channels.get(`stream:${streamId}:presence`);
+        await attachChannel(presenceChannel);
         presenceChannel.subscribe('viewer_count', (message) => {
           const data = message.data as { currentViewers: number; peakViewers: number };
           if (mounted) {
