@@ -173,7 +173,6 @@ export function useAdminDashboard() {
   }, [newUsername]);
 
   useEffect(() => {
-    checkAdminAccess();
     fetchStats();
   }, []);
 
@@ -188,18 +187,13 @@ export function useAdminDashboard() {
     if (mainTab === 'traffic' && hasFetchedTraffic) fetchTraffic(trafficRange);
   }, [trafficRange]);
 
-  const checkAdminAccess = async () => {
-    try {
-      const response = await fetch('/api/admin/stats');
-      if (response.status === 403) router.push('/dashboard');
-    } catch (err) {
-      console.error('Access check failed:', err);
-    }
-  };
-
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/admin/stats');
+      if (response.status === 403) {
+        router.push('/dashboard');
+        return;
+      }
       const data = await response.json();
       if (response.ok) setStats(data);
     } catch (err) {

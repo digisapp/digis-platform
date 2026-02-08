@@ -42,6 +42,7 @@ interface PayoutRequest {
 export default function AdminPayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
+  const [payoutStats, setPayoutStats] = useState<Record<string, number>>({ pending: 0, processing: 0, completed: 0, failed: 0 });
   const [filter, setFilter] = useState<'pending' | 'all'>('pending');
   const [selectedPayout, setSelectedPayout] = useState<PayoutRequest | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -63,6 +64,7 @@ export default function AdminPayoutsPage() {
       }
 
       setPayouts(data.payouts);
+      if (data.stats) setPayoutStats(data.stats);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -172,7 +174,7 @@ export default function AdminPayoutsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 pb-24 md:pb-8 md:pl-20">
       <MobileHeader />
 
       {/* Spacer for fixed mobile header */}
@@ -187,7 +189,7 @@ export default function AdminPayoutsPage() {
               <span className="text-xs text-gray-400">Pending</span>
             </div>
             <p className="text-2xl font-bold text-white">
-              {payouts.filter(p => p.status === 'pending').length}
+              {payoutStats.pending}
             </p>
           </GlassCard>
 
@@ -197,7 +199,7 @@ export default function AdminPayoutsPage() {
               <span className="text-xs text-gray-400">Processing</span>
             </div>
             <p className="text-2xl font-bold text-white">
-              {payouts.filter(p => p.status === 'processing').length}
+              {payoutStats.processing}
             </p>
           </GlassCard>
 
@@ -207,7 +209,7 @@ export default function AdminPayoutsPage() {
               <span className="text-xs text-gray-400">Completed</span>
             </div>
             <p className="text-2xl font-bold text-white">
-              {payouts.filter(p => p.status === 'completed').length}
+              {payoutStats.completed}
             </p>
           </GlassCard>
 
@@ -217,7 +219,7 @@ export default function AdminPayoutsPage() {
               <span className="text-xs text-gray-400">Failed</span>
             </div>
             <p className="text-2xl font-bold text-white">
-              {payouts.filter(p => p.status === 'failed').length}
+              {payoutStats.failed}
             </p>
           </GlassCard>
         </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, payoutRequests, creatorBankingInfo, users, creatorPayoneerInfo } from '@/lib/data/system';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, count, sql } from 'drizzle-orm';
 import { getLastFourDigits, decrypt } from '@/lib/crypto/encryption';
 import { withAdmin } from '@/lib/auth/withAdmin';
 
@@ -34,7 +34,19 @@ export const GET = withAdmin(async ({ request }) => {
       payoutsQuery = payoutsQuery.where(eq(payoutRequests.status, 'pending'));
     }
 
-    const results = await payoutsQuery;
+    // Run filtered list + total stats in parallel
+    const [results, statusCounts] = await Promise.all([
+      payoutsQuery,
+      db.select({
+        status: payoutRequests.status,
+        count: count(),
+      })
+        .from(payoutRequests)
+        .groupBy(payoutRequests.status),
+    ]);
+
+    const stats: Record<string, number> = { pending: 0, processing: 0, completed: 0, failed: 0, cancelled: 0 };
+    statusCounts.forEach(row => { stats[row.status] = row.count; });
 
     // Helper to safely decrypt account number
     const decryptAccountNumber = (encrypted: string): string => {
@@ -81,7 +93,7 @@ export const GET = withAdmin(async ({ request }) => {
       adminNotes: row.payout.adminNotes,
     }));
 
-    return NextResponse.json({ payouts });
+    return NextResponse.json({ payouts, stats });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch payouts';
     console.error('Error fetching payouts:', error);

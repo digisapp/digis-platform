@@ -179,6 +179,13 @@ export default function AdminDashboard() {
   );
 }
 
+const BADGE_COLORS: Record<string, string> = {
+  green: 'bg-green-500/20 text-green-400',
+  purple: 'bg-purple-500/20 text-purple-400',
+  cyan: 'bg-cyan-500/20 text-cyan-400',
+  red: 'bg-red-500/20 text-red-400',
+};
+
 function TabButton({ label, badge, badgeColor, active, onClick, formatBadge }: {
   label: string;
   badge?: number;
@@ -196,7 +203,7 @@ function TabButton({ label, badge, badgeColor, active, onClick, formatBadge }: {
     >
       {label}
       {badge ? (
-        <span className={`ml-1.5 px-1.5 py-0.5 bg-${badgeColor}-500/20 text-${badgeColor}-400 text-xs rounded-full`}>
+        <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${badgeColor ? BADGE_COLORS[badgeColor] || '' : ''}`}>
           {formatBadge ? badge.toLocaleString() : badge}
         </span>
       ) : null}
