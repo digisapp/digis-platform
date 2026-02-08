@@ -1,11 +1,44 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import Image from 'next/image';
 import { useLocalParticipant, useRemoteParticipants, useTracks, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { Loader2, Mic, MicOff, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
 import type { CallData, VirtualGift, ChatMessage } from './types';
+
+// Static arrays extracted to module level to avoid re-creation on each render
+const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500] as const;
+
+const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
+  'Fire': '/sounds/gift-fire.mp3',
+  'Heart': '/sounds/gift-heart.mp3',
+  'Peach': '/sounds/gift-peach.mp3',
+  'Pizza': '/sounds/gift-pizza.mp3',
+  'Rocket': '/sounds/gift-rocket.mp3',
+  'Rose': '/sounds/gift-rose.mp3',
+  'Martini': '/sounds/gift-martini.mp3',
+  'Cake': '/sounds/gift-cake.mp3',
+  'Sushi': '/sounds/gift-sushi.mp3',
+  'Steak': '/sounds/gift-steak.mp3',
+  'Champagne': '/sounds/gift-champagne.mp3',
+  'Gold Bar': '/sounds/gift-money.mp3',
+  'Crown': '/sounds/gift-crown.mp3',
+  'Designer Bag': '/sounds/gift-bag.mp3',
+  'Diamond': '/sounds/gift-diamond.mp3',
+  'Engagement Ring': '/sounds/gift-ring.mp3',
+  'Sports Car': '/sounds/gift-sports-car.mp3',
+  'Yacht': '/sounds/gift-yacht.mp3',
+  'Jet': '/sounds/gift-jet.mp3',
+  'Mansion': '/sounds/gift-mansion.mp3',
+};
+
+const RARITY_SOUNDS: Record<string, string> = {
+  common: '/sounds/coin-common.mp3',
+  rare: '/sounds/coin-rare.mp3',
+  epic: '/sounds/coin-epic.mp3',
+  legendary: '/sounds/coin-legendary.mp3',
+};
 
 interface FaceTimeVideoLayoutProps {
   callData: CallData;
@@ -29,7 +62,7 @@ interface FaceTimeVideoLayoutProps {
   onQuickTip: () => void;
 }
 
-export function FaceTimeVideoLayout({
+export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
   callData,
   onEndCall,
   isEnding,
@@ -90,38 +123,6 @@ export function FaceTimeVideoLayout({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
-
-  // Gift-specific sounds - unique sound for each gift type
-  const GIFT_SPECIFIC_SOUNDS: Record<string, string> = {
-    'Fire': '/sounds/gift-fire.mp3',
-    'Heart': '/sounds/gift-heart.mp3',
-    'Peach': '/sounds/gift-peach.mp3',
-    'Pizza': '/sounds/gift-pizza.mp3',
-    'Rocket': '/sounds/gift-rocket.mp3',
-    'Rose': '/sounds/gift-rose.mp3',
-    'Martini': '/sounds/gift-martini.mp3',
-    'Cake': '/sounds/gift-cake.mp3',
-    'Sushi': '/sounds/gift-sushi.mp3',
-    'Steak': '/sounds/gift-steak.mp3',
-    'Champagne': '/sounds/gift-champagne.mp3',
-    'Gold Bar': '/sounds/gift-money.mp3',
-    'Crown': '/sounds/gift-crown.mp3',
-    'Designer Bag': '/sounds/gift-bag.mp3',
-    'Diamond': '/sounds/gift-diamond.mp3',
-    'Engagement Ring': '/sounds/gift-ring.mp3',
-    'Sports Car': '/sounds/gift-sports-car.mp3',
-    'Yacht': '/sounds/gift-yacht.mp3',
-    'Jet': '/sounds/gift-jet.mp3',
-    'Mansion': '/sounds/gift-mansion.mp3',
-  };
-
-  // Rarity-based fallback sounds for gifts
-  const RARITY_SOUNDS: Record<string, string> = {
-    common: '/sounds/coin-common.mp3',
-    rare: '/sounds/coin-rare.mp3',
-    epic: '/sounds/coin-epic.mp3',
-    legendary: '/sounds/coin-legendary.mp3',
-  };
 
   // Show gift animation when gift received
   useEffect(() => {
@@ -286,8 +287,6 @@ export function FaceTimeVideoLayout({
 
   // Determine other participant - fan sees creator, creator sees fan
   const otherParticipant = isFan ? callData.creator : callData.fan;
-
-  const TIP_AMOUNTS = [10, 25, 50, 100, 250, 500];
 
   return (
     <div
@@ -728,4 +727,4 @@ export function FaceTimeVideoLayout({
       </div>
     </div>
   );
-}
+});

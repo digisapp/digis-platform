@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SubscriptionService } from '@/lib/services/subscription-service';
+import { rateLimitFinancial } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,15 @@ export async function POST(req: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit subscription purchases (10/min, 60/hour)
+    const rateCheck = await rateLimitFinancial(user.id, 'purchase');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
+      );
     }
 
     const body = await req.json();

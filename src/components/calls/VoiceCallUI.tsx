@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useLocalParticipant, useRemoteParticipants, useConnectionState } from '@livekit/components-react';
 import { ConnectionState } from 'livekit-client';
 import { Phone, Loader2, Mic, MicOff, Volume2, X, Coins, Gift } from 'lucide-react';
@@ -21,7 +21,7 @@ interface VoiceCallUIProps {
   onBuyCoins: () => void;
 }
 
-export function VoiceCallUI({
+export const VoiceCallUI = memo(function VoiceCallUI({
   callData,
   duration,
   estimatedCost,
@@ -302,4 +302,4 @@ export function VoiceCallUI({
       )}
     </div>
   );
-}
+});

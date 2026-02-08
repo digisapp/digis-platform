@@ -4,6 +4,7 @@ import { streams, shows, vods, users } from '@/lib/data/system';
 import { eq, and, desc, gte, lte, sql, or } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { nanoid } from 'nanoid';
+import { getCachedApiResponse } from '@/lib/cache/hot-data-cache';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,8 @@ export async function GET() {
   const requestId = nanoid(10);
 
   try {
+    // Cache watch page data for 15 seconds to reduce DB load on high-traffic page
+    const data = await getCachedApiResponse('watch', async () => {
     const now = new Date();
     const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -162,8 +165,7 @@ export async function GET() {
       })),
     ];
 
-    return NextResponse.json({
-      success: true,
+    return {
       liveStreams: allLive,
       upcomingShows,
       recentVods,
@@ -172,6 +174,12 @@ export async function GET() {
         upcoming: upcomingShows.length,
         vods: recentVods.length,
       },
+    };
+    }, 15); // 15 second TTL
+
+    return NextResponse.json({
+      success: true,
+      ...data,
     }, {
       headers: {
         'x-request-id': requestId,

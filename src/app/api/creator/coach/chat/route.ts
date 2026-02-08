@@ -5,6 +5,7 @@ import { users, creatorSettings, aiTwinSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { buildContextualPrompt } from '@/lib/coach/prompts';
 import type { CoachMessage } from '@/lib/coach/types';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +17,15 @@ export const runtime = 'nodejs';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit AI chat (10/min per IP - uses strict tier)
+    const rateLimitResult = await rateLimit(request, 'tips');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please slow down.' },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 

@@ -6,6 +6,7 @@ import { notifyContentPurchase } from '@/lib/email/creator-earnings';
 import { db } from '@/lib/data/system';
 import { users, contentItems } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimitFinancial } from '@/lib/rate-limit';
 
 export async function POST(
   request: NextRequest,
@@ -18,6 +19,15 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit content purchases (10/min, 60/hour)
+    const rateCheck = await rateLimitFinancial(user.id, 'unlock');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
+      );
     }
 
     const result = await ContentService.purchaseContent(user.id, contentId);

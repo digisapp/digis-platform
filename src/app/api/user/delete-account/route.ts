@@ -4,6 +4,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { rateLimitCritical } from '@/lib/rate-limit';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -17,6 +18,15 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit account deletion (5/min, 30/hour)
+    const rateCheck = await rateLimitCritical(user.id, 'wallet');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
+      );
     }
 
     // Get confirmation from request body

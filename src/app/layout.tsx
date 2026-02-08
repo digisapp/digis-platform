@@ -4,8 +4,14 @@ import "./globals.css";
 import { AuthNavGate } from "@/components/layout/AuthNavGate";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
-import { IncomingCallPopup } from "@/components/calls/IncomingCallPopup";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import dynamic from "next/dynamic";
+
+// Lazy-load IncomingCallPopup to keep Ably (~8MB) out of initial bundle
+const IncomingCallPopup = dynamic(
+  () => import("@/components/calls/IncomingCallPopup").then(mod => mod.IncomingCallPopup),
+  { ssr: false }
+);
 import { Analytics } from "@vercel/analytics/next";
 import { PageTracker } from "@/components/analytics/PageTracker";
 import { OrganizationJsonLd } from "@/components/seo/JsonLd";

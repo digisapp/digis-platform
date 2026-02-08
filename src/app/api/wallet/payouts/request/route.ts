@@ -7,6 +7,7 @@ import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
 import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { isPayoneerAvailable } from '@/lib/payoneer/service';
 import { withOriginGuard } from '@/lib/security/withOriginGuard';
+import { rateLimitCritical } from '@/lib/rate-limit';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -21,6 +22,15 @@ export const POST = withOriginGuard(async (request: Request) => {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit payout requests (5/min, 30/hour)
+    const rateCheck = await rateLimitCritical(user.id, 'wallet');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
+      );
     }
 
     // Check if user is creator

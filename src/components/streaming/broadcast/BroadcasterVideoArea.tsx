@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
 import { VideoPresets } from 'livekit-client';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
@@ -112,7 +113,7 @@ interface BroadcasterVideoAreaProps {
   onLeave: () => void;
 }
 
-export function BroadcasterVideoArea({
+export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
   streamId,
   token,
   serverUrl,
@@ -608,4 +609,4 @@ export function BroadcasterVideoArea({
       )}
     </div>
   );
-}
+});

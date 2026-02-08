@@ -20,6 +20,7 @@ const TTL = {
   CREATOR_PROFILE: 60 * 5,  // 5 minutes
   SUBSCRIPTION_TIERS: 60 * 10, // 10 minutes
   VIEWER_COUNT: 30,         // 30 seconds (frequently updated)
+  API_RESPONSE: 15,         // 15 seconds (hot API endpoints)
 } as const;
 
 // Cache key prefixes
@@ -29,6 +30,7 @@ const KEYS = {
   SUBSCRIPTION_TIERS: 'cache:creator:tiers:',
   STREAM_VIEWERS: 'cache:stream:viewers:',
   STREAM_VIEWER_SET: 'cache:stream:viewer_set:',
+  API_RESPONSE: 'cache:api:',
 } as const;
 
 /**
@@ -226,4 +228,34 @@ export async function getMultipleStreamViewerCounts(streamIds: string[]): Promis
   }
 
   return counts;
+}
+
+// ============================================
+// API Response Cache (for hot endpoints)
+// ============================================
+
+/**
+ * Cache an API response in Redis with short TTL
+ * Used for high-traffic public endpoints like /api/watch, /api/explore
+ */
+export async function getCachedApiResponse<T>(
+  endpoint: string,
+  fetcher: () => Promise<T>,
+  ttlSeconds: number = TTL.API_RESPONSE
+): Promise<T> {
+  try {
+    const key = `${KEYS.API_RESPONSE}${endpoint}`;
+    const cached = await redis.get(key);
+    if (cached) {
+      return cached as T;
+    }
+
+    const data = await fetcher();
+    await redis.set(key, data, { ex: ttlSeconds });
+
+    return data;
+  } catch (error) {
+    console.error(`[Cache] Error in getCachedApiResponse(${endpoint}):`, error);
+    return fetcher();
+  }
 }

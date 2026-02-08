@@ -4,6 +4,7 @@ import { stripe, getCoinPackage } from '@/lib/stripe/config';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { rateLimitCritical } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Rate limit checkout creation (5/min, 30/hour)
+    const rateCheck = await rateLimitCritical(user.id, 'checkout');
+    if (!rateCheck.ok) {
+      return NextResponse.json(
+        { error: rateCheck.error },
+        { status: 429, headers: { 'Retry-After': String(rateCheck.retryAfter) } }
       );
     }
 
