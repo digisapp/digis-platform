@@ -67,13 +67,6 @@ export function useAdminDashboard() {
     setModal(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Repair creators
-  const [repairing, setRepairing] = useState(false);
-  const [repairResult, setRepairResult] = useState<{
-    creatorsWithIssues: number;
-    totalFixed: number;
-  } | null>(null);
-
   // Username tool
   const [userSearch, setUserSearch] = useState('');
   const [foundUser, setFoundUser] = useState<{
@@ -93,32 +86,6 @@ export function useAdminDashboard() {
   const [searchingUser, setSearchingUser] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [settingUsername, setSettingUsername] = useState(false);
-
-  const repairCreators = async () => {
-    setRepairing(true);
-    setRepairResult(null);
-    try {
-      const response = await fetch('/api/admin/repair-creators', { method: 'POST' });
-      const data = await response.json();
-      if (response.ok) {
-        setRepairResult({
-          creatorsWithIssues: data.summary.creatorsWithIssues,
-          totalFixed: data.summary.totalFixed,
-        });
-        if (data.summary.creatorsWithIssues === 0) {
-          showToast('All creators are properly configured!', 'success');
-        } else {
-          showToast(`Fixed ${data.summary.totalFixed} issues for ${data.summary.creatorsWithIssues} creators`, 'success');
-        }
-      } else {
-        showToast(data.error || 'Failed to repair creators', 'error');
-      }
-    } catch {
-      showToast('Failed to repair creators', 'error');
-    } finally {
-      setRepairing(false);
-    }
-  };
 
   const searchUser = async () => {
     if (!userSearch.trim()) return;
@@ -343,7 +310,6 @@ export function useAdminDashboard() {
     // Activity
     creatorActivity, activityFilter, setActivityFilter, retryActivity,
     // Tools
-    repairing, repairResult, repairCreators,
     userSearch, setUserSearch, foundUser, newUsername, setNewUsername,
     usernameCheck, searchingUser, checkingUsername, settingUsername,
     searchUser, setUsernameForUser,

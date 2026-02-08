@@ -2,13 +2,9 @@
 
 import Image from 'next/image';
 import { LoadingSpinner, GlassCard } from '@/components/ui';
-import { UserCheck, Wrench, Search, CheckCircle, XCircle } from 'lucide-react';
+import { UserCheck, Search, CheckCircle, XCircle } from 'lucide-react';
 
 interface AdminToolsTabProps {
-  // Repair
-  repairing: boolean;
-  repairResult: { creatorsWithIssues: number; totalFixed: number } | null;
-  onRepairCreators: () => void;
   // Username tool
   userSearch: string;
   setUserSearch: (v: string) => void;
@@ -31,7 +27,6 @@ interface AdminToolsTabProps {
 }
 
 export function AdminToolsTab({
-  repairing, repairResult, onRepairCreators,
   userSearch, setUserSearch, foundUser, newUsername, setNewUsername,
   usernameCheck, searchingUser, checkingUsername, settingUsername,
   onSearchUser, onSetUsername,
@@ -147,40 +142,6 @@ export function AdminToolsTab({
         )}
       </GlassCard>
 
-      {/* Repair Creators Tool */}
-      <GlassCard className="p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Wrench className="w-5 h-5 text-purple-400" />
-          Repair Creators
-        </h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Fix creators with missing wallets, incorrect counters, or other data issues.
-        </p>
-        <button
-          onClick={onRepairCreators}
-          disabled={repairing}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
-        >
-          {repairing ? (
-            <>
-              <LoadingSpinner size="sm" />
-              Repairing...
-            </>
-          ) : (
-            <>
-              <Wrench className="w-5 h-5" />
-              Run Repair
-            </>
-          )}
-        </button>
-        {repairResult && (
-          <div className="mt-4 p-4 bg-white/5 rounded-xl">
-            <p className="text-sm text-gray-300">
-              Checked creators: Found {repairResult.creatorsWithIssues} with issues, fixed {repairResult.totalFixed} problems.
-            </p>
-          </div>
-        )}
-      </GlassCard>
     </div>
   );
 }

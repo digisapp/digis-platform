@@ -3,7 +3,7 @@
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   Users, UserCheck, UserPlus, ClipboardList, CreditCard,
-  RefreshCw, Wrench, Mail, Gift,
+  RefreshCw, Mail, Gift,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
@@ -109,17 +109,6 @@ export default function AdminDashboard() {
                 <div><p className="text-xs text-gray-400">Pending Payouts</p><p className="text-xl font-bold">{d.stats.pendingPayouts || 0}</p></div>
               </div>
             </GlassCard>
-            <GlassCard className={`p-4 cursor-pointer hover:scale-105 transition-transform ${d.repairing ? 'opacity-70' : ''}`} onClick={() => !d.repairing && d.repairCreators()}>
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-orange-500/20 rounded-lg">
-                  {d.repairing ? <RefreshCw className="w-5 h-5 text-orange-500 animate-spin" /> : <Wrench className="w-5 h-5 text-orange-500" />}
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Repair Creators</p>
-                  <p className="text-sm font-medium">{d.repairing ? 'Repairing...' : d.repairResult ? `${d.repairResult.totalFixed} fixed` : 'Click to run'}</p>
-                </div>
-              </div>
-            </GlassCard>
           </div>
         )}
 
@@ -167,7 +156,6 @@ export default function AdminDashboard() {
 
         {d.mainTab === 'tools' && (
           <AdminToolsTab
-            repairing={d.repairing} repairResult={d.repairResult} onRepairCreators={d.repairCreators}
             userSearch={d.userSearch} setUserSearch={d.setUserSearch} foundUser={d.foundUser}
             newUsername={d.newUsername} setNewUsername={d.setNewUsername} usernameCheck={d.usernameCheck}
             searchingUser={d.searchingUser} checkingUsername={d.checkingUsername} settingUsername={d.settingUsername}
