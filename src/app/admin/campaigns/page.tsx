@@ -226,7 +226,7 @@ export default function CampaignsPage() {
           action: useExaTemplate ? 'exa-batch' : 'batch',
           recipients: emails.map(email => ({
             email,
-            inviteUrl: 'https://digis.cc/signup?ref=invite',
+            inviteUrl: `${process.env.NEXT_PUBLIC_URL || 'https://digis.cc'}/signup?ref=invite`,
           })),
           config,
         }),
@@ -302,15 +302,16 @@ export default function CampaignsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center md:pl-20">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black pb-20">
+    <div className="min-h-screen bg-black pb-20 md:pl-20">
       <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}

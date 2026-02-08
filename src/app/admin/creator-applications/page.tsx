@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -9,6 +9,7 @@ import {
   Loader2, Phone, AlertTriangle, ShieldAlert, Calendar
 } from 'lucide-react';
 import { GlassModal } from '@/components/ui/GlassModal';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface RedFlag {
   type: string;
@@ -62,6 +63,16 @@ export default function CreatorApplicationsPage() {
   const [adminNotes, setAdminNotes] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Debounce search input
+  useEffect(() => {
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(debounceTimer.current);
+  }, [search]);
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -70,7 +81,7 @@ export default function CreatorApplicationsPage() {
         status: activeTab,
         page: page.toString(),
         limit: '20',
-        search,
+        search: debouncedSearch,
       });
       const res = await fetch(`/api/admin/creator-applications?${params}`);
       const data = await res.json();
@@ -89,7 +100,7 @@ export default function CreatorApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
-  }, [activeTab, page, search]);
+  }, [activeTab, page, debouncedSearch]);
 
   const handleApprove = async () => {
     if (!selectedApp) return;
@@ -170,7 +181,9 @@ export default function CreatorApplicationsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
+      <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

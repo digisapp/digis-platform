@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
   CheckCircle,
   XCircle,
@@ -145,7 +147,9 @@ export default function AdminShareRewardsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4 md:p-8 md:pl-20">
+      <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={hideToast} />
       )}
@@ -227,10 +231,13 @@ export default function AdminShareRewardsPage() {
                   {/* Creator Info */}
                   <div className="flex-shrink-0">
                     {submission.creator?.avatarUrl ? (
-                      <img
+                      <Image
                         src={submission.creator.avatarUrl}
                         alt={submission.creator.username}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
@@ -338,9 +345,13 @@ export default function AdminShareRewardsPage() {
                 {/* Creator */}
                 <div className="flex items-center gap-3 mb-4">
                   {selectedSubmission.creator?.avatarUrl ? (
-                    <img
+                    <Image
                       src={selectedSubmission.creator.avatarUrl}
-                      className="w-10 h-10 rounded-full"
+                      alt={selectedSubmission.creator?.username || 'Creator'}
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-white/10" />
@@ -359,9 +370,10 @@ export default function AdminShareRewardsPage() {
                 {/* Screenshot */}
                 <div className="mb-6">
                   <p className="text-sm text-gray-400 mb-2">Screenshot:</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={selectedSubmission.screenshotUrl}
-                    alt="Proof"
+                    alt="Share proof screenshot"
                     className="w-full rounded-xl bg-black/30"
                   />
                 </div>

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
   Users,
   ArrowLeft,
@@ -113,14 +115,16 @@ export default function AdminReferralsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center md:pl-20">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4 md:p-8 md:pl-20">
+      <MobileHeader />
+      <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -229,10 +233,13 @@ export default function AdminReferralsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       {referral.referrer?.avatarUrl ? (
-                        <img
+                        <Image
                           src={referral.referrer.avatarUrl}
                           alt={referral.referrer.username}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center">
@@ -255,10 +262,13 @@ export default function AdminReferralsPage() {
                       {referral.referred ? (
                         <div className="flex items-center gap-2">
                           {referral.referred.avatarUrl ? (
-                            <img
+                            <Image
                               src={referral.referred.avatarUrl}
                               alt={referral.referred.username}
+                              width={32}
+                              height={32}
                               className="w-8 h-8 rounded-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-cyan-500/30 flex items-center justify-center">
