@@ -18,10 +18,8 @@ import {
   Copy,
   Check,
   AlertCircle,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Filter,
   ArrowLeft,
   Search,
 } from 'lucide-react';
@@ -99,8 +97,13 @@ export default function AdminOnboardingPage() {
   const [totalInvites, setTotalInvites] = useState(0);
   const INVITES_PER_PAGE = 100;
 
-  // Toast state
+  // Toast state with auto-dismiss
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   // Check admin access
   useEffect(() => {
@@ -148,9 +151,18 @@ export default function AdminOnboardingPage() {
     }
   }, [filterStatus, filterBatch, searchQuery, invitesPage]);
 
-  // Debounced search effect
+  // Fetch stats on mount (once admin is confirmed)
+  const [hasFetchedInitial, setHasFetchedInitial] = useState(false);
   useEffect(() => {
-    if (!isAdmin || activeTab !== 'invites') return;
+    if (isAdmin && !hasFetchedInitial) {
+      fetchInvites(0);
+      setHasFetchedInitial(true);
+    }
+  }, [isAdmin]);
+
+  // Debounced search/filter effect for invites tab
+  useEffect(() => {
+    if (!isAdmin || activeTab !== 'invites' || !hasFetchedInitial) return;
 
     const timeoutId = setTimeout(() => {
       fetchInvites(0);
@@ -283,7 +295,7 @@ export default function AdminOnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f]">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] md:pl-20">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -292,9 +304,9 @@ export default function AdminOnboardingPage() {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f] md:pl-20">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+      <div className="fixed top-0 left-0 md:left-20 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link
             href="/admin"
