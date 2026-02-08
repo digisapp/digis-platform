@@ -170,7 +170,7 @@ export default function ClaimInvitePage() {
           </div>
 
           <Link
-            href="/login"
+            href="/"
             className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-cyan-500/25"
           >
             Log In Now

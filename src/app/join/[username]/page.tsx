@@ -78,11 +78,15 @@ export default function ReferralJoinPage() {
             <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-cyan-500/20 border border-purple-500/30">
               <div className="flex items-center justify-center gap-4 mb-4">
                 {referrer.avatarUrl ? (
-                  <img
-                    src={referrer.avatarUrl}
-                    alt={referrer.displayName || referrer.username}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white/20"
-                  />
+                  <div className="relative w-16 h-16">
+                    <Image
+                      src={referrer.avatarUrl}
+                      alt={referrer.displayName || referrer.username}
+                      fill
+                      className="rounded-full object-cover border-2 border-white/20"
+                      unoptimized
+                    />
+                  </div>
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-2xl font-bold text-white">
                     {referrer.username?.[0]?.toUpperCase() || '?'}

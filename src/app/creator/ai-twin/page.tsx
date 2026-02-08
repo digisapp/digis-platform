@@ -232,7 +232,7 @@ export default function AiTwinPage() {
           setSettings(data.settings);
         }
       } else if (response.status === 401) {
-        router.push('/login');
+        router.push('/');
       } else if (response.status === 403) {
         router.push('/creator/apply');
       }

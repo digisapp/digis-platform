@@ -116,7 +116,7 @@ function PricingPageContent() {
           });
         }
       } else if (response.status === 401) {
-        router.push('/login');
+        router.push('/');
       }
     } catch (error) {
       console.error('Error fetching settings:', error);

@@ -37,8 +37,8 @@ export default function UsernameSetupPage() {
     // Only redirect if user has a REAL username (not auto-generated)
     const username = data.user?.username;
     if (username && !username.startsWith('user_')) {
-      // User already has a real username, redirect to dashboard
-      router.push('/dashboard');
+      // User already has a real username, redirect to appropriate dashboard
+      router.push(data.user?.role === 'creator' ? '/creator/dashboard' : '/dashboard');
       return;
     }
 

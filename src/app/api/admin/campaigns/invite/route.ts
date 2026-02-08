@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
       const recipients = withEmails.map((invite) => ({
         email: invite.email!,
         name: invite.displayName || invite.instagramHandle || undefined,
-        inviteUrl: `https://digis.cc/join/${invite.code}`,
+        inviteUrl: `${process.env.NEXT_PUBLIC_URL || 'https://digis.cc'}/claim/${invite.code}`,
         id: invite.id,
       }));
 

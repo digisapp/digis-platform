@@ -122,15 +122,15 @@ export async function POST(request: NextRequest) {
           console.error('[Signup] Error processing referral:', referralError);
         }
 
-        // Check if email OR Instagram handle matches a pending creator invite (auto-claim)
-        // Either match = auto-approve as creator
+        // Check if email matches a pending creator invite (auto-claim)
+        // Email match = auto-approve as creator
         try {
-          // Query for pending invites matching email OR Instagram handle
+          // Query for pending invites matching email
           const { data: pendingInvites, error: inviteError } = await adminClient
             .from('creator_invites')
             .select('id, email, instagram_handle, status')
             .eq('status', 'pending')
-            .or(`email.ilike.${email},instagram_handle.ilike.${username}`);
+            .ilike('email', email);
 
           if (inviteError) {
             console.log(`[Signup] Error checking invites: ${inviteError.message}`);
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
           const pendingInvite = pendingInvites?.[0];
 
           if (!pendingInvite) {
-            console.log(`[Signup] No pending invite found for email ${email} or Instagram @${username}`);
+            console.log(`[Signup] No pending invite found for email ${email}`);
           }
 
           if (pendingInvite) {
