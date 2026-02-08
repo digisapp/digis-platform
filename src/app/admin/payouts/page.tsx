@@ -55,6 +55,7 @@ export default function AdminPayoutsPage() {
   }, [filter]);
 
   const fetchPayouts = async () => {
+    setError('');
     try {
       const response = await fetch(`/api/admin/payouts?filter=${filter}`);
       const data = await response.json();
@@ -167,7 +168,7 @@ export default function AdminPayoutsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center md:pl-20">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -303,7 +304,10 @@ export default function AdminPayoutsPage() {
                     <GlassButton
                       variant="cyan"
                       size="sm"
-                      onClick={() => setSelectedPayout(payout)}
+                      onClick={() => {
+                        setSelectedPayout(payout);
+                        setAdminNotes(payout.adminNotes || '');
+                      }}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       View Details
@@ -402,6 +406,7 @@ export default function AdminPayoutsPage() {
                   onClick={() => {
                     setSelectedPayout(null);
                     setShowSensitive(false);
+                    setAdminNotes('');
                   }}
                   className="text-gray-400 hover:text-white"
                 >
