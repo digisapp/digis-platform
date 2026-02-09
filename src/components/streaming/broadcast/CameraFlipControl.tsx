@@ -34,14 +34,8 @@ export function CameraFlipControl({
       const cameraTrack = localParticipant.getTrackPublication(Track.Source.Camera);
 
       if (cameraTrack?.track) {
-        // Stop current camera
-        await localParticipant.setCameraEnabled(false);
-
-        // Small delay for camera release
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Restart camera with new facing mode
-        await localParticipant.setCameraEnabled(true, {
+        // Use restartTrack to preserve any active track processor (e.g. beauty filter)
+        await cameraTrack.track.restartTrack({
           facingMode: newFacingMode,
           resolution: isPortrait
             ? { width: 1080, height: 1920, frameRate: 30 }
