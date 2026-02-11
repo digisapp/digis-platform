@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import * as Sentry from '@sentry/nextjs';
 import { calculateTier } from '@/lib/tiers/spend-tiers';
 import { getCachedBalance, setCachedBalance, invalidateBalanceCache, withMiniLock } from '@/lib/cache';
 import { FinancialAuditService, type FinancialEventType } from '@/lib/services/financial-audit-service';
@@ -277,6 +278,7 @@ export class WalletService {
     }).catch(err => {
       // Never let audit logging fail the transaction
       console.error('[WalletService] Audit log failed:', err);
+      Sentry.captureException(err, { tags: { service: 'wallet-service', action: 'audit_log' } });
     });
 
     return transaction;
@@ -609,6 +611,11 @@ export class WalletService {
 
     if (discrepancy !== 0) {
       console.error(`Wallet discrepancy for user ${userId}: ${discrepancy} coins`);
+      Sentry.captureMessage(`Wallet discrepancy: ${discrepancy} coins`, {
+        level: 'error',
+        tags: { service: 'wallet-service', action: 'reconciliation' },
+        extra: { userId, discrepancy },
+      });
       return { status: 'discrepancy', amount: discrepancy };
     }
 

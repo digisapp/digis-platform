@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { validateBody, uuidSchema, coinAmountSchema } from '@/lib/validation/schemas';
 import { walletLogger, extractError } from '@/lib/logging/logger';
 import { notifyGiftReceived } from '@/lib/email/creator-earnings';
+import { assertValidOrigin } from '@/lib/security/origin-check';
 
 // Tip-specific schema
 const tipSendSchema = z.object({
@@ -23,6 +24,12 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
+  // CSRF origin validation for financial route
+  const originCheck = assertValidOrigin(req, { requireHeader: true });
+  if (!originCheck.ok) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
   let userId: string | undefined;
 
   try {

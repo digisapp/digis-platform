@@ -5,6 +5,7 @@ import { creatorGoals, users, subscriptions, wallets } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { nanoid } from 'nanoid';
+import { assertValidOrigin } from '@/lib/security/origin-check';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,12 @@ export async function GET(request: NextRequest) {
  * POST - Create a new goal
  */
 export async function POST(request: NextRequest) {
+  // CSRF origin validation
+  const originCheck = assertValidOrigin(request, { requireHeader: true });
+  if (!originCheck.ok) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

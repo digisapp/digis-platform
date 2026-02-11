@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { payoneerClient } from '@/lib/payoneer/client';
 import {
   handlePayeeStatusWebhook,
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error('Error processing Payoneer webhook:', error);
+    Sentry.captureException(error, { tags: { webhook: 'payoneer' } });
     // Return 200 to prevent Payoneer from retrying on our errors
     // Log the error for investigation
     return NextResponse.json({ received: true, error: 'Internal processing error' });

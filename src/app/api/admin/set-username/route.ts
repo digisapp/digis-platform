@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+import { withAdmin } from '@/lib/auth/withAdmin';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
@@ -17,33 +17,10 @@ export const dynamic = 'force-dynamic';
  * - Changing usernames for special cases
  * - Fixing username issues
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async ({ user: adminUser, request }) => {
   const requestId = nanoid(10);
 
   try {
-    // Verify admin authentication
-    const supabase = await createClient();
-    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !adminUser) {
-      return NextResponse.json(
-        failure('Unauthorized', 'auth', requestId),
-        { status: 401, headers: { 'x-request-id': requestId } }
-      );
-    }
-
-    // Verify admin role
-    const admin = await db.query.users.findFirst({
-      where: eq(users.id, adminUser.id),
-    });
-
-    if (!admin || (admin.role !== 'admin' && !admin.isAdmin)) {
-      return NextResponse.json(
-        failure('Admin access required', 'auth', requestId),
-        { status: 403, headers: { 'x-request-id': requestId } }
-      );
-    }
-
     const { userId, identifier, username, newUsername, verifyCreator } = await request.json();
 
     // Support both old and new parameter names
@@ -94,16 +71,13 @@ export async function POST(request: NextRequest) {
     const isReserved = isReservedUsername(targetUsername);
 
     // Build update object
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       username: targetUsername.toLowerCase(),
       updatedAt: new Date(),
     };
 
     // If assigning a reserved name, auto-verify the creator
-    if (isReserved && verifyCreator) {
-      updateData.isCreatorVerified = true;
-      updateData.role = 'creator'; // Ensure they're a creator
-    } else if (verifyCreator) {
+    if (verifyCreator) {
       updateData.isCreatorVerified = true;
       updateData.role = 'creator';
     }
@@ -133,11 +107,11 @@ export async function POST(request: NextRequest) {
       { headers: { 'x-request-id': requestId } }
     );
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('[ADMIN_SET_USERNAME_ERROR]', {
       requestId,
-      error: error.message,
-      stack: error.stack
+      error: message,
     });
 
     return NextResponse.json(
@@ -145,4 +119,4 @@ export async function POST(request: NextRequest) {
       { status: 500, headers: { 'x-request-id': requestId } }
     );
   }
-}
+});

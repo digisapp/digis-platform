@@ -68,6 +68,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and URL are required' }, { status: 400 });
     }
 
+    // Validate title length
+    if (typeof title !== 'string' || title.trim().length > 100) {
+      return NextResponse.json({ error: 'Title must be 100 characters or less' }, { status: 400 });
+    }
+
     // Validate URL format
     try {
       new URL(url);

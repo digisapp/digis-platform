@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { sql } from 'drizzle-orm';
@@ -87,6 +88,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProfilePage({ params }: Props) {
   const { username } = await params;
   const user = await getUser(username);
+
+  if (!user) notFound();
 
   return (
     <>

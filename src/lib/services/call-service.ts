@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
 import { eq, and, or, desc, lt, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import * as Sentry from '@sentry/nextjs';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { invalidateBalanceCache } from '@/lib/cache';
 import { FinancialAuditService } from '@/lib/services/financial-audit-service';
@@ -29,6 +30,11 @@ async function releaseHoldWithRetry(holdId: string, context: string, maxRetries 
     }
   }
   console.error(`[CallService] CRITICAL: Hold ${holdId} release failed after ${maxRetries} retries (${context}). Will be cleaned up by cron.`);
+  Sentry.captureMessage(`Hold release failed after ${maxRetries} retries`, {
+    level: 'error',
+    tags: { service: 'call-service', holdId },
+    extra: { context },
+  });
   return false;
 }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { WebhookReceiver } from 'livekit-server-sdk';
 import { db } from '@/lib/data/system';
 import { streams, calls } from '@/lib/data/system';
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('[LiveKit Webhook] Error:', error);
+    Sentry.captureException(error, { tags: { webhook: 'livekit' } });
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

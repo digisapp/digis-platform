@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { db } from '@/lib/data/system';
 import { clips } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
@@ -96,6 +97,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ClipPage({ params }: Props) {
   const { clipId } = await params;
   const clip = await getClip(clipId);
+
+  if (!clip) notFound();
 
   return (
     <>

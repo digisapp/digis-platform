@@ -5,6 +5,7 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { rateLimitCritical } from '@/lib/rate-limit';
+import { assertValidOrigin } from '@/lib/security/origin-check';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -12,6 +13,12 @@ export const dynamic = 'force-dynamic';
 
 // POST /api/user/delete-account - Self-service account deletion
 export async function POST(request: NextRequest) {
+  // CSRF origin validation for destructive route
+  const originCheck = assertValidOrigin(request, { requireHeader: true });
+  if (!originCheck.ok) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -5,11 +5,30 @@ import { rateLimitFinancial } from '@/lib/rate-limit';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { validateBody, uuidSchema, coinAmountSchema } from '@/lib/validation/schemas';
+import { assertValidOrigin } from '@/lib/security/origin-check';
+
+const messageTipSchema = z.object({
+  conversationId: uuidSchema,
+  receiverId: uuidSchema,
+  amount: coinAmountSchema,
+  tipMessage: z.string().max(500, 'Message too long').optional(),
+  giftId: uuidSchema.optional(),
+  giftEmoji: z.string().max(10).optional(),
+  giftName: z.string().max(100).optional(),
+});
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  // CSRF origin validation for financial route
+  const originCheck = assertValidOrigin(request, { requireHeader: true });
+  if (!originCheck.ok) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -33,22 +52,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { conversationId, receiverId, amount, tipMessage, giftId, giftEmoji, giftName } = body;
-
-    if (!conversationId || !receiverId || !amount) {
+    // Validate input with Zod
+    const validation = await validateBody(request, messageTipSchema);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    if (amount < 1) {
-      return NextResponse.json(
-        { error: 'Tip amount must be at least 1 coin' },
-        { status: 400 }
-      );
-    }
+    const { conversationId, receiverId, amount, tipMessage, giftId, giftEmoji, giftName } = validation.data;
 
     if (user.id === receiverId) {
       return NextResponse.json(

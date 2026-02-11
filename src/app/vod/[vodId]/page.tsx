@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { db } from '@/lib/data/system';
 import { vods } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
@@ -98,6 +99,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function VODPage({ params }: Props) {
   const { vodId } = await params;
   const vod = await getVod(vodId);
+
+  if (!vod) notFound();
 
   return (
     <>
