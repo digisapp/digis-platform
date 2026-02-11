@@ -29,6 +29,7 @@ export default function BroadcastError({
           <button onClick={reset} className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity">
             Try Again
           </button>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/creator/dashboard" className="px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
             Dashboard
           </a>
