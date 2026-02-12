@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration, aiChatModEnabled } = validation.data;
+    const { title, description, category, tags, privacy, thumbnail_url, scheduled_at, orientation, featuredCreatorCommission, ticketPrice, goPrivateEnabled, goPrivateRate, goPrivateMinDuration, aiChatModEnabled, streamMethod } = validation.data;
 
     // Parse scheduled date if provided
     const scheduledAt = scheduled_at ? new Date(scheduled_at) : undefined;
@@ -102,7 +102,8 @@ export async function POST(req: NextRequest) {
           goPrivateRate,
           goPrivateMinDuration,
           category,
-          tags
+          tags,
+          streamMethod
         ),
         {
           timeoutMs: 8000,

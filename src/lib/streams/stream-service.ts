@@ -26,6 +26,7 @@ import {
   decrementViewerCount as redisDecrementViewerCount,
 } from '@/lib/cache';
 import { LiveKitEgressService } from '../services/livekit-egress-service';
+import { LiveKitIngressService } from '../services/livekit-ingress-service';
 import { BlockService } from '../services/block-service';
 import { NotificationService } from '../services/notification-service';
 import { AblyRealtimeService } from './ably-realtime-service';
@@ -68,7 +69,8 @@ export class StreamService {
     goPrivateRate?: number,
     goPrivateMinDuration?: number,
     category?: string,
-    tags?: string[]
+    tags?: string[],
+    streamMethod?: 'browser' | 'rtmp'
   ) {
     // Check if creator already has an active stream
     const existingStream = await this.getActiveStream(creatorId);
@@ -102,11 +104,13 @@ export class StreamService {
         goPrivateMinDuration: goPrivateMinDuration || null,
         category: category || null,
         tags: tags || [],
+        streamMethod: streamMethod || 'browser',
       })
       .returning();
 
     // Start recording if stream is going live immediately
-    if (!isScheduled) {
+    // Skip egress for RTMP streams — recording starts when OBS connects
+    if (!isScheduled && (!streamMethod || streamMethod === 'browser')) {
       try {
         const egressId = await LiveKitEgressService.startRecording(roomName, stream.id);
         // Update stream with egress ID
@@ -132,8 +136,11 @@ export class StreamService {
           console.error('[StreamService] Failed to send recording failure notification:', notifErr);
         });
       }
+    }
 
-      // Broadcast to platform:live channel so fans see the new stream instantly
+    // Broadcast to platform:live channel so fans see the new stream instantly
+    // This applies to ALL stream methods (browser and RTMP)
+    if (!isScheduled) {
       const creator = await db.query.users.findFirst({
         where: eq(users.id, creatorId),
         columns: {
@@ -182,6 +189,16 @@ export class StreamService {
     const endTime = new Date();
     const startTime = stream.startedAt || new Date();
     const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+
+    // Cleanup RTMP ingress if active
+    if (stream.ingressId) {
+      try {
+        await LiveKitIngressService.deleteIngress(stream.ingressId);
+        console.log(`[StreamService] Deleted ingress for stream ${streamId}`);
+      } catch (err) {
+        console.warn('[StreamService] Failed to delete ingress:', err);
+      }
+    }
 
     // Stop recording if egress was active
     if (stream.egressId) {

@@ -41,6 +41,7 @@ export default function BroadcastStudioPage() {
 
   const preferredVideoDevice = searchParams.get('video') || undefined;
   const preferredAudioDevice = searchParams.get('audio') || undefined;
+  const methodParam = searchParams.get('method');
 
   // --- Consolidated data hook ---
   const {
@@ -72,6 +73,9 @@ export default function BroadcastStudioPage() {
     fetchMessages,
     fetchBroadcastToken,
   } = useBroadcasterData({ streamId, showError });
+
+  // Detect stream method from stream data or URL param
+  const streamMethod: 'browser' | 'rtmp' = (stream?.streamMethod as 'browser' | 'rtmp') || (methodParam === 'rtmp' ? 'rtmp' : 'browser');
 
   // --- UI-only state ---
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -366,6 +370,7 @@ export default function BroadcastStudioPage() {
             streamId={streamId}
             token={token}
             serverUrl={serverUrl}
+            streamMethod={streamMethod}
             streamOrientation={streamOrientation}
             isLandscape={isLandscape}
             connectionStatus={connectionStatus}

@@ -59,6 +59,10 @@ export const streams = pgTable('streams', {
   goPrivateRate: integer('go_private_rate'), // Coins per minute (null = use creator's default call rate)
   goPrivateMinDuration: integer('go_private_min_duration'), // Minutes (null = use creator's default)
 
+  // RTMP Ingress (OBS/Streamlabs support)
+  ingressId: text('ingress_id'), // LiveKit Ingress ID for RTMP input
+  streamMethod: text('stream_method').default('browser').notNull(), // 'browser' | 'rtmp'
+
   // Recording (LiveKit Egress)
   egressId: text('egress_id'), // LiveKit Egress ID for recording
 

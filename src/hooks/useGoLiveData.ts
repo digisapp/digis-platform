@@ -6,11 +6,19 @@ import { createClient } from '@/lib/supabase/client';
 import type { FeaturedCreator, ActiveStream } from '@/components/go-live/types';
 import { isMobileDevice } from '@/components/go-live/types';
 
+export type StreamMethod = 'browser' | 'rtmp';
+
 export interface DeviceInfo {
   mediaStream: MediaStream | null;
   selectedVideoDevice: string;
   selectedAudioDevice: string;
   stopAllTracks: () => void;
+}
+
+export interface RtmpIngressInfo {
+  url: string;
+  streamKey: string;
+  streamId: string;
 }
 
 export function useGoLiveData() {
@@ -24,6 +32,10 @@ export function useGoLiveData() {
   const [tagInput, setTagInput] = useState('');
   const [privacy, setPrivacy] = useState('public');
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
+  const [streamMethod, setStreamMethod] = useState<StreamMethod>('browser');
+
+  // RTMP ingress info (after stream creation in RTMP mode)
+  const [rtmpInfo, setRtmpInfo] = useState<RtmpIngressInfo | null>(null);
 
   // Creator state
   const [isCreating, setIsCreating] = useState(false);
@@ -194,7 +206,8 @@ export function useGoLiveData() {
       return;
     }
 
-    if (!deviceInfo.mediaStream) {
+    // Only require camera for browser mode
+    if (streamMethod === 'browser' && !deviceInfo.mediaStream) {
       setError('Camera/microphone not ready. Please check your devices.');
       return;
     }
@@ -218,6 +231,7 @@ export function useGoLiveData() {
           goPrivateRate: goPrivateRate || undefined,
           goPrivateMinDuration: goPrivateMinDuration || undefined,
           aiChatModEnabled: hasAiTwin ? aiChatModEnabled : undefined,
+          streamMethod,
         }),
       });
 
@@ -239,16 +253,44 @@ export function useGoLiveData() {
           });
         }
 
-        setShowSuccess(true);
-        deviceInfo.stopAllTracks();
+        // For RTMP mode: create ingress and show OBS setup
+        if (streamMethod === 'rtmp') {
+          try {
+            const ingressRes = await fetch(`/api/streams/${streamId}/ingress`, {
+              method: 'POST',
+            });
+            const ingressResult = await ingressRes.json();
 
-        setTimeout(() => {
-          const params = new URLSearchParams();
-          if (deviceInfo.selectedVideoDevice) params.set('video', deviceInfo.selectedVideoDevice);
-          if (deviceInfo.selectedAudioDevice) params.set('audio', deviceInfo.selectedAudioDevice);
-          const queryString = params.toString();
-          router.push(`/stream/live/${streamId}${queryString ? `?${queryString}` : ''}`);
-        }, 800);
+            if (ingressRes.ok && ingressResult.data) {
+              setRtmpInfo({
+                url: ingressResult.data.url,
+                streamKey: ingressResult.data.streamKey,
+                streamId,
+              });
+              setShowSuccess(true);
+              deviceInfo.stopAllTracks();
+              // Don't navigate yet — show OBS setup component
+            } else {
+              setError(ingressResult.error || 'Failed to create RTMP ingress');
+              setShowParticles(false);
+            }
+          } catch {
+            setError('Failed to create RTMP ingress. Please try again.');
+            setShowParticles(false);
+          }
+        } else {
+          // Browser mode: navigate to broadcaster page
+          setShowSuccess(true);
+          deviceInfo.stopAllTracks();
+
+          setTimeout(() => {
+            const params = new URLSearchParams();
+            if (deviceInfo.selectedVideoDevice) params.set('video', deviceInfo.selectedVideoDevice);
+            if (deviceInfo.selectedAudioDevice) params.set('audio', deviceInfo.selectedAudioDevice);
+            const queryString = params.toString();
+            router.push(`/stream/live/${streamId}${queryString ? `?${queryString}` : ''}`);
+          }, 800);
+        }
       } else {
         setError(result.error || 'Failed to start stream');
         setShowParticles(false);
@@ -270,6 +312,8 @@ export function useGoLiveData() {
     tagInput, setTagInput,
     privacy, setPrivacy,
     orientation, setOrientation,
+    streamMethod, setStreamMethod,
+    rtmpInfo,
     // Creator
     isCreating, error, isCreator, loading,
     recentStats, activeStream, setActiveStream,

@@ -57,6 +57,14 @@ export async function POST(req: NextRequest) {
         await handleEgressEnded(roomName, event);
         break;
 
+      case 'ingress_started':
+        await handleIngressStarted(roomName, event);
+        break;
+
+      case 'ingress_ended':
+        await handleIngressEnded(roomName, event);
+        break;
+
       default:
         // Log but don't process other events
         break;
@@ -149,4 +157,37 @@ async function handleEgressEnded(roomName: string, event: any) {
   if (status !== 2) { // 2 = EGRESS_COMPLETE in LiveKit proto
     console.warn(`[LiveKit Webhook] Egress did not complete successfully: ${roomName}, status=${status}`);
   }
+}
+
+/**
+ * Handle ingress_started: OBS/encoder connected and is publishing
+ */
+async function handleIngressStarted(roomName: string, event: any) {
+  const ingressId = event.ingressInfo?.ingressId;
+  console.log(`[LiveKit Webhook] Ingress started for room ${roomName}: ingressId=${ingressId}`);
+
+  // Update stream heartbeat since the broadcaster is now connected via RTMP
+  if (roomName.startsWith('stream_')) {
+    const stream = await db.query.streams.findFirst({
+      where: and(
+        eq(streams.roomName, roomName),
+        eq(streams.status, 'live')
+      ),
+    });
+
+    if (stream) {
+      await db
+        .update(streams)
+        .set({ lastHeartbeat: new Date(), updatedAt: new Date() })
+        .where(eq(streams.id, stream.id));
+    }
+  }
+}
+
+/**
+ * Handle ingress_ended: OBS/encoder disconnected
+ */
+async function handleIngressEnded(roomName: string, event: any) {
+  const ingressId = event.ingressInfo?.ingressId;
+  console.log(`[LiveKit Webhook] Ingress ended for room ${roomName}: ingressId=${ingressId}`);
 }

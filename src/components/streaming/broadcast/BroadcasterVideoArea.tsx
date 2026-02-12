@@ -1,8 +1,8 @@
 'use client';
 
 import { memo } from 'react';
-import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react';
-import { VideoPresets } from 'livekit-client';
+import { LiveKitRoom, RoomAudioRenderer, useTracks, VideoTrack } from '@livekit/components-react';
+import { VideoPresets, Track } from 'livekit-client';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
@@ -39,6 +39,7 @@ interface BroadcasterVideoAreaProps {
   streamId: string;
   token: string;
   serverUrl: string;
+  streamMethod?: 'browser' | 'rtmp';
   streamOrientation: 'landscape' | 'portrait';
   isLandscape: boolean;
   connectionStatus: 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
@@ -114,10 +115,37 @@ interface BroadcasterVideoAreaProps {
   onLeave: () => void;
 }
 
+/**
+ * Displays the remote video track from an RTMP ingress participant (OBS feed).
+ * Used in RTMP mode where the broadcaster is not publishing from the browser.
+ */
+function RtmpRemoteVideo() {
+  const trackRefs = useTracks([Track.Source.Camera], { onlySubscribed: true });
+  const videoTrackRef = trackRefs[0];
+
+  if (!videoTrackRef) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90">
+        <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
+        <p className="text-white/80 text-lg font-semibold">Waiting for OBS feed...</p>
+        <p className="text-white/50 text-sm mt-1">Start streaming in OBS to see your video here</p>
+      </div>
+    );
+  }
+
+  return (
+    <VideoTrack
+      trackRef={videoTrackRef}
+      className="absolute inset-0 w-full h-full object-contain"
+    />
+  );
+}
+
 export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
   streamId,
   token,
   serverUrl,
+  streamMethod = 'browser',
   streamOrientation,
   isLandscape,
   connectionStatus,
@@ -197,40 +225,42 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
           <>
             <StreamErrorBoundary streamId={streamId} onLeave={onLeave}>
               <LiveKitRoom
-              video={true}
-              audio={true}
+              video={streamMethod !== 'rtmp'}
+              audio={streamMethod !== 'rtmp'}
               token={token}
               serverUrl={serverUrl}
               className="h-full"
               options={{
                 adaptiveStream: true,
                 dynacast: true,
-                videoCaptureDefaults: {
-                  resolution: VideoPresets.h1440,
-                  facingMode: 'user',
-                  deviceId: preferredVideoDevice,
-                },
-                audioCaptureDefaults: {
-                  deviceId: preferredAudioDevice,
-                },
-                publishDefaults: {
-                  videoSimulcastLayers: [
-                    VideoPresets.h1440,
-                    VideoPresets.h1080,
-                    VideoPresets.h720,
-                  ],
-                  videoEncoding: {
-                    maxBitrate: 10_000_000,
-                    maxFramerate: 30,
-                    priority: 'high',
+                ...(streamMethod !== 'rtmp' ? {
+                  videoCaptureDefaults: {
+                    resolution: VideoPresets.h1440,
+                    facingMode: 'user',
+                    deviceId: preferredVideoDevice,
                   },
-                  screenShareEncoding: {
-                    maxBitrate: 12_000_000,
-                    maxFramerate: 30,
+                  audioCaptureDefaults: {
+                    deviceId: preferredAudioDevice,
                   },
-                  dtx: true,
-                  red: true,
-                },
+                  publishDefaults: {
+                    videoSimulcastLayers: [
+                      VideoPresets.h1440,
+                      VideoPresets.h1080,
+                      VideoPresets.h720,
+                    ],
+                    videoEncoding: {
+                      maxBitrate: 10_000_000,
+                      maxFramerate: 30,
+                      priority: 'high',
+                    },
+                    screenShareEncoding: {
+                      maxBitrate: 12_000_000,
+                      maxFramerate: 30,
+                    },
+                    dtx: true,
+                    red: true,
+                  },
+                } : {}),
               }}
               onConnected={() => {
                 console.log('[LiveKit] Connected to room');
@@ -261,23 +291,31 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                   window.location.reload();
                 }}
               />
-              <LocalCameraPreview isMirrored={facingMode === 'user'} />
+              {streamMethod === 'rtmp' ? (
+                <RtmpRemoteVideo />
+              ) : (
+                <LocalCameraPreview isMirrored={facingMode === 'user'} />
+              )}
               <RoomAudioRenderer />
-              <div className="absolute bottom-3 right-3 z-20 hidden md:flex items-center gap-2">
-                <BeautyFilterToggle variant="toolbar" />
-                <ScreenShareControl
-                  isScreenSharing={isScreenSharing}
-                  onScreenShareChange={setIsScreenSharing}
-                />
-              </div>
-              <div className="absolute top-3 right-3 z-30 md:hidden flex items-center gap-2">
-                <BeautyFilterToggle variant="toolbar" />
-                <CameraFlipControl
-                  facingMode={facingMode}
-                  onFacingModeChange={setFacingMode}
-                  isPortrait={streamOrientation === 'portrait'}
-                />
-              </div>
+              {streamMethod !== 'rtmp' && (
+                <>
+                  <div className="absolute bottom-3 right-3 z-20 hidden md:flex items-center gap-2">
+                    <BeautyFilterToggle variant="toolbar" />
+                    <ScreenShareControl
+                      isScreenSharing={isScreenSharing}
+                      onScreenShareChange={setIsScreenSharing}
+                    />
+                  </div>
+                  <div className="absolute top-3 right-3 z-30 md:hidden flex items-center gap-2">
+                    <BeautyFilterToggle variant="toolbar" />
+                    <CameraFlipControl
+                      facingMode={facingMode}
+                      onFacingModeChange={setFacingMode}
+                      isPortrait={streamOrientation === 'portrait'}
+                    />
+                  </div>
+                </>
+              )}
             </LiveKitRoom>
             </StreamErrorBoundary>
 

@@ -14,7 +14,8 @@ import {
   GoLiveActiveStream,
   StreamingTipsModal,
 } from '@/components/go-live';
-import { Video } from 'lucide-react';
+import { OBSStreamSetup } from '@/components/go-live/OBSStreamSetup';
+import { Video, Monitor, Camera } from 'lucide-react';
 
 export default function GoLivePage() {
   const router = useRouter();
@@ -68,6 +69,17 @@ export default function GoLivePage() {
     );
   }
 
+  // Show OBS setup screen after RTMP stream creation
+  if (data.rtmpInfo) {
+    return (
+      <OBSStreamSetup
+        url={data.rtmpInfo.url}
+        streamKey={data.rtmpInfo.streamKey}
+        streamId={data.rtmpInfo.streamId}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
       <ParticleEffect trigger={data.showParticles} />
@@ -108,6 +120,34 @@ export default function GoLivePage() {
           </div>
         )}
 
+        {/* Stream Method Toggle */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            type="button"
+            onClick={() => data.setStreamMethod('browser')}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
+              data.streamMethod === 'browser'
+                ? 'border-purple-500 bg-purple-500/20 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
+            }`}
+          >
+            <Camera className="w-5 h-5" />
+            <span className="font-semibold">Browser Camera</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => data.setStreamMethod('rtmp')}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
+              data.streamMethod === 'rtmp'
+                ? 'border-purple-500 bg-purple-500/20 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
+            }`}
+          >
+            <Monitor className="w-5 h-5" />
+            <span className="font-semibold">OBS / Encoder</span>
+          </button>
+        </div>
+
         {/* 2-Column Layout */}
         <form
           onSubmit={(e) => data.handleStartStream(e, {
@@ -144,33 +184,62 @@ export default function GoLivePage() {
               defaultCallSettings={data.defaultCallSettings}
             />
 
-            {/* Right Column: Device Preview */}
-            <GoLiveDevicePreview
-              orientation={data.orientation}
-              devicesLoading={devices.devicesLoading}
-              previewError={devices.previewError}
-              videoPlaying={devices.videoPlaying}
-              setVideoPlaying={devices.setVideoPlaying}
-              mediaStream={devices.mediaStream}
-              videoRef={devices.videoRef}
-              videoDevices={devices.videoDevices}
-              audioDevices={devices.audioDevices}
-              selectedVideoDevice={devices.selectedVideoDevice}
-              setSelectedVideoDevice={devices.setSelectedVideoDevice}
-              selectedAudioDevice={devices.selectedAudioDevice}
-              setSelectedAudioDevice={devices.setSelectedAudioDevice}
-              audioLevel={devices.audioLevel}
-              hasAiTwin={data.hasAiTwin}
-              aiChatModEnabled={data.aiChatModEnabled}
-              setAiChatModEnabled={data.setAiChatModEnabled}
-              featuredCreators={data.featuredCreators}
-              setFeaturedCreators={data.setFeaturedCreators}
-              featuredCreatorCommission={data.featuredCreatorCommission}
-              setFeaturedCreatorCommission={data.setFeaturedCreatorCommission}
-              onInitializeDevices={devices.initializeDevices}
-              onTapToPlay={devices.handleTapToPlay}
-              onShowStreamingTips={() => data.setShowStreamingTipsModal(true)}
-            />
+            {/* Right Column: Device Preview or RTMP Info */}
+            {data.streamMethod === 'browser' ? (
+              <GoLiveDevicePreview
+                orientation={data.orientation}
+                devicesLoading={devices.devicesLoading}
+                previewError={devices.previewError}
+                videoPlaying={devices.videoPlaying}
+                setVideoPlaying={devices.setVideoPlaying}
+                mediaStream={devices.mediaStream}
+                videoRef={devices.videoRef}
+                videoDevices={devices.videoDevices}
+                audioDevices={devices.audioDevices}
+                selectedVideoDevice={devices.selectedVideoDevice}
+                setSelectedVideoDevice={devices.setSelectedVideoDevice}
+                selectedAudioDevice={devices.selectedAudioDevice}
+                setSelectedAudioDevice={devices.setSelectedAudioDevice}
+                audioLevel={devices.audioLevel}
+                hasAiTwin={data.hasAiTwin}
+                aiChatModEnabled={data.aiChatModEnabled}
+                setAiChatModEnabled={data.setAiChatModEnabled}
+                featuredCreators={data.featuredCreators}
+                setFeaturedCreators={data.setFeaturedCreators}
+                featuredCreatorCommission={data.featuredCreatorCommission}
+                setFeaturedCreatorCommission={data.setFeaturedCreatorCommission}
+                onInitializeDevices={devices.initializeDevices}
+                onTapToPlay={devices.handleTapToPlay}
+                onShowStreamingTips={() => data.setShowStreamingTipsModal(true)}
+              />
+            ) : (
+              <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-6 md:p-8 space-y-6 hover:border-purple-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center border border-purple-500/40">
+                    <Monitor className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">OBS / Encoder Mode</h3>
+                  <p className="text-gray-400 text-sm max-w-sm mx-auto">
+                    Stream from OBS Studio, Streamlabs, or any RTMP-compatible encoder.
+                    After clicking Start Stream, you&apos;ll receive an RTMP URL and stream key.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-lg mt-0.5">1.</span>
+                    <p className="text-sm text-gray-300">Click <span className="text-white font-semibold">Start Stream</span> below to get your RTMP credentials</p>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-lg mt-0.5">2.</span>
+                    <p className="text-sm text-gray-300">Copy the <span className="text-white font-semibold">Server URL</span> and <span className="text-white font-semibold">Stream Key</span> into OBS</p>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <span className="text-lg mt-0.5">3.</span>
+                    <p className="text-sm text-gray-300">Click <span className="text-white font-semibold">Start Streaming</span> in OBS — viewers will see your feed</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Error Message */}
@@ -186,7 +255,7 @@ export default function GoLivePage() {
               type="submit"
               variant="gradient"
               size="lg"
-              disabled={!data.title.trim() || !devices.mediaStream || data.isCreating}
+              disabled={!data.title.trim() || (data.streamMethod === 'browser' && !devices.mediaStream) || data.isCreating}
               className="w-full relative overflow-hidden group"
               shimmer
               glow

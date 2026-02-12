@@ -201,6 +201,7 @@ export const createStreamSchema = z.object({
   goPrivateRate: z.number().int().min(0).max(10000).optional(),
   goPrivateMinDuration: z.number().int().min(1).max(120).optional(),
   aiChatModEnabled: z.boolean().optional(),
+  streamMethod: z.enum(['browser', 'rtmp']).default('browser'),
 });
 
 // ============================================
