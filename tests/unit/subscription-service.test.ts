@@ -507,7 +507,7 @@ describe('SubscriptionService', () => {
       mockTx.update.mockReturnValue({
         set: vi.fn(() => ({
           where: vi.fn(() => ({
-            returning: vi.fn(() => Promise.resolve([{}])),
+            returning: vi.fn(() => Promise.resolve([{ id: 'updated' }])),
           })),
         })),
       });

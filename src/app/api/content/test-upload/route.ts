@@ -1,32 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * POST - Test upload endpoint to diagnose issues
+ * POST - Test upload endpoint to diagnose issues (admin only)
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async ({ user, request }) => {
   const diagnostics: any = {
     step: 'init',
     timestamp: new Date().toISOString(),
   };
 
   try {
-    // Step 1: Auth check
-    diagnostics.step = 'auth';
+    const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      diagnostics.authError = authError?.message;
-      return NextResponse.json({
-        error: 'Authentication failed',
-        diagnostics
-      }, { status: 401 });
-    }
-
+    diagnostics.step = 'auth';
     diagnostics.userId = user.id;
     diagnostics.userEmail = user.email;
 
@@ -108,7 +99,6 @@ export async function POST(request: NextRequest) {
     diagnostics.env = {
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
     };
 
     diagnostics.step = 'complete';
@@ -122,7 +112,6 @@ export async function POST(request: NextRequest) {
     diagnostics.step = 'error';
     diagnostics.error = {
       message: error.message,
-      stack: error.stack?.split('\n').slice(0, 3),
     };
 
     return NextResponse.json({
@@ -130,4 +119,4 @@ export async function POST(request: NextRequest) {
       diagnostics
     }, { status: 500 });
   }
-}
+});

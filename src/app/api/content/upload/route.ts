@@ -8,6 +8,26 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300; // 5 minutes for large video uploads
 
+function validateFileMagicNumbers(bytes: Uint8Array, expectedType: 'image' | 'video'): boolean {
+  if (bytes.length < 12) return false;
+  if (expectedType === 'image') {
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return true; // JPEG
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return true; // PNG
+    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return true; // GIF
+    if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return true; // WebP
+    return false;
+  }
+  if (expectedType === 'video') {
+    if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return true; // MP4/MOV
+    if (bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3) return true; // WebM
+    if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+        bytes[8] === 0x41 && bytes[9] === 0x56 && bytes[10] === 0x49) return true; // AVI
+    return false;
+  }
+  return false;
+}
+
 /**
  * POST - Upload content with file
  */
@@ -79,6 +99,11 @@ export async function POST(request: NextRequest) {
         if (galleryFile.size > 50 * 1024 * 1024) {
           return NextResponse.json({ error: 'Each image must be under 50MB' }, { status: 400 });
         }
+        // Validate file magic numbers match claimed type
+        const galleryBytes = new Uint8Array(await galleryFile.slice(0, 12).arrayBuffer());
+        if (!validateFileMagicNumbers(galleryBytes, 'image')) {
+          return NextResponse.json({ error: 'File content does not match declared image type' }, { status: 400 });
+        }
       }
     } else {
       // For single file uploads
@@ -91,6 +116,13 @@ export async function POST(request: NextRequest) {
 
       if (contentType === 'video' && !isVideo) {
         return NextResponse.json({ error: 'Invalid video file type' }, { status: 400 });
+      }
+
+      // Validate file magic numbers match claimed type
+      const fileBytes = new Uint8Array(await file!.slice(0, 12).arrayBuffer());
+      const expectedMagicType = contentType === 'video' ? 'video' : 'image';
+      if (!validateFileMagicNumbers(fileBytes, expectedMagicType as 'image' | 'video')) {
+        return NextResponse.json({ error: 'File content does not match declared type' }, { status: 400 });
       }
 
       // Check file size limits

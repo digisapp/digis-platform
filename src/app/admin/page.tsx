@@ -3,7 +3,7 @@
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   Users, UserCheck, UserPlus, ClipboardList, CreditCard,
-  RefreshCw, Mail, Gift,
+  RefreshCw, Mail, Gift, MessageCircle,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
@@ -62,6 +62,10 @@ export default function AdminDashboard() {
             <button onClick={() => d.router.push('/admin/referrals')} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-purple-500/30 rounded-lg transition-colors">
               <Users className="w-4 h-4 text-purple-400" />
               <span className="text-sm font-medium text-white">Referrals</span>
+            </button>
+            <button onClick={() => d.router.push('/admin/chats')} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border border-blue-500/30 rounded-lg transition-colors">
+              <MessageCircle className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium text-white">Chats</span>
             </button>
             <button onClick={d.handleRefresh} disabled={d.refreshing} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${d.refreshing ? 'animate-spin' : ''}`} />

@@ -45,8 +45,9 @@ export async function POST(request: NextRequest) {
     // Use the origin from the request or fall back to env variable
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_URL || 'https://digis.cc';
 
-    // Encode return URL for safe passing through query params
-    const encodedReturnUrl = encodeURIComponent(returnUrl || '/wallet');
+    // Validate returnUrl is a relative path to prevent open redirect
+    const safeReturnUrl = returnUrl && typeof returnUrl === 'string' && returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/wallet';
+    const encodedReturnUrl = encodeURIComponent(safeReturnUrl);
 
     const coinPackage = getCoinPackage(packageId);
 

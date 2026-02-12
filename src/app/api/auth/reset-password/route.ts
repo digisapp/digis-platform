@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { resetPasswordSchema, validateBody } from '@/lib/validation/schemas';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,15 @@ export const dynamic = 'force-dynamic';
 // POST /api/auth/reset-password - Request password reset email
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit password reset requests
+    const rl = await rateLimit(request, 'auth');
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429, headers: rl.headers }
+      );
+    }
+
     // Validate input
     const validation = await validateBody(request, resetPasswordSchema);
     if (!validation.success) {
