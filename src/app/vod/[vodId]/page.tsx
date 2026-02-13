@@ -4,7 +4,7 @@ import { db } from '@/lib/data/system';
 import { vods } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import VODPlayerPageClient from './VODPlayerPageClient';
-import { VideoObjectJsonLd, secondsToIsoDuration } from '@/components/seo/JsonLd';
+import { VideoObjectJsonLd, BreadcrumbJsonLd, secondsToIsoDuration } from '@/components/seo/JsonLd';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -104,6 +104,15 @@ export default async function VODPage({ params }: Props) {
 
   return (
     <>
+      {vod && vod.creator && (
+        <BreadcrumbJsonLd
+          items={[
+            { name: 'Home', url: 'https://digis.cc' },
+            { name: vod.creator.displayName || vod.creator.username || 'Creator', url: `https://digis.cc/${vod.creator.username}` },
+            { name: vod.title, url: `https://digis.cc/vod/${vod.id}` },
+          ]}
+        />
+      )}
       {vod && vod.creator && (
         <VideoObjectJsonLd
           name={vod.title}

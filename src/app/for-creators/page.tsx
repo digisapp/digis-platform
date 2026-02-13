@@ -99,7 +99,7 @@ const slides: Slide[] = [
           <p>• just vibing</p>
         </div>
         <p className="text-yellow-300 font-bold text-xl mt-6">
-          $3/min × 10 min = $30 🤑
+          $5/min × 30 min = $150 🤑
         </p>
       </div>
     )
@@ -405,8 +405,8 @@ export default function ForCreatorsPage() {
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
-            width={80}
-            height={27}
+            width={240}
+            height={108}
             className="h-6 w-auto opacity-80"
           />
         </Link>

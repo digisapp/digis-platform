@@ -4,7 +4,7 @@ import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
 import { sql } from 'drizzle-orm';
 import ProfilePageClient from './ProfilePageClient';
-import { PersonJsonLd } from '@/components/seo/JsonLd';
+import { PersonJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -93,6 +93,13 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://digis.cc' },
+          { name: 'Explore', url: 'https://digis.cc/explore' },
+          { name: user.displayName || user.username || 'Creator', url: `https://digis.cc/${user.username}` },
+        ]}
+      />
       {user && (
         <PersonJsonLd
           name={user.displayName || user.username || 'Creator'}

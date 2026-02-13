@@ -4,7 +4,7 @@ import { db } from '@/lib/data/system';
 import { clips } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import ClipPlayerPageClient from './ClipPlayerPageClient';
-import { VideoObjectJsonLd, secondsToIsoDuration } from '@/components/seo/JsonLd';
+import { VideoObjectJsonLd, BreadcrumbJsonLd, secondsToIsoDuration } from '@/components/seo/JsonLd';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -76,8 +76,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [
         {
           url: ogImage,
-          width: 720,
-          height: 1280,
+          width: 1280,
+          height: 720,
           alt: clip.title,
         },
       ],
@@ -102,6 +102,15 @@ export default async function ClipPage({ params }: Props) {
 
   return (
     <>
+      {clip && clip.creator && (
+        <BreadcrumbJsonLd
+          items={[
+            { name: 'Home', url: 'https://digis.cc' },
+            { name: clip.creator.displayName || clip.creator.username || 'Creator', url: `https://digis.cc/${clip.creator.username}` },
+            { name: clip.title, url: `https://digis.cc/clip/${clip.id}` },
+          ]}
+        />
+      )}
       {clip && clip.creator && (
         <VideoObjectJsonLd
           name={clip.title}
