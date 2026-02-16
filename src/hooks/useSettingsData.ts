@@ -341,7 +341,7 @@ export function useSettingsData({ form, setField, populateFromApi, markAsSaved }
     setError('');
 
     try {
-      const resizedFile = await resizeImage(file, 1920, 500);
+      const resizedFile = await resizeImage(file, 2560, 680);
       const url = await uploadImage(resizedFile, 'banner', currentUser.id);
 
       setBannerPreview(url);

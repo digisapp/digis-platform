@@ -61,6 +61,7 @@ export function ParallaxBanner({ imageUrl, height = 'h-48 sm:h-56 md:h-72 lg:h-8
             alt={username ? `${username}'s profile banner` : 'Profile banner'}
             fill
             sizes="100vw"
+            quality={90}
             priority
             className={`object-cover object-center transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImageLoaded(true)}

@@ -148,7 +148,17 @@ export async function resizeImage(
       canvas.width = width;
       canvas.height = height;
 
+      // Use high-quality image smoothing for better downscaling
+      if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+      }
+
       ctx?.drawImage(img, 0, 0, width, height);
+
+      // Output as WebP for better quality-to-size ratio
+      const outputType = 'image/webp';
+      const baseName = file.name.replace(/\.[^.]+$/, '');
 
       canvas.toBlob(
         (blob) => {
@@ -157,15 +167,15 @@ export async function resizeImage(
             return;
           }
 
-          const resizedFile = new File([blob], file.name, {
-            type: file.type,
+          const resizedFile = new File([blob], `${baseName}.webp`, {
+            type: outputType,
             lastModified: Date.now(),
           });
 
           resolve(resizedFile);
         },
-        file.type,
-        0.9 // Quality
+        outputType,
+        0.92 // Higher quality for WebP (still smaller than JPEG at 0.9)
       );
     };
 
