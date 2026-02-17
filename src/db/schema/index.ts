@@ -18,3 +18,6 @@ export * from './rewards';
 export * from './referrals';
 export * from './financial-audit';
 export * from './payoneer';
+export * from './collections';
+export * from './bookings';
+export * from './group-rooms';

@@ -1,0 +1,52 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/data/system';
+import { groupRooms } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/group-rooms/[roomId]/lock
+ * Toggle room lock (creator only)
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomId: string }> }
+) {
+  try {
+    const { roomId } = await params;
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const room = await db.query.groupRooms.findFirst({
+      where: eq(groupRooms.id, roomId),
+    });
+
+    if (!room || room.creatorId !== user.id) {
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+    }
+
+    const [updated] = await db
+      .update(groupRooms)
+      .set({
+        isLocked: !room.isLocked,
+        updatedAt: new Date(),
+      })
+      .where(eq(groupRooms.id, roomId))
+      .returning();
+
+    return NextResponse.json({ room: updated, locked: updated.isLocked });
+  } catch (error: any) {
+    console.error('Error toggling room lock:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to toggle lock' },
+      { status: 500 }
+    );
+  }
+}

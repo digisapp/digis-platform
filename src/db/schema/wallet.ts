@@ -22,7 +22,14 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'ai_session_charge',
   'ai_session_earnings',
   'ai_text_chat',
-  'ai_text_earnings'
+  'ai_text_earnings',
+  'collection_purchase',
+  'collection_earnings',
+  'booking_payment',
+  'booking_earnings',
+  'booking_refund',
+  'group_room_payment',
+  'group_room_earnings'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [
