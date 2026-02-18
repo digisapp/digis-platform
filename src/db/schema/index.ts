@@ -21,3 +21,4 @@ export * from './payoneer';
 export * from './collections';
 export * from './bookings';
 export * from './group-rooms';
+export * from './transcripts';
