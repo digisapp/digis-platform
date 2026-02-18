@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorAvailability, availabilityOverrides, bookings, creatorSettings } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,14 +19,14 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
 
-    if (!date) {
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json({ error: 'date query param required (YYYY-MM-DD)' }, { status: 400 });
     }
 
-    const requestedDate = new Date(date + 'T00:00:00');
-    const dayOfWeek = requestedDate.getDay(); // 0=Sunday
+    // Use UTC consistently to avoid server timezone drift
+    const requestedDate = new Date(date + 'T00:00:00Z');
+    const dayOfWeek = requestedDate.getUTCDay();
 
-    // Check for date override
     const override = await db.query.availabilityOverrides.findFirst({
       where: and(
         eq(availabilityOverrides.creatorId, creatorId),
@@ -34,12 +34,10 @@ export async function GET(
       ),
     });
 
-    // If day is blocked, no slots
     if (override?.isBlocked) {
       return NextResponse.json({ slots: [], blocked: true, reason: override.reason || 'Unavailable' });
     }
 
-    // Get regular schedule for this day
     const schedule = await db.query.creatorAvailability.findFirst({
       where: and(
         eq(creatorAvailability.creatorId, creatorId),
@@ -52,7 +50,6 @@ export async function GET(
       return NextResponse.json({ slots: [], reason: 'No availability set for this day' });
     }
 
-    // Use override times if set, otherwise regular schedule
     const startTime = override?.customStartTime || schedule?.startTime;
     const endTime = override?.customEndTime || schedule?.endTime;
     const slotDuration = schedule?.slotDurationMinutes || 30;
@@ -83,7 +80,7 @@ export async function GET(
       });
     }
 
-    // Get existing confirmed bookings for this date to mark slots as taken
+    // Filter existing bookings to this date only (not all bookings ever)
     const dateStart = new Date(date + 'T00:00:00Z');
     const dateEnd = new Date(date + 'T23:59:59Z');
 
@@ -91,16 +88,13 @@ export async function GET(
       where: and(
         eq(bookings.creatorId, creatorId),
         eq(bookings.status, 'confirmed'),
+        gte(bookings.scheduledStart, dateStart),
+        lte(bookings.scheduledStart, dateEnd),
       ),
       columns: { scheduledStart: true, scheduledEnd: true },
     });
 
-    // Filter bookings to this date and mark slots as unavailable
-    const dateStr = date;
     for (const booking of existingBookings) {
-      const bookingDate = booking.scheduledStart.toISOString().split('T')[0];
-      if (bookingDate !== dateStr) continue;
-
       const bookingStartH = booking.scheduledStart.getUTCHours();
       const bookingStartM = booking.scheduledStart.getUTCMinutes();
       const bookingTime = `${bookingStartH.toString().padStart(2, '0')}:${bookingStartM.toString().padStart(2, '0')}`;
@@ -111,11 +105,11 @@ export async function GET(
       }
     }
 
-    // Filter out past slots if date is today
+    // Filter past slots if date is today (use UTC)
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     if (date === todayStr) {
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const currentMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
       for (const slot of slots) {
         const [h, m] = slot.startTime.split(':').map(Number);
         if (h * 60 + m <= currentMinutes) {
@@ -124,13 +118,9 @@ export async function GET(
       }
     }
 
-    // Get creator's call settings for rate info
     const settings = await db.query.creatorSettings.findFirst({
       where: eq(creatorSettings.userId, creatorId),
-      columns: {
-        callRatePerMinute: true,
-        voiceCallRatePerMinute: true,
-      },
+      columns: { callRatePerMinute: true, voiceCallRatePerMinute: true },
     });
 
     return NextResponse.json({
@@ -145,9 +135,6 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Error fetching available slots:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch slots' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch slots' }, { status: 500 });
   }
 }

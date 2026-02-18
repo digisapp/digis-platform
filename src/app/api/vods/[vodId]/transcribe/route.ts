@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes for transcription
 
 /**
  * POST /api/vods/[vodId]/transcribe
@@ -21,7 +22,7 @@ export async function POST(
 ) {
   try {
     // Rate limit (expensive operation)
-    const rateLimitResult = await rateLimit(req, 'tips');
+    const rateLimitResult = await rateLimit(req, 'critical');
     if (!rateLimitResult.ok) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait before transcribing another video.' },
@@ -80,15 +81,13 @@ export async function POST(
       durationSeconds: vod.duration,
     }).returning();
 
-    // Process async (don't await — return immediately)
-    TranscriptionService.processVod(transcript.id).catch(err => {
-      console.error(`[Transcribe] Background processing failed for ${transcript.id}:`, err.message);
-    });
+    // Process synchronously — Vercel kills fire-and-forget promises after response
+    await TranscriptionService.processVod(transcript.id);
 
     return NextResponse.json({
       transcriptId: transcript.id,
-      status: 'pending',
-      message: 'Transcription started. This usually takes 1-2 minutes.',
+      status: 'completed',
+      message: 'Transcription complete.',
     });
 
   } catch (error: any) {

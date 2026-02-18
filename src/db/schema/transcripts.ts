@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, pgEnum, uuid, text, integer, timestamp, boolean, index, uniqueIndex, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 import { vods } from './vods';
@@ -58,7 +58,7 @@ export const vodTranscripts = pgTable('vod_transcripts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
 }, (table) => ({
-  vodIdx: index('vod_transcripts_vod_id_idx').on(table.vodId),
+  vodIdx: uniqueIndex('vod_transcripts_vod_id_idx').on(table.vodId),
   creatorIdx: index('vod_transcripts_creator_id_idx').on(table.creatorId),
   statusIdx: index('vod_transcripts_status_idx').on(table.status),
 }));

@@ -44,39 +44,59 @@ export async function POST(
       return NextResponse.json({ hasAccess: true, alreadyOwner: true });
     }
 
-    // Check if already purchased
-    const existing = await db.query.collectionPurchases.findFirst({
-      where: and(
-        eq(collectionPurchases.collectionId, collectionId),
-        eq(collectionPurchases.userId, user.id),
-      ),
-    });
-
-    if (existing) {
-      return NextResponse.json({ hasAccess: true, alreadyPurchased: true });
-    }
-
-    // Free collection
+    // Free collection - use transaction for atomicity
     if (collection.priceCoins === 0) {
-      await db.insert(collectionPurchases).values({
-        collectionId,
-        userId: user.id,
-        coinsSpent: 0,
+      const result = await db.transaction(async (tx) => {
+        // Check duplicate inside transaction
+        const existing = await tx.query.collectionPurchases.findFirst({
+          where: and(
+            eq(collectionPurchases.collectionId, collectionId),
+            eq(collectionPurchases.userId, user.id),
+          ),
+        });
+
+        if (existing) {
+          return { alreadyPurchased: true };
+        }
+
+        await tx.insert(collectionPurchases).values({
+          collectionId,
+          userId: user.id,
+          coinsSpent: 0,
+        });
+
+        await tx
+          .update(collections)
+          .set({
+            purchaseCount: sql`${collections.purchaseCount} + 1`,
+            updatedAt: new Date(),
+          })
+          .where(eq(collections.id, collectionId));
+
+        return { charged: 0 };
       });
 
-      await db
-        .update(collections)
-        .set({
-          purchaseCount: sql`${collections.purchaseCount} + 1`,
-          updatedAt: new Date(),
-        })
-        .where(eq(collections.id, collectionId));
+      if ('alreadyPurchased' in result) {
+        return NextResponse.json({ hasAccess: true, alreadyPurchased: true });
+      }
 
       return NextResponse.json({ hasAccess: true, charged: 0 });
     }
 
-    // Paid collection - double-entry transaction
+    // Paid collection - double-entry transaction with proper locking
     const result = await db.transaction(async (tx) => {
+      // Check duplicate INSIDE transaction to prevent race condition
+      const existing = await tx.query.collectionPurchases.findFirst({
+        where: and(
+          eq(collectionPurchases.collectionId, collectionId),
+          eq(collectionPurchases.userId, user.id),
+        ),
+      });
+
+      if (existing) {
+        return { alreadyPurchased: true };
+      }
+
       // Lock buyer wallet
       const [buyerWallet] = await tx
         .select()
@@ -104,7 +124,7 @@ export async function POST(
 
       if (!debitTx) {
         // Idempotency key conflict - already processed
-        return { alreadyProcessed: true };
+        return { alreadyPurchased: true };
       }
 
       // Credit creator
@@ -127,7 +147,7 @@ export async function POST(
         .set({ relatedTransactionId: creditTx.id })
         .where(eq(walletTransactions.id, debitTx.id));
 
-      // Update wallets
+      // Update buyer wallet
       await tx
         .update(wallets)
         .set({
@@ -135,6 +155,13 @@ export async function POST(
           updatedAt: new Date(),
         })
         .where(eq(wallets.userId, user.id));
+
+      // Lock and update creator wallet
+      await tx
+        .select()
+        .from(wallets)
+        .where(eq(wallets.userId, collection.creatorId))
+        .for('update');
 
       await tx
         .update(wallets)
@@ -165,7 +192,7 @@ export async function POST(
       return { charged: collection.priceCoins, transactionId: debitTx.id };
     });
 
-    if ('alreadyProcessed' in result) {
+    if ('alreadyPurchased' in result) {
       return NextResponse.json({ hasAccess: true, alreadyPurchased: true });
     }
 
@@ -176,7 +203,7 @@ export async function POST(
     }
     console.error('Error purchasing collection:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to purchase collection' },
+      { error: 'Failed to purchase collection' },
       { status: 500 }
     );
   }

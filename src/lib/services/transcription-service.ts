@@ -101,6 +101,9 @@ export class TranscriptionService {
     }
 
     // Deepgram accepts a URL directly — no need to download the file
+    const deepgramController = new AbortController();
+    const deepgramTimeout = setTimeout(() => deepgramController.abort(), 240_000); // 4 min timeout
+
     const response = await fetch('https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&paragraphs=true&utterances=true&detect_language=true&punctuate=true', {
       method: 'POST',
       headers: {
@@ -108,7 +111,9 @@ export class TranscriptionService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ url: videoUrl }),
+      signal: deepgramController.signal,
     });
+    clearTimeout(deepgramTimeout);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -148,7 +153,7 @@ export class TranscriptionService {
           currentSegment = { start: word.start, end: word.end, text: '' };
         }
         currentSegment.end = word.end;
-        currentSegment.text += (currentSegment.text ? ' ' : '') + word.punctuated_word || word.word;
+        currentSegment.text += (currentSegment.text ? ' ' : '') + (word.punctuated_word || word.word);
       }
 
       if (currentSegment && currentSegment.text.trim()) {
@@ -204,6 +209,9 @@ export class TranscriptionService {
 
     const durationMins = Math.round(durationSeconds / 60);
 
+    const grokController = new AbortController();
+    const grokTimeout = setTimeout(() => grokController.abort(), 60_000); // 60s timeout
+
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -225,7 +233,9 @@ export class TranscriptionService {
         temperature: 0.3,
         max_tokens: 2000,
       }),
+      signal: grokController.signal,
     });
+    clearTimeout(grokTimeout);
 
     if (!response.ok) {
       console.error('[Transcription] Grok chapter generation failed:', response.status);

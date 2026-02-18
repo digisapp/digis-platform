@@ -59,7 +59,7 @@ export async function POST(
           completedItems: capped,
           totalItems: collection.itemCount,
           lastAccessedAt: new Date(),
-          completedAt: isComplete ? new Date() : existing.completedAt,
+          completedAt: isComplete ? new Date() : null,
           updatedAt: new Date(),
         })
         .where(eq(collectionProgress.id, existing.id))

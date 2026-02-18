@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Users, Lock, Unlock, UserMinus, LogOut, Play } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 interface Participant {
   id: string;
@@ -46,12 +47,25 @@ export default function GroupRoomPage() {
   const [isCreator, setIsCreator] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
 
+  const currentUserIdRef = useRef<string | null>(null);
+
+  // Get current user on mount
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      currentUserIdRef.current = data.user?.id || null;
+    });
+  }, []);
+
   const fetchRoom = useCallback(async () => {
     try {
       const res = await fetch(`/api/group-rooms/${roomId}`);
       const data = await res.json();
       if (res.ok) {
         setRoom(data.room);
+        if (currentUserIdRef.current && data.room?.creatorId === currentUserIdRef.current) {
+          setIsCreator(true);
+        }
       }
     } catch (error) {
       console.error('Error:', error);

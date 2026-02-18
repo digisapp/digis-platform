@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { bookings, wallets, walletTransactions } from '@/db/schema';
 import { eq, and, or, sql } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,43 +29,52 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const rateLimitResult = await rateLimit(request, 'tips');
+    if (!rateLimitResult.ok) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: rateLimitResult.headers });
+    }
+
     const body = await request.json().catch(() => ({}));
     const { reason } = body;
 
-    const booking = await db.query.bookings.findFirst({
-      where: and(
-        eq(bookings.id, bookingId),
-        or(eq(bookings.creatorId, user.id), eq(bookings.fanId, user.id)),
-      ),
-    });
-
-    if (!booking) {
-      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
-    }
-
-    if (booking.status !== 'confirmed') {
-      return NextResponse.json({ error: 'Booking cannot be cancelled' }, { status: 400 });
-    }
-
-    // Calculate refund
-    const now = new Date();
-    const hoursUntilBooking = (booking.scheduledStart.getTime() - now.getTime()) / (1000 * 60 * 60);
-    const isCreatorCancelling = user.id === booking.creatorId;
-
-    let refundPercent: number;
-    if (isCreatorCancelling) {
-      refundPercent = 100; // Creator always refunds 100%
-    } else if (hoursUntilBooking >= 24) {
-      refundPercent = 100;
-    } else if (hoursUntilBooking >= 1) {
-      refundPercent = 50;
-    } else {
-      refundPercent = 0;
-    }
-
-    const refundAmount = Math.floor(booking.coinsCharged * refundPercent / 100);
-
+    // Entire cancel + refund inside a single transaction with row locking
     const result = await db.transaction(async (tx) => {
+      // Lock and read booking inside transaction (prevents TOCTOU race)
+      const [booking] = await tx
+        .select()
+        .from(bookings)
+        .where(and(
+          eq(bookings.id, bookingId),
+          or(eq(bookings.creatorId, user.id), eq(bookings.fanId, user.id)),
+        ))
+        .for('update');
+
+      if (!booking) {
+        throw new Error('NOT_FOUND');
+      }
+
+      if (booking.status !== 'confirmed') {
+        throw new Error('CANNOT_CANCEL');
+      }
+
+      // Calculate refund
+      const now = new Date();
+      const hoursUntilBooking = (booking.scheduledStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+      const isCreatorCancelling = user.id === booking.creatorId;
+
+      let refundPercent: number;
+      if (isCreatorCancelling) {
+        refundPercent = 100;
+      } else if (hoursUntilBooking >= 24) {
+        refundPercent = 100;
+      } else if (hoursUntilBooking >= 1) {
+        refundPercent = 50;
+      } else {
+        refundPercent = 0;
+      }
+
+      const refundAmount = Math.floor(booking.coinsCharged * refundPercent / 100);
+
       // Update booking status
       const [updated] = await tx
         .update(bookings)
@@ -79,9 +89,12 @@ export async function POST(
         .where(eq(bookings.id, bookingId))
         .returning();
 
-      // Process refund if any
       if (refundAmount > 0) {
-        // Debit creator (return coins)
+        // Lock both wallets before modifying
+        await tx.select().from(wallets).where(eq(wallets.userId, booking.creatorId)).for('update');
+        await tx.select().from(wallets).where(eq(wallets.userId, booking.fanId)).for('update');
+
+        // Debit creator
         const [debitTx] = await tx
           .insert(walletTransactions)
           .values({
@@ -94,7 +107,7 @@ export async function POST(
           })
           .returning();
 
-        // Credit fan (receive refund)
+        // Credit fan
         const [creditTx] = await tx
           .insert(walletTransactions)
           .values({
@@ -108,34 +121,10 @@ export async function POST(
           })
           .returning();
 
-        // Link transactions
-        await tx
-          .update(walletTransactions)
-          .set({ relatedTransactionId: creditTx.id })
-          .where(eq(walletTransactions.id, debitTx.id));
-
-        // Update wallets
-        await tx
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} - ${refundAmount}`,
-            updatedAt: now,
-          })
-          .where(eq(wallets.userId, booking.creatorId));
-
-        await tx
-          .update(wallets)
-          .set({
-            balance: sql`${wallets.balance} + ${refundAmount}`,
-            updatedAt: now,
-          })
-          .where(eq(wallets.userId, booking.fanId));
-
-        // Store refund transaction ID on booking
-        await tx
-          .update(bookings)
-          .set({ refundTransactionId: creditTx.id })
-          .where(eq(bookings.id, bookingId));
+        await tx.update(walletTransactions).set({ relatedTransactionId: creditTx.id }).where(eq(walletTransactions.id, debitTx.id));
+        await tx.update(wallets).set({ balance: sql`${wallets.balance} - ${refundAmount}`, updatedAt: now }).where(eq(wallets.userId, booking.creatorId));
+        await tx.update(wallets).set({ balance: sql`${wallets.balance} + ${refundAmount}`, updatedAt: now }).where(eq(wallets.userId, booking.fanId));
+        await tx.update(bookings).set({ refundTransactionId: creditTx.id }).where(eq(bookings.id, bookingId));
       }
 
       return { booking: updated, refundAmount, refundPercent };
@@ -143,10 +132,13 @@ export async function POST(
 
     return NextResponse.json(result);
   } catch (error: any) {
+    if (error.message === 'NOT_FOUND') {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    if (error.message === 'CANNOT_CANCEL') {
+      return NextResponse.json({ error: 'Booking cannot be cancelled' }, { status: 400 });
+    }
     console.error('Error cancelling booking:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to cancel booking' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 });
   }
 }

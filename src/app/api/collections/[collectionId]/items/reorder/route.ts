@@ -39,6 +39,18 @@ export async function PATCH(
       return NextResponse.json({ error: 'itemIds array is required' }, { status: 400 });
     }
 
+    // Validate all item IDs belong to this collection
+    const existingItems = await db.query.collectionItems.findMany({
+      where: eq(collectionItems.collectionId, collectionId),
+      columns: { id: true },
+    });
+    const existingIds = new Set(existingItems.map(i => i.id));
+    const uniqueInput = new Set(itemIds);
+
+    if (uniqueInput.size !== itemIds.length || !itemIds.every((id: string) => existingIds.has(id))) {
+      return NextResponse.json({ error: 'Invalid item IDs' }, { status: 400 });
+    }
+
     // Update positions in a transaction
     await db.transaction(async (tx) => {
       for (let i = 0; i < itemIds.length; i++) {

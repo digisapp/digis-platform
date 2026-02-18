@@ -25,27 +25,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const room = await db.query.groupRooms.findFirst({
-      where: eq(groupRooms.id, roomId),
-    });
-
-    if (!room) {
-      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
-    }
-
-    if (room.status === 'ended' || room.status === 'cancelled') {
-      return NextResponse.json({ error: 'Room is no longer available' }, { status: 400 });
-    }
-
-    if (room.isLocked) {
-      return NextResponse.json({ error: 'Room is locked' }, { status: 403 });
-    }
-
-    if (room.currentParticipants >= room.maxParticipants && user.id !== room.creatorId) {
-      return NextResponse.json({ error: 'Room is full' }, { status: 409 });
-    }
-
-    // Check if already joined
+    // Check if already joined (handle re-join for left/removed)
     const existing = await db.query.groupRoomParticipants.findFirst({
       where: and(
         eq(groupRoomParticipants.roomId, roomId),
@@ -57,55 +37,85 @@ export async function POST(
       return NextResponse.json({ alreadyJoined: true, participant: existing });
     }
 
-    // Creator joins for free regardless
-    if (user.id === room.creatorId) {
-      const [participant] = await db
-        .insert(groupRoomParticipants)
-        .values({ roomId, userId: user.id })
-        .onConflictDoNothing()
-        .returning();
+    // Use transaction with row lock to prevent capacity race condition
+    const result = await db.transaction(async (tx) => {
+      // Lock room row to prevent concurrent joins exceeding capacity
+      const [room] = await tx
+        .select()
+        .from(groupRooms)
+        .where(eq(groupRooms.id, roomId))
+        .for('update');
 
-      await db
-        .update(groupRooms)
-        .set({
+      if (!room) {
+        throw new Error('NOT_FOUND');
+      }
+
+      if (room.status === 'ended' || room.status === 'cancelled') {
+        throw new Error('ROOM_CLOSED');
+      }
+
+      if (room.isLocked && user.id !== room.creatorId) {
+        throw new Error('ROOM_LOCKED');
+      }
+
+      if (room.currentParticipants >= room.maxParticipants && user.id !== room.creatorId) {
+        throw new Error('ROOM_FULL');
+      }
+
+      // Handle re-join: update existing row instead of inserting
+      let participant;
+      if (existing) {
+        [participant] = await tx
+          .update(groupRoomParticipants)
+          .set({ status: 'joined', joinedAt: new Date(), leftAt: null, durationSeconds: null, coinsCharged: 0, holdId: null })
+          .where(eq(groupRoomParticipants.id, existing.id))
+          .returning();
+      }
+
+      // Creator joins for free regardless
+      if (user.id === room.creatorId) {
+        if (!participant) {
+          [participant] = await tx
+            .insert(groupRoomParticipants)
+            .values({ roomId, userId: user.id })
+            .returning();
+        }
+
+        await tx.update(groupRooms).set({
           currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
-          totalParticipants: sql`${groupRooms.totalParticipants} + 1`,
+          totalParticipants: existing ? groupRooms.totalParticipants : sql`${groupRooms.totalParticipants} + 1`,
           updatedAt: new Date(),
-        })
-        .where(eq(groupRooms.id, roomId));
+        }).where(eq(groupRooms.id, roomId));
 
-      return NextResponse.json({ participant: participant || existing });
-    }
+        return { participant };
+      }
 
-    // Handle payment based on price type
-    if (room.priceType === 'free') {
-      const [participant] = await db
-        .insert(groupRoomParticipants)
-        .values({ roomId, userId: user.id })
-        .onConflictDoNothing()
-        .returning();
+      // Free room
+      if (room.priceType === 'free') {
+        if (!participant) {
+          [participant] = await tx
+            .insert(groupRoomParticipants)
+            .values({ roomId, userId: user.id })
+            .returning();
+        }
 
-      await db
-        .update(groupRooms)
-        .set({
+        await tx.update(groupRooms).set({
           currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
-          totalParticipants: sql`${groupRooms.totalParticipants} + 1`,
+          totalParticipants: existing ? groupRooms.totalParticipants : sql`${groupRooms.totalParticipants} + 1`,
           updatedAt: new Date(),
-        })
-        .where(eq(groupRooms.id, roomId));
+        }).where(eq(groupRooms.id, roomId));
 
-      return NextResponse.json({ participant: participant || existing });
-    }
+        return { participant };
+      }
 
-    // Rate limit for paid rooms
-    const { ok, error: rateLimitError } = await rateLimitFinancial(user.id, 'purchase');
-    if (!ok) {
-      return NextResponse.json({ error: rateLimitError }, { status: 429 });
-    }
+      // Rate limit for paid rooms
+      const { ok } = await rateLimitFinancial(user.id, 'purchase');
+      if (!ok) {
+        throw new Error('RATE_LIMITED');
+      }
 
-    if (room.priceType === 'flat') {
-      // Flat fee: charge upfront
-      const result = await db.transaction(async (tx) => {
+      if (room.priceType === 'flat') {
+        // Flat fee: charge upfront
         const [buyerWallet] = await tx
           .select()
           .from(wallets)
@@ -124,14 +134,9 @@ export async function POST(
             type: 'group_room_payment',
             status: 'completed',
             description: `Joined group room: ${room.title}`,
-            idempotencyKey: `group-join-${user.id}-${roomId}`,
+            idempotencyKey: `group-join-${user.id}-${roomId}-${Date.now()}`,
           })
-          .onConflictDoNothing()
           .returning();
-
-        if (!debitTx) {
-          throw new Error('Already processed');
-        }
 
         const [creditTx] = await tx
           .insert(walletTransactions)
@@ -141,53 +146,42 @@ export async function POST(
             type: 'group_room_earnings',
             status: 'completed',
             description: `Group room participant joined: ${room.title}`,
-            idempotencyKey: `group-earn-${room.creatorId}-${user.id}-${roomId}`,
+            idempotencyKey: `group-earn-${room.creatorId}-${user.id}-${roomId}-${Date.now()}`,
             relatedTransactionId: debitTx.id,
           })
           .returning();
 
-        await tx
-          .update(walletTransactions)
-          .set({ relatedTransactionId: creditTx.id })
-          .where(eq(walletTransactions.id, debitTx.id));
+        await tx.update(walletTransactions).set({ relatedTransactionId: creditTx.id }).where(eq(walletTransactions.id, debitTx.id));
+        await tx.update(wallets).set({ balance: sql`${wallets.balance} - ${room.priceCoins}`, updatedAt: new Date() }).where(eq(wallets.userId, user.id));
+        await tx.update(wallets).set({ balance: sql`${wallets.balance} + ${room.priceCoins}`, updatedAt: new Date() }).where(eq(wallets.userId, room.creatorId));
 
-        await tx
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} - ${room.priceCoins}`, updatedAt: new Date() })
-          .where(eq(wallets.userId, user.id));
+        if (!participant) {
+          [participant] = await tx
+            .insert(groupRoomParticipants)
+            .values({ roomId, userId: user.id, coinsCharged: room.priceCoins })
+            .returning();
+        } else {
+          [participant] = await tx
+            .update(groupRoomParticipants)
+            .set({ coinsCharged: room.priceCoins })
+            .where(eq(groupRoomParticipants.id, participant.id))
+            .returning();
+        }
 
-        await tx
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} + ${room.priceCoins}`, updatedAt: new Date() })
-          .where(eq(wallets.userId, room.creatorId));
-
-        const [participant] = await tx
-          .insert(groupRoomParticipants)
-          .values({ roomId, userId: user.id, coinsCharged: room.priceCoins })
-          .returning();
-
-        await tx
-          .update(groupRooms)
-          .set({
-            currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
-            totalParticipants: sql`${groupRooms.totalParticipants} + 1`,
-            totalEarnings: sql`${groupRooms.totalEarnings} + ${room.priceCoins}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(groupRooms.id, roomId));
+        await tx.update(groupRooms).set({
+          currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
+          totalParticipants: existing ? groupRooms.totalParticipants : sql`${groupRooms.totalParticipants} + 1`,
+          totalEarnings: sql`${groupRooms.totalEarnings} + ${room.priceCoins}`,
+          updatedAt: new Date(),
+        }).where(eq(groupRooms.id, roomId));
 
         return { participant, charged: room.priceCoins };
-      });
+      }
 
-      return NextResponse.json(result);
-    }
+      if (room.priceType === 'per_minute') {
+        const estimatedMinutes = 60;
+        const holdAmount = room.priceCoins * estimatedMinutes;
 
-    if (room.priceType === 'per_minute') {
-      // Per-minute: create hold, charge on leave/end
-      const estimatedMinutes = 60; // Estimate 1 hour max
-      const holdAmount = room.priceCoins * estimatedMinutes;
-
-      const result = await db.transaction(async (tx) => {
         const [buyerWallet] = await tx
           .select()
           .from(wallets)
@@ -198,58 +192,50 @@ export async function POST(
           throw new Error('Insufficient balance');
         }
 
-        // Create spend hold
         const [hold] = await tx
           .insert(spendHolds)
-          .values({
-            userId: user.id,
-            amount: holdAmount,
-            purpose: 'group_room',
-            relatedId: roomId,
-          })
+          .values({ userId: user.id, amount: holdAmount, purpose: 'group_room', relatedId: roomId })
           .returning();
 
-        // Update held balance
-        await tx
-          .update(wallets)
-          .set({
-            heldBalance: sql`${wallets.heldBalance} + ${holdAmount}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(wallets.userId, user.id));
+        await tx.update(wallets).set({
+          heldBalance: sql`${wallets.heldBalance} + ${holdAmount}`,
+          updatedAt: new Date(),
+        }).where(eq(wallets.userId, user.id));
 
-        const [participant] = await tx
-          .insert(groupRoomParticipants)
-          .values({ roomId, userId: user.id, holdId: hold.id })
-          .returning();
+        if (!participant) {
+          [participant] = await tx
+            .insert(groupRoomParticipants)
+            .values({ roomId, userId: user.id, holdId: hold.id })
+            .returning();
+        } else {
+          [participant] = await tx
+            .update(groupRoomParticipants)
+            .set({ holdId: hold.id })
+            .where(eq(groupRoomParticipants.id, participant.id))
+            .returning();
+        }
 
-        await tx
-          .update(groupRooms)
-          .set({
-            currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
-            totalParticipants: sql`${groupRooms.totalParticipants} + 1`,
-            updatedAt: new Date(),
-          })
-          .where(eq(groupRooms.id, roomId));
+        await tx.update(groupRooms).set({
+          currentParticipants: sql`${groupRooms.currentParticipants} + 1`,
+          totalParticipants: existing ? groupRooms.totalParticipants : sql`${groupRooms.totalParticipants} + 1`,
+          updatedAt: new Date(),
+        }).where(eq(groupRooms.id, roomId));
 
         return { participant, holdAmount };
-      });
+      }
 
-      return NextResponse.json(result);
-    }
+      throw new Error('Invalid price type');
+    });
 
-    return NextResponse.json({ error: 'Invalid price type' }, { status: 400 });
+    return NextResponse.json(result);
   } catch (error: any) {
-    if (error.message === 'Insufficient balance') {
-      return NextResponse.json({ error: 'Insufficient balance' }, { status: 402 });
-    }
-    if (error.message === 'Already processed') {
-      return NextResponse.json({ alreadyJoined: true });
-    }
+    if (error.message === 'NOT_FOUND') return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+    if (error.message === 'ROOM_CLOSED') return NextResponse.json({ error: 'Room is no longer available' }, { status: 400 });
+    if (error.message === 'ROOM_LOCKED') return NextResponse.json({ error: 'Room is locked' }, { status: 403 });
+    if (error.message === 'ROOM_FULL') return NextResponse.json({ error: 'Room is full' }, { status: 409 });
+    if (error.message === 'RATE_LIMITED') return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    if (error.message === 'Insufficient balance') return NextResponse.json({ error: 'Insufficient balance' }, { status: 402 });
     console.error('Error joining group room:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to join room' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to join room' }, { status: 500 });
   }
 }

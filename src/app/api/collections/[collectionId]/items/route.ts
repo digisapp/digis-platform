@@ -50,24 +50,27 @@ export async function POST(
     });
     const maxPosition = existingItems.reduce((max, item) => Math.max(max, item.position), -1);
 
-    const [item] = await db
-      .insert(collectionItems)
-      .values({
-        collectionId,
-        contentId: contentId || null,
-        vodId: vodId || null,
-        position: maxPosition + 1,
-      })
-      .returning();
+    const [item] = await db.transaction(async (tx) => {
+      const [newItem] = await tx
+        .insert(collectionItems)
+        .values({
+          collectionId,
+          contentId: contentId || null,
+          vodId: vodId || null,
+          position: maxPosition + 1,
+        })
+        .returning();
 
-    // Update item count
-    await db
-      .update(collections)
-      .set({
-        itemCount: sql`${collections.itemCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(collections.id, collectionId));
+      await tx
+        .update(collections)
+        .set({
+          itemCount: sql`${collections.itemCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(collections.id, collectionId));
+
+      return [newItem];
+    });
 
     return NextResponse.json({ item });
   } catch (error: any) {
@@ -115,32 +118,38 @@ export async function DELETE(
       return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
     }
 
-    const deleted = await db
-      .delete(collectionItems)
-      .where(and(
-        eq(collectionItems.id, itemId),
-        eq(collectionItems.collectionId, collectionId),
-      ))
-      .returning();
+    const result = await db.transaction(async (tx) => {
+      const deleted = await tx
+        .delete(collectionItems)
+        .where(and(
+          eq(collectionItems.id, itemId),
+          eq(collectionItems.collectionId, collectionId),
+        ))
+        .returning();
 
-    if (deleted.length === 0) {
-      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
-    }
+      if (deleted.length === 0) {
+        throw new Error('ITEM_NOT_FOUND');
+      }
 
-    // Update item count
-    await db
-      .update(collections)
-      .set({
-        itemCount: sql`GREATEST(${collections.itemCount} - 1, 0)`,
-        updatedAt: new Date(),
-      })
-      .where(eq(collections.id, collectionId));
+      await tx
+        .update(collections)
+        .set({
+          itemCount: sql`GREATEST(${collections.itemCount} - 1, 0)`,
+          updatedAt: new Date(),
+        })
+        .where(eq(collections.id, collectionId));
+
+      return deleted;
+    });
 
     return NextResponse.json({ deleted: true });
   } catch (error: any) {
+    if (error.message === 'ITEM_NOT_FOUND') {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    }
     console.error('Error removing collection item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to remove item' },
+      { error: 'Failed to remove item' },
       { status: 500 }
     );
   }

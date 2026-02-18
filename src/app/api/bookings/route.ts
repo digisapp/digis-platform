@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { bookings, creatorSettings, wallets, walletTransactions } from '@/db/schema';
-import { eq, and, or, desc, sql } from 'drizzle-orm';
+import { bookings, creatorAvailability, creatorSettings, wallets, walletTransactions } from '@/db/schema';
+import { eq, and, or, desc, sql, gte, lte } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -37,7 +37,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot book a call with yourself' }, { status: 400 });
     }
 
-    // Get creator settings for rate and slot duration
     const settings = await db.query.creatorSettings.findFirst({
       where: eq(creatorSettings.userId, creatorId),
     });
@@ -51,37 +50,42 @@ export async function POST(request: NextRequest) {
       ? settings.voiceCallRatePerMinute
       : settings.callRatePerMinute;
 
-    // Default slot duration: use minimum call duration as slot length
-    const slotDurationMinutes = type === 'voice'
-      ? settings.minimumVoiceCallDuration
-      : settings.minimumCallDuration;
-
     const startTime = new Date(scheduledStart);
+    const dayOfWeek = startTime.getUTCDay();
+
+    // Get creator's actual slot duration from their availability schedule
+    const availability = await db.query.creatorAvailability.findFirst({
+      where: and(
+        eq(creatorAvailability.creatorId, creatorId),
+        eq(creatorAvailability.dayOfWeek, dayOfWeek),
+        eq(creatorAvailability.isActive, true),
+      ),
+    });
+
+    const slotDurationMinutes = availability?.slotDurationMinutes || 30;
     const endTime = new Date(startTime.getTime() + slotDurationMinutes * 60 * 1000);
 
-    // Validate not in the past
     if (startTime <= new Date()) {
       return NextResponse.json({ error: 'Cannot book in the past' }, { status: 400 });
     }
 
-    // Check for double-booking
-    const existingBooking = await db.query.bookings.findFirst({
+    // Check for overlapping bookings (not just exact start time match)
+    const overlapping = await db.query.bookings.findFirst({
       where: and(
         eq(bookings.creatorId, creatorId),
-        eq(bookings.scheduledStart, startTime),
         eq(bookings.status, 'confirmed'),
+        lte(bookings.scheduledStart, endTime),
+        gte(bookings.scheduledEnd, startTime),
       ),
     });
 
-    if (existingBooking) {
+    if (overlapping) {
       return NextResponse.json({ error: 'This slot is already booked' }, { status: 409 });
     }
 
     const totalCost = ratePerMinute * slotDurationMinutes;
 
-    // Process payment and create booking in transaction
     const result = await db.transaction(async (tx) => {
-      // Lock buyer wallet
       const [buyerWallet] = await tx
         .select()
         .from(wallets)
@@ -92,7 +96,6 @@ export async function POST(request: NextRequest) {
         throw new Error('Insufficient balance');
       }
 
-      // Debit fan
       const idempotencyKey = `booking-${user.id}-${creatorId}-${startTime.toISOString()}`;
       const [debitTx] = await tx
         .insert(walletTransactions)
@@ -101,7 +104,7 @@ export async function POST(request: NextRequest) {
           amount: -totalCost,
           type: 'booking_payment',
           status: 'completed',
-          description: `Booked ${type} call for ${startTime.toLocaleDateString()}`,
+          description: `Booked ${type} call (${slotDurationMinutes} min)`,
           idempotencyKey,
         })
         .onConflictDoNothing()
@@ -111,7 +114,6 @@ export async function POST(request: NextRequest) {
         throw new Error('Booking already processed');
       }
 
-      // Credit creator
       const [creditTx] = await tx
         .insert(walletTransactions)
         .values({
@@ -125,30 +127,10 @@ export async function POST(request: NextRequest) {
         })
         .returning();
 
-      // Link transactions
-      await tx
-        .update(walletTransactions)
-        .set({ relatedTransactionId: creditTx.id })
-        .where(eq(walletTransactions.id, debitTx.id));
+      await tx.update(walletTransactions).set({ relatedTransactionId: creditTx.id }).where(eq(walletTransactions.id, debitTx.id));
+      await tx.update(wallets).set({ balance: sql`${wallets.balance} - ${totalCost}`, updatedAt: new Date() }).where(eq(wallets.userId, user.id));
+      await tx.update(wallets).set({ balance: sql`${wallets.balance} + ${totalCost}`, updatedAt: new Date() }).where(eq(wallets.userId, creatorId));
 
-      // Update wallets
-      await tx
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} - ${totalCost}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(wallets.userId, user.id));
-
-      await tx
-        .update(wallets)
-        .set({
-          balance: sql`${wallets.balance} + ${totalCost}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(wallets.userId, creatorId));
-
-      // Create booking
       const [booking] = await tx
         .insert(bookings)
         .values({
@@ -175,10 +157,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Booking already processed' }, { status: 409 });
     }
     console.error('Error creating booking:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to create booking' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
   }
 }
 
@@ -196,7 +175,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const role = searchParams.get('role') || 'all'; // 'creator', 'fan', or 'all'
+    const role = searchParams.get('role') || 'all';
 
     let where;
     if (role === 'creator') {
@@ -224,9 +203,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ bookings: result });
   } catch (error: any) {
     console.error('Error fetching bookings:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch bookings' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
   }
 }
