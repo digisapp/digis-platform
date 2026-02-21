@@ -15,7 +15,9 @@ import {
   Gift,
   TrendingUp,
   Calendar,
-  ExternalLink,
+  Pencil,
+  X,
+  LoaderCircle,
 } from 'lucide-react';
 
 interface ReferralStats {
@@ -59,6 +61,14 @@ export default function AdminReferralsPage() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'pending' | 'expired'>('all');
 
+  // Edit modal state
+  const [editModal, setEditModal] = useState<{ referral: Referral } | null>(null);
+  const [editShare, setEditShare] = useState('');
+  const [editExpiry, setEditExpiry] = useState('');
+  const [editStatus, setEditStatus] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -77,6 +87,47 @@ export default function AdminReferralsPage() {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openEdit = (referral: Referral) => {
+    setEditModal({ referral });
+    setEditShare(referral.revenueSharePercent);
+    setEditStatus(referral.status);
+    setEditExpiry(referral.revenueShareExpiresAt
+      ? new Date(referral.revenueShareExpiresAt).toISOString().split('T')[0]
+      : '');
+  };
+
+  const handleSave = async () => {
+    if (!editModal) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/referrals/${editModal.referral.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: editStatus !== editModal.referral.status ? editStatus : undefined,
+          revenueSharePercent: editShare !== editModal.referral.revenueSharePercent ? editShare : undefined,
+          revenueShareExpiresAt: editExpiry || null,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToast({ message: 'Referral updated', type: 'success' });
+        setReferrals(prev => prev.map(r => r.id === editModal.referral.id
+          ? { ...r, status: editStatus, revenueSharePercent: editShare, revenueShareExpiresAt: editExpiry || null }
+          : r
+        ));
+        setEditModal(null);
+      } else {
+        setToast({ message: data.error || 'Failed to update', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Failed to update referral', type: 'error' });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
@@ -136,7 +187,7 @@ export default function AdminReferralsPage() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-white">Referral Program</h1>
-            <p className="text-sm text-gray-400">View all creator referrals</p>
+            <p className="text-sm text-gray-400">Manage creator referral program</p>
           </div>
         </div>
 
@@ -289,7 +340,7 @@ export default function AdminReferralsPage() {
                   </div>
 
                   {/* Status & Stats */}
-                  <div className="text-right space-y-2">
+                  <div className="text-right space-y-2 shrink-0">
                     <div className="flex items-center gap-2 justify-end">
                       {getStatusIcon(referral.status)}
                       <span className={`text-sm font-medium capitalize ${
@@ -299,6 +350,13 @@ export default function AdminReferralsPage() {
                       }`}>
                         {referral.status}
                       </span>
+                      <button
+                        onClick={() => openEdit(referral)}
+                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                        title="Edit referral"
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+                      </button>
                     </div>
 
                     <div className="text-xs text-gray-500">
@@ -344,6 +402,103 @@ export default function AdminReferralsPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Edit Referral</h3>
+                <p className="text-sm text-gray-400">
+                  @{editModal.referral.referrer?.username} → @{editModal.referral.referred?.username || 'pending'}
+                </p>
+              </div>
+              <button onClick={() => setEditModal(null)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Status */}
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Status</label>
+                <div className="flex gap-2">
+                  {(['pending', 'active', 'expired'] as const).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setEditStatus(s)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+                        editStatus === s
+                          ? s === 'active' ? 'bg-green-500 text-white'
+                            : s === 'expired' ? 'bg-gray-500 text-white'
+                            : 'bg-yellow-500 text-black'
+                          : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Revenue Share % */}
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Revenue Share %</label>
+                <input
+                  type="number"
+                  value={editShare}
+                  onChange={e => setEditShare(e.target.value)}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                />
+              </div>
+
+              {/* Revenue Share Expiry */}
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Revenue Share Expires</label>
+                <input
+                  type="date"
+                  value={editExpiry}
+                  onChange={e => setEditExpiry(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Leave blank to remove expiry</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setEditModal(null)}
+                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {saving && <LoaderCircle className="w-4 h-4 animate-spin" />}
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className={`px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 ${toast.type === 'success' ? 'bg-green-500/90' : 'bg-red-500/90'} text-white`}>
+            {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+            <span className="font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)}><X className="w-4 h-4" /></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

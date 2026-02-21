@@ -152,3 +152,24 @@ export interface ModerationData {
 
 export type ActivityFilter = 'all' | 'active_today' | 'active_week' | 'active_month' | 'inactive';
 export type TrafficRange = '24h' | '7d' | '30d';
+
+export interface PayoutSummary {
+  id: string;
+  creatorId: string;
+  creatorUsername: string;
+  creatorDisplayName: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  payoutMethod: 'bank_transfer' | 'payoneer';
+  requestedAt: string;
+}
+
+export interface PayoutsData {
+  payouts: PayoutSummary[];
+  stats: {
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+  };
+}

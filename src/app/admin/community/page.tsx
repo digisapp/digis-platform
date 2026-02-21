@@ -78,11 +78,14 @@ function AdminCommunityContent() {
                 </div>
               </div>
             </GlassCard>
-            <GlassCard className="p-4">
+            <GlassCard
+              className="p-4 cursor-pointer hover:bg-white/10 transition-colors"
+              onClick={() => { c.setTab('fans'); c.setFilter('blocked'); c.setPagination(p => ({ ...p, page: 1 })); }}
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-red-500/20"><Ban className="w-5 h-5 text-red-400" /></div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{c.fans.filter((f) => f.block_count > 0).length}</p>
+                  <p className="text-2xl font-bold text-white">{c.blockedFansTotal.toLocaleString()}</p>
                   <p className="text-xs text-gray-400">Blocked Users</p>
                 </div>
               </div>
@@ -162,6 +165,7 @@ function AdminCommunityContent() {
               onSuspend={c.handleSuspendUser}
               onDelete={c.handleDeleteUser}
               onChangeRole={c.handleChangeRole}
+              onOpenAiSettings={c.handleOpenAiSettings}
             />
           ) : (
             <FansTable
@@ -214,6 +218,9 @@ function AdminCommunityContent() {
         onCloseConfirm={() => c.setConfirmModal(null)}
         toast={c.toast}
         onCloseToast={() => c.setToast(null)}
+        aiSettingsModal={c.aiSettingsModal}
+        onCloseAiSettings={() => c.setAiSettingsModal(null)}
+        onSaveAiSettings={c.handleSaveAiSettings}
       />
     </div>
   );

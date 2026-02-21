@@ -2,8 +2,8 @@
 
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
-  Users, UserCheck, UserPlus, ClipboardList, CreditCard,
-  RefreshCw, Mail, Gift, MessageCircle,
+  Users, UserCheck, UserPlus, ClipboardList,
+  RefreshCw, Mail, Gift, MessageCircle, CreditCard,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
@@ -14,6 +14,7 @@ import {
   AdminRevenueTab,
   AdminActivityTab,
   AdminToolsTab,
+  AdminPayoutsTab,
 } from '@/components/admin-dashboard';
 import type { MainTab } from '@/components/admin-dashboard/types';
 
@@ -134,16 +135,7 @@ export default function AdminDashboard() {
         )}
 
         {d.mainTab === 'payouts' && (
-          <div className="space-y-6">
-            <GlassCard className="p-8 text-center">
-              <CreditCard className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Payout Management</h3>
-              <p className="text-gray-400 mb-6">View and process creator payout requests, manage banking details, and track payment history.</p>
-              <button onClick={() => d.router.push('/admin/payouts')} className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl font-semibold transition-all hover:scale-105">
-                Open Payout Dashboard
-              </button>
-            </GlassCard>
-          </div>
+          <AdminPayoutsTab loading={d.loading} payoutsData={d.payoutsData} onRetry={d.retryPayouts} />
         )}
 
         {d.mainTab === 'moderation' && (
@@ -160,6 +152,11 @@ export default function AdminDashboard() {
 
         {d.mainTab === 'tools' && (
           <AdminToolsTab
+            walletSearch={d.walletSearch} setWalletSearch={d.setWalletSearch} walletUser={d.walletUser}
+            walletNewBalance={d.walletNewBalance} setWalletNewBalance={d.setWalletNewBalance}
+            walletReason={d.walletReason} setWalletReason={d.setWalletReason}
+            searchingWallet={d.searchingWallet} settingWallet={d.settingWallet}
+            onSearchWalletUser={d.searchWalletUser} onSetWalletBalance={d.setWalletBalance}
             userSearch={d.userSearch} setUserSearch={d.setUserSearch} foundUser={d.foundUser}
             newUsername={d.newUsername} setNewUsername={d.setNewUsername} usernameCheck={d.usernameCheck}
             searchingUser={d.searchingUser} checkingUsername={d.checkingUsername} settingUsername={d.settingUsername}

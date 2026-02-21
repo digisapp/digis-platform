@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type {
   Stats, MainTab, TrafficData, RevenueData, CreatorActivityData,
-  ModerationData, ActivityFilter, TrafficRange,
+  ModerationData, ActivityFilter, TrafficRange, PayoutsData,
 } from '@/components/admin-dashboard/types';
 
 export function useAdminDashboard() {
@@ -30,11 +30,15 @@ export function useAdminDashboard() {
   const [creatorActivity, setCreatorActivity] = useState<CreatorActivityData | null>(null);
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>('all');
 
+  // Payouts
+  const [payoutsData, setPayoutsData] = useState<PayoutsData | null>(null);
+
   // Cache flags
   const [hasFetchedTraffic, setHasFetchedTraffic] = useState(false);
   const [hasFetchedModeration, setHasFetchedModeration] = useState(false);
   const [hasFetchedRevenue, setHasFetchedRevenue] = useState(false);
   const [hasFetchedActivity, setHasFetchedActivity] = useState(false);
+  const [hasFetchedPayouts, setHasFetchedPayouts] = useState(false);
 
   // Modal
   const [modal, setModal] = useState<{
@@ -65,6 +69,84 @@ export function useAdminDashboard() {
 
   const closeModal = () => {
     setModal(prev => ({ ...prev, isOpen: false }));
+  };
+
+  // Wallet tool
+  const [walletSearch, setWalletSearch] = useState('');
+  const [walletUser, setWalletUser] = useState<{
+    id: string;
+    username: string | null;
+    displayName: string | null;
+    avatarUrl: string | null;
+    balance: number;
+    heldBalance: number;
+  } | null>(null);
+  const [walletNewBalance, setWalletNewBalance] = useState('');
+  const [walletReason, setWalletReason] = useState('');
+  const [searchingWallet, setSearchingWallet] = useState(false);
+  const [settingWallet, setSettingWallet] = useState(false);
+
+  const searchWalletUser = async () => {
+    if (!walletSearch.trim()) return;
+    setSearchingWallet(true);
+    setWalletUser(null);
+    setWalletNewBalance('');
+    setWalletReason('');
+    try {
+      const res = await fetch(`/api/admin/search-user?q=${encodeURIComponent(walletSearch.trim())}`);
+      const data = await res.json();
+      if (res.ok && data.data?.users?.length > 0) {
+        const user = data.data.users[0];
+        // Now fetch wallet for this user
+        const walletRes = await fetch(`/api/admin/wallet?userId=${user.id}`);
+        const walletData = await walletRes.json();
+        if (walletRes.ok) {
+          setWalletUser({
+            id: user.id,
+            username: user.username,
+            displayName: user.displayName,
+            avatarUrl: user.avatarUrl,
+            balance: walletData.wallet?.balance ?? 0,
+            heldBalance: walletData.wallet?.heldBalance ?? 0,
+          });
+          setWalletNewBalance(String(walletData.wallet?.balance ?? 0));
+        } else {
+          showToast(walletData.error || 'Failed to load wallet', 'error');
+        }
+      } else {
+        showToast(data.error || 'User not found', 'error');
+      }
+    } catch {
+      showToast('Failed to search user', 'error');
+    } finally {
+      setSearchingWallet(false);
+    }
+  };
+
+  const setWalletBalance = async () => {
+    if (!walletUser || !walletReason.trim()) return;
+    const newBalance = parseInt(walletNewBalance);
+    if (isNaN(newBalance) || newBalance < 0) { showToast('Invalid balance amount', 'error'); return; }
+    setSettingWallet(true);
+    try {
+      const res = await fetch('/api/admin/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: walletUser.id, balance: newBalance, reason: walletReason.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Balance updated: ${data.previousBalance} → ${data.newBalance} coins`, 'success');
+        setWalletUser(prev => prev ? { ...prev, balance: newBalance } : null);
+        setWalletReason('');
+      } else {
+        showToast(data.error || 'Failed to update wallet', 'error');
+      }
+    } catch {
+      showToast('Failed to update wallet', 'error');
+    } finally {
+      setSettingWallet(false);
+    }
   };
 
   // Username tool
@@ -181,6 +263,7 @@ export function useAdminDashboard() {
     else if (mainTab === 'moderation' && !hasFetchedModeration) fetchModeration();
     else if (mainTab === 'revenue' && !hasFetchedRevenue) fetchRevenue();
     else if (mainTab === 'activity' && !hasFetchedActivity) fetchCreatorActivity();
+    else if (mainTab === 'payouts' && !hasFetchedPayouts) fetchPayouts();
   }, [mainTab]);
 
   useEffect(() => {
@@ -210,9 +293,28 @@ export function useAdminDashboard() {
         mainTab === 'moderation' && fetchModeration(),
         mainTab === 'revenue' && fetchRevenue(),
         mainTab === 'activity' && fetchCreatorActivity(),
+        mainTab === 'payouts' && fetchPayouts(),
       ]);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const fetchPayouts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/payouts?filter=all');
+      const data = await response.json();
+      if (response.ok) {
+        setPayoutsData({ payouts: data.payouts || [], stats: data.stats || { pending: 0, processing: 0, completed: 0, failed: 0 } });
+        setHasFetchedPayouts(true);
+      } else {
+        showToast(data.error || 'Failed to load payouts', 'error');
+      }
+    } catch {
+      showToast('Failed to load payouts', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -292,6 +394,7 @@ export function useAdminDashboard() {
   const retryModeration = () => { setHasFetchedModeration(false); fetchModeration(); };
   const retryRevenue = () => { setHasFetchedRevenue(false); fetchRevenue(); };
   const retryActivity = () => { setHasFetchedActivity(false); fetchCreatorActivity(); };
+  const retryPayouts = () => { setHasFetchedPayouts(false); fetchPayouts(); };
 
   return {
     loading, stats, mainTab, setMainTab, refreshing, handleRefresh,
@@ -303,7 +406,13 @@ export function useAdminDashboard() {
     revenue, retryRevenue,
     // Activity
     creatorActivity, activityFilter, setActivityFilter, retryActivity,
-    // Tools
+    // Payouts
+    payoutsData, retryPayouts,
+    // Wallet tool
+    walletSearch, setWalletSearch, walletUser, walletNewBalance, setWalletNewBalance,
+    walletReason, setWalletReason, searchingWallet, settingWallet,
+    searchWalletUser, setWalletBalance,
+    // Username tool
     userSearch, setUserSearch, foundUser, newUsername, setNewUsername,
     usernameCheck, searchingUser, checkingUsername, settingUsername,
     searchUser, setUsernameForUser,

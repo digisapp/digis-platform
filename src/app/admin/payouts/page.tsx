@@ -50,6 +50,25 @@ export default function AdminPayoutsPage() {
   const [error, setError] = useState('');
   const [showSensitive, setShowSensitive] = useState(false);
 
+  // Reason modal (replaces browser prompt() calls)
+  const [reasonModal, setReasonModal] = useState<{
+    open: boolean;
+    payoutId: string;
+    action: 'cancel' | 'fail';
+    reason: string;
+  } | null>(null);
+
+  const openReasonModal = (payoutId: string, action: 'cancel' | 'fail') => {
+    setReasonModal({ open: true, payoutId, action, reason: '' });
+  };
+
+  const submitReason = () => {
+    if (!reasonModal || !reasonModal.reason.trim()) return;
+    const status = reasonModal.action === 'cancel' ? 'cancelled' : 'failed';
+    handleUpdateStatus(reasonModal.payoutId, status, reasonModal.reason.trim());
+    setReasonModal(null);
+  };
+
   useEffect(() => {
     fetchPayouts();
   }, [filter]);
@@ -338,10 +357,7 @@ export default function AdminPayoutsPage() {
                         <GlassButton
                           variant="pink"
                           size="sm"
-                          onClick={() => {
-                            const reason = prompt('Reason for cancellation:');
-                            if (reason) handleUpdateStatus(payout.id, 'cancelled', reason);
-                          }}
+                          onClick={() => openReasonModal(payout.id, 'cancel')}
                           disabled={processing}
                         >
                           Cancel
@@ -373,10 +389,7 @@ export default function AdminPayoutsPage() {
                         <GlassButton
                           variant="pink"
                           size="sm"
-                          onClick={() => {
-                            const reason = prompt('Reason for failure:');
-                            if (reason) handleUpdateStatus(payout.id, 'failed', reason);
-                          }}
+                          onClick={() => openReasonModal(payout.id, 'fail')}
                           disabled={processing}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
@@ -395,6 +408,51 @@ export default function AdminPayoutsPage() {
             )}
           </div>
         </GlassCard>
+
+        {/* Reason Modal — replaces browser prompt() */}
+        {reasonModal?.open && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+            <GlassCard className="max-w-md w-full p-6">
+              <h2 className="text-xl font-bold text-white mb-1">
+                {reasonModal.action === 'cancel' ? 'Cancel Payout' : 'Mark as Failed'}
+              </h2>
+              <p className="text-sm text-gray-400 mb-4">
+                {reasonModal.action === 'cancel'
+                  ? 'Provide a reason for cancelling this payout. This is logged for audit purposes.'
+                  : 'Provide a reason for marking this payout as failed. This is logged and visible to the creator.'}
+              </p>
+              <textarea
+                value={reasonModal.reason}
+                onChange={(e) => setReasonModal(prev => prev ? { ...prev, reason: e.target.value } : null)}
+                placeholder={reasonModal.action === 'cancel' ? 'e.g. Requested by creator, duplicate request...' : 'e.g. Invalid account details, bank rejected transfer...'}
+                className="w-full px-4 py-3 bg-black/40 border-2 border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500 resize-none mb-4"
+                rows={3}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setReasonModal(null)}
+                  className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-medium transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={submitReason}
+                  disabled={!reasonModal.reason.trim() || processing}
+                  className={`flex-1 px-4 py-2.5 rounded-xl text-white font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${
+                    reasonModal.action === 'cancel'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'
+                      : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600'
+                  }`}
+                >
+                  {processing ? <LoadingSpinner size="sm" /> : (
+                    reasonModal.action === 'cancel' ? 'Cancel Payout' : 'Mark Failed'
+                  )}
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+        )}
 
         {/* Detail Modal */}
         {selectedPayout && (

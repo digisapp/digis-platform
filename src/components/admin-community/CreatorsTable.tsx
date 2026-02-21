@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   Users, Shield, Coins, TrendingUp, Heart, FileText,
   Radio, Sparkles, Eye, EyeOff, MoreVertical,
-  ShieldCheck, ShieldOff, UserX, RefreshCw, Trash2, ExternalLink,
+  ShieldCheck, ShieldOff, UserX, RefreshCw, Trash2, ExternalLink, Bot,
 } from 'lucide-react';
 import type { Creator } from './types';
 
@@ -31,12 +31,13 @@ interface CreatorsTableProps {
   onSuspend: (userId: string, isSuspended: boolean) => void;
   onDelete: (userId: string) => void;
   onChangeRole: (userId: string, currentRole: string, newRole: 'fan' | 'creator' | 'admin') => void;
+  onOpenAiSettings: (creatorId: string, creatorUsername: string) => void;
 }
 
 export function CreatorsTable({
   creators, activeDropdown, setActiveDropdown,
   formatDate, formatCoins,
-  onVerify, onHide, onSuspend, onDelete, onChangeRole,
+  onVerify, onHide, onSuspend, onDelete, onChangeRole, onOpenAiSettings,
 }: CreatorsTableProps) {
   const router = useRouter();
 
@@ -178,6 +179,9 @@ export function CreatorsTable({
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); onSuspend(creator.id, creator.account_status === 'suspended'); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2">
                           {creator.account_status === 'suspended' ? (<><RefreshCw className="w-4 h-4 text-green-400" /> Unsuspend</>) : (<><UserX className="w-4 h-4 text-yellow-400" /> Suspend</>)}
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); onOpenAiSettings(creator.id, creator.username || ''); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2">
+                          <Bot className="w-4 h-4 text-purple-400" /> AI Twin Settings
                         </button>
                         <div className="border-t border-white/10 my-1" />
                         <button onClick={(e) => { e.stopPropagation(); onChangeRole(creator.id, 'creator', 'fan'); }} className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-white/10 flex items-center gap-2">

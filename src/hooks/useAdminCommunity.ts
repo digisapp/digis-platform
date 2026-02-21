@@ -27,6 +27,25 @@ export function useAdminCommunity() {
   const [confirmModal, setConfirmModal] = useState<ConfirmModal | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [blockedFansTotal, setBlockedFansTotal] = useState(0);
+  const [aiSettingsModal, setAiSettingsModal] = useState<{
+    show: boolean;
+    creatorId: string;
+    creatorUsername: string;
+    loading: boolean;
+    settings: {
+      enabled: boolean;
+      textChatEnabled: boolean;
+      voice: string;
+      personalityPrompt: string | null;
+      welcomeMessage: string | null;
+      boundaryPrompt: string | null;
+      pricePerMinute: number;
+      minimumMinutes: number;
+      maxSessionMinutes: number;
+      textPricePerMessage: number;
+    } | null;
+  } | null>(null);
 
   useEffect(() => {
     if (hasInitialized) {
@@ -39,6 +58,8 @@ export function useAdminCommunity() {
 
   useEffect(() => { fetchData(); }, [tab, pagination.page, filter]);
 
+  useEffect(() => { fetchBlockedCount(); }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setPagination((prev) => ({ ...prev, page: 1 }));
@@ -46,6 +67,14 @@ export function useAdminCommunity() {
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search]);
+
+  const fetchBlockedCount = async () => {
+    try {
+      const res = await fetch('/api/admin/community?tab=fans&filter=blocked&limit=1&page=1');
+      const result = await res.json();
+      if (res.ok && result.pagination) setBlockedFansTotal(result.pagination.total ?? 0);
+    } catch {}
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -211,9 +240,47 @@ export function useAdminCommunity() {
   const handleSyncCounts = async () => {
     try {
       const res = await fetch('/api/admin/sync-counts', { method: 'POST' });
-      if (res.ok) { showToast('Counts synced successfully', 'success'); fetchData(); }
+      if (res.ok) { showToast('Counts synced successfully', 'success'); fetchData(); fetchBlockedCount(); }
       else { showToast('Failed to sync counts', 'error'); }
     } catch { showToast('Failed to sync counts', 'error'); }
+  };
+
+  const handleOpenAiSettings = async (creatorId: string, creatorUsername: string) => {
+    setActiveDropdown(null);
+    setAiSettingsModal({ show: true, creatorId, creatorUsername, settings: null, loading: true });
+    try {
+      const res = await fetch(`/api/admin/ai-settings/${creatorId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAiSettingsModal(prev => prev ? { ...prev, settings: data.settings, loading: false } : null);
+      } else {
+        showToast(data.error || 'Failed to load AI settings', 'error');
+        setAiSettingsModal(null);
+      }
+    } catch {
+      showToast('Failed to load AI settings', 'error');
+      setAiSettingsModal(null);
+    }
+  };
+
+  const handleSaveAiSettings = async (settings: Record<string, unknown>) => {
+    if (!aiSettingsModal) return;
+    try {
+      const res = await fetch(`/api/admin/ai-settings/${aiSettingsModal.creatorId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('AI settings saved', 'success');
+        setAiSettingsModal(prev => prev ? { ...prev, settings: data.settings } : null);
+      } else {
+        showToast(data.error || 'Failed to save AI settings', 'error');
+      }
+    } catch {
+      showToast('Failed to save AI settings', 'error');
+    }
   };
 
   // Close dropdown on outside click
@@ -231,9 +298,10 @@ export function useAdminCommunity() {
   return {
     router, tab, setTab, creators, fans, loading, search, setSearch,
     filter, setFilter, pagination, setPagination, activeDropdown, setActiveDropdown,
-    fetchError, creatorsTotal, fansTotal, confirmModal, setConfirmModal, toast, setToast,
+    fetchError, creatorsTotal, fansTotal, blockedFansTotal, confirmModal, setConfirmModal, toast, setToast,
     fetchData, formatDate, formatCoins,
     handleVerifyCreator, handleHideFromDiscovery, handleSuspendUser,
     handleDeleteUser, handleChangeRole, handleSyncCounts,
+    aiSettingsModal, setAiSettingsModal, handleOpenAiSettings, handleSaveAiSettings,
   };
 }
