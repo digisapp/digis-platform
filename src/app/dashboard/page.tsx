@@ -535,8 +535,8 @@ export default function FanDashboard() {
           </div>
         )}
 
-        {/* Empty state for returning users with no activity */}
-        {!isNewUser && liveFromFollowing.length === 0 && recentContent.length === 0 && upcomingFromFollowing.length === 0 && (
+        {/* Empty state for returning users with no activity and no suggestions */}
+        {!isNewUser && liveFromFollowing.length === 0 && recentContent.length === 0 && upcomingFromFollowing.length === 0 && suggestedCreators.length === 0 && (
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-3xl border-2 border-cyan-500/30 p-12 text-center shadow-[0_0_50px_rgba(34,211,238,0.3)]">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-3">
               {isCreator ? 'Your Dashboard' : 'No New Activity'}

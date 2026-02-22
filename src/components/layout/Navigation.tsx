@@ -19,6 +19,7 @@ import {
   Upload,
   Camera,
   User,
+  TrendingUp,
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -320,12 +321,18 @@ export function Navigation() {
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
+    {
+      label: 'Earn',
+      icon: TrendingUp,
+      path: '/creator/earn',
+      active: isActive('/creator/earn') || isActive('/creator/earnings'),
+    },
   ] : [
     // Home (now includes Explore/Discovery functionality)
     {
       label: 'Home',
       icon: Home,
-      path: userRole === 'admin' ? '/admin' : '/',
+      path: userRole === 'admin' ? '/admin' : '/dashboard',
       active: isActive('/') || isActive('/dashboard') || isActive('/admin'),
     },
     // Watch: All live streams, schedule, and replays
@@ -436,20 +443,6 @@ export function Navigation() {
             <div className="py-2 relative">
               {userRole === 'creator' && (
                 <>
-                  <button
-                    onClick={() => {
-                      router.push('/creator/go-live');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-base md:text-sm text-red-400 font-bold">Go Live</span>
-                  </button>
-
                   <button
                     onClick={() => {
                       router.push('/creator/content');
