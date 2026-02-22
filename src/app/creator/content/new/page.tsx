@@ -342,9 +342,28 @@ export default function CreateContentPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="container mx-auto px-4 pt-2 md:pt-10 pb-24 md:pb-8 max-w-3xl">
+
+        {/* Page Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">New Post</h1>
+            <p className="text-sm text-gray-400">Upload content · Add details · Publish</p>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* File Upload */}
+          {/* Step 1: Upload */}
           <GlassCard className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">1</div>
+              <h3 className="text-lg font-semibold text-white">Upload your content</h3>
+            </div>
             {/* Gallery Preview */}
             {formData.contentType === 'gallery' && previews.length > 0 ? (
               <div>
@@ -469,9 +488,12 @@ export default function CreateContentPage() {
             )}
           </GlassCard>
 
-          {/* Title & Description */}
+          {/* Step 2: Details */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Details</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">2</div>
+              <h3 className="text-lg font-semibold text-white">Title & description</h3>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Title *</label>
@@ -498,9 +520,12 @@ export default function CreateContentPage() {
             </div>
           </GlassCard>
 
-          {/* Pricing */}
+          {/* Step 3: Pricing */}
           <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Pricing</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">3</div>
+              <h3 className="text-lg font-semibold text-white">Set pricing</h3>
+            </div>
 
             <div className="flex items-center gap-4 mb-4">
               <button

@@ -1,15 +1,16 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CheckCircle, Circle, Sparkles, X, GraduationCap } from 'lucide-react';
+import { CheckCircle, Circle, Sparkles, X, GraduationCap, Upload } from 'lucide-react';
 
 interface DashboardChecklistProps {
   userProfile: any;
   dismissedChecklist: boolean;
   onDismiss: () => void;
+  hasPostedContent?: boolean;
 }
 
-export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss }: DashboardChecklistProps) {
+export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss, hasPostedContent = false }: DashboardChecklistProps) {
   const router = useRouter();
 
   if (!userProfile || dismissedChecklist) return null;
@@ -68,6 +69,32 @@ export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss 
           <span className={`text-sm font-medium ${userProfile.perMinuteRate > 0 ? 'text-green-400' : 'text-white'}`}>
             Set Pricing rates
           </span>
+        </button>
+
+        <button
+          onClick={() => router.push('/creator/content/new')}
+          className={`flex items-center gap-3 p-4 rounded-xl transition-all md:col-span-2 ${
+            hasPostedContent
+              ? 'bg-green-500/10 border border-green-500/30'
+              : 'bg-white/5 border border-white/10 hover:border-cyan-500/50'
+          }`}
+        >
+          {hasPostedContent ? (
+            <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+          ) : (
+            <Upload className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+          )}
+          <div className="text-left">
+            <span className={`text-sm font-medium block ${hasPostedContent ? 'text-green-400' : 'text-white'}`}>
+              Post your first content
+            </span>
+            {!hasPostedContent && (
+              <span className="text-xs text-gray-400">Photo, video, or gallery — free or paid</span>
+            )}
+          </div>
+          {!hasPostedContent && (
+            <span className="ml-auto text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-1 rounded-lg">Start →</span>
+          )}
         </button>
       </div>
 

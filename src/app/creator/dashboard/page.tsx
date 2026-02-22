@@ -129,6 +129,7 @@ export default function CreatorDashboard() {
           <DashboardChecklist
             userProfile={d.userProfile}
             dismissedChecklist={d.dismissedChecklist}
+            hasPostedContent={d.recentContent.length > 0}
             onDismiss={() => {
               d.setDismissedChecklist(true);
               localStorage.setItem('creator_checklist_dismissed', 'true');
