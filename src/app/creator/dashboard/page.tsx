@@ -13,7 +13,7 @@ import {
   DashboardActivity,
 } from '@/components/creator-dashboard';
 import {
-  Radio, Upload, Calendar, Ticket, Package, AlertCircle, TrendingUp,
+  Radio, Upload, Calendar, Ticket, Package, AlertCircle,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -136,8 +136,8 @@ export default function CreatorDashboard() {
             }}
           />
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+          {/* Quick Actions - mobile only (desktop uses sidebar nav) */}
+          <div className="md:hidden grid grid-cols-2 gap-4 mb-6">
             <button
               onClick={() => router.push('/creator/go-live')}
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -166,16 +166,6 @@ export default function CreatorDashboard() {
             onPeriodChange={d.handlePeriodChange}
             getPeriodLabel={d.getPeriodLabel}
           />
-          <div className="flex justify-end -mt-3 mb-2">
-            <button
-              onClick={() => router.push('/creator/earn')}
-              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-400 transition-colors"
-            >
-              <TrendingUp className="w-3 h-3" />
-              Learn how to earn more →
-            </button>
-          </div>
-
           {/* Upcoming Events */}
           {d.upcomingEvents.length > 0 && (
             <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-purple-500/30">

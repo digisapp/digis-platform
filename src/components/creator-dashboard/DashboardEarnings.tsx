@@ -26,7 +26,7 @@ export function DashboardEarnings({
     <div className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
       {/* Period Selector */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-400">Wallet Balance</p>
+        <p className="text-sm text-gray-400">Earnings</p>
         <div className="relative">
           <button
             onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
