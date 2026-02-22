@@ -43,7 +43,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
     try {
       const supabase = createClient();
       // Everyone goes to welcome page after verification
-      const destinationUrl = redirectTo || '/welcome';
+      const destinationUrl = (!redirectTo || redirectTo === '/') ? '/welcome' : redirectTo;
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: signupEmail,
@@ -83,7 +83,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
       const supabase = createClient();
 
       // Everyone goes to welcome page after verification
-      const destinationUrl = redirectTo || '/welcome';
+      // Treat '/' or empty redirectTo as no destination — always send to /welcome
+      const destinationUrl = (!redirectTo || redirectTo === '/') ? '/welcome' : redirectTo;
 
       // Sign up with Supabase Auth
       const { data, error: signupError } = await supabase.auth.signUp({

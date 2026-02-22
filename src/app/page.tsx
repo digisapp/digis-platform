@@ -601,7 +601,7 @@ function MarketingPage({
                 Sign In
               </button>
               <button
-                onClick={() => onSignup('/')}
+                onClick={() => onSignup('/welcome')}
                 className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm md:text-base hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
               >
                 Sign Up
@@ -842,7 +842,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  const [signupRedirectTo, setSignupRedirectTo] = useState('/');
+  const [signupRedirectTo, setSignupRedirectTo] = useState('/welcome');
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -887,6 +887,10 @@ function HomeContent() {
 
             setIsAuthenticated(true);
             setLoading(false);
+          } else if (response.status === 404) {
+            // Profile not found — likely a brand new user whose DB record wasn't created yet
+            router.replace('/welcome/username');
+            return;
           } else {
             setIsAuthenticated(true);
             setLoading(false);
