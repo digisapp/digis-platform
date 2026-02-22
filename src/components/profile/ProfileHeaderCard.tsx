@@ -198,8 +198,19 @@ export function ProfileHeaderCard({
           </div>
         )}
 
-        {/* Action Buttons Row */}
-        <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
+        {/* Primary CTA: Gift */}
+        {user.role === 'creator' && currentUserId !== user.id && (
+          <button
+            onClick={onTipClick}
+            className="mt-5 w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] transition-all active:scale-[0.98]"
+          >
+            <Gift className="w-4 h-4" />
+            Send a Gift
+          </button>
+        )}
+
+        {/* Secondary Actions: calls, chat, AI twin */}
+        <div className="mt-3 flex flex-wrap gap-2">
           {user.role === 'creator' && profile.callSettings?.isAvailableForCalls && currentUserId !== user.id && (
             <RequestCallButton
               creatorId={user.id}
@@ -239,15 +250,6 @@ export function ProfileHeaderCard({
             >
               <Bot className="w-4 h-4 text-cyan-400" />
               <span>AI Twin</span>
-            </button>
-          )}
-
-          {user.role === 'creator' && (
-            <button
-              onClick={onTipClick}
-              className="group w-10 h-10 rounded-full bg-white/10 border border-white/20 hover:border-yellow-500/50 transition-all hover:scale-105 flex items-center justify-center text-white"
-            >
-              <Gift className="w-4 h-4" />
             </button>
           )}
         </div>

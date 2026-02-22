@@ -158,26 +158,9 @@ export default function ProfilePageClient() {
           }}
         />
 
-        {/* Live Section */}
-        <ProfileLiveSection
-          username={user.username}
-          isAuthenticated={data.isAuthenticated}
-          onRequireAuth={(action: string) => {
-            actions.setSignUpAction(action);
-            actions.setShowSignUpModal(true);
-          }}
-        />
-
-        {/* Goals */}
-        {user.role === 'creator' && data.goals.length > 0 && (
-          <div className="mb-6">
-            <ProfileGoalsWidget goals={data.goals} maxDisplay={3} onGoalUpdate={data.fetchGoals} />
-          </div>
-        )}
-
-        {/* Creator Links */}
+        {/* Creator Links — near header so fans see them early */}
         {user.role === 'creator' && profile.links && profile.links.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 -mt-2">
             <div className="grid grid-cols-2 gap-2">
               {profile.links.map((link) => (
                 <a
@@ -194,6 +177,23 @@ export default function ProfilePageClient() {
                 </a>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Live Section */}
+        <ProfileLiveSection
+          username={user.username}
+          isAuthenticated={data.isAuthenticated}
+          onRequireAuth={(action: string) => {
+            actions.setSignUpAction(action);
+            actions.setShowSignUpModal(true);
+          }}
+        />
+
+        {/* Goals */}
+        {user.role === 'creator' && data.goals.length > 0 && (
+          <div className="mb-6">
+            <ProfileGoalsWidget goals={data.goals} maxDisplay={3} onGoalUpdate={data.fetchGoals} />
           </div>
         )}
 
