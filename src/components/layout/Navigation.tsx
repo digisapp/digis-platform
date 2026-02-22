@@ -321,12 +321,6 @@ export function Navigation() {
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
-    {
-      label: 'Earn',
-      icon: TrendingUp,
-      path: '/creator/earn',
-      active: isActive('/creator/earn') || isActive('/creator/earnings'),
-    },
   ] : [
     // Home (now includes Explore/Discovery functionality)
     {
@@ -455,6 +449,18 @@ export function Navigation() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     <span className="text-base md:text-sm text-white font-semibold">Content</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/earn');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <TrendingUp className="w-6 h-6 md:w-5 md:h-5 text-green-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Earn</span>
                   </button>
 
                   <button
