@@ -72,7 +72,9 @@ export function ProfileHeaderCard({
                 </div>
               )}
             </div>
-            <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">{user.username}</p>
+            {user.displayName && (
+              <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">{user.username}</p>
+            )}
 
             {/* New Creator Badge */}
             {(() => {
