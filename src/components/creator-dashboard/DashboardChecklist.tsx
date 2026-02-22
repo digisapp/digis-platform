@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Circle, Sparkles, X, GraduationCap, Upload } from 'lucide-react';
 
@@ -12,6 +13,14 @@ interface DashboardChecklistProps {
 
 export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss, hasPostedContent = false }: DashboardChecklistProps) {
   const router = useRouter();
+
+  const allComplete = !!(userProfile?.avatarUrl && userProfile?.perMinuteRate > 0 && hasPostedContent);
+
+  useEffect(() => {
+    if (!allComplete || dismissedChecklist) return;
+    const timer = setTimeout(onDismiss, 1500);
+    return () => clearTimeout(timer);
+  }, [allComplete, dismissedChecklist, onDismiss]);
 
   if (!userProfile || dismissedChecklist) return null;
 
