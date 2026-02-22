@@ -43,6 +43,11 @@ export function ProfileHeaderCard({
   return (
     <div className="relative -mt-24 sm:-mt-28 mb-8">
       <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
+        {/* Username slug — subtle identity anchor at top of card */}
+        {user.displayName && (
+          <p className="text-xs text-gray-500 font-medium mb-4 tracking-wide">{user.username}</p>
+        )}
+
         {/* Top Row: Avatar, Name, Follow Button */}
         <div className="flex items-start gap-4 sm:gap-6">
           {/* Animated Avatar with Neon Glow */}
@@ -72,10 +77,6 @@ export function ProfileHeaderCard({
                 </div>
               )}
             </div>
-            {user.displayName && (
-              <p className="text-cyan-300/90 text-sm sm:text-base mb-1 truncate">{user.username}</p>
-            )}
-
             {/* New Creator Badge */}
             {(() => {
               if (user.role !== 'creator') return null;
