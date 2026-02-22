@@ -3,7 +3,8 @@
 import { useAuth } from '@/context/AuthContext';
 import { GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, AlertCircle, User, Share2, Settings, DollarSign, Circle } from 'lucide-react';
+import { CheckCircle, AlertCircle, User, Share2, Settings, DollarSign, Circle, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useSettingsForm } from '@/hooks/useSettingsForm';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { useCreatorLinks } from '@/hooks/useCreatorLinks';
@@ -12,6 +13,7 @@ import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 export default function SettingsPage() {
   const { signOut } = useAuth();
+  const router = useRouter();
 
   const { form, setField, populateFromApi, markAsSaved, hasUnsavedChanges } = useSettingsForm();
 
@@ -178,6 +180,29 @@ export default function SettingsPage() {
               profileImage={currentUser.avatarUrl}
               bio={currentUser.bio}
             />
+          </div>
+        )}
+
+        {/* Creator Tools - Creators Only */}
+        {currentUser?.role === 'creator' && (
+          <div className="mt-6 p-5 backdrop-blur-xl bg-white/5 border border-cyan-500/20 rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-base font-semibold text-white">Creator Tools</h3>
+            </div>
+            <button
+              onClick={() => router.push('/creator/ai-twin')}
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 hover:border-cyan-500/40 transition-all text-left"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white">AI Twin</p>
+                <p className="text-xs text-gray-400">Set up your AI replica to engage fans 24/7</p>
+              </div>
+              <span className="text-xs text-gray-500">→</span>
+            </button>
           </div>
         )}
       </div>

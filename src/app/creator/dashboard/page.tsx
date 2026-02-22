@@ -13,7 +13,7 @@ import {
   DashboardActivity,
 } from '@/components/creator-dashboard';
 import {
-  Radio, Upload, Calendar, Ticket, Package, AlertCircle,
+  Radio, Upload, Calendar, Ticket, Package, AlertCircle, TrendingUp,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -166,6 +166,15 @@ export default function CreatorDashboard() {
             onPeriodChange={d.handlePeriodChange}
             getPeriodLabel={d.getPeriodLabel}
           />
+          <div className="flex justify-end -mt-3 mb-2">
+            <button
+              onClick={() => router.push('/creator/earn')}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-400 transition-colors"
+            >
+              <TrendingUp className="w-3 h-3" />
+              Learn how to earn more →
+            </button>
+          </div>
 
           {/* Upcoming Events */}
           {d.upcomingEvents.length > 0 && (
