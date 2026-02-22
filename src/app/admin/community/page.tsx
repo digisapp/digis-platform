@@ -3,12 +3,12 @@
 import { Suspense } from 'react';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
-  Users, UserCheck, Search, ArrowLeft, AlertTriangle,
-  CheckCircle, Ban, ChevronLeft, ChevronRight, RefreshCw,
+  Users, UserCheck, Search, ArrowLeft, AlertTriangle, FileText,
+  CheckCircle, Ban, ChevronLeft, ChevronRight, RefreshCw, X,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAdminCommunity } from '@/hooks/useAdminCommunity';
-import { CreatorsTable, FansTable, CommunityModals, CREATOR_FILTERS, FAN_FILTERS } from '@/components/admin-community';
+import { CreatorsTable, FansTable, ApplicationsTable, CommunityModals, CREATOR_FILTERS, FAN_FILTERS } from '@/components/admin-community';
 
 function AdminCommunityContent() {
   const c = useAdminCommunity();
@@ -33,18 +33,20 @@ function AdminCommunityContent() {
               </button>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-white">Community</h1>
-                <p className="text-gray-400 text-sm">Manage creators and fans</p>
+                <p className="text-gray-400 text-sm">Manage creators, fans &amp; applications</p>
               </div>
             </div>
-            <button
-              onClick={c.handleSyncCounts}
-              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm text-gray-400 hover:text-white"
-              title="Sync follower counts, spending, and offline status"
-              aria-label="Sync follower counts, spending, and offline status"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span className="hidden md:inline">Sync Counts</span>
-            </button>
+            {c.tab !== 'applications' && (
+              <button
+                onClick={c.handleSyncCounts}
+                className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm text-gray-400 hover:text-white"
+                title="Sync follower counts, spending, and offline status"
+                aria-label="Sync follower counts, spending, and offline status"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden md:inline">Sync Counts</span>
+              </button>
+            )}
           </div>
 
           {/* Stats Summary */}
@@ -72,7 +74,7 @@ function AdminCommunityContent() {
                 <div className="p-2 rounded-xl bg-green-500/20"><CheckCircle className="w-5 h-5 text-green-400" /></div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {c.tab === 'creators' ? c.creators.filter((cr) => cr.is_online).length : c.fans.filter((f) => f.is_online).length}
+                    {c.tab === 'creators' ? c.creators.filter((cr) => cr.is_online).length : c.tab === 'fans' ? c.fans.filter((f) => f.is_online).length : '--'}
                   </p>
                   <p className="text-xs text-gray-400">Online Now</p>
                 </div>
@@ -106,43 +108,72 @@ function AdminCommunityContent() {
             >
               <Users className="w-4 h-4" /> Fans
             </button>
+            <button
+              onClick={() => c.setTab('applications')}
+              className={`px-4 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 relative ${c.tab === 'applications' ? 'bg-yellow-500 text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+            >
+              <FileText className="w-4 h-4" />
+              Applications
+              {c.applicationsCounts.pending > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${c.tab === 'applications' ? 'bg-black/20 text-black' : 'bg-yellow-500/30 text-yellow-400'}`}>
+                  {c.applicationsCounts.pending}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* Quick Filters */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-            {(c.tab === 'creators' ? CREATOR_FILTERS : FAN_FILTERS).map((f) => (
-              <button
-                key={f.key}
-                onClick={() => { c.setFilter(f.key); c.setPagination((prev) => ({ ...prev, page: 1 })); }}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                  c.filter === f.key
-                    ? c.tab === 'creators' ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50' : 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50'
-                    : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search */}
-          <div className="mb-4">
-            <div className="relative">
-              <label htmlFor="community-search" className="sr-only">Search {c.tab}</label>
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
-              <input
-                id="community-search"
-                type="text"
-                value={c.search}
-                onChange={(e) => c.setSearch(e.target.value)}
-                placeholder={`Search ${c.tab}...`}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
-              />
+          {/* Quick Filters (creators/fans only) */}
+          {c.tab !== 'applications' && (
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              {(c.tab === 'creators' ? CREATOR_FILTERS : FAN_FILTERS).map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => { c.setFilter(f.key); c.setPagination((prev) => ({ ...prev, page: 1 })); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    c.filter === f.key
+                      ? c.tab === 'creators' ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50' : 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50'
+                      : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+
+          {/* Search (creators/fans only) */}
+          {c.tab !== 'applications' && (
+            <div className="mb-4">
+              <div className="relative">
+                <label htmlFor="community-search" className="sr-only">Search {c.tab}</label>
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
+                <input
+                  id="community-search"
+                  type="text"
+                  value={c.search}
+                  onChange={(e) => c.setSearch(e.target.value)}
+                  placeholder={`Search ${c.tab}...`}
+                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-colors"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Content */}
-          {c.loading ? (
+          {c.tab === 'applications' ? (
+            <ApplicationsTable
+              applications={c.applications}
+              loading={c.applicationsLoading}
+              statusFilter={c.applicationsStatus}
+              onStatusFilterChange={(s) => { c.setApplicationsStatus(s); c.setApplicationsPagination((p) => ({ ...p, page: 1 })); }}
+              counts={c.applicationsCounts}
+              pagination={c.applicationsPagination}
+              onPageChange={(page) => c.setApplicationsPagination((p) => ({ ...p, page }))}
+              onApprove={c.handleApproveApplication}
+              onReject={c.handleRejectApplication}
+              formatDate={c.formatDate}
+            />
+          ) : c.loading ? (
             <div className="flex items-center justify-center py-16"><LoadingSpinner size="lg" /></div>
           ) : c.fetchError ? (
             <div className="flex flex-col items-center justify-center py-16 bg-white/5 rounded-2xl border border-white/10">
@@ -180,8 +211,8 @@ function AdminCommunityContent() {
             />
           )}
 
-          {/* Pagination */}
-          {c.pagination.totalPages > 1 && (
+          {/* Pagination (creators/fans only) */}
+          {c.tab !== 'applications' && c.pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-gray-400">
                 Showing {(c.pagination.page - 1) * c.pagination.limit + 1} -{' '}
@@ -212,6 +243,41 @@ function AdminCommunityContent() {
           )}
         </div>
       </div>
+
+      {/* Reject Modal */}
+      {c.rejectModal?.show && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Reject Application</h3>
+              <button onClick={() => c.setRejectModal(null)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">Provide a reason for rejection. This will be shown to the applicant.</p>
+            <textarea
+              value={c.rejectModal.reason}
+              onChange={(e) => c.setRejectModal((prev) => prev ? { ...prev, reason: e.target.value } : null)}
+              placeholder="e.g. Account doesn't meet minimum follower requirements..."
+              rows={3}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-red-500/50 resize-none mb-4"
+              autoFocus
+            />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => c.setRejectModal(null)} className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 transition-colors">
+                Cancel
+              </button>
+              <button
+                onClick={c.handleConfirmReject}
+                disabled={!c.rejectModal.reason.trim()}
+                className="px-5 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors disabled:opacity-50"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CommunityModals
         confirmModal={c.confirmModal}

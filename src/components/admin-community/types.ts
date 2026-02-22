@@ -87,6 +87,34 @@ export const FAN_FILTERS = [
   { key: 'inactive', label: 'Inactive (30d)' },
 ];
 
+export interface Application {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  instagramHandle: string | null;
+  tiktokHandle: string | null;
+  phoneNumber: string | null;
+  followerCount: number | null;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason: string | null;
+  adminNotes: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  red_flags: { type: string; severity: 'danger' | 'warning'; message: string }[];
+  account_age_days: number;
+}
+
+export interface ApplicationCounts {
+  pending: number;
+  approved: number;
+  rejected: number;
+  all: number;
+}
+
 export const SEARCH_DEBOUNCE_MS = 300;
 export const TOAST_TIMEOUT_MS = 3000;
 export const ERROR_TOAST_TIMEOUT_MS = 5000;

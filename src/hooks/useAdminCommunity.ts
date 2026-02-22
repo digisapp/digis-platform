@@ -2,16 +2,17 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Creator, Fan, Pagination, ConfirmModal } from '@/components/admin-community/types';
+import type { Creator, Fan, Application, ApplicationCounts, Pagination, ConfirmModal } from '@/components/admin-community/types';
 import { SEARCH_DEBOUNCE_MS, TOAST_TIMEOUT_MS, ERROR_TOAST_TIMEOUT_MS, DEFAULT_PAGE_LIMIT } from '@/components/admin-community/types';
 
 export function useAdminCommunity() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'fans' ? 'fans' : 'creators';
+  const rawTab = searchParams.get('tab');
+  const initialTab = rawTab === 'fans' ? 'fans' : rawTab === 'applications' ? 'applications' : 'creators';
   const initialFilter = searchParams.get('filter') || 'all';
 
-  const [tab, setTab] = useState<'creators' | 'fans'>(initialTab);
+  const [tab, setTab] = useState<'creators' | 'fans' | 'applications'>(initialTab);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [fans, setFans] = useState<Fan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,14 @@ export function useAdminCommunity() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [blockedFansTotal, setBlockedFansTotal] = useState(0);
+
+  // Applications state
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [applicationsStatus, setApplicationsStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [applicationsPagination, setApplicationsPagination] = useState<Pagination>({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [applicationsCounts, setApplicationsCounts] = useState<ApplicationCounts>({ pending: 0, approved: 0, rejected: 0, all: 0 });
+  const [rejectModal, setRejectModal] = useState<{ show: boolean; applicationId: string; reason: string } | null>(null);
   const [aiSettingsModal, setAiSettingsModal] = useState<{
     show: boolean;
     creatorId: string;
@@ -51,16 +60,24 @@ export function useAdminCommunity() {
     if (hasInitialized) {
       setFilter('all');
       setPagination((prev) => ({ ...prev, page: 1 }));
+      if (tab === 'applications') fetchApplications();
     } else {
       setHasInitialized(true);
     }
   }, [tab]);
 
-  useEffect(() => { fetchData(); }, [tab, pagination.page, filter]);
+  useEffect(() => {
+    if (tab !== 'applications') fetchData();
+  }, [tab, pagination.page, filter]);
+
+  useEffect(() => {
+    if (tab === 'applications') fetchApplications();
+  }, [applicationsStatus, applicationsPagination.page]);
 
   useEffect(() => { fetchBlockedCount(); }, []);
 
   useEffect(() => {
+    if (tab === 'applications') return;
     const timer = setTimeout(() => {
       setPagination((prev) => ({ ...prev, page: 1 }));
       fetchData();
@@ -237,6 +254,76 @@ export function useAdminCommunity() {
     });
   };
 
+  const fetchApplications = useCallback(async () => {
+    setApplicationsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        status: applicationsStatus,
+        page: applicationsPagination.page.toString(),
+        limit: applicationsPagination.limit.toString(),
+      });
+      const res = await fetch(`/api/admin/creator-applications?${params}`);
+      const result = await res.json();
+      if (res.ok) {
+        setApplications(Array.isArray(result.applications) ? result.applications : []);
+        setApplicationsCounts(result.counts || { pending: 0, approved: 0, rejected: 0, all: 0 });
+        setApplicationsPagination((prev) => ({
+          ...prev,
+          total: result.pagination?.total ?? 0,
+          totalPages: result.pagination?.totalPages ?? 0,
+        }));
+      } else {
+        showToast(result.error || 'Failed to load applications', 'error');
+      }
+    } catch {
+      showToast('Failed to load applications', 'error');
+    } finally {
+      setApplicationsLoading(false);
+    }
+  }, [applicationsStatus, applicationsPagination.page, applicationsPagination.limit]);
+
+  const handleApproveApplication = (applicationId: string) => {
+    setConfirmModal({
+      show: true,
+      title: 'Approve Creator Application',
+      message: 'Grant creator access to this user? Default creator settings will be created automatically.',
+      type: 'confirm',
+      confirmText: 'Approve',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/admin/creator-applications/${applicationId}/approve`, { method: 'POST' });
+          const data = await res.json();
+          if (res.ok) { showToast('Application approved — user is now a creator', 'success'); fetchApplications(); }
+          else { showToast(data.error || 'Failed to approve application', 'error'); }
+        } catch { showToast('Failed to approve application', 'error'); }
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  const handleRejectApplication = (applicationId: string) => {
+    setRejectModal({ show: true, applicationId, reason: '' });
+  };
+
+  const handleConfirmReject = async () => {
+    if (!rejectModal) return;
+    if (!rejectModal.reason.trim()) {
+      showToast('A rejection reason is required', 'error');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/creator-applications/${rejectModal.applicationId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectionReason: rejectModal.reason.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) { showToast('Application rejected', 'success'); fetchApplications(); }
+      else { showToast(data.error || 'Failed to reject application', 'error'); }
+    } catch { showToast('Failed to reject application', 'error'); }
+    setRejectModal(null);
+  };
+
   const handleSyncCounts = async () => {
     try {
       const res = await fetch('/api/admin/sync-counts', { method: 'POST' });
@@ -303,5 +390,10 @@ export function useAdminCommunity() {
     handleVerifyCreator, handleHideFromDiscovery, handleSuspendUser,
     handleDeleteUser, handleChangeRole, handleSyncCounts,
     aiSettingsModal, setAiSettingsModal, handleOpenAiSettings, handleSaveAiSettings,
+    // Applications
+    applications, applicationsLoading, applicationsStatus, setApplicationsStatus,
+    applicationsPagination, setApplicationsPagination, applicationsCounts,
+    fetchApplications, handleApproveApplication, handleRejectApplication,
+    rejectModal, setRejectModal, handleConfirmReject,
   };
 }
