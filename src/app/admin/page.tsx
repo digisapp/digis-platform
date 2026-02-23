@@ -41,7 +41,6 @@ export default function AdminDashboard() {
             <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-digis-cyan to-digis-pink bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <p className="text-gray-400 text-sm md:text-base">Manage creator applications, users, and platform analytics</p>
           </div>
           <div className="flex items-center gap-2 self-start">
             <button onClick={() => d.router.push('/admin/community')} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 hover:from-purple-500/30 hover:to-cyan-500/30 border border-purple-500/30 rounded-lg transition-colors">

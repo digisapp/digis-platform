@@ -3,7 +3,7 @@ import { db } from '@/lib/data/system';
 import { conversations } from '@/db/schema/messages';
 import { users } from '@/db/schema/users';
 import { messages } from '@/db/schema/messages';
-import { eq, or, ilike, desc, sql, count } from 'drizzle-orm';
+import { eq, or, ilike, desc, sql, count, inArray } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { withAdmin } from '@/lib/auth/withAdmin';
 
@@ -74,7 +74,7 @@ export const GET = withAdmin(async ({ request }) => {
             count: count(),
           })
           .from(messages)
-          .where(sql`${messages.conversationId} = ANY(${conversationIds})`)
+          .where(inArray(messages.conversationId, conversationIds))
           .groupBy(messages.conversationId)
       : [];
 
@@ -134,7 +134,7 @@ export const GET = withAdmin(async ({ request }) => {
       },
     });
   } catch (error: unknown) {
-    console.error('Error fetching admin chats:', error);
+    console.error('Error fetching admin chats:', error instanceof Error ? error.message : error);
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 });
