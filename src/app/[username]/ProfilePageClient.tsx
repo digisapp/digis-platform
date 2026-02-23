@@ -197,8 +197,8 @@ export default function ProfilePageClient() {
           </div>
         )}
 
-        {/* Content Tabs */}
-        <ProfileContentTabs
+        {/* Content Tabs - creators only */}
+        {user.role === 'creator' && <ProfileContentTabs
           activeTab={data.activeTab}
           onTabChange={data.setActiveTab}
           streamsSubTab={data.streamsSubTab}
@@ -218,7 +218,7 @@ export default function ProfilePageClient() {
           onFollowToggle={actions.handleFollowToggle}
           onContentClick={handleContentClick}
           onLikeContent={actions.handleLikeContent}
-        />
+        />}
       </div>
 
       {/* Tip Modal */}
