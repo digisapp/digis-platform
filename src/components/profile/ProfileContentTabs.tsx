@@ -55,17 +55,6 @@ export function ProfileContentTabs({
 
   return (
     <div className="mb-8">
-      {/* Stats strip */}
-      <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
-        <span><span className="font-semibold text-white">{streams.length}</span> Streams</span>
-        <span className="text-gray-600">·</span>
-        <span><span className="font-semibold text-white">{photos.length}</span> Photos</span>
-        <span className="text-gray-600">·</span>
-        <span><span className="font-semibold text-white">{videos.length}</span> Videos</span>
-        <span className="text-gray-600">·</span>
-        <span>Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-      </div>
-
       {/* Tab Pills */}
       <div className="mb-6 flex flex-wrap gap-2 overflow-x-auto pt-2 pb-2 px-1">
         <button
