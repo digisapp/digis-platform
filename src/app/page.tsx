@@ -320,7 +320,7 @@ function FanDashboard() {
                 {dashboardData!.followedCreators.map((creator) => (
                   <Link
                     key={creator.id}
-                    href={creator.isLive ? `/live/${creator.id}` : `/${creator.username}`}
+                    href={creator.isLive && creator.liveStreamId ? `/live/${creator.liveStreamId}` : `/${creator.username}`}
                     className="flex-shrink-0 flex flex-col items-center gap-2 group"
                   >
                     <div className={`relative p-0.5 rounded-full ${
@@ -485,7 +485,7 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-bold text-white truncate">{creator.username}</p>
+        <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
       </div>
     </div>
   );
@@ -530,7 +530,7 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
 
       <div className="p-3">
         <div className="flex items-center gap-1">
-          <p className="font-semibold text-white truncate">{creator.username}</p>
+          <p className="font-semibold text-white truncate">{creator.displayName || creator.username}</p>
           {creator.isCreatorVerified && (
             <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
