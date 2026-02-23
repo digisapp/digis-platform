@@ -72,6 +72,16 @@ export default function ProfilePageClient() {
   const { profile } = data;
   const { user } = profile;
 
+  // Only creators have public profiles — redirect fans to explore
+  if (user.role !== 'creator') {
+    router.replace('/explore');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
   const handleContentClick = (item: ContentItem) => {
     if (item.isLocked && !item.isFree && item.unlockPrice > 0) {
       actions.setContentToUnlock({
