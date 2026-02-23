@@ -748,22 +748,6 @@ function MarketingPage({
               </div>
             </div>
 
-            {/* Health Coach */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/5 border border-emerald-500/20 hover:border-emerald-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🌿</span>
-                <h3 className="text-lg font-bold text-white">Health Coach</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Offer private consultations via paid video calls. Share nutrition guides and wellness content with subscribers.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-xs font-medium">Paid DMs</span>
-                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
-              </div>
-            </div>
-
             {/* Miami Influencer */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/15 to-orange-500/5 border border-pink-500/20 hover:border-pink-500/40 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 mb-3">
@@ -812,26 +796,49 @@ function MarketingPage({
               </div>
             </div>
 
-            {/* Music Artist */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-purple-500/15 to-indigo-500/5 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🎵</span>
-                <h3 className="text-lg font-bold text-white">Music Artist</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Host private listening parties and live performances. Sell fan video call experiences and exclusive tracks.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
-              </div>
-            </div>
-
           </div>
 
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-black">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-12">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+            <div>
+              <Image
+                src="/images/digis-logo-white.png"
+                alt="Digis"
+                width={100}
+                height={34}
+                className="h-8 w-auto opacity-60 mb-3"
+              />
+              <p className="text-white/30 text-sm max-w-xs">
+                Connect with your favorite creators through live streams, video calls, chats, & content.
+              </p>
+            </div>
+
+            <div className="flex gap-10 text-sm">
+              <div className="flex flex-col gap-2">
+                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Platform</span>
+                <Link href="/explore" className="text-white/40 hover:text-white transition-colors">Explore</Link>
+                <Link href="/become-creator" className="text-white/40 hover:text-white transition-colors">Become a Creator</Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Legal</span>
+                <Link href="/terms" className="text-white/40 hover:text-white transition-colors">Terms</Link>
+                <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">Privacy</Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <p className="text-white/20 text-xs">
+              &copy; {new Date().getFullYear()} Digis. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
