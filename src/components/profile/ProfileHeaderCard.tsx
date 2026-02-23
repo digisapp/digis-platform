@@ -199,6 +199,13 @@ export function ProfileHeaderCard({
           </div>
         )}
 
+        {/* Owner preview note — reassures creator that fans see the action buttons */}
+        {currentUserId === user.id && user.role === 'creator' && (
+          <p className="mt-5 text-xs text-gray-500 text-center">
+            Fans see: Gift · Video Call · Voice Call · Chat
+          </p>
+        )}
+
         {/* Primary CTA: Gift */}
         {user.role === 'creator' && currentUserId !== user.id && (
           <button
