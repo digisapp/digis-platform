@@ -198,24 +198,18 @@ export function ProfileHeaderCard({
           </div>
         )}
 
-        {/* Primary CTA: Gift */}
-        {user.role === 'creator' && (
-          <button
-            onClick={!isOwnProfile ? onTipClick : undefined}
-            disabled={isOwnProfile}
-            className={`mt-5 w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all ${
-              isOwnProfile
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:from-yellow-400 hover:to-orange-400 hover:scale-[1.02] active:scale-[0.98]'
-            }`}
-          >
-            <Gift className="w-4 h-4" />
-            Send a Gift
-          </button>
-        )}
-
-        {/* Secondary Actions: calls, chat, AI twin */}
-        <div className={`mt-3 flex flex-wrap gap-2 ${isOwnProfile ? 'pointer-events-none opacity-50' : ''}`}>
+        {/* Action Buttons */}
+        <div className={`mt-4 flex flex-wrap gap-2 ${isOwnProfile ? 'pointer-events-none opacity-50' : ''}`}>
+          {user.role === 'creator' && (
+            <button
+              onClick={!isOwnProfile ? onTipClick : undefined}
+              disabled={isOwnProfile}
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold text-sm flex items-center gap-2 shadow-sm shadow-orange-500/30 hover:scale-105 transition-all"
+            >
+              <Gift className="w-4 h-4" />
+              Gift
+            </button>
+          )}
           {user.role === 'creator' && profile.callSettings?.isAvailableForCalls && (
             <RequestCallButton
               creatorId={user.id}
