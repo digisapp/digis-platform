@@ -88,23 +88,28 @@ export default function GoLivePage() {
       <MobileHeader />
 
       <div className="container mx-auto px-4 pt-20 md:pt-10 pb-32 md:pb-10">
-        {/* Streaming Tips Banner */}
-        <button
-          type="button"
-          onClick={() => data.setShowStreamingTipsModal(true)}
-          className="w-full mb-6 p-4 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 hover:from-cyan-500/30 hover:via-purple-500/30 hover:to-pink-500/30 border-2 border-cyan-500/40 hover:border-cyan-500/60 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(34,211,238,0.15)] hover:shadow-[0_0_30px_rgba(34,211,238,0.25)] group"
-        >
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Video className="w-5 h-5 text-white" />
+        {/* Page Heading */}
+        <h1 className="text-2xl font-bold text-white mb-6">Go Live</h1>
+
+        {/* Streaming Tips Banner — only shown to first-time streamers */}
+        {data.recentStats.totalStreams === 0 && (
+          <button
+            type="button"
+            onClick={() => data.setShowStreamingTipsModal(true)}
+            className="w-full mb-6 p-4 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 hover:from-cyan-500/30 hover:via-purple-500/30 hover:to-pink-500/30 border-2 border-cyan-500/40 hover:border-cyan-500/60 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(34,211,238,0.15)] hover:shadow-[0_0_30px_rgba(34,211,238,0.25)] group"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Video className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <div className="font-bold text-white text-lg">New to Streaming?</div>
+                <div className="text-sm text-gray-300">Tap here for pro tips on video quality</div>
+              </div>
+              <div className="text-cyan-400 text-2xl animate-pulse">→</div>
             </div>
-            <div className="text-left">
-              <div className="font-bold text-white text-lg">New to Streaming?</div>
-              <div className="text-sm text-gray-300">Tap here for pro tips on video quality</div>
-            </div>
-            <div className="text-cyan-400 text-2xl animate-pulse">→</div>
-          </div>
-        </button>
+          </button>
+        )}
 
         {/* Stats */}
         {data.recentStats.totalStreams > 0 && (
@@ -173,8 +178,6 @@ export default function GoLivePage() {
               setTagInput={data.setTagInput}
               privacy={data.privacy}
               setPrivacy={data.setPrivacy}
-              orientation={data.orientation}
-              setOrientation={data.setOrientation}
               goPrivateEnabled={data.goPrivateEnabled}
               setGoPrivateEnabled={data.setGoPrivateEnabled}
               goPrivateRate={data.goPrivateRate}
@@ -182,12 +185,17 @@ export default function GoLivePage() {
               goPrivateMinDuration={data.goPrivateMinDuration}
               setGoPrivateMinDuration={data.setGoPrivateMinDuration}
               defaultCallSettings={data.defaultCallSettings}
+              featuredCreators={data.featuredCreators}
+              setFeaturedCreators={data.setFeaturedCreators}
+              featuredCreatorCommission={data.featuredCreatorCommission}
+              setFeaturedCreatorCommission={data.setFeaturedCreatorCommission}
             />
 
             {/* Right Column: Device Preview or RTMP Info */}
             {data.streamMethod === 'browser' ? (
               <GoLiveDevicePreview
                 orientation={data.orientation}
+                setOrientation={data.setOrientation}
                 devicesLoading={devices.devicesLoading}
                 previewError={devices.previewError}
                 videoPlaying={devices.videoPlaying}
@@ -204,10 +212,6 @@ export default function GoLivePage() {
                 hasAiTwin={data.hasAiTwin}
                 aiChatModEnabled={data.aiChatModEnabled}
                 setAiChatModEnabled={data.setAiChatModEnabled}
-                featuredCreators={data.featuredCreators}
-                setFeaturedCreators={data.setFeaturedCreators}
-                featuredCreatorCommission={data.featuredCreatorCommission}
-                setFeaturedCreatorCommission={data.setFeaturedCreatorCommission}
                 onInitializeDevices={devices.initializeDevices}
                 onTapToPlay={devices.handleTapToPlay}
                 onShowStreamingTips={() => data.setShowStreamingTipsModal(true)}
@@ -263,15 +267,26 @@ export default function GoLivePage() {
               {data.isCreating ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  <span className="ml-2 text-white font-bold">Starting Stream...</span>
+                  <span className="ml-2 text-white font-bold">
+                    {data.streamMethod === 'rtmp' ? 'Creating Stream...' : 'Starting Stream...'}
+                  </span>
                 </>
               ) : (
                 <>
-                  <span className="font-bold text-white">Start Stream</span>
+                  <span className="font-bold text-white">
+                    {data.streamMethod === 'rtmp' ? 'Create Stream & Get RTMP Key' : 'Start Stream'}
+                  </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </>
               )}
             </GlassButton>
+            {/* Inline validation hints */}
+            {!data.title.trim() && (
+              <p className="mt-2 text-center text-xs text-gray-500">Add a stream title to continue</p>
+            )}
+            {data.title.trim() && data.streamMethod === 'browser' && !devices.mediaStream && (
+              <p className="mt-2 text-center text-xs text-gray-500">Camera access required — check your browser permissions</p>
+            )}
           </div>
         </form>
       </div>

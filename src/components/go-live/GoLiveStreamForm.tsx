@@ -2,7 +2,9 @@
 
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
 import { HelpCircle } from 'lucide-react';
+import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
 import { PRIVACY_OPTIONS } from './types';
+import type { FeaturedCreator } from './types';
 
 interface GoLiveStreamFormProps {
   title: string;
@@ -17,8 +19,6 @@ interface GoLiveStreamFormProps {
   setTagInput: (v: string) => void;
   privacy: string;
   setPrivacy: (v: string) => void;
-  orientation: 'landscape' | 'portrait';
-  setOrientation: (v: 'landscape' | 'portrait') => void;
   goPrivateEnabled: boolean;
   setGoPrivateEnabled: (v: boolean) => void;
   goPrivateRate: number | null;
@@ -26,17 +26,23 @@ interface GoLiveStreamFormProps {
   goPrivateMinDuration: number | null;
   setGoPrivateMinDuration: (v: number | null) => void;
   defaultCallSettings: { rate: number; minDuration: number } | null;
+  featuredCreators: FeaturedCreator[];
+  setFeaturedCreators: (v: FeaturedCreator[]) => void;
+  featuredCreatorCommission: number;
+  setFeaturedCreatorCommission: (v: number) => void;
 }
 
 export function GoLiveStreamForm({
   title, setTitle, category, setCategory,
   showCategoryDropdown, setShowCategoryDropdown,
   tags, setTags, tagInput, setTagInput,
-  privacy, setPrivacy, orientation, setOrientation,
+  privacy, setPrivacy,
   goPrivateEnabled, setGoPrivateEnabled,
   goPrivateRate, setGoPrivateRate,
   goPrivateMinDuration, setGoPrivateMinDuration,
   defaultCallSettings,
+  featuredCreators, setFeaturedCreators,
+  featuredCreatorCommission, setFeaturedCreatorCommission,
 }: GoLiveStreamFormProps) {
   return (
     <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 md:p-8 space-y-3 md:space-y-4 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
@@ -50,8 +56,8 @@ export function GoLiveStreamForm({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="What's your stream about?"
-          className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
+          placeholder="e.g. &quot;Gaming with Miriam 🎮&quot; or &quot;Q&A + Chill vibes&quot;"
+          className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
           maxLength={100}
           required
         />
@@ -218,41 +224,6 @@ export function GoLiveStreamForm({
         </div>
       </div>
 
-      {/* Orientation Selection */}
-      <div>
-        <label className="block text-sm font-semibold text-white mb-2">
-          Stream Orientation
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setOrientation('portrait')}
-            className={`p-4 rounded-xl border-2 transition-all ${
-              orientation === 'portrait'
-                ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
-                : 'border-white/20 bg-white/5 hover:border-white/40'
-            }`}
-          >
-            <div className="text-3xl mb-2">📱</div>
-            <div className="font-semibold text-white text-sm">Portrait</div>
-            <div className="text-xs text-gray-400">9:16 vertical</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setOrientation('landscape')}
-            className={`p-4 rounded-xl border-2 transition-all ${
-              orientation === 'landscape'
-                ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
-                : 'border-white/20 bg-white/5 hover:border-white/40'
-            }`}
-          >
-            <div className="text-3xl mb-2 rotate-90">📱</div>
-            <div className="font-semibold text-white text-sm">Landscape</div>
-            <div className="text-xs text-gray-400">16:9 horizontal</div>
-          </button>
-        </div>
-      </div>
-
       {/* Go Private Settings */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -328,6 +299,43 @@ export function GoLiveStreamForm({
           )}
         </div>
       </div>
+
+      {/* Featured Creators */}
+      <FeaturedCreatorSelector
+        selectedCreators={featuredCreators}
+        onCreatorsChange={setFeaturedCreators}
+        maxCreators={30}
+      />
+
+      {/* Featured Creator Commission */}
+      {featuredCreators.length > 0 && (
+        <div>
+          <label className="block text-sm font-semibold text-white mb-2">
+            Featured Creator Commission
+          </label>
+          <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-300">Your cut on tips sent to featured creators</span>
+              <span className="text-lg font-bold text-pink-400">{featuredCreatorCommission}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              value={featuredCreatorCommission}
+              onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
+              className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0%</span>
+              <span>50%</span>
+            </div>
+            <p className="mt-3 text-sm text-gray-300">
+              When viewers tip a featured creator, you&apos;ll receive <span className="text-pink-400 font-bold">{featuredCreatorCommission}%</span> and they&apos;ll receive <span className="text-pink-400 font-bold">{100 - featuredCreatorCommission}%</span>.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

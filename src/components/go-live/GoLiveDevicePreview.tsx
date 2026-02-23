@@ -1,12 +1,11 @@
 'use client';
 
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
-import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
 import { HelpCircle } from 'lucide-react';
-import type { FeaturedCreator } from './types';
 
 interface GoLiveDevicePreviewProps {
   orientation: 'landscape' | 'portrait';
+  setOrientation: (v: 'landscape' | 'portrait') => void;
   devicesLoading: boolean;
   previewError: string;
   videoPlaying: boolean;
@@ -23,23 +22,18 @@ interface GoLiveDevicePreviewProps {
   hasAiTwin: boolean;
   aiChatModEnabled: boolean;
   setAiChatModEnabled: (v: boolean) => void;
-  featuredCreators: FeaturedCreator[];
-  setFeaturedCreators: (v: FeaturedCreator[]) => void;
-  featuredCreatorCommission: number;
-  setFeaturedCreatorCommission: (v: number) => void;
   onInitializeDevices: () => void;
   onTapToPlay: () => void;
   onShowStreamingTips: () => void;
 }
 
 export function GoLiveDevicePreview({
-  orientation, devicesLoading, previewError, videoPlaying, setVideoPlaying,
+  orientation, setOrientation,
+  devicesLoading, previewError, videoPlaying, setVideoPlaying,
   mediaStream, videoRef, videoDevices, audioDevices,
   selectedVideoDevice, setSelectedVideoDevice,
   selectedAudioDevice, setSelectedAudioDevice,
   audioLevel, hasAiTwin, aiChatModEnabled, setAiChatModEnabled,
-  featuredCreators, setFeaturedCreators,
-  featuredCreatorCommission, setFeaturedCreatorCommission,
   onInitializeDevices, onTapToPlay, onShowStreamingTips,
 }: GoLiveDevicePreviewProps) {
   return (
@@ -101,12 +95,47 @@ export function GoLiveDevicePreview({
               PREVIEW
             </div>
           )}
-          {/* Orientation badge */}
-          <div className="absolute bottom-3 right-3 bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-            {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
-          </div>
         </div>
       )}
+
+      {/* Orientation Picker — directly below preview */}
+      <div>
+        <label className="block text-sm font-semibold text-white mb-2">
+          Stream Orientation
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setOrientation('portrait')}
+            className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+              orientation === 'portrait'
+                ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
+                : 'border-white/20 bg-white/5 hover:border-white/40'
+            }`}
+          >
+            <span className="text-2xl">📱</span>
+            <div className="text-left">
+              <div className="font-semibold text-white text-sm">Portrait</div>
+              <div className="text-xs text-gray-400">9:16 vertical</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setOrientation('landscape')}
+            className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+              orientation === 'landscape'
+                ? 'border-cyan-500 bg-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.3)]'
+                : 'border-white/20 bg-white/5 hover:border-white/40'
+            }`}
+          >
+            <span className="text-2xl rotate-90 inline-block">📱</span>
+            <div className="text-left">
+              <div className="font-semibold text-white text-sm">Landscape</div>
+              <div className="text-xs text-gray-400">16:9 horizontal</div>
+            </div>
+          </button>
+        </div>
+      </div>
 
       {/* Device Selectors */}
       <div className="space-y-4">
@@ -215,39 +244,6 @@ export function GoLiveDevicePreview({
           </div>
         )}
       </div>
-
-      {/* Featured Creators */}
-      <FeaturedCreatorSelector
-        selectedCreators={featuredCreators}
-        onCreatorsChange={setFeaturedCreators}
-        maxCreators={30}
-      />
-
-      {/* Featured Creator Commission */}
-      {featuredCreators.length > 0 && (
-        <div>
-          <label className="block text-sm font-semibold text-white mb-2">
-            Featured Creator Commission
-          </label>
-          <div className="p-4 rounded-xl border-2 border-pink-500/30 bg-pink-500/5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-300">Your commission on tips to featured creators</span>
-              <span className="text-lg font-bold text-pink-400">{featuredCreatorCommission}%</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={featuredCreatorCommission}
-              onChange={(e) => setFeaturedCreatorCommission(parseInt(e.target.value))}
-              className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-pink-500"
-            />
-            <p className="mt-3 text-sm text-gray-300">
-              When viewers tip a featured creator, you&apos;ll receive <span className="text-pink-400 font-bold">{featuredCreatorCommission}%</span> and they&apos;ll receive <span className="text-pink-400 font-bold">{100 - featuredCreatorCommission}%</span>.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

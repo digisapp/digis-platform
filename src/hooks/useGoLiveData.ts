@@ -48,7 +48,7 @@ export function useGoLiveData() {
 
   // Featured creators
   const [featuredCreators, setFeaturedCreators] = useState<FeaturedCreator[]>([]);
-  const [featuredCreatorCommission, setFeaturedCreatorCommission] = useState(0);
+  const [featuredCreatorCommission, setFeaturedCreatorCommission] = useState(20);
 
   // Go Private settings
   const [goPrivateEnabled, setGoPrivateEnabled] = useState(true);
