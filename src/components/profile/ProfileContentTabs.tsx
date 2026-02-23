@@ -155,7 +155,7 @@ export function ProfileContentTabs({
 
               {/* About Tab */}
               {activeTab === 'about' && (
-                <AboutTab user={user} streams={streams} content={content} />
+                <AboutTab user={user} />
               )}
             </>
           )}
@@ -600,10 +600,8 @@ function StreamsTab({ streamsSubTab, onStreamsSubTabChange, streams, clips, hasM
   );
 }
 
-function AboutTab({ user, streams, content }: {
-  user: { bio: string | null; createdAt: string };
-  streams: StreamItem[];
-  content: ContentItem[];
+function AboutTab({ user }: {
+  user: { bio: string | null };
 }) {
   return (
     <div className="space-y-6">
@@ -617,25 +615,6 @@ function AboutTab({ user, streams, content }: {
         ) : (
           <p className="text-gray-400 italic">No bio yet</p>
         )}
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold text-white mb-4">Stats</h3>
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="p-4 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 rounded-xl border-2 border-cyan-200 hover:border-cyan-400 transition-colors">
-            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{streams.length}</div>
-            <div className="text-xs sm:text-sm text-gray-300 font-medium">Streams</div>
-          </div>
-          <div className="p-4 bg-gradient-to-br from-pink-500/10 to-pink-500/5 rounded-xl border-2 border-pink-200 hover:border-pink-400 transition-colors">
-            <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{content.length}</div>
-            <div className="text-xs sm:text-sm text-gray-300 font-medium">Media</div>
-          </div>
-          <div className="p-4 bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 transition-colors">
-            <div className="text-xl sm:text-2xl font-bold text-white mb-1">
-              {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-            </div>
-            <div className="text-xs sm:text-sm text-gray-300 font-medium">Joined</div>
-          </div>
-        </div>
       </div>
     </div>
   );
