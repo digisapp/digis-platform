@@ -627,7 +627,7 @@ function MarketingPage({
 
             {/* Supporting subheadline */}
             <p className="text-white/70 text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-8 font-medium">
-              Connect with your favorite creators through live streams, video calls & exclusive content
+              Connect with your favorite creators through live streams, video calls, chats, & content
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10">
