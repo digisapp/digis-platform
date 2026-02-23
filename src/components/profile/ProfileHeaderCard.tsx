@@ -39,6 +39,7 @@ export function ProfileHeaderCard({
   onRequireAuth,
 }: ProfileHeaderCardProps) {
   const { user } = profile;
+  const isOwnProfile = currentUserId === user.id;
 
   return (
     <div className="relative -mt-24 sm:-mt-28 mb-8">
@@ -199,18 +200,16 @@ export function ProfileHeaderCard({
           </div>
         )}
 
-        {/* Owner preview note — reassures creator that fans see the action buttons */}
-        {currentUserId === user.id && user.role === 'creator' && (
-          <p className="mt-5 text-xs text-gray-500 text-center">
-            Fans see: Gift · Video Call · Voice Call · Chat
-          </p>
-        )}
-
         {/* Primary CTA: Gift */}
-        {user.role === 'creator' && currentUserId !== user.id && (
+        {user.role === 'creator' && (
           <button
-            onClick={onTipClick}
-            className="mt-5 w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] transition-all active:scale-[0.98]"
+            onClick={!isOwnProfile ? onTipClick : undefined}
+            disabled={isOwnProfile}
+            className={`mt-5 w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all ${
+              isOwnProfile
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:from-yellow-400 hover:to-orange-400 hover:scale-[1.02] active:scale-[0.98]'
+            }`}
           >
             <Gift className="w-4 h-4" />
             Send a Gift
@@ -218,8 +217,8 @@ export function ProfileHeaderCard({
         )}
 
         {/* Secondary Actions: calls, chat, AI twin */}
-        <div className="mt-3 flex flex-wrap gap-2">
-          {user.role === 'creator' && profile.callSettings?.isAvailableForCalls && currentUserId !== user.id && (
+        <div className={`mt-3 flex flex-wrap gap-2 ${isOwnProfile ? 'pointer-events-none opacity-50' : ''}`}>
+          {user.role === 'creator' && profile.callSettings?.isAvailableForCalls && (
             <RequestCallButton
               creatorId={user.id}
               creatorName={user.displayName || user.username}
@@ -231,7 +230,7 @@ export function ProfileHeaderCard({
             />
           )}
 
-          {user.role === 'creator' && profile.callSettings?.isAvailableForVoiceCalls && currentUserId !== user.id && (
+          {user.role === 'creator' && profile.callSettings?.isAvailableForVoiceCalls && (
             <RequestCallButton
               creatorId={user.id}
               creatorName={user.displayName || user.username}
@@ -244,16 +243,16 @@ export function ProfileHeaderCard({
           )}
 
           <button
-            onClick={onMessageClick}
+            onClick={!isOwnProfile ? onMessageClick : undefined}
             className="group px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
           >
             <MessageCircle className="w-4 h-4" />
             <span>Chat</span>
           </button>
 
-          {user.role === 'creator' && aiTwinEnabled && currentUserId !== user.id && (
+          {user.role === 'creator' && aiTwinEnabled && (
             <button
-              onClick={onAiTwinClick}
+              onClick={!isOwnProfile ? onAiTwinClick : undefined}
               className="group px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/50 hover:border-cyan-400 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
             >
               <Bot className="w-4 h-4 text-cyan-400" />
