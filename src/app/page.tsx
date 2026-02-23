@@ -784,7 +784,7 @@ function MarketingPage({
             <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-blue-500/5 border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-3xl">🎯</span>
-                <h3 className="text-lg font-bold text-white">Life Coach / Consultant</h3>
+                <h3 className="text-lg font-bold text-white">Life Coach</h3>
               </div>
               <p className="text-white/60 text-sm mb-4">
                 Run paid advisory calls and group coaching streams. Let your AI Twin handle intake questions around the clock.
