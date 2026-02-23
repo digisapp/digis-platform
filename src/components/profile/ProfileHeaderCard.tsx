@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckCircle, Sparkles, MessageCircle, Gift, Bot } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle, Sparkles, MessageCircle, Gift, Bot, Share2, Check } from 'lucide-react';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
 import type { ProfileData } from './types';
@@ -40,10 +41,33 @@ export function ProfileHeaderCard({
 }: ProfileHeaderCardProps) {
   const { user } = profile;
   const isOwnProfile = currentUserId === user.id;
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/${user.username}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: user.displayName || user.username, url });
+        return;
+      } catch {}
+    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative -mt-24 sm:-mt-28 mb-8">
-      <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8">
+      <div className="backdrop-blur-xl bg-white/10 rounded-3xl border border-white/20 shadow-2xl p-6 sm:p-8 relative">
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white/70 hover:text-white transition-all hover:scale-110"
+          title="Share profile"
+        >
+          {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
+        </button>
+
         {/* Top Row: Avatar, Name, Follow Button */}
         <div className="flex items-start gap-4 sm:gap-6">
           {/* Animated Avatar with Neon Glow */}
