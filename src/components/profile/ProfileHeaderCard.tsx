@@ -73,11 +73,6 @@ export function ProfileHeaderCard({
                 </div>
               )}
             </div>
-            {/* Username slug — below display name */}
-            {user.displayName && (
-              <p className="text-xs text-gray-500 mb-1 tracking-wide">{user.username}</p>
-            )}
-
             {/* New Creator Badge */}
             {(() => {
               if (user.role !== 'creator') return null;
