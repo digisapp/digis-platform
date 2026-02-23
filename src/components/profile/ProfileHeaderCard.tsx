@@ -104,16 +104,19 @@ export function ProfileHeaderCard({
                 {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
               </button>
 
-              {user.role === 'creator' && subscriptionTier && !isSubscribed && currentUserId !== user.id && (
+              {user.role === 'creator' && subscriptionTier && !isSubscribed && (
                 <button
-                  onClick={onSubscribeClick}
-                  className="px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-sm shadow-purple-500/30"
+                  onClick={!isOwnProfile ? onSubscribeClick : undefined}
+                  disabled={isOwnProfile}
+                  className={`px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm shadow-purple-500/30 ${
+                    isOwnProfile ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
+                  }`}
                 >
                   Sub
                 </button>
               )}
 
-              {user.role === 'creator' && isSubscribed && currentUserId !== user.id && (
+              {user.role === 'creator' && isSubscribed && !isOwnProfile && (
                 <div className="px-3 py-1 rounded-full font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
                   Subscribed
                 </div>
