@@ -6,7 +6,8 @@ import Image from 'next/image';
 import {
   Users, Search, CheckCircle, XCircle, Clock, Eye,
   Instagram, ChevronLeft, ChevronRight, ExternalLink,
-  Loader2, Phone, AlertTriangle, ShieldAlert, Calendar
+  Loader2, Phone, AlertTriangle, ShieldAlert, Calendar,
+  ArrowLeft,
 } from 'lucide-react';
 import { GlassModal } from '@/components/ui/GlassModal';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -186,17 +187,18 @@ export default function CreatorApplicationsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Creator Applications</h1>
-            <p className="text-gray-400">Review and manage creator applications</p>
-          </div>
+        <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => router.push('/admin')}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+            aria-label="Back to admin dashboard"
           >
-            Back to Admin
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
           </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Creator Applications</h1>
+            <p className="text-gray-400 text-sm">Review and manage creator applications</p>
+          </div>
         </div>
 
         {/* Tabs */}

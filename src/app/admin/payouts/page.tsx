@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { DollarSign, Clock, CheckCircle, XCircle, Eye, User, AlertCircle, Zap, CreditCard, Globe } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, XCircle, Eye, User, AlertCircle, Zap, CreditCard, Globe, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { formatCoinsAsUSD } from '@/lib/stripe/constants';
 
 interface PayoutRequest {
@@ -40,6 +41,7 @@ interface PayoutRequest {
 }
 
 export default function AdminPayoutsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
   const [payoutStats, setPayoutStats] = useState<Record<string, number>>({ pending: 0, processing: 0, completed: 0, failed: 0 });
@@ -201,7 +203,22 @@ export default function AdminPayoutsPage() {
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />
 
       <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-10 space-y-6">
-        {/* Header Stats */}
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/admin')}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+            aria-label="Back to admin dashboard"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Payouts</h1>
+            <p className="text-gray-400 text-sm">Review and process creator payouts</p>
+          </div>
+        </div>
+
+        {/* Stats */}
         <div className="grid md:grid-cols-4 gap-4">
           <GlassCard className="p-4">
             <div className="flex items-center gap-2 mb-2">
