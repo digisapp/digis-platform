@@ -890,10 +890,10 @@ function HomeContent() {
             } else if (role === 'creator') {
               router.replace('/creator/dashboard');
               return;
+            } else {
+              router.replace('/explore');
+              return;
             }
-
-            setIsAuthenticated(true);
-            setLoading(false);
           } else if (response.status === 404) {
             // Profile not found — likely a brand new user whose DB record wasn't created yet
             router.replace('/welcome/username');

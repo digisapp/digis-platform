@@ -320,12 +320,12 @@ export function Navigation() {
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
   ] : [
-    // Home (now includes Explore/Discovery functionality)
+    // Home — fans land on Explore, admins on Admin dashboard
     {
       label: 'Home',
       icon: Home,
-      path: userRole === 'admin' ? '/admin' : '/dashboard',
-      active: isActive('/') || isActive('/dashboard') || isActive('/admin'),
+      path: userRole === 'admin' ? '/admin' : '/explore',
+      active: isActive('/') || isActive('/explore') || isActive('/dashboard') || isActive('/admin'),
     },
     // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{

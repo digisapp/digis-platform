@@ -112,10 +112,10 @@ export const POST = withAdminParams<{ id: string }>(async ({ user, params, reque
         messageRate: 3,
         callRatePerMinute: 25,
         minimumCallDuration: 5,
-        isAvailableForCalls: false,
+        isAvailableForCalls: true,
         voiceCallRatePerMinute: 15,
         minimumVoiceCallDuration: 5,
-        isAvailableForVoiceCalls: false,
+        isAvailableForVoiceCalls: true,
       }).onConflictDoNothing();
 
       // 4. Create default AI Twin settings
