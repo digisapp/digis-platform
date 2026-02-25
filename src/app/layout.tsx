@@ -89,6 +89,10 @@ export default function RootLayout({
           url="https://digis.cc"
           logo="https://digis.cc/images/digis-logo-white.png"
           description="Connect with your favorite creators through video calls, live streams, and exclusive content."
+          sameAs={[
+            'https://www.instagram.com/digabordes',
+            'https://www.tiktok.com/@digabordes',
+          ]}
         />
       </head>
       <body className="antialiased bg-black min-h-screen">
