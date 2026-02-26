@@ -3,17 +3,15 @@
 import { useAuth } from '@/context/AuthContext';
 import { GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, AlertCircle, User, Share2, Settings, DollarSign, Circle, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { CheckCircle, AlertCircle, User, Share2, Settings, DollarSign, Circle, Bot } from 'lucide-react';
 import { useSettingsForm } from '@/hooks/useSettingsForm';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { useCreatorLinks } from '@/hooks/useCreatorLinks';
-import { ProfileSection, SocialSection, RatesSection, ActionsSection, LinkModal } from '@/components/settings';
+import { ProfileSection, SocialSection, RatesSection, AiTwinSection, ActionsSection, LinkModal } from '@/components/settings';
 import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 export default function SettingsPage() {
   const { signOut } = useAuth();
-  const router = useRouter();
 
   const { form, setField, populateFromApi, markAsSaved, hasUnsavedChanges } = useSettingsForm();
 
@@ -75,22 +73,45 @@ export default function SettingsPage() {
       icon: DollarSign,
       content: <RatesSection />,
     }] : []),
+    ...(currentUser?.role === 'creator' ? [{
+      id: 'ai-twin',
+      label: 'AI Twin',
+      icon: Bot,
+      content: <AiTwinSection />,
+    }] : []),
     {
       id: 'social',
       label: 'Social',
       icon: Share2,
       content: (
-        <SocialSection
-          currentUser={currentUser}
-          form={form}
-          setField={setField}
-          creatorLinks={linksData.creatorLinks}
-          linksLoading={linksData.linksLoading}
-          handleOpenLinkModal={linksData.handleOpenLinkModal}
-          handleDeleteLink={linksData.handleDeleteLink}
-          handleToggleLinkActive={linksData.handleToggleLinkActive}
-          moveLink={linksData.moveLink}
-        />
+        <>
+          <SocialSection
+            currentUser={currentUser}
+            form={form}
+            setField={setField}
+            creatorLinks={linksData.creatorLinks}
+            linksLoading={linksData.linksLoading}
+            handleOpenLinkModal={linksData.handleOpenLinkModal}
+            handleDeleteLink={linksData.handleDeleteLink}
+            handleToggleLinkActive={linksData.handleToggleLinkActive}
+            moveLink={linksData.moveLink}
+          />
+          {/* Share Your Digis QR - only for creators */}
+          {currentUser?.role === 'creator' && (
+            <div className="pt-6 mt-6 border-t border-cyan-500/20">
+              <div className="flex items-center gap-2 mb-4">
+                <Share2 className="w-5 h-5 text-digis-cyan" />
+                <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
+              </div>
+              <ShareDigisCard
+                username={currentUser.username || ''}
+                displayName={currentUser.displayName || undefined}
+                profileImage={currentUser.avatarUrl}
+                bio={currentUser.bio}
+              />
+            </div>
+          )}
+        </>
       ),
     },
     {
@@ -167,44 +188,6 @@ export default function SettingsPage() {
           </div>
         </form>
 
-        {/* Share Your Digis Section - Creators Only */}
-        {currentUser?.role === 'creator' && (
-          <div className="mt-6 p-6 backdrop-blur-xl bg-white/5 border border-cyan-500/20 rounded-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Share2 className="w-5 h-5 text-digis-cyan" />
-              <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
-            </div>
-            <ShareDigisCard
-              username={currentUser.username || ''}
-              displayName={currentUser.displayName || undefined}
-              profileImage={currentUser.avatarUrl}
-              bio={currentUser.bio}
-            />
-          </div>
-        )}
-
-        {/* Creator Tools - Creators Only */}
-        {currentUser?.role === 'creator' && (
-          <div className="mt-6 p-5 backdrop-blur-xl bg-white/5 border border-cyan-500/20 rounded-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-base font-semibold text-white">Creator Tools</h3>
-            </div>
-            <button
-              onClick={() => router.push('/creator/ai-twin')}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 hover:border-cyan-500/40 transition-all text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">AI Twin</p>
-                <p className="text-xs text-gray-400">Set up your AI replica to engage fans 24/7</p>
-              </div>
-              <span className="text-xs text-gray-500">→</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Link Modal */}
