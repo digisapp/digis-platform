@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -24,14 +24,19 @@ interface ScheduleDay {
 export default function BookCreatorPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const creatorId = params.creatorId as string;
   const { showError, showSuccess } = useToastContext();
+
+  // Pre-select call type from query param (e.g., from stream viewer "Schedule Call" button)
+  const preselectedCallType = searchParams.get('callType');
+  const initialCallType = preselectedCallType === 'voice' ? 'voice' : 'video';
 
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [callType, setCallType] = useState<'video' | 'voice'>('video');
+  const [callType, setCallType] = useState<'video' | 'voice'>(initialCallType);
   const [notes, setNotes] = useState('');
   const [rates, setRates] = useState<{ videoPerMinute: number; voicePerMinute: number } | null>(null);
   const [slotDuration, setSlotDuration] = useState(30);

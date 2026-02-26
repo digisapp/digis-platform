@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign, Video, X } from 'lucide-react';
+import { Phone, Clock, DollarSign, Video, X, Calendar } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
 import { getAblyClient } from '@/lib/ably/client';
@@ -405,27 +405,34 @@ export function RequestCallButton({
                   </div>
                 )}
 
-                {/* Action Buttons - Tron Style */}
+                {/* Action Buttons - Call Now / Schedule */}
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-gray-300 transition-all border border-gray-600"
-                  >
-                    Decline
-                  </button>
                   <button
                     onClick={handleRequest}
                     disabled={requesting}
-                    className={`flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r ${gradientClass} text-white hover:scale-105 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2`}
                   >
                     {requesting ? (
-                      <div className="flex items-center justify-center gap-2">
+                      <>
                         <LoadingSpinner size="sm" />
                         <span>Sending...</span>
-                      </div>
+                      </>
                     ) : (
-                      'Accept'
+                      <>
+                        <Icon className="w-4 h-4" />
+                        <span>Call Now</span>
+                      </>
                     )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      router.push(`/bookings/${creatorId}?callType=${callType}`);
+                    }}
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold bg-white/5 hover:bg-white/10 text-cyan-400 transition-all border border-cyan-500/40 hover:border-cyan-500/60 flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Schedule</span>
                   </button>
                 </div>
               </>
