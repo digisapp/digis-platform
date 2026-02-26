@@ -238,13 +238,19 @@ export function AdminTrafficTab({ loading, traffic, trafficRange, setTrafficRang
               <p className="text-gray-500 text-center py-4">No profile views yet</p>
             ) : (
               traffic.topCreatorProfiles.map((creator, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                <a
+                  key={i}
+                  href={`/${creator.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 hover:bg-white/5 rounded px-2 -mx-2 transition-colors"
+                >
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500 text-sm w-5">{i + 1}.</span>
-                    <span className="font-medium">@{creator.username}</span>
+                    <span className="font-medium text-digis-cyan hover:underline">@{creator.username}</span>
                   </div>
                   <span className="text-gray-400 text-sm">{creator.views.toLocaleString()} views</span>
-                </div>
+                </a>
               ))
             )}
           </div>

@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${BASE_URL}/watch`,
+      url: `${BASE_URL}/streams`,
       lastModified: new Date(),
       changeFrequency: 'hourly',
       priority: 0.8,

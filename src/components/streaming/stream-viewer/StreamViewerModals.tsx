@@ -269,7 +269,7 @@ export function StreamViewerModals({
                   </button>
                 )}
                 <button
-                  onClick={() => router.push('/watch')}
+                  onClick={() => router.push('/streams')}
                   className="w-full py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl font-semibold text-white transition-colors flex items-center justify-center gap-2"
                 >
                   <Eye className="w-5 h-5" />Browse Streams

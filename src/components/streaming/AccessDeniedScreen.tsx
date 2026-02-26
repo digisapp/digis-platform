@@ -114,7 +114,7 @@ export function AccessDeniedScreen({
 
           {/* Browse other streams */}
           <button
-            onClick={() => onNavigate('/watch')}
+            onClick={() => onNavigate('/streams')}
             className="w-full px-6 py-3 text-gray-400 hover:text-white transition-colors"
           >
             Browse Other Streams

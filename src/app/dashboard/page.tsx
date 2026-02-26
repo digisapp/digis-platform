@@ -245,7 +245,7 @@ export default function FanDashboard() {
                 <span className="text-xs text-gray-400">from creators you follow</span>
               </div>
               <button
-                onClick={() => router.push('/watch')}
+                onClick={() => router.push('/streams')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
@@ -395,7 +395,7 @@ export default function FanDashboard() {
                 <span className="text-xs text-gray-400">from creators you follow</span>
               </div>
               <button
-                onClick={() => router.push('/watch')}
+                onClick={() => router.push('/streams')}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-semibold"
               >
                 View all →
@@ -571,7 +571,7 @@ export default function FanDashboard() {
                     Explore Creators
                   </button>
                   <button
-                    onClick={() => router.push('/watch')}
+                    onClick={() => router.push('/streams')}
                     className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold hover:bg-white/20 transition-all"
                   >
                     See Who's Live

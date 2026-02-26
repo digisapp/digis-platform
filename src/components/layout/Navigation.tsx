@@ -134,7 +134,7 @@ export function Navigation() {
 
     // Prefetch common pages so they load instantly when tapped
     router.prefetch('/explore');
-    router.prefetch('/watch');
+    router.prefetch('/streams');
     router.prefetch('/chats');
     router.prefetch('/settings');
     router.prefetch('/wallet');
@@ -329,10 +329,10 @@ export function Navigation() {
     },
     // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{
-      label: 'Watch',
+      label: 'Streams',
       icon: Video,
-      path: '/watch',
-      active: isActive('/watch') || isActive('/live') || isActive('/streams'),
+      path: '/streams',
+      active: isActive('/streams') || isActive('/live') || isActive('/watch'),
     }] : []),
     // Chats is always shown
     {

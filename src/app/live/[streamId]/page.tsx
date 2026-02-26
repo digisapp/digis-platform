@@ -391,7 +391,7 @@ export default function TheaterModePage() {
             {error || 'Stream not found'}
           </h1>
           <button
-            onClick={() => router.push('/watch')}
+            onClick={() => router.push('/streams')}
             className="px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink text-gray-900 rounded-xl font-semibold hover:scale-105 transition-all"
           >
             Browse Live Streams

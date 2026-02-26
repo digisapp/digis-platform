@@ -143,7 +143,7 @@ export default function StreamViewerPageClient() {
                 Follow to Watch
               </GlassButton>
             )}
-            <GlassButton variant="ghost" size="lg" onClick={() => router.push('/watch')} className="w-full">
+            <GlassButton variant="ghost" size="lg" onClick={() => router.push('/streams')} className="w-full">
               Browse Other Streams
             </GlassButton>
           </div>
@@ -159,7 +159,7 @@ export default function StreamViewerPageClient() {
         <div className="text-center">
           <div className="text-6xl mb-4">😔</div>
           <h1 className="text-2xl font-bold text-white mb-4">{data.error || 'Stream not found'}</h1>
-          <GlassButton variant="gradient" onClick={() => router.push('/watch')} shimmer>
+          <GlassButton variant="gradient" onClick={() => router.push('/streams')} shimmer>
             Browse Live Streams
           </GlassButton>
         </div>

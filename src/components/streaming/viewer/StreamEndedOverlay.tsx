@@ -25,7 +25,7 @@ export function StreamEndedOverlay({ creatorUsername, onNavigate }: StreamEndedO
             View Creator Profile
           </button>
           <button
-            onClick={() => onNavigate('/watch')}
+            onClick={() => onNavigate('/streams')}
             className="w-full px-6 py-4 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all text-lg"
           >
             Browse Live Streams

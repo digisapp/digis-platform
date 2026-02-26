@@ -20,11 +20,16 @@ export const RESERVED_USERNAMES = new Set([
   'staff', 'moderator', 'mod', 'team', 'official', 'verified', 'system',
   'root', 'superuser', 'webmaster', 'postmaster', 'hostmaster',
 
-  // Common routes/features (avoid conflicts)
+  // Common routes/features (avoid conflicts with app routes)
   'dashboard', 'settings', 'profile', 'messages', 'wallet', 'explore',
   'live', 'shows', 'creator', 'fan', 'browse', 'search', 'trending',
   'popular', 'new', 'featured', 'discover', 'feed', 'notifications',
   'account', 'login', 'signup', 'logout', 'register', 'auth',
+  'watch', 'admin', 'stream', 'streams', 'calls', 'chats', 'claim',
+  'clip', 'vod', 'bookings', 'connections', 'content', 'subscriptions',
+  'join', 'welcome', 'privacy', 'terms', 'group-rooms', 'grouprooms',
+  'become-creator', 'becomecreator', 'for-creators', 'forcreators',
+  'ai-chat', 'aichat', 'reset-password', 'resetpassword',
 
   // Common first names (high value - VIP only)
   'hannah', 'emma', 'olivia', 'sarah', 'james', 'david', 'emily', 'grace',

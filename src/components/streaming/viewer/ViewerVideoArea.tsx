@@ -194,7 +194,7 @@ export function ViewerVideoArea({
                     View Creator Profile
                   </button>
                   <button
-                    onClick={() => router.push('/watch')}
+                    onClick={() => router.push('/streams')}
                     className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-all"
                   >
                     Browse Live Streams
