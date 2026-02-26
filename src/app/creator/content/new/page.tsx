@@ -353,7 +353,7 @@ export default function CreateContentPage() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-white">New Post</h1>
-            <p className="text-sm text-gray-400">Upload · Add details · Publish</p>
+            <p className="text-sm text-gray-400">Upload · Add details · Post</p>
           </div>
         </div>
 
@@ -469,7 +469,7 @@ export default function CreateContentPage() {
               </div>
             </GlassCard>
 
-            {/* RIGHT: Details + Pricing + Publish */}
+            {/* RIGHT: Details + Pricing + Post */}
             <div className="space-y-4">
 
               {/* Step 2: Title & Description */}
@@ -564,7 +564,7 @@ export default function CreateContentPage() {
                 )}
               </GlassCard>
 
-              {/* Publish */}
+              {/* Post */}
               <GlassButton
                 type="submit"
                 variant="gradient"
@@ -574,12 +574,12 @@ export default function CreateContentPage() {
                 size="lg"
               >
                 <span className="text-white font-semibold">
-                  {uploading ? 'Publishing...' : generatingThumbnail ? 'Generating thumbnail...' : 'Publish →'}
+                  {uploading ? 'Posting...' : generatingThumbnail ? 'Generating thumbnail...' : 'Post →'}
                 </span>
               </GlassButton>
 
               {!hasContent && (
-                <p className="text-xs text-gray-500 text-center">Upload a file on the left to enable publishing</p>
+                <p className="text-xs text-gray-500 text-center">Upload a file on the left to enable posting</p>
               )}
             </div>
 
