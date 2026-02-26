@@ -112,16 +112,33 @@ export function validateImageFile(
 }
 
 /**
- * Resize image client-side before upload (optional optimization)
- * @param file - The image file to resize
- * @param maxWidth - Maximum width
- * @param maxHeight - Maximum height
- * @returns Resized image as File
+ * Get the natural dimensions of an image file
+ */
+export function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/**
+ * Resize image client-side before upload
+ * @param mode 'fit' = scale down to fit within bounds (default, for avatars/general)
+ * @param mode 'fill' = crop-to-fill exact dimensions (for banners - always outputs exact size)
  */
 export async function resizeImage(
   file: File,
   maxWidth: number,
-  maxHeight: number
+  maxHeight: number,
+  mode: 'fit' | 'fill' = 'fit'
 ): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -129,34 +146,60 @@ export async function resizeImage(
     const ctx = canvas.getContext('2d');
 
     img.onload = () => {
-      let width = img.width;
-      let height = img.height;
+      let drawWidth: number;
+      let drawHeight: number;
+      let sx = 0, sy = 0, sw = img.width, sh = img.height;
 
-      // Calculate new dimensions maintaining aspect ratio
-      if (width > height) {
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+      if (mode === 'fill') {
+        // Crop-to-fill: always output exact target dimensions
+        // Scales image to cover the target area, then center-crops
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+
+        const targetRatio = maxWidth / maxHeight;
+        const srcRatio = img.width / img.height;
+
+        if (srcRatio > targetRatio) {
+          // Source is wider than target — crop sides
+          sh = img.height;
+          sw = Math.round(img.height * targetRatio);
+          sx = Math.round((img.width - sw) / 2);
+        } else {
+          // Source is taller than target — crop top/bottom
+          sw = img.width;
+          sh = Math.round(img.width / targetRatio);
+          sy = Math.round((img.height - sh) / 2);
         }
+
+        drawWidth = maxWidth;
+        drawHeight = maxHeight;
       } else {
-        if (height > maxHeight) {
-          width = (width * maxHeight) / height;
-          height = maxHeight;
+        // Fit-within: scale down maintaining aspect ratio
+        drawWidth = img.width;
+        drawHeight = img.height;
+
+        if (drawWidth > maxWidth) {
+          drawHeight = (drawHeight * maxWidth) / drawWidth;
+          drawWidth = maxWidth;
         }
+        if (drawHeight > maxHeight) {
+          drawWidth = (drawWidth * maxHeight) / drawHeight;
+          drawHeight = maxHeight;
+        }
+
+        canvas.width = drawWidth;
+        canvas.height = drawHeight;
       }
 
-      canvas.width = width;
-      canvas.height = height;
-
-      // Use high-quality image smoothing for better downscaling
       if (ctx) {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
       }
 
-      ctx?.drawImage(img, 0, 0, width, height);
+      ctx?.drawImage(img, sx, sy, sw, sh, 0, 0, drawWidth, drawHeight);
 
-      // Output as WebP for better quality-to-size ratio
+      URL.revokeObjectURL(img.src);
+
       const outputType = 'image/webp';
       const baseName = file.name.replace(/\.[^.]+$/, '');
 
@@ -175,11 +218,14 @@ export async function resizeImage(
           resolve(resizedFile);
         },
         outputType,
-        0.92 // Higher quality for WebP (still smaller than JPEG at 0.9)
+        0.92
       );
     };
 
-    img.onerror = () => reject(new Error('Failed to load image'));
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image'));
+    };
     img.src = URL.createObjectURL(file);
   });
 }

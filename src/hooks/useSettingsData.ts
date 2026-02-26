@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateUsername } from '@/lib/utils/username';
-import { uploadImage, validateImageFile, resizeImage } from '@/lib/utils/storage';
+import { uploadImage, validateImageFile, resizeImage, getImageDimensions } from '@/lib/utils/storage';
 import type { SettingsFormState } from '@/hooks/useSettingsForm';
 import type { UsernameStatus } from '@/components/settings/types';
 
@@ -341,7 +341,17 @@ export function useSettingsData({ form, setField, populateFromApi, markAsSaved }
     setError('');
 
     try {
-      const resizedFile = await resizeImage(file, 2560, 680);
+      // Check minimum dimensions — warn if image is too small for a crisp banner
+      const dims = await getImageDimensions(file);
+      if (dims.width < 800) {
+        setUploadingBanner(false);
+        setError('Image is too small for a banner. Please use an image at least 1500px wide (recommended: 3000 x 1000px).');
+        return;
+      }
+
+      // Resize to 3000x1000 using fill mode (center-crop to exact 3:1 ratio)
+      // This ensures retina-quality output regardless of input aspect ratio
+      const resizedFile = await resizeImage(file, 3000, 1000, 'fill');
       const url = await uploadImage(resizedFile, 'banner', currentUser.id);
 
       setBannerPreview(url);

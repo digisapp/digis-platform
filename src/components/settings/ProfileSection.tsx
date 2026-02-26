@@ -162,6 +162,7 @@ export function ProfileSection({
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-digis-pink transition-colors">
                   <Upload className="w-8 h-8 mb-2" />
                   <p className="text-sm font-medium">Click to add banner</p>
+                  <p className="text-xs mt-1 opacity-60">3000 x 1000px recommended</p>
                 </div>
               )}
               {uploadingBanner && (
@@ -177,6 +178,9 @@ export function ProfileSection({
                 className="hidden"
               />
             </label>
+          )}
+          {currentUser?.role === 'creator' && (
+            <p className="text-xs text-gray-500">Recommended: 3000 x 1000px landscape image. Min 1500px wide for best quality.</p>
           )}
 
           {/* Avatar & Info */}
