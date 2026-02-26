@@ -1,12 +1,17 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users, Shield, Coins, TrendingUp, Heart, FileText,
   Radio, Sparkles, Eye, EyeOff, MoreVertical,
   ShieldCheck, ShieldOff, UserX, RefreshCw, Trash2, ExternalLink, Bot,
+  ChevronUp, ChevronDown, ArrowUpDown,
 } from 'lucide-react';
 import type { Creator } from './types';
+
+type SortKey = 'created_at' | 'profile_completeness' | 'last_seen_at' | 'balance' | 'total_earned' | 'follower_count' | 'content_count' | 'last_post_at' | 'total_streams' | 'active_subscribers' | 'profile_views' | 'referral_count';
+type SortDir = 'asc' | 'desc';
 
 function getProfileBadge(completeness: number) {
   if (completeness >= 100) {
@@ -18,6 +23,13 @@ function getProfileBadge(completeness: number) {
   } else {
     return <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full text-xs">{completeness}%</span>;
   }
+}
+
+function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: SortKey | null; sortDir: SortDir }) {
+  if (sortKey !== column) return <ArrowUpDown className="w-3 h-3 text-gray-600 ml-1 inline" />;
+  return sortDir === 'asc'
+    ? <ChevronUp className="w-3 h-3 text-cyan-400 ml-1 inline" />
+    : <ChevronDown className="w-3 h-3 text-cyan-400 ml-1 inline" />;
 }
 
 interface CreatorsTableProps {
@@ -40,6 +52,39 @@ export function CreatorsTable({
   onVerify, onHide, onSuspend, onDelete, onChangeRole, onOpenAiSettings,
 }: CreatorsTableProps) {
   const router = useRouter();
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return creators;
+    return [...creators].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      // Handle nulls — push nulls to bottom
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      // Date strings
+      if (typeof av === 'string' && typeof bv === 'string') {
+        const diff = new Date(av).getTime() - new Date(bv).getTime();
+        return sortDir === 'asc' ? diff : -diff;
+      }
+      // Numbers
+      const diff = (av as number) - (bv as number);
+      return sortDir === 'asc' ? diff : -diff;
+    });
+  }, [creators, sortKey, sortDir]);
+
+  const thClass = 'px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-cyan-400 transition-colors select-none whitespace-nowrap';
 
   return (
     <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
@@ -48,23 +93,23 @@ export function CreatorsTable({
           <thead>
             <tr className="border-b border-white/10">
               <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Creator</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Joined</th>
-              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Profile</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Seen</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Balance</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Earned</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Followers</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Content</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Post</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Streams</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Subs</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Traffic</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Referrals</th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('created_at')}>Joined<SortIcon column="created_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-center ${thClass}`} onClick={() => handleSort('profile_completeness')}>Profile<SortIcon column="profile_completeness" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_seen_at')}>Last Seen<SortIcon column="last_seen_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('balance')}>Balance<SortIcon column="balance" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('total_earned')}>Earned<SortIcon column="total_earned" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('follower_count')}>Followers<SortIcon column="follower_count" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('content_count')}>Content<SortIcon column="content_count" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_post_at')}>Last Post<SortIcon column="last_post_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('total_streams')}>Streams<SortIcon column="total_streams" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('active_subscribers')}>Subs<SortIcon column="active_subscribers" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('profile_views')}>Traffic<SortIcon column="profile_views" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('referral_count')}>Referrals<SortIcon column="referral_count" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {creators.map((creator) => (
+            {sorted.map((creator) => (
               <tr
                 key={creator.id}
                 className="hover:bg-white/5 transition-colors cursor-pointer"

@@ -1,11 +1,16 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import {
   Users, Shield, Coins, TrendingUp, Heart,
   MessageSquare, Gift, Ban, MoreVertical,
   UserX, RefreshCw, Trash2, Star,
+  ChevronUp, ChevronDown, ArrowUpDown,
 } from 'lucide-react';
 import type { Fan } from './types';
+
+type SortKey = 'created_at' | 'last_seen_at' | 'balance' | 'total_spent' | 'following_count' | 'messages_sent' | 'tips_count' | 'last_purchase_at' | 'block_count';
+type SortDir = 'asc' | 'desc';
 
 function getSpendTierBadge(tier: string) {
   const tiers: Record<string, { bg: string; text: string; label: string }> = {
@@ -24,6 +29,13 @@ function getSpendTierBadge(tier: string) {
   );
 }
 
+function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: SortKey | null; sortDir: SortDir }) {
+  if (sortKey !== column) return <ArrowUpDown className="w-3 h-3 text-gray-600 ml-1 inline" />;
+  return sortDir === 'asc'
+    ? <ChevronUp className="w-3 h-3 text-cyan-400 ml-1 inline" />
+    : <ChevronDown className="w-3 h-3 text-cyan-400 ml-1 inline" />;
+}
+
 interface FansTableProps {
   fans: Fan[];
   activeDropdown: string | null;
@@ -40,6 +52,37 @@ export function FansTable({
   formatDate, formatCoins,
   onSuspend, onDelete, onChangeRole,
 }: FansTableProps) {
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return fans;
+    return [...fans].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'string' && typeof bv === 'string') {
+        const diff = new Date(av).getTime() - new Date(bv).getTime();
+        return sortDir === 'asc' ? diff : -diff;
+      }
+      const diff = (av as number) - (bv as number);
+      return sortDir === 'asc' ? diff : -diff;
+    });
+  }, [fans, sortKey, sortDir]);
+
+  const thClass = 'px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-cyan-400 transition-colors select-none whitespace-nowrap';
+
   return (
     <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
       <div className="overflow-x-auto">
@@ -47,21 +90,21 @@ export function FansTable({
           <thead>
             <tr className="border-b border-white/10">
               <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Fan</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Joined</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Seen</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Balance</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Spent</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Following</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Messages</th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Tips</th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('created_at')}>Joined<SortIcon column="created_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_seen_at')}>Last Seen<SortIcon column="last_seen_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('balance')}>Balance<SortIcon column="balance" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('total_spent')}>Spent<SortIcon column="total_spent" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('following_count')}>Following<SortIcon column="following_count" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('messages_sent')}>Messages<SortIcon column="messages_sent" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-right ${thClass}`} onClick={() => handleSort('tips_count')}>Tips<SortIcon column="tips_count" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Tier</th>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Buy</th>
-              <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Blocked</th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_purchase_at')}>Last Buy<SortIcon column="last_purchase_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-center ${thClass}`} onClick={() => handleSort('block_count')}>Blocked<SortIcon column="block_count" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {fans.map((fan) => (
+            {sorted.map((fan) => (
               <tr
                 key={fan.id}
                 className={`hover:bg-white/5 transition-colors ${fan.block_count > 0 ? 'bg-red-500/5' : ''}`}
