@@ -3,11 +3,11 @@
 import { useAuth } from '@/context/AuthContext';
 import { GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, AlertCircle, User, Share2, Settings, DollarSign, Circle, Bot } from 'lucide-react';
+import { CheckCircle, AlertCircle, User, Share2, Settings, Circle } from 'lucide-react';
 import { useSettingsForm } from '@/hooks/useSettingsForm';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { useCreatorLinks } from '@/hooks/useCreatorLinks';
-import { ProfileSection, SocialSection, RatesSection, AiTwinSection, ActionsSection, LinkModal } from '@/components/settings';
+import { ProfileSection, SocialSection, ActionsSection, LinkModal } from '@/components/settings';
 import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 export default function SettingsPage() {
@@ -68,18 +68,6 @@ export default function SettingsPage() {
       ),
     },
     ...(currentUser?.role === 'creator' ? [{
-      id: 'rates',
-      label: 'Rates',
-      icon: DollarSign,
-      content: <RatesSection />,
-    }] : []),
-    ...(currentUser?.role === 'creator' ? [{
-      id: 'ai-twin',
-      label: 'AI Twin',
-      icon: Bot,
-      content: <AiTwinSection />,
-    }] : []),
-    {
       id: 'social',
       label: 'Social',
       icon: Share2,
@@ -96,24 +84,22 @@ export default function SettingsPage() {
             handleToggleLinkActive={linksData.handleToggleLinkActive}
             moveLink={linksData.moveLink}
           />
-          {/* Share Your Digis QR - only for creators */}
-          {currentUser?.role === 'creator' && (
-            <div className="pt-6 mt-6 border-t border-cyan-500/20">
-              <div className="flex items-center gap-2 mb-4">
-                <Share2 className="w-5 h-5 text-digis-cyan" />
-                <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
-              </div>
-              <ShareDigisCard
-                username={currentUser.username || ''}
-                displayName={currentUser.displayName || undefined}
-                profileImage={currentUser.avatarUrl}
-                bio={currentUser.bio}
-              />
+          {/* Share Your Digis QR */}
+          <div className="pt-6 mt-6 border-t border-cyan-500/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Share2 className="w-5 h-5 text-digis-cyan" />
+              <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
             </div>
-          )}
+            <ShareDigisCard
+              username={currentUser?.username || ''}
+              displayName={currentUser?.displayName || undefined}
+              profileImage={currentUser?.avatarUrl}
+              bio={currentUser?.bio}
+            />
+          </div>
         </>
       ),
-    },
+    }] : []),
     {
       id: 'actions',
       label: 'Actions',
