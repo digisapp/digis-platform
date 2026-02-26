@@ -85,7 +85,7 @@ export const GET = withAdmin(async () => {
         displayName: users.displayName,
         avatarUrl: users.avatarUrl,
         isCreatorVerified: users.isCreatorVerified,
-        lifetimeEarnings: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_payment', 'subscription') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
+        lifetimeEarnings: sql<number>`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_earnings', 'subscription_earnings', 'call_earnings', 'ai_session_earnings', 'ai_text_earnings', 'collection_earnings', 'booking_earnings', 'group_room_earnings') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)::int`,
         balance: wallets.balance,
         followerCount: users.followerCount,
       })
@@ -94,7 +94,7 @@ export const GET = withAdmin(async () => {
         .leftJoin(walletTransactions, eq(users.id, walletTransactions.userId))
         .where(eq(users.role, 'creator'))
         .groupBy(users.id, users.username, users.displayName, users.avatarUrl, users.isCreatorVerified, users.followerCount, wallets.balance)
-        .orderBy(desc(sql`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_payment', 'subscription') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)`))
+        .orderBy(desc(sql`COALESCE(SUM(CASE WHEN ${walletTransactions.amount} > 0 AND ${walletTransactions.type} IN ('stream_tip', 'dm_tip', 'gift', 'message_earnings', 'subscription_earnings', 'call_earnings', 'ai_session_earnings', 'ai_text_earnings', 'collection_earnings', 'booking_earnings', 'group_room_earnings') AND ${walletTransactions.status} = 'completed' THEN ${walletTransactions.amount} ELSE 0 END), 0)`))
         .limit(10),
 
       // Most followed creators
