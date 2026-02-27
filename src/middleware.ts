@@ -32,6 +32,11 @@ export async function middleware(request: NextRequest) {
     return new NextResponse('Not Found', { status: 404 })
   }
 
+  // Skip auth for egress layout (loaded by LiveKit headless Chrome, no cookies)
+  if (path.startsWith('/egress-layout')) {
+    return NextResponse.next()
+  }
+
   // Clone request with request ID header for downstream services
   const requestWithId = new Request(request.url, {
     method: request.method,

@@ -27,8 +27,9 @@ export class LiveKitEgressService {
   /**
    * Start recording a room
    * Records to Supabase Storage (S3-compatible)
+   * If creatorUsername is provided, uses a custom egress layout with Digis watermark
    */
-  static async startRecording(roomName: string, streamId: string): Promise<string> {
+  static async startRecording(roomName: string, streamId: string, creatorUsername?: string): Promise<string> {
     const client = this.getClient();
 
     // Supabase Storage S3 credentials (need to be set in env)
@@ -71,12 +72,19 @@ export class LiveKitEgressService {
     });
 
     try {
+      // Build custom layout URL with watermark if creator username available
+      const appUrl = process.env.NEXT_PUBLIC_URL || 'https://digis.cc';
+      const customBaseUrl = creatorUsername
+        ? `${appUrl}/egress-layout?username=${encodeURIComponent(creatorUsername)}`
+        : undefined;
+
       // Start recording with file output to S3
       const info = await client.startRoomCompositeEgress(
         roomName,
         fileOutput,
         {
           layout: 'speaker',
+          ...(customBaseUrl && { customBaseUrl }),
         }
       );
 

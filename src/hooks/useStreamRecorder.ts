@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { drawWatermarkOverlay, type WatermarkConfig } from '@/lib/watermark';
 
 export interface StreamRecording {
   id: string;
@@ -15,6 +16,7 @@ export interface StreamRecording {
 interface UseStreamRecorderOptions {
   maxDuration?: number; // in seconds, default 30 minutes (1800)
   maxRecordings?: number; // max recordings per stream, default 20
+  watermark?: WatermarkConfig;
   onRecordingComplete?: (recording: StreamRecording) => void;
   onError?: (error: string) => void;
 }
@@ -23,6 +25,7 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
   const {
     maxDuration = 1800, // 30 minutes default
     maxRecordings = 20,
+    watermark,
     onRecordingComplete,
     onError,
   } = options;
@@ -38,6 +41,39 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Watermark canvas pipeline refs
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasStreamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const logoRef = useRef<HTMLImageElement | null>(null);
+  const logoLoadedRef = useRef(false);
+
+  // Preload watermark logo
+  useEffect(() => {
+    if (!watermark?.logoUrl) return;
+    if (logoRef.current?.src === watermark.logoUrl) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { logoLoadedRef.current = true; };
+    img.onerror = () => { logoLoadedRef.current = false; };
+    img.src = watermark.logoUrl;
+    logoRef.current = img;
+  }, [watermark?.logoUrl]);
+
+  // Stop canvas pipeline and release resources
+  const stopCanvasPipeline = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    if (canvasStreamRef.current) {
+      canvasStreamRef.current.getTracks().forEach(t => t.stop());
+      canvasStreamRef.current = null;
+    }
+    canvasRef.current = null;
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -47,41 +83,85 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
+      stopCanvasPipeline();
     };
+  }, [stopCanvasPipeline]);
+
+  // Find video element playing a MediaStream
+  const getVideoElement = useCallback((): HTMLVideoElement | null => {
+    const videoElements = document.querySelectorAll('video');
+    for (const video of videoElements) {
+      if (video.srcObject instanceof MediaStream) {
+        return video;
+      }
+    }
+    return null;
   }, []);
 
   // Get the video element's stream from the page
   const getVideoStream = useCallback((): MediaStream | null => {
-    // Try to find the video element with the stream
-    const videoElements = document.querySelectorAll('video');
-    for (const video of videoElements) {
-      // Check if this video has a srcObject (live stream)
-      if (video.srcObject instanceof MediaStream) {
-        return video.srcObject;
-      }
-    }
+    const el = getVideoElement();
+    return el?.srcObject instanceof MediaStream ? el.srcObject : null;
+  }, [getVideoElement]);
 
-    // Alternative: Try to get from canvas if video is rendered there
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      try {
-        const stream = (canvas as HTMLCanvasElement).captureStream(30);
-        // Try to get audio from any audio element or the original video
-        for (const video of videoElements) {
-          if (video.srcObject instanceof MediaStream) {
-            const audioTracks = video.srcObject.getAudioTracks();
-            audioTracks.forEach(track => stream.addTrack(track));
-            break;
-          }
+  // Create watermarked stream via canvas pipeline
+  const startCanvasPipeline = useCallback((videoEl: HTMLVideoElement, originalStream: MediaStream): MediaStream | null => {
+    if (!watermark) return null;
+
+    try {
+      if (!('captureStream' in HTMLCanvasElement.prototype)) {
+        console.warn('[StreamRecorder] captureStream not supported, recording without watermark');
+        return null;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth || 1280;
+      canvas.height = videoEl.videoHeight || 720;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) return null;
+
+      canvasRef.current = canvas;
+
+      // Draw loop: video frame + watermark overlay
+      const draw = () => {
+        if (!canvasRef.current) return;
+
+        // Adapt canvas to video resolution changes
+        if (videoEl.videoWidth && videoEl.videoHeight) {
+          if (canvas.width !== videoEl.videoWidth) canvas.width = videoEl.videoWidth;
+          if (canvas.height !== videoEl.videoHeight) canvas.height = videoEl.videoHeight;
         }
-        return stream;
-      } catch (e) {
-        console.error('Failed to capture canvas stream:', e);
-      }
-    }
 
-    return null;
-  }, []);
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        drawWatermarkOverlay(
+          ctx,
+          canvas.width,
+          canvas.height,
+          watermark.creatorUsername,
+          logoRef.current,
+          logoLoadedRef.current,
+        );
+
+        animFrameRef.current = requestAnimationFrame(draw);
+      };
+      draw();
+
+      // Capture canvas at 30fps
+      const canvasStream = (canvas as HTMLCanvasElement & { captureStream(fps?: number): MediaStream }).captureStream(30);
+      canvasStreamRef.current = canvasStream;
+
+      // Merge: canvas video + original audio
+      const mergedStream = new MediaStream();
+      canvasStream.getVideoTracks().forEach(t => mergedStream.addTrack(t));
+      originalStream.getAudioTracks().forEach(t => mergedStream.addTrack(t));
+
+      return mergedStream;
+    } catch (err) {
+      console.error('[StreamRecorder] Canvas pipeline failed, recording without watermark:', err);
+      return null;
+    }
+  }, [watermark]);
 
   const startRecording = useCallback(async () => {
     if (isRecording) {
@@ -117,6 +197,17 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
 
       streamRef.current = stream;
 
+      // Route through canvas pipeline for watermark if configured
+      if (watermark) {
+        const videoEl = getVideoElement();
+        if (videoEl) {
+          const watermarked = startCanvasPipeline(videoEl, stream);
+          if (watermarked) {
+            stream = watermarked;
+          }
+        }
+      }
+
       // Check for supported MIME types
       const mimeTypes = [
         'video/webm;codecs=vp9,opus',
@@ -137,6 +228,7 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
         const errorMsg = 'No supported video format for recording';
         setError(errorMsg);
         onError?.(errorMsg);
+        stopCanvasPipeline();
         return false;
       }
 
@@ -184,6 +276,7 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
         }
         setCurrentDuration(0);
         setIsRecording(false);
+        stopCanvasPipeline();
       };
 
       mediaRecorder.onerror = (event) => {
@@ -192,6 +285,7 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
         setError(errorMsg);
         onError?.(errorMsg);
         setIsRecording(false);
+        stopCanvasPipeline();
       };
 
       // Start recording - collect data every second for smoother handling
@@ -218,9 +312,10 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
       const errorMsg = 'Failed to start recording';
       setError(errorMsg);
       onError?.(errorMsg);
+      stopCanvasPipeline();
       return false;
     }
-  }, [isRecording, recordings.length, maxRecordings, maxDuration, getVideoStream, onRecordingComplete, onError]);
+  }, [isRecording, recordings.length, maxRecordings, maxDuration, watermark, getVideoStream, getVideoElement, startCanvasPipeline, stopCanvasPipeline, onRecordingComplete, onError]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -230,6 +325,7 @@ export function useStreamRecorder(options: UseStreamRecorderOptions = {}) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
     }
+    // Canvas pipeline cleanup happens in mediaRecorder.onstop
   }, []);
 
   const deleteRecording = useCallback((recordingId: string) => {

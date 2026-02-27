@@ -121,6 +121,12 @@ export default function BroadcastStudioPage() {
     isVisible: showPrivateTips,
   });
 
+  // Watermark config (shared by recorder + clipper)
+  const clipWatermark = useMemo(() =>
+    currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
+    [currentUsername]
+  );
+
   // Stream recording hook
   const {
     isRecording,
@@ -136,6 +142,7 @@ export default function BroadcastStudioPage() {
   } = useStreamRecorder({
     maxDuration: 1800,
     maxRecordings: 20,
+    watermark: clipWatermark,
     onRecordingComplete: (recording) => {
       const mins = Math.floor(recording.duration / 60);
       const secs = recording.duration % 60;
@@ -192,11 +199,6 @@ export default function BroadcastStudioPage() {
   });
 
   // Stream clipping hook
-  const clipWatermark = useMemo(() =>
-    currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
-    [currentUsername]
-  );
-
   const {
     isBuffering: isClipBuffering,
     bufferSeconds: clipBufferSeconds,

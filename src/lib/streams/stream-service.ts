@@ -108,11 +108,21 @@ export class StreamService {
       })
       .returning();
 
+    // Fetch creator info early — needed for egress watermark + Ably broadcast
+    const creator = !isScheduled ? await db.query.users.findFirst({
+      where: eq(users.id, creatorId),
+      columns: {
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+      },
+    }) : null;
+
     // Start recording if stream is going live immediately
     // Skip egress for RTMP streams — recording starts when OBS connects
     if (!isScheduled && (!streamMethod || streamMethod === 'browser')) {
       try {
-        const egressId = await LiveKitEgressService.startRecording(roomName, stream.id);
+        const egressId = await LiveKitEgressService.startRecording(roomName, stream.id, creator?.username || undefined);
         // Update stream with egress ID
         await db
           .update(streams)
@@ -141,15 +151,6 @@ export class StreamService {
     // Broadcast to platform:live channel so fans see the new stream instantly
     // This applies to ALL stream methods (browser and RTMP)
     if (!isScheduled) {
-      const creator = await db.query.users.findFirst({
-        where: eq(users.id, creatorId),
-        columns: {
-          username: true,
-          displayName: true,
-          avatarUrl: true,
-        },
-      });
-
       if (creator && creator.username) {
         AblyRealtimeService.broadcastStreamStarted({
           streamId: stream.id,
