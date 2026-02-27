@@ -48,7 +48,7 @@ export async function POST(
     }
 
     // Generate the invite URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.digis.cc';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://www.digis.cc';
     const inviteUrl = `${baseUrl}/stream/${streamId}?invite=true`;
 
     return NextResponse.json({

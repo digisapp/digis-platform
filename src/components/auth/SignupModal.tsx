@@ -129,7 +129,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
 
       if (!reserveResponse.ok) {
         const reserveData = await reserveResponse.json();
-        console.warn('User creation warning:', reserveData.error);
+        throw new Error(reserveData.error || 'Failed to create account. Please try again.');
       }
 
       // Check if email confirmation is required
@@ -159,7 +159,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
     }
   };
 
-  const isFormValid = email && password && password.length >= 6;
+  const isFormValid = email && password && password.length >= 8;
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title="" size="sm">
@@ -278,7 +278,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               required
               autoComplete="new-password"
             />
-            <p className="text-xs text-gray-500 -mt-2">At least 6 characters</p>
+            <p className="text-xs text-gray-500 -mt-2">At least 8 characters</p>
 
             {/* Honeypot field - hidden from real users, bots will fill it */}
             <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">

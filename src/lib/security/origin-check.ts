@@ -9,7 +9,7 @@
  */
 
 const RAW_ALLOWED = [
-  process.env.NEXT_PUBLIC_APP_URL,
+  process.env.NEXT_PUBLIC_URL,
   'https://digis.cc',
   'https://www.digis.cc',
   // Add localhost for development
