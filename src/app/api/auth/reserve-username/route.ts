@@ -5,6 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import * as Sentry from '@sentry/nextjs';
 
 // Force Node.js runtime
 export const runtime = 'nodejs';
@@ -265,6 +266,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error reserving username:', error);
+    Sentry.captureException(error, {
+      tags: { service: 'auth', route: 'POST /api/auth/reserve-username' },
+    });
 
     // Handle unique constraint violation
     if (error.code === '23505' || error.message?.includes('unique') || error.message?.includes('duplicate')) {

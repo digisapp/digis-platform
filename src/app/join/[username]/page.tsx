@@ -114,18 +114,18 @@ export default function ReferralJoinPage() {
             </div>
 
             {/* Benefits */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <DollarSign className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                <p className="text-xs text-gray-400">Earn Coins</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+              <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-[11px] sm:text-xs text-gray-400">Earn Coins</p>
               </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <Users className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                <p className="text-xs text-gray-400">Build Fanbase</p>
+              <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-[11px] sm:text-xs text-gray-400">Build Fanbase</p>
               </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <Gift className="w-6 h-6 text-pink-400 mx-auto mb-2" />
-                <p className="text-xs text-gray-400">Get Gifts</p>
+              <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-pink-400 mx-auto mb-1.5 sm:mb-2" />
+                <p className="text-[11px] sm:text-xs text-gray-400">Get Gifts</p>
               </div>
             </div>
 

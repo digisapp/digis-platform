@@ -114,7 +114,7 @@ export function ProfileHeaderCard({
               <button
                 onClick={onFollowToggle}
                 disabled={followLoading}
-                className={`px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 ${
+                className={`px-4 py-2 rounded-full font-medium text-xs transition-all duration-300 disabled:opacity-50 min-h-[36px] ${
                   isFollowing
                     ? 'bg-white/10 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10'
                     : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-sm shadow-cyan-500/30'
@@ -127,7 +127,7 @@ export function ProfileHeaderCard({
                 <button
                   onClick={!isOwnProfile ? onSubscribeClick : undefined}
                   disabled={isOwnProfile}
-                  className={`px-3 py-1 rounded-full font-medium text-xs transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm shadow-purple-500/30 ${
+                  className={`px-4 py-2 rounded-full font-medium text-xs transition-all duration-300 min-h-[36px] bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm shadow-purple-500/30 ${
                     isOwnProfile ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
                   }`}
                 >
@@ -136,7 +136,7 @@ export function ProfileHeaderCard({
               )}
 
               {user.role === 'creator' && isSubscribed && !isOwnProfile && (
-                <div className="px-3 py-1 rounded-full font-medium text-xs bg-white/10 border border-purple-500/50 text-purple-400">
+                <div className="px-4 py-2 rounded-full font-medium text-xs min-h-[36px] flex items-center bg-white/10 border border-purple-500/50 text-purple-400">
                   Subscribed
                 </div>
               )}

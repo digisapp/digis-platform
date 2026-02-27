@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { purchaseVODAccess } from '@/lib/vods/vod-access';
 import { v4 as uuidv4 } from 'uuid';
+import * as Sentry from '@sentry/nextjs';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -132,6 +133,10 @@ export async function POST(
     });
   } catch (error: any) {
     console.error('[VOD Purchase] Error:', error);
+    Sentry.captureException(error, {
+      tags: { service: 'vod-purchase', route: 'POST /api/vods/[vodId]/purchase' },
+      extra: { vodId: (await params).vodId },
+    });
     return NextResponse.json(
       { error: error.message || 'Failed to purchase VOD access' },
       { status: 500 }

@@ -114,7 +114,7 @@ export default function ContentDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Left: Media Display */}
           <div>
             <GlassCard className="p-0 overflow-hidden">
@@ -208,8 +208,8 @@ export default function ContentDetailPage() {
             </GlassCard>
 
             {/* Content Details */}
-            <GlassCard className="p-6">
-              <h1 className="text-3xl font-bold text-white mb-4">{content.title}</h1>
+            <GlassCard className="p-4 sm:p-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">{content.title}</h1>
 
               {content.description && (
                 <p className="text-gray-300 mb-6 leading-relaxed">{content.description}</p>

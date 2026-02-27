@@ -528,15 +528,15 @@ export default function WalletPage() {
                       className={`p-4 rounded-xl border bg-gradient-to-r ${getTransactionColor(tx.type, tx.amount)} hover:shadow-md transition-all`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="p-3 backdrop-blur-xl bg-white/10 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                          <div className="p-2.5 sm:p-3 backdrop-blur-xl bg-white/10 rounded-xl shadow-sm flex-shrink-0">
                             {getTransactionIcon(tx.type, tx.amount)}
                           </div>
-                          <div className="flex-1">
-                            <p className="text-white font-semibold mb-1">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-semibold mb-1 truncate">
                               {tx.description || 'Transaction'}
                             </p>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                               <p className="text-xs text-gray-400">
                                 {new Date(tx.createdAt).toLocaleString()}
                               </p>
@@ -544,8 +544,8 @@ export default function WalletPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right ml-4">
-                          <p className={`text-2xl font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <div className="text-right ml-3 sm:ml-4 flex-shrink-0">
+                          <p className={`text-xl sm:text-2xl font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {tx.amount > 0 ? '+' : ''}{tx.amount}
                           </p>
                           <p className="text-xs text-gray-400">coins</p>
@@ -715,7 +715,7 @@ export default function WalletPage() {
                     </p>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />

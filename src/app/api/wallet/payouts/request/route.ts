@@ -8,6 +8,7 @@ import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { isPayoneerAvailable } from '@/lib/payoneer/service';
 import { withOriginGuard } from '@/lib/security/withOriginGuard';
 import { rateLimitCritical } from '@/lib/rate-limit';
+import * as Sentry from '@sentry/nextjs';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -200,6 +201,9 @@ export const POST = withOriginGuard(async (request: Request) => {
         errorMessage.includes('being processed')) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+    Sentry.captureException(error, {
+      tags: { service: 'payout', route: 'POST /api/wallet/payouts/request' },
+    });
     return NextResponse.json(
       { error: 'Failed to create payout request. Please try again.' },
       { status: 500 }

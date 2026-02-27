@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { resetPasswordSchema, validateBody } from '@/lib/validation/schemas';
 import { rateLimit } from '@/lib/rate-limit';
+import * as Sentry from '@sentry/nextjs';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Password reset error:', error);
+    Sentry.captureException(error, {
+      tags: { service: 'auth', route: 'POST /api/auth/reset-password' },
+    });
     return NextResponse.json(
       { error: 'An error occurred. Please try again.' },
       { status: 500 }

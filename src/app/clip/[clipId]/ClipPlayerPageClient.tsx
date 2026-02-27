@@ -258,7 +258,7 @@ export default function ClipPlayerPageClient() {
             </div>
 
             {/* Action buttons */}
-            <div className="flex items-center justify-center gap-3 max-w-md mx-auto">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 max-w-md mx-auto">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all ${
@@ -294,7 +294,7 @@ export default function ClipPlayerPageClient() {
             </div>
 
             {/* Clip Info */}
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6 max-w-md mx-auto lg:max-w-none">
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-4 sm:p-6 max-w-md mx-auto lg:max-w-none">
               <h1 className="text-xl font-bold text-white mb-2">{clip.title}</h1>
               {clip.description && (
                 <p className="text-gray-400 mb-4 text-sm">{clip.description}</p>

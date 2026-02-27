@@ -5,6 +5,7 @@ import { users } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { loginSchema, validateBody } from '@/lib/validation/schemas';
+import * as Sentry from '@sentry/nextjs';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -138,6 +139,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Login error:', error);
+    Sentry.captureException(error, {
+      tags: { service: 'auth', route: 'POST /api/auth/login' },
+    });
     return NextResponse.json(
       {
         error: 'An error occurred during login',

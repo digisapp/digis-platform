@@ -7,6 +7,7 @@ import { db } from '@/lib/data/system';
 import { users, contentItems } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import * as Sentry from '@sentry/nextjs';
 
 export async function POST(
   request: NextRequest,
@@ -105,6 +106,10 @@ export async function POST(
     });
   } catch (error: any) {
     console.error('Error purchasing content:', error);
+    Sentry.captureException(error, {
+      tags: { service: 'content-purchase', route: 'POST /api/content/[contentId]/purchase' },
+      extra: { contentId: (await params).contentId },
+    });
     return NextResponse.json(
       { error: error.message || 'Failed to purchase content' },
       { status: 500 }

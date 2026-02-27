@@ -174,9 +174,9 @@ export default function VODPlayerPageClient() {
             </div>
 
             {/* VOD Info */}
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
-              <div className="flex items-start justify-between mb-2">
-                <h1 className="text-2xl font-bold text-white flex-1">{vod.title}</h1>
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-4 sm:p-6">
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-white flex-1 min-w-0">{vod.title}</h1>
                 {isCreator && (
                   <div className="flex items-center gap-2">
                     <GlassButton
@@ -204,7 +204,7 @@ export default function VODPlayerPageClient() {
                 <p className="text-gray-400 mb-4">{vod.description}</p>
               )}
 
-              <div className="flex items-center gap-6 text-sm text-gray-400">
+              <div className="flex items-center gap-3 sm:gap-6 text-sm text-gray-400 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4" />
                   <span>{vod.viewCount} views</span>
@@ -222,9 +222,9 @@ export default function VODPlayerPageClient() {
             </div>
 
             {/* Creator Info */}
-            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-6">
+            <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   {vod.creator.avatarUrl ? (
                     <img
                       src={vod.creator.avatarUrl}

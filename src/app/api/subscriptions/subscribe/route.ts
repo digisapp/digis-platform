@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SubscriptionService } from '@/lib/services/subscription-service';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import * as Sentry from '@sentry/nextjs';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -99,9 +100,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: message, insufficientBalance: true }, { status: 400 });
     }
     if (message.includes('Wallet not found')) {
+      Sentry.captureException(error, {
+        tags: { service: 'subscription', issue: 'wallet_not_found' },
+      });
       return NextResponse.json({ error: 'Please try again or contact support.' }, { status: 500 });
     }
 
+    // Capture unexpected errors to Sentry (skip known user errors like balance/duplicate)
+    Sentry.captureException(error, {
+      tags: { service: 'subscription', route: 'POST /api/subscriptions/subscribe' },
+    });
     return NextResponse.json(
       { error: 'Something went wrong. Please try again.' },
       { status: 500 }
