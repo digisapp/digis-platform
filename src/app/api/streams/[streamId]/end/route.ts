@@ -44,7 +44,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error ending stream:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to end stream' },
+      { error: 'Failed to end stream' },
       { status: 500 }
     );
   }

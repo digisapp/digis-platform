@@ -63,7 +63,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error toggling tip menu:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle tip menu' },
+      { error: 'Failed to toggle tip menu' },
       { status: 500 }
     );
   }
@@ -99,7 +99,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error getting tip menu status:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get tip menu status' },
+      { error: 'Failed to get tip menu status' },
       { status: 500 }
     );
   }

@@ -193,7 +193,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error sending tip:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send tip' },
+      { error: 'Failed to send tip' },
       { status: 500 }
     );
   }

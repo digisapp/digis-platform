@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching feed:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch feed' },
+      { error: 'Failed to fetch feed' },
       { status: 500 }
     );
   }

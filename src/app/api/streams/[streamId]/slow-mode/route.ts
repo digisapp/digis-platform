@@ -30,7 +30,7 @@ export async function GET(
   } catch (error: any) {
     console.error('[Slow Mode GET] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get slow mode setting' },
+      { error: 'Failed to get slow mode setting' },
       { status: 500 }
     );
   }
@@ -97,7 +97,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Slow Mode POST] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to set slow mode' },
+      { error: 'Failed to set slow mode' },
       { status: 500 }
     );
   }

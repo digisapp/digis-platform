@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating content:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create content' },
+      { error: 'Failed to create content' },
       { status: 500 }
     );
   }

@@ -41,7 +41,7 @@ export async function GET() {
   } catch (error: any) {
     console.error('Error fetching library:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch library' },
+      { error: 'Failed to fetch library' },
       { status: 500 }
     );
   }

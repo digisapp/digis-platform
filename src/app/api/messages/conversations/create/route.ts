@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('Error creating conversation:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create conversation' },
+      { error: 'Failed to create conversation' },
       { status: 500 }
     );
   }

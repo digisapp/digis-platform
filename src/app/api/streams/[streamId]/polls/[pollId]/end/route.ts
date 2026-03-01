@@ -57,7 +57,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error ending poll:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to end poll' },
+      { error: 'Failed to end poll' },
       { status: 500 }
     );
   }

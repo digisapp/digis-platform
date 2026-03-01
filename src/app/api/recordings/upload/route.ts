@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[RECORDING UPLOAD ERROR]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to save recording' },
+      { error: 'Failed to save recording' },
       { status: 500 }
     );
   }

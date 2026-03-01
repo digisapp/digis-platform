@@ -147,7 +147,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error leaving group room:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to leave room' },
+      { error: 'Failed to leave room' },
       { status: 500 }
     );
   }

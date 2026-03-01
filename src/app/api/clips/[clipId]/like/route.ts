@@ -70,7 +70,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error liking clip:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to like clip' },
+      { error: 'Failed to like clip' },
       { status: 500 }
     );
   }
@@ -102,7 +102,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error checking like status:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to check like status' },
+      { error: 'Failed to check like status' },
       { status: 500 }
     );
   }

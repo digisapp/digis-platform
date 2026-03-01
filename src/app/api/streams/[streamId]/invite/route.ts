@@ -59,7 +59,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Stream Invite] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate invite link' },
+      { error: 'Failed to generate invite link' },
       { status: 500 }
     );
   }

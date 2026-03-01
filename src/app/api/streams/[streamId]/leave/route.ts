@@ -50,7 +50,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error leaving stream:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to leave stream' },
+      { error: 'Failed to leave stream' },
       { status: 500 }
     );
   }

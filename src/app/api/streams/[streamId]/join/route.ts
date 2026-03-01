@@ -65,7 +65,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error joining stream:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to join stream' },
+      { error: 'Failed to join stream' },
       { status: 500 }
     );
   }

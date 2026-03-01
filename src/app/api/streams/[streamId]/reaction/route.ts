@@ -49,7 +49,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error sending reaction:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send reaction' },
+      { error: 'Failed to send reaction' },
       { status: 500 }
     );
   }

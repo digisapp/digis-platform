@@ -111,7 +111,7 @@ export async function POST(
       extra: { contentId: (await params).contentId },
     });
     return NextResponse.json(
-      { error: error.message || 'Failed to purchase content' },
+      { error: 'Failed to purchase content' },
       { status: 500 }
     );
   }

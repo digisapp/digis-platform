@@ -37,7 +37,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error toggling hide from discovery:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle hide from discovery' },
+      { error: 'Failed to toggle hide from discovery' },
       { status: 500 }
     );
   }

@@ -104,7 +104,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error generating LiveKit token:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate token' },
+      { error: 'Failed to generate token' },
       { status: 500 }
     );
   }

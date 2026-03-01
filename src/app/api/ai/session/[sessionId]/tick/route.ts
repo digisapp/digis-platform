@@ -40,7 +40,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[AI Session] Tick error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to process billing tick' },
+      { error: 'Failed to process billing tick' },
       { status: 500 }
     );
   }

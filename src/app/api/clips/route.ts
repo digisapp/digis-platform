@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching clips:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch clips' },
+      { error: 'Failed to fetch clips' },
       { status: 500 }
     );
   }
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating clip:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create clip' },
+      { error: 'Failed to create clip' },
       { status: 500 }
     );
   }

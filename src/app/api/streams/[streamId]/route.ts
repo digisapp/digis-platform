@@ -146,7 +146,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching stream:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch stream' },
+      { error: 'Failed to fetch stream' },
       { status: 500 }
     );
   }

@@ -80,7 +80,7 @@ export async function POST(
     }
     console.error('Error adding collection item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to add item' },
+      { error: 'Failed to add item' },
       { status: 500 }
     );
   }

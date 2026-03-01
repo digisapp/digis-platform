@@ -24,7 +24,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching content:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch content' },
+      { error: 'Failed to fetch content' },
       { status: 500 }
     );
   }
@@ -57,7 +57,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating content:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update content' },
+      { error: 'Failed to update content' },
       { status: 500 }
     );
   }
@@ -82,7 +82,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting content:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete content' },
+      { error: 'Failed to delete content' },
       { status: 500 }
     );
   }

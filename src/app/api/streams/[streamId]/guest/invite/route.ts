@@ -156,7 +156,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Guest Invite] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send invite' },
+      { error: 'Failed to send invite' },
       { status: 500 }
     );
   }

@@ -31,7 +31,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error tracking clip share:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to track share' },
+      { error: 'Failed to track share' },
       { status: 500 }
     );
   }

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching creator rooms:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch rooms' },
+      { error: 'Failed to fetch rooms' },
       { status: 500 }
     );
   }

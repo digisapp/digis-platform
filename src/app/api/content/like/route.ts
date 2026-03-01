@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error toggling like:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle like' },
+      { error: 'Failed to toggle like' },
       { status: 500 }
     );
   }
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error checking like status:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to check like status' },
+      { error: 'Failed to check like status' },
       { status: 500 }
     );
   }

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching following:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch following' },
+      { error: 'Failed to fetch following' },
       { status: 500 }
     );
   }

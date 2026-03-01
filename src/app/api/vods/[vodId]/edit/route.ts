@@ -93,7 +93,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('[Edit VOD] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update VOD' },
+      { error: 'Failed to update VOD' },
       { status: 500 }
     );
   }
@@ -151,7 +151,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('[Delete VOD] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete VOD' },
+      { error: 'Failed to delete VOD' },
       { status: 500 }
     );
   }

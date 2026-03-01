@@ -54,7 +54,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error starting room:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to start room' },
+      { error: 'Failed to start room' },
       { status: 500 }
     );
   }

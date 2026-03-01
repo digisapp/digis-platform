@@ -141,7 +141,7 @@ export async function GET(
   } catch (error: any) {
     console.error('[Guest Token] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get guest token' },
+      { error: 'Failed to get guest token' },
       { status: 500 }
     );
   }

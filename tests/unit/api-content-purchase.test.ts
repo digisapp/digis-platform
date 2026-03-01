@@ -156,7 +156,7 @@ describe('POST /api/content/[contentId]/purchase', () => {
     const body = await res.json();
 
     expect(res.status).toBe(500);
-    expect(body.error).toBe('DB connection lost');
+    expect(body.error).toBe('Failed to purchase content');
   });
 
   it('calls rate limiter with correct parameters', async () => {

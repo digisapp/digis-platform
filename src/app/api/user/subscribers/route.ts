@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching subscribers:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch subscribers' },
+      { error: 'Failed to fetch subscribers' },
       { status: 500 }
     );
   }

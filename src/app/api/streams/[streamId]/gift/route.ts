@@ -121,7 +121,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error sending gift:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send gift' },
+      { error: 'Failed to send gift' },
       { status: 500 }
     );
   }

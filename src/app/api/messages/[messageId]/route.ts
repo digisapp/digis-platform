@@ -100,7 +100,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting message:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete message' },
+      { error: 'Failed to delete message' },
       { status: 500 }
     );
   }

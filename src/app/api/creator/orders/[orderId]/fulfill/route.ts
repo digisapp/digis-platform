@@ -79,7 +79,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error fulfilling order:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fulfill order' },
+      { error: 'Failed to fulfill order' },
       { status: 500 }
     );
   }

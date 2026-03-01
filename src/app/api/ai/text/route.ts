@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[AI Text Chat] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to process AI text chat' },
+      { error: 'Failed to process AI text chat' },
       { status: 500 }
     );
   }

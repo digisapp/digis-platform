@@ -135,7 +135,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Announce Ticketed] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to announce ticketed stream' },
+      { error: 'Failed to announce ticketed stream' },
       { status: 500 }
     );
   }

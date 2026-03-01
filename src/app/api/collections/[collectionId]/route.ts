@@ -85,7 +85,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching collection:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch collection' },
+      { error: 'Failed to fetch collection' },
       { status: 500 }
     );
   }
@@ -137,7 +137,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating collection:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update collection' },
+      { error: 'Failed to update collection' },
       { status: 500 }
     );
   }
@@ -185,7 +185,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting collection:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete collection' },
+      { error: 'Failed to delete collection' },
       { status: 500 }
     );
   }

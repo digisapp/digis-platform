@@ -37,7 +37,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error toggling verification:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle verification' },
+      { error: 'Failed to toggle verification' },
       { status: 500 }
     );
   }

@@ -143,7 +143,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Save Stream] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to save stream' },
+      { error: 'Failed to save stream' },
       { status: 500 }
     );
   }

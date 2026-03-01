@@ -82,7 +82,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error in viewer heartbeat:', error);
     return NextResponse.json(
-      { error: error.message || 'Heartbeat failed' },
+      { error: 'Heartbeat failed' },
       { status: 500 }
     );
   }

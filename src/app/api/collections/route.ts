@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating collection:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create collection' },
+      { error: 'Failed to create collection' },
       { status: 500 }
     );
   }

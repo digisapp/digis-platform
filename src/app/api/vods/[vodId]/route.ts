@@ -62,7 +62,7 @@ export async function GET(
   } catch (error: any) {
     console.error('[VOD Details] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch VOD details' },
+      { error: 'Failed to fetch VOD details' },
       { status: 500 }
     );
   }

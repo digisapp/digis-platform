@@ -67,7 +67,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Guest Toggle] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle guest requests' },
+      { error: 'Failed to toggle guest requests' },
       { status: 500 }
     );
   }

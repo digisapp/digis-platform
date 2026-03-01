@@ -81,7 +81,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error updating collection progress:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update progress' },
+      { error: 'Failed to update progress' },
       { status: 500 }
     );
   }

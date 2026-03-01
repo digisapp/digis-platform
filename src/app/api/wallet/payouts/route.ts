@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching payouts:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch payouts' },
+      { error: 'Failed to fetch payouts' },
       { status: 500 }
     );
   }

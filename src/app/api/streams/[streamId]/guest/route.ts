@@ -181,7 +181,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Guest Request] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send guest request' },
+      { error: 'Failed to send guest request' },
       { status: 500 }
     );
   }
@@ -282,7 +282,7 @@ export async function GET(
   } catch (error: any) {
     console.error('[Guest Requests GET] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get guest requests' },
+      { error: 'Failed to get guest requests' },
       { status: 500 }
     );
   }
@@ -321,7 +321,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('[Guest Request Cancel] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to cancel request' },
+      { error: 'Failed to cancel request' },
       { status: 500 }
     );
   }

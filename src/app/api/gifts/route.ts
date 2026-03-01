@@ -26,7 +26,7 @@ export async function GET() {
   } catch (error: any) {
     console.error('Error fetching gifts:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch gifts' },
+      { error: 'Failed to fetch gifts' },
       { status: 500 }
     );
   }

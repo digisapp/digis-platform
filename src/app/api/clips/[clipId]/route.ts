@@ -60,7 +60,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching clip:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch clip' },
+      { error: 'Failed to fetch clip' },
       { status: 500 }
     );
   }
@@ -104,7 +104,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting clip:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete clip' },
+      { error: 'Failed to delete clip' },
       { status: 500 }
     );
   }

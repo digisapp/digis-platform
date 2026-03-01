@@ -88,7 +88,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[streams/shoutout] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send shoutout' },
+      { error: 'Failed to send shoutout' },
       { status: 500 }
     );
   }

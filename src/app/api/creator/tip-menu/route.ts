@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/data/system';
+import { db, users } from '@/lib/data/system';
 import { tipMenuItems } from '@/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching tip menu:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch tip menu' },
+      { error: 'Failed to fetch tip menu' },
       { status: 500 }
     );
   }
@@ -46,6 +46,15 @@ export async function POST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify creator role
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { role: true },
+    });
+    if (!dbUser || dbUser.role !== 'creator') {
+      return NextResponse.json({ error: 'Only creators can manage tip menu items' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -92,7 +101,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating menu item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create menu item' },
+      { error: 'Failed to create menu item' },
       { status: 500 }
     );
   }

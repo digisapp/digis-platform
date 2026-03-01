@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error updating payout:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update payout' },
+      { error: 'Failed to update payout' },
       { status: 500 }
     );
   }

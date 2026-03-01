@@ -20,7 +20,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch messages' },
+      { error: 'Failed to fetch messages' },
       { status: 500 }
     );
   }

@@ -45,7 +45,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error toggling room lock:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to toggle lock' },
+      { error: 'Failed to toggle lock' },
       { status: 500 }
     );
   }

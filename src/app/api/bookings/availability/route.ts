@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching availability:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch availability' },
+      { error: 'Failed to fetch availability' },
       { status: 500 }
     );
   }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error setting availability:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to set availability' },
+      { error: 'Failed to set availability' },
       { status: 500 }
     );
   }

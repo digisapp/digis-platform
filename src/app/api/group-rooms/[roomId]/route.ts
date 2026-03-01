@@ -42,7 +42,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching room:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch room' },
+      { error: 'Failed to fetch room' },
       { status: 500 }
     );
   }
@@ -92,7 +92,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating room:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update room' },
+      { error: 'Failed to update room' },
       { status: 500 }
     );
   }

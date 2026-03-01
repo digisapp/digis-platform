@@ -43,7 +43,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error getting countdown:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get countdown' },
+      { error: 'Failed to get countdown' },
       { status: 500 }
     );
   }
@@ -128,7 +128,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error creating countdown:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create countdown' },
+      { error: 'Failed to create countdown' },
       { status: 500 }
     );
   }
@@ -182,7 +182,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error canceling countdown:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to cancel countdown' },
+      { error: 'Failed to cancel countdown' },
       { status: 500 }
     );
   }

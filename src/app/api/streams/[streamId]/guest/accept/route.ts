@@ -121,7 +121,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Guest Accept] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to accept guest request' },
+      { error: 'Failed to accept guest request' },
       { status: 500 }
     );
   }

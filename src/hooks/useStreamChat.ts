@@ -302,8 +302,6 @@ export function useStreamChat({
     let chatChannel: Ably.RealtimeChannel | null = null;
     let tipsChannel: Ably.RealtimeChannel | null = null;
     let presenceChannel: Ably.RealtimeChannel | null = null;
-    let mainChannel: Ably.RealtimeChannel | null = null;
-
     // Store reference to the connection state handler for proper cleanup
     let connectionStateHandler: ((stateChange: Ably.ConnectionStateChange) => void) | null = null;
 
@@ -427,43 +425,40 @@ export function useStreamChat({
           callbacksRef.current.onGift?.(message.data as GiftEvent);
         });
 
-        // Subscribe to main stream channel (ticketed announcements, stream events, guest events)
-        // Must match CHANNEL_NAMES.streamChat from server
-        mainChannel = ably.channels.get(`stream:${streamId}:chat`);
-        mainChannel.subscribe('ticketed-announcement', (message) => {
+        // Subscribe to additional events on chat channel (ticketed announcements, stream events, guest events)
+        // These use the same stream:${streamId}:chat channel — no separate mainChannel needed
+        chatChannel.subscribe('ticketed-announcement', (message) => {
           callbacksRef.current.onTicketedAnnouncement?.(message.data as TicketedAnnouncementEvent);
         });
-        mainChannel.subscribe('tip-menu-toggle', (message) => {
+        chatChannel.subscribe('tip-menu-toggle', (message) => {
           callbacksRef.current.onMenuToggle?.(message.data as MenuToggleEvent);
         });
-        mainChannel.subscribe('stream_ended', () => {
+        chatChannel.subscribe('stream_ended', () => {
           callbacksRef.current.onStreamEnded?.();
         });
         // Guest call-in events
-        mainChannel.subscribe('guest-request', (message) => {
+        chatChannel.subscribe('guest-request', (message) => {
           callbacksRef.current.onGuestRequest?.(message.data as GuestRequestEvent);
         });
-        mainChannel.subscribe('guest-request-accepted', (message) => {
+        chatChannel.subscribe('guest-request-accepted', (message) => {
           callbacksRef.current.onGuestAccepted?.(message.data as GuestAcceptedEvent);
         });
-        mainChannel.subscribe('guest-request-rejected', (message) => {
+        chatChannel.subscribe('guest-request-rejected', (message) => {
           callbacksRef.current.onGuestRejected?.(message.data as GuestRejectedEvent);
         });
-        mainChannel.subscribe('guest-joined', (message) => {
+        chatChannel.subscribe('guest-joined', (message) => {
           callbacksRef.current.onGuestJoined?.(message.data as GuestJoinedEvent);
         });
-        mainChannel.subscribe('guest-removed', (message) => {
+        chatChannel.subscribe('guest-removed', (message) => {
           callbacksRef.current.onGuestRemoved?.(message.data as GuestRemovedEvent);
         });
-        mainChannel.subscribe('guest-requests-toggle', (message) => {
+        chatChannel.subscribe('guest-requests-toggle', (message) => {
           callbacksRef.current.onGuestRequestsToggle?.(message.data as GuestRequestsToggleEvent);
         });
-        mainChannel.subscribe('guest-invite', (message) => {
-          console.log('[useStreamChat] Received guest-invite event:', message.data);
+        chatChannel.subscribe('guest-invite', (message) => {
           callbacksRef.current.onGuestInvite?.(message.data as GuestInviteEvent);
         });
-        mainChannel.subscribe('guest-request-expired', (message) => {
-          console.log('[useStreamChat] Received guest-request-expired event:', message.data);
+        chatChannel.subscribe('guest-request-expired', (message) => {
           callbacksRef.current.onGuestRequestExpired?.(message.data as GuestRequestExpiredEvent);
         });
 
@@ -553,10 +548,6 @@ export function useStreamChat({
       if (tipsChannel) {
         tipsChannel.unsubscribe();
         safeDetach(tipsChannel);
-      }
-      if (mainChannel) {
-        mainChannel.unsubscribe();
-        safeDetach(mainChannel);
       }
     };
   }, [streamId, isHost]);

@@ -65,7 +65,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error reordering collection items:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to reorder items' },
+      { error: 'Failed to reorder items' },
       { status: 500 }
     );
   }

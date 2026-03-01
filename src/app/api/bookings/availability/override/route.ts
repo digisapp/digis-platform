@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating override:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create override' },
+      { error: 'Failed to create override' },
       { status: 500 }
     );
   }
@@ -121,7 +121,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error: any) {
     console.error('Error deleting override:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete override' },
+      { error: 'Failed to delete override' },
       { status: 500 }
     );
   }

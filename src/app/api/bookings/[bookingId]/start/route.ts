@@ -115,7 +115,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error starting booking call:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to start call' },
+      { error: 'Failed to start call' },
       { status: 500 }
     );
   }

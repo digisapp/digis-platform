@@ -96,7 +96,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching tip menu stats:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch tip menu stats' },
+      { error: 'Failed to fetch tip menu stats' },
       { status: 500 }
     );
   }

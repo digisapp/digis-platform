@@ -96,7 +96,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error voting on poll:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to vote' },
+      { error: 'Failed to vote' },
       { status: 500 }
     );
   }
@@ -131,7 +131,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error checking vote:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to check vote' },
+      { error: 'Failed to check vote' },
       { status: 500 }
     );
   }

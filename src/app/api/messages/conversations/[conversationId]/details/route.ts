@@ -35,7 +35,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching conversation details:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch conversation details' },
+      { error: 'Failed to fetch conversation details' },
       { status: 500 }
     );
   }

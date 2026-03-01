@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[CLIP UPLOAD ERROR]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create clip' },
+      { error: 'Failed to create clip' },
       { status: 500 }
     );
   }

@@ -202,7 +202,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[streams/message] Error sending message:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to send message' },
+      { error: 'Failed to send message' },
       { status: 500 }
     );
   }

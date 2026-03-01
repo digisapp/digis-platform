@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating message request:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create message request' },
+      { error: 'Failed to create message request' },
       { status: 500 }
     );
   }

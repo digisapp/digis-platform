@@ -43,7 +43,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error getting poll:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to get poll' },
+      { error: 'Failed to get poll' },
       { status: 500 }
     );
   }
@@ -132,7 +132,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error creating poll:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create poll' },
+      { error: 'Failed to create poll' },
       { status: 500 }
     );
   }

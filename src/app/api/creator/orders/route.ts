@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db } from '@/lib/data/system';
-import { menuPurchases, users } from '@/db/schema';
+import { db, users } from '@/lib/data/system';
+import { menuPurchases } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -18,6 +18,15 @@ export async function GET(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify creator role
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+      columns: { role: true },
+    });
+    if (!dbUser || dbUser.role !== 'creator') {
+      return NextResponse.json({ error: 'Only creators can view orders' }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -46,7 +55,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching orders:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch orders' },
+      { error: 'Failed to fetch orders' },
       { status: 500 }
     );
   }

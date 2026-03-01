@@ -69,7 +69,7 @@ export async function PUT(
   } catch (error: any) {
     console.error('Error updating tip menu item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update tip menu item' },
+      { error: 'Failed to update tip menu item' },
       { status: 500 }
     );
   }
@@ -109,7 +109,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting tip menu item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete tip menu item' },
+      { error: 'Failed to delete tip menu item' },
       { status: 500 }
     );
   }

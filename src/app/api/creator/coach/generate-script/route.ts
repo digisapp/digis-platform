@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[Script Generator] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate script' },
+      { error: 'Failed to generate script' },
       { status: 500 }
     );
   }

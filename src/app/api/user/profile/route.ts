@@ -98,7 +98,7 @@ export async function GET() {
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch profile' },
+      { error: 'Failed to fetch profile' },
       { status: 500 }
     );
   }

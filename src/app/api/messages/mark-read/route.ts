@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error marking messages as read:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to mark messages as read' },
+      { error: 'Failed to mark messages as read' },
       { status: 500 }
     );
   }

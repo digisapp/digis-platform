@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching collections feed:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch collections' },
+      { error: 'Failed to fetch collections' },
       { status: 500 }
     );
   }

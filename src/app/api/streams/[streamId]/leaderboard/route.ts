@@ -20,7 +20,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching leaderboard:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch leaderboard' },
+      { error: 'Failed to fetch leaderboard' },
       { status: 500 }
     );
   }

@@ -113,13 +113,33 @@ export async function POST(
     }
 
     // Credit the creator - use same txId for complete audit trail
-    await WalletService.createTransaction({
-      userId: vod.creatorId,
-      amount: price,
-      type: 'creator_payout',
-      description: `VOD sale: ${vod.title}`,
-      idempotencyKey: `vod_sale_${vodId}_${user.id}_${txId}`,
-    });
+    try {
+      await WalletService.createTransaction({
+        userId: vod.creatorId,
+        amount: price,
+        type: 'creator_payout',
+        description: `VOD sale: ${vod.title}`,
+        idempotencyKey: `vod_sale_${vodId}_${user.id}_${txId}`,
+      });
+    } catch (creditError) {
+      // Creator credit failed — refund the buyer to prevent coin loss
+      console.error('[VOD Purchase] Creator credit failed, refunding buyer:', creditError);
+      Sentry.captureException(creditError, {
+        tags: { service: 'vod-purchase', issue: 'creator-credit-failed' },
+        extra: { vodId, buyerId: user.id, creatorId: vod.creatorId, price },
+      });
+      await WalletService.createTransaction({
+        userId: user.id,
+        amount: price,
+        type: 'refund',
+        description: `Refund for failed VOD purchase (credit error): ${vod.title}`,
+        idempotencyKey: `vod_credit_refund_${vodId}_${user.id}_${txId}`,
+      });
+      return NextResponse.json(
+        { error: 'Purchase failed, your coins have been refunded' },
+        { status: 500 }
+      );
+    }
 
     // Get updated balance
     const newBalance = await WalletService.getBalance(user.id);
@@ -138,7 +158,7 @@ export async function POST(
       extra: { vodId: (await params).vodId },
     });
     return NextResponse.json(
-      { error: error.message || 'Failed to purchase VOD access' },
+      { error: 'Failed to purchase VOD access' },
       { status: 500 }
     );
   }

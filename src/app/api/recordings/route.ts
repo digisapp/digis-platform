@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('[RECORDINGS LIST ERROR]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch recordings' },
+      { error: 'Failed to fetch recordings' },
       { status: 500 }
     );
   }

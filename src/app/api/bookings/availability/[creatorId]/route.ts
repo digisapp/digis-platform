@@ -52,7 +52,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching creator availability:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch availability' },
+      { error: 'Failed to fetch availability' },
       { status: 500 }
     );
   }

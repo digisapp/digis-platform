@@ -555,8 +555,10 @@ export class SubscriptionService {
     newExpiresAt.setDate(newExpiresAt.getDate() + 30);
     const newNextBillingAt = new Date(newExpiresAt);
 
-    // Generate idempotency key
-    const idempotencyKey = `renewal_${subscriptionId}_${Date.now()}`;
+    // Generate idempotency key based on billing period (not timestamp)
+    // This ensures retries of the same renewal don't create duplicate charges
+    const billingPeriod = subscription.expiresAt.toISOString().slice(0, 10);
+    const idempotencyKey = `renewal_${subscriptionId}_${billingPeriod}`;
 
     // Execute all financial operations in a single atomic transaction
     const result = await db.transaction(async (tx) => {

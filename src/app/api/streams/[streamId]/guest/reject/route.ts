@@ -87,7 +87,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[Guest Reject] Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to reject guest request' },
+      { error: 'Failed to reject guest request' },
       { status: 500 }
     );
   }

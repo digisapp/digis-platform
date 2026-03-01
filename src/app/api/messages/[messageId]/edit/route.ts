@@ -121,7 +121,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error editing message:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to edit message' },
+      { error: 'Failed to edit message' },
       { status: 500 }
     );
   }
