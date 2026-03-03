@@ -631,15 +631,9 @@ function MarketingPage({
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10">
-              <button
-                onClick={() => onSignup('/explore')}
-                className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse"
-              >
-                Start Exploring
-              </button>
               <Link
                 href="/become-creator"
-                className="w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-white/15 backdrop-blur-md border-2 border-white/40 text-white font-bold text-lg hover:bg-white/25 hover:border-white/60 hover:scale-105 transition-all duration-300 text-center"
+                className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse text-center"
               >
                 Become a Creator
               </Link>
