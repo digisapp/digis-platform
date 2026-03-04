@@ -64,6 +64,9 @@ export function useBeautyFilter(): UseBeautyFilterReturn {
       processorRef.current = processor;
       localTrack.setProcessor(processor, true).catch((err) => {
         console.error('[BeautyFilter] Failed to attach processor:', err);
+        // Clean up on failure so we don't leave a broken processor attached
+        processorRef.current = null;
+        localTrack.stopProcessor().catch(() => {});
       });
     } else {
       if (processorRef.current) {

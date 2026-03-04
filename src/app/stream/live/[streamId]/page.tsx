@@ -294,7 +294,7 @@ export default function BroadcastStudioPage() {
 
       {/* Mobile Logo Header */}
       <div className="md:hidden relative z-20 flex items-center justify-center py-3 bg-black/50 backdrop-blur-sm border-b border-white/10">
-        <Image src="/images/digis-logo-white.png" alt="Digis" width={100} height={28} className="h-7" />
+        <Image src="/images/digis-logo-white.png" alt="Digis" width={100} height={28} className="h-7 w-auto" />
       </div>
 
       <div className="relative z-10">

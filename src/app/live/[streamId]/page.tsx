@@ -288,15 +288,10 @@ export default function TheaterModePage() {
     }
   }, [stream, currentUser, streamId]);
 
-  // Auto-scroll chat
+  // Auto-scroll chat to bottom (newest messages)
   useEffect(() => {
     if (chatContainerRef.current) {
-      const isMobile = window.innerWidth < 1024;
-      if (isMobile) {
-        chatContainerRef.current.scrollTop = 0;
-      } else {
-        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-      }
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -409,7 +404,7 @@ export default function TheaterModePage() {
         style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}
       >
         <button onClick={() => router.push('/')} className="flex items-center">
-          <img src="/images/digis-logo-white.png" alt="Digis" className="h-6" />
+          <img src="/images/digis-logo-white.png" alt="Digis" className="h-6 w-auto" />
         </button>
       </div>
 

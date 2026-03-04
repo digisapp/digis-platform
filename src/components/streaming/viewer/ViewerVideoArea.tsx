@@ -295,12 +295,12 @@ export function ViewerVideoArea({
           )}
 
           {/* Video Controls Overlay - desktop only */}
-          <div className="hidden lg:block absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent backdrop-blur-sm z-10">
+          <div className="hidden lg:block absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button
                   onClick={toggleMute}
-                  className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
+                  className="p-2 rounded-lg bg-black/60 hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
                   aria-label={muted ? 'Unmute audio' : 'Mute audio'}
                 >
                   {muted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
@@ -308,7 +308,7 @@ export function ViewerVideoArea({
               </div>
               <button
                 onClick={toggleFullscreen}
-                className="p-2 rounded-lg glass-dark hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
+                className="p-2 rounded-lg bg-black/60 hover:bg-white/20 transition-all shadow-lg hover:shadow-cyan-500/20 hover:scale-110"
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
               >
                 {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
@@ -318,7 +318,7 @@ export function ViewerVideoArea({
         </div>
 
         {/* Stream Info Bar */}
-        <div className="px-3 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
+        <div className="px-3 lg:pl-6 py-2 bg-black/80 border-t border-cyan-400/20 shadow-[0_-2px_15px_rgba(34,211,238,0.1)]">
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-sm sm:text-xl font-bold bg-gradient-to-r from-white via-cyan-100 to-pink-100 bg-clip-text text-transparent truncate">{stream.title}</h2>
             {stream.category && (
@@ -365,7 +365,7 @@ export function ViewerVideoArea({
 
         {/* Mobile Action Bar */}
         {!streamEnded && (
-          <div className="lg:hidden px-3 py-2 glass-dark border-t border-cyan-400/20 overflow-visible">
+          <div className="lg:hidden px-3 py-2 bg-black/80 border-t border-cyan-400/20 overflow-visible">
             <div className="flex items-center gap-3 overflow-visible">
               {currentUser && (
                 <button
@@ -429,7 +429,7 @@ export function ViewerVideoArea({
         </div>
 
         {/* Desktop Action Buttons Bar */}
-        <div className="hidden lg:flex px-4 lg:pl-6 py-2 glass-dark border-t border-cyan-400/20 backdrop-blur-xl shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3 overflow-visible">
+        <div className="hidden lg:flex px-4 lg:pl-6 py-2 bg-black/80 border-t border-cyan-400/20 shadow-[0_-2px_15px_rgba(34,211,238,0.1)] items-center justify-start gap-3 overflow-visible">
           <button
             onClick={() => onSetShowTipModal(true)}
             disabled={!currentUser}
@@ -508,7 +508,7 @@ export function ViewerVideoArea({
 
       {/* Right Sidebar - Chat & Viewers (Desktop only) */}
       {showChat && (
-        <div className="hidden lg:flex w-[340px] glass-dark border-l border-cyan-400/30 flex-col backdrop-blur-2xl shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
+        <div className="hidden lg:flex w-[340px] bg-black/90 border-l border-cyan-400/30 flex-col shadow-[-4px_0_30px_rgba(34,211,238,0.15)]">
           <div className="flex border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/5 to-pink-500/5">
             <button
               onClick={() => onSetShowViewerList(false)}

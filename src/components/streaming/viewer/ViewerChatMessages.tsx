@@ -270,7 +270,7 @@ function ChatMessageItem({ msg, variant }: { msg: ChatMessage; variant: 'mobile'
 
 export function ViewerChatMessages({ messages, chatContainerRef, variant }: ViewerChatMessagesProps) {
   const containerClass = variant === 'mobile'
-    ? 'flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[35dvh] min-h-[150px] landscape:max-h-[45dvh] landscape:min-h-[120px]'
+    ? 'flex-1 overflow-y-auto px-3 py-2 space-y-2 max-h-[35dvh] min-h-[150px] landscape:max-h-[25dvh] landscape:min-h-[80px] overscroll-contain'
     : 'flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-cyan-500/5 to-transparent';
 
   const emptyClass = variant === 'mobile'

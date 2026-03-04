@@ -252,7 +252,7 @@ export function FloatingGiftBar({
               <button
                 key={gift.id}
                 onClick={() => handleGiftClick(gift)}
-                className={`relative group transition-all duration-300 hover:scale-125 flex-shrink-0 ${getRarityGlow(gift.rarity)}`}
+                className={`relative group transition-all duration-300 hover:scale-125 active:scale-110 flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center ${getRarityGlow(gift.rarity)}`}
                 style={inline ? undefined : {
                   animation: `float ${2 + index * 0.3}s ease-in-out infinite`,
                   animationDelay: `${index * 0.2}s`
@@ -274,8 +274,8 @@ export function FloatingGiftBar({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className={inline
-              ? "w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all hover:scale-110 flex-shrink-0"
-              : "w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all hover:scale-110"
+              ? "w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 flex items-center justify-center text-white transition-all hover:scale-110 flex-shrink-0 touch-manipulation"
+              : "w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 flex items-center justify-center text-white transition-all hover:scale-110 touch-manipulation"
             }
           >
             <ChevronUp className={`${inline ? 'w-4 h-4' : 'w-5 h-5'} transition-transform ${isExpanded ? 'rotate-180' : ''}`} />

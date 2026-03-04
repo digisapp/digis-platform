@@ -302,16 +302,28 @@ export function useViewerData({
     }
   }, []);
 
-  const loadToken = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/token`);
-      if (response.ok) {
-        const data = await response.json();
-        setToken(data.token);
-        setServerUrl(data.serverUrl);
+  const loadToken = useCallback(async (retries = 3) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(`/api/streams/${streamId}/token`);
+        if (response.ok) {
+          const data = await response.json();
+          setToken(data.token);
+          setServerUrl(data.serverUrl);
+          return;
+        }
+        if (response.status >= 500 && attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+          continue;
+        }
+        console.error('[Viewer] Token fetch failed:', response.status);
+        return;
+      } catch (error) {
+        console.error('[Viewer] Error loading token (attempt', attempt, '):', error);
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * attempt));
+        }
       }
-    } catch (error) {
-      console.error('[TheaterMode] Error loading token:', error);
     }
   }, [streamId]);
 

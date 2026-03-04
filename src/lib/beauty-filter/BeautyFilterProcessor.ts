@@ -31,6 +31,8 @@ export class BeautyFilterProcessor implements TrackProcessor<Track.Kind.Video, V
     const { track } = opts;
 
     this.setupVideo(track);
+    await this.waitForVideoReady();
+    this.initCanvasSize();
     this.setupWebGL();
     this.startRenderLoop();
 
@@ -41,6 +43,8 @@ export class BeautyFilterProcessor implements TrackProcessor<Track.Kind.Video, V
   async restart(opts: VideoProcessorOptions): Promise<void> {
     this.stopRenderLoop();
     this.setupVideo(opts.track);
+    await this.waitForVideoReady();
+    this.initCanvasSize();
     this.startRenderLoop();
 
     const stream = this.canvas.captureStream(30);
@@ -82,7 +86,46 @@ export class BeautyFilterProcessor implements TrackProcessor<Track.Kind.Video, V
     this.video.autoplay = true;
     this.video.playsInline = true;
     this.video.muted = true;
-    this.video.play().catch(() => {});
+    this.video.play().catch((err) => {
+      console.warn('[BeautyFilter] Video play failed:', err);
+    });
+  }
+
+  /** Pre-set canvas to video dimensions so first frame isn't black */
+  private initCanvasSize(): void {
+    if (this.video && this.video.videoWidth > 0) {
+      this.canvas.width = this.video.videoWidth;
+      this.canvas.height = this.video.videoHeight;
+    }
+  }
+
+  /** Wait until the video element has actual frame data (videoWidth > 0) */
+  private waitForVideoReady(): Promise<void> {
+    return new Promise((resolve) => {
+      const video = this.video;
+      if (!video) { resolve(); return; }
+
+      // Already has frames
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        resolve();
+        return;
+      }
+
+      // Wait for loadeddata event (fires when first frame is available)
+      const onReady = () => {
+        video.removeEventListener('loadeddata', onReady);
+        clearTimeout(timeout);
+        resolve();
+      };
+      video.addEventListener('loadeddata', onReady);
+
+      // Safety timeout — don't block forever (2 seconds max)
+      const timeout = setTimeout(() => {
+        video.removeEventListener('loadeddata', onReady);
+        console.warn('[BeautyFilter] Video ready timeout, proceeding anyway');
+        resolve();
+      }, 2000);
+    });
   }
 
   private setupWebGL(): void {
