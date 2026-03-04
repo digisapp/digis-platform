@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
+import Link from 'next/link';
 
 export default function ContentError({
   error,
@@ -28,9 +29,9 @@ export default function ContentError({
           <button onClick={reset} className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity">
             Try Again
           </button>
-          <a href="/" className="px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
+          <Link href="/" className="px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
