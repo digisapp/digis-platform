@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { aiTwinSettings, users, streams, streamMessages } from '@/db/schema';
 import { eq, sql, and, desc } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
+import { XaiCollectionsService } from './xai-collections-service';
 
 // In-memory cooldown tracking (per stream)
 const streamCooldowns = new Map<string, number>();
@@ -206,7 +207,17 @@ export class AiStreamChatService {
     const apiKey = process.env.XAI_API_KEY;
     if (!apiKey) return null;
 
-    const systemPrompt = this.buildStreamChatPrompt(creatorName, settings, responseType);
+    // For questions, search RAG for relevant context (skip for greetings/tips where speed matters)
+    let ragContext: string | null = null;
+    if (responseType === 'question' && settings.creatorId) {
+      ragContext = await XaiCollectionsService.searchForContext(settings.creatorId, message.message).catch(() => null);
+      // Truncate more aggressively for stream chat
+      if (ragContext && ragContext.length > 500) {
+        ragContext = ragContext.substring(0, 500) + '...';
+      }
+    }
+
+    const systemPrompt = this.buildStreamChatPrompt(creatorName, settings, responseType, ragContext);
     const timeoutMs = parseInt(process.env.XAI_API_TIMEOUT_MS || '15000', 10); // 15s for stream chat
 
     try {
@@ -333,7 +344,8 @@ Examples:
   private static buildStreamChatPrompt(
     creatorName: string,
     settings: typeof aiTwinSettings.$inferSelect,
-    responseType: 'greeting' | 'question' | 'engagement' | 'tip'
+    responseType: 'greeting' | 'question' | 'engagement' | 'tip',
+    ragContext: string | null = null
   ): string {
     let prompt = `You ARE ${creatorName}, currently LIVE STREAMING. You're chatting with viewers in real-time.\n\n`;
 
@@ -360,6 +372,9 @@ Examples:
       prompt += `- "@username!! glad you're here 😊"\n`;
     } else if (responseType === 'question') {
       prompt += `\nThis is a QUESTION - answer helpfully but briefly. If you don't know, deflect playfully.\n`;
+      if (ragContext) {
+        prompt += `\nRelevant knowledge to help answer:\n${ragContext}\n`;
+      }
     } else if (responseType === 'engagement') {
       prompt += `\nThis is general ENGAGEMENT - react to what they said naturally.\n`;
     }

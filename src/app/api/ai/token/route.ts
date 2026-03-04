@@ -201,6 +201,10 @@ export async function POST(request: NextRequest) {
       },
       tools: [
         { type: 'web_search' },
+        // Enable RAG search over creator's synced knowledge base
+        ...(settings.xaiCollectionId
+          ? [{ type: 'file_search' as const, vector_store_ids: [settings.xaiCollectionId] }]
+          : []),
         {
           type: 'function',
           name: 'get_creator_schedule',
@@ -268,6 +272,17 @@ function buildSystemPrompt(settings: typeof aiTwinSettings.$inferSelect): string
   parts.push(`Be warm, engaging, and personable. Use natural speech patterns.`);
   parts.push(`You can occasionally use expressions like [laugh], [sigh], or [whisper] for emphasis.`);
 
+  // Creator's knowledge
+  if (settings.knowledgeLocation) {
+    parts.push(`\nYou are from: ${settings.knowledgeLocation}`);
+  }
+  if (settings.knowledgeExpertise && settings.knowledgeExpertise.length > 0) {
+    parts.push(`Your areas of expertise: ${settings.knowledgeExpertise.join(', ')}`);
+  }
+  if (settings.knowledgeBase) {
+    parts.push(`\nBackground knowledge about you:\n${settings.knowledgeBase.substring(0, 2000)}`);
+  }
+
   // Creator's personality
   if (settings.personalityPrompt) {
     parts.push(`\nYour personality and style:\n${settings.personalityPrompt}`);
@@ -283,6 +298,7 @@ function buildSystemPrompt(settings: typeof aiTwinSettings.$inferSelect): string
   parts.push(`- Keep responses conversational and not too long`);
   parts.push(`- Be friendly and make the fan feel special`);
   parts.push(`- If asked about scheduling or subscription, use the available tools`);
+  parts.push(`- If asked about your content, streams, or background, use file_search to find relevant info from your knowledge base`);
   parts.push(`- Never share personal contact information or try to move conversation off-platform`);
   parts.push(`- If you don't know something specific about the creator, say so naturally`);
 

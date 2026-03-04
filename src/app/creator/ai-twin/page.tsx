@@ -7,7 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import {
   Bot, Mic, ToggleLeft, ToggleRight, Coins, Sparkles,
   CheckCircle, AlertCircle, MessageSquare, Volume2,
-  MapPin, Brain, X, Plus
+  MapPin, Brain, X, Plus, Database, RefreshCw
 } from 'lucide-react';
 import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
 
@@ -166,6 +166,10 @@ export default function AiTwinPage() {
   // Knowledge Base state
   const [customExpertise, setCustomExpertise] = useState('');
 
+  // Collection sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ hasCollection: boolean; lastSyncedAt: string | null } | null>(null);
+
   // Personality builder state
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
@@ -225,21 +229,53 @@ export default function AiTwinPage() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/ai/settings');
-      if (response.ok) {
-        const data = await response.json();
+      const [settingsRes, syncStatusRes] = await Promise.all([
+        fetch('/api/ai/settings'),
+        fetch('/api/ai/collections/status').catch(() => null),
+      ]);
+
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
         if (data.settings) {
           setSettings(data.settings);
         }
-      } else if (response.status === 401) {
+      } else if (settingsRes.status === 401) {
         router.push('/');
-      } else if (response.status === 403) {
+        return;
+      } else if (settingsRes.status === 403) {
         router.push('/creator/apply');
+        return;
+      }
+
+      if (syncStatusRes?.ok) {
+        const statusData = await syncStatusRes.json();
+        setSyncStatus(statusData);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/ai/collections/sync', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setSyncStatus({ hasCollection: true, lastSyncedAt: data.syncedAt });
+        setMessage(`AI knowledge synced! ${data.documentCount} documents uploaded.`);
+        setTimeout(() => setMessage(''), 5000);
+      } else {
+        setError(data.error || 'Sync failed');
+        setTimeout(() => setError(''), 5000);
+      }
+    } catch {
+      setError('Failed to sync knowledge');
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -770,6 +806,54 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                       {(settings.knowledgeBase || '').length} chars
                     </p>
                   </div>
+                </div>
+              </GlassCard>
+
+              {/* AI Knowledge Sync */}
+              <GlassCard className="p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-emerald-500/20 rounded-lg">
+                    <Database className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white">AI Knowledge Sync</h3>
+                    <p className="text-xs text-gray-400">
+                      Sync your bio, content, and stream transcripts to make your AI smarter
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-400 mb-4">
+                  When synced, your AI Twin can search across all your stream transcripts, content catalog, and profile to give more informed, authentic responses.
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    {syncStatus?.lastSyncedAt ? (
+                      <p className="text-xs text-gray-500">
+                        Last synced: {new Date(syncStatus.lastSyncedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">Not synced yet</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    className="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {syncing ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Sync Now
+                      </>
+                    )}
+                  </button>
                 </div>
               </GlassCard>
 

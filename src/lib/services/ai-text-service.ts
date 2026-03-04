@@ -1,6 +1,7 @@
 import { db } from '@/lib/data/system';
 import { aiTwinSettings, users, conversations, messages, contentItems, fanMemories } from '@/db/schema';
 import { eq, sql, and, desc } from 'drizzle-orm';
+import { XaiCollectionsService } from './xai-collections-service';
 
 // Types for fan memory extraction
 interface ExtractedFact {
@@ -60,23 +61,44 @@ export class AiTextService {
       return null;
     }
 
-    // Fetch creator's available content for recommendations (both free and paid)
-    const creatorContent = await db.query.contentItems.findMany({
-      where: and(
-        eq(contentItems.creatorId, recipientId),
-        eq(contentItems.isPublished, true)
-      ),
-      orderBy: [desc(contentItems.createdAt)],
-      limit: 15, // Recent 15 items for good variety
-      columns: {
-        id: true,
-        title: true,
-        description: true,
-        contentType: true,
-        unlockPrice: true,
-        isFree: true,
-      },
-    });
+    // Fetch content, messages, fan memories, and RAG context in parallel
+    const [creatorContent, creatorRealMessages, fanMemoriesData, ragContext] = await Promise.all([
+      db.query.contentItems.findMany({
+        where: and(
+          eq(contentItems.creatorId, recipientId),
+          eq(contentItems.isPublished, true)
+        ),
+        orderBy: [desc(contentItems.createdAt)],
+        limit: 15,
+        columns: {
+          id: true,
+          title: true,
+          description: true,
+          contentType: true,
+          unlockPrice: true,
+          isFree: true,
+        },
+      }),
+      db.query.messages.findMany({
+        where: and(
+          eq(messages.senderId, recipientId),
+          eq(messages.isAiGenerated, false)
+        ),
+        orderBy: [desc(messages.createdAt)],
+        limit: 50,
+        columns: { content: true },
+      }),
+      db.query.fanMemories.findMany({
+        where: and(
+          eq(fanMemories.creatorId, recipientId),
+          eq(fanMemories.fanId, senderId)
+        ),
+        orderBy: [desc(fanMemories.lastMentionedAt)],
+        limit: 15,
+        columns: { category: true, fact: true },
+      }),
+      XaiCollectionsService.searchForContext(recipientId, messageContent).catch(() => null),
+    ]);
 
     console.log(`[AI Text] Found ${creatorContent.length} content items for creator`);
 
@@ -87,39 +109,13 @@ export class AiTextService {
       bio: creator.bio,
     };
 
-    // Fetch creator's REAL message examples (not AI-generated) to learn their style
-    const creatorRealMessages = await db.query.messages.findMany({
-      where: and(
-        eq(messages.senderId, recipientId),
-        eq(messages.isAiGenerated, false)
-      ),
-      orderBy: [desc(messages.createdAt)],
-      limit: 50, // Get recent 50 real messages to pick examples from
-      columns: {
-        content: true,
-      },
-    });
-
     // Pick 15 diverse examples (different lengths, styles)
     const messageExamples = this.pickDiverseExamples(creatorRealMessages.map(m => m.content), 15);
     console.log(`[AI Text] Found ${creatorRealMessages.length} real messages, using ${messageExamples.length} examples`);
-
-    // Load fan's long-term memories (facts we remember about them)
-    const fanMemoriesData = await db.query.fanMemories.findMany({
-      where: and(
-        eq(fanMemories.creatorId, recipientId),
-        eq(fanMemories.fanId, senderId)
-      ),
-      orderBy: [desc(fanMemories.lastMentionedAt)],
-      limit: 15, // Top 15 most recent/relevant memories
-      columns: {
-        category: true,
-        fact: true,
-      },
-    });
     console.log(`[AI Text] Loaded ${fanMemoriesData.length} memories about this fan`);
+    if (ragContext) console.log(`[AI Text] RAG context loaded (${ragContext.length} chars)`);
 
-    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent, messageExamples, fanMemoriesData);
+    const systemPrompt = this.buildSystemPrompt(creatorProfile, aiSettings, creatorContent, messageExamples, fanMemoriesData, ragContext);
 
     // Fetch recent conversation history for context
     const recentMessages = await db.query.messages.findMany({
@@ -216,7 +212,8 @@ export class AiTextService {
       isFree: boolean | null;
     }>,
     messageExamples: string[] = [],
-    fanMemoriesData: Array<{ category: string; fact: string }> = []
+    fanMemoriesData: Array<{ category: string; fact: string }> = [],
+    ragContext: string | null = null
   ): string {
     let prompt = `You ARE ${creator.name}. You're a content creator chatting with a fan in DMs. `;
     prompt += `Be completely natural - this should feel like real texting, not a chatbot.\n\n`;
@@ -226,9 +223,22 @@ export class AiTextService {
     if (creator.bio) {
       prompt += `- About me: ${creator.bio}\n`;
     }
+    if (settings.knowledgeLocation) {
+      prompt += `- Location: ${settings.knowledgeLocation}\n`;
+    }
+    if (settings.knowledgeExpertise && settings.knowledgeExpertise.length > 0) {
+      prompt += `- My expertise: ${settings.knowledgeExpertise.join(', ')}\n`;
+    }
 
     if (settings.personalityPrompt) {
       prompt += `- My personality: ${settings.personalityPrompt}\n`;
+    }
+
+    // Inject RAG context from xAI Collections search
+    if (ragContext) {
+      prompt += `\n## RELEVANT KNOWLEDGE (from my content/streams/background) ##\n`;
+      prompt += `Use this naturally if relevant to what the fan is asking about:\n`;
+      prompt += ragContext + '\n';
     }
 
     // Add fan memories - things we remember about this specific fan

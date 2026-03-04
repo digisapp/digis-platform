@@ -4,6 +4,7 @@ import { db } from '@/lib/data/system';
 import { aiTwinSettings, users, wallets, walletTransactions, conversations, messages, creatorSettings } from '@/db/schema';
 import { eq, and, or, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
+import { XaiCollectionsService } from '@/lib/services/xai-collections-service';
 
 export const runtime = 'nodejs';
 
@@ -87,9 +88,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build the system prompt
+    // Build the system prompt with RAG context
     const creatorName = creator.displayName || creator.username || 'Creator';
-    const systemPrompt = buildSystemPrompt(creatorName, aiSettings);
+    const ragContext = await XaiCollectionsService.searchForContext(creatorId, message).catch(() => null);
+    const systemPrompt = buildSystemPrompt(creatorName, aiSettings, ragContext);
 
     // Call xAI API
     const aiResponse = await callXaiApi(systemPrompt, message);
@@ -235,10 +237,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSystemPrompt(creatorName: string, settings: typeof aiTwinSettings.$inferSelect): string {
+function buildSystemPrompt(creatorName: string, settings: typeof aiTwinSettings.$inferSelect, ragContext: string | null = null): string {
   let prompt = `You are the AI assistant for ${creatorName}, a content creator. `;
   prompt += `You respond to messages on behalf of ${creatorName} when they're not available. `;
   prompt += `Be friendly, engaging, and helpful. Keep responses concise but warm. `;
+
+  if (settings.knowledgeLocation) {
+    prompt += `\n\nLocation: ${settings.knowledgeLocation}`;
+  }
+  if (settings.knowledgeExpertise && settings.knowledgeExpertise.length > 0) {
+    prompt += `\nExpertise: ${settings.knowledgeExpertise.join(', ')}`;
+  }
 
   if (settings.personalityPrompt) {
     prompt += `\n\nPersonality: ${settings.personalityPrompt}`;
@@ -246,6 +255,10 @@ function buildSystemPrompt(creatorName: string, settings: typeof aiTwinSettings.
 
   if (settings.boundaryPrompt) {
     prompt += `\n\nBoundaries (topics to avoid or deflect): ${settings.boundaryPrompt}`;
+  }
+
+  if (ragContext) {
+    prompt += `\n\nRelevant knowledge (from content/streams/background):\n${ragContext}`;
   }
 
   prompt += `\n\nIMPORTANT: You are an AI assistant, not the actual ${creatorName}. `;

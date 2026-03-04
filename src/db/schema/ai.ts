@@ -44,6 +44,10 @@ export const aiTwinSettings = pgTable('ai_twin_settings', {
   knowledgeExpertise: text('knowledge_expertise').array(), // Areas of expertise as tags
   knowledgeBase: text('knowledge_base'), // Large free-form text about creator's life, background, expertise
 
+  // xAI Collections RAG
+  xaiCollectionId: text('xai_collection_id'), // xAI collection ID for RAG search
+  collectionSyncedAt: timestamp('collection_synced_at'), // Last time data was synced to collection
+
   // Voice Pricing
   pricePerMinute: integer('price_per_minute').default(20).notNull(), // Coins per minute for voice
   minimumMinutes: integer('minimum_minutes').default(5).notNull(), // Minimum session length

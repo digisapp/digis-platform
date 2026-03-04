@@ -58,6 +58,7 @@ interface AccessDeniedInfo {
   requiresTicket?: boolean;
   ticketPrice?: number;
   subscriptionPrice?: number;
+  streamId?: string;
 }
 
 interface Viewer {
@@ -177,6 +178,7 @@ export function useViewerData({
           requiresTicket: data.requiresTicket,
           ticketPrice: data.ticketPrice,
           subscriptionPrice: data.subscriptionPrice,
+          streamId,
         });
         setLoading(false);
         return;
