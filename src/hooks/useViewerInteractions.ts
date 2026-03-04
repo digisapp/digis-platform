@@ -78,7 +78,8 @@ export function useViewerInteractions({
     amount: number;
   } | null>(null);
 
-  // Floating gift emojis state
+  // Floating gift emojis state (capped at 20 to prevent memory issues on long streams)
+  const MAX_FLOATING_GIFTS = 20;
   const [floatingGifts, setFloatingGifts] = useState<FloatingGift[]>([]);
 
   const removeFloatingGift = useCallback((id: string) => {
@@ -115,17 +116,28 @@ export function useViewerInteractions({
       });
 
       if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
         setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+        if (data.error?.includes('slow mode')) {
+          showInfo('Slow mode is active. Please wait before sending another message.');
+        } else if (data.error?.includes('banned') || data.error?.includes('timed out')) {
+          showError('You are unable to chat in this stream.');
+        } else if (response.status === 429) {
+          showInfo('You are sending messages too fast. Please slow down.');
+        } else {
+          showError('Message failed to send. Please try again.');
+        }
       } else {
         streamAnalytics.chatMessageSent(streamId);
       }
     } catch (error) {
-      console.error('[TheaterMode] Error sending message:', error);
+      console.error('[Viewer] Error sending message:', error);
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+      showError('Message failed to send. Check your connection.');
     } finally {
       setSendingMessage(false);
     }
-  }, [messageInput, currentUser, sendingMessage, stream?.creator.id, streamId, setMessages, MAX_CHAT_MESSAGES]);
+  }, [messageInput, currentUser, sendingMessage, stream?.creator.id, streamId, setMessages, MAX_CHAT_MESSAGES, showInfo, showError]);
 
   // Handle tip with optional note and menu item
   const handleTip = useCallback(async (amount: number, note?: string, tipMenuItem?: { id: string; label: string } | null) => {

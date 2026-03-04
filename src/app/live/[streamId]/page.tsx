@@ -114,7 +114,7 @@ export default function TheaterModePage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const displayMessages = useMemo(() => {
-    return [...messages].slice(-50).reverse();
+    return [...messages].slice(-50);
   }, [messages]);
 
   // User state

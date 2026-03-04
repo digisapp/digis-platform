@@ -150,7 +150,7 @@ export function useViewerAblyHandlers({
           giftName: giftEvent.gift.name,
         };
         const updated = [...prev, newGift];
-        return updated.length > 50 ? updated.slice(-50) : updated;
+        return updated.length > 20 ? updated.slice(-20) : updated;
       });
 
       setMessages(prev => {

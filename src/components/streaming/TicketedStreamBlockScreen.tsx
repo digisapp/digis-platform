@@ -24,7 +24,7 @@ export function TicketedStreamBlockScreen({
   onBuyCoins,
 }: TicketedStreamBlockScreenProps) {
   return (
-    <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-3 sm:p-6">
+    <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-3 sm:p-6">
       {/* Compact layout for mobile */}
       <div className="flex flex-col items-center max-w-xs w-full">
         {/* Lock Icon + Badge combined */}

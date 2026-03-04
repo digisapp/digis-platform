@@ -285,8 +285,8 @@ export function FloatingGiftBar({
           <button
             onClick={onBuyCoins}
             className={`${inline
-              ? "flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 flex-shrink-0"
-              : "flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30"
+              ? "flex items-center gap-1 px-3 py-2 min-h-[44px] bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 flex-shrink-0 touch-manipulation"
+              : "flex items-center gap-1 px-3 py-1.5 min-h-[44px] bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full border border-green-500/30 touch-manipulation"
             } hover:from-green-500/30 hover:to-emerald-500/30 hover:border-green-400/50 transition-all hover:scale-105 active:scale-95`}
             title="Buy more coins"
           >
