@@ -31,7 +31,7 @@ export function MobileToolsPanel({
 
   if (showMobileTools) {
     return (
-      <div className="flex flex-col gap-3 p-4 backdrop-blur-xl bg-black/90 rounded-2xl border border-white/20 shadow-xl">
+      <div className="flex flex-col gap-3 p-4 bg-black/95 rounded-2xl border border-white/20 shadow-xl max-h-[70dvh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={() => onToggle(false)}
@@ -113,7 +113,7 @@ export function MobileToolsPanel({
   return (
     <button
       onClick={() => onToggle(true)}
-      className="flex items-center gap-2 px-4 py-3 backdrop-blur-xl bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border-2 border-cyan-400/50 hover:border-cyan-400 active:scale-95 transition-all shadow-xl shadow-cyan-500/20"
+      className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-full border-2 border-cyan-400/50 hover:border-cyan-400 active:scale-95 transition-all shadow-xl shadow-cyan-500/20"
       title="Stream Tools"
       aria-label="Open stream tools menu"
     >

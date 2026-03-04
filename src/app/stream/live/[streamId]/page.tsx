@@ -292,8 +292,10 @@ export default function BroadcastStudioPage() {
         <div className="absolute w-[400px] h-[400px] bottom-1/4 left-1/3 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Mobile Logo Header */}
-      <div className="md:hidden relative z-20 flex items-center justify-center py-3 bg-black/50 backdrop-blur-sm border-b border-white/10">
+      {/* Mobile Logo Header - hidden in landscape to maximize video space */}
+      <div className="md:hidden landscape:hidden relative z-20 flex items-center justify-center py-3 bg-black/50 border-b border-white/10"
+        style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 8px))' }}
+      >
         <Image src="/images/digis-logo-white.png" alt="Digis" width={100} height={28} className="h-7 w-auto" />
       </div>
 
@@ -361,7 +363,7 @@ export default function BroadcastStudioPage() {
         setShowQRCode={setShowQRCode}
       />
 
-      <div className={`container mx-auto px-2 sm:px-4 pt-2 md:pt-4 md:pb-6 ${isLandscape ? 'pb-2' : 'pb-[calc(80px+env(safe-area-inset-bottom))]'}`}>
+      <div className={`container mx-auto px-2 sm:px-4 pt-2 md:pt-4 md:pb-6 ${isLandscape ? 'pb-[calc(8px+env(safe-area-inset-bottom))]' : 'pb-[calc(80px+env(safe-area-inset-bottom))]'}`}>
         {/* Stream Title - Desktop */}
         <div className="hidden lg:block mb-4">
           <h1 className="text-xl font-bold text-white truncate">{stream?.title || 'Live Stream'}</h1>

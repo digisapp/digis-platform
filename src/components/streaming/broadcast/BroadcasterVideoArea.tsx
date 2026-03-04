@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { LiveKitRoom, RoomAudioRenderer, useTracks, VideoTrack } from '@livekit/components-react';
 import { VideoPresets, Track } from 'livekit-client';
 import { StreamErrorBoundary } from '@/components/error-boundaries';
@@ -122,13 +122,29 @@ interface BroadcasterVideoAreaProps {
 function RtmpRemoteVideo() {
   const trackRefs = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const videoTrackRef = trackRefs[0];
+  const [waitingLong, setWaitingLong] = useState(false);
+
+  useEffect(() => {
+    if (videoTrackRef) {
+      setWaitingLong(false);
+      return;
+    }
+    const timer = setTimeout(() => setWaitingLong(true), 30000);
+    return () => clearTimeout(timer);
+  }, [videoTrackRef]);
 
   if (!videoTrackRef) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90">
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 px-6">
         <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4" />
         <p className="text-white/80 text-lg font-semibold">Waiting for OBS feed...</p>
         <p className="text-white/50 text-sm mt-1">Start streaming in OBS to see your video here</p>
+        {waitingLong && (
+          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center max-w-sm">
+            <p className="text-amber-300 text-sm font-medium">No feed detected after 30 seconds</p>
+            <p className="text-amber-200/60 text-xs mt-1">Check your OBS stream key, server URL, and that OBS is actively streaming</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -288,7 +304,11 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                 connectionStatus={connectionStatus}
                 onReconnect={() => {
                   setConnectionStatus('connecting');
-                  window.location.reload();
+                  fetchBroadcastToken().then(() => {
+                    setConnectionStatus('connected');
+                  }).catch(() => {
+                    setConnectionStatus('disconnected');
+                  });
                 }}
               />
               {streamMethod === 'rtmp' ? (
@@ -473,7 +493,7 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
             </div>
 
             {/* Mobile Bottom Tools */}
-            <div className="absolute bottom-3 left-3 z-50 md:hidden">
+            <div className="absolute left-3 z-50 md:hidden" style={{ bottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <MobileToolsPanel
                 showMobileTools={showMobileTools}
                 onToggle={setShowMobileTools}
