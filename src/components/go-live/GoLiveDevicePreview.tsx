@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { VideoPreviewSkeleton } from '@/components/ui/SkeletonLoader';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Camera, RefreshCw } from 'lucide-react';
 
 interface GoLiveDevicePreviewProps {
   orientation: 'landscape' | 'portrait';
@@ -42,21 +43,10 @@ export function GoLiveDevicePreview({
       {devicesLoading ? (
         <VideoPreviewSkeleton />
       ) : previewError ? (
-        <div className="relative aspect-video bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-xl overflow-hidden border-2 border-red-500/30">
-          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📷</div>
-              <p className="text-red-400 text-sm font-semibold">{previewError}</p>
-              <button
-                type="button"
-                onClick={onInitializeDevices}
-                className="mt-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        </div>
+        <PermissionErrorState
+          previewError={previewError}
+          onInitializeDevices={onInitializeDevices}
+        />
       ) : (
         <div className={`relative bg-black rounded-xl overflow-hidden border-2 border-purple-500/30 group mx-auto ${
           orientation === 'portrait'
@@ -243,6 +233,106 @@ export function GoLiveDevicePreview({
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function PermissionErrorState({
+  previewError,
+  onInitializeDevices,
+}: {
+  previewError: string;
+  onInitializeDevices: () => void;
+}) {
+  const [retrying, setRetrying] = useState(false);
+  const isDenied = previewError === 'denied';
+
+  const isSafari = typeof navigator !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isChrome = typeof navigator !== 'undefined' && /chrome/i.test(navigator.userAgent) && !/edg/i.test(navigator.userAgent);
+  const isFirefox = typeof navigator !== 'undefined' && /firefox/i.test(navigator.userAgent);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    onInitializeDevices();
+    // Give the async init time before clearing retry state
+    setTimeout(() => setRetrying(false), 2000);
+  };
+
+  if (isDenied) {
+    return (
+      <div className="relative aspect-video bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-xl overflow-hidden border-2 border-purple-500/30">
+        <div className="absolute inset-0 flex items-center justify-center p-6">
+          <div className="text-center max-w-sm">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center">
+              <Camera className="w-8 h-8 text-purple-400" />
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Camera Access Needed</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              Camera permission was denied. To enable it:
+            </p>
+            <div className="text-left space-y-2 mb-5 text-sm">
+              {isChrome && (
+                <>
+                  <p className="text-gray-300">1. Click the <span className="text-white font-medium">lock icon</span> in the address bar</p>
+                  <p className="text-gray-300">2. Set Camera and Microphone to <span className="text-white font-medium">Allow</span></p>
+                  <p className="text-gray-300">3. Click the button below to retry</p>
+                </>
+              )}
+              {isSafari && (
+                <>
+                  <p className="text-gray-300">1. Go to <span className="text-white font-medium">Safari → Settings → Websites</span></p>
+                  <p className="text-gray-300">2. Find <span className="text-white font-medium">Camera</span> and <span className="text-white font-medium">Microphone</span></p>
+                  <p className="text-gray-300">3. Set this site to <span className="text-white font-medium">Allow</span>, then reload</p>
+                </>
+              )}
+              {isFirefox && (
+                <>
+                  <p className="text-gray-300">1. Click the <span className="text-white font-medium">lock icon</span> in the address bar</p>
+                  <p className="text-gray-300">2. Clear the camera and microphone <span className="text-white font-medium">permissions</span></p>
+                  <p className="text-gray-300">3. Click the button below to retry</p>
+                </>
+              )}
+              {!isChrome && !isSafari && !isFirefox && (
+                <>
+                  <p className="text-gray-300">1. Open your browser&apos;s <span className="text-white font-medium">site settings</span></p>
+                  <p className="text-gray-300">2. Allow Camera and Microphone for this site</p>
+                  <p className="text-gray-300">3. Click the button below to retry</p>
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleRetry}
+              disabled={retrying}
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 flex items-center gap-2 mx-auto"
+            >
+              <RefreshCw className={`w-4 h-4 ${retrying ? 'animate-spin' : ''}`} />
+              {retrying ? 'Requesting Access...' : 'Try Again'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Generic error (not found, in use, etc.)
+  return (
+    <div className="relative aspect-video bg-gradient-to-br from-red-500/10 to-pink-500/10 rounded-xl overflow-hidden border-2 border-red-500/30">
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-4xl mb-2">📷</div>
+          <p className="text-red-400 text-sm font-semibold">{previewError}</p>
+          <button
+            type="button"
+            onClick={handleRetry}
+            disabled={retrying}
+            className="mt-4 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-50 flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className={`w-4 h-4 ${retrying ? 'animate-spin' : ''}`} />
+            Retry
+          </button>
+        </div>
       </div>
     </div>
   );

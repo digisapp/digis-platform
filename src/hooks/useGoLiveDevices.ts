@@ -140,6 +140,54 @@ export function useGoLiveDevices() {
     }
   };
 
+  const requestMediaStream = async (): Promise<MediaStream> => {
+    try {
+      return await getUserMediaWithTimeout({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30, max: 30 },
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+    } catch (constraintError: any) {
+      if (constraintError.name === 'TimeoutError') throw constraintError;
+      console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
+      return await getUserMediaWithTimeout({
+        video: { facingMode: 'user' },
+        audio: true,
+      });
+    }
+  };
+
+  const completeDeviceSetup = async (stream: MediaStream) => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+    const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+
+    setVideoDevices(videoInputs);
+    setAudioDevices(audioInputs);
+
+    const videoTrack = stream.getVideoTracks()[0];
+    const audioTrack = stream.getAudioTracks()[0];
+    const currentVideoDevice = videoTrack?.getSettings()?.deviceId || (videoInputs[0]?.deviceId ?? '');
+    const currentAudioDevice = audioTrack?.getSettings()?.deviceId || (audioInputs[0]?.deviceId ?? '');
+
+    setMediaStream(stream);
+    setPreviewError('');
+
+    await attachStreamToVideo(stream);
+    setupAudioMonitoring(stream);
+
+    setSelectedVideoDevice(currentVideoDevice);
+    setSelectedAudioDevice(currentAudioDevice);
+  };
+
   const initializeDevices = async () => {
     try {
       setDevicesLoading(true);
@@ -151,59 +199,32 @@ export function useGoLiveDevices() {
         return;
       }
 
-      let stream: MediaStream;
-
+      // Check permission state before requesting — avoids auto-denial on some browsers
+      let permissionState: PermissionState | null = null;
       try {
-        stream = await getUserMediaWithTimeout({
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1280, max: 1920 },
-            height: { ideal: 720, max: 1080 },
-            frameRate: { ideal: 30, max: 30 },
-          },
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
-      } catch (constraintError: any) {
-        if (constraintError.name === 'TimeoutError') throw constraintError;
-        console.warn('[GoLive] getUserMedia failed with full constraints, retrying minimal:', constraintError);
-        stream = await getUserMediaWithTimeout({
-          video: { facingMode: 'user' },
-          audio: true,
-        });
+        const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        permissionState = cameraPermission.state;
+      } catch {
+        // Permissions API not supported (e.g. Safari) — proceed with getUserMedia directly
       }
 
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter((d) => d.kind === 'videoinput');
-      const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+      if (permissionState === 'denied') {
+        setPreviewError('denied');
+        setDevicesLoading(false);
+        return;
+      }
 
-      setVideoDevices(videoInputs);
-      setAudioDevices(audioInputs);
-
-      const videoTrack = stream.getVideoTracks()[0];
-      const audioTrack = stream.getAudioTracks()[0];
-      const currentVideoDevice = videoTrack?.getSettings()?.deviceId || (videoInputs[0]?.deviceId ?? '');
-      const currentAudioDevice = audioTrack?.getSettings()?.deviceId || (audioInputs[0]?.deviceId ?? '');
-
-      setMediaStream(stream);
-      setPreviewError('');
-
-      await attachStreamToVideo(stream);
-      setupAudioMonitoring(stream);
-
-      // Set selected devices AFTER setting up the stream to avoid triggering startMediaStream
-      setSelectedVideoDevice(currentVideoDevice);
-      setSelectedAudioDevice(currentAudioDevice);
+      // If permission state is "prompt" (not yet granted), we still try — the browser
+      // will show its native prompt. On most browsers this works from useEffect.
+      const stream = await requestMediaStream();
+      await completeDeviceSetup(stream);
     } catch (err: any) {
       console.error('[GoLive] Error initializing devices:', err);
 
       if (err.name === 'TimeoutError') {
         setPreviewError('Camera permission timed out. Please reload and click "Allow" when prompted.');
       } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setPreviewError('Camera/microphone access denied. Please allow access in your browser settings and reload.');
+        setPreviewError('denied');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         setPreviewError('No camera or microphone found. Please connect a device.');
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
