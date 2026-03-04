@@ -310,6 +310,7 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                     setConnectionStatus('disconnected');
                   });
                 }}
+                onEndStream={() => setShowEndConfirm(true)}
               />
               {streamMethod === 'rtmp' ? (
                 <RtmpRemoteVideo />

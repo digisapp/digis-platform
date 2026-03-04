@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mic, MicOff, Video, VideoOff, X, Maximize2, Minimize2 } from 'lucide-react';
 import { useParticipants, useTrackToggle, VideoTrack, AudioTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
@@ -25,12 +25,20 @@ export function GuestVideoOverlay({
   onRemoveGuest,
 }: GuestVideoOverlayProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [connectTimeout, setConnectTimeout] = useState(false);
   const participants = useParticipants();
 
   // Find the guest participant
   const guestParticipant = participants.find(
     (p) => p.identity === guestUserId
   );
+
+  // Timeout after 30s if guest never connects
+  useEffect(() => {
+    if (guestParticipant) { setConnectTimeout(false); return; }
+    const timer = setTimeout(() => setConnectTimeout(true), 30000);
+    return () => clearTimeout(timer);
+  }, [guestParticipant]);
 
   if (!guestParticipant) {
     // Guest hasn't connected yet - show placeholder
@@ -49,14 +57,28 @@ export function GuestVideoOverlay({
                 <img
                   src={guestAvatarUrl}
                   alt={guestUsername}
-                  className="w-12 h-12 rounded-full mx-auto mb-2 object-cover animate-pulse"
+                  className={`w-12 h-12 rounded-full mx-auto mb-2 object-cover ${connectTimeout ? '' : 'animate-pulse'}`}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 mx-auto mb-2 flex items-center justify-center text-white font-bold animate-pulse">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 mx-auto mb-2 flex items-center justify-center text-white font-bold ${connectTimeout ? '' : 'animate-pulse'}`}>
                   {guestUsername[0]?.toUpperCase()}
                 </div>
               )}
-              <p className="text-xs text-gray-400">Connecting...</p>
+              {connectTimeout ? (
+                <>
+                  <p className="text-xs text-red-400 mb-2">Failed to connect</p>
+                  {isHost && onRemoveGuest && (
+                    <button
+                      onClick={onRemoveGuest}
+                      className="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-full border border-red-500/30 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-gray-400">Connecting...</p>
+              )}
             </div>
           </div>
         </div>

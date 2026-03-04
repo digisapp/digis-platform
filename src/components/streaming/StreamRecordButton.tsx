@@ -87,9 +87,9 @@ export function StreamRecordButton({
     >
       <Circle className={`w-5 h-5 ${canRecord ? 'text-red-500' : 'text-gray-600'}`} />
       <span className="text-sm font-medium">Record</span>
-      {recordingsCount > 0 && (
-        <span className="text-xs text-gray-400">({recordingsCount}/{maxRecordings})</span>
-      )}
+      <span className={`text-xs ${recordingsCount >= maxRecordings ? 'text-red-400' : 'text-gray-400'}`}>
+        ({recordingsCount}/{maxRecordings})
+      </span>
     </button>
   );
 }

@@ -62,35 +62,41 @@ export function MobileToolsPanel({
         {/* Poll Button */}
         <button
           onClick={() => {
+            if (activePoll?.isActive) return;
             onPollClick();
             onToggle(false);
           }}
           disabled={!!activePoll?.isActive}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
             activePoll?.isActive
-              ? 'bg-purple-500/30'
+              ? 'bg-gray-600/30 opacity-50'
               : 'bg-purple-500/20 hover:bg-purple-500/30'
           }`}
         >
-          <BarChart2 className="w-6 h-6 text-purple-400" />
-          <span className="text-base font-medium text-purple-400">Poll</span>
+          <BarChart2 className={`w-6 h-6 ${activePoll?.isActive ? 'text-gray-500' : 'text-purple-400'}`} />
+          <span className={`text-base font-medium ${activePoll?.isActive ? 'text-gray-500' : 'text-purple-400'}`}>
+            Poll{activePoll?.isActive ? ' (Active)' : ''}
+          </span>
         </button>
 
         {/* Timer Button */}
         <button
           onClick={() => {
+            if (activeCountdown?.isActive) return;
             onCountdownClick();
             onToggle(false);
           }}
           disabled={!!activeCountdown?.isActive}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
             activeCountdown?.isActive
-              ? 'bg-cyan-500/30'
+              ? 'bg-gray-600/30 opacity-50'
               : 'bg-cyan-500/20 hover:bg-cyan-500/30'
           }`}
         >
-          <Clock className="w-6 h-6 text-cyan-400" />
-          <span className="text-base font-medium text-cyan-400">Timer</span>
+          <Clock className={`w-6 h-6 ${activeCountdown?.isActive ? 'text-gray-500' : 'text-cyan-400'}`} />
+          <span className={`text-base font-medium ${activeCountdown?.isActive ? 'text-gray-500' : 'text-cyan-400'}`}>
+            Timer{activeCountdown?.isActive ? ' (Active)' : ''}
+          </span>
         </button>
 
         {/* VIP Button */}
