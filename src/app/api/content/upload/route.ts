@@ -58,6 +58,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only creators can upload content' }, { status: 403 });
     }
 
+    // Check storage quota (2GB per creator)
+    const STORAGE_QUOTA = 2 * 1024 * 1024 * 1024; // 2GB
+    if (dbUser.storageUsed >= STORAGE_QUOTA) {
+      return NextResponse.json(
+        { error: `Storage limit reached (${(dbUser.storageUsed / (1024 * 1024 * 1024)).toFixed(1)}GB / 2GB). Delete old content to free space.` },
+        { status: 413 }
+      );
+    }
+
     // Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -126,7 +135,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check file size limits
-      const maxSize = contentType === 'video' ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+      const maxSize = contentType === 'video' ? 300 * 1024 * 1024 : 50 * 1024 * 1024;
       if (file!.size > maxSize) {
         const maxSizeMB = maxSize / (1024 * 1024);
         return NextResponse.json({ error: `File too large. Maximum size is ${maxSizeMB}MB` }, { status: 400 });

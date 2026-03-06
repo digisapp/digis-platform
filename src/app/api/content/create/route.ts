@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ContentService } from '@/lib/content/content-service';
 import { db, users } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { validateBody, createContentSchema } from '@/lib/validation/schemas';
 
 export const runtime = 'nodejs';
@@ -17,16 +17,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify user is a creator
+    // Verify user is a creator and check storage quota
     const dbUser = await db.query.users.findFirst({
       where: eq(users.id, user.id),
-      columns: { role: true },
+      columns: { role: true, storageUsed: true },
     });
 
     if (!dbUser || dbUser.role !== 'creator') {
       return NextResponse.json(
         { error: 'Only creators can create content' },
         { status: 403 }
+      );
+    }
+
+    const STORAGE_QUOTA = 2 * 1024 * 1024 * 1024; // 2GB
+    if (dbUser.storageUsed >= STORAGE_QUOTA) {
+      return NextResponse.json(
+        { error: 'Storage limit reached (2GB). Delete old content to free space.' },
+        { status: 413 }
       );
     }
 
@@ -44,6 +52,7 @@ export async function POST(request: NextRequest) {
       thumbnailUrl,
       mediaUrl,
       durationSeconds,
+      fileSize,
     } = validation.data;
 
     // Create content
@@ -57,6 +66,16 @@ export async function POST(request: NextRequest) {
       mediaUrl,
       durationSeconds,
     });
+
+    // Track storage usage if file size is provided (for direct-to-storage uploads)
+    if (fileSize && fileSize > 0) {
+      await db.update(users)
+        .set({
+          storageUsed: sql`${users.storageUsed} + ${fileSize}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
+    }
 
     return NextResponse.json({ content }, { status: 201 });
   } catch (error: any) {

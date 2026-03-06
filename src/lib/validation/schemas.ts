@@ -234,6 +234,7 @@ export const createContentSchema = z.object({
   thumbnailUrl: z.string().url('Invalid thumbnail URL'),
   mediaUrl: z.string().url('Invalid media URL'),
   durationSeconds: z.number().int().positive().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // ============================================

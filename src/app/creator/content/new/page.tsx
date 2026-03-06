@@ -8,18 +8,32 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Toast } from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, Upload, Grid3x3, Coins, Lock, Eye, Plus, X, Image, Video } from 'lucide-react';
+import { ArrowLeft, Upload, Grid3x3, Coins, Lock, Eye, Plus, X, Image, Video, AlertTriangle, HardDrive } from 'lucide-react';
+import * as tus from 'tus-js-client';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { generateVideoThumbnail, ThumbnailResult } from '@/lib/utils/video-thumbnail';
 import { VideoThumbnailPicker } from '@/components/content/VideoThumbnailPicker';
 
 type ContentType = 'photo' | 'video' | 'gallery';
 
+const MAX_VIDEO_SIZE = 300 * 1024 * 1024; // 300MB
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
+const MAX_STORAGE_QUOTA = 2 * 1024 * 1024 * 1024; // 2GB per creator
+
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`;
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)}KB`;
+  return `${bytes}B`;
+}
+
 export default function CreateContentPage() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [storageUsed, setStorageUsed] = useState(0);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
 
   // Auth check - verify user is a creator
   useEffect(() => {
@@ -41,6 +55,7 @@ export default function CreateContentPage() {
         return;
       }
 
+      setStorageUsed(data.user?.storageUsed || 0);
       setLoading(false);
     };
 
@@ -62,6 +77,7 @@ export default function CreateContentPage() {
   const [videoThumbnail, setVideoThumbnail] = useState<ThumbnailResult | null>(null);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadedFileKeys, setUploadedFileKeys] = useState<Set<string>>(new Set());
 
   // Extract video duration from file
   const getVideoDuration = (file: File): Promise<number> => {
@@ -88,7 +104,22 @@ export default function CreateContentPage() {
     const firstFile = fileArray[0];
     const isVideo = firstFile.type.startsWith('video/');
 
+    // Clear previous file size errors
+    setFileSizeError(null);
+
     if (isVideo) {
+      // Check video file size
+      if (firstFile.size > MAX_VIDEO_SIZE) {
+        setFileSizeError(`Video is ${formatFileSize(firstFile.size)} — max is ${formatFileSize(MAX_VIDEO_SIZE)}. Compress the video or use a shorter clip.`);
+        return;
+      }
+
+      // Check storage quota
+      if (storageUsed + firstFile.size > MAX_STORAGE_QUOTA) {
+        setFileSizeError(`Upload would exceed your ${formatFileSize(MAX_STORAGE_QUOTA)} storage limit. Delete old content to free space.`);
+        return;
+      }
+
       // Video mode - single video file
       setFormData({ ...formData, contentType: 'video', file: firstFile, files: [] });
 
@@ -114,6 +145,11 @@ export default function CreateContentPage() {
         setGeneratingThumbnail(false);
       }
     } else if (fileArray.length === 1) {
+      // Check image file size
+      if (firstFile.size > MAX_IMAGE_SIZE) {
+        setFileSizeError(`Image is ${formatFileSize(firstFile.size)} — max is ${formatFileSize(MAX_IMAGE_SIZE)}.`);
+        return;
+      }
       // Single image - photo mode
       setFormData({ ...formData, contentType: 'photo', file: firstFile, files: [] });
 
@@ -124,6 +160,16 @@ export default function CreateContentPage() {
     } else {
       // Multiple images - gallery mode
       const imageFiles = fileArray.filter(f => f.type.startsWith('image/'));
+      const oversized = imageFiles.find(f => f.size > MAX_IMAGE_SIZE);
+      if (oversized) {
+        setFileSizeError(`"${oversized.name}" is ${formatFileSize(oversized.size)} — max is ${formatFileSize(MAX_IMAGE_SIZE)} per image.`);
+        return;
+      }
+      const totalSize = imageFiles.reduce((sum, f) => sum + f.size, 0);
+      if (storageUsed + totalSize > MAX_STORAGE_QUOTA) {
+        setFileSizeError(`Gallery total is ${formatFileSize(totalSize)} — would exceed your ${formatFileSize(MAX_STORAGE_QUOTA)} storage limit.`);
+        return;
+      }
       setFormData({ ...formData, contentType: 'gallery', file: null, files: imageFiles });
 
       // Create previews for all
@@ -208,6 +254,15 @@ export default function CreateContentPage() {
       return;
     }
 
+    // Duplicate detection: check if same file was already uploaded this session
+    const fileKey = formData.contentType === 'gallery'
+      ? formData.files.map(f => `${f.name}:${f.size}`).join('|')
+      : `${formData.file?.name}:${formData.file?.size}`;
+    if (uploadedFileKeys.has(fileKey)) {
+      showToast('This file was already uploaded. Choose a different file.', 'error');
+      return;
+    }
+
     setUploading(true);
 
     try {
@@ -225,48 +280,52 @@ export default function CreateContentPage() {
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
         const fileSizeMB = (formData.file.size / (1024 * 1024)).toFixed(1);
 
-        // Upload with progress tracking using XMLHttpRequest
+        // Resumable upload with tus protocol (auto-retries on network failure)
         setUploadProgress(0);
         const { data: { session } } = await supabase.auth.getSession();
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
         const publicUrl = await new Promise<string>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          const uploadUrl = `${supabaseUrl}/storage/v1/object/content/${fileName}`;
-
-          xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-              setUploadProgress(Math.round((e.loaded / e.total) * 100));
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
+          const upload = new tus.Upload(formData.file!, {
+            endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+            retryDelays: [0, 1000, 3000, 5000],
+            headers: {
+              authorization: `Bearer ${session?.access_token}`,
+              'x-upsert': 'false',
+            },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: {
+              bucketName: 'content',
+              objectName: fileName,
+              contentType: formData.file!.type,
+              cacheControl: '31536000',
+            },
+            chunkSize: 6 * 1024 * 1024, // 6MB chunks
+            onError: (error) => {
+              const msg = error.message || 'Upload failed';
+              if (msg.toLowerCase().includes('size') || msg.includes('413')) {
+                reject(new Error(`Video too large (${fileSizeMB}MB). Max is 300MB — compress the video or use a shorter clip.`));
+              } else {
+                reject(new Error('Upload failed — check your connection and try again.'));
+              }
+            },
+            onProgress: (bytesUploaded, bytesTotal) => {
+              setUploadProgress(Math.round((bytesUploaded / bytesTotal) * 100));
+            },
+            onSuccess: () => {
               const { data: { publicUrl: url } } = supabase.storage.from('content').getPublicUrl(fileName);
               resolve(url);
-            } else {
-              let errorMsg = 'Upload failed';
-              try {
-                const resp = JSON.parse(xhr.responseText);
-                errorMsg = resp.error || resp.message || errorMsg;
-                if (xhr.status === 413 || errorMsg.toLowerCase().includes('size')) {
-                  errorMsg = `Video too large (${fileSizeMB}MB). Please compress the video or use a shorter clip.`;
-                }
-              } catch {}
-              reject(new Error(errorMsg));
+            },
+          });
+
+          // Check for previous upload to resume
+          upload.findPreviousUploads().then((previousUploads) => {
+            if (previousUploads.length > 0) {
+              upload.resumeFromPreviousUpload(previousUploads[0]);
             }
-          };
-
-          xhr.onerror = () => reject(new Error('Upload failed — check your connection and try again.'));
-          xhr.ontimeout = () => reject(new Error('Upload timed out — the video may be too large. Try a shorter video.'));
-
-          xhr.open('POST', uploadUrl);
-          xhr.timeout = 600000; // 10 minutes for large files
-          xhr.setRequestHeader('Authorization', `Bearer ${session?.access_token}`);
-          xhr.setRequestHeader('Content-Type', formData.file!.type);
-          xhr.setRequestHeader('Cache-Control', 'max-age=31536000');
-          xhr.setRequestHeader('x-upsert', 'false');
-          xhr.send(formData.file);
+            upload.start();
+          });
         });
 
         setUploadProgress(100);
@@ -304,10 +363,12 @@ export default function CreateContentPage() {
             thumbnailUrl,
             mediaUrl: publicUrl,
             durationSeconds: videoDuration,
+            fileSize: formData.file!.size,
           }),
         });
 
         if (response.ok) {
+          setUploadedFileKeys(prev => new Set(prev).add(fileKey));
           showToast('Video uploaded successfully!', 'success');
           setTimeout(() => router.push('/creator/content'), 1500);
         } else {
@@ -339,6 +400,7 @@ export default function CreateContentPage() {
         });
 
         if (response.ok) {
+          setUploadedFileKeys(prev => new Set(prev).add(fileKey));
           showToast('Content uploaded successfully!', 'success');
           setTimeout(() => router.push('/creator/content'), 1500);
         } else if (response.status === 413) {
@@ -451,9 +513,17 @@ export default function CreateContentPage() {
                           {formData.contentType === 'video' ? 'Video' : 'Photo'} selected
                         </span>
                       </div>
-                      <button type="button" onClick={clearFiles} className="text-sm text-red-400 hover:text-red-300">
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {formData.file && (
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <HardDrive className="w-3 h-3" />
+                            {formatFileSize(formData.file.size)}
+                          </span>
+                        )}
+                        <button type="button" onClick={clearFiles} className="text-sm text-red-400 hover:text-red-300">
+                          Remove
+                        </button>
+                      </div>
                     </div>
                     {formData.contentType === 'video' ? (
                       <div className="space-y-3">
@@ -472,6 +542,16 @@ export default function CreateContentPage() {
                   </div>
                 ) : (
                   /* Empty Upload Drop Zone — big and inviting */
+                  <>
+                  {fileSizeError && (
+                    <div className="mb-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-red-300">{fileSizeError}</p>
+                        <button type="button" onClick={() => setFileSizeError(null)} className="text-xs text-red-400/70 hover:text-red-300 mt-1">Dismiss</button>
+                      </div>
+                    </div>
+                  )}
                   <label className="block cursor-pointer flex-1">
                     <div className="border-2 border-dashed border-white/20 rounded-2xl text-center hover:border-digis-cyan hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-5 h-full min-h-[300px] md:min-h-[420px] p-8">
                       <div className="w-20 h-20 rounded-2xl bg-white/5 border-2 border-white/20 flex items-center justify-center">
@@ -479,7 +559,8 @@ export default function CreateContentPage() {
                       </div>
                       <div>
                         <p className="text-white font-semibold text-lg mb-1">Drop files here or click to browse</p>
-                        <p className="text-sm text-gray-400 mb-4">Photos, videos, or select multiple for a gallery</p>
+                        <p className="text-sm text-gray-400 mb-1">Photos, videos, or select multiple for a gallery</p>
+                        <p className="text-xs text-gray-500 mb-3">Videos up to 300MB · Images up to 50MB</p>
                         <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
                           <span className="flex items-center gap-1.5"><Image className="w-3.5 h-3.5" /> Photo</span>
                           <span className="text-gray-700">·</span>
@@ -491,6 +572,7 @@ export default function CreateContentPage() {
                     </div>
                     <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} className="hidden" />
                   </label>
+                  </>
                 )}
               </div>
             </GlassCard>
@@ -594,7 +676,7 @@ export default function CreateContentPage() {
               {uploading && uploadProgress > 0 && uploadProgress < 100 && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Uploading video...</span>
+                    <span className="text-gray-400">Uploading video{uploadProgress > 0 && uploadProgress < 100 ? ' (auto-resumes if interrupted)' : ''}...</span>
                     <span className="text-cyan-400 font-semibold">{uploadProgress}%</span>
                   </div>
                   <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
