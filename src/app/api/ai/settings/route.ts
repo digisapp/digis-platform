@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { aiTwinSettings, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { XaiCollectionsService } from '@/lib/services/xai-collections-service';
 
 export const runtime = 'nodejs';
 
@@ -236,6 +237,9 @@ export async function PUT(request: NextRequest) {
           minimumMinutes: minimumMinutes || 5,
           maxSessionMinutes: maxSessionMinutes || 60,
           textPricePerMessage: textPricePerMessage || 5,
+          knowledgeLocation,
+          knowledgeExpertise,
+          knowledgeBase,
         })
         .returning();
 
@@ -245,6 +249,11 @@ export async function PUT(request: NextRequest) {
         textChatEnabled: settings.textChatEnabled,
       });
     }
+
+    // Auto-sync to xAI collection in background (don't block the response)
+    XaiCollectionsService.syncCreatorData(user.id).catch((err) => {
+      console.error('[AI Settings PUT] Background sync failed:', err?.message);
+    });
 
     return NextResponse.json({
       settings,

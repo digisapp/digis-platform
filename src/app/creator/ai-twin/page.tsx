@@ -818,13 +818,13 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                   <div>
                     <h3 className="font-bold text-white">AI Knowledge Sync</h3>
                     <p className="text-xs text-gray-400">
-                      Sync your bio, content, and stream transcripts to make your AI smarter
+                      Auto-syncs when you save settings
                     </p>
                   </div>
                 </div>
 
                 <p className="text-sm text-gray-400 mb-4">
-                  When synced, your AI Twin can search across all your stream transcripts, content catalog, and profile to give more informed, authentic responses.
+                  Your AI Twin automatically syncs your bio, content, and stream transcripts every time you save. It searches across everything to give more informed, authentic responses.
                 </p>
 
                 <div className="flex items-center justify-between">
@@ -834,23 +834,24 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                         Last synced: {new Date(syncStatus.lastSyncedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     ) : (
-                      <p className="text-xs text-gray-500">Not synced yet</p>
+                      <p className="text-xs text-gray-500">Will sync on first save</p>
                     )}
                   </div>
                   <button
                     onClick={handleSync}
                     disabled={syncing}
-                    className="px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                    title="Force re-sync now"
                   >
                     {syncing ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                         Syncing...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="w-4 h-4" />
-                        Sync Now
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Re-sync
                       </>
                     )}
                   </button>
