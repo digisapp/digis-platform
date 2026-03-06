@@ -61,6 +61,7 @@ export default function CreateContentPage() {
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [videoThumbnail, setVideoThumbnail] = useState<ThumbnailResult | null>(null);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   // Extract video duration from file
   const getVideoDuration = (file: File): Promise<number> => {
@@ -222,21 +223,53 @@ export default function CreateContentPage() {
 
         const ext = formData.file.name.split('.').pop()?.toLowerCase() || 'mp4';
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+        const fileSizeMB = (formData.file.size / (1024 * 1024)).toFixed(1);
 
-        const { error: uploadError } = await supabase.storage
-          .from('content')
-          .upload(fileName, formData.file, {
-            cacheControl: '31536000',
-            upsert: false,
-            contentType: formData.file.type,
-          });
+        // Upload with progress tracking using XMLHttpRequest
+        setUploadProgress(0);
+        const { data: { session } } = await supabase.auth.getSession();
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-        if (uploadError) {
-          showToast(`Upload failed: ${uploadError.message}`, 'error');
-          return;
-        }
+        const publicUrl = await new Promise<string>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          const uploadUrl = `${supabaseUrl}/storage/v1/object/content/${fileName}`;
 
-        const { data: { publicUrl } } = supabase.storage.from('content').getPublicUrl(fileName);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              const { data: { publicUrl: url } } = supabase.storage.from('content').getPublicUrl(fileName);
+              resolve(url);
+            } else {
+              let errorMsg = 'Upload failed';
+              try {
+                const resp = JSON.parse(xhr.responseText);
+                errorMsg = resp.error || resp.message || errorMsg;
+                if (xhr.status === 413 || errorMsg.toLowerCase().includes('size')) {
+                  errorMsg = `Video too large (${fileSizeMB}MB). Please compress the video or use a shorter clip.`;
+                }
+              } catch {}
+              reject(new Error(errorMsg));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Upload failed — check your connection and try again.'));
+          xhr.ontimeout = () => reject(new Error('Upload timed out — the video may be too large. Try a shorter video.'));
+
+          xhr.open('POST', uploadUrl);
+          xhr.timeout = 600000; // 10 minutes for large files
+          xhr.setRequestHeader('Authorization', `Bearer ${session?.access_token}`);
+          xhr.setRequestHeader('Content-Type', formData.file!.type);
+          xhr.setRequestHeader('Cache-Control', 'max-age=31536000');
+          xhr.setRequestHeader('x-upsert', 'false');
+          xhr.send(formData.file);
+        });
+
+        setUploadProgress(100);
 
         // Upload video thumbnail if we have one
         let thumbnailUrl = publicUrl; // Fallback to video URL
@@ -319,11 +352,12 @@ export default function CreateContentPage() {
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading content:', error);
-      showToast('Failed to upload content', 'error');
+      showToast(error?.message || 'Failed to upload content', 'error');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -556,6 +590,22 @@ export default function CreateContentPage() {
                 )}
               </GlassCard>
 
+              {/* Upload Progress */}
+              {uploading && uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400">Uploading video...</span>
+                    <span className="text-cyan-400 font-semibold">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Post */}
               <GlassButton
                 type="submit"
@@ -566,7 +616,13 @@ export default function CreateContentPage() {
                 size="lg"
               >
                 <span className="text-white font-semibold">
-                  {uploading ? 'Posting...' : generatingThumbnail ? 'Generating thumbnail...' : 'Post →'}
+                  {uploading && uploadProgress > 0 && uploadProgress < 100
+                    ? `Uploading ${uploadProgress}%...`
+                    : uploading
+                      ? 'Posting...'
+                      : generatingThumbnail
+                        ? 'Generating thumbnail...'
+                        : 'Post →'}
                 </span>
               </GlassButton>
 
