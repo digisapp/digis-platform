@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     // Upload to Supabase Storage
     const bucket = 'recordings';
     const ext = videoFile.type.includes('mp4') ? 'mp4' : 'webm';
-    const fileName = `clips/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+    const fileName = `${user.id}/clips/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
