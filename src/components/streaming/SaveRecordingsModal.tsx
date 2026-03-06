@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Video, Coins, Trash2, Save, Upload, AlertCircle, Check } from 'lucide-react';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { createClient } from '@/lib/supabase/client';
 import type { StreamRecording } from '@/hooks/useStreamRecorder';
 
 interface RecordingToSave {
@@ -53,38 +54,68 @@ export function SaveRecordingsModal({
     setRecordingsToSave((prev) => prev.filter((r) => r.recording.id !== id));
   };
 
-  const handleSave = async (recordingToSave: RecordingToSave) => {
+  const handleSave = async (recordingToSave: RecordingToSave): Promise<boolean> => {
     const { recording, title, price } = recordingToSave;
 
     updateRecording(recording.id, { status: 'uploading' });
 
     try {
-      // Create form data for upload
-      const formData = new FormData();
-      formData.append('video', recording.blob, `recording-${recording.id}.webm`);
-      formData.append('title', title);
-      formData.append('price', price.toString());
-      formData.append('duration', recording.duration.toString());
-      formData.append('streamId', streamId);
+      // Upload directly to Supabase Storage (bypasses Vercel ~4.5MB body limit)
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      const response = await fetch('/api/recordings/upload', {
+      if (!user) {
+        throw new Error('You must be logged in to save recordings');
+      }
+
+      const ext = recording.blob.type.includes('mp4') ? 'mp4' : 'webm';
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('recordings')
+        .upload(fileName, recording.blob, {
+          cacheControl: '31536000',
+          upsert: false,
+          contentType: recording.blob.type,
+        });
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('recordings').getPublicUrl(fileName);
+
+      // Create VOD record via metadata-only API
+      const response = await fetch('/api/recordings/save', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          price,
+          duration: recording.duration,
+          streamId,
+          videoUrl: publicUrl,
+          fileSize: recording.blob.size,
+        }),
       });
 
       if (!response.ok) {
+        // Clean up uploaded file on API failure
+        await supabase.storage.from('recordings').remove([fileName]);
         const data = await response.json();
         throw new Error(data.error || 'Failed to save recording');
       }
 
       updateRecording(recording.id, { status: 'saved' });
       setSavedCount((prev) => prev + 1);
+      return true;
     } catch (err) {
       console.error('Failed to save recording:', err);
       updateRecording(recording.id, {
         status: 'error',
         error: err instanceof Error ? err.message : 'Failed to save',
       });
+      return false;
     }
   };
 
@@ -92,17 +123,16 @@ export function SaveRecordingsModal({
     setIsSaving(true);
     const pendingRecordings = recordingsToSave.filter((r) => r.status === 'pending');
 
+    let allSucceeded = true;
     for (const recording of pendingRecordings) {
-      await handleSave(recording);
+      const success = await handleSave(recording);
+      if (!success) allSucceeded = false;
     }
 
     setIsSaving(false);
 
-    // Check if all saved successfully
-    const allSaved = recordingsToSave.length === 0 || recordingsToSave.every(
-      (r) => r.status === 'saved'
-    );
-    if (allSaved) {
+    // Auto-complete if all saved successfully
+    if (allSucceeded && pendingRecordings.length > 0) {
       setTimeout(() => {
         onSaveComplete();
       }, 1000);

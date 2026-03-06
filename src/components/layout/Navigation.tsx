@@ -141,6 +141,32 @@ export function Navigation() {
     router.prefetch('/creator/go-live');
   }, [authUser?.id, router]);
 
+  // Re-check live status when route changes (e.g. creator leaves stream page)
+  // and when tab becomes visible again
+  useEffect(() => {
+    if (!authUser || userRole !== 'creator') return;
+
+    const refreshLiveStatus = () => {
+      fetch('/api/streams/status', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(data => {
+          setIsLive(data.isLive || false);
+          setLiveStreamId(data.streamId || null);
+        })
+        .catch(() => {});
+    };
+
+    // Refresh on route change
+    refreshLiveStatus();
+
+    // Refresh when tab becomes visible (handles alt-tab back)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshLiveStatus();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [authUser?.id, userRole, pathname]);
+
   // Heartbeat to keep session alive
   useEffect(() => {
     const heartbeatInterval = setInterval(() => {

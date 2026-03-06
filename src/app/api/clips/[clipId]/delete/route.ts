@@ -26,7 +26,7 @@ export async function DELETE(
 
     const clip = await db.query.clips.findFirst({
       where: eq(clips.id, clipId),
-      columns: { id: true, creatorId: true },
+      columns: { id: true, creatorId: true, videoUrl: true },
     });
 
     if (!clip) {
@@ -35,6 +35,18 @@ export async function DELETE(
 
     if (clip.creatorId !== user.id) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+    }
+
+    // Delete video file from Supabase Storage
+    if (clip.videoUrl) {
+      try {
+        const match = clip.videoUrl.match(/\/recordings\/(.+)$/);
+        if (match) {
+          await supabase.storage.from('recordings').remove([match[1]]);
+        }
+      } catch (storageErr) {
+        console.warn('[Delete Clip] Failed to delete storage file:', storageErr);
+      }
     }
 
     // Cascade delete views and likes, then the clip

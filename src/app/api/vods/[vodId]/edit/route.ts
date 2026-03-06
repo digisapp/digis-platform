@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { vods } from '@/lib/data/system';
-import { eq } from 'drizzle-orm';
+import { vods, users } from '@/lib/data/system';
+import { eq, sql } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -137,6 +137,21 @@ export async function DELETE(
         { error: 'Only the VOD creator can delete this content' },
         { status: 403 }
       );
+    }
+
+    // Delete video file from Supabase Storage
+    if (vod.videoUrl) {
+      try {
+        // Extract storage path from public URL (format: .../storage/v1/object/public/recordings/userId/file.ext)
+        const match = vod.videoUrl.match(/\/recordings\/(.+)$/);
+        if (match) {
+          const supabaseAdmin = await createClient();
+          await supabaseAdmin.storage.from('recordings').remove([match[1]]);
+        }
+      } catch (storageErr) {
+        console.warn('[Delete VOD] Failed to delete storage file:', storageErr);
+        // Continue with DB deletion even if storage cleanup fails
+      }
     }
 
     // Delete VOD (cascade will delete purchases and views)
