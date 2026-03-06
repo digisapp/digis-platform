@@ -99,8 +99,8 @@ export function SaveRecordingsModal({
     setIsSaving(false);
 
     // Check if all saved successfully
-    const allSaved = recordingsToSave.every(
-      (r) => r.status === 'saved' || recordingsToSave.length === 0
+    const allSaved = recordingsToSave.length === 0 || recordingsToSave.every(
+      (r) => r.status === 'saved'
     );
     if (allSaved) {
       setTimeout(() => {
