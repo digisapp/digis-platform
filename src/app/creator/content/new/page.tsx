@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Upload, Grid3x3, Coins, Lock, Eye, Plus, X, Image, Video } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { generateVideoThumbnail, ThumbnailResult } from '@/lib/utils/video-thumbnail';
+import { VideoThumbnailPicker } from '@/components/content/VideoThumbnailPicker';
 
 type ContentType = 'photo' | 'video' | 'gallery';
 
@@ -423,22 +424,13 @@ export default function CreateContentPage() {
                     {formData.contentType === 'video' ? (
                       <div className="space-y-3">
                         <video src={preview} controls className="w-full rounded-xl max-h-96 object-contain bg-black" />
-                        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                          <span className="text-sm text-gray-400">Thumbnail:</span>
-                          {generatingThumbnail ? (
-                            <div className="flex items-center gap-2">
-                              <LoadingSpinner size="sm" />
-                              <span className="text-sm text-gray-300">Generating...</span>
-                            </div>
-                          ) : videoThumbnail ? (
-                            <div className="flex items-center gap-2">
-                              <img src={videoThumbnail.dataUrl} alt="Video thumbnail" className="w-16 h-10 rounded object-cover" />
-                              <span className="text-sm text-green-400">Generated</span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-500">Will use video preview</span>
-                          )}
-                        </div>
+                        <VideoThumbnailPicker
+                          videoFile={formData.file!}
+                          thumbnail={videoThumbnail}
+                          onThumbnailChange={setVideoThumbnail}
+                          generating={generatingThumbnail}
+                          setGenerating={setGeneratingThumbnail}
+                        />
                       </div>
                     ) : (
                       <img src={preview} alt="Preview" className="w-full rounded-xl max-h-[420px] object-contain" />
