@@ -169,6 +169,10 @@ export function BroadcasterModals({
       {showStreamSummary && streamSummary && (
         <StreamSummaryModal
           summary={streamSummary}
+          streamId={streamId}
+          streamTitle={stream?.title}
+          streamDescription={stream?.description || undefined}
+          hasEgressRecording={streamSummary.hasEgressRecording}
           onClose={onSummaryClose}
         />
       )}

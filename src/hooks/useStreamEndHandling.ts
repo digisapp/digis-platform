@@ -7,6 +7,7 @@ interface StreamSummaryData {
   peakViewers: number;
   totalEarnings: number;
   topSupporters: Array<{ username: string; totalCoins: number }>;
+  hasEgressRecording: boolean;
   ticketStats?: {
     ticketsSold: number;
     ticketRevenue: number;
@@ -133,6 +134,7 @@ export function useStreamEndHandling({
           peakViewers: Math.max(dbPeakViewers, peakViewers),
           totalEarnings: finalStream.totalGiftsReceived || totalEarnings,
           topSupporters: leaderboardData.leaderboard?.slice(0, 3) || [],
+          hasEgressRecording: !!finalStream.egressId,
           ticketStats,
           tipMenuStats,
         });

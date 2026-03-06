@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
-import { Coins, Ticket } from 'lucide-react';
+import { Coins, Ticket, Film, Check } from 'lucide-react';
 import { GlassButton } from '@/components/ui/GlassButton';
+import { GlassInput } from '@/components/ui';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export interface StreamSummaryData {
   duration: string;
@@ -30,10 +33,60 @@ export interface StreamSummaryData {
 
 interface StreamSummaryModalProps {
   summary: StreamSummaryData;
+  streamId: string;
+  streamTitle?: string;
+  streamDescription?: string;
+  hasEgressRecording?: boolean;
   onClose: () => void;
 }
 
-export function StreamSummaryModal({ summary, onClose }: StreamSummaryModalProps) {
+const MIN_VOD_PRICE = 50;
+
+export function StreamSummaryModal({ summary, streamId, streamTitle, streamDescription, hasEgressRecording, onClose }: StreamSummaryModalProps) {
+  const [showPublishForm, setShowPublishForm] = useState(false);
+  const [publishTitle, setPublishTitle] = useState(streamTitle || '');
+  const [publishDescription, setPublishDescription] = useState(streamDescription || '');
+  const [publishPrice, setPublishPrice] = useState(String(MIN_VOD_PRICE));
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
+  const [publishSuccess, setPublishSuccess] = useState(false);
+
+  const handlePublish = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPublishError('');
+    setIsPublishing(true);
+
+    try {
+      const price = parseInt(publishPrice) || 0;
+      if (price < MIN_VOD_PRICE) {
+        throw new Error(`Minimum price is ${MIN_VOD_PRICE} coins`);
+      }
+
+      const response = await fetch(`/api/streams/${streamId}/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: publishTitle,
+          description: publishDescription,
+          priceCoins: price,
+          isPublic: false,
+          subscribersOnly: false,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to publish recording');
+      }
+
+      setPublishSuccess(true);
+    } catch (err: any) {
+      setPublishError(err.message);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
@@ -212,15 +265,115 @@ export function StreamSummaryModal({ summary, onClose }: StreamSummaryModalProps
             </div>
           )}
 
+          {/* Publish Recording */}
+          {hasEgressRecording && !publishSuccess && !showPublishForm && (
+            <div className="mb-6">
+              <GlassButton
+                variant="gradient"
+                size="lg"
+                onClick={() => setShowPublishForm(true)}
+                shimmer
+                glow
+                className="w-full !text-white font-semibold"
+              >
+                <Film className="w-5 h-5 mr-2" />
+                Publish Stream Recording
+              </GlassButton>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Your full stream was recorded server-side. Publish it as a paid VOD for your fans.
+              </p>
+            </div>
+          )}
+
+          {hasEgressRecording && showPublishForm && !publishSuccess && (
+            <div className="mb-6 backdrop-blur-xl bg-white/10 rounded-xl border border-white/20 p-4">
+              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <Film className="w-5 h-5 text-cyan-400" />
+                Publish Recording
+              </h3>
+              <form onSubmit={handlePublish} className="space-y-3">
+                <GlassInput
+                  label="Title"
+                  value={publishTitle}
+                  onChange={(e) => setPublishTitle(e.target.value)}
+                  placeholder="Enter a title for this replay..."
+                  required
+                />
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-1">Description (Optional)</label>
+                  <textarea
+                    value={publishDescription}
+                    onChange={(e) => setPublishDescription(e.target.value)}
+                    placeholder="Describe what happened..."
+                    className="w-full px-3 py-2 backdrop-blur-xl bg-white/10 rounded-lg border border-white/20 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition-all text-sm resize-none"
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-1 flex items-center gap-1">
+                    <Coins className="w-4 h-4 text-yellow-400" />
+                    Price (Coins)
+                  </label>
+                  <GlassInput
+                    type="number"
+                    value={publishPrice}
+                    onChange={(e) => setPublishPrice(e.target.value)}
+                    placeholder={`Minimum ${MIN_VOD_PRICE} coins`}
+                    min={MIN_VOD_PRICE}
+                    required
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Minimum: <span className="text-yellow-400 font-semibold">{MIN_VOD_PRICE} coins</span>
+                  </p>
+                </div>
+                {publishError && (
+                  <div className="p-2 rounded-lg bg-red-500/20 border border-red-500 text-red-300 text-sm">
+                    {publishError}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <GlassButton
+                    type="button"
+                    variant="ghost"
+                    size="md"
+                    onClick={() => setShowPublishForm(false)}
+                    disabled={isPublishing}
+                    className="flex-1 !text-white !bg-white/10 font-semibold"
+                  >
+                    Cancel
+                  </GlassButton>
+                  <GlassButton
+                    type="submit"
+                    variant="gradient"
+                    size="md"
+                    disabled={isPublishing}
+                    shimmer
+                    className="flex-1 !text-white font-semibold"
+                  >
+                    {isPublishing ? <><LoadingSpinner size="sm" /><span className="ml-2">Publishing...</span></> : 'Publish'}
+                  </GlassButton>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {publishSuccess && (
+            <div className="mb-6 p-4 rounded-xl bg-green-500/20 border border-green-500/30 text-center">
+              <Check className="w-8 h-8 mx-auto text-green-400 mb-2" />
+              <p className="text-green-300 font-semibold">Recording published!</p>
+              <p className="text-xs text-gray-400 mt-1">Your fans can now purchase and watch this replay.</p>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="space-y-3">
             <GlassButton
-              variant="gradient"
+              variant={hasEgressRecording && !publishSuccess ? 'ghost' : 'gradient'}
               size="lg"
               onClick={onClose}
-              shimmer
-              glow
-              className="w-full !text-white font-semibold"
+              shimmer={!hasEgressRecording || publishSuccess}
+              glow={!hasEgressRecording || publishSuccess}
+              className={`w-full !text-white font-semibold ${hasEgressRecording && !publishSuccess ? '!bg-white/10 border-white/40 hover:!bg-white/20' : ''}`}
             >
               Back to Dashboard
             </GlassButton>

@@ -10,11 +10,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Minimum price for VOD saves (prevents free content flooding storage)
-const MIN_VOD_PRICE = 250;
+const MIN_VOD_PRICE = 50;
 
 /**
  * Save a completed stream as a VOD (Video on Demand)
- * All VODs must be paid - minimum 250 coins
+ * All VODs must be paid - minimum 50 coins
  */
 export async function POST(
   req: NextRequest,
