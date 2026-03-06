@@ -62,8 +62,10 @@ export async function GET(req: NextRequest) {
     const hasMore = creatorVODs.length > limit;
     const vodsToProcess = hasMore ? creatorVODs.slice(0, limit) : creatorVODs;
 
-    // For public view, filter out drafts and add access status
-    let accessibleVODs = vodsToProcess.filter(vod => !(vod as any).isDraft); // Don't show drafts
+    // For public view, filter out drafts. Creator sees everything including drafts.
+    let accessibleVODs = isPublicView
+      ? vodsToProcess.filter(vod => !(vod as any).isDraft)
+      : vodsToProcess;
     let purchasedVodIds: Set<string> = new Set();
     let isSubscribed = false;
 

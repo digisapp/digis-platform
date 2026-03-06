@@ -21,6 +21,7 @@ interface VOD {
   viewCount: number;
   purchaseCount: number;
   totalEarnings: number;
+  isDraft?: boolean;
   createdAt: string;
 }
 
@@ -231,7 +232,12 @@ export default function CreatorRecordingsPage() {
                       )}
 
                       {/* Access badge */}
-                      <div className="absolute top-2 left-2">
+                      <div className="absolute top-2 left-2 flex gap-1">
+                        {vod.isDraft && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white bg-gray-500/80">
+                            Draft
+                          </span>
+                        )}
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${badge.color}`}>
                           {badge.label}
                         </span>
