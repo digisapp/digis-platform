@@ -18,6 +18,9 @@ import {
   Eye,
   Search,
   UserCircle,
+  Camera,
+  Dumbbell,
+  Heart,
 } from 'lucide-react';
 
 // Types
@@ -626,12 +629,12 @@ function MarketingPage({
             </h1>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10 mt-6 md:mt-8">
-              <Link
-                href="/become-creator"
+              <button
+                onClick={() => onSignup('/creator/apply')}
                 className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse text-center"
               >
                 Become a Creator
-              </Link>
+              </button>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
@@ -679,103 +682,63 @@ function MarketingPage({
           </div>
 
           {/* Use Case Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {/* Content Creator */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-500/15 to-red-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🔥</span>
-                <h3 className="text-lg font-bold text-white">Content Creator</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Models & Influencers */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-white/10 hover:border-pink-500/30 transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Models & Influencers</h3>
+                  <p className="text-sm text-pink-300">Glamour, Fashion, Lifestyle</p>
+                </div>
               </div>
-              <p className="text-white/60 text-sm mb-4">
-                Your AI Twin chats with fans 24/7 while you sleep. Drop exclusive content, collect tips, and build your community.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">AI Twin</span>
-                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
-                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
-              </div>
-            </div>
-
-            {/* Yoga Instructor */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/15 to-cyan-500/5 border border-green-500/20 hover:border-green-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🧘‍♀️</span>
-                <h3 className="text-lg font-bold text-white">Yoga Instructor</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Stream live yoga classes to followers worldwide. Sell recorded sessions as VODs for passive income.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">VODs</span>
-                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
+                <p>🔥 Go live for Q&As and GRWM</p>
+                <p>📹 Offer paid 1-on-1 video calls</p>
+                <p>🤖 AI Twin chats while you sleep</p>
               </div>
             </div>
 
-            {/* Fitness Coach */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/15 to-green-500/5 border border-green-500/20 hover:border-green-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">💪</span>
-                <h3 className="text-lg font-bold text-white">Fitness Coach</h3>
+            {/* Fitness Creators */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Dumbbell className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Fitness Creators</h3>
+                  <p className="text-sm text-green-300">Training, Yoga, Wellness</p>
+                </div>
               </div>
-              <p className="text-white/60 text-sm mb-4">
-                Book 1-on-1 video training sessions. Share workout programs and meal plans as exclusive content.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-              </div>
-            </div>
-
-            {/* Miami Influencer */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/15 to-orange-500/5 border border-pink-500/20 hover:border-pink-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🌴</span>
-                <h3 className="text-lg font-bold text-white">Miami Influencer</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Go live from events and get tipped. Offer exclusive behind-the-scenes access and fan meet-and-greets via video calls.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Virtual Gifts</span>
-                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🏋️ Host live workout classes</p>
+                <p>📱 Sell workout plans & guides</p>
+                <p>📹 Private coaching video calls</p>
+                <p>🧘 Meditation & wellness content</p>
               </div>
             </div>
 
-            {/* Fashion Creator */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-pink-500/15 to-purple-500/5 border border-pink-500/20 hover:border-purple-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">👗</span>
-                <h3 className="text-lg font-bold text-white">Fashion Creator</h3>
+            {/* Virtual Companions */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-white/10 hover:border-red-500/30 transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Virtual Companions</h3>
+                  <p className="text-sm text-red-300">Dates, Conversation, Connection</p>
+                </div>
               </div>
-              <p className="text-white/60 text-sm mb-4">
-                Host GRWM live streams. Offer personal style consultations and drop exclusive outfit content for subscribers.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 text-xs font-medium">Content</span>
-                <span className="px-3 py-1 rounded-full bg-yellow-500/15 text-yellow-300 text-xs font-medium">Tips</span>
-              </div>
-            </div>
-
-            {/* Life Coach / Consultant */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-500/15 to-blue-500/5 border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-3xl">🎯</span>
-                <h3 className="text-lg font-bold text-white">Life Coach</h3>
-              </div>
-              <p className="text-white/60 text-sm mb-4">
-                Run paid advisory calls and group coaching streams. Let your AI Twin handle intake questions around the clock.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-cyan-500/15 text-cyan-300 text-xs font-medium">Video Calls</span>
-                <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-300 text-xs font-medium">Live Stream</span>
-                <span className="px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 text-xs font-medium">AI Twin</span>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🍷 Virtual dinner dates</p>
+                <p>💬 Premium per-minute rates</p>
+                <p>🎯 Set your own boundaries</p>
+                <p>🤖 AI Twin handles overflow</p>
               </div>
             </div>
-
           </div>
 
         </div>
@@ -800,7 +763,7 @@ function MarketingPage({
               <div className="flex flex-col gap-2">
                 <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Platform</span>
                 <Link href="/explore" className="text-white/40 hover:text-white transition-colors">Explore</Link>
-                <Link href="/become-creator" className="text-white/40 hover:text-white transition-colors">Become a Creator</Link>
+                <button onClick={() => onSignup('/creator/apply')} className="text-white/40 hover:text-white transition-colors">Become a Creator</button>
               </div>
               <div className="flex flex-col gap-2">
                 <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Legal</span>
