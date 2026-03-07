@@ -176,14 +176,6 @@ export default function TheaterModePage() {
 
   const ticketCountdown = useTicketCountdown(upcomingTicketedShow?.startsAt || dismissedTicketedStream?.startsAt || null);
 
-  // Clip watermark config
-  const clipWatermark = useMemo(() =>
-    stream?.creator.username
-      ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: stream.creator.username }
-      : undefined,
-    [stream?.creator.username]
-  );
-
   const {
     bufferSeconds: clipBufferSeconds,
     isClipping: clipIsClipping,
@@ -194,7 +186,6 @@ export default function TheaterModePage() {
     clipIt,
   } = useStreamClipper({
     bufferDurationSeconds: 30,
-    watermark: clipWatermark,
     onError: (error) => showError(error),
   });
 

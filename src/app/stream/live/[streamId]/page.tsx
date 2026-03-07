@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { StreamChat } from '@/components/streaming/StreamChat';
@@ -132,12 +132,6 @@ export default function BroadcastStudioPage() {
     isVisible: showPrivateTips,
   });
 
-  // Watermark config for clipper
-  const clipWatermark = useMemo(() =>
-    currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
-    [currentUsername]
-  );
-
   // Stream end handling hook
   const {
     isEnding,
@@ -193,7 +187,6 @@ export default function BroadcastStudioPage() {
     clipIt,
   } = useStreamClipper({
     bufferDurationSeconds: 30,
-    watermark: clipWatermark,
     onError: (error) => showError(error),
   });
 
@@ -228,6 +221,7 @@ export default function BroadcastStudioPage() {
   } = useBroadcasterInteractions({
     streamId,
     stream,
+    creatorUsername: currentUsername || '',
     messages,
     clipIt,
     clipBufferSeconds,

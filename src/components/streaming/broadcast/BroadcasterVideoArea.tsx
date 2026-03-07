@@ -20,7 +20,6 @@ import {
   ReconnectionOverlay,
   VipShowIndicator,
 } from '@/components/streaming/broadcast';
-import { BeautyFilterToggle } from '@/components/beauty-filter/BeautyFilterToggle';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Coins, Target, Ticket, List, BarChart2, Clock, Smartphone, Monitor } from 'lucide-react';
 import type { StreamGoal } from '@/db/schema';
@@ -301,14 +300,12 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               {streamMethod !== 'rtmp' && (
                 <>
                   <div className="absolute bottom-3 right-3 z-20 hidden md:flex items-center gap-2">
-                    <BeautyFilterToggle variant="toolbar" />
                     <ScreenShareControl
                       isScreenSharing={isScreenSharing}
                       onScreenShareChange={setIsScreenSharing}
                     />
                   </div>
                   <div className="absolute top-3 right-3 z-30 md:hidden flex items-center gap-2">
-                    <BeautyFilterToggle variant="toolbar" openBelow />
                     <CameraFlipControl
                       facingMode={facingMode}
                       onFacingModeChange={setFacingMode}

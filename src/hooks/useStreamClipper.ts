@@ -1,18 +1,25 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { drawWatermarkOverlay, type WatermarkConfig } from '@/lib/watermark';
 
 interface UseStreamClipperOptions {
   bufferDurationSeconds?: number; // default 30
-  watermark?: WatermarkConfig;
   onError?: (error: string) => void;
 }
 
+/**
+ * Stream clipper using restart-based rolling recorder.
+ *
+ * Instead of a WebM-specific ring buffer (init-segment + clusters),
+ * this records continuously and restarts every `bufferDurationSeconds`.
+ * Each stop produces a complete, valid blob (WebM or MP4).
+ * This works on both desktop (WebM) and iOS Safari (MP4).
+ *
+ * Watermarking is handled server-side via FFmpeg after upload.
+ */
 export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const {
     bufferDurationSeconds = 30,
-    watermark,
     onError,
   } = options;
 
@@ -22,69 +29,35 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const [clipCooldownRemaining, setClipCooldownRemaining] = useState(0);
   const [isSupported, setIsSupported] = useState(true);
 
-  // Core recording refs
+  // Core refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const headerChunkRef = useRef<Blob | null>(null);
-  const ringBufferRef = useRef<Blob[]>([]);
-  const ringIndexRef = useRef(0);
-  const chunkCountRef = useRef(0);
+  const currentChunksRef = useRef<Blob[]>([]);
+  const prevSegmentRef = useRef<Blob | null>(null);
   const activeStreamRef = useRef<MediaStream | null>(null);
   const mimeTypeRef = useRef('');
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const segmentTimerRef = useRef<NodeJS.Timeout | null>(null);
   const bufferCounterRef = useRef<NodeJS.Timeout | null>(null);
   const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastClipTimeRef = useRef(0);
+  const segmentStartRef = useRef(0);
   const isCleanedUpRef = useRef(false);
+  const isRotatingRef = useRef(false);
 
-  // Canvas watermark pipeline refs
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const canvasStreamRef = useRef<MediaStream | null>(null);
-  const animFrameRef = useRef<number | null>(null);
-  const videoElRef = useRef<HTMLVideoElement | null>(null);
-  const logoRef = useRef<HTMLImageElement | null>(null);
-  const logoLoadedRef = useRef(false);
-
-  // Stable refs for callbacks that change frequently — prevents pipeline restarts
-  // when parent component re-renders with new inline arrow function references
+  // Stable ref for onError
   const onErrorRef = useRef(onError);
   useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
-  // Keep watermark config in a ref so the draw loop always reads the latest
-  // without needing to restart the MediaRecorder pipeline
-  const watermarkRef = useRef(watermark);
-  useEffect(() => {
-    watermarkRef.current = watermark;
-  }, [watermark]);
-
-  // Preload logo image once
-  useEffect(() => {
-    if (!watermark?.logoUrl) return;
-    if (logoRef.current?.src === watermark.logoUrl) return; // already loading/loaded
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => { logoLoadedRef.current = true; };
-    img.onerror = () => { logoLoadedRef.current = false; };
-    img.src = watermark.logoUrl;
-    logoRef.current = img;
-  }, [watermark?.logoUrl]);
-
-  // Find a video element that's playing a MediaStream (LiveKit video)
-  const getVideoElement = useCallback((): HTMLVideoElement | null => {
+  // Find a video element playing a MediaStream (LiveKit video)
+  const getVideoStream = useCallback((): MediaStream | null => {
     const videoElements = document.querySelectorAll('video');
     for (const video of videoElements) {
       if (video.srcObject instanceof MediaStream) {
-        return video;
+        return video.srcObject;
       }
     }
     return null;
   }, []);
-
-  // Convenience: get just the stream
-  const getVideoStream = useCallback((): MediaStream | null => {
-    const el = getVideoElement();
-    return el?.srcObject instanceof MediaStream ? el.srcObject : null;
-  }, [getVideoElement]);
 
   // Detect supported MIME type
   const getSelectedMimeType = useCallback((): string => {
@@ -106,89 +79,95 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     return '';
   }, []);
 
-  // Start canvas draw loop, returns watermarked MediaStream for recording
-  const startCanvasPipeline = useCallback((videoEl: HTMLVideoElement, originalStream: MediaStream): MediaStream | null => {
-    try {
-      // Check canvas capture support
-      if (!('captureStream' in HTMLCanvasElement.prototype)) {
-        console.warn('[StreamClipper] captureStream not supported, recording without watermark');
-        return null;
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = videoEl.videoWidth || 1280;
-      canvas.height = videoEl.videoHeight || 720;
-      const ctx = canvas.getContext('2d', { alpha: false });
-      if (!ctx) return null;
-
-      canvasRef.current = canvas;
-      videoElRef.current = videoEl;
-
-      // Draw loop: composites video frame + watermark overlay
-      const draw = () => {
-        if (isCleanedUpRef.current || !canvasRef.current) return;
-
-        // Adapt canvas to video dimension changes (e.g., resolution switch)
-        if (videoEl.videoWidth && videoEl.videoHeight) {
-          if (canvas.width !== videoEl.videoWidth) canvas.width = videoEl.videoWidth;
-          if (canvas.height !== videoEl.videoHeight) canvas.height = videoEl.videoHeight;
-        }
-
-        // Draw current video frame
-        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-        // Overlay watermark (reads latest config from ref)
-        const wm = watermarkRef.current;
-        if (wm) {
-          drawWatermarkOverlay(
-            ctx,
-            canvas.width,
-            canvas.height,
-            wm.creatorUsername,
-            logoRef.current,
-            logoLoadedRef.current,
-          );
-        }
-
-        animFrameRef.current = requestAnimationFrame(draw);
-      };
-      draw();
-
-      // Capture canvas output at 30fps
-      const canvasStream = (canvas as HTMLCanvasElement & { captureStream(fps?: number): MediaStream }).captureStream(30);
-      canvasStreamRef.current = canvasStream;
-
-      // Merge: canvas video track + original audio tracks
-      const mergedStream = new MediaStream();
-      canvasStream.getVideoTracks().forEach(t => mergedStream.addTrack(t));
-      originalStream.getAudioTracks().forEach(t => mergedStream.addTrack(t));
-
-      return mergedStream;
-    } catch (err) {
-      console.error('[StreamClipper] Canvas pipeline failed, falling back to raw stream:', err);
-      return null;
-    }
-  }, []); // No deps needed: reads latest values from refs
-
-  // Stop canvas pipeline and release capture stream tracks
-  const stopCanvasPipeline = useCallback(() => {
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = null;
-    }
-    // Stop canvas capture stream tracks to release resources
-    if (canvasStreamRef.current) {
-      canvasStreamRef.current.getTracks().forEach(t => t.stop());
-      canvasStreamRef.current = null;
-    }
-    canvasRef.current = null;
-    videoElRef.current = null;
+  // Assemble current chunks into a blob
+  const assembleBlob = useCallback((chunks: Blob[]): Blob | null => {
+    if (chunks.length === 0) return null;
+    const mimeType = mimeTypeRef.current || 'video/webm';
+    return new Blob(chunks, { type: mimeType });
   }, []);
 
-  // Whether canvas watermark is enabled (primitive boolean for stable deps)
-  const enableWatermark = !!watermark;
+  // Stop the current MediaRecorder and return its blob via promise
+  const stopAndCollect = useCallback((): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const recorder = mediaRecorderRef.current;
+      if (!recorder || recorder.state === 'inactive') {
+        resolve(assembleBlob(currentChunksRef.current));
+        return;
+      }
 
-  // Start the MediaRecorder rolling buffer
+      const onStop = () => {
+        recorder.removeEventListener('stop', onStop);
+        resolve(assembleBlob(currentChunksRef.current));
+      };
+      recorder.addEventListener('stop', onStop);
+
+      try {
+        recorder.stop();
+      } catch {
+        resolve(assembleBlob(currentChunksRef.current));
+      }
+    });
+  }, [assembleBlob]);
+
+  // Start a new MediaRecorder on the given stream
+  const startRecorder = useCallback((stream: MediaStream) => {
+    if (isCleanedUpRef.current) return;
+
+    const mimeType = mimeTypeRef.current;
+    if (!mimeType) return;
+
+    try {
+      currentChunksRef.current = [];
+      segmentStartRef.current = Date.now();
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 4_000_000,
+        audioBitsPerSecond: 128_000,
+      });
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          currentChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = (event) => {
+        console.error('[StreamClipper] MediaRecorder error:', event);
+      };
+
+      // Use timeslice so we get periodic data (helps with buffer tracking)
+      // but we keep ALL chunks (no ring buffer) so the blob is always valid
+      recorder.start(1000);
+      mediaRecorderRef.current = recorder;
+      setIsBuffering(true);
+    } catch (err) {
+      console.error('[StreamClipper] Failed to start MediaRecorder:', err);
+      onErrorRef.current?.('Failed to start clip buffer');
+    }
+  }, []);
+
+  // Rotate: stop current recorder, save blob as prev segment, start new one
+  const rotateSegment = useCallback(async () => {
+    if (isCleanedUpRef.current || isRotatingRef.current) return;
+    isRotatingRef.current = true;
+
+    try {
+      const blob = await stopAndCollect();
+      if (blob && blob.size > 0) {
+        prevSegmentRef.current = blob;
+      }
+
+      const stream = activeStreamRef.current;
+      if (stream && !isCleanedUpRef.current) {
+        startRecorder(stream);
+      }
+    } finally {
+      isRotatingRef.current = false;
+    }
+  }, [stopAndCollect, startRecorder]);
+
+  // Start buffering on a stream
   const startBuffering = useCallback((stream: MediaStream) => {
     if (isCleanedUpRef.current) return;
 
@@ -200,80 +179,30 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     }
 
     mimeTypeRef.current = mimeType;
+    activeStreamRef.current = stream;
+    prevSegmentRef.current = null;
+    setBufferSeconds(0);
 
-    try {
-      // Decide recording stream: canvas-watermarked or raw
-      let recordingStream = stream;
+    startRecorder(stream);
 
-      if (enableWatermark) {
-        const videoEl = getVideoElement();
-        if (videoEl) {
-          const watermarked = startCanvasPipeline(videoEl, stream);
-          if (watermarked) {
-            recordingStream = watermarked;
-          }
-          // Falls back to raw stream if canvas setup fails
-        }
-      }
+    // Auto-rotate every bufferDurationSeconds
+    if (segmentTimerRef.current) clearInterval(segmentTimerRef.current);
+    segmentTimerRef.current = setInterval(() => {
+      rotateSegment();
+    }, bufferDurationSeconds * 1000);
 
-      const recorder = new MediaRecorder(recordingStream, {
-        mimeType,
-        videoBitsPerSecond: 4_000_000, // 4 Mbps
-        audioBitsPerSecond: 128_000,
-      });
+    // Track how many seconds we've buffered in the current segment
+    if (bufferCounterRef.current) clearInterval(bufferCounterRef.current);
+    bufferCounterRef.current = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - segmentStartRef.current) / 1000);
+      const total = prevSegmentRef.current
+        ? Math.min(bufferDurationSeconds + elapsed, bufferDurationSeconds)
+        : Math.min(elapsed, bufferDurationSeconds);
+      setBufferSeconds(total);
+    }, 1000);
+  }, [bufferDurationSeconds, getSelectedMimeType, startRecorder, rotateSegment]);
 
-      // Reset buffer state
-      headerChunkRef.current = null;
-      ringBufferRef.current = new Array(bufferDurationSeconds);
-      ringIndexRef.current = 0;
-      chunkCountRef.current = 0;
-      setBufferSeconds(0);
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size === 0) return;
-
-        if (chunkCountRef.current === 0) {
-          // First chunk = Initialization Segment (WebM header)
-          headerChunkRef.current = event.data;
-        } else {
-          // Subsequent chunks = Clusters, store in ring buffer
-          const idx = (ringIndexRef.current) % bufferDurationSeconds;
-          ringBufferRef.current[idx] = event.data;
-          ringIndexRef.current++;
-        }
-        chunkCountRef.current++;
-      };
-
-      recorder.onerror = (event) => {
-        console.error('[StreamClipper] MediaRecorder error:', event);
-      };
-
-      recorder.onstop = () => {
-        // Recorder stopped (page unmount or stream change)
-        setIsBuffering(false);
-      };
-
-      // Start recording with 1-second timeslice for the ring buffer
-      recorder.start(1000);
-      mediaRecorderRef.current = recorder;
-      activeStreamRef.current = stream;
-      setIsBuffering(true);
-
-      // Track buffer fill level
-      if (bufferCounterRef.current) clearInterval(bufferCounterRef.current);
-      bufferCounterRef.current = setInterval(() => {
-        const totalClusters = chunkCountRef.current - 1; // minus header
-        const available = Math.min(Math.max(totalClusters, 0), bufferDurationSeconds);
-        setBufferSeconds(available);
-      }, 1000);
-
-    } catch (err) {
-      console.error('[StreamClipper] Failed to start MediaRecorder:', err);
-      onErrorRef.current?.('Failed to start clip buffer');
-    }
-  }, [bufferDurationSeconds, getSelectedMimeType, getVideoElement, enableWatermark, startCanvasPipeline]);
-
-  // Stop the current MediaRecorder and canvas pipeline
+  // Stop buffering
   const stopBuffering = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
@@ -285,59 +214,54 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
     mediaRecorderRef.current = null;
     activeStreamRef.current = null;
 
-    stopCanvasPipeline();
-
+    if (segmentTimerRef.current) {
+      clearInterval(segmentTimerRef.current);
+      segmentTimerRef.current = null;
+    }
     if (bufferCounterRef.current) {
       clearInterval(bufferCounterRef.current);
       bufferCounterRef.current = null;
     }
-  }, [stopCanvasPipeline]);
 
-  // Clip the current buffer - returns a valid WebM Blob
+    setIsBuffering(false);
+  }, []);
+
+  // Clip: stop current recorder, return the blob, restart recording
   const clipIt = useCallback(async (): Promise<Blob | null> => {
-    const header = headerChunkRef.current;
-    if (!header) {
-      onErrorRef.current?.('Buffer not ready yet');
+    if (isRotatingRef.current) {
+      onErrorRef.current?.('Please try again in a moment');
       return null;
     }
 
-    const totalClusters = chunkCountRef.current - 1;
-    const availableCount = Math.min(Math.max(totalClusters, 0), bufferDurationSeconds);
+    const stream = activeStreamRef.current;
+    if (!stream) {
+      onErrorRef.current?.('No video stream found');
+      return null;
+    }
 
-    if (availableCount === 0) {
+    // Stop current recorder to finalize the blob
+    const currentBlob = await stopAndCollect();
+    if (!currentBlob || currentBlob.size === 0) {
       onErrorRef.current?.('No video data buffered yet');
+      // Restart recording
+      startRecorder(stream);
       return null;
     }
 
-    // Extract ordered cluster chunks from ring buffer
-    const clusters: Blob[] = [];
-    const writeIdx = ringIndexRef.current;
+    // Use current segment as the clip (it's a complete valid file)
+    const clip = currentBlob;
 
-    if (totalClusters <= bufferDurationSeconds) {
-      // Buffer hasn't wrapped yet - take all available in order
-      for (let i = 0; i < availableCount; i++) {
-        if (ringBufferRef.current[i]) {
-          clusters.push(ringBufferRef.current[i]);
-        }
-      }
-    } else {
-      // Buffer has wrapped - read from oldest to newest
-      for (let i = 0; i < bufferDurationSeconds; i++) {
-        const readIdx = (writeIdx + i) % bufferDurationSeconds;
-        if (ringBufferRef.current[readIdx]) {
-          clusters.push(ringBufferRef.current[readIdx]);
-        }
-      }
-    }
+    // Restart recording immediately
+    currentChunksRef.current = [];
+    prevSegmentRef.current = null;
+    segmentStartRef.current = Date.now();
+    startRecorder(stream);
 
-    if (clusters.length === 0) {
-      onErrorRef.current?.('No clip data available');
-      return null;
-    }
-
-    // Assemble valid WebM: header (Initialization Segment) + Clusters
-    const mimeType = mimeTypeRef.current || 'video/webm';
-    const blob = new Blob([header, ...clusters], { type: mimeType });
+    // Reset segment timer
+    if (segmentTimerRef.current) clearInterval(segmentTimerRef.current);
+    segmentTimerRef.current = setInterval(() => {
+      rotateSegment();
+    }, bufferDurationSeconds * 1000);
 
     // Set cooldown
     lastClipTimeRef.current = Date.now();
@@ -354,8 +278,8 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       }
     }, 1000);
 
-    return blob;
-  }, [bufferDurationSeconds]);
+    return clip;
+  }, [bufferDurationSeconds, stopAndCollect, startRecorder, rotateSegment]);
 
   // Full cleanup
   const cleanup = useCallback(() => {
@@ -371,17 +295,14 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       cooldownIntervalRef.current = null;
     }
 
-    headerChunkRef.current = null;
-    ringBufferRef.current = [];
-    ringIndexRef.current = 0;
-    chunkCountRef.current = 0;
+    prevSegmentRef.current = null;
+    currentChunksRef.current = [];
   }, [stopBuffering]);
 
   // Auto-start: poll for video element with MediaStream
   useEffect(() => {
     isCleanedUpRef.current = false;
 
-    // Check if MediaRecorder is supported
     if (typeof window !== 'undefined' && typeof MediaRecorder === 'undefined') {
       setIsSupported(false);
       return;
@@ -399,14 +320,11 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       const stream = getVideoStream();
 
       if (stream && !activeStreamRef.current) {
-        // Found a new stream - start buffering
         startBuffering(stream);
       } else if (stream && activeStreamRef.current && stream !== activeStreamRef.current) {
-        // Stream changed (e.g., screen share toggle) - restart
         stopBuffering();
         startBuffering(stream);
       } else if (!stream && activeStreamRef.current) {
-        // Stream gone - stop
         stopBuffering();
       }
     }, 500);

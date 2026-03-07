@@ -56,7 +56,7 @@ export function GoLiveStreamForm({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. &quot;Gaming with Miriam 🎮&quot; or &quot;Q&A + Chill vibes&quot;"
+          placeholder="e.g. &quot;GRWM with Miriam 💄&quot; or &quot;Live Chat Q&amp;A with Miriam&quot;"
           className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
           maxLength={100}
           required

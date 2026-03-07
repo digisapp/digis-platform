@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useLocalParticipant, useRemoteParticipants, useTracks, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { Loader2, Mic, MicOff, Video, VideoOff, X, Clock, Coins, User, Zap, Gift, Send, MessageCircle } from 'lucide-react';
-import { BeautyFilterToggle } from '@/components/beauty-filter/BeautyFilterToggle';
 import type { CallData, VirtualGift, ChatMessage } from './types';
 
 // Static arrays extracted to module level to avoid re-creation on each render
@@ -697,8 +696,6 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
               {isVideoOff ? <VideoOff className="w-5 h-5 sm:w-6 sm:h-6" /> : <Video className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
 
-            {/* Beauty filter */}
-            <BeautyFilterToggle variant="control" />
 
             {/* Tip/Gift buttons - only for fans */}
             {isFan && (

@@ -676,9 +676,6 @@ function MarketingPage({
             >
               How Creators Use Digis
             </h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Real people. Real income. See how creators like you are already earning.
-            </p>
           </div>
 
           {/* Use Case Cards Grid */}
@@ -796,6 +793,7 @@ function MarketingPage({
                 height={34}
                 className="h-8 w-auto opacity-60 mb-3"
               />
+              <p className="text-white/40 text-sm">A Global Content Creator Community</p>
             </div>
 
             <div className="flex gap-10 text-sm">

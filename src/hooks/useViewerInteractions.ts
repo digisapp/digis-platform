@@ -282,10 +282,14 @@ export function useViewerInteractions({
     setClipIsClipping(true);
     try {
       const formData = new FormData();
-      formData.append('video', blob, `clip-${Date.now()}.webm`);
+      const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+      formData.append('video', blob, `clip-${Date.now()}.${ext}`);
       formData.append('title', `Live Clip - ${stream?.title || 'Stream'}`);
       formData.append('streamId', streamId);
       formData.append('duration', String(Math.min(clipBufferSeconds, 30)));
+      if (stream?.creator?.username) {
+        formData.append('creatorUsername', stream.creator.username);
+      }
 
       const response = await fetch('/api/clips/live', {
         method: 'POST',
@@ -302,7 +306,7 @@ export function useViewerInteractions({
       const a = document.createElement('a');
       a.href = downloadUrl;
       const safeName = (stream?.title || 'clip').replace(/[^a-zA-Z0-9-_ ]/g, '').trim();
-      a.download = `${safeName}-clip.webm`;
+      a.download = `${safeName}-clip.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

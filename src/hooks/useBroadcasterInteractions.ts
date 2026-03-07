@@ -7,6 +7,7 @@ import type { StreamMessage, Stream } from '@/db/schema';
 interface UseBroadcasterInteractionsParams {
   streamId: string;
   stream: Stream | null;
+  creatorUsername: string;
   messages: StreamMessage[];
   clipIt: () => Promise<Blob | null>;
   clipBufferSeconds: number;
@@ -21,6 +22,7 @@ interface UseBroadcasterInteractionsParams {
 export function useBroadcasterInteractions({
   streamId,
   stream,
+  creatorUsername,
   messages,
   clipIt,
   clipBufferSeconds,
@@ -52,6 +54,9 @@ export function useBroadcasterInteractions({
       formData.append('title', `Live Clip - ${stream?.title || 'Stream'}`);
       formData.append('streamId', streamId);
       formData.append('duration', String(Math.min(clipBufferSeconds, 30)));
+      if (creatorUsername) {
+        formData.append('creatorUsername', creatorUsername);
+      }
 
       const response = await fetch('/api/clips/live', {
         method: 'POST',
