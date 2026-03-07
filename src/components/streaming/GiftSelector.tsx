@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { VirtualGift } from '@/db/schema';
-import { Sparkles, Zap, Crown, Star, Coins, User } from 'lucide-react';
+import { Sparkles, Zap, Crown, Star, Coins, User, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { useToastContext } from '@/context/ToastContext';
 
 // Spotlighted creator info
@@ -178,6 +179,13 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
 
   return (
     <div className="space-y-4">
+      {/* Balance Display */}
+      <div className="flex items-center justify-end gap-1.5 text-sm">
+        <Coins className="w-3.5 h-3.5 text-amber-400" />
+        <span className="text-gray-400">Balance:</span>
+        <span className="font-bold text-amber-400">{userBalance.toLocaleString()}</span>
+      </div>
+
       {/* Recipient Selector - Only show when there's a spotlighted creator */}
       {spotlightedCreator && (
         <div className="space-y-2">
@@ -337,14 +345,28 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
           </div>
 
           {/* Send Tip Button */}
-          <button
-            onClick={handleSendTip}
-            disabled={!canAffordTip || isSending}
-            className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl font-bold text-white hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-green-500/30"
-          >
-            <Coins className="w-5 h-5" />
-            {isSending ? 'Sending...' : !canAffordTip ? (currentTipAmount > userBalance ? 'Insufficient Balance' : 'Enter Amount') : `Send ${currentTipAmount} Coins`}
-          </button>
+          {currentTipAmount > userBalance && currentTipAmount > 0 ? (
+            <Link
+              href="/wallet"
+              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 rounded-xl font-bold text-white hover:scale-[1.02] transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30"
+            >
+              <Coins className="w-5 h-5" />
+              Get Coins
+            </Link>
+          ) : (
+            <button
+              onClick={handleSendTip}
+              disabled={!canAffordTip || isSending}
+              className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-xl font-bold text-white hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2 shadow-lg shadow-green-500/30"
+            >
+              {isSending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Coins className="w-5 h-5" />
+              )}
+              {isSending ? 'Sending...' : currentTipAmount > 0 ? `Send ${currentTipAmount} Coins` : 'Enter Amount'}
+            </button>
+          )}
         </div>
       )}
 
@@ -438,13 +460,26 @@ export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spo
                 {totalCost.toLocaleString()} coins
               </div>
             </div>
-            <button
-              onClick={handleSendGift}
-              disabled={!canAfford || isSending}
-              className="px-6 py-3 bg-gradient-to-r from-digis-pink to-digis-purple rounded-xl font-bold text-white hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
-            >
-              {isSending ? 'Sending...' : !canAfford ? 'Insufficient' : `Send ${selectedGift.emoji}`}
-            </button>
+            {!canAfford ? (
+              <Link
+                href="/wallet"
+                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl font-bold text-white hover:scale-105 transition-transform flex items-center gap-1.5"
+              >
+                <Coins className="w-4 h-4" />
+                Get Coins
+              </Link>
+            ) : (
+              <button
+                onClick={handleSendGift}
+                disabled={isSending}
+                className="px-6 py-3 bg-gradient-to-r from-digis-pink to-digis-purple rounded-xl font-bold text-white hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-1.5"
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : null}
+                {isSending ? 'Sending...' : `Send ${selectedGift.emoji}`}
+              </button>
+            )}
           </div>
         </div>
       )}
