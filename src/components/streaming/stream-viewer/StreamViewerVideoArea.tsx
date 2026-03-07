@@ -301,7 +301,7 @@ export function StreamViewerVideoArea({
         <div className="absolute bottom-16 sm:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
           <span
             className="text-lg sm:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
-            style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)', letterSpacing: '0.02em' }}
+            style={{ color: 'rgba(255,255,255,0.4)', textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)', letterSpacing: '0.02em' }}
           >
             digis.cc/{stream.creator.username}
           </span>

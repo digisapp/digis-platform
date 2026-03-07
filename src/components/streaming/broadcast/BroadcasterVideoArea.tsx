@@ -341,8 +341,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               )}
             </div>
 
-            {/* Mobile Bottom Left - Clip + End Stream */}
-            <div className="absolute bottom-3 left-3 z-20 md:hidden flex items-center gap-2">
+            {/* Mobile Bottom Left - Clip + End Stream (above MobileToolsPanel) */}
+            <div className="absolute bottom-[4.5rem] left-3 z-20 md:hidden flex items-center gap-2">
               {clipIsSupported && (
                 <StreamClipButton
                   canClip={canClip}
@@ -521,8 +521,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                 <span
                   className="text-lg md:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"
                   style={{
-                    color: '#ffffff',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.6), 0 0 20px rgba(0,0,0,0.4)',
+                    color: 'rgba(255,255,255,0.4)',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2)',
                     letterSpacing: '0.02em',
                   }}
                 >

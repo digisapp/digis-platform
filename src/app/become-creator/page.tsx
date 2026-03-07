@@ -81,15 +81,90 @@ export default function BecomeCreatorPage() {
         </div>
       </nav>
 
-      {/* How You Get Paid */}
+      {/* Creator Types */}
       <div className="relative z-10 px-4 pt-12 md:pt-20 pb-20">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Creator Tools
-            </h2>
-          </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Models & Influencers */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-white/10 hover:border-pink-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Models & Influencers</h3>
+                  <p className="text-sm text-pink-300">Glamour, Fashion, Lifestyle</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
+                <p>🔥 Go live for Q&As and GRWM</p>
+                <p>📹 Offer paid 1-on-1 video calls</p>
+                <p>🤖 AI Twin chats while you sleep</p>
+              </div>
+            </div>
 
+            {/* Fitness Creators */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Dumbbell className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Fitness Creators</h3>
+                  <p className="text-sm text-green-300">Training, Yoga, Wellness</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🏋️ Host live workout classes</p>
+                <p>📱 Sell workout plans & guides</p>
+                <p>📹 Private coaching video calls</p>
+                <p>🧘 Meditation & wellness content</p>
+              </div>
+            </div>
+
+            {/* Virtual Companions */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-white/10 hover:border-red-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Virtual Companions</h3>
+                  <p className="text-sm text-red-300">Dates, Conversation, Connection</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-white/70">
+                <p>🍷 Virtual dinner dates</p>
+                <p>💬 Premium per-minute rates</p>
+                <p>🎯 Set your own boundaries</p>
+                <p>🤖 AI Twin handles overflow</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="relative z-10 px-4 pb-16">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 mb-8">
+            <p className="text-white/90 text-lg">
+              <span className="font-bold text-yellow-400">Usernames are first come, first serve</span> — the good ones are going fast!
+            </p>
+          </div>
+          <button
+            onClick={handleApplyClick}
+            className="group px-12 py-5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
+          >
+            Claim Your Spot
+          </button>
+        </div>
+      </div>
+
+      {/* Creator Tools */}
+      <div className="relative z-10 px-4 pb-20">
+        <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Live Streaming */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-orange-500/20 to-orange-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all">
@@ -169,99 +244,6 @@ export default function BecomeCreatorPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Creator Types */}
-      <div className="relative z-10 px-4 pb-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              Creators on Digis
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Models & Influencers */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-white/10 hover:border-pink-500/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-pink-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Models & Influencers</h3>
-                  <p className="text-sm text-pink-300">Glamour, Fashion, Lifestyle</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
-                <p>🔥 Go live for Q&As and GRWM</p>
-                <p>📹 Offer paid 1-on-1 video calls</p>
-                <p>🤖 AI Twin chats while you sleep</p>
-              </div>
-            </div>
-
-            {/* Fitness Creators */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <Dumbbell className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Fitness Creators</h3>
-                  <p className="text-sm text-green-300">Training, Yoga, Wellness</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>🏋️ Host live workout classes</p>
-                <p>📱 Sell workout plans & guides</p>
-                <p>📹 Private coaching video calls</p>
-                <p>🧘 Meditation & wellness content</p>
-              </div>
-            </div>
-
-            {/* Virtual Companions */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-white/10 hover:border-red-500/30 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <Heart className="w-6 h-6 text-red-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Virtual Companions</h3>
-                  <p className="text-sm text-red-300">Dates, Conversation, Connection</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>🍷 Virtual dinner dates</p>
-                <p>💬 Premium per-minute rates</p>
-                <p>🎯 Set your own boundaries</p>
-                <p>🤖 AI Twin handles overflow</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Urgency Banner */}
-      <div className="relative z-10 px-4 pb-12">
-        <div className="max-w-3xl mx-auto">
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 text-center">
-            <p className="text-white/90 text-lg">
-              <span className="font-bold text-yellow-400">Usernames are first come, first serve</span> — the good ones are going fast!
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Final CTA */}
-      <div className="relative z-10 px-4 pb-24">
-        <div className="max-w-3xl mx-auto text-center">
-          <button
-            onClick={handleApplyClick}
-            className="group px-12 py-5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
-          >
-            Claim Your Spot
-          </button>
         </div>
       </div>
 
