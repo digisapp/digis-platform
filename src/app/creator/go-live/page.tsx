@@ -111,7 +111,7 @@ export default function GoLivePage() {
           </button>
         )}
 
-        {/* Stats */}
+        {/* Stats + Use Last Settings */}
         {data.recentStats.totalStreams > 0 && (
           <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
             <div className="backdrop-blur-xl bg-white/5 rounded-lg px-4 py-2 border border-cyan-500/30">
@@ -122,6 +122,15 @@ export default function GoLivePage() {
               <span className="text-gray-300">Total Streams:</span>
               <span className="ml-2 font-bold text-purple-400">{data.recentStats.totalStreams}</span>
             </div>
+            {data.lastStreamSettings && (
+              <button
+                type="button"
+                onClick={data.loadLastSettings}
+                className="backdrop-blur-xl bg-white/5 rounded-lg px-4 py-2 border border-white/10 hover:border-cyan-500/50 hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-400 transition-all"
+              >
+                Use Last Settings
+              </button>
+            )}
           </div>
         )}
 

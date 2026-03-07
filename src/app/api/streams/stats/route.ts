@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     if (recentStreams.length === 0) {
       return NextResponse.json(
-        success({ avgViewers: 0, totalStreams: 0 }, requestId),
+        success({ avgViewers: 0, totalStreams: 0, lastStreamSettings: null }, requestId),
         { status: 200 }
       );
     }
@@ -55,8 +55,18 @@ export async function GET(req: NextRequest) {
 
     const totalStreams = Number(result[0]?.count || 0);
 
+    // Include last stream settings for "use last settings" feature
+    const lastStream = recentStreams[0];
+    const lastStreamSettings = {
+      title: lastStream.title,
+      category: lastStream.category,
+      tags: lastStream.tags,
+      privacy: lastStream.privacy,
+      orientation: lastStream.orientation,
+    };
+
     return NextResponse.json(
-      success({ avgViewers, totalStreams }, requestId),
+      success({ avgViewers, totalStreams, lastStreamSettings }, requestId),
       { status: 200 }
     );
   } catch (error: any) {

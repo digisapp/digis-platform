@@ -91,16 +91,24 @@ export function useGoLiveDevices() {
     }
   };
 
+  const lastAudioUpdateRef = useRef(0);
+
   const updateAudioLevel = () => {
     if (!analyserRef.current) return;
 
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-    analyserRef.current.getByteFrequencyData(dataArray);
+    // Throttle to ~10Hz (every 100ms) to save battery on mobile
+    const now = Date.now();
+    if (now - lastAudioUpdateRef.current >= 100) {
+      lastAudioUpdateRef.current = now;
 
-    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-    const normalizedLevel = Math.min(100, (average / 255) * 100 * 3);
+      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+      analyserRef.current.getByteFrequencyData(dataArray);
 
-    setAudioLevel(normalizedLevel);
+      const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      const normalizedLevel = Math.min(100, (average / 255) * 100 * 3);
+
+      setAudioLevel(normalizedLevel);
+    }
 
     animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
   };

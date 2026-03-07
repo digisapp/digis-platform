@@ -19,6 +19,8 @@ export function OBSStreamSetup({ url, streamKey, streamId }: OBSStreamSetupProps
   const [showKey, setShowKey] = useState(false);
   const [status, setStatus] = useState<string>('ENDPOINT_INACTIVE');
   const [polling, setPolling] = useState(true);
+  const [pollInterval, setPollInterval] = useState(3000);
+  const [failCount, setFailCount] = useState(0);
 
   const copyToClipboard = async (text: string, type: 'url' | 'key') => {
     try {
@@ -47,31 +49,43 @@ export function OBSStreamSetup({ url, streamKey, streamId }: OBSStreamSetupProps
       const result = await res.json();
       if (res.ok && result.data) {
         setStatus(result.data.status);
+        setFailCount(0);
 
         // Auto-navigate when OBS connects
         if (result.data.status === 'ENDPOINT_PUBLISHING') {
           setPolling(false);
           router.push(`/stream/live/${streamId}?method=rtmp`);
         }
+
+        // Back off once buffering starts (OBS is connecting)
+        if (result.data.status === 'ENDPOINT_BUFFERING') {
+          setPollInterval(2000); // Check faster during buffering
+        }
       }
     } catch {
-      // Silent fail, will retry
+      setFailCount(prev => prev + 1);
+      // Back off on repeated failures
+      if (failCount > 3) {
+        setPollInterval(prev => Math.min(prev * 1.5, 15000));
+      }
     }
-  }, [streamId, router]);
+  }, [streamId, router, failCount]);
 
-  // Poll for ingress status every 3 seconds
+  // Poll for ingress status with adaptive interval
   useEffect(() => {
     if (!polling) return;
 
-    const interval = setInterval(checkStatus, 3000);
-    // Check immediately too
     checkStatus();
+    const interval = setInterval(checkStatus, pollInterval);
 
     return () => clearInterval(interval);
-  }, [polling, checkStatus]);
+  }, [polling, checkStatus, pollInterval]);
 
-  // Send heartbeats to keep the stream alive while the creator sets up OBS
+  // Send heartbeats only after ingress is buffering or publishing
   useEffect(() => {
+    const isIngressActive = status === 'ENDPOINT_BUFFERING' || status === 'ENDPOINT_PUBLISHING';
+    if (!isIngressActive) return;
+
     const sendHeartbeat = () => {
       fetch(`/api/streams/${streamId}/heartbeat`, { method: 'POST' }).catch(() => {});
     };
@@ -80,7 +94,7 @@ export function OBSStreamSetup({ url, streamKey, streamId }: OBSStreamSetupProps
     const interval = setInterval(sendHeartbeat, 30000);
 
     return () => clearInterval(interval);
-  }, [streamId]);
+  }, [streamId, status]);
 
   const isConnected = status === 'ENDPOINT_PUBLISHING';
   const isBuffering = status === 'ENDPOINT_BUFFERING';

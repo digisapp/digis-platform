@@ -43,6 +43,10 @@ export function useGoLiveData() {
   const [isCreator, setIsCreator] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recentStats, setRecentStats] = useState({ avgViewers: 0, totalStreams: 0 });
+  const [lastStreamSettings, setLastStreamSettings] = useState<{
+    title: string; category: string | null; tags: string[] | null;
+    privacy: string; orientation: string;
+  } | null>(null);
   const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -189,12 +193,26 @@ export function useGoLiveData() {
       if (response.ok) {
         const data = await response.json();
         setRecentStats({
-          avgViewers: data.avgViewers || 0,
-          totalStreams: data.totalStreams || 0,
+          avgViewers: data.avgViewers || data.data?.avgViewers || 0,
+          totalStreams: data.totalStreams || data.data?.totalStreams || 0,
         });
+        if (data.data?.lastStreamSettings) {
+          setLastStreamSettings(data.data.lastStreamSettings);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch stats:', err);
+    }
+  };
+
+  const loadLastSettings = () => {
+    if (!lastStreamSettings) return;
+    setTitle(lastStreamSettings.title || '');
+    setCategory(lastStreamSettings.category || '');
+    setTags(lastStreamSettings.tags || []);
+    setPrivacy(lastStreamSettings.privacy || 'public');
+    if (lastStreamSettings.orientation === 'portrait' || lastStreamSettings.orientation === 'landscape') {
+      setOrientation(lastStreamSettings.orientation);
     }
   };
 
@@ -241,16 +259,22 @@ export function useGoLiveData() {
         const streamId = result.data.id;
 
         if (featuredCreators.length > 0) {
-          featuredCreators.forEach((creator, index) => {
-            fetch(`/api/streams/${streamId}/featured`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                creatorId: creator.id,
-                lineupOrder: index + 1,
-              }),
-            }).catch(err => console.error('Error adding featured creator:', err));
-          });
+          const results = await Promise.allSettled(
+            featuredCreators.map((creator, index) =>
+              fetch(`/api/streams/${streamId}/featured`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  creatorId: creator.id,
+                  lineupOrder: index + 1,
+                }),
+              })
+            )
+          );
+          const failed = results.filter(r => r.status === 'rejected');
+          if (failed.length > 0) {
+            console.warn(`[GoLive] ${failed.length}/${featuredCreators.length} featured creators failed to add`);
+          }
         }
 
         // For RTMP mode: create ingress and show OBS setup
@@ -332,6 +356,9 @@ export function useGoLiveData() {
     // Animation / UI
     showParticles, showSuccess,
     showStreamingTipsModal, setShowStreamingTipsModal,
+    // Last stream
+    lastStreamSettings,
+    loadLastSettings,
     // Actions
     checkCreatorStatus,
     handleStartStream,
