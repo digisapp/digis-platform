@@ -11,7 +11,6 @@ import {
   BroadcasterModals,
   BroadcasterFloatingElements,
 } from '@/components/streaming/broadcast';
-import { useStreamRecorder } from '@/hooks/useStreamRecorder';
 import { useStreamClipper } from '@/hooks/useStreamClipper';
 import { useStreamNavPrevention } from '@/hooks/useStreamNavPrevention';
 import { usePrivateTips } from '@/hooks/usePrivateTips';
@@ -93,7 +92,6 @@ export default function BroadcastStudioPage() {
   const [showMobileTools, setShowMobileTools] = useState(false);
   const [showCreatePollModal, setShowCreatePollModal] = useState(false);
   const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
-  const [showSaveRecordingsModal, setShowSaveRecordingsModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [activeGuest, setActiveGuest] = useState<{
     userId: string;
@@ -134,37 +132,11 @@ export default function BroadcastStudioPage() {
     isVisible: showPrivateTips,
   });
 
-  // Watermark config (shared by recorder + clipper)
+  // Watermark config for clipper
   const clipWatermark = useMemo(() =>
     currentUsername ? { logoUrl: '/images/digis-logo-white.png', creatorUsername: currentUsername } : undefined,
     [currentUsername]
   );
-
-  // Stream recording hook
-  const {
-    isRecording,
-    recordings,
-    currentDuration,
-    formattedDuration,
-    maxDuration,
-    maxRecordings,
-    remainingRecordings,
-    startRecording,
-    stopRecording,
-    formatDuration: formatRecordingDuration,
-  } = useStreamRecorder({
-    maxDuration: 1800,
-    maxRecordings: 20,
-    watermark: clipWatermark,
-    onRecordingComplete: (recording) => {
-      const mins = Math.floor(recording.duration / 60);
-      const secs = recording.duration % 60;
-      showSuccess(`Recording saved! ${mins}:${secs.toString().padStart(2, '0')}`);
-    },
-    onError: (error) => {
-      showError(error);
-    },
-  });
 
   // Stream end handling hook
   const {
@@ -185,12 +157,10 @@ export default function BroadcastStudioPage() {
     viewerCount,
     totalEarnings,
     formatDuration,
-    recordings,
     showError,
     setToken,
     setHasManuallyEnded,
     setShowEndConfirm,
-    setShowSaveRecordingsModal,
     setShowStreamSummary,
     setAnnouncedTicketedStream: (s) => setAnnouncedTicketedStream(s),
   });
@@ -363,11 +333,6 @@ export default function BroadcastStudioPage() {
         showSaveStreamModal={showSaveStreamModal}
         setShowSaveStreamModal={setShowSaveStreamModal}
         showSuccess={showSuccess}
-        showSaveRecordingsModal={showSaveRecordingsModal}
-        setShowSaveRecordingsModal={setShowSaveRecordingsModal}
-        setShowStreamSummary={setShowStreamSummary}
-        recordings={recordings}
-        formatRecordingDuration={formatRecordingDuration}
         showAnnounceModal={showAnnounceModal}
         setShowAnnounceModal={setShowAnnounceModal}
         viewerCount={viewerCount}
@@ -403,13 +368,6 @@ export default function BroadcastStudioPage() {
             totalEarnings={totalEarnings}
             activeGuest={activeGuest}
             setActiveGuest={setActiveGuest}
-            isRecording={isRecording}
-            formattedDuration={formattedDuration}
-            maxDuration={maxDuration}
-            recordings={recordings}
-            maxRecordings={maxRecordings}
-            startRecording={startRecording}
-            stopRecording={stopRecording}
             clipIsSupported={clipIsSupported}
             canClip={canClip}
             clipIsClipping={clipIsClipping}
@@ -436,7 +394,6 @@ export default function BroadcastStudioPage() {
             setShowAnnounceModal={setShowAnnounceModal}
             handleToggleMenu={handleToggleMenu}
             menuEnabled={menuEnabled}
-            isRecordingActive={isRecording}
             setIsLeaveAttempt={setIsLeaveAttempt}
             setShowEndConfirm={setShowEndConfirm}
             setShowQRCode={setShowQRCode}
@@ -444,7 +401,6 @@ export default function BroadcastStudioPage() {
             setShowMobileTools={setShowMobileTools}
             currentUsername={currentUsername}
             showStreamSummary={showStreamSummary}
-            showSaveRecordingsModal={showSaveRecordingsModal}
             showEndConfirm={showEndConfirm}
             setError={setError}
             fetchBroadcastToken={fetchBroadcastToken}

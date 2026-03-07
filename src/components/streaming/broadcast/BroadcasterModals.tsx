@@ -7,11 +7,9 @@ import { StreamEndConfirmationModal } from '@/components/streaming/StreamEndConf
 import { VipShowChoiceModal } from '@/components/streaming/VipShowChoiceModal';
 import { CreatePollModal } from '@/components/streaming/CreatePollModal';
 import { CreateCountdownModal } from '@/components/streaming/CreateCountdownModal';
-import { SaveRecordingsModal } from '@/components/streaming/SaveRecordingsModal';
 import { AnnounceTicketedStreamModal } from '@/components/streaming/AnnounceTicketedStreamModal';
 import { RemoteControlQRModal } from '@/components/streaming/broadcast/RemoteControlQRModal';
 import type { StreamGoal, Stream } from '@/db/schema';
-import type { StreamRecording } from '@/hooks/useStreamRecorder';
 
 interface BroadcasterModalsProps {
   streamId: string;
@@ -51,12 +49,6 @@ interface BroadcasterModalsProps {
   showSaveStreamModal: boolean;
   setShowSaveStreamModal: React.Dispatch<React.SetStateAction<boolean>>;
   showSuccess: (msg: string) => void;
-  // Save recordings modal
-  showSaveRecordingsModal: boolean;
-  setShowSaveRecordingsModal: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowStreamSummary: React.Dispatch<React.SetStateAction<boolean>>;
-  recordings: StreamRecording[];
-  formatRecordingDuration: (seconds: number) => string;
   // Announce modal
   showAnnounceModal: boolean;
   setShowAnnounceModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -98,11 +90,6 @@ export function BroadcasterModals({
   showSaveStreamModal,
   setShowSaveStreamModal,
   showSuccess,
-  showSaveRecordingsModal,
-  setShowSaveRecordingsModal,
-  setShowStreamSummary,
-  recordings,
-  formatRecordingDuration,
   showAnnounceModal,
   setShowAnnounceModal,
   viewerCount,
@@ -189,24 +176,6 @@ export function BroadcasterModals({
             console.log('Stream saved as VOD:', vodId);
             showSuccess('Stream saved! You can find it in your VOD library.');
           }}
-        />
-      )}
-
-      {/* Save Recordings Modal */}
-      {showSaveRecordingsModal && recordings.length > 0 && (
-        <SaveRecordingsModal
-          recordings={recordings}
-          streamId={streamId}
-          onClose={() => {
-            setShowSaveRecordingsModal(false);
-            setShowStreamSummary(true);
-          }}
-          onSaveComplete={() => {
-            setShowSaveRecordingsModal(false);
-            setShowStreamSummary(true);
-            showSuccess('Recordings saved! They will appear in your Streams tab.');
-          }}
-          formatDuration={formatRecordingDuration}
         />
       )}
 

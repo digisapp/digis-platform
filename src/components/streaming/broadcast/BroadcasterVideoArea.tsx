@@ -7,7 +7,6 @@ import { StreamErrorBoundary } from '@/components/error-boundaries';
 import { ViewerList } from '@/components/streaming/ViewerList';
 import { StreamHealthIndicator } from '@/components/streaming/StreamHealthIndicator';
 import { MobileToolsPanel } from '@/components/streaming/MobileToolsPanel';
-import { StreamRecordButton } from '@/components/streaming/StreamRecordButton';
 import { StreamClipButton } from '@/components/streaming/StreamClipButton';
 import { StreamPoll } from '@/components/streaming/StreamPoll';
 import { StreamCountdown } from '@/components/streaming/StreamCountdown';
@@ -25,7 +24,6 @@ import { BeautyFilterToggle } from '@/components/beauty-filter/BeautyFilterToggl
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Coins, Target, Ticket, List, BarChart2, Clock, Smartphone, Monitor } from 'lucide-react';
 import type { StreamGoal } from '@/db/schema';
-import type { StreamRecording } from '@/hooks/useStreamRecorder';
 
 interface ActiveGuest {
   userId: string;
@@ -56,14 +54,7 @@ interface BroadcasterVideoAreaProps {
   totalEarnings: number;
   activeGuest: ActiveGuest | null;
   setActiveGuest: React.Dispatch<React.SetStateAction<ActiveGuest | null>>;
-  // Recording & Clips
-  isRecording: boolean;
-  formattedDuration: string;
-  maxDuration: number;
-  recordings: StreamRecording[];
-  maxRecordings: number;
-  startRecording: () => void;
-  stopRecording: () => void;
+  // Clips
   clipIsSupported: boolean;
   canClip: boolean;
   clipIsClipping: boolean;
@@ -95,7 +86,6 @@ interface BroadcasterVideoAreaProps {
   handleToggleMenu: () => Promise<void>;
   menuEnabled: boolean;
   // End stream
-  isRecordingActive: boolean;
   setIsLeaveAttempt: React.Dispatch<React.SetStateAction<boolean>>;
   setShowEndConfirm: React.Dispatch<React.SetStateAction<boolean>>;
   // QR
@@ -106,7 +96,6 @@ interface BroadcasterVideoAreaProps {
   // Watermark
   currentUsername: string | null;
   showStreamSummary: boolean;
-  showSaveRecordingsModal: boolean;
   showEndConfirm: boolean;
   // Error retry
   setError: React.Dispatch<React.SetStateAction<string>>;
@@ -177,13 +166,6 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
   totalEarnings,
   activeGuest,
   setActiveGuest,
-  isRecording,
-  formattedDuration,
-  maxDuration,
-  recordings,
-  maxRecordings,
-  startRecording,
-  stopRecording,
   clipIsSupported,
   canClip,
   clipIsClipping,
@@ -210,7 +192,6 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
   setShowAnnounceModal,
   handleToggleMenu,
   menuEnabled,
-  isRecordingActive,
   setIsLeaveAttempt,
   setShowEndConfirm,
   setShowQRCode,
@@ -218,7 +199,6 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
   setShowMobileTools,
   currentUsername,
   showStreamSummary,
-  showSaveRecordingsModal,
   showEndConfirm,
   setError,
   fetchBroadcastToken,
@@ -364,19 +344,10 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               )}
             </div>
 
-            {/* Mobile Second Row - Record, Clip, End Stream */}
+            {/* Mobile Second Row - Clip, End Stream */}
             <div className="absolute top-14 left-3 right-3 z-20 md:hidden">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <StreamRecordButton
-                    isRecording={isRecording}
-                    currentDuration={formattedDuration}
-                    maxDuration={maxDuration}
-                    recordingsCount={recordings.length}
-                    maxRecordings={maxRecordings}
-                    onStartRecording={startRecording}
-                    onStopRecording={stopRecording}
-                  />
                   {clipIsSupported && (
                     <StreamClipButton
                       canClip={canClip}
@@ -391,9 +362,6 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
 
                 <button
                   onClick={() => {
-                    if (isRecordingActive) {
-                      stopRecording();
-                    }
                     setIsLeaveAttempt(false);
                     setShowEndConfirm(true);
                   }}
@@ -527,18 +495,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               </div>
             )}
 
-            {/* Desktop Record + Clip + End Stream Buttons */}
+            {/* Desktop Clip + End Stream Buttons */}
             <div className="absolute bottom-3 left-3 z-20 hidden md:flex flex-row items-center gap-2">
-              <StreamRecordButton
-                isRecording={isRecording}
-                currentDuration={formattedDuration}
-                maxDuration={maxDuration}
-                recordingsCount={recordings.length}
-                maxRecordings={maxRecordings}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-              />
-
               {clipIsSupported && (
                 <StreamClipButton
                   canClip={canClip}
@@ -551,9 +509,6 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
 
               <button
                 onClick={() => {
-                  if (isRecordingActive) {
-                    stopRecording();
-                  }
                   setIsLeaveAttempt(false);
                   setShowEndConfirm(true);
                 }}
@@ -568,7 +523,7 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
             </div>
 
             {/* Username Watermark */}
-            {!showStreamSummary && !showSaveRecordingsModal && !showEndConfirm && currentUsername && (
+            {!showStreamSummary && !showEndConfirm && currentUsername && (
               <div className="absolute bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                 <span
                   className="text-lg md:text-xl font-semibold tracking-wide whitespace-nowrap font-[family-name:var(--font-poppins)]"

@@ -39,12 +39,10 @@ interface UseStreamEndHandlingParams {
   viewerCount: number;
   totalEarnings: number;
   formatDuration: () => string;
-  recordings: Array<unknown>;
   showError: (msg: string) => void;
   setToken: (token: string) => void;
   setHasManuallyEnded: (ended: boolean) => void;
   setShowEndConfirm: (show: boolean) => void;
-  setShowSaveRecordingsModal: (show: boolean) => void;
   setShowStreamSummary: (show: boolean) => void;
   setAnnouncedTicketedStream: (stream: null) => void;
 }
@@ -57,12 +55,10 @@ export function useStreamEndHandling({
   viewerCount,
   totalEarnings,
   formatDuration,
-  recordings,
   showError,
   setToken,
   setHasManuallyEnded,
   setShowEndConfirm,
-  setShowSaveRecordingsModal,
   setShowStreamSummary,
   setAnnouncedTicketedStream,
 }: UseStreamEndHandlingParams) {
@@ -174,11 +170,7 @@ export function useStreamEndHandling({
         setShowEndConfirm(false);
         setShowVipEndChoice(false);
 
-        if (recordings.length > 0) {
-          setShowSaveRecordingsModal(true);
-        } else {
-          setShowStreamSummary(true);
-        }
+        setShowStreamSummary(true);
       } else {
         const data = await response.json();
         showError(data.error || 'Failed to end stream');
