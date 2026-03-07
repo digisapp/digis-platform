@@ -348,7 +348,7 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                   setIsLeaveAttempt(false);
                   setShowEndConfirm(true);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
+                className="flex items-center gap-1.5 px-4 py-3 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
               >
                 <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

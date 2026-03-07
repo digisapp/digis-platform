@@ -71,21 +71,12 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
-      'video/mp4', // Safari — plain format avoids constructor errors
+      'video/mp4',
     ];
 
     for (const mimeType of mimeTypes) {
       if (MediaRecorder.isTypeSupported(mimeType)) {
-        // Double-check by attempting to construct (Safari workaround)
-        try {
-          const testStream = new MediaStream();
-          const testRecorder = new MediaRecorder(testStream, { mimeType });
-          testRecorder.stop();
-          return mimeType;
-        } catch {
-          // This mimeType throws in constructor, skip it
-          continue;
-        }
+        return mimeType;
       }
     }
     return '';
@@ -132,11 +123,19 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       currentChunksRef.current = [];
       segmentStartRef.current = Date.now();
 
-      const recorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: 4_000_000,
-        audioBitsPerSecond: 128_000,
-      });
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, {
+          mimeType,
+          videoBitsPerSecond: 4_000_000,
+          audioBitsPerSecond: 128_000,
+        });
+      } catch {
+        // MIME type failed with real stream (Safari workaround) — try without mimeType
+        console.warn('[StreamClipper] MIME type failed, falling back to default');
+        recorder = new MediaRecorder(stream);
+        mimeTypeRef.current = recorder.mimeType || 'video/mp4';
+      }
 
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {

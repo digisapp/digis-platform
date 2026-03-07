@@ -84,9 +84,17 @@ export default function BecomeCreatorPage() {
       {/* Creator Types */}
       <div className="relative z-10 px-4 pt-12 md:pt-20 pb-20">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-5xl font-bold text-white text-center mb-12">
-            Turn your audience into income
-          </h1>
+          <div className="text-center mb-12">
+            <h1 className="text-2xl md:text-4xl font-bold text-white mb-4">
+              <span className="text-yellow-400">Usernames are first come, first serve</span> — the good ones are going fast!
+            </h1>
+            <button
+              onClick={handleApplyClick}
+              className="mt-4 px-12 py-5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
+            >
+              Claim Your Spot
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Models & Influencers */}
             <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border border-white/10 hover:border-pink-500/30 transition-all">
@@ -145,23 +153,6 @@ export default function BecomeCreatorPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div className="relative z-10 px-4 pb-16">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 mb-8">
-            <p className="text-white/90 text-lg">
-              <span className="font-bold text-yellow-400">Usernames are first come, first serve</span> — the good ones are going fast!
-            </p>
-          </div>
-          <button
-            onClick={handleApplyClick}
-            className="group px-12 py-5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold text-xl hover:scale-105 hover:shadow-[0_0_60px_rgba(168,85,247,0.7)] transition-all duration-300"
-          >
-            Claim Your Spot
-          </button>
         </div>
       </div>
 
