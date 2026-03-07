@@ -57,7 +57,7 @@ export default function CreatorDashboard() {
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
 
-          <h1 className="text-2xl font-bold text-white mb-4">Dashboard</h1>
+          <h1 className="hidden md:block text-2xl font-bold text-white mb-4">Dashboard</h1>
 
           {/* Pending Orders Hero Card */}
           {d.pendingOrders.length > 0 && (

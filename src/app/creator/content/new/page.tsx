@@ -559,15 +559,8 @@ export default function CreateContentPage() {
                       </div>
                       <div>
                         <p className="text-white font-semibold text-lg mb-1">Drop files here or click to browse</p>
-                        <p className="text-sm text-gray-400 mb-1">Photos, videos, or select multiple for a gallery</p>
-                        <p className="text-xs text-gray-500 mb-3">Videos up to 300MB · Images up to 50MB</p>
-                        <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                          <span className="flex items-center gap-1.5"><Image className="w-3.5 h-3.5" /> Photo</span>
-                          <span className="text-gray-700">·</span>
-                          <span className="flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Video</span>
-                          <span className="text-gray-700">·</span>
-                          <span className="flex items-center gap-1.5"><Grid3x3 className="w-3.5 h-3.5" /> Gallery</span>
-                        </div>
+                        <p className="text-sm text-gray-400 mb-1">Photos, videos, or select multiple</p>
+                        <p className="text-xs text-gray-500">Videos up to 300MB · Images up to 50MB</p>
                       </div>
                     </div>
                     <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} className="hidden" />
@@ -584,34 +577,17 @@ export default function CreateContentPage() {
               <GlassCard className="p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">2</div>
-                  <h3 className="text-base font-semibold text-white">Title & description</h3>
+                  <h3 className="text-base font-semibold text-white">Title</h3>
                 </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-1.5">
-                      Title <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="Give your content a catchy title"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-1.5">
-                      Description <span className="text-gray-500 font-normal text-xs">(optional)</span>
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Describe what fans will get..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors resize-none"
-                    />
-                  </div>
+                <div>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Give your content a catchy title"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-digis-cyan transition-colors"
+                    required
+                  />
                 </div>
               </GlassCard>
 
@@ -708,9 +684,6 @@ export default function CreateContentPage() {
                 </span>
               </GlassButton>
 
-              {!hasContent && (
-                <p className="text-xs text-gray-500 text-center">Upload a file on the left to enable posting</p>
-              )}
             </div>
 
           </div>
