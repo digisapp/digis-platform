@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Stream not found' }, { status: 404 });
     }
 
+    // Only the stream creator can save clips to their profile
+    if (user.id !== stream.creatorId) {
+      return NextResponse.json({ error: 'Only the stream creator can save clips' }, { status: 403 });
+    }
+
     // Rate limit: max 1 clip per 30 seconds per stream (global cooldown)
     const recentClip = await db.query.clips.findFirst({
       where: and(
@@ -157,9 +162,7 @@ export async function POST(request: NextRequest) {
       streamId: streamId,
       vodId: null,
       title,
-      description: user.id === stream.creatorId
-        ? 'Clipped live by creator'
-        : 'Clipped live by viewer',
+      description: 'Clipped live by creator',
       videoUrl: publicUrl,
       duration: Math.min(duration, 30),
       startTime: 0,

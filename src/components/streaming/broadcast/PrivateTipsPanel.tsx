@@ -132,7 +132,7 @@ export function PrivateTipsButton({ onClick, tipCount, hasNewTips }: PrivateTips
   return (
     <button
       onClick={onClick}
-      className={`fixed bottom-24 right-4 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
+      className={`fixed top-16 md:bottom-24 md:top-auto right-4 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
         tipCount > 0
           ? 'bg-gradient-to-r from-cyan-500 to-purple-500 text-white'
           : 'bg-white/10 text-white/60 border border-white/20 backdrop-blur-xl'

@@ -268,7 +268,7 @@ export function useViewerInteractions({
     }
   }, [stream?.title, stream?.creator.displayName, stream?.creator.username, showSuccess, showError]);
 
-  // Create clip
+  // Create clip — download-only for viewers (no server upload to creator profile)
   const handleCreateClip = useCallback(async () => {
     if (!currentUser) {
       showInfo('Sign in to create clips');
@@ -281,27 +281,9 @@ export function useViewerInteractions({
 
     setClipIsClipping(true);
     try {
-      const formData = new FormData();
       const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-      formData.append('video', blob, `clip-${Date.now()}.${ext}`);
-      formData.append('title', `Live Clip - ${stream?.title || 'Stream'}`);
-      formData.append('streamId', streamId);
-      formData.append('duration', String(Math.min(clipBufferSeconds, 30)));
-      if (stream?.creator?.username) {
-        formData.append('creatorUsername', stream.creator.username);
-      }
 
-      const response = await fetch('/api/clips/live', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to create clip');
-      }
-
-      // Trigger instant download of the clip from the in-memory blob
+      // Download clip locally (viewers don't publish to creator's profile)
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
@@ -318,7 +300,7 @@ export function useViewerInteractions({
     } finally {
       setClipIsClipping(false);
     }
-  }, [currentUser, clipIt, clipBufferSeconds, streamId, stream?.title, showSuccess, showError, showInfo, router, setClipIsClipping]);
+  }, [currentUser, clipIt, streamId, stream?.title, showSuccess, showError, showInfo, router, setClipIsClipping]);
 
   return {
     messageInput,
