@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       exclude: ['error', 'warn'],
     } : false,
   },
+  serverExternalPackages: ['@ffmpeg-installer/ffmpeg'],
   experimental: {
     serverActions: {
       bodySizeLimit: '100mb',
