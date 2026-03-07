@@ -328,7 +328,7 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                     />
                   </div>
                   <div className="absolute top-3 right-3 z-30 md:hidden flex items-center gap-2">
-                    <BeautyFilterToggle variant="toolbar" />
+                    <BeautyFilterToggle variant="toolbar" openBelow />
                     <CameraFlipControl
                       facingMode={facingMode}
                       onFacingModeChange={setFacingMode}

@@ -8,6 +8,8 @@ interface BeautyFilterPopoverProps {
   settings: BeautyFilterSettings;
   onSettingsChange: (settings: BeautyFilterSettings) => void;
   onClose: () => void;
+  /** Position the popover below the button instead of above */
+  openBelow?: boolean;
 }
 
 function Slider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
@@ -30,10 +32,14 @@ function Slider({ label, value, onChange }: { label: string; value: number; onCh
   );
 }
 
-export function BeautyFilterPopover({ settings, onSettingsChange, onClose }: BeautyFilterPopoverProps) {
+export function BeautyFilterPopover({ settings, onSettingsChange, onClose, openBelow }: BeautyFilterPopoverProps) {
   return (
     <div
-      className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-gray-900 rounded-xl border border-white/10 p-3 shadow-xl"
+      className={`absolute w-56 bg-gray-900 rounded-xl border border-white/10 p-3 shadow-xl z-[100] ${
+        openBelow
+          ? 'top-full mt-2 right-0'
+          : 'bottom-full mb-2 left-1/2 -translate-x-1/2'
+      }`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-3">

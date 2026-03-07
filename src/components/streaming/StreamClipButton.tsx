@@ -69,7 +69,7 @@ export function StreamClipButton({
       <button
         onClick={onClip}
         disabled={!canClip}
-        className={`flex items-center justify-center min-w-[44px] min-h-[44px] p-2.5 backdrop-blur-xl rounded-full border transition-all active:scale-95 ${
+        className={`flex items-center justify-center gap-1 min-w-[44px] min-h-[44px] p-2.5 backdrop-blur-xl rounded-full border transition-all active:scale-95 ${
           canClip
             ? 'bg-white/10 border-white/30 text-white hover:bg-green-500/20 hover:border-green-500/50'
             : 'bg-white/5 border-white/10 text-gray-500 cursor-not-allowed'
@@ -82,6 +82,9 @@ export function StreamClipButton({
         aria-label={canClip ? `Clip last ${bufferSeconds} seconds` : 'Clip not available'}
       >
         <Scissors className={`w-5 h-5 ${canClip ? 'text-green-400' : 'text-gray-600'}`} />
+        {!canClip && bufferSeconds < 1 && (
+          <span className="text-[9px] text-gray-500 font-medium">...</span>
+        )}
       </button>
     );
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { StreamChat } from '@/components/streaming/StreamChat';
@@ -90,7 +90,7 @@ export default function BroadcastStudioPage() {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
   const [showPrivateTips, setShowPrivateTips] = useState(false);
-  const [showMobileTools, setShowMobileTools] = useState(true);
+  const [showMobileTools, setShowMobileTools] = useState(false);
   const [showCreatePollModal, setShowCreatePollModal] = useState(false);
   const [showCreateCountdownModal, setShowCreateCountdownModal] = useState(false);
   const [showSaveRecordingsModal, setShowSaveRecordingsModal] = useState(false);
@@ -110,7 +110,20 @@ export default function BroadcastStudioPage() {
   });
   const { celebratingGoal, completedGoalsQueue, addCompletedGoal } = useGoalCelebrations();
   const { isPortraitDevice, isLandscape, isSafari } = useDeviceOrientation();
-  const { currentTime, formattedDuration: liveDuration, formatDuration } = useStreamDuration(stream?.startedAt);
+
+  // Use the moment LiveKit connects as the display timer start (not DB startedAt)
+  // This avoids showing 5+ seconds elapsed before the broadcaster even sees video
+  const connectedAtRef = useRef<Date | null>(null);
+  const [connectedAt, setConnectedAt] = useState<Date | null>(null);
+  useEffect(() => {
+    if (connectionStatus === 'connected' && !connectedAtRef.current) {
+      const now = new Date();
+      connectedAtRef.current = now;
+      setConnectedAt(now);
+    }
+  }, [connectionStatus]);
+
+  const { currentTime, formattedDuration: liveDuration, formatDuration } = useStreamDuration(connectedAt ?? stream?.startedAt);
 
   useStreamHeartbeat({ streamId, isLive: !!stream && stream.status === 'live' });
   useStreamAutoEnd({ streamId, isLive: !!stream && stream.status === 'live', hasManuallyEnded });

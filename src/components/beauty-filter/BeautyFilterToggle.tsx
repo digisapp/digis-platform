@@ -8,9 +8,11 @@ import { BeautyFilterPopover } from './BeautyFilterPopover';
 interface BeautyFilterToggleProps {
   /** Button style variant */
   variant?: 'toolbar' | 'control';
+  /** Open popover below the button (for top-positioned buttons) */
+  openBelow?: boolean;
 }
 
-export function BeautyFilterToggle({ variant = 'toolbar' }: BeautyFilterToggleProps) {
+export function BeautyFilterToggle({ variant = 'toolbar', openBelow }: BeautyFilterToggleProps) {
   const { enabled, settings, toggle, updateSettings, supported } = useBeautyFilter();
   const [showPopover, setShowPopover] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +98,7 @@ export function BeautyFilterToggle({ variant = 'toolbar' }: BeautyFilterTogglePr
           settings={settings}
           onSettingsChange={updateSettings}
           onClose={() => setShowPopover(false)}
+          openBelow={openBelow}
         />
       )}
     </div>

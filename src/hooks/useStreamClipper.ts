@@ -94,6 +94,7 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
+      'video/mp4;codecs=avc1',
       'video/mp4',
     ];
 
