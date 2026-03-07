@@ -341,19 +341,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               )}
             </div>
 
-            {/* Mobile Bottom Left - Clip + End Stream (above MobileToolsPanel) */}
-            <div className="absolute bottom-[4.5rem] left-3 z-20 md:hidden flex items-center gap-2">
-              {clipIsSupported && (
-                <StreamClipButton
-                  canClip={canClip}
-                  isClipping={clipIsClipping}
-                  bufferSeconds={clipBufferSeconds}
-                  cooldownRemaining={clipCooldownRemaining}
-                  onClip={handleCreateClip}
-                  compact
-                />
-              )}
-
+            {/* Mobile Bottom Right - End Stream */}
+            <div className="absolute right-3 z-50 md:hidden" style={{ bottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <button
                 onClick={() => {
                   setIsLeaveAttempt(false);
@@ -454,8 +443,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               </div>
             </div>
 
-            {/* Mobile Bottom Tools */}
-            <div className="absolute left-3 z-50 md:hidden" style={{ bottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
+            {/* Mobile Bottom Left - Tools + Clip */}
+            <div className="absolute left-3 z-50 md:hidden flex items-center gap-2" style={{ bottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <MobileToolsPanel
                 showMobileTools={showMobileTools}
                 onToggle={setShowMobileTools}
@@ -471,6 +460,16 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
                 onCountdownClick={() => setShowCreateCountdownModal(true)}
                 onVipClick={() => setShowAnnounceModal(true)}
               />
+              {clipIsSupported && (
+                <StreamClipButton
+                  canClip={canClip}
+                  isClipping={clipIsClipping}
+                  bufferSeconds={clipBufferSeconds}
+                  cooldownRemaining={clipCooldownRemaining}
+                  onClip={handleCreateClip}
+                  compact
+                />
+              )}
             </div>
 
             {/* VIP Show Indicator */}

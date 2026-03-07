@@ -111,9 +111,9 @@ export default function GoLivePage() {
           </button>
         )}
 
-        {/* Stats + Use Last Settings */}
+        {/* Stats + Use Last Settings (desktop only) */}
         {data.recentStats.totalStreams > 0 && (
-          <div className="flex flex-wrap items-center gap-3 md:gap-6 text-sm mb-8">
+          <div className="hidden md:flex flex-wrap items-center gap-6 text-sm mb-8">
             <div className="backdrop-blur-xl bg-white/5 rounded-lg px-4 py-2 border border-cyan-500/30">
               <span className="text-gray-300">Avg Viewers:</span>
               <span className="ml-2 font-bold text-cyan-400">{data.recentStats.avgViewers}</span>
@@ -198,6 +198,9 @@ export default function GoLivePage() {
               setFeaturedCreators={data.setFeaturedCreators}
               featuredCreatorCommission={data.featuredCreatorCommission}
               setFeaturedCreatorCommission={data.setFeaturedCreatorCommission}
+              hasAiTwin={data.hasAiTwin}
+              aiChatModEnabled={data.aiChatModEnabled}
+              setAiChatModEnabled={data.setAiChatModEnabled}
             />
 
             {/* Right Column: Device Preview or RTMP Info */}
@@ -218,9 +221,6 @@ export default function GoLivePage() {
                 selectedAudioDevice={devices.selectedAudioDevice}
                 setSelectedAudioDevice={devices.setSelectedAudioDevice}
                 audioLevel={devices.audioLevel}
-                hasAiTwin={data.hasAiTwin}
-                aiChatModEnabled={data.aiChatModEnabled}
-                setAiChatModEnabled={data.setAiChatModEnabled}
                 onInitializeDevices={devices.initializeDevices}
                 onTapToPlay={devices.handleTapToPlay}
                 onShowStreamingTips={() => data.setShowStreamingTipsModal(true)}

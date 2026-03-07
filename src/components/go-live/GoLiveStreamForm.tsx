@@ -30,6 +30,9 @@ interface GoLiveStreamFormProps {
   setFeaturedCreators: (v: FeaturedCreator[]) => void;
   featuredCreatorCommission: number;
   setFeaturedCreatorCommission: (v: number) => void;
+  hasAiTwin: boolean;
+  aiChatModEnabled: boolean;
+  setAiChatModEnabled: (v: boolean) => void;
 }
 
 export function GoLiveStreamForm({
@@ -43,6 +46,7 @@ export function GoLiveStreamForm({
   defaultCallSettings,
   featuredCreators, setFeaturedCreators,
   featuredCreatorCommission, setFeaturedCreatorCommission,
+  hasAiTwin, aiChatModEnabled, setAiChatModEnabled,
 }: GoLiveStreamFormProps) {
   return (
     <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-cyan-500/30 p-6 md:p-8 space-y-3 md:space-y-4 hover:border-cyan-500/50 transition-all duration-300 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
@@ -200,6 +204,37 @@ export function GoLiveStreamForm({
           </div>
         )}
       </div>
+
+      {/* AI Chat Moderator */}
+      {hasAiTwin && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-semibold text-white">
+              🤖 AI Chat Moderator
+            </label>
+            <div className="group relative">
+              <HelpCircle className="w-4 h-4 text-gray-400 hover:text-cyan-400 cursor-help" />
+              <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-black/90 border border-white/10 rounded-lg text-xs text-gray-300 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                Your AI Twin greets viewers, answers questions, and thanks gifters automatically.
+              </div>
+            </div>
+          </div>
+          <div className="p-3 rounded-xl border-2 border-cyan-500/30 bg-cyan-500/5 flex items-center justify-between">
+            <span className="text-sm text-white">Enable during stream</span>
+            <button
+              type="button"
+              onClick={() => setAiChatModEnabled(!aiChatModEnabled)}
+              className={`relative w-12 h-6 rounded-full transition-colors ${
+                aiChatModEnabled ? 'bg-cyan-500' : 'bg-gray-600'
+              }`}
+            >
+              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                aiChatModEnabled ? 'translate-x-7' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Privacy Settings */}
       <div>
