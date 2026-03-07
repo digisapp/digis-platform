@@ -635,7 +635,7 @@ function MarketingPage({
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events'].map((feature, index) => (
+              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events', 'Virtual Gifts', 'Digitals'].map((feature, index) => (
                 <span
                   key={feature}
                   className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium animate-fade-in-up hover:bg-white/20 hover:border-white/30 transition-all cursor-default"
