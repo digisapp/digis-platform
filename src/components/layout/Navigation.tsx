@@ -493,20 +493,6 @@ export function Navigation() {
 
                   <button
                     onClick={() => {
-                      router.push('/creator/recordings');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98 border-t border-cyan-500/20"
-                    style={{ minHeight: '56px' }}
-                  >
-                    <svg className="w-6 h-6 md:w-5 md:h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                    </svg>
-                    <span className="text-base md:text-sm text-white font-semibold">Recordings</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
                       router.push('/creator/ai-twin');
                       setShowProfileMenu(false);
                     }}

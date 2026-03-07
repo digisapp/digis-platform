@@ -177,10 +177,11 @@ export default function ContentDetailPage() {
 
           {/* Right: Content Info */}
           <div className="space-y-6">
-            {/* Creator Info */}
-            <GlassCard className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center">
+            {/* Content Details */}
+            <GlassCard className="p-4 sm:p-6">
+              {/* Creator Info */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center flex-shrink-0">
                   {content.creator.avatarUrl ? (
                     <img
                       src={content.creator.avatarUrl}
@@ -188,27 +189,22 @@ export default function ContentDetailPage() {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-white text-2xl font-bold">
+                    <span className="text-white text-sm font-bold">
                       {(content.creator.displayName || content.creator.username)?.[0]?.toUpperCase() || '?'}
                     </span>
                   )}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xl font-bold text-white">
-                      {content.creator.displayName || content.creator.username}
-                    </h3>
-                    {content.creator.isCreatorVerified && (
-                      <span className="text-digis-cyan text-xl">✓</span>
-                    )}
-                  </div>
-                  <p className="text-gray-400 text-sm">@{content.creator.username}</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-white font-semibold text-sm">
+                    {content.creator.displayName || content.creator.username}
+                  </span>
+                  {content.creator.isCreatorVerified && (
+                    <span className="text-digis-cyan text-sm">✓</span>
+                  )}
+                  <span className="text-gray-500 text-sm">@{content.creator.username}</span>
                 </div>
               </div>
-            </GlassCard>
 
-            {/* Content Details */}
-            <GlassCard className="p-4 sm:p-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4">{content.title}</h1>
 
               {content.description && (

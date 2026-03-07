@@ -210,8 +210,8 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
         className={`bg-black rounded-2xl overflow-hidden border-2 border-white/10 relative ${
           streamOrientation === 'portrait'
             ? isLandscape
-              ? 'h-[calc(100dvh-120px)] w-auto mx-auto aspect-[9/16]'
-              : 'aspect-[9/16] max-h-[80dvh] sm:max-h-[70dvh]'
+              ? 'h-[calc(100svh-120px)] w-auto mx-auto aspect-[9/16]'
+              : 'aspect-[9/16] max-h-[80svh] sm:max-h-[70svh]'
             : 'aspect-video'
         }`}
         data-lk-video-container
