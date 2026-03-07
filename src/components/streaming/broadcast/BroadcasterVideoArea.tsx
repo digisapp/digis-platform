@@ -341,36 +341,32 @@ export const BroadcasterVideoArea = memo(function BroadcasterVideoArea({
               )}
             </div>
 
-            {/* Mobile Second Row - Clip, End Stream */}
-            <div className="absolute top-14 left-3 right-3 z-20 md:hidden">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {clipIsSupported && (
-                    <StreamClipButton
-                      canClip={canClip}
-                      isClipping={clipIsClipping}
-                      bufferSeconds={clipBufferSeconds}
-                      cooldownRemaining={clipCooldownRemaining}
-                      onClip={handleCreateClip}
-                      compact
-                    />
-                  )}
-                </div>
+            {/* Mobile Bottom Left - Clip + End Stream */}
+            <div className="absolute bottom-3 left-3 z-20 md:hidden flex items-center gap-2">
+              {clipIsSupported && (
+                <StreamClipButton
+                  canClip={canClip}
+                  isClipping={clipIsClipping}
+                  bufferSeconds={clipBufferSeconds}
+                  cooldownRemaining={clipCooldownRemaining}
+                  onClip={handleCreateClip}
+                  compact
+                />
+              )}
 
-                <button
-                  onClick={() => {
-                    setIsLeaveAttempt(false);
-                    setShowEndConfirm(true);
-                  }}
-                  className="flex items-center gap-1.5 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
-                >
-                  <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                  </svg>
-                  <span className="text-red-400 text-sm font-semibold">End</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setIsLeaveAttempt(false);
+                  setShowEndConfirm(true);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2.5 backdrop-blur-xl bg-red-500/20 rounded-full border border-red-500/50 text-white font-semibold hover:bg-red-500/30 transition-all"
+              >
+                <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+                <span className="text-red-400 text-sm font-semibold">End</span>
+              </button>
             </div>
 
             {/* Top Right Overlay - Desktop buttons */}

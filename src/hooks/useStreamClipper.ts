@@ -63,17 +63,29 @@ export function useStreamClipper(options: UseStreamClipperOptions = {}) {
   const getSelectedMimeType = useCallback((): string => {
     if (typeof MediaRecorder === 'undefined') return '';
 
+    // Order: prefer WebM (desktop), then MP4 (iOS/Safari)
+    // Safari may report isTypeSupported=true for codec strings but throw
+    // "did not match the expected pattern" in the constructor, so we
+    // try plain formats first and only use codec params as fallback.
     const mimeTypes = [
       'video/webm;codecs=vp9,opus',
       'video/webm;codecs=vp8,opus',
       'video/webm',
-      'video/mp4;codecs=avc1',
-      'video/mp4',
+      'video/mp4', // Safari — plain format avoids constructor errors
     ];
 
     for (const mimeType of mimeTypes) {
       if (MediaRecorder.isTypeSupported(mimeType)) {
-        return mimeType;
+        // Double-check by attempting to construct (Safari workaround)
+        try {
+          const testStream = new MediaStream();
+          const testRecorder = new MediaRecorder(testStream, { mimeType });
+          testRecorder.stop();
+          return mimeType;
+        } catch {
+          // This mimeType throws in constructor, skip it
+          continue;
+        }
       }
     }
     return '';

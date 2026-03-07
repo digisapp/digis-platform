@@ -153,16 +153,16 @@ export function StreamHealthIndicator({ streamId }: StreamHealthIndicatorProps) 
     }
   };
 
-  return (
-    <div className="relative group">
-      {/* Simple colored circle */}
-      <div className={`w-3 h-3 rounded-full ${getDotColor()} shadow-lg ${healthStatus === 'disconnected' ? 'animate-pulse' : ''}`} />
+  // Only show when connection is degraded (fair/poor/disconnected)
+  // When excellent/good, no need to clutter the UI
+  if (healthStatus === 'excellent' || healthStatus === 'good') {
+    return null;
+  }
 
-      {/* Tooltip on hover */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 rounded-lg text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        {config.label}
-        {ping > 0 && <span className="text-gray-400 ml-1">({ping}ms)</span>}
-      </div>
+  return (
+    <div className={`flex items-center gap-1.5 px-2.5 py-1 backdrop-blur-xl ${config.bgColor} rounded-full border ${config.borderColor}`}>
+      <div className={`w-2.5 h-2.5 rounded-full ${getDotColor()} shadow-lg ${healthStatus === 'disconnected' ? 'animate-pulse' : ''}`} />
+      <span className={`${config.color} text-xs font-semibold`}>{config.label}</span>
     </div>
   );
 }
