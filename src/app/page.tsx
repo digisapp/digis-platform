@@ -625,12 +625,7 @@ function MarketingPage({
               what's your digis?
             </h1>
 
-            {/* Supporting subheadline */}
-            <p className="text-white/70 text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 md:mb-8 font-medium">
-              Connect with your favorite creators through live streams, video calls, chats, & content
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10 mt-6 md:mt-8">
               <Link
                 href="/become-creator"
                 className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse text-center"
@@ -640,7 +635,7 @@ function MarketingPage({
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events', 'Virtual Gifts', 'Digitals'].map((feature, index) => (
+              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events'].map((feature, index) => (
                 <span
                   key={feature}
                   className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium animate-fade-in-up hover:bg-white/20 hover:border-white/30 transition-all cursor-default"
@@ -652,12 +647,6 @@ function MarketingPage({
             </div>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-            <span className="text-white/50 text-xs font-medium tracking-wide uppercase">See how it works</span>
-            <div className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2">
-              <div className="w-1.5 h-3 bg-white/60 rounded-full animate-pulse" />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -807,9 +796,6 @@ function MarketingPage({
                 height={34}
                 className="h-8 w-auto opacity-60 mb-3"
               />
-              <p className="text-white/30 text-sm max-w-xs">
-                Connect with your favorite creators through live streams, video calls, chats, & content.
-              </p>
             </div>
 
             <div className="flex gap-10 text-sm">
