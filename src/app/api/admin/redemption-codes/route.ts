@@ -48,7 +48,7 @@ export const GET = withAdmin(async ({ request }) => {
   const batchStats = await db.select({
     batchName: redemptionCodes.batchName,
     total: sql<number>`count(*)`,
-    redeemed: sql<number>`count(*) filter (where ${redemptionCodes.isRedeemed} = true)`,
+    totalRedemptions: sql<number>`sum(${redemptionCodes.redemptionCount})`,
   })
     .from(redemptionCodes)
     .groupBy(redemptionCodes.batchName);
@@ -63,17 +63,17 @@ export const GET = withAdmin(async ({ request }) => {
 
 /**
  * POST /api/admin/redemption-codes
- * Generate a batch of unique codes
+ * Generate codes or create a single multi-use code
  *
- * Body: { count: number, coinAmount: number, batchName: string, expiresAt?: string }
+ * For multi-use (same code on every coin):
+ *   { code: "DIGIS-SHOW", coinAmount: 500, batchName: "LA Show", maxRedemptions: 200 }
+ *
+ * For unique codes (different code per coin):
+ *   { count: 200, coinAmount: 500, batchName: "LA Show" }
  */
 export const POST = withAdmin(async ({ request }) => {
   const body = await request.json();
-  const { count, coinAmount, batchName, expiresAt } = body;
-
-  if (!count || count < 1 || count > 1000) {
-    return NextResponse.json({ error: 'Count must be between 1 and 1000' }, { status: 400 });
-  }
+  const { code, count, coinAmount, batchName, maxRedemptions, expiresAt } = body;
 
   if (!coinAmount || coinAmount < 1) {
     return NextResponse.json({ error: 'Coin amount must be at least 1' }, { status: 400 });
@@ -83,7 +83,42 @@ export const POST = withAdmin(async ({ request }) => {
     return NextResponse.json({ error: 'Batch name is required' }, { status: 400 });
   }
 
-  // Generate unique codes
+  // Single multi-use code
+  if (code) {
+    const normalizedCode = code.trim().toUpperCase();
+
+    // Check if code already exists
+    const existing = await db.query.redemptionCodes.findFirst({
+      where: eq(redemptionCodes.code, normalizedCode),
+    });
+
+    if (existing) {
+      return NextResponse.json({ error: 'Code already exists' }, { status: 409 });
+    }
+
+    await db.insert(redemptionCodes).values({
+      code: normalizedCode,
+      coinAmount,
+      batchName,
+      maxRedemptions: maxRedemptions || null,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+    });
+
+    return NextResponse.json({
+      success: true,
+      count: 1,
+      batchName,
+      coinAmount,
+      maxRedemptions: maxRedemptions || 'unlimited',
+      codes: [normalizedCode],
+    });
+  }
+
+  // Batch of unique codes
+  if (!count || count < 1 || count > 1000) {
+    return NextResponse.json({ error: 'Count must be between 1 and 1000' }, { status: 400 });
+  }
+
   const generatedCodes: string[] = [];
   const existingCodes = new Set(
     (await db.select({ code: redemptionCodes.code }).from(redemptionCodes))
@@ -91,17 +126,17 @@ export const POST = withAdmin(async ({ request }) => {
   );
 
   while (generatedCodes.length < count) {
-    const code = generateCode();
-    if (!existingCodes.has(code) && !generatedCodes.includes(code)) {
-      generatedCodes.push(code);
+    const newCode = generateCode();
+    if (!existingCodes.has(newCode) && !generatedCodes.includes(newCode)) {
+      generatedCodes.push(newCode);
     }
   }
 
-  // Insert all codes
-  const values = generatedCodes.map(code => ({
-    code,
+  const values = generatedCodes.map(c => ({
+    code: c,
     coinAmount,
     batchName,
+    maxRedemptions: maxRedemptions ?? 1, // Default: single-use for unique codes
     expiresAt: expiresAt ? new Date(expiresAt) : null,
   }));
 

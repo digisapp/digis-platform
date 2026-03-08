@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, redemptionCodes, wallets, walletTransactions } from '@/lib/data/system';
-import { eq, sql } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+import { db, redemptionCodes, codeRedemptions, wallets, walletTransactions } from '@/lib/data/system';
+import { eq, and, sql } from 'drizzle-orm';
 import { invalidateBalanceCache } from '@/lib/cache';
 
 export const runtime = 'nodejs';
@@ -35,24 +34,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid code. Please check and try again.' }, { status: 404 });
     }
 
-    if (redemptionCode.isRedeemed) {
-      return NextResponse.json({ error: 'This code has already been used' }, { status: 409 });
-    }
-
     if (redemptionCode.expiresAt && new Date() > redemptionCode.expiresAt) {
       return NextResponse.json({ error: 'This code has expired' }, { status: 410 });
+    }
+
+    // Check if max redemptions reached
+    if (redemptionCode.maxRedemptions && redemptionCode.redemptionCount >= redemptionCode.maxRedemptions) {
+      return NextResponse.json({ error: 'This code has reached its maximum number of uses' }, { status: 409 });
+    }
+
+    // Check if this user already redeemed this code
+    const existingRedemption = await db.query.codeRedemptions.findFirst({
+      where: and(
+        eq(codeRedemptions.codeId, redemptionCode.id),
+        eq(codeRedemptions.userId, user.id),
+      ),
+    });
+
+    if (existingRedemption) {
+      return NextResponse.json({ error: 'You have already redeemed this code' }, { status: 409 });
     }
 
     // Redeem within a transaction
     const idempotencyKey = `redeem-${redemptionCode.id}-${user.id}`;
 
     await db.transaction(async (tx) => {
-      // Mark code as redeemed
+      // Record the redemption (unique constraint prevents duplicates)
+      await tx.insert(codeRedemptions).values({
+        codeId: redemptionCode.id,
+        userId: user.id,
+      });
+
+      // Increment redemption count
       await tx.update(redemptionCodes)
         .set({
-          isRedeemed: true,
-          redeemedByUserId: user.id,
-          redeemedAt: new Date(),
+          redemptionCount: sql`${redemptionCodes.redemptionCount} + 1`,
         })
         .where(eq(redemptionCodes.id, redemptionCode.id));
 
@@ -62,14 +78,12 @@ export async function POST(request: Request) {
       ) as unknown as Array<{ id: string; balance: number }>;
 
       if (walletRows.length === 0) {
-        // Create wallet
         await tx.insert(wallets).values({
           userId: user.id,
           balance: redemptionCode.coinAmount,
           heldBalance: 0,
         });
       } else {
-        // Credit coins
         await tx.update(wallets)
           .set({
             balance: sql`${wallets.balance} + ${redemptionCode.coinAmount}`,
