@@ -29,7 +29,8 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'booking_earnings',
   'booking_refund',
   'group_room_payment',
-  'group_room_earnings'
+  'group_room_earnings',
+  'promo_credit'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [

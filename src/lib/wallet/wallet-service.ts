@@ -21,7 +21,7 @@ import { FinancialAuditService, type FinancialEventType } from '@/lib/services/f
  * - Proper error handling and rollback
  */
 
-export type TransactionType = 'purchase' | 'gift' | 'call_charge' | 'stream_tip' | 'ppv_unlock' | 'creator_payout' | 'refund';
+export type TransactionType = 'purchase' | 'gift' | 'call_charge' | 'stream_tip' | 'ppv_unlock' | 'creator_payout' | 'refund' | 'promo_credit';
 
 interface CreateTransactionParams {
   userId: string;
