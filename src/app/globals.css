@@ -365,9 +365,9 @@ body {
   background: transparent !important;
 }
 
-/* LiveKit video track - ensure it fills container */
+/* LiveKit video track - ensure it fills container (but allow component overrides) */
 .lk-video-track {
-  object-fit: cover !important;
+  object-fit: contain;
 }
 
 /* Hide the "Connecting..." state better */

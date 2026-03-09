@@ -126,9 +126,8 @@ export function LiveKitStyles() {
       .livekit-container .lk-focus-layout > .lk-participant-tile {
         max-width: 100% !important;
         max-height: 100% !important;
-        width: auto !important;
-        height: auto !important;
-        aspect-ratio: 16/9 !important;
+        width: 100% !important;
+        height: 100% !important;
       }
     `}</style>
   );
