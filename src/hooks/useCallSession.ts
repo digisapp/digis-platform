@@ -7,6 +7,10 @@ import type Ably from 'ably';
 import type { CallToken, CallData, VirtualGift, ChatMessage } from '@/components/calls/types';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
+// Max call duration (matches backend ACTIVE_CALL_MAX_DURATION_MINUTES)
+const MAX_CALL_DURATION_SECONDS = 240 * 60; // 4 hours
+const DURATION_WARNING_THRESHOLDS = [600, 300, 60]; // Warn at 10 min, 5 min, 1 min remaining
+
 interface UseCallSessionParams {
   callId: string;
   userId: string | undefined;
@@ -168,6 +172,9 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
     setHasStarted(true);
   };
 
+  // Track which warnings have been shown to avoid repeats
+  const shownWarningsRef = useRef<Set<number>>(new Set());
+
   // Timer for duration and cost — uses server start time for accuracy
   useEffect(() => {
     if (!hasStarted) {
@@ -180,22 +187,48 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
       if (startTimeRef.current) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         setDuration(elapsed);
+
+        // Fix 5: Max duration warnings
+        const remaining = MAX_CALL_DURATION_SECONDS - elapsed;
+        for (const threshold of DURATION_WARNING_THRESHOLDS) {
+          if (remaining <= threshold && remaining > threshold - 2 && !shownWarningsRef.current.has(threshold)) {
+            shownWarningsRef.current.add(threshold);
+            const mins = Math.floor(threshold / 60);
+            const label = mins > 0 ? `${mins} minute${mins > 1 ? 's' : ''}` : `${threshold} seconds`;
+            showError(`Call will auto-end in ${label}`);
+          }
+        }
       }
     }, 1000);
 
     return () => {
       clearInterval(interval);
     };
-  }, [hasStarted]);
+  }, [hasStarted, showError]);
 
-  // Fetch user balance (once on mount, then poll every 30s during active calls for fans)
+  // Fetch user balance (once on mount, then poll every 10s during active calls for fans)
   useEffect(() => {
     const fetchBalance = async () => {
       try {
         const res = await fetch('/api/wallet/balance');
         if (res.ok) {
           const data = await res.json();
-          setUserBalance(data.balance || 0);
+          const balance = data.balance || 0;
+          setUserBalance(balance);
+
+          // Fix 6: Auto-end call when fan balance reaches 0 during active call
+          if (hasStarted && isFan && balance <= 0 && !callEndHandledRef.current) {
+            showError('Your balance has reached 0. The call will end now.');
+            // Trigger end call after a brief delay so user sees the message
+            setTimeout(() => {
+              if (!callEndHandledRef.current) {
+                fetch(`/api/calls/${callId}/end`, { method: 'POST' }).catch(() => {});
+                setCallEndedByOther(true);
+                callEndHandledRef.current = true;
+                setTimeout(() => router.push('/dashboard'), 2000);
+              }
+            }, 1500);
+          }
         }
       } catch (err) {
         console.error('Error fetching balance:', err);
@@ -204,10 +237,11 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
     fetchBalance();
 
     if (hasStarted && isFan) {
-      const interval = setInterval(fetchBalance, 30_000);
+      // Fix 8: Poll every 10s instead of 30s for more responsive balance updates
+      const interval = setInterval(fetchBalance, 10_000);
       return () => clearInterval(interval);
     }
-  }, [hasStarted, isFan]);
+  }, [hasStarted, isFan, callId, router, showError]);
 
   // Fetch virtual gifts from API
   useEffect(() => {
@@ -565,10 +599,16 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
     return () => {
       mounted = false;
       if (channel) {
+        const channelName = channel.name;
         channel.unsubscribe();
         if (channel.state === 'attached') {
           channel.detach().catch(() => {});
         }
+        // Fix 9: Fully release channel from Ably client to prevent memory accumulation
+        try {
+          const ably = getAblyClient();
+          ably.channels.release(channelName);
+        } catch {}
       }
     };
   }, [callId, router]);

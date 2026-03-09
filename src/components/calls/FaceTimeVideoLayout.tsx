@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
 import Image from 'next/image';
 import { useLocalParticipant, useRemoteParticipants, useTracks, VideoTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
@@ -124,45 +124,46 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
+  // Play sound only if not muted
+  const playSoundIfUnmuted = useCallback((soundFile: string) => {
+    if (isMuted) return; // Don't play sounds when user is muted
+    try {
+      const audio = new Audio(soundFile);
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch {}
+  }, [isMuted]);
+
   // Show gift animation when gift received
   useEffect(() => {
     const lastMsg = chatMessages[chatMessages.length - 1];
     if (lastMsg?.type === 'gift' && lastMsg.giftEmoji) {
       setShowGiftAnimation({ emoji: lastMsg.giftEmoji, id: lastMsg.id });
-      // Play gift-specific sound, or fall back to rarity-based sound
-      try {
-        let soundFile = '/sounds/coin-common.mp3';
-        if (lastMsg.giftName && GIFT_SPECIFIC_SOUNDS[lastMsg.giftName]) {
-          soundFile = GIFT_SPECIFIC_SOUNDS[lastMsg.giftName];
-        } else if (lastMsg.giftRarity && RARITY_SOUNDS[lastMsg.giftRarity]) {
-          soundFile = RARITY_SOUNDS[lastMsg.giftRarity];
-        }
-        const audio = new Audio(soundFile);
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
-      } catch {}
+      let soundFile = '/sounds/coin-common.mp3';
+      if (lastMsg.giftName && GIFT_SPECIFIC_SOUNDS[lastMsg.giftName]) {
+        soundFile = GIFT_SPECIFIC_SOUNDS[lastMsg.giftName];
+      } else if (lastMsg.giftRarity && RARITY_SOUNDS[lastMsg.giftRarity]) {
+        soundFile = RARITY_SOUNDS[lastMsg.giftRarity];
+      }
+      playSoundIfUnmuted(soundFile);
       setTimeout(() => setShowGiftAnimation(null), 2000);
     } else if (lastMsg?.type === 'tip' && lastMsg.amount) {
-      try {
-        const amount = lastMsg.amount;
-        let soundFile = '/sounds/coin-common.mp3';
-        if (amount >= 1000) {
-          soundFile = '/sounds/coin-legendary.mp3';
-        } else if (amount >= 500) {
-          soundFile = '/sounds/coin-epic.mp3';
-        } else if (amount >= 200) {
-          soundFile = '/sounds/coin-rare.mp3';
-        } else if (amount >= 50) {
-          soundFile = '/sounds/coin-super.mp3';
-        } else if (amount >= 10) {
-          soundFile = '/sounds/coin-nice.mp3';
-        }
-        const audio = new Audio(soundFile);
-        audio.volume = 0.5;
-        audio.play().catch(() => {});
-      } catch {}
+      const amount = lastMsg.amount;
+      let soundFile = '/sounds/coin-common.mp3';
+      if (amount >= 1000) {
+        soundFile = '/sounds/coin-legendary.mp3';
+      } else if (amount >= 500) {
+        soundFile = '/sounds/coin-epic.mp3';
+      } else if (amount >= 200) {
+        soundFile = '/sounds/coin-rare.mp3';
+      } else if (amount >= 50) {
+        soundFile = '/sounds/coin-super.mp3';
+      } else if (amount >= 10) {
+        soundFile = '/sounds/coin-nice.mp3';
+      }
+      playSoundIfUnmuted(soundFile);
     }
-  }, [chatMessages.length]);
+  }, [chatMessages.length, playSoundIfUnmuted]);
 
   // Double tap handler for quick tip
   const handleDoubleTap = useCallback(() => {
@@ -287,6 +288,16 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
 
   // Determine other participant - fan sees creator, creator sees fan
   const otherParticipant = isFan ? callData.creator : callData.fan;
+
+  // Fix 12: Memoize filtered chat messages to avoid re-filtering on every render
+  const tipGiftMessages = useMemo(
+    () => chatMessages.filter(m => m.type === 'tip' || m.type === 'gift').slice(-5),
+    [chatMessages]
+  );
+  const recentMessages = useMemo(
+    () => chatMessages.slice(-10),
+    [chatMessages]
+  );
 
   return (
     <div
@@ -452,7 +463,7 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
       {!showChat && (
         <div className="absolute left-3 bottom-48 sm:bottom-52 z-30 w-64 sm:w-72 max-h-[30vh] overflow-hidden pointer-events-none">
           <div className="space-y-1.5 overflow-hidden">
-            {chatMessages.filter(m => m.type === 'tip' || m.type === 'gift').slice(-5).map((msg) => (
+            {tipGiftMessages.map((msg) => (
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
                 {msg.type === 'tip' ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-sm shadow-lg border border-green-400/30">
@@ -480,7 +491,7 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
 
           {/* Chat messages */}
           <div className="relative space-y-1.5 overflow-y-auto max-h-[calc(40vh-60px)] scrollbar-hide px-3 py-2">
-            {chatMessages.slice(-10).map((msg) => (
+            {recentMessages.map((msg) => (
               <div key={msg.id} className="animate-in slide-in-from-left duration-300">
                 {msg.type === 'tip' ? (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/90 to-emerald-500/90 shadow-lg shadow-green-500/20">
