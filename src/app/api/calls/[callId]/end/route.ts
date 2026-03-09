@@ -5,6 +5,9 @@ import { db, calls } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ callId: string }> }

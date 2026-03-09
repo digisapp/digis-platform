@@ -5,6 +5,9 @@ import { MessageService } from '@/lib/messages/message-service';
 import { sendMessageSchema, validateBody } from '@/lib/validation/schemas';
 import { AiTextService } from '@/lib/services/ai-text-service';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // POST /api/messages/send - Send a message
 export async function POST(request: NextRequest) {
   try {

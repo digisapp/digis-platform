@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '50') || 50, 1), 500);
 
     const transactions = await WalletService.getTransactions(user.id, limit);
 

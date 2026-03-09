@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // POST /api/messages/mark-read - Mark messages as read
 export async function POST(request: NextRequest) {
   try {

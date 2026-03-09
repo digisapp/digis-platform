@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { MessageService } from '@/lib/messages/message-service';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/messages/unread-count - Get total unread message count
 export async function GET() {
   try {

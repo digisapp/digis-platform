@@ -5,6 +5,9 @@ import { CallService } from '@/lib/services/call-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { assertValidOrigin } from '@/lib/security/origin-check';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ callId: string }> }

@@ -259,6 +259,7 @@ export class WalletService {
       'ppv_unlock': amount < 0 ? 'message_unlock' : 'message_payment_received',
       'creator_payout': 'payout_requested',
       'refund': 'admin_refund',
+      'promo_credit': 'coin_purchase',
     };
 
     FinancialAuditService.log({

@@ -4,6 +4,9 @@ import { db } from '@/db';
 import { creatorLinks, users } from '@/db/schema';
 import { eq, and, asc, desc } from 'drizzle-orm';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/creator/links - Get creator's links
 export async function GET(request: NextRequest) {
   try {
