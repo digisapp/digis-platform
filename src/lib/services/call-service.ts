@@ -95,6 +95,30 @@ export class CallService {
    * Request a call with a creator
    */
   static async requestCall(fanId: string, creatorId: string, callType: 'video' | 'voice' = 'video') {
+    // Prevent concurrent calls — fan can only have one active/pending call at a time
+    const existingFanCall = await db.query.calls.findFirst({
+      where: and(
+        eq(calls.fanId, fanId),
+        or(eq(calls.status, 'pending'), eq(calls.status, 'accepted'), eq(calls.status, 'active'))
+      ),
+    });
+
+    if (existingFanCall) {
+      throw new Error('You already have an active or pending call. Please wait for it to finish.');
+    }
+
+    // Check if creator is already on an active call
+    const existingCreatorCall = await db.query.calls.findFirst({
+      where: and(
+        eq(calls.creatorId, creatorId),
+        eq(calls.status, 'active')
+      ),
+    });
+
+    if (existingCreatorCall) {
+      throw new Error('This creator is currently on another call. Please try again later.');
+    }
+
     // Get creator settings
     const settings = await this.getCreatorSettings(creatorId);
 
@@ -317,52 +341,70 @@ export class CallService {
    * CHECK constraints from failing and ensures calls always complete gracefully.
    */
   static async endCall(callId: string, userId: string) {
-    const call = await db.query.calls.findFirst({
+    // Quick auth check (non-blocking, detailed check happens inside transaction)
+    const callCheck = await db.query.calls.findFirst({
       where: eq(calls.id, callId),
+      columns: { fanId: true, creatorId: true },
     });
 
-    if (!call) {
+    if (!callCheck) {
       throw new Error('Call not found');
     }
 
-    if (call.fanId !== userId && call.creatorId !== userId) {
+    if (callCheck.fanId !== userId && callCheck.creatorId !== userId) {
       throw new Error('Unauthorized');
     }
 
-    if (call.status !== 'active' && call.status !== 'accepted') {
-      throw new Error('Call is not active');
-    }
+    // Use a single transaction with FOR UPDATE lock on the call row to prevent
+    // double-end race conditions. The lock ensures only one request processes billing.
+    const { updatedCall, fanId, creatorId, billedCoins, wasCapped, durationMinutes, durationSeconds, calculatedCoins } = await db.transaction(async (tx) => {
+      // Lock the call row — concurrent requests will wait here
+      const callRows = await tx.execute(
+        sql`SELECT * FROM calls WHERE id = ${callId} FOR UPDATE`
+      ) as unknown as Array<any>;
+      const call = callRows[0];
 
-    // Calculate duration - use startedAt or acceptedAt as fallback
-    const endTime = new Date();
-    const startTime = call.startedAt || call.acceptedAt || new Date();
-    const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
-    const actualMinutes = Math.ceil(durationSeconds / 60);
+      if (!call) {
+        throw new Error('Call not found');
+      }
 
-    // Enforce minimum call duration billing if the call actually started
-    // The hold was pre-calculated for the minimum duration, so coins are already reserved
-    const minimumBilledMinutes = call.startedAt
-      ? Math.ceil((call.estimatedCoins || 0) / (call.ratePerMinute || 1))
-      : 0;
-    const durationMinutes = Math.max(actualMinutes, minimumBilledMinutes);
+      // If already completed, return idempotently
+      if (call.status === 'completed' || call.status === 'cancelled') {
+        console.log('[CallService] Call already ended (idempotent):', callId, call.status);
+        return {
+          updatedCall: call, fanId: call.fan_id, creatorId: call.creator_id,
+          billedCoins: 0, wasCapped: false, durationMinutes: 0, durationSeconds: call.duration_seconds || 0, calculatedCoins: 0,
+        };
+      }
 
-    // Calculate what we'd ideally charge based on duration (with minimum enforced)
-    const calculatedCoins = call.ratePerMinute * durationMinutes;
+      if (call.status !== 'active' && call.status !== 'accepted') {
+        throw new Error('Call is not active');
+      }
 
-    // Use a single transaction with FOR UPDATE locks to prevent race conditions
-    const { updatedCall, fanId, creatorId, billedCoins, wasCapped } = await db.transaction(async (tx) => {
+      // Calculate duration using server timestamps
+      const endTime = new Date();
+      const startTime = call.started_at ? new Date(call.started_at) : (call.accepted_at ? new Date(call.accepted_at) : new Date());
+      const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      const actualMinutes = Math.ceil(durationSeconds / 60);
+
+      // Enforce minimum call duration billing if the call actually started
+      const minimumBilledMinutes = call.started_at
+        ? Math.ceil((call.estimated_coins || 0) / (call.rate_per_minute || 1))
+        : 0;
+      const durationMinutes = Math.max(actualMinutes, minimumBilledMinutes);
+      const calculatedCoins = call.rate_per_minute * durationMinutes;
+
       // Generate idempotency key for this call completion
       const idempotencyKeyDebit = `call-end-${callId}-debit`;
       const idempotencyKeyCredit = `call-end-${callId}-credit`;
 
-      // Check for idempotency (already processed)
+      // Check for idempotency (already processed wallet transaction)
       const existingTx = await tx.query.walletTransactions.findFirst({
         where: eq(walletTransactions.idempotencyKey, idempotencyKeyDebit),
       });
 
       if (existingTx) {
         console.log('[CallService] Call end already processed (idempotent):', callId);
-        // Just update call status and return
         const [result] = await tx
           .update(calls)
           .set({
@@ -374,17 +416,19 @@ export class CallService {
           })
           .where(eq(calls.id, callId))
           .returning();
-        // Return billedCoins: 0 to skip audit logging (already logged)
-        return { updatedCall: result, fanId: call.fanId, creatorId: call.creatorId, billedCoins: 0, wasCapped: false };
+        return {
+          updatedCall: result, fanId: call.fan_id, creatorId: call.creator_id,
+          billedCoins: 0, wasCapped: false, durationMinutes, durationSeconds, calculatedCoins,
+        };
       }
 
       let billedCoins = calculatedCoins;
 
       // Process the hold if exists
-      if (call.holdId) {
+      if (call.hold_id) {
         // Lock both wallets to prevent race conditions
         const lockedWalletResult = await tx.execute(
-          sql`SELECT user_id, balance, held_balance FROM wallets WHERE user_id IN (${call.fanId}, ${call.creatorId}) FOR UPDATE`
+          sql`SELECT user_id, balance, held_balance FROM wallets WHERE user_id IN (${call.fan_id}, ${call.creator_id}) FOR UPDATE`
         );
 
         // Find fan wallet from locked results
@@ -393,7 +437,7 @@ export class CallService {
           balance: number;
           held_balance: number;
         }>;
-        const fanWallet = walletRows.find(w => w.user_id === call.fanId);
+        const fanWallet = walletRows.find(w => w.user_id === call.fan_id);
 
         if (fanWallet) {
           // CRITICAL: Cap the charge to prevent negative balance
@@ -403,7 +447,7 @@ export class CallService {
           if (calculatedCoins > maxChargeable) {
             console.warn(
               `[CallService] Call ${callId} billing capped: calculated ${calculatedCoins}, ` +
-              `but fan only has ${maxChargeable}. Estimated was ${call.estimatedCoins}.`
+              `but fan only has ${maxChargeable}. Estimated was ${call.estimated_coins}.`
             );
             billedCoins = Math.max(0, maxChargeable);
           }
@@ -416,20 +460,20 @@ export class CallService {
             status: 'settled',
             settledAt: new Date(),
           })
-          .where(eq(spendHolds.id, call.holdId));
+          .where(eq(spendHolds.id, call.hold_id));
 
         // Debit fan with idempotency key
         await tx.insert(walletTransactions).values({
-          userId: call.fanId,
+          userId: call.fan_id,
           amount: -billedCoins,
           type: 'call_charge',
           status: 'completed',
-          description: `${call.callType === 'voice' ? 'Voice' : 'Video'} call (${durationMinutes} min)`,
+          description: `${call.call_type === 'voice' ? 'Voice' : 'Video'} call (${durationMinutes} min)`,
           idempotencyKey: idempotencyKeyDebit,
           metadata: JSON.stringify({
             callId,
             durationMinutes,
-            callType: call.callType,
+            callType: call.call_type,
             calculatedCoins,
             billedCoins,
             wasCapped: billedCoins < calculatedCoins,
@@ -438,7 +482,7 @@ export class CallService {
 
         // Credit creator with idempotency key
         await tx.insert(walletTransactions).values({
-          userId: call.creatorId,
+          userId: call.creator_id,
           amount: billedCoins,
           type: 'call_earnings',
           status: 'completed',
@@ -447,7 +491,7 @@ export class CallService {
           metadata: JSON.stringify({
             callId,
             durationMinutes,
-            callType: call.callType,
+            callType: call.call_type,
             calculatedCoins,
             billedCoins,
             wasCapped: billedCoins < calculatedCoins,
@@ -459,10 +503,10 @@ export class CallService {
           .update(wallets)
           .set({
             balance: sql`${wallets.balance} - ${billedCoins}`,
-            heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${call.estimatedCoins || 0})`,
+            heldBalance: sql`GREATEST(0, ${wallets.heldBalance} - ${call.estimated_coins || 0})`,
             updatedAt: new Date(),
           })
-          .where(eq(wallets.userId, call.fanId));
+          .where(eq(wallets.userId, call.fan_id));
 
         // Update creator wallet: add earnings
         await tx
@@ -471,7 +515,7 @@ export class CallService {
             balance: sql`${wallets.balance} + ${billedCoins}`,
             updatedAt: new Date(),
           })
-          .where(eq(wallets.userId, call.creatorId));
+          .where(eq(wallets.userId, call.creator_id));
       }
 
       // Update call status with actual billed amount
@@ -489,10 +533,13 @@ export class CallService {
 
       return {
         updatedCall: result,
-        fanId: call.fanId,
-        creatorId: call.creatorId,
+        fanId: call.fan_id,
+        creatorId: call.creator_id,
         billedCoins,
         wasCapped: billedCoins < calculatedCoins,
+        durationMinutes,
+        durationSeconds,
+        calculatedCoins,
       };
     });
 

@@ -61,9 +61,13 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
   useEffect(() => { userIdRef.current = userId; }, [userId]);
   useEffect(() => { chatMessagesRef.current = chatMessages; }, [chatMessages]);
 
-  // Derived values
+  // Derived values — estimated cost reflects minimum duration billing
   const estimatedCost = callData
-    ? Math.ceil(duration / 60) * callData.ratePerMinute
+    ? (() => {
+        const currentMinutes = Math.ceil(duration / 60);
+        const minimumMinutes = Math.ceil((callData.estimatedCoins || 0) / (callData.ratePerMinute || 1));
+        return Math.max(currentMinutes, minimumMinutes) * callData.ratePerMinute;
+      })()
     : 0;
   const isFan = !!(userId && callData && userId === callData.fanId);
 
@@ -125,15 +129,17 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
     fetchCallData();
   }, [callId]);
 
-  // Start call when connected
+  // Server-confirmed start time for accurate billing
+  const startTimeRef = useRef<number | null>(null);
+
+  // Start call when connected - waits for server confirmation before starting timer
   const handleConnected = async () => {
     if (hasStartedRef.current) {
       console.log('[CallPage] handleConnected called but already started, skipping');
       return;
     }
 
-    console.log('[CallPage] Room connected! Starting timer for both parties');
-    setHasStarted(true);
+    console.log('[CallPage] Room connected! Confirming with server...');
 
     try {
       const res = await fetch(`/api/calls/${callId}/start`, {
@@ -143,35 +149,41 @@ export function useCallSession({ callId, userId, router }: UseCallSessionParams)
       if (!res.ok) {
         const errorData = await res.json();
         console.log('[CallPage] Call start API response:', errorData.error || 'already started');
+        // Still start timer — call may already be active (other party started it)
       } else {
-        console.log('[CallPage] Call started successfully on backend');
+        const data = await res.json();
+        if (data.call?.startedAt) {
+          startTimeRef.current = new Date(data.call.startedAt).getTime();
+          console.log('[CallPage] Call started on backend, startedAt:', data.call.startedAt);
+        }
       }
     } catch (err) {
       console.error('[CallPage] Error calling start API:', err);
     }
+
+    // Use server start time if available, otherwise fall back to client time
+    if (!startTimeRef.current) {
+      startTimeRef.current = Date.now();
+    }
+    setHasStarted(true);
   };
 
-  // Timer for duration and cost
+  // Timer for duration and cost — uses server start time for accuracy
   useEffect(() => {
     if (!hasStarted) {
-      console.log('[CallPage] Timer effect: hasStarted is false, not starting timer');
       return;
     }
 
-    console.log('[CallPage] Timer effect: Starting timer! hasStarted =', hasStarted);
+    console.log('[CallPage] Timer started, server startTime:', startTimeRef.current);
 
     const interval = setInterval(() => {
-      setDuration((prev) => {
-        const newDuration = prev + 1;
-        if (newDuration % 10 === 0) {
-          console.log('[CallPage] Timer tick: duration =', newDuration);
-        }
-        return newDuration;
-      });
+      if (startTimeRef.current) {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        setDuration(elapsed);
+      }
     }, 1000);
 
     return () => {
-      console.log('[CallPage] Timer cleanup');
       clearInterval(interval);
     };
   }, [hasStarted]);

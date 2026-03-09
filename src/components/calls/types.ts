@@ -10,6 +10,7 @@ export interface CallData {
   status: string;
   callType: 'video' | 'voice';
   ratePerMinute: number;
+  estimatedCoins: number;
   fanId: string;
   creatorId: string;
   fan: {
