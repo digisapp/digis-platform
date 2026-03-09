@@ -93,7 +93,7 @@ export const POST = withAdminParams<{ id: string }>(async ({ user, params, reque
       // 2. Update user role to creator
       const userUpdate: Record<string, unknown> = {
         role: 'creator',
-        isCreatorVerified: false,
+        isCreatorVerified: true,
         displayName: application.displayName || undefined,
         updatedAt: new Date(),
       };
@@ -134,7 +134,7 @@ export const POST = withAdminParams<{ id: string }>(async ({ user, params, reque
     // 5. Update Supabase auth metadata (fire-and-forget)
     try {
       await supabaseAdmin.auth.admin.updateUserById(application.userId, {
-        app_metadata: { role: 'creator' },
+        app_metadata: { role: 'creator', is_creator_verified: true },
       });
     } catch (authError) {
       console.error('[Creator Application] Failed to update auth metadata:', authError);

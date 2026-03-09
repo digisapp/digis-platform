@@ -263,6 +263,7 @@ export class ContentService {
           username: users.username,
           displayName: users.displayName,
           avatarUrl: users.avatarUrl,
+          isCreatorVerified: users.isCreatorVerified,
         },
       })
       .from(contentPurchases)

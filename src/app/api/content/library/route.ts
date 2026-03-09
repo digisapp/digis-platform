@@ -30,7 +30,7 @@ export async function GET() {
         username: item.creator.username,
         displayName: item.creator.displayName,
         avatarUrl: item.creator.avatarUrl,
-        isCreatorVerified: false, // Add this field if needed
+        isCreatorVerified: item.creator.isCreatorVerified ?? false,
       },
     }));
 
