@@ -1,11 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { Coins, Gift, CheckCircle, Sparkles } from 'lucide-react';
 
 export default function RedeemPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center p-4">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <RedeemPageContent />
+    </Suspense>
+  );
+}
+
+function RedeemPageContent() {
   const searchParams = useSearchParams();
   const prefilledCode = searchParams.get('code') || '';
 
