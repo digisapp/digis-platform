@@ -11,6 +11,108 @@ function isAdminFromClaims(appMeta: Record<string, unknown> | null | undefined):
 }
 
 /**
+ * Detect in-app browsers (Instagram, Facebook, TikTok, etc.)
+ * These WebViews break payments, auth, and WebRTC.
+ */
+function detectInAppBrowser(ua: string): string | null {
+  if (/Instagram/i.test(ua)) return 'Instagram';
+  if (/FBAN|FBAV|FB_IAB/i.test(ua)) return 'Facebook';
+  if (/musical_ly|TikTok|BytedanceWebview/i.test(ua)) return 'TikTok';
+  if (/Snapchat/i.test(ua)) return 'Snapchat';
+  if (/Twitter/i.test(ua)) return 'Twitter';
+  if (/LinkedInApp/i.test(ua)) return 'LinkedIn';
+  return null;
+}
+
+function buildInAppBrowserPage(source: string, url: string, ua: string): string {
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const browserName = isIOS ? 'Safari' : 'Chrome';
+  const safariUrl = url.replace(/^https:\/\//, 'x-safari-https://').replace(/^http:\/\//, 'x-safari-http://');
+  const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+  const openUrl = isIOS ? safariUrl : intentUrl;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Open in ${browserName} | Digis</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #111827, #000, #111827);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #fff; padding: 1rem;
+    }
+    .glow { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; animation: pulse 3s ease-in-out infinite; }
+    .glow-1 { width: 400px; height: 400px; top: -120px; left: -120px; background: rgba(6,182,212,0.15); }
+    .glow-2 { width: 400px; height: 400px; bottom: -120px; right: -120px; background: rgba(168,85,247,0.15); animation-delay: 1s; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .card { position: relative; z-index: 1; max-width: 380px; width: 100%; text-align: center; }
+    .card > * + * { margin-top: 1.5rem; }
+    .logo { height: 36px; }
+    h1 { font-size: 1.25rem; font-weight: 700; }
+    p { color: #9ca3af; font-size: 0.875rem; line-height: 1.6; }
+    .btn-open {
+      display: block; width: 100%; padding: 1rem; border: none; border-radius: 1rem; cursor: pointer;
+      background: linear-gradient(90deg, #06b6d4, #9333ea); color: #fff; font-size: 1.125rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(6,182,212,0.25); transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-open:active { transform: scale(0.98); }
+    .copy-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;
+      color: #d1d5db; font-size: 0.875rem; cursor: pointer; transition: background 0.15s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.1); }
+    .copy-btn.copied { color: #34d399; border-color: rgba(52,211,153,0.3); }
+    .continue { background: none; border: none; color: #4b5563; font-size: 0.75rem; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .continue:hover { color: #9ca3af; }
+    .hint { color: #6b7280; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="card">
+    <div><img src="/images/digis-logo-white.png" alt="Digis" class="logo"></div>
+    <div>
+      <h1>Open in ${browserName}</h1>
+      <p>${source}&rsquo;s browser doesn&rsquo;t support payments, video calls, or login. Open in ${browserName} for the full experience.</p>
+    </div>
+    <button class="btn-open" onclick="openExternal()">Open in ${browserName}</button>
+    <div>
+      <p class="hint">Or copy the link and paste it in your browser:</p>
+      <button class="copy-btn" onclick="copyLink(this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+        <span>Copy Link</span>
+      </button>
+    </div>
+    <button class="continue" onclick="window.location.href='${url}' + (window.location.href.includes('?') ? '&' : '?') + '_skip_gate=1'">Continue anyway</button>
+  </div>
+  <script>
+    function openExternal() {
+      window.location.href = '${openUrl}';
+      setTimeout(function() { window.open('${url}', '_blank'); }, 500);
+    }
+    function copyLink(btn) {
+      navigator.clipboard.writeText('${url}').then(function() {
+        btn.classList.add('copied');
+        btn.querySelector('span').textContent = 'Copied!';
+        setTimeout(function() {
+          btn.classList.remove('copied');
+          btn.querySelector('span').textContent = 'Copy Link';
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>`;
+}
+
+/**
  * Generate a unique request ID for distributed tracing
  * Format: timestamp-random (e.g., "1704412800000-abc123")
  */
@@ -25,6 +127,21 @@ export async function middleware(request: NextRequest) {
 
   // Generate request ID for tracing (use existing or create new)
   const requestId = request.headers.get('x-request-id') || generateRequestId()
+
+  // In-app browser detection — show interstitial before anything else
+  // Skip for API routes, static assets, and when user chose "continue anyway"
+  if (!path.startsWith('/api/') && !path.startsWith('/egress-layout') && !request.nextUrl.searchParams.has('_skip_gate')) {
+    const ua = request.headers.get('user-agent') || '';
+    const inAppSource = detectInAppBrowser(ua);
+    if (inAppSource) {
+      const fullUrl = request.url.split('?')[0]; // strip _skip_gate if present
+      const html = buildInAppBrowserPage(inAppSource, fullUrl, ua);
+      return new NextResponse(html, {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8', 'x-request-id': requestId },
+      });
+    }
+  }
 
   // SECURITY: Block direct access to PostgREST API
   // We use Drizzle through API routes, not PostgREST
