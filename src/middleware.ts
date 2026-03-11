@@ -24,11 +24,27 @@ function detectInAppBrowser(ua: string): string | null {
   return null;
 }
 
-function buildInAppBrowserPage(_source: string, url: string, ua: string): string {
+function buildInAppBrowserPage(source: string, url: string, ua: string): string {
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  // iOS: Use the three-dot menu "Open in Safari" trick — no reliable programmatic way
-  // Android: intent:// URL to open in Chrome
-  const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+
+  // Platform-specific escape techniques:
+  // iOS: Shortcuts x-callback-url hack — opens Shortcuts app, fails to find a random
+  //   shortcut name, then falls back to opening the x-error URL in the system browser.
+  // Android: intent: URI hands the URL to the default browser.
+  const isInstagram = source === 'Instagram';
+  const isTikTok = source === 'TikTok';
+
+  let step1: string, step2: string;
+  if (isInstagram) {
+    step1 = 'Tap <strong>&middot;&middot;&middot;</strong> in the top right';
+    step2 = isIOS ? 'Tap <strong>Open in Safari</strong>' : 'Tap <strong>Open in Chrome</strong>';
+  } else if (isTikTok) {
+    step1 = 'Tap <strong>&#8942;</strong> or the share icon';
+    step2 = 'Tap <strong>Open in browser</strong>';
+  } else {
+    step1 = 'Tap the menu icon <strong>&#8942;</strong>';
+    step2 = 'Tap <strong>Open in browser</strong>';
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -56,9 +72,23 @@ function buildInAppBrowserPage(_source: string, url: string, ua: string): string
       display: block; width: 100%; padding: 1rem; border: none; border-radius: 1rem; cursor: pointer;
       background: linear-gradient(90deg, #06b6d4, #9333ea); color: #fff; font-size: 1.125rem; font-weight: 600;
       box-shadow: 0 8px 24px rgba(6,182,212,0.25); transition: transform 0.15s, box-shadow 0.15s;
-      text-decoration: none;
     }
     .btn-open:active { transform: scale(0.98); }
+    .divider { display: flex; align-items: center; gap: 0.75rem; color: #4b5563; font-size: 0.75rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+    .steps { text-align: left; }
+    .step {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.75rem; color: #d1d5db; font-size: 0.85rem; line-height: 1.4;
+    }
+    .step + .step { margin-top: 0.5rem; }
+    .step-num {
+      flex-shrink: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.1); border-radius: 50%;
+      font-size: 0.75rem; font-weight: 700; color: #9ca3af;
+    }
+    .step strong { color: #fff; }
     .continue { background: none; border: none; color: #4b5563; font-size: 0.75rem; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
     .continue:hover { color: #9ca3af; }
   </style>
@@ -69,9 +99,26 @@ function buildInAppBrowserPage(_source: string, url: string, ua: string): string
   <div class="card">
     <div><img src="/images/digis-logo-white.png" alt="Digis" class="logo"></div>
     <h1>Open in Web for Full Experience</h1>
-    <a class="btn-open" href="${isIOS ? url : intentUrl}" ${isIOS ? 'target="_blank" rel="noopener noreferrer"' : ''}>Open in Web</a>
+    <button class="btn-open" onclick="openInBrowser()">Open in Web</button>
+    <div class="divider">or manually</div>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><span>${step1}</span></div>
+      <div class="step"><span class="step-num">2</span><span>${step2}</span></div>
+    </div>
     <button class="continue" onclick="window.location.href='${url}' + (window.location.href.includes('?') ? '&' : '?') + '_skip_gate=1'">Continue anyway</button>
   </div>
+  <script>
+    function openInBrowser() {
+      ${isIOS
+        ? `// iOS: Shortcuts x-callback-url hack — triggers Shortcuts app with a
+      // non-existent shortcut name; on failure it opens the x-error URL in Safari.
+      var id = Math.random().toString(36).substring(2, 10);
+      var dest = encodeURIComponent('${url}');
+      window.location.href = 'shortcuts://x-callback-url/run-shortcut?name=' + id + '&x-error=' + dest;`
+        : `// Android: intent URI hands the URL to the default browser
+      window.location.href = 'intent:${url}#Intent;end';`}
+    }
+  </script>
 </body>
 </html>`;
 }
