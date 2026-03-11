@@ -24,19 +24,18 @@ function detectInAppBrowser(ua: string): string | null {
   return null;
 }
 
-function buildInAppBrowserPage(source: string, url: string, ua: string): string {
+function buildInAppBrowserPage(_source: string, url: string, ua: string): string {
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const browserName = isIOS ? 'Safari' : 'Chrome';
-  const safariUrl = url.replace(/^https:\/\//, 'x-safari-https://').replace(/^http:\/\//, 'x-safari-http://');
+  // iOS: Use the three-dot menu "Open in Safari" trick — no reliable programmatic way
+  // Android: intent:// URL to open in Chrome
   const intentUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
-  const openUrl = isIOS ? safariUrl : intentUrl;
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Open in ${browserName} | Digis</title>
+  <title>Open in Web | Digis</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -53,24 +52,15 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
     .card > * + * { margin-top: 1.5rem; }
     .logo { height: 36px; }
     h1 { font-size: 1.25rem; font-weight: 700; }
-    p { color: #9ca3af; font-size: 0.875rem; line-height: 1.6; }
     .btn-open {
       display: block; width: 100%; padding: 1rem; border: none; border-radius: 1rem; cursor: pointer;
       background: linear-gradient(90deg, #06b6d4, #9333ea); color: #fff; font-size: 1.125rem; font-weight: 600;
       box-shadow: 0 8px 24px rgba(6,182,212,0.25); transition: transform 0.15s, box-shadow 0.15s;
+      text-decoration: none;
     }
     .btn-open:active { transform: scale(0.98); }
-    .copy-btn {
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;
-      color: #d1d5db; font-size: 0.875rem; cursor: pointer; transition: background 0.15s;
-    }
-    .copy-btn:hover { background: rgba(255,255,255,0.1); }
-    .copy-btn.copied { color: #34d399; border-color: rgba(52,211,153,0.3); }
     .continue { background: none; border: none; color: #4b5563; font-size: 0.75rem; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
     .continue:hover { color: #9ca3af; }
-    .hint { color: #6b7280; font-size: 0.75rem; }
   </style>
 </head>
 <body>
@@ -78,36 +68,10 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
   <div class="glow glow-2"></div>
   <div class="card">
     <div><img src="/images/digis-logo-white.png" alt="Digis" class="logo"></div>
-    <div>
-      <h1>Open in ${browserName}</h1>
-      <p>${source}&rsquo;s browser doesn&rsquo;t support payments, video calls, or login. Open in ${browserName} for the full experience.</p>
-    </div>
-    <button class="btn-open" onclick="openExternal()">Open in ${browserName}</button>
-    <div>
-      <p class="hint">Or copy the link and paste it in your browser:</p>
-      <button class="copy-btn" onclick="copyLink(this)">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-        <span>Copy Link</span>
-      </button>
-    </div>
+    <h1>Open in Web for Full Experience</h1>
+    <a class="btn-open" href="${isIOS ? url : intentUrl}" ${isIOS ? 'target="_blank" rel="noopener noreferrer"' : ''}>Open in Web</a>
     <button class="continue" onclick="window.location.href='${url}' + (window.location.href.includes('?') ? '&' : '?') + '_skip_gate=1'">Continue anyway</button>
   </div>
-  <script>
-    function openExternal() {
-      window.location.href = '${openUrl}';
-      setTimeout(function() { window.open('${url}', '_blank'); }, 500);
-    }
-    function copyLink(btn) {
-      navigator.clipboard.writeText('${url}').then(function() {
-        btn.classList.add('copied');
-        btn.querySelector('span').textContent = 'Copied!';
-        setTimeout(function() {
-          btn.classList.remove('copied');
-          btn.querySelector('span').textContent = 'Copy Link';
-        }, 2000);
-      });
-    }
-  </script>
 </body>
 </html>`;
 }
