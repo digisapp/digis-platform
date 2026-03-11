@@ -27,10 +27,15 @@ function detectInAppBrowser(ua: string): string | null {
 function buildInAppBrowserPage(source: string, url: string, ua: string): string {
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
 
-  // Platform-specific escape techniques:
-  // iOS: Shortcuts x-callback-url hack — opens Shortcuts app, fails to find a random
-  //   shortcut name, then falls back to opening the x-error URL in the system browser.
-  // Android: intent: URI hands the URL to the default browser.
+  // Escape strategy:
+  // Android: Auto-redirect to /api/escape-webview which returns fake PDF content-type.
+  //   WebView can't handle PDF → delegates to Chrome → API detects real browser → redirects.
+  //   User never sees the interstitial.
+  // iOS: Button with cascading fallbacks:
+  //   1. x-safari-https:// (Safari's private URL scheme, works iOS 15+)
+  //   2. navigator.share() (native share sheet → "Open in Safari")
+  //   3. Clipboard copy (last resort)
+
   const isInstagram = source === 'Instagram';
   const isTikTok = source === 'TikTok';
 
@@ -45,6 +50,10 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
     step1 = 'Tap the menu icon <strong>&#8942;</strong>';
     step2 = 'Tap <strong>Open in browser</strong>';
   }
+
+  // Build the escape-webview API URL for Android auto-redirect
+  const origin = new URL(url).origin;
+  const escapeUrl = `${origin}/api/escape-webview?dest=${encodeURIComponent(url)}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -74,6 +83,7 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
       box-shadow: 0 8px 24px rgba(6,182,212,0.25); transition: transform 0.15s, box-shadow 0.15s;
     }
     .btn-open:active { transform: scale(0.98); }
+    .btn-open.copied { background: linear-gradient(90deg, #059669, #10b981); }
     .divider { display: flex; align-items: center; gap: 0.75rem; color: #4b5563; font-size: 0.75rem; }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
     .steps { text-align: left; }
@@ -99,7 +109,11 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
   <div class="card">
     <div><img src="/images/digis-logo-white.png" alt="Digis" class="logo"></div>
     <h1>Open in Web for Full Experience</h1>
-    <button class="btn-open" onclick="openInBrowser()">Open in Web</button>
+    ${isIOS ? `
+    <button class="btn-open" id="openBtn" onclick="openSafari()">Open in Safari</button>
+    ` : `
+    <p style="color:#9ca3af;font-size:0.9rem;">Redirecting to Chrome...</p>
+    `}
     <div class="divider">or manually</div>
     <div class="steps">
       <div class="step"><span class="step-num">1</span><span>${step1}</span></div>
@@ -108,16 +122,44 @@ function buildInAppBrowserPage(source: string, url: string, ua: string): string 
     <button class="continue" onclick="window.location.href='${url}' + (window.location.href.includes('?') ? '&' : '?') + '_skip_gate=1'">Continue anyway</button>
   </div>
   <script>
-    function openInBrowser() {
-      ${isIOS
-        ? `// iOS: Shortcuts x-callback-url hack — triggers Shortcuts app with a
-      // non-existent shortcut name; on failure it opens the x-error URL in Safari.
-      var id = Math.random().toString(36).substring(2, 10);
-      var dest = encodeURIComponent('${url}');
-      window.location.href = 'shortcuts://x-callback-url/run-shortcut?name=' + id + '&x-error=' + dest;`
-        : `// Android: intent URI hands the URL to the default browser
-      window.location.href = 'intent:${url}#Intent;end';`}
+    ${isIOS ? `
+    // iOS cascading fallback strategy
+    function openSafari() {
+      var btn = document.getElementById('openBtn');
+      var url = '${url}';
+
+      // Attempt 1: x-safari-https:// private URL scheme (iOS 15+)
+      var safariUrl = url.replace(/^https:\\/\\//, 'x-safari-https://').replace(/^http:\\/\\//, 'x-safari-http://');
+      window.location.href = safariUrl;
+
+      // Attempt 2: After 1s, if still here, try navigator.share (opens share sheet)
+      setTimeout(function() {
+        if (navigator.share) {
+          navigator.share({ title: 'Open in Safari', url: url }).catch(function() {
+            copyFallback(btn, url);
+          });
+        } else {
+          copyFallback(btn, url);
+        }
+      }, 1000);
     }
+
+    // Attempt 3: Copy to clipboard as last resort
+    function copyFallback(btn, url) {
+      navigator.clipboard.writeText(url).then(function() {
+        btn.textContent = 'Link Copied! Paste in Browser';
+        btn.classList.add('copied');
+      }).catch(function() {
+        // Even clipboard failed — just show the manual steps
+        btn.textContent = 'Copy the link above manually';
+        btn.disabled = true;
+      });
+    }
+    ` : `
+    // Android: auto-redirect via fake PDF trick
+    // WebView can't handle PDF → delegates to system browser → API redirects to destination
+    window.location.href = '${escapeUrl}';
+    `}
   </script>
 </body>
 </html>`;
