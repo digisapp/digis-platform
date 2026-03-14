@@ -284,4 +284,44 @@ export class NotificationService {
         console.log(`Unknown privacy level: ${privacy}. No notifications sent.`);
     }
   }
+
+  /**
+   * Notify all followers when a creator drops new Hub content
+   */
+  static async notifyFollowersOfDrop(
+    creatorId: string,
+    item: { id: string; type: string; priceCoins: number | null }
+  ) {
+    const creator = await db.query.users.findFirst({
+      where: eq(users.id, creatorId),
+      columns: { displayName: true, username: true, avatarUrl: true },
+    });
+
+    if (!creator) return;
+
+    const creatorName = creator.displayName || creator.username || 'A creator';
+    const contentType = item.type === 'video' ? 'video' : 'photo';
+
+    const followerList = await db.query.follows.findMany({
+      where: eq(follows.followingId, creatorId),
+      columns: { followerId: true },
+    });
+
+    if (followerList.length === 0) return;
+
+    const promises = followerList.map(f =>
+      this.sendNotification(
+        f.followerId,
+        'gift', // Reuse existing notification type
+        `${creatorName} dropped new content`,
+        `New ${contentType} available${item.priceCoins ? ` · ${item.priceCoins} coins` : ''}`,
+        `/profile/${creator.username}`,
+        creator.avatarUrl || undefined,
+        { creatorId, itemId: item.id, type: 'hub_drop' }
+      )
+    );
+
+    await Promise.all(promises);
+    console.log(`[Hub Drop] Notified ${followerList.length} followers for creator ${creatorId}`);
+  }
 }

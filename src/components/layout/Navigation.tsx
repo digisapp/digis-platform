@@ -18,6 +18,7 @@ import {
   Upload,
   Camera,
   User,
+  LayoutGrid,
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -334,10 +335,10 @@ export function Navigation() {
       active: isActive('/creator/go-live'),
     },
     {
-      label: 'Post',
-      icon: Upload,
-      path: '/creator/content/new',
-      active: isActive('/creator/content/new') || isActive('/creator/content'),
+      label: 'Hub',
+      icon: LayoutGrid,
+      path: '/hub',
+      active: isActive('/hub') || pathname?.startsWith('/hub'),
     },
     {
       label: 'Chats',

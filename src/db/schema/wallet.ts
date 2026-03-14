@@ -30,7 +30,13 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'booking_refund',
   'group_room_payment',
   'group_room_earnings',
-  'promo_credit'
+  'promo_credit',
+  'hub_purchase',
+  'hub_earnings',
+  'hub_pack_purchase',
+  'hub_pack_earnings',
+  'hub_locked_message',
+  'hub_locked_message_earnings'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [
