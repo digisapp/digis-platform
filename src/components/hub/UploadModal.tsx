@@ -95,7 +95,7 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={handleClose} title="Upload to Hub" size="sm">
+    <GlassModal isOpen={isOpen} onClose={handleClose} title="Upload to Drops" size="sm">
       <div className="space-y-6">
         {/* Upload area */}
         <div
@@ -156,7 +156,7 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
         {/* Success result */}
         {result && (
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
-            <p className="text-green-400 font-medium">{result.uploaded} items uploaded to Hub</p>
+            <p className="text-green-400 font-medium">{result.uploaded} items uploaded to Drops</p>
             <p className="text-gray-400 text-sm mt-1">Everything is saved as Private. Price and publish when you&apos;re ready.</p>
           </div>
         )}

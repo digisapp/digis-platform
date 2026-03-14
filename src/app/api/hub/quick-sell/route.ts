@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!dbUser || dbUser.role !== 'creator') {
-      return NextResponse.json({ error: 'Only creators can use Quick Sell' }, { status: 403 });
+      return NextResponse.json({ error: 'Only creators can use Quick Drop' }, { status: 403 });
     }
 
     const body = await request.json();

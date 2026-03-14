@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { db, users, hubItems } from '@/lib/data/system';
 import { eq, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
+import { processImage, processVideo } from '@/lib/services/media-processing-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!dbUser || dbUser.role !== 'creator') {
-      return NextResponse.json({ error: 'Only creators can upload to Hub' }, { status: 403 });
+      return NextResponse.json({ error: 'Only creators can upload to Drops' }, { status: 403 });
     }
 
     // Check storage quota (50GB for Hub)
@@ -163,11 +164,55 @@ export async function POST(request: NextRequest) {
           ? parseInt(formData.get(durationKey) as string) || null
           : null;
 
+        // Generate thumbnail + preview
+        let thumbnailUrl = publicUrl;
+        let previewUrl: string | null = null;
+
+        try {
+          const fileBuffer = Buffer.from(await file.arrayBuffer());
+          const processed = type === 'photo'
+            ? await processImage(fileBuffer)
+            : await processVideo(fileBuffer, ext);
+
+          const baseName = fileName.replace(/\.[^.]+$/, '');
+
+          // Upload thumbnail
+          const thumbPath = `${baseName}_thumb.webp`;
+          const { error: thumbErr } = await supabase.storage
+            .from(bucket)
+            .upload(thumbPath, processed.thumbnail, {
+              cacheControl: '31536000',
+              upsert: false,
+              contentType: processed.thumbnailMime,
+            });
+          if (!thumbErr) {
+            thumbnailUrl = supabase.storage.from(bucket).getPublicUrl(thumbPath).data.publicUrl;
+          }
+
+          // Upload preview
+          const previewExt = processed.previewMime === 'image/webp' ? 'webp' : 'jpg';
+          const previewPath = `${baseName}_preview.${previewExt}`;
+          const { error: prevErr } = await supabase.storage
+            .from(bucket)
+            .upload(previewPath, processed.preview, {
+              cacheControl: '31536000',
+              upsert: false,
+              contentType: processed.previewMime,
+            });
+          if (!prevErr) {
+            previewUrl = supabase.storage.from(bucket).getPublicUrl(previewPath).data.publicUrl;
+          }
+        } catch (procErr: any) {
+          // Processing failed — fall back to original URL for thumbnail
+          console.error('[HUB UPLOAD] Media processing error (non-fatal):', procErr.message);
+        }
+
         // Insert hub item — everything starts as private
         const [item] = await db.insert(hubItems).values({
           creatorId: user.id,
           fileUrl: publicUrl,
-          thumbnailUrl: publicUrl, // Same URL for now — preview generation is Phase 2
+          thumbnailUrl,
+          previewUrl,
           type,
           durationSeconds,
           sizeBytes,

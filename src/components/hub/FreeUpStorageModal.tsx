@@ -70,7 +70,7 @@ export function FreeUpStorageModal({ isOpen, onClose }: FreeUpStorageModalProps)
                   <Shield className="w-8 h-8 text-green-400" />
                 </div>
                 <p className="text-3xl font-bold text-white">{formatBytes(totalSize)}</p>
-                <p className="text-gray-400 text-sm">safely backed up in Hub</p>
+                <p className="text-gray-400 text-sm">safely backed up in Drops</p>
               </div>
 
               {/* Breakdown */}
@@ -108,7 +108,7 @@ export function FreeUpStorageModal({ isOpen, onClose }: FreeUpStorageModalProps)
                   All {items.length} items are safely stored
                 </p>
                 <p className="text-gray-400 text-xs">
-                  You can delete these from your phone to free up {formatBytes(totalSize)} of storage. Your content stays safe in Hub.
+                  You can delete these from your phone to free up {formatBytes(totalSize)} of storage. Your content stays safe in Drops.
                 </p>
               </div>
 

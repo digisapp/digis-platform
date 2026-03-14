@@ -52,7 +52,7 @@ export function PricingDefaultsModal({ isOpen, onClose, defaults, onSave }: Pric
     <GlassModal isOpen={isOpen} onClose={onClose} title="Default Prices" size="sm">
       <div className="space-y-5">
         <p className="text-gray-400 text-sm">
-          Set your default prices. These are applied when you use &quot;Price All&quot; or Quick Sell.
+          Set your default prices. These are applied when you use &quot;Price All&quot; or Quick Drop.
         </p>
 
         {/* Photo price */}

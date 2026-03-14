@@ -81,7 +81,7 @@ export async function POST(
       amount: -price,
       type: 'hub_purchase',
       status: 'completed',
-      description: `Hub item purchase`,
+      description: `Drops item purchase`,
       idempotencyKey,
       metadata: JSON.stringify({ itemId, creatorId: item.creatorId }),
     }).returning();
@@ -92,7 +92,7 @@ export async function POST(
       amount: price,
       type: 'hub_earnings',
       status: 'completed',
-      description: `Hub item sale`,
+      description: `Drops item sale`,
       idempotencyKey: `${idempotencyKey}_earnings`,
       relatedTransactionId: buyerTx.id,
       metadata: JSON.stringify({ itemId, buyerId: user.id }),

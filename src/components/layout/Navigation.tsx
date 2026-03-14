@@ -335,7 +335,7 @@ export function Navigation() {
       active: isActive('/creator/go-live'),
     },
     {
-      label: 'Hub',
+      label: 'Drops',
       icon: LayoutGrid,
       path: '/hub',
       active: isActive('/hub') || pathname?.startsWith('/hub'),

@@ -91,7 +91,7 @@ export default function HubPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-              Hub
+              Drops
             </h1>
             <p className="text-gray-500 text-sm mt-0.5">
               {hub.total} items
@@ -145,7 +145,7 @@ export default function HubPage() {
         {/* First-time setup banner */}
         {hasNoPricing && hub.total === 0 && (
           <div className="mb-6 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-2xl p-6 text-center">
-            <h2 className="text-lg font-bold text-white mb-2">Welcome to Hub</h2>
+            <h2 className="text-lg font-bold text-white mb-2">Welcome to Drops</h2>
             <p className="text-gray-400 text-sm mb-4">
               Back up your content. Free up your phone. Start earning when you&apos;re ready.
             </p>
@@ -231,7 +231,7 @@ export default function HubPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-medium hover:from-pink-400 hover:to-pink-500 transition-all"
                     >
                       <Zap className="w-3.5 h-3.5" />
-                      Quick Sell
+                      Quick Drop
                     </button>
                     <button
                       onClick={() => setShowTags(true)}

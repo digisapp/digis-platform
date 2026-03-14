@@ -63,7 +63,7 @@ export function ScheduleDropsModal({ isOpen, onClose, selectedCount, selectedIte
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={handleClose} title="Schedule Drops" size="sm">
+    <GlassModal isOpen={isOpen} onClose={handleClose} title="Schedule" size="sm">
       <div className="space-y-5">
         {result ? (
           <div className="text-center space-y-3">

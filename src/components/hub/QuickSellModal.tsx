@@ -60,7 +60,7 @@ export function QuickSellModal({
   };
 
   return (
-    <GlassModal isOpen={isOpen} onClose={onClose} title="Quick Sell" size="sm">
+    <GlassModal isOpen={isOpen} onClose={onClose} title="Quick Drop" size="sm">
       <div className="space-y-4">
         {/* Selection count */}
         <div className="bg-white/5 rounded-xl p-4 text-center">
@@ -71,7 +71,7 @@ export function QuickSellModal({
         {!hasDefaults && (
           <div className="flex items-center gap-2 text-yellow-400 text-sm bg-yellow-500/10 rounded-xl p-3">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            Set your default prices first to use Quick Sell
+            Set your default prices first to use Quick Drop
           </div>
         )}
 
