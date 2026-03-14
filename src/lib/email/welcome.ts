@@ -18,7 +18,7 @@ function generateWelcomeHtml(data: WelcomeEmailData): string {
   const features = isCreator
     ? [
         { icon: '🎥', title: 'Go Live', desc: 'Stream to your fans and earn coins in real-time' },
-        { icon: '📸', title: 'Share Content', desc: 'Post exclusive photos and videos for your subscribers' },
+        { icon: '📸', title: 'Share Content', desc: 'Drop exclusive photos and videos for your subscribers' },
         { icon: '💬', title: 'DM Fans', desc: 'Chat with fans and receive tips for messages' },
         { icon: '📱', title: 'Video Calls', desc: 'Offer 1-on-1 video calls with your biggest supporters' },
       ]
@@ -134,7 +134,7 @@ function generateWelcomePlainText(data: WelcomeEmailData): string {
 
   const features = isCreator
     ? `- Go Live: Stream to your fans and earn coins in real-time
-- Share Content: Post exclusive photos and videos for your subscribers
+- Share Content: Drop exclusive photos and videos for your subscribers
 - DM Fans: Chat with fans and receive tips for messages
 - Video Calls: Offer 1-on-1 video calls with your biggest supporters`
     : `- Follow Creators: Discover and follow your favorite creators

@@ -244,7 +244,7 @@ export default function CreatorContentPage() {
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              New Post
+              New Drop
             </GlassButton>
           )}
         </div>
@@ -269,7 +269,7 @@ export default function CreatorContentPage() {
                 shimmer
               >
                 <Plus className="w-5 h-5" />
-                New Post
+                New Drop
               </GlassButton>
             </GlassCard>
           ) : (

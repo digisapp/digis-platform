@@ -448,7 +448,7 @@ const featureGuides: FeatureGuide[] = [
       'Promote new releases to your audience'
     ],
     steps: [
-      'Go to Post from your profile menu',
+      'Go to Drops from your profile menu',
       'Add your photo or video',
       'Set a price in coins',
       'Publish to make it available'
