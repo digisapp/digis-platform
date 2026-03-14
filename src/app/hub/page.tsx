@@ -326,8 +326,7 @@ export default function HubPage() {
       <UploadModal
         isOpen={showUpload}
         onClose={() => setShowUpload(false)}
-        onUpload={hub.uploadFiles}
-        uploading={hub.uploading}
+        onUploadComplete={() => hub.fetchItems(1)}
       />
 
       <QuickSellModal

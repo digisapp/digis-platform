@@ -2,28 +2,42 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Upload, X, Image, Film, AlertCircle } from 'lucide-react';
+import { Upload, X, Image, Film, AlertCircle, Check, RotateCcw, Loader2 } from 'lucide-react';
+import { useUploadQueue, QueueItem, UploadStatus } from '@/hooks/useUploadQueue';
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (files: File[]) => Promise<{ success: boolean; uploaded?: number; error?: string }>;
-  uploading: boolean;
+  onUploadComplete?: () => void; // Called after items are registered to refresh the grid
 }
 
 const MAX_FILES = 50;
 const ACCEPTED_TYPES = 'image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm';
 
-export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModalProps) {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<{ uploaded: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+function formatSize(bytes: number) {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
+  return `${(bytes / 1024).toFixed(0)} KB`;
+}
 
-  const processFiles = useCallback((files: File[]) => {
+const STATUS_CONFIG: Record<UploadStatus, { label: string; color: string }> = {
+  local_queued: { label: 'Queued', color: 'text-gray-400' },
+  uploading: { label: 'Uploading', color: 'text-cyan-400' },
+  uploaded: { label: 'Uploaded', color: 'text-cyan-400' },
+  registering: { label: 'Saving', color: 'text-cyan-400' },
+  processing: { label: 'Processing', color: 'text-yellow-400' },
+  ready: { label: 'Done', color: 'text-green-400' },
+  failed: { label: 'Failed', color: 'text-red-400' },
+};
+
+export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalProps) {
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const uploadQueue = useUploadQueue();
+
+  const handleAddFiles = useCallback((files: File[]) => {
     setError('');
-    setResult(null);
 
     const valid = files.filter(f =>
       f.type.startsWith('image/') || f.type.startsWith('video/')
@@ -35,22 +49,23 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
     }
 
     if (valid.length > MAX_FILES) {
-      setError(`Maximum ${MAX_FILES} files per upload`);
+      setError(`Maximum ${MAX_FILES} files per batch`);
       return;
     }
 
-    setSelectedFiles(valid);
-  }, []);
+    uploadQueue.addFiles(valid);
+  }, [uploadQueue]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    processFiles(Array.from(e.target.files || []));
-  }, [processFiles]);
+    handleAddFiles(Array.from(e.target.files || []));
+    if (inputRef.current) inputRef.current.value = '';
+  }, [handleAddFiles]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    processFiles(Array.from(e.dataTransfer.files));
-  }, [processFiles]);
+    handleAddFiles(Array.from(e.dataTransfer.files));
+  }, [handleAddFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -62,44 +77,24 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
     setDragging(false);
   }, []);
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) return;
-    setError('');
-
-    const res = await onUpload(selectedFiles);
-    if (res.success) {
-      setResult({ uploaded: res.uploaded || selectedFiles.length });
-      setSelectedFiles([]);
-      if (inputRef.current) inputRef.current.value = '';
-    } else {
-      setError(res.error || 'Upload failed');
-    }
-  };
-
   const handleClose = () => {
-    if (!uploading) {
-      setSelectedFiles([]);
-      setError('');
-      setResult(null);
-      onClose();
+    // Allow close even during upload — queue continues in background
+    if (onUploadComplete && uploadQueue.stats.completed > 0) {
+      onUploadComplete();
     }
+    onClose();
   };
 
-  const photos = selectedFiles.filter(f => f.type.startsWith('image/')).length;
-  const videos = selectedFiles.filter(f => f.type.startsWith('video/')).length;
-  const totalSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
-  const formatSize = (bytes: number) => {
-    if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(0)} MB`;
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  };
+  const { queue, stats } = uploadQueue;
+  const hasItems = queue.length > 0;
+  const allDone = hasItems && stats.queued === 0 && stats.uploading === 0 && stats.processing === 0;
 
   return (
     <GlassModal isOpen={isOpen} onClose={handleClose} title="Upload to Drops" size="sm">
-      <div className="space-y-6">
-        {/* Upload area */}
+      <div className="space-y-5">
+        {/* Drop zone — always visible to add more files */}
         <div
-          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${
+          className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
             dragging
               ? 'border-cyan-400 bg-cyan-500/10'
               : 'border-cyan-500/30 hover:border-cyan-500/60'
@@ -109,12 +104,11 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >
-          <Upload className={`w-10 h-10 mx-auto mb-3 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
-          <p className="text-white font-medium">
+          <Upload className={`w-8 h-8 mx-auto mb-2 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
+          <p className="text-white font-medium text-sm">
             {dragging ? 'Drop files here' : 'Select photos & videos'}
           </p>
-          <p className="text-gray-400 text-sm mt-1">JPG, PNG, GIF, WebP, MP4, MOV, WebM</p>
-          <p className="text-gray-500 text-xs mt-1">Up to {MAX_FILES} files · drag & drop or tap</p>
+          <p className="text-gray-500 text-xs mt-1">Drag & drop or tap · uploads resume if interrupted</p>
           <input
             ref={inputRef}
             type="file"
@@ -125,40 +119,56 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
           />
         </div>
 
-        {/* Selected files summary */}
-        {selectedFiles.length > 0 && (
-          <div className="bg-white/5 rounded-xl p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-white font-medium">{selectedFiles.length} files selected</span>
+        {/* Queue summary bar */}
+        {hasItems && (
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-3 text-gray-400">
+              {stats.uploading > 0 && (
+                <span className="flex items-center gap-1 text-cyan-400">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {stats.uploading + stats.queued} uploading
+                </span>
+              )}
+              {stats.completed > 0 && (
+                <span className="flex items-center gap-1 text-green-400">
+                  <Check className="w-3.5 h-3.5" />
+                  {stats.completed} done
+                </span>
+              )}
+              {stats.failed > 0 && (
+                <span className="text-red-400">{stats.failed} failed</span>
+              )}
+            </div>
+            {allDone && (
               <button
-                onClick={() => { setSelectedFiles([]); if (inputRef.current) inputRef.current.value = ''; }}
-                className="text-gray-400 hover:text-white p-1"
+                onClick={() => { uploadQueue.clearAll(); onUploadComplete?.(); }}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
               >
-                <X className="w-4 h-4" />
+                Clear all
               </button>
-            </div>
-            <div className="flex gap-4 text-sm text-gray-400">
-              {photos > 0 && (
-                <span className="flex items-center gap-1">
-                  <Image className="w-3.5 h-3.5" /> {photos} photos
-                </span>
-              )}
-              {videos > 0 && (
-                <span className="flex items-center gap-1">
-                  <Film className="w-3.5 h-3.5" /> {videos} videos
-                </span>
-              )}
-              <span>{formatSize(totalSize)}</span>
-            </div>
+            )}
           </div>
         )}
 
-        {/* Success result */}
-        {result && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-center">
-            <p className="text-green-400 font-medium">{result.uploaded} items uploaded to Drops</p>
-            <p className="text-gray-400 text-sm mt-1">Everything is saved as Private. Price and publish when you&apos;re ready.</p>
+        {/* File list */}
+        {hasItems && (
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {queue.map(item => (
+              <QueueItemRow
+                key={item.id}
+                item={item}
+                onRetry={() => uploadQueue.retryItem(item.id)}
+                onRemove={() => uploadQueue.removeItem(item.id)}
+              />
+            ))}
           </div>
+        )}
+
+        {/* Large batch warning */}
+        {hasItems && stats.total > 10 && stats.queued > 0 && (
+          <p className="text-yellow-500/80 text-xs text-center">
+            {stats.total} files · uploads may take a while on mobile. Digis will resume if interrupted.
+          </p>
         )}
 
         {/* Error */}
@@ -169,22 +179,75 @@ export function UploadModal({ isOpen, onClose, onUpload, uploading }: UploadModa
           </div>
         )}
 
-        {/* Upload button */}
-        {selectedFiles.length > 0 && !result && (
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="w-full py-3 rounded-xl font-semibold text-black bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} items`}
-          </button>
-        )}
-
         {/* Info text */}
         <p className="text-gray-500 text-xs text-center">
           All uploads are private by default. No one sees them until you publish.
         </p>
       </div>
     </GlassModal>
+  );
+}
+
+function QueueItemRow({
+  item,
+  onRetry,
+  onRemove,
+}: {
+  item: QueueItem;
+  onRetry: () => void;
+  onRemove: () => void;
+}) {
+  const config = STATUS_CONFIG[item.status];
+  const isUploading = item.status === 'uploading';
+
+  return (
+    <div className="flex items-center gap-2.5 bg-white/5 rounded-lg px-3 py-2">
+      {/* Type icon */}
+      <div className="flex-shrink-0">
+        {item.type === 'photo' ? (
+          <Image className="w-4 h-4 text-blue-400" />
+        ) : (
+          <Film className="w-4 h-4 text-purple-400" />
+        )}
+      </div>
+
+      {/* File info + progress */}
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-xs truncate">{item.fileName}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-gray-500 text-xs">{formatSize(item.fileSize)}</span>
+          <span className={`text-xs ${config.color}`}>{config.label}</span>
+        </div>
+        {/* Progress bar */}
+        {isUploading && (
+          <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
+            <div
+              className="h-full bg-cyan-400 rounded-full transition-all duration-300"
+              style={{ width: `${item.progress}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Status icon / actions */}
+      <div className="flex-shrink-0">
+        {item.status === 'ready' && (
+          <Check className="w-4 h-4 text-green-400" />
+        )}
+        {item.status === 'failed' && item.file && (
+          <button onClick={onRetry} className="p-1 text-gray-400 hover:text-cyan-400 transition-colors">
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {item.status === 'failed' && !item.file && (
+          <button onClick={onRemove} className="p-1 text-gray-400 hover:text-red-400 transition-colors">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+        {(item.status === 'uploading' || item.status === 'registering' || item.status === 'processing' || item.status === 'uploaded') && (
+          <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+        )}
+      </div>
+    </div>
   );
 }
