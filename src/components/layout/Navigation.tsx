@@ -337,8 +337,8 @@ export function Navigation() {
     {
       label: 'Drops',
       icon: LayoutGrid,
-      path: '/hub',
-      active: isActive('/hub') || pathname?.startsWith('/hub'),
+      path: '/drops',
+      active: isActive('/drops') || pathname?.startsWith('/drops'),
     },
     {
       label: 'Chats',
