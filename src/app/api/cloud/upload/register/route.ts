@@ -65,17 +65,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Verify file exists in storage
-    const { data: fileData, error: fileError } = await supabase.storage
-      .from('content')
-      .list(storagePath.split('/').slice(0, -1).join('/'), {
-        search: storagePath.split('/').pop(),
-      });
-
-    if (fileError || !fileData || fileData.length === 0) {
-      return NextResponse.json({ error: 'File not found in storage' }, { status: 404 });
-    }
-
     // Create drops item — starts as private, thumbnailUrl = original for now
     const [item] = await db.insert(cloudItems).values({
       creatorId: user.id,
