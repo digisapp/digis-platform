@@ -89,14 +89,20 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
             {badge.label}
           </span>
 
-          {/* Price */}
-          {item.priceCoins ? (
-            <span className="flex items-center gap-0.5 text-xs font-semibold text-yellow-400">
+          {/* Price — only meaningful for live items */}
+          {item.status === 'live' ? (
+            item.priceCoins ? (
+              <span className="text-xs font-semibold text-yellow-400">
+                {item.priceCoins} coins
+              </span>
+            ) : (
+              <span className="text-[10px] text-green-400">Free</span>
+            )
+          ) : item.priceCoins ? (
+            <span className="text-[10px] text-gray-500">
               {item.priceCoins} coins
             </span>
-          ) : (
-            <span className="text-[10px] text-green-400">Free</span>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
