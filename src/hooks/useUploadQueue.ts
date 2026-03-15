@@ -227,13 +227,15 @@ export function useUploadQueue() {
             progress: 100,
           });
 
-          // After a short delay, mark processing items as ready
-          // (thumbnail processing happens in background, UI doesn't need to wait)
-          if (regData.processingStatus !== 'done') {
-            setTimeout(() => {
-              updateItem(next.id, { status: 'ready' });
-            }, 3000);
-          }
+          // Auto-remove completed items after 2s so the queue stays clean
+          const autoRemoveDelay = regData.processingStatus === 'done' ? 2000 : 5000;
+          setTimeout(() => {
+            setQueue(prev => {
+              const filtered = prev.filter(i => i.id !== next.id);
+              if (filtered.length === 0) localStorage.removeItem(STORAGE_KEY);
+              return filtered;
+            });
+          }, autoRemoveDelay);
         } catch (err: any) {
           updateItem(next.id, {
             status: 'failed',

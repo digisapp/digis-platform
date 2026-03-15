@@ -4,8 +4,8 @@
 
 -- Create storage bucket if it doesn't exist (public bucket, 300MB limit for videos)
 INSERT INTO storage.buckets (id, name, public, file_size_limit)
-VALUES ('content', 'content', true, 314572800)
-ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 314572800;
+VALUES ('content', 'content', true, 524288000)
+ON CONFLICT (id) DO UPDATE SET public = true, file_size_limit = 524288000;
 
 -- Drop existing policies to start fresh
 DROP POLICY IF EXISTS "Anyone can upload content" ON storage.objects;
