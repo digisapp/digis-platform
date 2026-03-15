@@ -104,11 +104,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
         >
-          <Upload className={`w-8 h-8 mx-auto mb-2 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
-          <p className="text-white font-medium text-sm">
-            {dragging ? 'Drop files here' : 'Select photos & videos'}
+          <Upload className={`w-8 h-8 mx-auto mb-3 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
+          <p className="text-white font-bold text-base">
+            {dragging ? 'Drop files here' : 'Upload Pictures and Videos Separately'}
           </p>
-          <p className="text-gray-500 text-xs mt-1">Upload all your photos first, then upload videos separately</p>
+          <p className="text-gray-400 text-sm mt-2 font-medium">Tap to select your files</p>
           <input
             ref={inputRef}
             type="file"
