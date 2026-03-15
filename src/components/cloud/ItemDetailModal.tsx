@@ -93,11 +93,6 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
     setDeleting(false);
   };
 
-  const formatSize = (bytes: number) => {
-    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  };
-
   const handleClose = () => {
     lastItemId.current = null;
     setPrice('');
@@ -136,10 +131,6 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
           )}
         </div>
 
-        {/* Info */}
-        {item.sizeBytes && (
-          <p className="text-sm text-gray-400">{formatSize(item.sizeBytes)}</p>
-        )}
 
         {/* Price input */}
         <div className="space-y-1.5">
