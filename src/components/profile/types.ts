@@ -46,7 +46,7 @@ export interface ContentItem {
   id: string;
   type: 'photo' | 'video';
   title: string;
-  thumbnail: string;
+  thumbnail: string | null;
   url: string;
   description: string;
   likes: number;
@@ -100,7 +100,7 @@ export interface ContentToUnlock {
   title: string;
   type: 'photo' | 'video';
   unlockPrice: number;
-  thumbnail: string;
+  thumbnail: string | null;
   creatorName: string;
 }
 

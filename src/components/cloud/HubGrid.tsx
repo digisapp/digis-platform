@@ -42,12 +42,22 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
       onClick={() => selectionMode ? onToggleSelect(item.id) : onItemClick(item)}
     >
       {/* Thumbnail */}
-      <img
-        src={item.thumbnailUrl || item.fileUrl}
-        alt=""
-        className="w-full h-full object-cover"
-        loading="lazy"
-      />
+      {item.type === 'video' && (!item.thumbnailUrl || item.thumbnailUrl === item.fileUrl) ? (
+        <video
+          src={item.fileUrl}
+          muted
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover pointer-events-none"
+        />
+      ) : (
+        <img
+          src={item.thumbnailUrl || item.fileUrl}
+          alt=""
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      )}
 
       {/* Hover overlay */}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200" />

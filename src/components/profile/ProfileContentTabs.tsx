@@ -317,8 +317,16 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
                   target.parentElement?.querySelector('.video-placeholder')?.classList.remove('hidden');
                 }}
               />
+            ) : item.url ? (
+              <video
+                src={item.url}
+                muted
+                playsInline
+                preload="metadata"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              />
             ) : null}
-            <div className={`absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center video-placeholder ${item.thumbnail ? 'hidden' : ''}`}>
+            <div className={`absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center video-placeholder ${item.thumbnail || item.url ? 'hidden' : ''}`}>
               <Film className="w-12 h-12 text-gray-400" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
