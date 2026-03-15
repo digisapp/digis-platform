@@ -521,7 +521,7 @@ export default function WalletPage() {
                   <p className="text-gray-400">Your transactions will appear here</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                   {transactions.map((tx) => (
                     <div
                       key={tx.id}
