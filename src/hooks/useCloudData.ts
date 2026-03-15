@@ -45,7 +45,7 @@ export interface PricingDefaults {
   packDiscountPct: number;
 }
 
-type StatusFilter = 'all' | 'private' | 'live';
+type StatusFilter = 'private' | 'live';
 
 export function useCloudData() {
   const [items, setItems] = useState<CloudItem[]>([]);
@@ -53,7 +53,7 @@ export function useCloudData() {
   const [packs, setPacks] = useState<CloudPack[]>([]);
   const [tags, setTags] = useState<CloudTag[]>([]);
   const [pricingDefaults, setPricingDefaults] = useState<PricingDefaults | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('private');
   const [typeFilter, setTypeFilter] = useState<'all' | 'photo' | 'video'>('all');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ export function useCloudData() {
   const fetchItems = useCallback(async (p = page) => {
     try {
       const params = new URLSearchParams({ page: String(p), limit: '50' });
-      if (statusFilter !== 'all') params.set('status', statusFilter);
+      params.set('status', statusFilter);
       if (typeFilter !== 'all') params.set('type', typeFilter);
       if (tagFilter) params.set('tag', tagFilter);
 

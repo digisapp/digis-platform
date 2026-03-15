@@ -20,7 +20,6 @@ import {
   Lock,
   CheckSquare,
   Eye,
-  LayoutGrid,
   Image,
   Film,
   DollarSign,
@@ -34,7 +33,6 @@ import {
 } from 'lucide-react';
 
 const statusFilters = [
-  { value: 'all', label: 'All', icon: LayoutGrid },
   { value: 'private', label: 'Private', icon: Lock },
   { value: 'live', label: 'Live', icon: Eye },
 ] as const;
@@ -178,8 +176,7 @@ export default function CloudPage() {
             {statusFilters.map(filter => {
               const Icon = filter.icon;
               const isActive = cloud.statusFilter === filter.value;
-              const count = filter.value === 'all' ? cloud.total
-                : cloud.items.filter(i => i.status === filter.value).length;
+              const count = isActive ? cloud.total : 0;
               return (
                 <button
                   key={filter.value}
