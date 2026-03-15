@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Lock, Eye, Check, DollarSign, Trash2, Play, AlertCircle } from 'lucide-react';
+import { Lock, Eye, Trash2, Play, AlertCircle, Coins } from 'lucide-react';
 import type { CloudItem } from '@/hooks/useCloudData';
 
 interface ItemDetailModalProps {
@@ -129,14 +129,14 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
           <label className="text-sm font-medium text-gray-300">Price</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-yellow-500" />
               <input
                 type="number"
                 min="0"
                 placeholder="0"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-4 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-16 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">coins</span>
             </div>
@@ -148,6 +148,11 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
               Save
             </button>
           </div>
+          {price && parseInt(price) > 0 && (
+            <p className="text-xs text-gray-500">
+              You earn <span className="text-green-400 font-medium">${(parseInt(price) * 0.10).toFixed(2)}</span> USD
+            </p>
+          )}
         </div>
 
         {/* Status */}

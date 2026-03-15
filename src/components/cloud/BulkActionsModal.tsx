@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Eye, DollarSign, AlertCircle, Lock, CheckSquare } from 'lucide-react';
+import { Eye, AlertCircle, Lock, Coins } from 'lucide-react';
 
 interface BulkActionsModalProps {
   isOpen: boolean;
@@ -140,16 +140,22 @@ export function BulkActionsModal({
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-300">Price per item</label>
               <div className="relative">
+                <Coins className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-yellow-500" />
                 <input
                   type="number"
                   min="1"
                   placeholder="e.g. 10"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-16 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-16 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">coins</span>
               </div>
+              {price && parseInt(price) > 0 && (
+                <p className="text-xs text-gray-500">
+                  You earn <span className="text-green-400 font-medium">${(parseInt(price) * 0.10).toFixed(2)}</span> USD per item
+                </p>
+              )}
             </div>
 
             {success ? (
