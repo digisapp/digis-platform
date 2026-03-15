@@ -304,7 +304,7 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
           <div
             key={item.id}
             onClick={() => onContentClick(item)}
-            className="group relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+            className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
           >
             {item.thumbnail ? (
               <img
