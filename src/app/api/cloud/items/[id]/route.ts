@@ -80,9 +80,9 @@ export async function PATCH(
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
       }
 
-      // Can't go live without a price
-      if (status === 'live' && !item.priceCoins && !updates.priceCoins) {
-        return NextResponse.json({ error: 'Set a price before going live' }, { status: 400 });
+      // If going live with no price set, default to free (0 coins)
+      if (status === 'live' && item.priceCoins === null && updates.priceCoins === undefined) {
+        updates.priceCoins = 0;
       }
 
       updates.status = status;

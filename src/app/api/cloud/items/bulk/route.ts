@@ -101,13 +101,16 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'Valid status required' }, { status: 400 });
       }
 
-      // If going live, check all items have prices
+      // If going live, auto-set unpriced items to free (0 coins)
       if (status === 'live') {
-        const unpriced = items.filter(i => !i.priceCoins);
+        const unpriced = items.filter(i => i.priceCoins === null);
         if (unpriced.length > 0) {
-          return NextResponse.json({
-            error: `${unpriced.length} items have no price. Price them first.`,
-          }, { status: 400 });
+          await db.update(cloudItems)
+            .set({ priceCoins: 0 })
+            .where(and(
+              eq(cloudItems.creatorId, user.id),
+              inArray(cloudItems.id, unpriced.map(i => i.id)),
+            ));
         }
       }
 

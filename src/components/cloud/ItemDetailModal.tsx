@@ -16,7 +16,7 @@ interface ItemDetailModalProps {
 const statusOptions = [
   { value: 'private', label: 'Private', icon: Lock, color: 'text-gray-400', bg: 'bg-gray-500/20', desc: 'Only you can see' },
   { value: 'live', label: 'Live', icon: Eye, color: 'text-green-400', bg: 'bg-green-500/20', desc: 'Visible to fans' },
-];
+] as const;
 
 export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: ItemDetailModalProps) {
   const [price, setPrice] = useState('');
@@ -48,7 +48,7 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
     setError('');
 
     const updates: any = { status };
-    // If going live, also send the current price input value
+    // If going live, also send the current price input value if set
     if (status === 'live' && !item.priceCoins) {
       const p = parseInt(price);
       if (p > 0) updates.priceCoins = p;
@@ -179,6 +179,10 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
             {statusOptions.map(opt => {
               const Icon = opt.icon;
               const isActive = item.status === opt.value;
+              const hasNoPrice = !item.priceCoins && !parseInt(price);
+              const liveDesc = opt.value === 'live' && hasNoPrice && item.status !== 'live'
+                ? 'Will go live as free'
+                : opt.desc;
               return (
                 <button
                   key={opt.value}
@@ -195,7 +199,7 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
                     <p className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-500'}`}>
                       {opt.label}
                     </p>
-                    <p className="text-[10px] text-gray-600">{opt.desc}</p>
+                    <p className="text-[10px] text-gray-600">{liveDesc}</p>
                   </div>
                 </button>
               );
