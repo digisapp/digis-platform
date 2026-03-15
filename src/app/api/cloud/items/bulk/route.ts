@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (action === 'set_status') {
-      if (!status || !['private', 'ready', 'live'].includes(status)) {
+      if (!status || !['private', 'live'].includes(status)) {
         return NextResponse.json({ error: 'Valid status required' }, { status: 400 });
       }
 

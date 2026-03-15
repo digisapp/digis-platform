@@ -6,7 +6,7 @@ import { walletTransactions } from './wallet';
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 export const cloudItemTypeEnum = pgEnum('cloud_item_type', ['photo', 'video']);
-export const cloudItemStatusEnum = pgEnum('cloud_item_status', ['private', 'ready', 'live']);
+export const cloudItemStatusEnum = pgEnum('cloud_item_status', ['private', 'live']);
 export const cloudPackStatusEnum = pgEnum('cloud_pack_status', ['draft', 'live']);
 
 // ─── Cloud Items ───────────────────────────────────────────────────────────────

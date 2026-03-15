@@ -137,9 +137,9 @@ export async function POST(request: NextRequest) {
     // Insert drops
     await db.insert(cloudScheduledDrops).values(dropRecords);
 
-    // Set items to 'ready' status
+    // Keep items private until the scheduled drop time
     await db.update(cloudItems)
-      .set({ status: 'ready' })
+      .set({ status: 'private' })
       .where(and(
         eq(cloudItems.creatorId, user.id),
         inArray(cloudItems.id, itemIds),

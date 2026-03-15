@@ -24,7 +24,7 @@ export function BulkActionsModal({
   onBulkSetPrice,
 }: BulkActionsModalProps) {
   const [tab, setTab] = useState<Tab>('publish');
-  const [targetStatus, setTargetStatus] = useState<'live' | 'ready' | 'private'>('live');
+  const [targetStatus, setTargetStatus] = useState<'live' | 'private'>('live');
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -63,7 +63,6 @@ export function BulkActionsModal({
 
   const statusOptions = [
     { value: 'live' as const, label: 'Live', icon: Eye, description: 'Visible to fans, ready to buy', color: 'green' },
-    { value: 'ready' as const, label: 'Ready', icon: CheckSquare, description: 'Priced but not yet visible', color: 'cyan' },
     { value: 'private' as const, label: 'Private', icon: Lock, description: 'Hidden, only you can see', color: 'gray' },
   ];
 

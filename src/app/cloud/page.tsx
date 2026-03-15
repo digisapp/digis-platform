@@ -36,7 +36,6 @@ import {
 const statusFilters = [
   { value: 'all', label: 'All', icon: LayoutGrid },
   { value: 'private', label: 'Private', icon: Lock },
-  { value: 'ready', label: 'Ready', icon: CheckSquare },
   { value: 'live', label: 'Live', icon: Eye },
 ] as const;
 

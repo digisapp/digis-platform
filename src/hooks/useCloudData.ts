@@ -11,7 +11,7 @@ export interface CloudItem {
   type: 'photo' | 'video';
   durationSeconds: number | null;
   sizeBytes: number | null;
-  status: 'private' | 'ready' | 'live';
+  status: 'private' | 'live';
   priceCoins: number | null;
   uploadedAt: string;
   publishedAt: string | null;
@@ -45,7 +45,7 @@ export interface PricingDefaults {
   packDiscountPct: number;
 }
 
-type StatusFilter = 'all' | 'private' | 'ready' | 'live';
+type StatusFilter = 'all' | 'private' | 'live';
 
 export function useCloudData() {
   const [items, setItems] = useState<CloudItem[]>([]);
@@ -338,7 +338,6 @@ export function useCloudData() {
   const stats = {
     total,
     private: items.filter(i => i.status === 'private').length,
-    ready: items.filter(i => i.status === 'ready').length,
     live: items.filter(i => i.status === 'live').length,
     unpriced: items.filter(i => !i.priceCoins).length,
     photos: items.filter(i => i.type === 'photo').length,

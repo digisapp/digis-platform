@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Play, Lock, Check, Eye, DollarSign } from 'lucide-react';
+import { Play, Lock, Eye, Check } from 'lucide-react';
 import type { CloudItem } from '@/hooks/useCloudData';
 
 interface CloudGridProps {
@@ -14,7 +14,6 @@ interface CloudGridProps {
 
 const statusBadge = {
   private: { label: 'Private', color: 'bg-gray-500/80', icon: Lock },
-  ready: { label: 'Ready', color: 'bg-yellow-500/80', icon: Check },
   live: { label: 'Live', color: 'bg-green-500/80', icon: Eye },
 };
 
@@ -31,7 +30,7 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
   onToggleSelect: (id: string) => void;
   onItemClick: (item: CloudItem) => void;
 }) => {
-  const badge = statusBadge[item.status];
+  const badge = statusBadge[item.status as keyof typeof statusBadge] || statusBadge.private;
   const BadgeIcon = badge.icon;
 
   return (
@@ -93,11 +92,10 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
           {/* Price */}
           {item.priceCoins ? (
             <span className="flex items-center gap-0.5 text-xs font-semibold text-yellow-400">
-              <DollarSign className="w-3 h-3" />
-              {item.priceCoins}
+              {item.priceCoins} coins
             </span>
           ) : (
-            <span className="text-[10px] text-gray-400">No price</span>
+            <span className="text-[10px] text-green-400">Free</span>
           )}
         </div>
       </div>

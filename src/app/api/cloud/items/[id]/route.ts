@@ -76,7 +76,7 @@ export async function PATCH(
 
     // Validate and set status
     if (status !== undefined) {
-      if (!['private', 'ready', 'live'].includes(status)) {
+      if (!['private', 'live'].includes(status)) {
         return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
       }
 

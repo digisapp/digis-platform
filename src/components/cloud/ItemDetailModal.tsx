@@ -15,7 +15,6 @@ interface ItemDetailModalProps {
 
 const statusOptions = [
   { value: 'private', label: 'Private', icon: Lock, color: 'text-gray-400', bg: 'bg-gray-500/20' },
-  { value: 'ready', label: 'Ready to Sell', icon: Check, color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
   { value: 'live', label: 'Live', icon: Eye, color: 'text-green-400', bg: 'bg-green-500/20' },
 ];
 
