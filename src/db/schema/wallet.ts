@@ -31,12 +31,12 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'group_room_payment',
   'group_room_earnings',
   'promo_credit',
-  'hub_purchase',
-  'hub_earnings',
-  'hub_pack_purchase',
-  'hub_pack_earnings',
-  'hub_locked_message',
-  'hub_locked_message_earnings'
+  'cloud_purchase',
+  'cloud_earnings',
+  'cloud_pack_purchase',
+  'cloud_pack_earnings',
+  'cloud_locked_message',
+  'cloud_locked_message_earnings'
 ]);
 
 export const transactionStatusEnum = pgEnum('transaction_status', [

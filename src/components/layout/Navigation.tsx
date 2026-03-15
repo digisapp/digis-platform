@@ -319,7 +319,7 @@ export function Navigation() {
   };
 
   // Define arrays before early return
-  // Creators: Home, Go Live, Drops, Chats (focused on creating and earning)
+  // Creators: Home, Go Live, Cloud, Chats (focused on creating and earning)
   // Fans: Home, Streams, Chats (Home now includes Explore/Discovery)
   const navItems = userRole === 'creator' ? [
     {
@@ -335,10 +335,10 @@ export function Navigation() {
       active: isActive('/creator/go-live'),
     },
     {
-      label: 'Drops',
+      label: 'Cloud',
       icon: LayoutGrid,
-      path: '/drops',
-      active: isActive('/drops') || pathname?.startsWith('/drops'),
+      path: '/cloud',
+      active: isActive('/cloud') || pathname?.startsWith('/cloud'),
     },
     {
       label: 'Chats',
@@ -583,7 +583,7 @@ export function Navigation() {
         <div className="relative flex items-end justify-around px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
           {userRole === 'creator' ? (
             <>
-              {/* Creator Navigation: Home, Go Live, [Profile Center], Drops, Chats */}
+              {/* Creator Navigation: Home, Go Live, [Profile Center], Cloud, Chats */}
               {/* First nav item (Home) */}
               <button
                 onClick={() => { setShowProfileMenu(false); router.push(navItems[0].path); }}
@@ -679,7 +679,7 @@ export function Navigation() {
                 </button>
               </div>
 
-              {/* Third nav item (Drops) */}
+              {/* Third nav item (Cloud) */}
               <button
                 onClick={() => { setShowProfileMenu(false); router.push(navItems[2].path); }}
                 className={`flex flex-col items-center justify-center gap-0.5 flex-1 min-w-[60px] py-1.5 rounded-2xl touch-manipulation ${

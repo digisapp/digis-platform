@@ -286,7 +286,7 @@ export class NotificationService {
   }
 
   /**
-   * Notify all followers when a creator drops new Hub content
+   * Notify all followers when a creator drops new Cloud content
    */
   static async notifyFollowersOfDrop(
     creatorId: string,
@@ -317,11 +317,11 @@ export class NotificationService {
         `New ${contentType} available${item.priceCoins ? ` · ${item.priceCoins} coins` : ''}`,
         `/profile/${creator.username}`,
         creator.avatarUrl || undefined,
-        { creatorId, itemId: item.id, type: 'hub_drop' }
+        { creatorId, itemId: item.id, type: 'cloud_drop' }
       )
     );
 
     await Promise.all(promises);
-    console.log(`[Hub Drop] Notified ${followerList.length} followers for creator ${creatorId}`);
+    console.log(`[Cloud] Notified ${followerList.length} followers for creator ${creatorId}`);
   }
 }

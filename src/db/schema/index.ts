@@ -23,5 +23,5 @@ export * from './bookings';
 export * from './group-rooms';
 export * from './transcripts';
 export * from './redemption-codes';
-export * from './hub';
-export * from './hub-phase2';
+export * from './cloud';
+export * from './cloud-phase2';

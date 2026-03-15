@@ -23,7 +23,7 @@ export interface QueueItem {
   progress: number;            // 0-100
   storagePath: string | null;
   signedUrl: string | null;
-  itemId: string | null;       // Hub item ID after registration
+  itemId: string | null;       // Drops item ID after registration
   error: string | null;
   addedAt: number;
 }
@@ -156,7 +156,7 @@ export function useUploadQueue() {
         updateItem(next.id, { status: 'uploading', progress: 0 });
 
         try {
-          const signRes = await fetch('/api/hub/upload/signed-url', {
+          const signRes = await fetch('/api/cloud/upload/signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -201,7 +201,7 @@ export function useUploadQueue() {
           // Step 3: Register item in database
           updateItem(next.id, { status: 'registering' });
 
-          const regRes = await fetch('/api/hub/upload/register', {
+          const regRes = await fetch('/api/cloud/upload/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -8,7 +8,7 @@ import { tmpdir } from 'os';
 /**
  * MediaProcessingService
  *
- * Generates optimized thumbnails and previews for Hub uploads.
+ * Generates optimized thumbnails and previews for Cloud uploads.
  * - Images: sharp (fast, works on Vercel)
  * - Videos: ffmpeg (poster frame extraction)
  */
@@ -49,7 +49,7 @@ export async function processImage(fileBuffer: Buffer): Promise<ProcessedMedia> 
  * Uses ffmpeg to grab a frame at 1 second (or 0 if very short)
  */
 export async function processVideo(fileBuffer: Buffer, extension: string): Promise<ProcessedMedia> {
-  const tempDir = await mkdtemp(join(tmpdir(), 'hub-video-'));
+  const tempDir = await mkdtemp(join(tmpdir(), 'cloud-video-'));
   const inputPath = join(tempDir, `input.${extension}`);
   const posterPath = join(tempDir, 'poster.jpg');
 

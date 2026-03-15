@@ -25,7 +25,7 @@
       "schedule": "0 4 * * *"
     },
     {
-      "path": "/api/cron/hub-drops",
+      "path": "/api/cron/cloud-scheduler",
       "schedule": "0 9,18 * * *"
     }
   ]
