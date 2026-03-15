@@ -55,6 +55,7 @@ export function useCloudData() {
   const [pricingDefaults, setPricingDefaults] = useState<PricingDefaults | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'photo' | 'video'>('all');
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -67,6 +68,7 @@ export function useCloudData() {
       const params = new URLSearchParams({ page: String(p), limit: '50' });
       if (statusFilter !== 'all') params.set('status', statusFilter);
       if (typeFilter !== 'all') params.set('type', typeFilter);
+      if (tagFilter) params.set('tag', tagFilter);
 
       const res = await fetch(`/api/cloud/items?${params}`);
       const data = await res.json();
@@ -77,7 +79,7 @@ export function useCloudData() {
     } catch (err) {
       console.error('[useCloudData] fetchItems error:', err);
     }
-  }, [statusFilter, typeFilter, page]);
+  }, [statusFilter, typeFilter, tagFilter, page]);
 
   // ── Fetch packs ──
   const fetchPacks = useCallback(async () => {
@@ -358,12 +360,14 @@ export function useCloudData() {
     uploadProgress,
     statusFilter,
     typeFilter,
+    tagFilter,
     page,
     selectedItems,
 
     // Setters
     setStatusFilter,
     setTypeFilter,
+    setTagFilter,
     setPage,
 
     // Actions
@@ -378,6 +382,7 @@ export function useCloudData() {
     createPack,
     fetchItems,
     fetchPacks,
+    fetchTags,
 
     // Selection
     toggleSelect,

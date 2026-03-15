@@ -15,9 +15,10 @@ interface TagsModalProps {
   onClose: () => void;
   selectedItemIds: string[];
   selectedCount: number;
+  onTagsChanged?: () => void;
 }
 
-export function TagsModal({ isOpen, onClose, selectedItemIds, selectedCount }: TagsModalProps) {
+export function TagsModal({ isOpen, onClose, selectedItemIds, selectedCount, onTagsChanged }: TagsModalProps) {
   const [tags, setTags] = useState<TagData[]>([]);
   const [newTagName, setNewTagName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,7 @@ export function TagsModal({ isOpen, onClose, selectedItemIds, selectedCount }: T
       if (res.ok) {
         setNewTagName('');
         await fetchTags();
+        onTagsChanged?.();
       } else {
         setError(data.error || 'Failed to create tag');
       }
@@ -78,6 +80,7 @@ export function TagsModal({ isOpen, onClose, selectedItemIds, selectedCount }: T
         }),
       });
       await fetchTags();
+      onTagsChanged?.();
     } catch (err) {
       console.error('Failed to apply tag:', err);
     }
@@ -87,6 +90,7 @@ export function TagsModal({ isOpen, onClose, selectedItemIds, selectedCount }: T
     try {
       await fetch(`/api/cloud/tags?id=${tagId}`, { method: 'DELETE' });
       setTags(prev => prev.filter(t => t.id !== tagId));
+      onTagsChanged?.();
     } catch (err) {
       console.error('Failed to delete tag:', err);
     }

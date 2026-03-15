@@ -203,6 +203,23 @@ export default function CloudPage() {
             })}
           </div>
 
+          {/* Type filter */}
+          <div className="flex gap-1">
+            {(['all', 'photo', 'video'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => cloud.setTypeFilter(t)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  cloud.typeFilter === t
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {t === 'all' ? 'All' : t === 'photo' ? 'Photos' : 'Videos'}
+              </button>
+            ))}
+          </div>
+
           {/* Selection mode toggle + Quick Sell */}
           <div className="flex items-center gap-2">
             {selectionMode ? (
@@ -275,6 +292,37 @@ export default function CloudPage() {
           </div>
         </div>
 
+        {/* Tag filter pills */}
+        {cloud.tags.length > 0 && (
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+            <Tag className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+            <button
+              onClick={() => cloud.setTagFilter(null)}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                cloud.tagFilter === null
+                  ? 'bg-cyan-500/20 text-cyan-400 ring-1 ring-cyan-500/30'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
+              }`}
+            >
+              All
+            </button>
+            {cloud.tags.map(tag => (
+              <button
+                key={tag.id}
+                onClick={() => cloud.setTagFilter(cloud.tagFilter === tag.name ? null : tag.name)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  cloud.tagFilter === tag.name
+                    ? 'bg-cyan-500/20 text-cyan-400 ring-1 ring-cyan-500/30'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
+                }`}
+              >
+                {tag.name}
+                <span className="ml-1 text-gray-600">{tag.itemCount}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Content Grid */}
         <CloudGrid
           items={cloud.items}
@@ -344,6 +392,7 @@ export default function CloudPage() {
         onClose={() => setShowTags(false)}
         selectedItemIds={Array.from(cloud.selectedItems)}
         selectedCount={cloud.selectedItems.size}
+        onTagsChanged={cloud.fetchTags}
       />
 
       <ScheduleDropsModal
