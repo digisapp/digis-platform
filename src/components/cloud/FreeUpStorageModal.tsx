@@ -18,7 +18,8 @@ interface FreeUpStorageModalProps {
   onClose: () => void;
 }
 
-function formatBytes(bytes: number): string {
+function formatBytes(bytes: number | null): string {
+  if (!bytes || bytes === 0) return '—';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
@@ -69,7 +70,9 @@ export function FreeUpStorageModal({ isOpen, onClose }: FreeUpStorageModalProps)
                 <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
                   <Shield className="w-8 h-8 text-green-400" />
                 </div>
-                <p className="text-3xl font-bold text-white">{formatBytes(totalSize)}</p>
+                <p className="text-3xl font-bold text-white">
+                  {totalSize > 0 ? formatBytes(totalSize) : `${items.length} items`}
+                </p>
                 <p className="text-gray-400 text-sm">safely backed up in Cloud</p>
               </div>
 
@@ -108,7 +111,7 @@ export function FreeUpStorageModal({ isOpen, onClose }: FreeUpStorageModalProps)
                   All {items.length} items are safely stored
                 </p>
                 <p className="text-gray-400 text-xs">
-                  You can delete these from your phone to free up {formatBytes(totalSize)} of storage. Your content stays safe in Cloud.
+                  You can delete these from your phone to free up space. Your content stays safe in Cloud.
                 </p>
               </div>
 
